@@ -201,6 +201,20 @@ export function sendOperationRefkey(entity: unknown): Refkey {
 }
 
 /**
+ * Creates a refkey for a deserialize function that processes an HTTP response.
+ *
+ * Each operation gets a private `_xxxDeserialize` function that validates
+ * the response status code, throws `createRestError` for unexpected statuses,
+ * and deserializes the response body using model deserializer refkeys.
+ *
+ * @param entity - The TCGC operation or method entity.
+ * @returns A stable refkey for the deserialize function declaration.
+ */
+export function deserializeOperationRefkey(entity: unknown): Refkey {
+  return refkey(entity, "deserializeOperation");
+}
+
+/**
  * Creates a refkey for a polling (long-running operation) helper function or type.
  *
  * Polling helpers manage LRO lifecycle — creating pollers, checking status,

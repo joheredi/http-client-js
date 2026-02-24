@@ -195,7 +195,9 @@
           "Public xxx function calls send \u2192 deserialize",
           "Operations grouped by operation group path",
           "Each group in separate source file under src/api/"
-        ]
+        ],
+        "status": "in_progress",
+        "notes": "Send function (3.2) and Deserialize function (3.3) implemented. Remaining: Public operation function (3.4) and operations orchestrator (3.5)."
       },
       {
         "id": "FR9",
@@ -208,7 +210,9 @@
           "LRO operations get updateIntervalInMs",
           "Dual-format operations get contentType",
           "JSDoc documentation from parameter docs"
-        ]
+        ],
+        "status": "implemented",
+        "notes": "OperationOptionsDeclaration component generates OptionalParams interfaces. Supports LRO updateIntervalInMs, dual-format contentType, JSDoc, and OperationOptions extension."
       },
       {
         "id": "FR10",

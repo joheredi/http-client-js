@@ -13,3 +13,4 @@ export {
 } from "./serialization/index.js";
 export { OperationOptionsDeclaration } from "./operation-options.js";
 export { SendOperation } from "./send-operation.js";
+export { DeserializeOperation } from "./deserialize-operation.js";

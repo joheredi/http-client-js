@@ -413,3 +413,23 @@ export function _getItemSend(context: Client, options: GetItemOptionalParams = {
 ```
 
 **Date:** 2026-02-24
+
+---
+
+### Alloy `async` FunctionDeclaration wraps returnType in Promise automatically
+
+**Problem:** When using `<FunctionDeclaration async returnType={code`Promise<${type}>`}>`, the rendered output was `Promise<Promise<T>>` — a double Promise wrapping.
+
+**Root cause:** Alloy's `FunctionDeclaration` component, when the `async` prop is set, automatically wraps the provided `returnType` in `Promise<...>`. If you also manually provide `Promise<...>` in the returnType prop, you get `Promise<Promise<T>>`.
+
+**Fix:** When using the `async` prop, provide only the raw inner type:
+
+```tsx
+// ✅ Correct — async wraps in Promise automatically
+<FunctionDeclaration async returnType={typeExpression}>
+
+// ❌ Wrong — double Promise wrapping
+<FunctionDeclaration async returnType={code`Promise<${typeExpression}>`}>
+```
+
+**Date:** 2026-02-24

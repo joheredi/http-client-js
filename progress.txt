@@ -715,3 +715,62 @@
 - The body serialization uses `getSerializationExpression()` from the serialization module.
   For the body to resolve correctly, the model's serializer must be declared in the same
   output tree (via `JsonSerializer` or `JsonPolymorphicSerializer`).
+
+## 2026-02-24 — Deserialize Operation Component (Phase 3, Task 3.3)
+
+### What was done
+- Created `src/components/deserialize-operation.tsx`: `DeserializeOperation` JSX component that generates
+  `_xxxDeserialize` functions for each operation. These functions process HTTP responses by:
+  - Checking response status code against expected status codes
+  - Throwing `createRestError(result)` for unexpected status codes
+  - Deserializing response body using model deserializer refkeys for model types
+  - Mapping array elements through element deserializers for array-of-model types
+  - Returning `result.body` directly for primitive types
+  - Returning `void` for operations with no response body
+- Added `deserializeOperationRefkey` to `src/utils/refkeys.ts` for cross-component references.
+- Updated `src/components/index.ts`: Exports `DeserializeOperation`.
+- Created `test/components/deserialize-operation.test.tsx`: 8 tests covering:
+  - Void response (DELETE 204) with empty return
+  - Model response with deserializer function call
+  - Primitive response returning result.body directly
+  - Multiple status codes (200 + 201) in expectedStatuses array
+  - Refkey referenceable via deserializeOperationRefkey
+  - Array of model response with .map() deserialization
+  - POST returning a model response
+  - Combined 200 + 204 status codes (optional body)
+- Updated PRD: FR8 marked as in_progress (send + deserialize done), FR9 marked as implemented.
+- All 130 tests pass (8 new + 122 existing).
+
+### Architecture decisions
+- **async prop handles Promise wrapping**: Alloy's `FunctionDeclaration` with `async` prop
+  automatically wraps the `returnType` in `Promise<>`. Do NOT double-wrap with
+  `returnType={code\`Promise<${type}>\`}` — just provide the raw inner type.
+- **Status codes as strings**: Expected status codes are formatted as quoted strings (e.g.,
+  `"200"`) because `PathUncheckedResponse.status` is a string type in the HTTP runtime.
+- **LRO status code expansion**: For LRO operations (non-GET), additional polling status codes
+  (200, 201, 202) are added to match the legacy emitter's behavior.
+- **Reuse of deserialization helpers**: Uses `getDeserializationExpression()` and
+  `needsTransformation()` from the serialization module, which handle models, arrays,
+  dicts, dates, bytes, and nullable types.
+- **Single return path**: The function has a single return statement after the status check,
+  similar to the legacy emitter's pattern. Complex multi-return paths (like dual-format
+  JSON/XML responses) will be added when XML deserialization is implemented (FR7).
+
+### Key learnings (see knowledge.md)
+- Alloy `async` FunctionDeclaration wraps returnType in Promise automatically — do not double-wrap.
+
+### Notes for next person
+- Completed: Phase 0 (0.1, 0.3-0.6), Phase 1 (1.1-1.6), Phase 2 (2.1-2.3), Phase 3 (3.1-3.3).
+- Phase 0 remaining: 0.2 (Emitter Entry Point).
+- Phase 2 remaining: 2.4 (XML Serializers, P1), 2.5 (Static Helpers).
+- Phase 3 remaining: 3.4 (Public Operation Function), 3.5 (Operations Orchestrator).
+- **Next priorities**: 3.4 (Public Operation Function) is the logical next step — it generates
+  public `xxx` functions that compose `_xxxSend` and `_xxxDeserialize` together. This is the
+  final piece of the operations pipeline that consumers actually call.
+- After 3.4, 3.5 (Operations Orchestrator) groups operations into files and wires everything.
+- The `DeserializeOperation` component does not yet handle:
+  - Error body deserialization (custom error types from TCGC exceptions)
+  - Response header extraction
+  - Binary/stream responses (bytes/Uint8Array)
+  - Dual-format (JSON/XML) response deserialization
+  These will be added as part of later tasks (XML support, error deserialization).
