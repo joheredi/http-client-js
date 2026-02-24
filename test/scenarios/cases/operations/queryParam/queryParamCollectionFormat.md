@@ -36,119 +36,96 @@ interface QueryOperations {
 ## Operations
 
 ```ts operations
-import { TestingContext as Client } from "./index.js";
-import { buildPipeCollection } from "../static-helpers/serialization/build-pipe-collection.js";
-import { buildSsvCollection } from "../static-helpers/serialization/build-ssv-collection.js";
-import { expandUrlTemplate } from "../static-helpers/urlTemplate.js";
-import { CreateOptionalParams, ReadOptionalParams } from "./options.js";
+import type {
+  CreateOptionalParams as CreateOptionalParams_1,
+  ReadOptionalParams as ReadOptionalParams_1,
+} from "./queryOperations/options.js";
 import {
-  StreamableMethod,
-  PathUncheckedResponse,
-  createRestError,
-  operationOptionsToRequestParameters,
-} from "@azure-rest/core-client";
-
-export function _createSend(
-  context: Client,
-  ssvArray: number[],
-  pipeArray: string[],
-  options: CreateOptionalParams = { requestOptions: {} },
-): StreamableMethod {
-  const path = expandUrlTemplate(
-    "/query{?ssvArray,ssvOptionalArray,pipeArray}",
-    {
-      ssvArray: buildSsvCollection(
-        ssvArray.map((p: any) => {
-          return p;
-        }),
-      ),
-      ssvOptionalArray: !options?.ssvOptionalArray
-        ? options?.ssvOptionalArray
-        : buildSsvCollection(
-            options?.ssvOptionalArray.map((p: any) => {
-              return p;
-            }),
-          ),
-      pipeArray: buildPipeCollection(
-        pipeArray.map((p: any) => {
-          return p;
-        }),
-      ),
-    },
-    {
-      allowReserved: options?.requestOptions?.skipUrlEncoding,
-    },
-  );
-  return context
-    .path(path)
-    .post({ ...operationOptionsToRequestParameters(options) });
-}
-
-export async function _createDeserialize(
-  result: PathUncheckedResponse,
-): Promise<void> {
-  const expectedStatuses = ["204"];
-  if (!expectedStatuses.includes(result.status)) {
-    throw createRestError(result);
-  }
-
-  return;
-}
-
-export async function create(
-  context: Client,
-  ssvArray: number[],
-  pipeArray: string[],
-  options: CreateOptionalParams = { requestOptions: {} },
-): Promise<void> {
-  const result = await _createSend(context, ssvArray, pipeArray, options);
-  return _createDeserialize(result);
-}
+  type Client as Client_1,
+  createRestError as createRestError_1,
+  expandUrlTemplate as expandUrlTemplate_1,
+  operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
+  type PathUncheckedResponse as PathUncheckedResponse_1,
+  type StreamableMethod as StreamableMethod_1,
+} from "@typespec/ts-http-runtime";
 
 export function _readSend(
-  context: Client,
+  context: Client_1,
   simpleArray: string[],
-  options: ReadOptionalParams = { requestOptions: {} },
-): StreamableMethod {
-  const path = expandUrlTemplate(
+  options: ReadOptionalParams_1 = { requestOptions: {} },
+): StreamableMethod_1 {
+  const path = expandUrlTemplate_1(
     "/query{?simpleArray,simpleOptionalArray}",
     {
-      simpleArray: simpleArray.map((p: any) => {
-        return p;
-      }),
-      simpleOptionalArray: !options?.simpleOptionalArray
-        ? options?.simpleOptionalArray
-        : options?.simpleOptionalArray.map((p: any) => {
-            return p;
-          }),
+      simpleArray: simpleArray,
+      simpleOptionalArray: options?.simpleOptionalArray,
     },
-    {
-      allowReserved: options?.requestOptions?.skipUrlEncoding,
-    },
+    { allowReserved: options?.requestOptions?.skipUrlEncoding },
   );
   return context
     .path(path)
-    .get({ ...operationOptionsToRequestParameters(options) });
+    .get({ ...operationOptionsToRequestParameters_1(options) });
 }
 
 export async function _readDeserialize(
-  result: PathUncheckedResponse,
+  result: PathUncheckedResponse_1,
 ): Promise<void> {
   const expectedStatuses = ["204"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError(result);
+    throw createRestError_1(result);
   }
 
   return;
 }
 
 export async function read(
-  context: Client,
+  context: Client_1,
   simpleArray: string[],
-  options: ReadOptionalParams = { requestOptions: {} },
+  options: ReadOptionalParams_1 = { requestOptions: {} },
 ): Promise<void> {
   const result = await _readSend(context, simpleArray, options);
   return _readDeserialize(result);
+}
+
+export function _createSend(
+  context: Client_1,
+  ssvArray: number[],
+  pipeArray: string[],
+  options: CreateOptionalParams_1 = { requestOptions: {} },
+): StreamableMethod_1 {
+  const path = expandUrlTemplate_1(
+    "/query{?ssvArray,ssvOptionalArray,pipeArray}",
+    {
+      ssvArray: ssvArray,
+      ssvOptionalArray: options?.ssvOptionalArray,
+      pipeArray: pipeArray,
+    },
+    { allowReserved: options?.requestOptions?.skipUrlEncoding },
+  );
+  return context
+    .path(path)
+    .post({ ...operationOptionsToRequestParameters_1(options) });
+}
+
+export async function _createDeserialize(
+  result: PathUncheckedResponse_1,
+): Promise<void> {
+  const expectedStatuses = ["204"];
+  if (!expectedStatuses.includes(result.status)) {
+    throw createRestError_1(result);
+  }
+
+  return;
+}
+
+export async function create(
+  context: Client_1,
+  ssvArray: number[],
+  pipeArray: string[],
+  options: CreateOptionalParams_1 = { requestOptions: {} },
+): Promise<void> {
+  const result = await _createSend(context, ssvArray, pipeArray, options);
+  return _createDeserialize(result);
 }
 ```
 
@@ -175,57 +152,46 @@ interface QueryOperations {
 ## Operations
 
 ```ts operations
-import { TestingContext as Client } from "./index.js";
-import { expandUrlTemplate } from "../static-helpers/urlTemplate.js";
-import { ReadOptionalParams } from "./options.js";
+import type { ReadOptionalParams as ReadOptionalParams_1 } from "./queryOperations/options.js";
 import {
-  StreamableMethod,
-  PathUncheckedResponse,
-  createRestError,
-  operationOptionsToRequestParameters,
-} from "@azure-rest/core-client";
+  type Client as Client_1,
+  createRestError as createRestError_1,
+  expandUrlTemplate as expandUrlTemplate_1,
+  operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
+  type PathUncheckedResponse as PathUncheckedResponse_1,
+  type StreamableMethod as StreamableMethod_1,
+} from "@typespec/ts-http-runtime";
 
 export function _readSend(
-  context: Client,
+  context: Client_1,
   ssvArray: number[],
-  options: ReadOptionalParams = { requestOptions: {} },
-): StreamableMethod {
-  const path = expandUrlTemplate(
+  options: ReadOptionalParams_1 = { requestOptions: {} },
+): StreamableMethod_1 {
+  const path = expandUrlTemplate_1(
     "/query{?ssvArray*,ssvOptionalArray*}",
-    {
-      ssvArray: ssvArray.map((p: any) => {
-        return p;
-      }),
-      ssvOptionalArray: !options?.ssvOptionalArray
-        ? options?.ssvOptionalArray
-        : options?.ssvOptionalArray.map((p: any) => {
-            return p;
-          }),
-    },
-    {
-      allowReserved: options?.requestOptions?.skipUrlEncoding,
-    },
+    { ssvArray: ssvArray, ssvOptionalArray: options?.ssvOptionalArray },
+    { allowReserved: options?.requestOptions?.skipUrlEncoding },
   );
   return context
     .path(path)
-    .get({ ...operationOptionsToRequestParameters(options) });
+    .get({ ...operationOptionsToRequestParameters_1(options) });
 }
 
 export async function _readDeserialize(
-  result: PathUncheckedResponse,
+  result: PathUncheckedResponse_1,
 ): Promise<void> {
   const expectedStatuses = ["204"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError(result);
+    throw createRestError_1(result);
   }
 
   return;
 }
 
 export async function read(
-  context: Client,
+  context: Client_1,
   ssvArray: number[],
-  options: ReadOptionalParams = { requestOptions: {} },
+  options: ReadOptionalParams_1 = { requestOptions: {} },
 ): Promise<void> {
   const result = await _readSend(context, ssvArray, options);
   return _readDeserialize(result);

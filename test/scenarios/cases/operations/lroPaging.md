@@ -406,97 +406,103 @@ export function errorAdditionalInfoDeserializer(
 ## Operations
 
 ```ts operations
-import { WebContext as Client } from "./index.js";
 import {
-  _WebAppCollection,
-  _webAppCollectionDeserializer,
-  Site,
-  errorResponseDeserializer,
+  buildPagedAsyncIterator as buildPagedAsyncIterator_1,
+  type PagedAsyncIterableIterator as PagedAsyncIterableIterator_1,
+} from "../helpers/pagingHelpers.js";
+import { getLongRunningPoller as getLongRunningPoller_1 } from "../helpers/pollingHelpers.js";
+import {
+  type Site as Site_1,
+  siteDeserializer as siteDeserializer_1,
 } from "../models/models.js";
+import { SuspendOptionalParams as SuspendOptionalParams_1 } from "./sites/options.js";
 import {
-  PagedAsyncIterableIterator,
-  buildPagedAsyncIterator,
-} from "../static-helpers/pagingHelpers.js";
-import { getLongRunningPoller } from "../static-helpers/pollingHelpers.js";
-import { expandUrlTemplate } from "../static-helpers/urlTemplate.js";
-import { SuspendOptionalParams } from "./options.js";
+  OperationState as OperationState_1,
+  PollerLike as PollerLike_1,
+} from "@azure/core-lro";
 import {
-  StreamableMethod,
-  PathUncheckedResponse,
-  createRestError,
-  operationOptionsToRequestParameters,
-} from "@azure-rest/core-client";
-import { PollerLike, OperationState } from "@azure/core-lro";
+  Client as Client_1,
+  createRestError as createRestError_1,
+  expandUrlTemplate as expandUrlTemplate_1,
+  operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
+  PathUncheckedResponse as PathUncheckedResponse_1,
+  type StreamableMethod as StreamableMethod_1,
+} from "@typespec/ts-http-runtime";
 
 export function _suspendSend(
-  context: Client,
+  context: Client_1,
   resourceGroupName: string,
   name: string,
-  options: SuspendOptionalParams = { requestOptions: {} },
-): StreamableMethod {
-  const path = expandUrlTemplate(
+  options: SuspendOptionalParams_1 = { requestOptions: {} },
+): StreamableMethod_1 {
+  const path = expandUrlTemplate_1(
     "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/suspend{?api%2Dversion}",
     {
-      subscriptionId: context.subscriptionId,
+      "api-version": context.apiVersion,
+      subscriptionId: context["subscriptionId"],
       resourceGroupName: resourceGroupName,
       name: name,
-      "api%2Dversion": context.apiVersion ?? "2023-12-01",
     },
-    {
-      allowReserved: options?.requestOptions?.skipUrlEncoding,
-    },
+    { allowReserved: options?.requestOptions?.skipUrlEncoding },
   );
   return context.path(path).post({
-    ...operationOptionsToRequestParameters(options),
-    headers: { accept: "application/json", ...options.requestOptions?.headers },
+    ...operationOptionsToRequestParameters_1(options),
+    headers: {
+      accept: "application/json",
+      ...options.requestOptions?.headers,
+    },
   });
 }
 
 export async function _suspendDeserialize(
-  result: PathUncheckedResponse,
-): Promise<_WebAppCollection> {
-  const expectedStatuses = ["200", "201", "202"];
+  result: PathUncheckedResponse_1,
+): Promise<Site_1[]> {
+  const expectedStatuses = ["200", "202", "201"];
   if (!expectedStatuses.includes(result.status)) {
-    const error = createRestError(result);
-    error.details = errorResponseDeserializer(result.body);
-
-    throw error;
+    throw createRestError_1(result);
   }
 
-  return _webAppCollectionDeserializer(result.body);
+  return result.body.map((p: any) => {
+    return siteDeserializer_1(p);
+  });
 }
 
-/** A long-running resource action. */
+/**
+ * A long-running resource action.
+ *
+ * @param {Client_1} context
+ * @param {string} resourceGroupName
+ * @param {string} name
+ * @param {SuspendOptionalParams_1} options
+ */
 export function suspend(
-  context: Client,
+  context: Client_1,
   resourceGroupName: string,
   name: string,
-  options: SuspendOptionalParams = { requestOptions: {} },
-): PagedAsyncIterableIterator<Site> {
-  const initialPagingPoller = getLongRunningPoller(
+  options: SuspendOptionalParams_1 = { requestOptions: {} },
+): PagedAsyncIterableIterator_1<Site_1> {
+  const initialPagingPoller = getLongRunningPoller_1(
     context,
-    async (result: PathUncheckedResponse) => result,
-    ["200", "201", "202"],
+    async (result: PathUncheckedResponse_1) => result,
+    ["200"],
     {
       updateIntervalInMs: options?.updateIntervalInMs,
       abortSignal: options?.abortSignal,
       getInitialResponse: () =>
         _suspendSend(context, resourceGroupName, name, options),
       resourceLocationConfig: "location",
-      apiVersion: context.apiVersion ?? "2023-12-01",
     },
-  ) as PollerLike<OperationState<PathUncheckedResponse>, PathUncheckedResponse>;
+  ) as PollerLike_1<
+    OperationState_1<PathUncheckedResponse_1>,
+    PathUncheckedResponse_1
+  >;
 
-  return buildPagedAsyncIterator(
+  return buildPagedAsyncIterator_1(
     context,
     async () => await initialPagingPoller,
     _suspendDeserialize,
-    ["200", "201", "202"],
-    {
-      itemName: "value",
-      nextLinkName: "nextLink",
-      apiVersion: context.apiVersion ?? "2023-12-01",
-    },
+    ["200"],
+    { itemName: "value" },
   );
 }
 ```

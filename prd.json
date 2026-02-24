@@ -1468,9 +1468,9 @@
         {
           "id": "10.3",
           "title": "Fix `operations` category resolution for grouped operations (17 failures)",
-          "status": "not_started",
+          "status": "done",
           "description": "17 tests fail with 'No output file found for legacy category operations'. The test harness resolves the 'operations' category using regex `/api\\/operations\\.ts$/` which matches `src/api/operations.ts`. But the new emitter generates operations at grouped paths like `src/api/<group>/operations.ts` (e.g., `src/api/widgets/operations.ts`, `src/api/queryOperations/operations.ts`). The regex doesn't match these paths. Fix options: (a) update the harness regex to match grouped operation files, (b) concatenate all operation files for the 'operations' category, or (c) change the emitter to optionally generate flat operations files.",
-          "failure_count": 17,
+          "failure_count": 0,
           "affected_scenarios": [
             "apiOperations/apiOperations.md",
             "apiOperations/azureCoreOperations.md",
@@ -1487,7 +1487,8 @@
             "samples/parameters/bodyOptionalParameterName.md"
           ],
           "error_pattern": "No output file found for legacy category \"operations\"",
-          "component": "test/scenarios/scenario-harness.ts (LEGACY_CATEGORIES.operations)"
+          "component": "test/scenarios/scenario-harness.ts (LEGACY_CATEGORIES.operations)",
+          "pass": true
         },
         {
           "id": "10.4",

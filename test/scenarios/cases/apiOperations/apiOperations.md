@@ -992,156 +992,71 @@ withRawContent: true
 ## Operations
 
 ```ts operations
-import { ContosoContext as Client } from "./index.js";
 import {
-  _OperationListResult,
-  _operationListResultDeserializer,
-  Operation,
-  errorResponseDeserializer,
-  FileShareSnapshotUpdate,
-  fileShareSnapshotUpdateSerializer,
-  FileShareSnapshot,
-  fileShareSnapshotDeserializer,
+  buildPagedAsyncIterator as buildPagedAsyncIterator_1,
+  type PagedAsyncIterableIterator as PagedAsyncIterableIterator_1,
+} from "../helpers/pagingHelpers.js";
+import {
+  type Operation as Operation_1,
+  operationDeserializer as operationDeserializer_1,
 } from "../models/models.js";
+import { ListOptionalParams as ListOptionalParams_1 } from "./operations/options.js";
 import {
-  PagedAsyncIterableIterator,
-  buildPagedAsyncIterator,
-} from "../static-helpers/pagingHelpers.js";
-import { getLongRunningPoller } from "../static-helpers/pollingHelpers.js";
-import { expandUrlTemplate } from "../static-helpers/urlTemplate.js";
-import {
-  UpdateFileShareSnapshotOptionalParams,
-  ListOptionalParams,
-} from "./options.js";
-import {
-  StreamableMethod,
-  PathUncheckedResponse,
-  createRestError,
-  operationOptionsToRequestParameters,
-} from "@azure-rest/core-client";
-import { PollerLike, OperationState } from "@azure/core-lro";
-
-export function _updateFileShareSnapshotSend(
-  context: Client,
-  resourceGroupName: string,
-  resourceName: string,
-  name: string,
-  properties: FileShareSnapshotUpdate,
-  options: UpdateFileShareSnapshotOptionalParams = { requestOptions: {} },
-): StreamableMethod {
-  const path = expandUrlTemplate(
-    "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Contoso/fileShares/{resourceName}/fileShareSnapshots/{name}{?api%2Dversion}",
-    {
-      subscriptionId: context.subscriptionId,
-      resourceGroupName: resourceGroupName,
-      resourceName: resourceName,
-      name: name,
-      "api%2Dversion": context.apiVersion ?? "2021-10-01-preview",
-    },
-    {
-      allowReserved: options?.requestOptions?.skipUrlEncoding,
-    },
-  );
-  return context.path(path).patch({
-    ...operationOptionsToRequestParameters(options),
-    contentType: "application/json",
-    body: fileShareSnapshotUpdateSerializer(properties),
-  });
-}
-
-export async function _updateFileShareSnapshotDeserialize(
-  result: PathUncheckedResponse,
-): Promise<FileShareSnapshot> {
-  const expectedStatuses = ["202", "200", "201"];
-  if (!expectedStatuses.includes(result.status)) {
-    const error = createRestError(result);
-    error.details = errorResponseDeserializer(result.body);
-
-    throw error;
-  }
-
-  return fileShareSnapshotDeserializer(result.body);
-}
-
-/** Update a FileShareSnapshot */
-export function updateFileShareSnapshot(
-  context: Client,
-  resourceGroupName: string,
-  resourceName: string,
-  name: string,
-  properties: FileShareSnapshotUpdate,
-  options: UpdateFileShareSnapshotOptionalParams = { requestOptions: {} },
-): PollerLike<OperationState<FileShareSnapshot>, FileShareSnapshot> {
-  return getLongRunningPoller(
-    context,
-    _updateFileShareSnapshotDeserialize,
-    ["202", "200", "201"],
-    {
-      updateIntervalInMs: options?.updateIntervalInMs,
-      abortSignal: options?.abortSignal,
-      getInitialResponse: () =>
-        _updateFileShareSnapshotSend(
-          context,
-          resourceGroupName,
-          resourceName,
-          name,
-          properties,
-          options,
-        ),
-      resourceLocationConfig: "location",
-      apiVersion: context.apiVersion ?? "2021-10-01-preview",
-    },
-  ) as PollerLike<OperationState<FileShareSnapshot>, FileShareSnapshot>;
-}
+  Client as Client_1,
+  createRestError as createRestError_1,
+  expandUrlTemplate as expandUrlTemplate_1,
+  operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
+  type PathUncheckedResponse as PathUncheckedResponse_1,
+  type StreamableMethod as StreamableMethod_1,
+} from "@typespec/ts-http-runtime";
 
 export function _listSend(
-  context: Client,
-  options: ListOptionalParams = { requestOptions: {} },
-): StreamableMethod {
-  const path = expandUrlTemplate(
+  context: Client_1,
+  options: ListOptionalParams_1 = { requestOptions: {} },
+): StreamableMethod_1 {
+  const path = expandUrlTemplate_1(
     "/providers/Microsoft.Contoso/operations{?api%2Dversion}",
-    {
-      "api%2Dversion": context.apiVersion ?? "2021-10-01-preview",
-    },
-    {
-      allowReserved: options?.requestOptions?.skipUrlEncoding,
-    },
+    { "api-version": context.apiVersion },
+    { allowReserved: options?.requestOptions?.skipUrlEncoding },
   );
   return context.path(path).get({
-    ...operationOptionsToRequestParameters(options),
-    headers: { accept: "application/json", ...options.requestOptions?.headers },
+    ...operationOptionsToRequestParameters_1(options),
+    headers: {
+      accept: "application/json",
+      ...options.requestOptions?.headers,
+    },
   });
 }
 
 export async function _listDeserialize(
-  result: PathUncheckedResponse,
-): Promise<_OperationListResult> {
+  result: PathUncheckedResponse_1,
+): Promise<Operation_1[]> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
-    const error = createRestError(result);
-    error.details = errorResponseDeserializer(result.body);
-
-    throw error;
+    throw createRestError_1(result);
   }
 
-  return _operationListResultDeserializer(result.body);
+  return result.body.map((p: any) => {
+    return operationDeserializer_1(p);
+  });
 }
 
-/** List the operations for the provider */
+/**
+ * List the operations for the provider
+ *
+ * @param {Client_1} context
+ * @param {ListOptionalParams_1} options
+ */
 export function list(
-  context: Client,
-  options: ListOptionalParams = { requestOptions: {} },
-): PagedAsyncIterableIterator<Operation> {
-  return buildPagedAsyncIterator(
+  context: Client_1,
+  options: ListOptionalParams_1 = { requestOptions: {} },
+): PagedAsyncIterableIterator_1<Operation_1> {
+  return buildPagedAsyncIterator_1(
     context,
     () => _listSend(context, options),
     _listDeserialize,
     ["200"],
-    {
-      itemName: "value",
-      nextLinkName: "nextLink",
-      apiVersion: context.apiVersion ?? "2021-10-01-preview",
-    },
+    { itemName: "value" },
   );
 }
 ```

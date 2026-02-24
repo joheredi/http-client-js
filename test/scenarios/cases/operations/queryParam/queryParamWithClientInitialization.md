@@ -145,74 +145,81 @@ export function createBillingBenefits(
 ## Operations
 
 ```ts operations
-import { BillingBenefitsContext as Client } from "./index.js";
 import {
-  SavingsPlanModel,
-  savingsPlanModelDeserializer,
-  errorResponseDeserializer,
+  type SavingsPlanModel as SavingsPlanModel_1,
+  savingsPlanModelDeserializer as savingsPlanModelDeserializer_1,
 } from "../models/models.js";
-import { expandUrlTemplate } from "../static-helpers/urlTemplate.js";
-import { GetOptionalParams } from "./options.js";
+import { GetOptionalParams as GetOptionalParams_1 } from "./savingsPlanModels/options.js";
 import {
-  StreamableMethod,
-  PathUncheckedResponse,
-  createRestError,
-  operationOptionsToRequestParameters,
-} from "@azure-rest/core-client";
+  Client as Client_1,
+  createRestError as createRestError_1,
+  expandUrlTemplate as expandUrlTemplate_1,
+  operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
+  type PathUncheckedResponse as PathUncheckedResponse_1,
+  type StreamableMethod as StreamableMethod_1,
+} from "@typespec/ts-http-runtime";
 
 export function _getSend(
-  context: Client,
+  context: Client_1,
   apiVersion: string,
   subscriptionId: string,
   resourceGroupName: string,
   savingsPlanOrderId: string,
   savingsPlanId: string,
-  options: GetOptionalParams = { requestOptions: {} },
-): StreamableMethod {
-  const path = expandUrlTemplate(
+  options: GetOptionalParams_1 = { requestOptions: {} },
+): StreamableMethod_1 {
+  const path = expandUrlTemplate_1(
     "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ThisWillBeReplaced/savingsPlanOrders/{savingsPlanOrderId}/savingsPlans/{savingsPlanId}{?api%2Dversion,%24expand}",
     {
+      "api-version": apiVersion,
       subscriptionId: subscriptionId,
       resourceGroupName: resourceGroupName,
       savingsPlanOrderId: savingsPlanOrderId,
       savingsPlanId: savingsPlanId,
-      "api%2Dversion": apiVersion,
-      "%24expand": context.expand,
+      $expand: context["$expand"],
     },
-    {
-      allowReserved: options?.requestOptions?.skipUrlEncoding,
-    },
+    { allowReserved: options?.requestOptions?.skipUrlEncoding },
   );
   return context.path(path).get({
-    ...operationOptionsToRequestParameters(options),
-    headers: { accept: "application/json", ...options.requestOptions?.headers },
+    ...operationOptionsToRequestParameters_1(options),
+    headers: {
+      accept: "application/json",
+      ...options.requestOptions?.headers,
+    },
   });
 }
 
 export async function _getDeserialize(
-  result: PathUncheckedResponse,
-): Promise<SavingsPlanModel> {
+  result: PathUncheckedResponse_1,
+): Promise<SavingsPlanModel_1> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
-    const error = createRestError(result);
-    error.details = errorResponseDeserializer(result.body);
-
-    throw error;
+    throw createRestError_1(result);
   }
 
-  return savingsPlanModelDeserializer(result.body);
+  return savingsPlanModelDeserializer_1(result.body);
 }
 
-/** Get savings plan. */
+/**
+ * Get savings plan.
+ *
+ * @param {Client_1} context
+ * @param {string} apiVersion
+ * @param {string} subscriptionId
+ * @param {string} resourceGroupName
+ * @param {string} savingsPlanOrderId
+ * @param {string} savingsPlanId
+ * @param {GetOptionalParams_1} options
+ */
 export async function get(
-  context: Client,
+  context: Client_1,
   apiVersion: string,
   subscriptionId: string,
   resourceGroupName: string,
   savingsPlanOrderId: string,
   savingsPlanId: string,
-  options: GetOptionalParams = { requestOptions: {} },
-): Promise<SavingsPlanModel> {
+  options: GetOptionalParams_1 = { requestOptions: {} },
+): Promise<SavingsPlanModel_1> {
   const result = await _getSend(
     context,
     apiVersion,
@@ -365,74 +372,81 @@ export function createBillingBenefits(
 ## Operations
 
 ```ts operations
-import { BillingBenefitsContext as Client } from "./index.js";
 import {
-  SavingsPlanModel,
-  savingsPlanModelDeserializer,
-  errorResponseDeserializer,
+  type SavingsPlanModel as SavingsPlanModel_1,
+  savingsPlanModelDeserializer as savingsPlanModelDeserializer_1,
 } from "../models/models.js";
-import { expandUrlTemplate } from "../static-helpers/urlTemplate.js";
-import { GetOptionalParams } from "./options.js";
+import { GetOptionalParams as GetOptionalParams_1 } from "./savingsPlanModels/options.js";
 import {
-  StreamableMethod,
-  PathUncheckedResponse,
-  createRestError,
-  operationOptionsToRequestParameters,
-} from "@azure-rest/core-client";
+  Client as Client_1,
+  createRestError as createRestError_1,
+  expandUrlTemplate as expandUrlTemplate_1,
+  operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
+  type PathUncheckedResponse as PathUncheckedResponse_1,
+  type StreamableMethod as StreamableMethod_1,
+} from "@typespec/ts-http-runtime";
 
 export function _getSend(
-  context: Client,
+  context: Client_1,
   apiVersion: string,
   subscriptionId: string,
   resourceGroupName: string,
   savingsPlanOrderId: string,
   savingsPlanId: string,
-  options: GetOptionalParams = { requestOptions: {} },
-): StreamableMethod {
-  const path = expandUrlTemplate(
+  options: GetOptionalParams_1 = { requestOptions: {} },
+): StreamableMethod_1 {
+  const path = expandUrlTemplate_1(
     "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ThisWillBeReplaced/savingsPlanOrders/{savingsPlanOrderId}/savingsPlans/{savingsPlanId}{?api%2Dversion,%24expand}",
     {
+      "api-version": apiVersion,
       subscriptionId: subscriptionId,
       resourceGroupName: resourceGroupName,
       savingsPlanOrderId: savingsPlanOrderId,
       savingsPlanId: savingsPlanId,
-      "api%2Dversion": apiVersion,
-      "%24expand": context.expand,
+      $expand: context["$expand"],
     },
-    {
-      allowReserved: options?.requestOptions?.skipUrlEncoding,
-    },
+    { allowReserved: options?.requestOptions?.skipUrlEncoding },
   );
   return context.path(path).get({
-    ...operationOptionsToRequestParameters(options),
-    headers: { accept: "application/json", ...options.requestOptions?.headers },
+    ...operationOptionsToRequestParameters_1(options),
+    headers: {
+      accept: "application/json",
+      ...options.requestOptions?.headers,
+    },
   });
 }
 
 export async function _getDeserialize(
-  result: PathUncheckedResponse,
-): Promise<SavingsPlanModel> {
+  result: PathUncheckedResponse_1,
+): Promise<SavingsPlanModel_1> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
-    const error = createRestError(result);
-    error.details = errorResponseDeserializer(result.body);
-
-    throw error;
+    throw createRestError_1(result);
   }
 
-  return savingsPlanModelDeserializer(result.body);
+  return savingsPlanModelDeserializer_1(result.body);
 }
 
-/** Get savings plan. */
+/**
+ * Get savings plan.
+ *
+ * @param {Client_1} context
+ * @param {string} apiVersion
+ * @param {string} subscriptionId
+ * @param {string} resourceGroupName
+ * @param {string} savingsPlanOrderId
+ * @param {string} savingsPlanId
+ * @param {GetOptionalParams_1} options
+ */
 export async function get(
-  context: Client,
+  context: Client_1,
   apiVersion: string,
   subscriptionId: string,
   resourceGroupName: string,
   savingsPlanOrderId: string,
   savingsPlanId: string,
-  options: GetOptionalParams = { requestOptions: {} },
-): Promise<SavingsPlanModel> {
+  options: GetOptionalParams_1 = { requestOptions: {} },
+): Promise<SavingsPlanModel_1> {
   const result = await _getSend(
     context,
     apiVersion,

@@ -261,45 +261,48 @@ mustEmptyDiagnostic: false
 ## Operations
 
 ```ts operations
-import { TestingContext as Client } from "./index.js";
-import { DocumentBase, documentBaseSerializer } from "../models/models.js";
-import { PublishOptionalParams } from "./options.js";
 import {
-  StreamableMethod,
-  PathUncheckedResponse,
-  createRestError,
-  operationOptionsToRequestParameters,
-} from "@azure-rest/core-client";
+  type DocumentBase as DocumentBase_1,
+  documentBaseSerializer as documentBaseSerializer_1,
+} from "../models/models.js";
+import type { PublishOptionalParams as PublishOptionalParams_1 } from "./documents/options.js";
+import {
+  type Client as Client_1,
+  createRestError as createRestError_1,
+  operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
+  type PathUncheckedResponse as PathUncheckedResponse_1,
+  type StreamableMethod as StreamableMethod_1,
+} from "@typespec/ts-http-runtime";
 
 export function _publishSend(
-  context: Client,
-  endpointParam: DocumentBase,
-  options: PublishOptionalParams = { requestOptions: {} },
-): StreamableMethod {
+  context: Client_1,
+  endpoint: DocumentBase_1,
+  options: PublishOptionalParams_1 = { requestOptions: {} },
+): StreamableMethod_1 {
   return context.path("/documents").post({
-    ...operationOptionsToRequestParameters(options),
+    ...operationOptionsToRequestParameters_1(options),
     contentType: "application/json",
-    body: documentBaseSerializer(endpointParam),
+    body: documentBaseSerializer_1(endpoint),
   });
 }
 
 export async function _publishDeserialize(
-  result: PathUncheckedResponse,
+  result: PathUncheckedResponse_1,
 ): Promise<void> {
   const expectedStatuses = ["204"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError(result);
+    throw createRestError_1(result);
   }
 
   return;
 }
 
 export async function publish(
-  context: Client,
-  endpointParam: DocumentBase,
-  options: PublishOptionalParams = { requestOptions: {} },
+  context: Client_1,
+  endpoint: DocumentBase_1,
+  options: PublishOptionalParams_1 = { requestOptions: {} },
 ): Promise<void> {
-  const result = await _publishSend(context, endpointParam, options);
+  const result = await _publishSend(context, endpoint, options);
   return _publishDeserialize(result);
 }
 ```

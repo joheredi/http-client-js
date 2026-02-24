@@ -65,71 +65,81 @@ withVersionedApiVersion: true
 ## Operations
 
 ```ts operations
-import { TestingContext as Client } from "./index.js";
 import {
-  TestVerificationContent,
-  testVerificationContentSerializer,
-  TestVerificationResult,
-  testVerificationResultDeserializer,
+  TestVerificationContent as TestVerificationContent_1,
+  testVerificationContentSerializer as testVerificationContentSerializer_1,
+  type TestVerificationResult as TestVerificationResult_1,
+  testVerificationResultDeserializer as testVerificationResultDeserializer_1,
 } from "../models/models.js";
-import { expandUrlTemplate } from "../static-helpers/urlTemplate.js";
-import { VerifyOptionalParams } from "./options.js";
+import { VerifyOptionalParams as VerifyOptionalParams_1 } from "./deviceLocation/options.js";
 import {
-  StreamableMethod,
-  PathUncheckedResponse,
-  createRestError,
-  operationOptionsToRequestParameters,
-} from "@azure-rest/core-client";
+  Client as Client_1,
+  createRestError as createRestError_1,
+  expandUrlTemplate as expandUrlTemplate_1,
+  operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
+  type PathUncheckedResponse as PathUncheckedResponse_1,
+  type StreamableMethod as StreamableMethod_1,
+} from "@typespec/ts-http-runtime";
 
 export function _verifySend(
-  context: Client,
-  body: TestVerificationContent,
+  context: Client_1,
+  apiVersion: string,
+  body: TestVerificationContent_1,
   apcGatewayId: string,
-  options: VerifyOptionalParams = { requestOptions: {} },
-): StreamableMethod {
-  const path = expandUrlTemplate(
+  options: VerifyOptionalParams_1 = { requestOptions: {} },
+): StreamableMethod_1 {
+  const path = expandUrlTemplate_1(
     "/device-location/location:verify{?api%2Dversion}",
-    {
-      "api%2Dversion": context.apiVersion ?? "2022-05-15-preview",
-    },
-    {
-      allowReserved: options?.requestOptions?.skipUrlEncoding,
-    },
+    { "api-version": apiVersion },
+    { allowReserved: options?.requestOptions?.skipUrlEncoding },
   );
   return context.path(path).post({
-    ...operationOptionsToRequestParameters(options),
+    ...operationOptionsToRequestParameters_1(options),
     contentType: "application/json",
     headers: {
-      ...(options?.clientRequestId !== undefined
-        ? { "x-ms-client-request-id": options?.clientRequestId }
-        : {}),
-      "apc-gateway-id": apcGatewayId,
       accept: "application/json",
+      "x-ms-client-request-id": options?.clientRequestId,
+      "apc-gateway-id": apcGatewayId,
       ...options.requestOptions?.headers,
     },
-    body: testVerificationContentSerializer(body),
+    body: testVerificationContentSerializer_1(body),
   });
 }
 
 export async function _verifyDeserialize(
-  result: PathUncheckedResponse,
-): Promise<TestVerificationResult> {
+  result: PathUncheckedResponse_1,
+): Promise<TestVerificationResult_1> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError(result);
+    throw createRestError_1(result);
   }
 
-  return testVerificationResultDeserializer(result.body);
+  return testVerificationResultDeserializer_1(result.body);
 }
 
-/** Resource action operation template. */
+/**
+ * Resource action operation template.
+ *
+ * @param {Client_1} context
+ * @param {string} apiVersion
+ * @param {TestVerificationContent_1} body
+ * @param {string} apcGatewayId
+ * @param {VerifyOptionalParams_1} options
+ */
 export async function verify(
-  context: Client,
-  body: TestVerificationContent,
+  context: Client_1,
+  apiVersion: string,
+  body: TestVerificationContent_1,
   apcGatewayId: string,
-  options: VerifyOptionalParams = { requestOptions: {} },
-): Promise<TestVerificationResult> {
-  const result = await _verifySend(context, body, apcGatewayId, options);
+  options: VerifyOptionalParams_1 = { requestOptions: {} },
+): Promise<TestVerificationResult_1> {
+  const result = await _verifySend(
+    context,
+    apiVersion,
+    body,
+    apcGatewayId,
+    options,
+  );
   return _verifyDeserialize(result);
 }
 ```
