@@ -258,3 +258,55 @@
   since it's not publicly exported. If TCGC exports it in the future, switch to their version.
 - The component does NOT handle polymorphic union types (Task 1.5) — that's a separate component
   that generates the `XxxUnion = SubType1 | SubType2 | BaseType` type alias.
+
+## 2026-02-24 — Enum Declaration Component (Phase 1, Task 1.3)
+
+### What was done
+- Created `src/components/enum-declaration.tsx`: `EnumDeclaration` JSX component that generates
+  two TypeScript declarations from TCGC `SdkEnumType`:
+  1. Type alias (`type Name = "val1" | "val2" | ...`) for fixed enums, or
+     `type Name = string` for extensible enums (isFixed=false).
+  2. Known-values enum (`enum KnownName { Val1 = "val1", ... }`) documenting
+     all values the service currently accepts.
+- Updated `src/components/index.ts`: Added `EnumDeclaration` export.
+- Created `test/components/enum-declaration.test.tsx`: 7 tests covering:
+  - Fixed string enum (type alias with union literals + KnownXXX enum)
+  - Fixed numeric enum (type alias with number literals + KnownXXX enum)
+  - Extensible enum (type alias = base type + KnownXXX enum)
+  - JSDoc documentation from enum.doc on both declarations
+  - Member-level JSDoc from member.doc
+  - Cross-reference via refkey from model properties
+  - Single-value enum (edge case for join logic)
+- Updated PRD: FR3 (Enum Type Generation) marked as implemented.
+- All 59 tests pass (7 new + 52 existing).
+
+### Architecture decisions
+- **Two declarations per enum**: Every enum produces both a type alias and a Known enum,
+  following the legacy emitter's pattern for output parity. The type alias is the primary
+  type (referenced via `typeRefkey(enum)`), while the Known enum documents known values
+  (referenced via `knownValuesRefkey(enum)`).
+- **Refkey usage**: `typeRefkey(enum)` is on the type alias, `knownValuesRefkey(enum)` on
+  the Known enum. When model properties reference an enum, they resolve to the type alias.
+- **Extensibility via isFixed**: Fixed enums (`isFixed=true`) produce a union of literals.
+  Extensible enums (`isFixed=false`) produce the base type (e.g., `string`) to allow
+  arbitrary values. This follows the TCGC type model directly.
+- **Documentation pattern**: Both declarations get doc from `enum.doc` when available.
+  Without doc, the type alias gets "Type of {Name}" and the Known enum gets a description
+  linking to the type alias via `{@link}`. Members get `member.doc` or fall back to the
+  literal value string.
+
+### Key learnings (see knowledge.md)
+- Native TypeSpec enums are always `isFixed=true` in TCGC. Extensible enums require
+  Azure-specific union-as-enum patterns. Tests simulate extensibility by overriding isFixed.
+- Alloy's `<EnumMember jsValue={...}>` correctly renders string values in quotes and
+  numeric values bare, matching TypeScript enum syntax.
+
+### Notes for next person
+- Completed: 0.1, 0.3, 0.4, 0.5, 0.6 (Phase 0 complete except 0.2), 1.1, 1.2, 1.3 (Phase 1).
+- Next priorities: 1.4 (Union Declaration), 1.5 (Polymorphic Type), 1.6 (Model Files Orchestrator).
+- After 1.4, Phase 1 type components are complete and Phase 2 (Serialization) can begin.
+- The `EnumDeclaration` component is exported from `src/index.ts` — import from package root.
+- The `<For>` component with `comma hardline enderPunctuation` works correctly inside
+  `<EnumDeclaration>` for rendering enum members with trailing commas.
+- For testing extensible enums without Azure libraries, spread the enum type and override
+  `isFixed: false` — see the test for the pattern.

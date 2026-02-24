@@ -119,3 +119,30 @@ The Alloy `InterfaceMember` renders the member as `[key: string]: T` without
 a terminating semicolon when used outside a `<For>` with `enderPunctuation`.
 
 **Date:** 2026-02-24
+
+## Native TypeSpec enums are always isFixed=true in TCGC
+
+**Problem:** Attempting to create an extensible (isFixed=false) enum using a TypeSpec
+`union` type (e.g., `union Status { Active: "active", string }`) does not produce an
+`SdkEnumType` in TCGC's `sdkPackage.enums`. TCGC only produces non-fixed enums from
+Azure-specific union-as-enum patterns (requiring `@azure-tools/typespec-azure-core`).
+
+**Fix:** When testing the extensible enum code path, modify a normal enum's `isFixed`
+property to simulate the extensible case:
+```tsx
+const enumType = { ...sdkContext.sdkPackage.enums[0], isFixed: false };
+```
+This tests the component's branching logic without requiring Azure-specific TypeSpec
+libraries in the test setup.
+
+**Date:** 2026-02-24
+
+## Alloy EnumMember with jsValue renders correct value syntax
+
+**Problem:** Unclear how Alloy's `<EnumMember>` component renders string vs numeric values.
+
+**Fix:** The `jsValue` prop on `<EnumMember>` uses `<ValueExpression>` internally, which
+correctly quotes strings (`= "value"`) and leaves numbers bare (`= 42`). This matches
+TypeScript enum member syntax. Use `jsValue` (not `value`) for literal enum member values.
+
+**Date:** 2026-02-24
