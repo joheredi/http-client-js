@@ -1199,7 +1199,7 @@
           "id": "6.1",
           "title": "RestorePoller Component",
           "description": "Generate LRO restore poller with operation-to-deserializer mapping",
-          "pass": false,
+          "pass": true,
           "pass_criteria": [
             "Produces src/api/restorePollerHelpers.ts",
             "RestorePollerOptions<TResult> interface exported",
@@ -1208,7 +1208,8 @@
             "URL template matching routes to correct deserializer",
             "Parameterized paths (e.g., {guid}) handled with regex matching",
             "Only generated when client has LRO operations"
-          ]
+          ],
+          "status": "done"
         },
         {
           "id": "6.2",

@@ -1328,3 +1328,93 @@
   to `symbolAsyncIterator` by Alloy's name policy. This may need attention if the
   generated TypeScript needs the actual Symbol property. Consider using raw code
   templates or name policy escape for this member.
+
+## 2026-02-24 — RestorePoller Component (Phase 6, Task 6.1)
+
+### What was done
+- Created `src/components/restore-poller.tsx`: Main component that generates
+  `api/restorePollerHelpers.ts` for LRO poller restoration (rehydration).
+  Contains six sub-components:
+  - `RestorePollerFile` — Orchestrator that only renders when LRO operations exist.
+    Uses BFS traversal to collect all LRO operations from the client hierarchy.
+  - `RestorePollerOptionsInterface` — Generates `RestorePollerOptions<TResult, TResponse>`
+    interface extending `OperationOptions` with polling interval, abort signal, and
+    custom response body processor.
+  - `RestorePollerFunction` — Generates `restorePoller()` function that deserializes
+    poller state, matches the initial request URL to the correct deserializer via
+    the deserialize map, and delegates to `getLongRunningPoller`.
+  - `DeserializationHelperInterface` — Private interface for deserialize map entries.
+  - `DeserializeMapDeclaration` — Generates the `deserializeMap` const with entries
+    mapping "VERB /path" to `{ deserializer, expectedStatuses }` for each LRO operation.
+    Uses `deserializeOperationRefkey(method)` for auto-import resolution.
+  - `GetDeserializationHelperFunction` — URL template matching algorithm that handles
+    parameterized paths (e.g., `{id}`, `{guid}:export`) with regex matching.
+  - `GetPathFromMapKeyFunction` — Extracts URL path from map keys.
+  - `GetApiVersionFromUrlFunction` — Extracts api-version query parameter.
+- Updated `src/components/static-helpers/polling-helpers.tsx`: Added `restoreFrom`,
+  `initialRequestUrl`, and `apiVersion` optional members to
+  `GetLongRunningPollerOptions` interface for restore poller support.
+- Updated `src/emitter.tsx`:
+  - Added `azureCoreLroLib` to the `externals` array in `<Output>`.
+  - Added `<RestorePollerFile client={client} />` to the per-client render loop.
+- Updated `src/components/index.ts`: Exports `RestorePollerFile`.
+- Created `test/components/restore-poller.test.tsx`: 11 tests covering:
+  - Returns undefined when client has no LRO operations
+  - Renders RestorePollerOptions interface with correct members
+  - Renders restorePoller function with correct signature
+  - Renders restorePoller function body with state deserialization and routing logic
+  - Generates deserializeMap with LRO operation entries
+  - Handles multiple LRO operations in deserialize map
+  - Renders getDeserializationHelper URL matching function
+  - Renders utility functions (getPathFromMapKey, getApiVersionFromUrl)
+  - Renders DeserializationHelper interface (not exported)
+  - Collects LRO operations from child clients (nested operation groups)
+  - RestorePollerOptions is referenceable via pollingHelperRefkey
+- Updated PRD: Task 6.1 marked as done.
+- All 228 tests pass (11 new + 217 existing).
+
+### Architecture decisions
+- **Refkey-based deserialize map**: Each entry in the deserializeMap uses
+  `deserializeOperationRefkey(method)` to reference the operation's deserialize
+  function. Alloy automatically generates cross-file imports, avoiding the legacy
+  emitter's manual import management.
+- **BFS traversal for LRO collection**: Same BFS queue pattern used in
+  `operation-files.tsx` for operation group traversal. Visits root client and all
+  child clients to find every LRO operation regardless of nesting depth.
+- **URL matching mirrors legacy exactly**: The `getDeserializationHelper` function
+  uses the same algorithm as the legacy emitter — iterating entries, matching by
+  HTTP method prefix, comparing path segments right-to-left, handling template
+  segments with regex suffix matching, and selecting the longest match.
+- **azureCoreLroLib in externals**: Added `@azure/core-lro` package to the Output's
+  externals array. This package provides `PollerLike`, `OperationState`,
+  `deserializeState`, and `ResourceLocationConfig` types needed by the restorePoller.
+- **GetLongRunningPollerOptions extended**: Added `restoreFrom`, `initialRequestUrl`,
+  and `apiVersion` optional properties to support poller restoration. These are
+  backward-compatible additions that don't affect existing LRO operation generation.
+- **Mock-based testing**: Since LRO detection in TCGC requires
+  `@azure-tools/typespec-azure-core` (not a direct dependency), tests use mock
+  SdkClientType objects with `kind: "lro"` methods. Stub declarations provide
+  refkey resolution context.
+
+### Notes for next person
+- Completed: Phase 0 (0.1-0.6), Phase 1 (1.1-1.6), Phase 2 (2.1-2.3, 2.5),
+  Phase 3 (3.1-3.5), Phase 4 (4.1), Phase 5 (5.1-5.2), Phase 6 (6.1),
+  Phase 7 (7.1-7.2).
+- **Remaining tasks by priority**:
+  1. 2.4 (XML Serializers) — XML serialization/deserialization functions
+  2. 4.2 (Logger Component) — Azure-only logging
+  3. 6.2 (Multipart Support) — multipart form data handling
+  4. 6.3 (Sample Files) — per-operation sample TypeScript files
+  5. 8.x (Azure Extension) — Azure-specific composition
+  6. 9.x (Test Porting & Validation) — scenario testing
+- The RestorePoller component will need to be extended when:
+  - Azure flavor (8.x) is implemented: may need to swap runtime package references
+  - Multi-client scenarios need testing: verify deserialize map works across clients
+  - Subfolder support is needed: currently generates at `api/restorePollerHelpers.ts`
+    regardless of client subfolder configuration
+- The polling helpers (`pollingHelpers.ts`) now include restore-related options but
+  the `getLongRunningPoller` function body doesn't yet implement restoration logic.
+  This is acceptable because the runtime implementation of restore polling is handled
+  by the `@azure/core-lro` library in Azure scenarios, not by the generated helper.
+- Consider adding `@azure-tools/typespec-azure-core` as a devDependency to enable
+  proper end-to-end LRO testing with real TypeSpec LRO decorators.

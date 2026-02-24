@@ -45,3 +45,4 @@ export {
   PagingHelpersFile,
   PollingHelpersFile,
 } from "./static-helpers/index.js";
+export { RestorePollerFile } from "./restore-poller.js";

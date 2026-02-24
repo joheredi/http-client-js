@@ -9,9 +9,10 @@ import { OperationFiles } from "./components/operation-files.js";
 import { ClientContextFile } from "./components/client-context.js";
 import { ClassicalClientFile } from "./components/classical-client.js";
 import { ClassicalOperationGroupFiles } from "./components/classical-operation-groups.js";
-import { httpRuntimeLib } from "./utils/external-packages.js";
+import { httpRuntimeLib, azureCoreLroLib } from "./utils/external-packages.js";
 import { IndexFiles } from "./components/index-file.js";
 import { StaticHelpers } from "./components/static-helpers/index.js";
+import { RestorePollerFile } from "./components/restore-poller.js";
 
 /**
  * TypeSpec emitter entry point for generating TypeScript HTTP client libraries.
@@ -47,7 +48,7 @@ export async function $onEmit(context: EmitContext) {
       program={context.program}
       namePolicy={createTSNamePolicy()}
       nameConflictResolver={tsNameConflictResolver}
-      externals={[httpRuntimeLib]}
+      externals={[httpRuntimeLib, azureCoreLroLib]}
     >
       <SdkContextProvider sdkContext={sdkContext}>
         <SourceDirectory path="src">
@@ -59,6 +60,7 @@ export async function $onEmit(context: EmitContext) {
                 <ClientContextFile client={client} />
                 <ClassicalClientFile client={client} />
                 <ClassicalOperationGroupFiles client={client} />
+                <RestorePollerFile client={client} />
               </>
             )}
           </For>

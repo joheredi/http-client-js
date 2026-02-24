@@ -622,3 +622,28 @@ elements:
 ```
 
 **Date:** 2026-02-24
+
+---
+
+### `azureCoreLroLib` must be registered in Output externals
+
+**Problem:** When using `azureCoreLroLib.PollerLike`, `azureCoreLroLib.OperationState`, and other `@azure/core-lro` symbols in `code` templates, Alloy needs the package registered in the `<Output externals={[...]}>` array for import resolution.
+
+**Fix:** Add `azureCoreLroLib` to the `externals` array alongside `httpRuntimeLib`:
+```tsx
+<Output externals={[httpRuntimeLib, azureCoreLroLib]}>
+```
+
+**Date:** 2026-02-24
+
+---
+
+### Mock TCGC types for LRO testing without Azure Core TypeSpec
+
+**Problem:** LRO operations in TCGC require `@azure-tools/typespec-azure-core` decorators (which isn't a direct dependency). Testing RestorePoller with real TypeSpec compilation would require adding Azure Core to test infrastructure.
+
+**Solution:** Create mock `SdkClientType` and `SdkServiceMethod` objects with `kind: "lro"` and the minimum required properties (`operation.verb`, `operation.path`, `operation.responses`, etc.). Pass these mocks directly as component props. Use `as any` casts since we only need the properties the component actually reads.
+
+For refkey resolution in tests, render stub declarations (`ClassDeclaration`, `FunctionDeclaration`) alongside the component under test so that refkeys like `classicalClientRefkey(client)` and `deserializeOperationRefkey(method)` resolve correctly in the output.
+
+**Date:** 2026-02-24

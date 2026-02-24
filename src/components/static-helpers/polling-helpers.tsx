@@ -114,6 +114,12 @@ function GetLongRunningPollerOptionsInterface() {
       <InterfaceMember name="getInitialResponse" type={code`() => Promise<TResponse>`} />
       {"\n"}
       <InterfaceMember name="resourceLocationConfig" type="string" optional />
+      {"\n"}
+      <InterfaceMember name="restoreFrom" type="string" optional />
+      {"\n"}
+      <InterfaceMember name="initialRequestUrl" type="string" optional />
+      {"\n"}
+      <InterfaceMember name="apiVersion" type="string" optional />
     </InterfaceDeclaration>
   );
 }
