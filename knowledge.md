@@ -433,3 +433,38 @@ export function _getItemSend(context: Client, options: GetItemOptionalParams = {
 ```
 
 **Date:** 2026-02-24
+
+## Alloy FunctionDeclaration `doc` prop auto-generates @param JSDoc tags
+
+**Problem:** When using the `doc` prop on `FunctionDeclaration`, Alloy not only
+renders the doc string as a JSDoc comment but also auto-generates `@param {Type}`
+tags for each parameter. This means the generated JSDoc is longer than just the
+description.
+
+**Fix:** Include `@param` tags in test assertions when using the `doc` prop:
+```tsx
+/**
+ * My description.
+ *
+ * @param {Client} context
+ * @param {MyOptionsParams} options
+ */
+```
+
+Also, when `doc` is used and a parameter type (like `Client`) appears in `@param`,
+that type reference is used in a value-like position (inside JSDoc), so Alloy imports
+it without the `type` prefix: `import { Client }` instead of `import type { Client }`.
+
+**Date:** 2026-02-24
+
+## Array type expressions render with parentheses around element type
+
+**Problem:** When Alloy renders array type expressions like `string[]`, the
+`getTypeExpression` function wraps the element type in parentheses, producing
+`(string)[]` instead of `string[]`. This is syntactically valid TypeScript but
+looks different from what you might expect.
+
+**Fix:** In test assertions, use `(string)[]` instead of `string[]` for array
+return types. For model types, it renders as `(ModelName)[]`.
+
+**Date:** 2026-02-24

@@ -215,6 +215,21 @@ export function deserializeOperationRefkey(entity: unknown): Refkey {
 }
 
 /**
+ * Creates a refkey for a public operation function that wraps the send
+ * and deserialize functions into a single callable API.
+ *
+ * The public operation function is what consumers actually call. For standard
+ * operations, it awaits the send function and then deserializes the response.
+ * For LRO and paging operations, it wraps with polling/paging helpers.
+ *
+ * @param entity - The TCGC operation or method entity.
+ * @returns A stable refkey for the public operation function declaration.
+ */
+export function publicOperationRefkey(entity: unknown): Refkey {
+  return refkey(entity, "publicOperation");
+}
+
+/**
  * Creates a refkey for a polling (long-running operation) helper function or type.
  *
  * Polling helpers manage LRO lifecycle — creating pollers, checking status,

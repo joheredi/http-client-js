@@ -197,7 +197,7 @@
           "Each group in separate source file under src/api/"
         ],
         "status": "in_progress",
-        "notes": "Send function (3.2) and Deserialize function (3.3) implemented. Remaining: Public operation function (3.4) and operations orchestrator (3.5)."
+        "notes": "Send function (3.2), Deserialize function (3.3), and Public operation function (3.4) are all implemented. Remaining: Operations orchestrator (3.5) to group operations into files."
       },
       {
         "id": "FR9",
@@ -1071,7 +1071,7 @@
           "id": "3.4",
           "title": "Public Operation Function",
           "description": "Generate public xxx functions (standard, LRO, paging patterns)",
-          "pass": false,
+          "pass": true,
           "pass_criteria": [
             "Standard: async function xxx(context, ...params) calls _send() then _deserialize()",
             "LRO: wraps with getLongRunningPoller() from polling helpers",
@@ -1080,7 +1080,9 @@
             "Correct return types for each pattern",
             "JSDoc documentation from operation metadata",
             "Scenario tests pass: operations/lroPaging.md"
-          ]
+          ],
+          "status": "done",
+          "notes": "PublicOperation component generates public async functions (standard), with LRO (PollerLike) and paging (PagedAsyncIterableIterator) support. 8 tests covering GET, POST, DELETE void, JSDoc, refkey, path params, body forwarding, optional-only params."
         },
         {
           "id": "3.5",
