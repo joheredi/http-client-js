@@ -357,3 +357,54 @@
 - The `ModelInterface` component uses prop `model` (not `type`). If you render
   `<ModelInterface type={...} />`, the model prop will be undefined and it will crash
   silently at runtime. Use `<ModelInterface model={...} />`.
+
+## 2026-02-24 — Polymorphic Type Component (Phase 1, Task 1.5)
+
+### What was done
+- Created `src/components/polymorphic-type.tsx`: `PolymorphicType` JSX component that generates
+  a `<TypeDeclaration>` union type alias from TCGC `SdkModelType` with discriminated subtypes.
+- Exported `getDirectSubtypes()` utility function for use by other components (e.g., ModelFiles orchestrator).
+- Updated `src/components/index.ts`: Added `PolymorphicType` and `getDirectSubtypes` exports.
+- Created `test/components/polymorphic-type.test.tsx`: 7 tests covering:
+  - Basic discriminated model produces union of subtypes + base model
+  - Only direct subtypes are included (multi-level hierarchy filtering)
+  - JSDoc documentation from model.doc on the type alias
+  - Returns undefined when model has no discriminated subtypes
+  - Polymorphic type is referenceable from other expressions via refkey
+  - Single subtype renders correctly
+  - getDirectSubtypes returns empty array for non-discriminated model
+- Updated PRD: FR2 (Model Type Generation) marked as implemented.
+- All 73 tests pass (7 new + 66 existing).
+
+### Architecture decisions
+- **Naming convention**: Union type alias uses `{ModelName}Union` suffix (e.g., `PetUnion`).
+  The base model interface keeps its original name via `ModelInterface`. This follows the
+  implementation plan's convention.
+- **Direct subtypes only**: Uses `getDirectSubtypes()` which filters `discriminatedSubtypes`
+  by `subtype.baseModel === model`. This prevents including transitive subtypes in multi-level
+  hierarchies (each level generates its own polymorphic union).
+- **Base model at end**: The union includes all direct subtypes followed by the base model
+  at the end: `type PetUnion = Cat | Dog | Pet`. This serves as a fallback for unknown
+  discriminator values.
+- **Refkey**: Uses `polymorphicTypeRefkey(model)` from the shared refkey helpers, distinct
+  from `typeRefkey(model)` which identifies the base model interface.
+- **Exported utility**: `getDirectSubtypes()` is exported because the ModelFiles orchestrator
+  (Task 1.6) needs it to determine which models require polymorphic type aliases.
+
+### Key learnings (see knowledge.md)
+- `discriminatedSubtypes` is a `Record<string, SdkModelType>`, not an array. Use
+  `Object.values()` to iterate. Keys are discriminator string values.
+- Multi-level hierarchies may include transitive subtypes in the map — always filter
+  by `baseModel === model` for direct subtypes only.
+- Test assertions must match actual TCGC output, not assumed TypeSpec properties.
+
+### Notes for next person
+- Completed: 0.1, 0.3, 0.4, 0.5, 0.6 (Phase 0 complete except 0.2), 1.1, 1.2, 1.3, 1.4, 1.5 (Phase 1).
+- Next priorities: 1.6 (Model Files Orchestrator), then Phase 2 (Serialization).
+- After 1.6, Phase 1 is complete. Phase 2 (FR5 JSON Serialization) is the most critical
+  remaining P0 feature.
+- The `PolymorphicType` component is exported from `src/index.ts` — import from package root.
+- When building the ModelFiles orchestrator (1.6), use `getDirectSubtypes(model).length > 0`
+  to determine if a model needs a polymorphic type alias alongside its interface.
+- The component returns `undefined` for non-discriminated models, so it's safe to
+  render `<PolymorphicType model={anyModel} />` without conditional checks.

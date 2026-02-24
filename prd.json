@@ -111,7 +111,8 @@
           "Flattened properties expanded inline",
           "Optional/readonly modifiers applied",
           "JSDoc documentation from SDK model doc/summary"
-        ]
+        ],
+        "status": "implemented"
       },
       {
         "id": "FR3",

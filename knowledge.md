@@ -171,3 +171,28 @@ not just `SdkUnionType[]`. Accessing `unions[0]` and passing it to a component e
 In production code, filter by `kind === "union"` before passing to `UnionDeclaration`.
 
 **Date:** 2026-02-24
+
+## TCGC discriminatedSubtypes is a Record, not an array
+
+**Problem:** `SdkModelType.discriminatedSubtypes` has type `Record<string, SdkModelType> | undefined`.
+Keys are the discriminator values (e.g., `"cat"`, `"dog"`), values are the subtype models.
+It may include transitive subtypes in multi-level hierarchies (e.g., `Animal → Bird → Eagle`
+could have both `"bird"` and `"eagle"` as keys on `Animal`).
+
+**Fix:** Use `Object.values(model.discriminatedSubtypes)` to iterate subtypes. Filter by
+`subtype.baseModel === model` to get only direct subtypes (not transitive ones). This is
+critical for generating correct polymorphic union types at each level of a hierarchy.
+
+**Date:** 2026-02-24
+
+## Discriminator-only models: test assertions must match actual TCGC output
+
+**Problem:** When defining a discriminated base model with a `kind` property and extra
+properties, the rendered interface output depends on what TCGC actually includes. Test
+assertions that assume all TypeSpec properties appear will fail if TCGC strips or reorganizes
+them.
+
+**Fix:** Verify the actual TCGC model properties before writing expected test output.
+Use the actual rendered output to drive assertions rather than guessing from TypeSpec input.
+
+**Date:** 2026-02-24
