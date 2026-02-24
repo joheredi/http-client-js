@@ -1391,7 +1391,7 @@
         {
           "id": "9.3",
           "title": "Validation",
-          "description": "Run all tests, fix discrepancies, document acceptable differences. Progress: Fixed spread body serialization, import non-determinism, prettier non-idempotency. Reduced failures from 455 to 124. Remaining 124 failures are genuine missing features (samples, LRO, XML, client defaults, etc.).",
+          "description": "Run all tests, fix discrepancies, document acceptable differences. Progress: Fixed spread body serialization, import non-determinism, prettier non-idempotency. Implemented response header deserialization (DeserializeHeaders + DeserializeExceptionHeaders components). Reduced failures from 455 to 113. Remaining 113 failures are tracked in Phase 10 (Validation Fixes).",
           "pass": false,
           "pass_criteria": [
             "All 101 scenario tests pass (vitest run reports 0 failures)",
@@ -1400,11 +1400,180 @@
             "No self-import bugs in any generated output",
             "No missing or extra exports compared to legacy",
             "Documented list of any intentional differences with justification"
-          ]
+          ],
+          "status": "in_progress"
         }
       ],
       "dependencies": [
         0
+      ]
+    },
+    {
+      "id": 10,
+      "name": "Validation Fixes \u2014 Remaining 124 Test Failures",
+      "description": "Tasks to fix the remaining 124 scenario test failures identified during validation. Categorized by root cause. Total: 124 failures across 9 categories.",
+      "tasks": [
+        {
+          "id": "10.1",
+          "title": "Fix `samples` generation (51 failures)",
+          "status": "not_started",
+          "description": "All 51 sample test assertions fail because no sample files are emitted. The `SampleFiles` component (src/components/sample-files.tsx) returns undefined because `collectSampleInfos()` finds no operations with examples. TCGC's `operation.examples` array is empty even though the test scenarios define examples in JSON blocks. Root cause: The test scenarios define examples in `json for OperationId` blocks but TCGC isn't parsing these into the `operation.examples` array. Need to either: (a) ensure examples are properly loaded by TCGC, or (b) wire up example data from the test harness into the emitter.",
+          "failure_count": 51,
+          "affected_scenarios": [
+            "samples/client/apiKeyCredentialClient.md",
+            "samples/client/renameClientName.md",
+            "samples/client/multipleClient.md",
+            "samples/client/subscriptionIdHandling.md",
+            "samples/client/disableHierarchy/disableOperationGroup.md",
+            "samples/client/disableHierarchy/enableOperationGroup.md",
+            "samples/client/enableHierarchy/disableOperationGroup.md",
+            "samples/client/enableHierarchy/enableOperationGroup.md",
+            "samples/operations/armCurdOperations.md",
+            "samples/operations/disableHierarchyArmCurdOperations.md",
+            "samples/operations/dpgCurdOperations.md",
+            "samples/operations/multipleExamplesInOneFile.md",
+            "samples/parameters/bodyOptionalCheck.md",
+            "samples/parameters/bodyOptionalParameterName.md",
+            "samples/parameters/bodyReadonlyOptionalCheck.md",
+            "samples/parameters/bodyRequiredCheck.md",
+            "samples/parameters/clientConstructorArgs.md",
+            "samples/parameters/inheritedPropertyMapping.md",
+            "samples/parameters/optionalParameter.md",
+            "samples/parameters/paramaterSpreadCheck.md",
+            "samples/parameters/parameterName.md",
+            "samples/parameters/parameterNormalization.md",
+            "samples/parameters/parameterOrdering.md",
+            "samples/parameters/parameterTypesCheck.md",
+            "samples/propertyFlatten/complexFlattenCases.md",
+            "samples/propertyFlatten/mulipleFlattenCases.md",
+            "samples/propertyFlatten/simpleFlattenCases.md"
+          ],
+          "error_pattern": "No sample files found in emitted output",
+          "component": "src/components/sample-files.tsx"
+        },
+        {
+          "id": "10.2",
+          "title": "Fix XML serializer/deserializer function lookup (21 failures)",
+          "status": "not_started",
+          "description": "21 XML serializer tests fail with 'Could not find function X in file src/models/models.ts'. The XML serializer components (xml-serializer.tsx, xml-deserializer.tsx, xml-object-serializer.tsx, xml-object-deserializer.tsx) use the correct naming convention (e.g., retentionPolicyXmlSerializer) but the functions cannot be found in the generated models.ts output. Need to investigate whether: (a) the XML serializers are being rendered at all, (b) they end up in a different file, or (c) there's a naming mismatch between what's generated and what the tests expect.",
+          "failure_count": 21,
+          "affected_scenarios": [
+            "payload/xml/xmlName.md",
+            "payload/xml/xmlArrayItemTypes.md",
+            "payload/xml/xmlArrayItemsNameWrapping.md"
+          ],
+          "error_pattern": "Could not find function \"*Xml*\" in file \"src/models/models.ts\"",
+          "component": "src/components/serialization/xml-serializer.tsx, xml-deserializer.tsx, xml-object-serializer.tsx, xml-object-deserializer.tsx"
+        },
+        {
+          "id": "10.3",
+          "title": "Fix `operations` category resolution for grouped operations (17 failures)",
+          "status": "not_started",
+          "description": "17 tests fail with 'No output file found for legacy category operations'. The test harness resolves the 'operations' category using regex `/api\\/operations\\.ts$/` which matches `src/api/operations.ts`. But the new emitter generates operations at grouped paths like `src/api/<group>/operations.ts` (e.g., `src/api/widgets/operations.ts`, `src/api/queryOperations/operations.ts`). The regex doesn't match these paths. Fix options: (a) update the harness regex to match grouped operation files, (b) concatenate all operation files for the 'operations' category, or (c) change the emitter to optionally generate flat operations files.",
+          "failure_count": 17,
+          "affected_scenarios": [
+            "apiOperations/apiOperations.md",
+            "apiOperations/azureCoreOperations.md",
+            "models/azureCoreErrorModels.md",
+            "models/missingErrorResponseModel.md",
+            "operations/clientDefaultValue.md",
+            "operations/armPatchWithUnionResponse.md",
+            "operations/headerParam/headerParamWithClientInitialization.md",
+            "operations/queryParam/queryParamWithClientInitialization.md",
+            "operations/lroPaging.md",
+            "operations/queryParam/queryParamCollectionFormat.md",
+            "samples/parameters/parameterName.md",
+            "samples/parameters/parameterOrdering.md",
+            "samples/parameters/bodyOptionalParameterName.md"
+          ],
+          "error_pattern": "No output file found for legacy category \"operations\"",
+          "component": "test/scenarios/scenario-harness.ts (LEGACY_CATEGORIES.operations)"
+        },
+        {
+          "id": "10.4",
+          "title": "Fix `models:withOptions` category resolution (14 failures)",
+          "status": "not_started",
+          "description": "14 tests fail with 'No output file found for legacy category models:withOptions'. The test harness resolves 'models:withOptions' using regex `/api\\/options\\.ts$/` expecting a file like `src/api/options.ts`. The new emitter doesn't generate a separate options file; operation options interfaces are generated inside the operation files (e.g., `src/api/<group>/operations.ts`). Fix options: (a) update the harness to look for options in operation files, (b) generate a separate options.ts file, or (c) update the harness to concatenate operation files and search for option interfaces within them.",
+          "failure_count": 14,
+          "affected_scenarios": [
+            "anonymous/anonymous.md",
+            "example/example.md",
+            "samples/parameters/bodyOptionalCheck.md",
+            "samples/parameters/bodyReadonlyOptionalCheck.md",
+            "samples/parameters/parameterNormalization.md",
+            "models/nullable/nullableOptional.md",
+            "operations/override.md",
+            "operations/pathParam/optionalPath.md",
+            "operations/pathParam/requiredPathWithDefault.md",
+            "samples/parameters/bodyOptionalParameterName.md"
+          ],
+          "error_pattern": "No output file found for legacy category \"models:withOptions\"",
+          "component": "test/scenarios/scenario-harness.ts (LEGACY_CATEGORIES['models:withOptions'])"
+        },
+        {
+          "id": "10.5",
+          "title": "Implement response header deserialization functions (11 failures)",
+          "status": "not_started",
+          "description": "11 tests fail because header deserialization functions are not generated. Two types of functions are expected: (a) `_xxxDeserializeHeaders` for response headers on successful operations (e.g., `_getUserDeserializeHeaders`, `_getAccountInfoDeserializeHeaders`), and (b) `_xxxDeserializeExceptionHeaders` for error response headers (e.g., `_getWidgetDeserializeExceptionHeaders`). These functions extract typed header values from HTTP response headers (including conversion of strings to boolean, date, bytes). Currently, `deserialize-operation.tsx` only handles response body deserialization. This requires: (1) new DeserializeHeaders component, (2) new DeserializeExceptionHeaders component, (3) integration in operation-files.tsx, (4) support for `include-headers-in-response` config option from TCGC.",
+          "failure_count": 11,
+          "affected_scenarios": [
+            "models/response/headerAndModelInResponse.md",
+            "models/response/headerAndModelSpread.md",
+            "models/response/headerInResponse.md",
+            "models/response/headerInXmlResponse.md",
+            "operations/errorDeserialization/errorHeaderDeserialization.md"
+          ],
+          "error_pattern": "Could not find function \"_*Deserialize*Headers\" in file \"src/api/operations.ts\"",
+          "component": "src/components/operations/deserialize-operation.tsx (new components needed)"
+        },
+        {
+          "id": "10.6",
+          "title": "Fix enum union type alias generation (4 failures)",
+          "status": "not_started",
+          "description": "4 tests fail because named union type aliases (LR, UD, LeftAndRight, UpAndDown) are not emitted in models.ts. The test scenario enumUnion/enumUnion.md expects type aliases like `export type LR = \"left\" | \"right\"`. The model-files.tsx correctly filters for `SdkUnionType` from `sdkPackage.unions`, and `UnionDeclaration` renders named unions. The issue is likely that these unions are either: (a) not being included in the `unions` array by TCGC, (b) being classified differently (e.g., as enum types), or (c) being filtered out by the `u.kind === \"union\"` check when they have enum members.",
+          "failure_count": 4,
+          "affected_scenarios": [
+            "enumUnion/enumUnion.md"
+          ],
+          "error_pattern": "Could not find alias \"*\" in file \"src/models/models.ts\"",
+          "component": "src/components/model-files.tsx, src/components/union.tsx"
+        },
+        {
+          "id": "10.7",
+          "title": "Fix model-only package root index generation (3 failures)",
+          "status": "not_started",
+          "description": "3 tests fail because root index.ts is not generated for model-only packages (no operations, just models). In `index-file.tsx`, `RootIndexFile()` returns undefined when `clients.length === 0`. For model-only packages with `@usage` annotation, models.ts IS generated but root index.ts is not. The fix: modify `RootIndexFile()` to generate index.ts even without clients if models/enums/unions exist. Also handle the case where no models should be generated (without @usage) \u2014 the test expects an empty output with only helper files.",
+          "failure_count": 3,
+          "affected_scenarios": [
+            "modelsGenerator/modelsGenerator.md"
+          ],
+          "error_pattern": "No output file found for legacy category \"root index\" / \"models\"",
+          "component": "src/components/index-file.tsx (RootIndexFile, IndexFiles)"
+        },
+        {
+          "id": "10.8",
+          "title": "Fix multipart request type underscore prefix (2 failures)",
+          "status": "not_started",
+          "description": "2 tests fail because the multipart request type `_UploadFileRequest` and its serializer `_uploadFileRequestSerializer` are generated without the underscore prefix. The test expects internal/anonymous types to have an underscore prefix (e.g., `_UploadFileRequest` instead of `UploadFileRequest`). The multipart model interface is generated in model-files.tsx and serialized via multipart-serializer.tsx. Need to detect when a model is an internal/anonymous request type and prefix its name with underscore.",
+          "failure_count": 2,
+          "affected_scenarios": [
+            "apiOperations/apiOperations.md"
+          ],
+          "error_pattern": "Could not find interface/function \"_UploadFileRequest\" / \"_uploadFileRequestSerializer\"",
+          "component": "src/components/model-files.tsx, src/components/serialization/multipart-serializer.tsx"
+        },
+        {
+          "id": "10.9",
+          "title": "Fix empty project classicClient output (1 failure)",
+          "status": "not_started",
+          "description": "1 test fails because the empty project generates only helper files (no client file). The test `emptyProject/emptyProject.md` expects a `classicClient` category but the emitter only generates static helper files when `sdkPackage.clients` is empty. This may be a test expectation issue (the expected output is likely empty) rather than a real generation bug \u2014 the test harness throws when it can't resolve the 'classicClient' category. Fix: either update the harness to handle empty expected output for classicClient, or update the test expectation, or conditionally skip the classicClient assertion when no clients exist.",
+          "failure_count": 1,
+          "affected_scenarios": [
+            "emptyProject/emptyProject.md"
+          ],
+          "error_pattern": "No output file found for legacy category \"classicClient\"",
+          "component": "test/scenarios/scenario-harness.ts or test/scenarios/cases/emptyProject/emptyProject.md"
+        }
       ]
     }
   ],

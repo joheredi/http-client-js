@@ -5,6 +5,7 @@ import { Output } from "@typespec/emitter-framework";
 import type { SdkContext, SdkHttpOperation } from "@azure-tools/typespec-client-generator-core";
 import { SdkContextProvider } from "../src/context/sdk-context.js";
 import { FlavorProvider, type FlavorKind } from "../src/context/flavor-context.js";
+import { EmitterOptionsProvider, type EmitterOptionsValue } from "../src/context/emitter-options-context.js";
 
 /**
  * Props for the TestFile wrapper component.
@@ -18,6 +19,8 @@ export interface TestFileProps {
   externals?: SymbolCreator[];
   /** Optional flavor for the emitter context. Defaults to "core". */
   flavor?: FlavorKind;
+  /** Optional emitter options to override defaults. */
+  emitterOptions?: Partial<EmitterOptionsValue>;
 }
 
 /**
@@ -46,7 +49,9 @@ export function TestFile(props: TestFileProps) {
   return (
     <Output program={props.program} namePolicy={createTSNamePolicy()} externals={props.externals}>
       <FlavorProvider flavor={props.flavor ?? "core"}>
-        <SourceFile path="test.ts">{props.children}</SourceFile>
+        <EmitterOptionsProvider options={props.emitterOptions ?? {}}>
+          <SourceFile path="test.ts">{props.children}</SourceFile>
+        </EmitterOptionsProvider>
       </FlavorProvider>
     </Output>
   );
@@ -64,6 +69,8 @@ export interface SdkTestFileProps {
   externals?: SymbolCreator[];
   /** Optional flavor for the emitter context. Defaults to "core". */
   flavor?: FlavorKind;
+  /** Optional emitter options to override defaults. */
+  emitterOptions?: Partial<EmitterOptionsValue>;
 }
 
 /**
@@ -93,9 +100,11 @@ export function SdkTestFile(props: SdkTestFileProps) {
   return (
     <Output program={props.sdkContext.emitContext.program} namePolicy={createTSNamePolicy()} externals={props.externals}>
       <FlavorProvider flavor={props.flavor ?? "core"}>
-        <SdkContextProvider sdkContext={props.sdkContext}>
-          <SourceFile path="test.ts">{props.children}</SourceFile>
-        </SdkContextProvider>
+        <EmitterOptionsProvider options={props.emitterOptions ?? {}}>
+          <SdkContextProvider sdkContext={props.sdkContext}>
+            <SourceFile path="test.ts">{props.children}</SourceFile>
+          </SdkContextProvider>
+        </EmitterOptionsProvider>
       </FlavorProvider>
     </Output>
   );

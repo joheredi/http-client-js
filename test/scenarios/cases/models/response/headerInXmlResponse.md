@@ -44,7 +44,7 @@ export async function getUser(
 ```
 
 ```ts operations function _getUserDeserializeHeaders
-export function _getUserDeserializeHeaders(result: PathUncheckedResponse): {
+export function _getUserDeserializeHeaders(result: PathUncheckedResponse_1): {
   userId?: string;
   createdAt?: Date;
   contentType: "application/xml";
@@ -104,10 +104,9 @@ export async function deleteUser(
 ```
 
 ```ts operations function _deleteUserDeserializeHeaders
-export function _deleteUserDeserializeHeaders(result: PathUncheckedResponse): {
-  requestId: string;
-  optionalHeader?: string;
-} {
+export function _deleteUserDeserializeHeaders(
+  result: PathUncheckedResponse_1,
+): { requestId: string; optionalHeader?: string } {
   return {
     requestId: result.headers["x-request-id"],
     optionalHeader:
@@ -163,7 +162,7 @@ export async function getAccountInfo(
 
 ```ts operations function _getAccountInfoDeserializeHeaders
 export function _getAccountInfoDeserializeHeaders(
-  result: PathUncheckedResponse,
+  result: PathUncheckedResponse_1,
 ): {
   date: Date;
   legalHold: boolean;

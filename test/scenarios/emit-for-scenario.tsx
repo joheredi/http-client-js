@@ -16,6 +16,7 @@ import { createTSNamePolicy, tsNameConflictResolver } from "@alloy-js/typescript
 import { Output } from "@typespec/emitter-framework";
 import { SdkContextProvider } from "../../src/context/sdk-context.js";
 import { FlavorProvider } from "../../src/context/flavor-context.js";
+import { EmitterOptionsProvider } from "../../src/context/emitter-options-context.js";
 import { ModelFiles } from "../../src/components/model-files.js";
 import { OperationFiles } from "../../src/components/operation-files.js";
 import { ClientContextFile } from "../../src/components/client-context.js";
@@ -177,6 +178,11 @@ ${x}
   const { program } = await runner.compile(code);
   const sdkContext = await createSdkContextForTest(program);
 
+  // Extract emitter options from YAML config
+  const emitterOptions = {
+    includeHeadersInResponse: yamlConfig["include-headers-in-response"] === true,
+  };
+
   const output = (
     <Output
       program={program}
@@ -185,25 +191,27 @@ ${x}
       externals={[httpRuntimeLib, azureCoreLroLib]}
     >
       <FlavorProvider flavor="core">
-        <SdkContextProvider sdkContext={sdkContext}>
-          <SourceDirectory path="src">
-            <ModelFiles />
-            <OperationFiles />
-            <For each={sdkContext.sdkPackage.clients}>
-              {(client) => (
-                <>
-                  <ClientContextFile client={client} />
-                  <ClassicalClientFile client={client} />
-                  <ClassicalOperationGroupFiles client={client} />
-                  <RestorePollerFile client={client} />
-                </>
-              )}
-            </For>
-            <IndexFiles />
-            <StaticHelpers />
-          </SourceDirectory>
-          <SampleFiles />
-        </SdkContextProvider>
+        <EmitterOptionsProvider options={emitterOptions}>
+          <SdkContextProvider sdkContext={sdkContext}>
+            <SourceDirectory path="src">
+              <ModelFiles />
+              <OperationFiles />
+              <For each={sdkContext.sdkPackage.clients}>
+                {(client) => (
+                  <>
+                    <ClientContextFile client={client} />
+                    <ClassicalClientFile client={client} />
+                    <ClassicalOperationGroupFiles client={client} />
+                    <RestorePollerFile client={client} />
+                  </>
+                )}
+              </For>
+              <IndexFiles />
+              <StaticHelpers />
+            </SourceDirectory>
+            <SampleFiles />
+          </SdkContextProvider>
+        </EmitterOptionsProvider>
       </FlavorProvider>
     </Output>
   );

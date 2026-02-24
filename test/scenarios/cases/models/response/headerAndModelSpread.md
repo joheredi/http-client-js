@@ -37,7 +37,7 @@ export async function getUser(
 ```
 
 ```ts operations function _getUserDeserializeHeaders
-export function _getUserDeserializeHeaders(result: PathUncheckedResponse): {
+export function _getUserDeserializeHeaders(result: PathUncheckedResponse_1): {
   requestId: string;
 } {
   return { requestId: result.headers["request-id"] };

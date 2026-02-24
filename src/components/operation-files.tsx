@@ -6,6 +6,8 @@ import type {
   SdkServiceMethod,
 } from "@azure-tools/typespec-client-generator-core";
 import { useSdkContext } from "../context/sdk-context.js";
+import { useEmitterOptions } from "../context/emitter-options-context.js";
+import { DeserializeHeaders, DeserializeExceptionHeaders } from "./deserialize-headers.js";
 import { DeserializeOperation } from "./deserialize-operation.js";
 import { OperationOptionsDeclaration } from "./operation-options.js";
 import { PublicOperation } from "./public-operation.js";
@@ -129,14 +131,15 @@ interface OperationDeclarationsProps {
  * The declarations are rendered in the legacy emitter's order:
  * 1. Options interface — defines the optional parameters bag
  * 2. Send function — builds and dispatches the HTTP request
- * 3. Deserialize function — validates and parses the response
- * 4. Public function — composes send + deserialize for consumers
+ * 3. Header deserialize functions (if enabled) — extract typed response headers
+ * 4. Deserialize function — validates and parses the response
+ * 5. Public function — composes send + deserialize for consumers
  *
  * Each declaration is separated by a blank line (via Fragment + newlines)
  * to produce readable output.
  *
  * @param props - Component props containing the TCGC service method.
- * @returns An Alloy JSX tree with all four operation declarations.
+ * @returns An Alloy JSX tree with all operation declarations.
  */
 function OperationDeclarations(props: OperationDeclarationsProps) {
   const { method } = props;
@@ -147,9 +150,52 @@ function OperationDeclarations(props: OperationDeclarationsProps) {
       {"\n\n"}
       <SendOperation method={method} />
       {"\n\n"}
+      <HeaderDeserializationBlock method={method} />
       <DeserializeOperation method={method} />
       {"\n\n"}
       <PublicOperation method={method} />
+    </>
+  );
+}
+
+/**
+ * Renders header deserialization functions (success + exception) with trailing
+ * newline separators, or nothing when headers are not applicable.
+ *
+ * This wrapper ensures proper spacing: each header function is followed by `\n\n`
+ * so there's a blank line between it and the next function. When the header
+ * components return undefined (feature disabled or no headers), nothing is
+ * rendered and no extra blank lines are produced.
+ *
+ * @param props - Component props containing the TCGC service method.
+ * @returns Alloy JSX with header functions and separators, or undefined.
+ */
+function HeaderDeserializationBlock(props: OperationDeclarationsProps) {
+  const { method } = props;
+  const { includeHeadersInResponse } = useEmitterOptions();
+
+  if (!includeHeadersInResponse) return undefined;
+
+  const operation = method.operation;
+  const hasSuccessHeaders = operation.responses.some((r) => r.headers.length > 0);
+  const hasExceptionHeaders = operation.exceptions.some((e) => e.headers.length > 0);
+
+  if (!hasSuccessHeaders && !hasExceptionHeaders) return undefined;
+
+  return (
+    <>
+      {hasSuccessHeaders && (
+        <>
+          <DeserializeHeaders method={method} />
+          {"\n\n"}
+        </>
+      )}
+      {hasExceptionHeaders && (
+        <>
+          <DeserializeExceptionHeaders method={method} />
+          {"\n\n"}
+        </>
+      )}
     </>
   );
 }

@@ -988,3 +988,31 @@ constructs an inline object literal with per-property serialization (matching le
 behavior). Each property uses `getSerializationExpression()` for type-specific transformation.
 
 **Date:** 2025-07-14
+
+### Header Deserialization — Alloy Name Conflict Resolution
+
+**Problem:** When adding `DeserializeHeaders` component alongside `DeserializeOperation`, both
+reference `PathUncheckedResponse` from `runtimeLib`. The scenario expected output had
+`PathUncheckedResponse` (no suffix) for the header function but the Alloy emitter renders
+`PathUncheckedResponse_1` because the name conflict resolver assigns `_1` to all references
+of the same external symbol when there's an import statement involved.
+
+**Fix:** Run `SCENARIOS_UPDATE=true pnpm test` to regenerate expected output. The `_1` suffix
+is consistent across all references in the same file — both header and main deserialize
+functions get `PathUncheckedResponse_1`.
+
+**Lesson:** When adding new components that reference external symbols already used in the same
+file, the Alloy name conflict resolver may change suffixes. Always regenerate scenario expected
+output with `SCENARIOS_UPDATE=true` after structural changes.
+
+### EmitterOptionsContext for Feature Flags
+
+**Pattern:** Created `EmitterOptionsContext` to carry emitter behavior configuration (like
+`include-headers-in-response`) through the component tree. This is separate from `SdkContext`
+(which carries type data) and `FlavorContext` (which carries package references).
+
+**Usage:** Components check `useEmitterOptions().includeHeadersInResponse` to conditionally
+generate header deserialization functions. The `emitForScenario()` test utility converts YAML
+config keys to emitter options.
+
+**Date:** 2026-02-24

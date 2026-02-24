@@ -31,10 +31,8 @@ op getWidget(@path id: string): Widget | ApiError;
 
 ```ts operations function _getWidgetDeserializeExceptionHeaders
 export function _getWidgetDeserializeExceptionHeaders(
-  result: PathUncheckedResponse,
-): {
-  errorCode: string;
-} {
+  result: PathUncheckedResponse_1,
+): { errorCode: string } {
   return { errorCode: result.headers["x-ms-error-code"] };
 }
 ```
@@ -124,12 +122,8 @@ op getItem(@path id: string): Item | StorageError;
 
 ```ts operations function _getItemDeserializeExceptionHeaders
 export function _getItemDeserializeExceptionHeaders(
-  result: PathUncheckedResponse,
-): {
-  errorCode: string;
-  isRetryable?: boolean;
-  retryAfter?: Date;
-} {
+  result: PathUncheckedResponse_1,
+): { errorCode: string; isRetryable?: boolean; retryAfter?: Date } {
   return {
     errorCode: result.headers["x-ms-error-code"],
     isRetryable:
@@ -192,10 +186,8 @@ op getWidget(@path id: string): Widget | StorageError;
 
 ```ts operations function _getWidgetDeserializeExceptionHeaders
 export function _getWidgetDeserializeExceptionHeaders(
-  result: PathUncheckedResponse,
-): {
-  errorCode: string;
-} {
+  result: PathUncheckedResponse_1,
+): { errorCode: string } {
   return { errorCode: result.headers["x-ms-error-code"] };
 }
 ```

@@ -18,3 +18,11 @@ export {
   type FlavorProviderProps,
   type RuntimeLib,
 } from "./flavor-context.js";
+
+export {
+  EmitterOptionsContext,
+  EmitterOptionsProvider,
+  useEmitterOptions,
+  type EmitterOptionsProviderProps,
+  type EmitterOptionsValue,
+} from "./emitter-options-context.js";
