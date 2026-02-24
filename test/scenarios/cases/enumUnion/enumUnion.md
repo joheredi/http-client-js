@@ -1504,14 +1504,12 @@ export interface Test {
 ## Model Alias LR
 
 ```ts models alias LR
-/** Type of LR */
 export type LR = "left" | "right";
 ```
 
 ## Model Alias UD
 
 ```ts models alias UD
-/** Type of UD */
 export type UD = "up" | "down";
 ```
 
@@ -1546,14 +1544,12 @@ export interface Test {
 ## Model Alias LeftAndRight
 
 ```ts models alias LeftAndRight
-/** Type of LeftAndRight */
 export type LeftAndRight = "left" | "right";
 ```
 
 ## Model Alias UpAndDown
 
 ```ts models alias UpAndDown
-/** Type of UpAndDown */
 export type UpAndDown = "up" | "down";
 ```
 

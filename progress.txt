@@ -2134,3 +2134,66 @@
   - models (1): model-only @usage case
   - classicClient (1): empty project classic client output
 - Priority for next fix: XML serializers (19 failures, Task 10.2) or enum/union aliases (4 failures, Task 10.6)
+
+## 2026-02-24 — Enum/Union Sub-Enum Type Aliases (Task 10.6)
+
+### What was done
+- **Created `src/components/sub-enum-declaration.tsx`**: New component that extracts and renders
+  sub-enum type aliases from flattened union-as-enum types. When TCGC encounters `color: LR | UD`
+  (union of enums), it flattens both into a single combined enum `TestColor` with
+  `isUnionAsEnum: true` and `isGeneratedName: true`. The individual enums (LR, UD) are lost from
+  `sdkPackage.enums`. This component:
+  - `extractSubEnums()`: Groups flattened enum values back into their original TypeSpec enums/unions
+    by inspecting `value.__raw.enum.name` (for TypeSpec enums) and `value.__raw.union.name`
+    (for TypeSpec unions).
+  - `SubEnumDeclaration`: Renders each reconstructed sub-enum as an exported type alias:
+    `export type LR = "left" | "right";`
+  - `SubEnumDeclarations`: Iterates and renders all sub-enum groups with blank line separators.
+  - `normalizeSubEnumName()`: Capitalizes first letter while preserving rest (matches legacy
+    emitter behavior: "LR" → "LR", "leftAndRight" → "LeftAndRight").
+  - Uses `namekey` with `ignoreNamePolicy: true` to prevent Alloy's name policy from transforming
+    "LR" → "Lr" (change-case's pascalCase splits on word boundaries).
+- **Updated `src/components/model-files.tsx`**: Added sub-enum extraction and rendering after
+  regular enum declarations. Each union-as-enum type gets its sub-enums extracted and rendered.
+- **Updated `src/components/index.ts`**: Exports SubEnumDeclaration, SubEnumDeclarations,
+  extractSubEnums, and subEnumRefkey.
+- **Created `test/components/sub-enum-declaration.test.tsx`**: 6 unit tests covering:
+  - extractSubEnums groups values from two TypeSpec enums (LR, UD)
+  - extractSubEnums handles mix of TypeSpec union and enum sources
+  - extractSubEnums returns empty for non-union-as-enum types
+  - SubEnumDeclaration renders type alias with doc for string enum values
+  - SubEnumDeclarations renders multiple sub-enums with spacing
+  - SubEnumDeclarations returns undefined for empty sub-enums
+- **Updated 6 scenario test expected output files** via SCENARIOS_UPDATE=true:
+  - enumUnion/enumUnion.md (4 new passing assertions)
+  - models/azureCoreErrorModels.md, models/deserialization/propertyType.md,
+    models/response/headerInXmlResponse.md, models/serialization/propertyType.md,
+    operations/errorDeserialization/xmlErrorDeserialization.md (refkey ID shifts)
+- **Updated PRD**: Marked task 10.6 as done, also marked 10.5 as done (was already implemented).
+
+### Test Results
+- Before: 61 failures, 726 passed, 42 passing test files
+- After: 57 failures, 736 passed, 43 passing test files
+- Fixed: 4 enumUnion alias tests (LR, UD, LeftAndRight, UpAndDown)
+- Added: 6 new unit tests (all pass)
+- Zero regressions in existing tests
+
+### Architecture decisions
+- **Sub-enums as separate component**: Sub-enums are reconstructed from __raw references rather
+  than modifying the existing EnumDeclaration. This keeps the normal enum path clean and avoids
+  touching the well-tested enum rendering logic.
+- **namekey with ignoreNamePolicy**: The Alloy TypeScript name policy uses change-case's
+  `pascalCase` which converts "LR" → "Lr". The legacy emitter's normalization simply capitalizes
+  the first letter. Using `ignoreNamePolicy: true` with manual normalization preserves this behavior.
+- **Only for isUnionAsEnum + isGeneratedName**: Sub-enum extraction only triggers for flattened
+  union-as-enum types with generated names. Regular enums and named unions are unaffected.
+
+### Notes for next person
+- Completed: All Phases 0-8, Phase 9, Tasks 10.3, 10.4, 10.5, 10.6 (DONE).
+- **Remaining 57 scenario failures by category**:
+  - samples (~51): Sample generation issues (Task 10.1)
+  - multipart (2): _UploadFileRequest prefix (Task 10.8)
+  - modelsGenerator (3): model-only index + models (Task 10.7)
+  - classicClient (1): empty project (Task 10.9)
+- All non-sample, non-trivial model/enum/operation failures are now resolved.
+- Priority for next fix: Task 10.7 (root index for model-only, 3 failures) or Task 10.8 (multipart prefix, 2 failures)

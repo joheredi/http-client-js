@@ -19,6 +19,7 @@ import { XmlObjectSerializer } from "./serialization/xml-object-serializer.js";
 import { XmlDeserializer } from "./serialization/xml-deserializer.js";
 import { XmlObjectDeserializer } from "./serialization/xml-object-deserializer.js";
 import { UnionDeclaration } from "./union-declaration.js";
+import { extractSubEnums, SubEnumDeclarations } from "./sub-enum-declaration.js";
 import { hasXmlSerialization } from "../utils/xml-detection.js";
 
 /**
@@ -51,6 +52,14 @@ export function ModelFiles() {
   const namedUnions = unions.filter(
     (u): u is SdkUnionType => u.kind === "union",
   );
+
+  // Extract sub-enums from union-as-enum types. When TCGC flattens `enum LR | enum UD`
+  // into a combined `TestColor` enum, the individual enums (LR, UD) are lost. We
+  // reconstruct them from __raw references so they appear as separate type aliases.
+  const allSubEnums = enums.flatMap((e) => {
+    const subs = extractSubEnums(e);
+    return subs.length > 0 ? [{ parentEnum: e, subEnums: subs }] : [];
+  });
 
   // Separate discriminated (polymorphic) models from regular models
   const isDiscriminated = (m: SdkModelType) =>
@@ -120,11 +129,13 @@ export function ModelFiles() {
         <ModelDeclarations models={models} />
         {models.length > 0 && enums.length > 0 ? "\n\n" : undefined}
         <EnumDeclarations enums={enums} />
-        {(models.length > 0 || enums.length > 0) && namedUnions.length > 0
+        {enums.length > 0 && allSubEnums.length > 0 ? "\n\n" : undefined}
+        <AllSubEnumDeclarations groups={allSubEnums} />
+        {(models.length > 0 || enums.length > 0 || allSubEnums.length > 0) && namedUnions.length > 0
           ? "\n\n"
           : undefined}
         <UnionDeclarations unions={namedUnions} />
-        {(models.length > 0 || enums.length > 0 || namedUnions.length > 0) &&
+        {(models.length > 0 || enums.length > 0 || allSubEnums.length > 0 || namedUnions.length > 0) &&
         (hasSerializers || hasDeserializers || hasXmlSerializers || hasXmlDeserializers)
           ? "\n\n"
           : undefined}
@@ -269,6 +280,37 @@ function UnionDeclarations(props: UnionDeclarationsProps) {
   return (
     <For each={props.unions} doubleHardline>
       {(unionType) => <UnionDeclaration type={unionType} />}
+    </For>
+  );
+}
+
+/**
+ * Props for the {@link AllSubEnumDeclarations} component.
+ */
+interface AllSubEnumDeclarationsProps {
+  /** Groups of sub-enums, each with a parent enum and its extracted sub-enums. */
+  groups: { parentEnum: import("@azure-tools/typespec-client-generator-core").SdkEnumType; subEnums: import("./sub-enum-declaration.js").SubEnumInfo[] }[];
+}
+
+/**
+ * Renders all sub-enum type aliases extracted from union-as-enum types.
+ *
+ * When TCGC flattens `enum LR | enum UD` into a combined `TestColor` enum,
+ * the original individual enums are not in `sdkPackage.enums`. This component
+ * renders reconstructed sub-enums as separate type aliases so consumers can
+ * reference the original enum types (e.g., `LR`, `UD`) independently.
+ *
+ * @param props - Component props containing the sub-enum groups.
+ * @returns Alloy JSX tree with sub-enum type aliases, or undefined if empty.
+ */
+function AllSubEnumDeclarations(props: AllSubEnumDeclarationsProps) {
+  if (props.groups.length === 0) return undefined;
+
+  return (
+    <For each={props.groups} doubleHardline>
+      {(group) => (
+        <SubEnumDeclarations parentEnum={group.parentEnum} subEnums={group.subEnums} />
+      )}
     </For>
   );
 }

@@ -1032,3 +1032,31 @@ When operations are grouped (e.g., `interface Widgets { ... }`), files go into s
 like `api/widgets/options.ts`. The regex must account for subdirectories:
 - Wrong: `/api\/options\.ts$/` — only matches `api/options.ts`
 - Right: `/api\/.*options\.ts$/` — matches `api/options.ts` and `api/widgets/options.ts`
+
+## Alloy Name Policy and All-Caps Names (Task 10.6)
+
+**Problem**: Alloy's TypeScript name policy uses `change-case`'s `pascalCase` which converts
+all-caps abbreviations incorrectly: `pascalCase("LR")` → "Lr", `pascalCase("UD")` → "Ud".
+The legacy emitter's `normalizeName` just capitalizes the first letter, preserving "LR" → "LR".
+
+**Solution**: For type names that may have non-standard casing (like sub-enum names extracted
+from `__raw`), use `namekey(name, { ignoreNamePolicy: true })` combined with manual normalization
+(capitalize first letter only: `name.charAt(0).toUpperCase() + name.slice(1)`).
+
+This preserves:
+- "LR" → "LR" (all-caps abbreviations unchanged)
+- "leftAndRight" → "LeftAndRight" (camelCase → PascalCase)
+- "upAndDown" → "UpAndDown"
+
+## TCGC Union-as-Enum Flattening (Task 10.6)
+
+**Problem**: When a model property is typed as `LR | UD` (union of two enums), TCGC flattens
+them into a single combined `SdkEnumType` (e.g., "TestColor") with `isUnionAsEnum: true` and
+`isGeneratedName: true`. The original individual enums (LR, UD) are NOT in `sdkPackage.enums`.
+
+**Solution**: Reconstruct the sub-enums from `__raw` references on the flattened enum's values:
+- For TypeSpec enums: `value.__raw.enum.name` gives the original enum name
+- For TypeSpec unions: `value.__raw.union.name` gives the original union name
+Group values by source and render each group as a separate type alias.
+
+Only apply this for enums where `isUnionAsEnum === true && isGeneratedName === true`.

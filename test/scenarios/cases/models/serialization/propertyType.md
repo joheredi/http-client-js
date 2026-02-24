@@ -104,11 +104,11 @@ export interface SimpleModel {
   propStringLiteralOptional?: "A";
   propStringUnion: SimpleModelPropStringUnion;
   propStringUnionOptioanl: SimpleModelPropStringUnionOptioanl;
-  propStringUnionNullable: <Unresolved Symbol: refkey[o845]> | null;
+  propStringUnionNullable: <Unresolved Symbol: refkey[o849]> | null;
   propStringUnionAsExtensible: SimpleModelPropStringUnionAsExtensible;
   propStringUnionAsExtensibleOptional?: SimpleModelPropStringUnionAsExtensibleOptional;
-  propStringUnionAsExtensibleNullable: <Unresolved Symbol: refkey[o848]> | null;
-  propStringUnionAsExtensibleOptionalAndNullable?: <Unresolved Symbol: refkey[o849]> | null;
+  propStringUnionAsExtensibleNullable: <Unresolved Symbol: refkey[o852]> | null;
+  propStringUnionAsExtensibleOptionalAndNullable?: <Unresolved Symbol: refkey[o853]> | null;
   propMixedTypeLiteral: SimpleModelPropMixedTypeLiteral;
   propStringArray: (string)[];
   propBooleanArray: (boolean)[];

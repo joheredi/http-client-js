@@ -1515,7 +1515,7 @@
         {
           "id": "10.5",
           "title": "Implement response header deserialization functions (11 failures)",
-          "status": "not_started",
+          "status": "done",
           "description": "11 tests fail because header deserialization functions are not generated. Two types of functions are expected: (a) `_xxxDeserializeHeaders` for response headers on successful operations (e.g., `_getUserDeserializeHeaders`, `_getAccountInfoDeserializeHeaders`), and (b) `_xxxDeserializeExceptionHeaders` for error response headers (e.g., `_getWidgetDeserializeExceptionHeaders`). These functions extract typed header values from HTTP response headers (including conversion of strings to boolean, date, bytes). Currently, `deserialize-operation.tsx` only handles response body deserialization. This requires: (1) new DeserializeHeaders component, (2) new DeserializeExceptionHeaders component, (3) integration in operation-files.tsx, (4) support for `include-headers-in-response` config option from TCGC.",
           "failure_count": 11,
           "affected_scenarios": [
@@ -1531,7 +1531,7 @@
         {
           "id": "10.6",
           "title": "Fix enum union type alias generation (4 failures)",
-          "status": "not_started",
+          "status": "done",
           "description": "4 tests fail because named union type aliases (LR, UD, LeftAndRight, UpAndDown) are not emitted in models.ts. The test scenario enumUnion/enumUnion.md expects type aliases like `export type LR = \"left\" | \"right\"`. The model-files.tsx correctly filters for `SdkUnionType` from `sdkPackage.unions`, and `UnionDeclaration` renders named unions. The issue is likely that these unions are either: (a) not being included in the `unions` array by TCGC, (b) being classified differently (e.g., as enum types), or (c) being filtered out by the `u.kind === \"union\"` check when they have enum members.",
           "failure_count": 4,
           "affected_scenarios": [

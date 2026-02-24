@@ -370,7 +370,7 @@ export function resourceSerializer(item: Resource): any {
     id: item["id"],
     name: item["name"],
     type: item["type"],
-    systemData: !item["systemData"] ? item["systemData"] : <Unresolved Symbol: refkey[o544⁣sserializer]>(item["systemData"]),
+    systemData: !item["systemData"] ? item["systemData"] : <Unresolved Symbol: refkey[o548⁣sserializer]>(item["systemData"]),
   };
 }
 

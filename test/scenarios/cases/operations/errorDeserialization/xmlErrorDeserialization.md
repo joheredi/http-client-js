@@ -135,7 +135,7 @@ export async function _getDocumentDeserialize(
     throw createRestError_1(result);
   }
 
-  return <Unresolved Symbol: refkey[o1114⁣sdeserializer]>(result.body);
+  return <Unresolved Symbol: refkey[o1118⁣sdeserializer]>(result.body);
 }
 
 export async function getDocument(

@@ -57,3 +57,9 @@ export {
 export { RestorePollerFile } from "./restore-poller.js";
 export { SampleFiles } from "./sample-files.js";
 export { LoggerFile } from "./logger-file.js";
+export {
+  SubEnumDeclaration,
+  SubEnumDeclarations,
+  extractSubEnums,
+  subEnumRefkey,
+} from "./sub-enum-declaration.js";
