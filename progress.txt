@@ -1048,3 +1048,61 @@
   - User-agent prefix configuration.
   - LRO/Paging operation methods may need special return type handling
     (not tested with real LRO/paging TCGC data yet).
+
+## 2026-02-24 — Emitter Entry Point (Phase 0, Task 0.2)
+
+### What was done
+- Created `src/emitter.tsx`: The `$onEmit` async function that serves as the TypeSpec
+  compiler hook. It:
+  - Initializes TCGC via `createSdkContext(context)` to extract `sdkPackage`
+  - Builds a declarative JSX component tree composing all existing orchestrators:
+    `<Output>` → `<SdkContextProvider>` → `<SourceDirectory path="src">` →
+    `<ModelFiles>`, `<OperationFiles>`, `<ClientContextFile>`, `<ClassicalClientFile>`
+  - Configures `Output` with `createTSNamePolicy()`, `tsNameConflictResolver`, and
+    `httpRuntimeLib` as the external package
+  - Iterates over `sdkPackage.clients` to render per-client context and classical files
+  - Calls `writeOutput()` from `@typespec/emitter-framework` to render and emit files
+- Updated `src/index.ts`: Exports `$onEmit` from the package entry point.
+- Created `test/components/emitter.test.tsx`: 6 tests covering:
+  - Full integration with models, operations, context, and classical client files
+  - Scalar-only operations producing operations and client files
+  - Cross-file refkey references between models and operations
+  - Empty/minimal service handling without errors
+  - Enum declarations flowing through the full emitter tree
+  - HTTP runtime symbol imports working end-to-end
+- Updated PRD: Task 0.2 marked as done.
+- All 168 tests pass (6 new + 162 existing).
+
+### Architecture decisions
+- **Uses emitter-framework's Output**: Instead of using Alloy's raw `Output` directly,
+  the emitter uses `@typespec/emitter-framework`'s `Output` which wraps the Alloy
+  `Output` with a `TspContext.Provider` for the TypeSpec program. This enables
+  downstream components to use `useTsp()` if needed.
+- **Per-client iteration**: Uses `<For each={sdkPackage.clients}>` to render
+  `ClientContextFile` and `ClassicalClientFile` for each client, supporting
+  multi-client services.
+- **SourceDirectory wrapping**: All output is wrapped in `<SourceDirectory path="src">`
+  to produce the `src/` prefix in the output directory structure.
+- **Single externals registration**: Only `httpRuntimeLib` is registered as an external.
+  Azure-specific packages will be added in Phase 8 (Azure Extension).
+
+### Notes for next person
+- **Phase 0 is now COMPLETE**: All tasks (0.1-0.6) are done.
+- Phase 1 (complete), Phase 2 (2.1-2.3 done), Phase 3 (complete), Phase 4 (4.1 done),
+  Phase 5 (5.1 done).
+- **Remaining tasks by priority**:
+  1. 5.2 (Classical Operation Groups) — extends the classical client with operation
+     group getters for grouped operations
+  2. 7.1/7.2 (Index Files) — generates barrel files for `index.ts` exports
+  3. 2.4/2.5 (XML Serializers, Static Helpers) — advanced serialization
+  4. 4.2 (Logger Component) — Azure-only logging
+  5. 6.x (Advanced Features) — LRO, multipart, samples
+  6. 8.x (Azure Extension) — Azure-specific composition
+- The emitter can now be invoked by the TypeSpec compiler on any `.tsp` file.
+  To test manually: configure the emitter in `tspconfig.yaml` and run `tsp compile`.
+- The `$onEmit` function does NOT yet handle:
+  - Emitter options (e.g., `package-name`, `flavor`) — will be added when emitter
+    options schema is defined
+  - Azure external packages (only `httpRuntimeLib` is registered)
+  - Index/barrel files (Phase 7)
+  - Operation group classes (Phase 5.2)

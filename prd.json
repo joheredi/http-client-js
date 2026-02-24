@@ -755,14 +755,15 @@
           "id": "0.2",
           "title": "Emitter Entry Point",
           "description": "Create src/emitter.tsx with $onEmit hook, TCGC initialization, JSX tree, and writeOutput()",
-          "pass": false,
+          "pass": true,
           "pass_criteria": [
             "src/emitter.tsx exists with exported $onEmit function",
             "$onEmit calls createSdkContext() and extracts sdkPackage",
             "JSX component tree renders via writeOutput() without runtime errors",
             "Emitter can be invoked by TypeSpec compiler on a minimal .tsp file",
             "Uses idiomatic Alloy Output component with namePolicy and externals"
-          ]
+          ],
+          "status": "done"
         },
         {
           "id": "0.3",
