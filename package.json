@@ -20,8 +20,11 @@
     "@alloy-js/rollup-plugin": "0.1.0",
     "@types/node": "^24.1.0",
     "concurrently": "^9.2.0",
+    "prettier": "^3.8.1",
+    "tree-sitter-typescript": "^0.23.2",
     "typescript": "^5.8.3",
-    "vitest": "^3.2.4"
+    "vitest": "^3.2.4",
+    "web-tree-sitter": "^0.26.5"
   },
   "scripts": {
     "build": "alloy build",

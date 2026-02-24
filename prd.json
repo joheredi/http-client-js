@@ -1333,7 +1333,7 @@
           "id": "9.1",
           "title": "Test Harness",
           "description": "Adapt scenario test harness for vitest with MD parser and assertion engine",
-          "pass": false,
+          "pass": true,
           "pass_criteria": [
             "Scenario harness reads .md files recursively from test/scenarios/",
             "MD parser extracts TypeSpec input (```tsp) and expected output (```typescript <type>) blocks",
@@ -1342,7 +1342,8 @@
             "SCENARIOS_UPDATE=true environment variable regenerates snapshots",
             "vitest run --reporter=verbose shows individual scenario results",
             "Harness integrates with vitest describe/it/expect API"
-          ]
+          ],
+          "status": "done"
         },
         {
           "id": "9.2",

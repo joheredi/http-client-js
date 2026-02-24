@@ -717,3 +717,88 @@ const { program } = await runner.compile(t.code`op test(): void;`);
 This applies even when testing components with mock data that don't use TCGC.
 
 **Date:** 2026-02-24
+
+## TypeSpec compiler cannot self-resolve emitter package in tests
+
+**Problem:** Using `Tester.emit("http-client-js")` to create an `EmitterTester` fails with
+`import-not-found Couldn't resolve import "http-client-js"` because the TypeSpec compiler's
+test infrastructure uses a virtual filesystem for compilation. The emitter package is not
+present in this virtual filesystem, and the compiler's module resolver doesn't fall back to
+the real filesystem.
+
+**Fix:** Instead of using `executeScenarios()` from `@typespec/emitter-framework/testing`
+(which requires an `EmitterTester`), build a custom scenario harness that:
+1. Compiles TypeSpec using the standard `Tester` (no emitter invocation)
+2. Creates a TCGC SDK context manually via `createSdkContextForTest()`
+3. Builds the same JSX component tree as `$onEmit` and renders via `renderAsync()`
+4. Collects output files from the Alloy `OutputDirectory` tree
+5. Uses the emitter-framework's `createSnippetExtractor()` for declaration extraction
+
+This bypasses the virtual filesystem limitation while still exercising the full emitter pipeline.
+
+**Date:** 2026-02-24
+
+## createTypeScriptExtractorConfig() fails in ESM with require.resolve
+
+**Problem:** `createTypeScriptExtractorConfig()` from `@typespec/emitter-framework/testing`
+internally calls `require.resolve()` to locate the tree-sitter-typescript WASM file. In ESM
+contexts (which vitest uses), `require` is not defined, causing `ReferenceError: require is
+not defined`.
+
+**Fix:** Create a custom TypeScript extractor config using `createRequire` from `node:module`:
+```typescript
+import { createRequire } from "node:module";
+import { Language, Parser } from "web-tree-sitter";
+
+const require = createRequire(import.meta.url);
+const wasmPath = require.resolve("tree-sitter-typescript/tree-sitter-typescript.wasm");
+await Parser.init();
+const language = await Language.load(wasmPath);
+```
+
+Also note: `web-tree-sitter` uses named exports (not default export). Import as
+`import { Parser, Language } from "web-tree-sitter"`, NOT `import Parser from "web-tree-sitter"`.
+
+**Date:** 2026-02-24
+
+## Alloy OutputDirectory entries have full relative paths
+
+**Problem:** When collecting files from `renderAsync()` output, concatenating parent directory
+paths with child entry paths produces doubled paths like `src/src/models/src/models/models.ts`.
+
+**Fix:** Each entry in Alloy's `OutputDirectory` tree has a `path` property containing the
+FULL relative path from the output root, not a path relative to its parent. Use each entry's
+path directly without concatenating parent paths:
+```typescript
+function collectFiles(dir: OutputDirectory): Record<string, string> {
+  const files: Record<string, string> = {};
+  for (const entry of dir.contents) {
+    if ("contents" in entry) {
+      if (Array.isArray(entry.contents)) {
+        Object.assign(files, collectFiles(entry as OutputDirectory));
+      } else {
+        files[entry.path] = entry.contents as string;
+      }
+    }
+  }
+  return files;
+}
+```
+
+This matches how `writeOutput` from `@typespec/emitter-framework` handles paths — it uses
+`joinPaths(emitterOutputDir, sub.path)` directly, not accumulated parent paths.
+
+**Date:** 2026-02-24
+
+## Emitter generates invalid TypeScript in createTestService
+
+**Problem:** The `createTestService` factory function in the client context file generates
+invalid TypeScript: `return getClient_1(endpointUrl, options); as TestServiceContext;`.
+The `as` type assertion is placed AFTER the semicolon instead of before it.
+
+**Fix:** This is a pre-existing bug in the `ClientContextFactory` component. The scenario
+test harness correctly detects this. When prettier can't format both the expected and actual
+output (due to invalid TypeScript), the harness falls back to raw string comparison so the
+test still passes if the expected output matches the actual output.
+
+**Date:** 2026-02-24

@@ -1,0 +1,6 @@
+ignoredBuiltDependencies:
+  - esbuild
+  - tree-sitter-javascript
+
+onlyBuiltDependencies:
+  - tree-sitter-typescript

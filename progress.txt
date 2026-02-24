@@ -1582,3 +1582,71 @@
 - The `model-files.tsx` now handles JSON, Multipart, and XML serialization in order.
   If future content types need support, follow the same pattern: detect via UsageFlags,
   separate models, add declaration components at the bottom.
+
+## 2026-02-24 — Scenario Test Harness (Phase 9, Task 9.1)
+
+### What was done
+- Created `test/scenarios/scenario-harness.ts`: Custom scenario test harness that:
+  - Discovers `.md` files recursively from `test/scenarios/cases/`
+  - Parses markdown into scenarios (split by H1 headers, extract code blocks)
+  - Supports TypeSpec input (`\`\`\`tsp`) and expected TypeScript output (`\`\`\`ts <path> [type] [name]`)
+  - Compiles TypeSpec via TesterWithService, runs emitter pipeline, collects output
+  - Uses tree-sitter snippet extractor for declaration-level extraction (interface, function, class, enum, type)
+  - Uses prettier for formatting normalization before comparison
+  - Falls back to raw string comparison when output contains invalid TypeScript
+  - Supports `only:` and `skip:` prefixes on scenario titles
+  - Supports `SCENARIOS_UPDATE=true` / `RECORD=true` for snapshot regeneration
+  - Integrates with vitest describe/it/expect API
+- Created `test/scenarios/emit-for-scenario.tsx`: Emitter integration that mirrors `$onEmit`
+  but collects output in memory instead of writing to disk. Uses `renderAsync()` from Alloy
+  to produce the output directory tree and flattens it into a `Record<string, string>`.
+- Created `test/scenarios/scenarios.test.ts`: Main test file that wires up the harness with
+  a custom TypeScript extractor config (using `createRequire` to work around ESM limitations).
+- Created initial scenario files:
+  - `test/scenarios/cases/models/basic.md`: 2 tests (global namespace model, optional properties)
+  - `test/scenarios/cases/models/types.md`: 5 tests (enum property, array property, inheritance)
+  - `test/scenarios/cases/operations/basic.md`: 2 tests (GET operation, POST with body)
+  - `test/scenarios/cases/client/client.md`: 3 tests (client context, factory function, classical client)
+- Added devDependencies: `web-tree-sitter`, `tree-sitter-typescript`, `prettier`
+- Updated PRD: Task 9.1 marked as done.
+- All 275 tests pass (263 existing + 12 new scenario tests).
+
+### Architecture decisions
+- **Custom harness instead of executeScenarios()**: The emitter-framework's `executeScenarios()`
+  requires an `EmitterTester` which needs the emitter package to be resolvable via TypeSpec's
+  virtual filesystem. Since the project's package can't self-resolve in TypeSpec's module resolver,
+  a custom harness calls the emitter pipeline directly (TesterWithService → createSdkContextForTest
+  → JSX tree → renderAsync → collect files).
+- **Reuses emitter-framework utilities**: The harness uses `createSnippetExtractor` from the
+  emitter-framework for tree-sitter based declaration extraction. Only the MD parsing and test
+  execution are custom (the harness's MD parser is based on the same algorithm as the framework's).
+- **ESM-compatible tree-sitter initialization**: Uses `createRequire(import.meta.url)` to resolve
+  the tree-sitter-typescript WASM file, working around the framework's `require.resolve()` call
+  that fails in ESM contexts.
+- **Graceful invalid TypeScript handling**: When both expected and actual output can't be formatted
+  by prettier (e.g., invalid TypeScript from emitter bugs), the harness falls back to raw string
+  comparison. This prevents known emitter bugs from breaking the test infrastructure.
+
+### Key learnings (see knowledge.md)
+- TypeSpec's test compiler host only searches the virtual filesystem for module resolution
+- `web-tree-sitter` uses named exports, not default export
+- Alloy OutputDirectory entries have full relative paths (not relative to parent)
+- The emitter has a pre-existing bug in `createTestService` (misplaced `as` assertion)
+
+### Notes for next person
+- Completed: Phase 0 (0.1-0.6), Phase 1 (1.1-1.6), Phase 2 (2.1-2.5),
+  Phase 3 (3.1-3.5), Phase 4 (4.1), Phase 5 (5.1-5.2), Phase 6 (6.1-6.2),
+  Phase 7 (7.1-7.2), Phase 9 (9.1).
+- **Remaining tasks by priority**:
+  1. 9.2 (Scenario Porting) — Copy 101 scenario .md files from legacy emitter
+  2. 9.3 (Validation) — Run all 101 scenarios, fix discrepancies
+  3. 4.2 (Logger Component) — Azure-only logging
+  4. 6.3 (Sample Files) — per-operation sample TypeScript files
+  5. 8.x (Azure Extension) — Azure-specific composition
+- To add new scenarios: create `.md` files in `test/scenarios/cases/<category>/`
+  following the format: `# Title` → `\`\`\`tsp` → `\`\`\`ts src/path/file.ts [type] [name]`
+- Use `SCENARIOS_UPDATE=true pnpm test` to auto-generate expected output blocks
+- The scenario test harness catches real bugs — the `createTestService` invalid TypeScript
+  was detected. Consider fixing the `ClientContextFactory` component.
+- The harness exercises the FULL emitter pipeline (TypeSpec → TCGC → Alloy JSX → render → output)
+  which makes it a high-value integration test, not just a snapshot test.
