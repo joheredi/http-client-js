@@ -539,3 +539,67 @@
   from the HTTP runtime library.
 - Dictionary (Record) serialization generates a `serializeRecord()` call pattern but the
   static helper function itself is not yet implemented (Task 2.5).
+
+## 2026-02-24 — Polymorphic Serialization (Phase 2, Task 2.3)
+
+### What was done
+- Created `src/components/serialization/json-polymorphic-serializer.tsx`: `JsonPolymorphicSerializer`
+  JSX component that generates switch-based serializer functions for discriminated models.
+  Also exports `buildPolymorphicSwitchBody()` utility shared by both serializer and deserializer.
+- Created `src/components/serialization/json-polymorphic-deserializer.tsx`: `JsonPolymorphicDeserializer`
+  JSX component that generates switch-based deserializer functions for discriminated models.
+- Updated `src/components/serialization/index.ts`: Exported new components and shared utility.
+- Updated `src/components/model-files.tsx`: Integrated polymorphic serializers/deserializers.
+  Discriminated models are now separated from regular models — discriminated parents get
+  polymorphic switch-based serializers/deserializers while non-discriminated models keep
+  regular property-based serializers/deserializers.
+- Created `test/components/serialization/json-polymorphic-serializer.test.tsx`: 5 tests covering:
+  - Basic discriminated model switch with cases for each subtype
+  - Client property name used for discriminator access (not wire name)
+  - Parameter type uses polymorphic union type (PetUnion not Pet)
+  - Serializer referenceable via serializerRefkey
+  - Default case returns item as-is for unknown discriminators
+- Created `test/components/serialization/json-polymorphic-deserializer.test.tsx`: 5 tests covering:
+  - Basic discriminated model switch with cases for each subtype
+  - Wire property name (serializedName) used for discriminator access
+  - Return type uses polymorphic union type
+  - Deserializer referenceable via deserializerRefkey
+  - Default case returns item as-is for unknown discriminators
+- Updated PRD: FR6 (Polymorphic Serialization) marked as implemented. Task 2.3 marked done.
+- All 106 tests pass (10 new + 96 existing).
+
+### Architecture decisions
+- **Switch-based routing**: Polymorphic serializers use a `switch` statement on the
+  discriminator property, with each case routing to the subtype's serializer/deserializer
+  via refkey. This matches the legacy emitter's pattern.
+- **Discriminator access**: Serializers use client property name (`item["kind"]`) since the
+  input is a typed SDK object. Deserializers use wire property name (`item["shape_type"]`)
+  since the input is raw JSON from the service.
+- **Replaces regular serializer**: For discriminated parent models, the polymorphic
+  serializer gets `serializerRefkey(model)`, so external code that references the
+  serializer automatically gets the switch-based version. Regular property serializers
+  are NOT generated for discriminated parents.
+- **Default case**: Returns `item` as-is for unknown discriminator values, providing
+  forward compatibility when the service adds new subtypes.
+- **Shared utility**: `buildPolymorphicSwitchBody()` is exported and shared between
+  serializer and deserializer, parameterized by the refkey function (serializerRefkey
+  vs deserializerRefkey).
+- **All subtypes in switch**: The switch includes ALL entries from `discriminatedSubtypes`
+  (including transitive subtypes in multi-level hierarchies), not just direct subtypes.
+
+### Notes for next person
+- Completed: Phase 0 (0.1, 0.3, 0.4, 0.5, 0.6), Phase 1 (1.1–1.6), Phase 2 (2.1, 2.2, 2.3).
+- Phase 0 remaining: 0.2 (Emitter Entry Point).
+- Phase 2 remaining: 2.4 (XML Serializers, P1), 2.5 (Static Helpers).
+- **Next priorities**: 0.2 (Emitter Entry Point) or Phase 3 (Operations).
+  - 0.2 is needed to wire everything into a working emitter.
+  - Phase 3 (Operation Generation) is the next P0 set of features after serialization.
+  - 2.4 (XML) is P1 and can be deferred.
+  - 2.5 (Static Helpers) is needed before Phase 3 can be fully functional.
+- The polymorphic serializers are integrated into `model-files.tsx` — discriminated models
+  are automatically routed to the polymorphic components based on `discriminatorProperty`
+  and `getDirectSubtypes()`.
+- Subtypes (e.g., Cat, Dog) still get regular `JsonSerializer`/`JsonDeserializer` because
+  they serialize their own properties. Only the discriminated parent (Pet) gets the switch.
+- The existing serializer's inheritance handling (subtypes only serialize their own properties,
+  not inherited ones) is a separate concern not addressed by FR6.

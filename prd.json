@@ -169,7 +169,8 @@
           "Switch statement on discriminator property",
           "Each case routes to subtype serializer/deserializer refkey",
           "Parameter type uses polymorphicTypeRefkey (union type, not base)"
-        ]
+        ],
+        "status": "implemented"
       },
       {
         "id": "FR7",
@@ -966,7 +967,8 @@
             "Deserializer return type uses polymorphicTypeRefkey",
             "Default case handles unknown discriminator values",
             "All subtypes in discriminatedSubtypes have corresponding cases"
-          ]
+          ],
+          "status": "done"
         },
         {
           "id": "2.4",

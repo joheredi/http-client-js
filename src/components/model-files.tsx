@@ -11,6 +11,8 @@ import { ModelInterface } from "./model-interface.js";
 import { getDirectSubtypes, PolymorphicType } from "./polymorphic-type.js";
 import { JsonSerializer } from "./serialization/json-serializer.js";
 import { JsonDeserializer } from "./serialization/json-deserializer.js";
+import { JsonPolymorphicSerializer } from "./serialization/json-polymorphic-serializer.js";
+import { JsonPolymorphicDeserializer } from "./serialization/json-polymorphic-deserializer.js";
 import { UnionDeclaration } from "./union-declaration.js";
 
 /**
@@ -44,6 +46,11 @@ export function ModelFiles() {
     (u): u is SdkUnionType => u.kind === "union",
   );
 
+  // Separate discriminated (polymorphic) models from regular models
+  const isDiscriminated = (m: SdkModelType) =>
+    m.discriminatorProperty !== undefined &&
+    getDirectSubtypes(m).length > 0;
+
   // Filter models by usage flags for serialization/deserialization
   const inputModels = models.filter(
     (m) => (m.usage & UsageFlags.Input) !== 0,
@@ -53,6 +60,17 @@ export function ModelFiles() {
       (m.usage & UsageFlags.Output) !== 0 ||
       (m.usage & UsageFlags.Exception) !== 0,
   );
+
+  // Split into regular and polymorphic models for serialization
+  const regularInputModels = inputModels.filter((m) => !isDiscriminated(m));
+  const polymorphicInputModels = inputModels.filter(isDiscriminated);
+  const regularOutputModels = outputModels.filter((m) => !isDiscriminated(m));
+  const polymorphicOutputModels = outputModels.filter(isDiscriminated);
+
+  const hasSerializers =
+    regularInputModels.length > 0 || polymorphicInputModels.length > 0;
+  const hasDeserializers =
+    regularOutputModels.length > 0 || polymorphicOutputModels.length > 0;
 
   // Skip rendering entirely if there are no type declarations to emit
   if (models.length === 0 && enums.length === 0 && namedUnions.length === 0) {
@@ -70,14 +88,20 @@ export function ModelFiles() {
           : undefined}
         <UnionDeclarations unions={namedUnions} />
         {(models.length > 0 || enums.length > 0 || namedUnions.length > 0) &&
-        (inputModels.length > 0 || outputModels.length > 0)
+        (hasSerializers || hasDeserializers)
           ? "\n\n"
           : undefined}
-        <SerializerDeclarations models={inputModels} />
-        {inputModels.length > 0 && outputModels.length > 0
+        <SerializerDeclarations models={regularInputModels} />
+        {regularInputModels.length > 0 && polymorphicInputModels.length > 0
           ? "\n\n"
           : undefined}
-        <DeserializerDeclarations models={outputModels} />
+        <PolymorphicSerializerDeclarations models={polymorphicInputModels} />
+        {hasSerializers && hasDeserializers ? "\n\n" : undefined}
+        <DeserializerDeclarations models={regularOutputModels} />
+        {regularOutputModels.length > 0 && polymorphicOutputModels.length > 0
+          ? "\n\n"
+          : undefined}
+        <PolymorphicDeserializerDeclarations models={polymorphicOutputModels} />
       </SourceFile>
     </SourceDirectory>
   );
@@ -254,6 +278,68 @@ function DeserializerDeclarations(props: DeserializerDeclarationsProps) {
   return (
     <For each={props.models} doubleHardline>
       {(model) => <JsonDeserializer model={model} />}
+    </For>
+  );
+}
+
+/**
+ * Props for the {@link PolymorphicSerializerDeclarations} component.
+ */
+interface PolymorphicSerializerDeclarationsProps {
+  /** The list of discriminated TCGC model types that need polymorphic serializers. */
+  models: SdkModelType[];
+}
+
+/**
+ * Renders all polymorphic (switch-based) JSON serializer function declarations.
+ *
+ * Each discriminated model with `UsageFlags.Input` gets a polymorphic serializer
+ * function that switches on the discriminator property and routes to the appropriate
+ * subtype serializer. These are rendered separately from regular serializers because
+ * they use `polymorphicTypeRefkey` as the parameter type instead of the base model type.
+ *
+ * @param props - Component props containing the list of discriminated input models.
+ * @returns Alloy JSX tree with polymorphic serializer declarations, or undefined if empty.
+ */
+function PolymorphicSerializerDeclarations(
+  props: PolymorphicSerializerDeclarationsProps,
+) {
+  if (props.models.length === 0) return undefined;
+
+  return (
+    <For each={props.models} doubleHardline>
+      {(model) => <JsonPolymorphicSerializer model={model} />}
+    </For>
+  );
+}
+
+/**
+ * Props for the {@link PolymorphicDeserializerDeclarations} component.
+ */
+interface PolymorphicDeserializerDeclarationsProps {
+  /** The list of discriminated TCGC model types that need polymorphic deserializers. */
+  models: SdkModelType[];
+}
+
+/**
+ * Renders all polymorphic (switch-based) JSON deserializer function declarations.
+ *
+ * Each discriminated model with `UsageFlags.Output` or `UsageFlags.Exception` gets a
+ * polymorphic deserializer function that switches on the wire-format discriminator
+ * property and routes to the appropriate subtype deserializer. The return type is
+ * the polymorphic union type, ensuring callers receive properly typed results.
+ *
+ * @param props - Component props containing the list of discriminated output/exception models.
+ * @returns Alloy JSX tree with polymorphic deserializer declarations, or undefined if empty.
+ */
+function PolymorphicDeserializerDeclarations(
+  props: PolymorphicDeserializerDeclarationsProps,
+) {
+  if (props.models.length === 0) return undefined;
+
+  return (
+    <For each={props.models} doubleHardline>
+      {(model) => <JsonPolymorphicDeserializer model={model} />}
     </For>
   );
 }

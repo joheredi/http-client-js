@@ -7,3 +7,8 @@ export {
 export { JsonDeserializer } from "./json-deserializer.js";
 export type { JsonDeserializerProps } from "./json-deserializer.js";
 export { getDeserializationExpression } from "./json-deserializer.js";
+export { JsonPolymorphicSerializer } from "./json-polymorphic-serializer.js";
+export type { JsonPolymorphicSerializerProps } from "./json-polymorphic-serializer.js";
+export { buildPolymorphicSwitchBody } from "./json-polymorphic-serializer.js";
+export { JsonPolymorphicDeserializer } from "./json-polymorphic-deserializer.js";
+export type { JsonPolymorphicDeserializerProps } from "./json-polymorphic-deserializer.js";
