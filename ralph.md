@@ -1,4 +1,5 @@
 @alloy-guide-final.md @prd.json @impolementation-plan.md @knowledge.md @progress.txt
+IMPORTANT: Only complete ONE task, after completion you have to exit the copilot CLI. MUST NEVER try to work on a second task
 1. Find the highest-priority feature to work on and work only on that feature.
 This should be the one YOU decide has the highest prority - not necessarily the first item
 2. NEVER assume something is not implemented, study the codebase before implementing to see if something already exists or can be reused.
