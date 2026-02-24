@@ -33,3 +33,5 @@ export {
   azureCoreLroLib,
   azureIdentityLib,
 } from "./external-packages.js";
+
+export { getExampleValueCode } from "./example-values.js";

@@ -970,7 +970,7 @@
           "id": "2.3",
           "title": "Polymorphic Serialization",
           "description": "Discriminated union switch-based serialization/deserialization",
-          "pass": false,
+          "pass": true,
           "pass_criteria": [
             "Switch statement on discriminator property value",
             "Each case routes to subtype-specific serializer/deserializer refkey",
@@ -1216,7 +1216,7 @@
           "id": "6.2",
           "title": "Multipart Support",
           "description": "Detect and generate multipart form data handling in send functions",
-          "pass": false,
+          "pass": true,
           "pass_criteria": [
             "Multipart body parameters detected from SdkHttpOperation",
             "File part descriptors generated using createFilePartDescriptor helper refkey",
@@ -1230,7 +1230,7 @@
           "id": "6.3",
           "title": "Sample Generation",
           "description": "Generate per-operation sample TypeScript files",
-          "pass": false,
+          "pass": true,
           "pass_criteria": [
             "Sample file per operation with executable TypeScript code",
             "Client construction with correct parameters",
@@ -1238,7 +1238,8 @@
             "Credential setup (Azure credentials, API keys)",
             "API call invocation with correct arguments",
             "Scenario tests pass: samples/client/*.md, samples/operations/*.md, samples/parameters/*.md"
-          ]
+          ],
+          "status": "done"
         }
       ],
       "dependencies": [

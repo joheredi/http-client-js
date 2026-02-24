@@ -13,6 +13,7 @@ import { httpRuntimeLib, azureCoreLroLib } from "./utils/external-packages.js";
 import { IndexFiles } from "./components/index-file.js";
 import { StaticHelpers } from "./components/static-helpers/index.js";
 import { RestorePollerFile } from "./components/restore-poller.js";
+import { SampleFiles } from "./components/sample-files.js";
 
 /**
  * TypeSpec emitter entry point for generating TypeScript HTTP client libraries.
@@ -67,6 +68,7 @@ export async function $onEmit(context: EmitContext) {
           <IndexFiles />
           <StaticHelpers />
         </SourceDirectory>
+        <SampleFiles />
       </SdkContextProvider>
     </Output>
   );

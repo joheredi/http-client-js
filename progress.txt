@@ -1650,3 +1650,82 @@
   was detected. Consider fixing the `ClientContextFactory` component.
 - The harness exercises the FULL emitter pipeline (TypeSpec → TCGC → Alloy JSX → render → output)
   which makes it a high-value integration test, not just a snapshot test.
+
+## 2026-02-24 — Sample Generation (Phase 6, Task 6.3)
+
+### What was done
+- Created `src/utils/example-values.ts`: Converts TCGC `SdkExampleValue` types to TypeScript
+  code strings. Handles all TCGC value kinds: string, number, boolean, null, unknown, array,
+  dict, union, and model. Model values filter out readonly properties. Date/DateTime values
+  are wrapped in `new Date(...)`. Special characters in strings are escaped.
+- Created `src/components/sample-files.tsx`: Main sample generation component containing:
+  - `SampleFiles()` — Orchestrator that collects all operations with examples across the
+    entire client hierarchy (root + children via BFS) and renders sample files in `samples-dev/`.
+  - `SampleFile()` — Renders a single sample TypeScript file with: file path comment,
+    package import, credential import (if OAuth2), example function(s), main(), error handling.
+  - `buildClientConstructorParams()` — Extracts required endpoint template arguments and
+    maps them to environment variable references (`process.env.CLIENT_NAME_ENDPOINT`).
+  - `getCredentialSetupCode()` — Returns credential initialization based on auth scheme:
+    OAuth2 → `new DefaultAzureCredential()`, API Key → `{ key: "INPUT_YOUR_KEY_HERE" }`.
+  - `buildOperationCallArgs()` — Maps TCGC example parameter values to the method's
+    signature, handling required positional args and optional parameters in options bag.
+  - `buildExampleJsDoc()` — Generates JSDoc with description, summary, and x-ms-original-file.
+- Updated `src/emitter.tsx`: Added `<SampleFiles />` outside the `src/` SourceDirectory
+  so samples are generated at `samples-dev/` (sibling to `src/`).
+- Updated `src/components/index.ts` to export SampleFiles.
+- Updated `src/utils/index.ts` to export getExampleValueCode.
+- Created `test/components/sample-files.test.tsx` with 18 tests:
+  - SampleFiles: no examples → no output, with example → sample file generated,
+    client import present, endpoint env var setup, API key credential, OAuth2 credential,
+    client construction, operation call, main function, JSDoc, path parameters, file path comment.
+  - getExampleValueCode: string, number, boolean, null, array, model, date, dict conversions.
+- Updated PRD: Tasks 2.3, 6.2 marked as pass=true (were done previously but not marked).
+  Task 6.3 marked as done with pass=true.
+- All 293 tests pass (18 new + 275 existing).
+
+### Architecture decisions
+- **Raw string imports in samples**: Sample files import the client class from the package
+  name (e.g., `import { FooClient } from "@azure/internal-test"`) rather than using Alloy
+  refkeys. This is because samples are in `samples-dev/` which is outside the `src/`
+  directory, and they import the SDK as an external dependency. Alloy's refkey system
+  would generate relative paths which is incorrect for samples.
+- **SourceFile from @alloy-js/typescript**: The SourceFile component must be imported from
+  `@alloy-js/typescript` (not `@alloy-js/core`) because the TypeScript-specific SourceFile
+  has the `filetype` prop defaulted to "typescript". Using the core SourceFile requires
+  explicitly passing `filetype`.
+- **BFS traversal for client hierarchy**: Matches the existing pattern from
+  `classical-operation-groups.tsx`. Each child client adds its camelCase name to the
+  call chain prefix (e.g., `["widgets"]` → `client.widgets.getWidget(...)`).
+- **Package name placeholder**: Uses `@azure/internal-test` as the default package name
+  since the actual package name comes from emitter configuration at build time. This
+  matches the legacy emitter's test scenario convention.
+- **@useAuth at namespace level**: API key auth tests must apply `@useAuth` to the
+  namespace (not the operation) for TCGC to recognize the credential requirement.
+
+### Key learnings (see knowledge.md)
+- `SourceFile` must be imported from `@alloy-js/typescript`, not `@alloy-js/core` —
+  the core version requires `filetype` prop while TypeScript version defaults it
+- `@useAuth` decorator must be applied at the namespace level, not on individual operations,
+  for TCGC to recognize the authentication scheme
+- TCGC examples are on `SdkHttpOperation.examples` (optional array), populated from
+  example JSON files in the TypeSpec definition
+
+### Notes for next person
+- Completed: Phase 0 (0.1-0.6), Phase 1 (1.1-1.6), Phase 2 (2.1-2.5),
+  Phase 3 (3.1-3.5), Phase 4 (4.1), Phase 5 (5.1-5.2), Phase 6 (6.1-6.3 — ALL DONE),
+  Phase 7 (7.1-7.2), Phase 9 (9.1).
+- **Remaining tasks by priority**:
+  1. 9.2 (Scenario Porting) — Copy 101 scenario .md files from legacy emitter
+  2. 9.3 (Validation) — Run all 101 scenarios, fix discrepancies
+  3. 4.2 (Logger Component) — Azure-only logging
+  4. 8.x (Azure Extension) — Azure-specific composition
+- The sample file package name is hardcoded to `@azure/internal-test`. When the emitter
+  receives proper options (package name from tspconfig.yaml), this should be read from
+  `context.options.packageDetails.name` or similar.
+- The sample files don't use Alloy refkeys for the client class import because samples
+  are external consumers of the SDK. If Alloy adds support for "self-package" references,
+  this could be improved.
+- Paging operations generate a for-await-of loop pattern. LRO operations generate a
+  standard await pattern (no polling loop in samples — just the initial call).
+- The `SampleFiles` component is placed OUTSIDE the `<SourceDirectory path="src">` in
+  emitter.tsx so that samples go to `samples-dev/` rather than `src/samples-dev/`.

@@ -802,3 +802,28 @@ output (due to invalid TypeScript), the harness falls back to raw string compari
 test still passes if the expected output matches the actual output.
 
 **Date:** 2026-02-24
+
+### SourceFile import source matters
+
+**Problem:** Using `import { SourceFile } from "@alloy-js/core"` requires passing the
+`filetype` prop explicitly. Without it, the TypeScript compiler reports: `Property 'filetype'
+is missing in type '{ children: string; path: string; }' but required in type 'SourceFileProps'`.
+
+**Solution:** Import `SourceFile` from `@alloy-js/typescript` instead of `@alloy-js/core`.
+The TypeScript-specific version has the `filetype` prop defaulted to `"typescript"` so you
+only need to pass `path` and `children`.
+
+**Date:** 2026-02-24
+
+### @useAuth must be at namespace level for TCGC
+
+**Problem:** In tests, applying `@useAuth(ApiKeyAuth<...>)` to an individual operation
+does not cause TCGC to recognize the authentication scheme. The client's initialization
+parameters won't include a credential parameter, so the generated sample code won't
+include credential setup.
+
+**Solution:** Apply `@useAuth` at the namespace level (on the `@service` namespace).
+For tests using `TesterWithService` (which wraps input in `@service namespace TestService;`),
+use the raw `Tester` instead and define the full namespace with `@useAuth` applied to it.
+
+**Date:** 2026-02-24
