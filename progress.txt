@@ -1,0 +1,26 @@
+## 2026-02-24 — Test Infrastructure (Phase 0, Task 0.6)
+
+### What was done
+- Created `test/test-host.ts`: Tester instance using `createTester()` from `@typespec/compiler/testing`
+  with `@typespec/http` and `@typespec/versioning` libraries pre-loaded.
+- Created `test/utils.tsx`: `TestFile` wrapper component that wraps children in `<Output><SourceFile>`
+  for rendering Alloy components in unit tests.
+- Created `test/vitest.d.ts`: Type declarations for `toRenderTo` and `toRenderToAsync` custom matchers
+  provided by `@alloy-js/core/testing`.
+- Created `test/components/test-infrastructure.test.tsx`: 5 foundational tests validating the
+  test infrastructure (compilation, rendering, code templates, TS declarations, matcher rejection).
+- Updated `vitest.config.ts`: Added `test.include` to restrict test discovery to `test/` directory
+  (prevents picking up tests from submodules).
+
+### Pattern for writing tests
+1. Import `"@alloy-js/core/testing"` (side-effect import registers matchers)
+2. Use `Tester.createInstance()` then `runner.compile(t.code\`...\`)` to compile TypeSpec
+3. Wrap components in `<TestFile program={program}>` for rendering
+4. Assert with `expect(template).toRenderTo(\`expected output\`)`
+
+### Notes for next person
+- Task 0.1 (Add Dependencies) is also done — package.json already has all required deps.
+- Next priorities: SDK Context Provider (0.3), Refkey Helpers (0.4), External Package Definitions (0.5),
+  or Emitter Entry Point (0.2). These are all Phase 0 foundation tasks.
+- The `TestFile` wrapper is intentionally minimal. It will need to be extended with context
+  providers (e.g., `SdkContext`) once those components are created (Task 0.3).

@@ -4,7 +4,9 @@
     "version": "1.0.0",
     "status": "draft",
     "created": "2026-02-24",
-    "authors": ["@joheredi"]
+    "authors": [
+      "@joheredi"
+    ]
   },
   "product_overview": {
     "name": "@microsoft/http-client-js",
@@ -102,7 +104,7 @@
         "description": "Generate TypeScript interfaces from SdkModelType, including properties, inheritance, discriminators, additional properties, and documentation.",
         "priority": "P0",
         "acceptance_criteria": [
-          "SdkModelType → ts.InterfaceDeclaration with correct properties",
+          "SdkModelType \u2192 ts.InterfaceDeclaration with correct properties",
           "Base model inheritance via extends",
           "Discriminator property marked correctly",
           "Additional properties support (Record types)",
@@ -117,8 +119,8 @@
         "description": "Generate TypeScript enums from SdkEnumType with the KnownXXX pattern for extensible enums.",
         "priority": "P0",
         "acceptance_criteria": [
-          "Fixed enums → standard TypeScript enum",
-          "Extensible enums → KnownXXX enum + type XXX = string alias",
+          "Fixed enums \u2192 standard TypeScript enum",
+          "Extensible enums \u2192 KnownXXX enum + type XXX = string alias",
           "Enum values correctly mapped",
           "Enum members have JSDoc documentation"
         ]
@@ -129,7 +131,7 @@
         "description": "Generate TypeScript union type aliases from SdkUnionType.",
         "priority": "P0",
         "acceptance_criteria": [
-          "SdkUnionType → type XXX = A | B | C",
+          "SdkUnionType \u2192 type XXX = A | B | C",
           "Variant types correctly referenced via refkeys",
           "Nullable types include | null"
         ]
@@ -142,7 +144,7 @@
         "acceptance_criteria": [
           "Serializer function per model with Input usage",
           "Deserializer function per model with Output/Exception usage",
-          "Property name mapping (client name → wire name and vice versa)",
+          "Property name mapping (client name \u2192 wire name and vice versa)",
           "Nested model types call child serializer refkeys",
           "Array types use .map() with child serializer",
           "Dictionary types use serializeRecord() helper",
@@ -182,7 +184,7 @@
         "acceptance_criteria": [
           "_sendXXX function builds HTTP request (URL, headers, query, body)",
           "_deserializeXXX function processes response (status check, body parse, headers)",
-          "Public xxx function calls send → deserialize",
+          "Public xxx function calls send \u2192 deserialize",
           "Operations grouped by operation group path",
           "Each group in separate source file under src/api/"
         ]
@@ -370,7 +372,7 @@
       "package": "@azure-tools/typespec-client-generator-core",
       "description": "Provides SdkPackage object model that pre-computes data from TypeSpec definitions. Language-agnostic SDK type system with clients, operations, models, enums, and type metadata."
     },
-    "data_flow": "TypeSpec Input → Compiler → TCGC SdkPackage → Alloy JSX Components → Symbol Tree → TypeScript Files",
+    "data_flow": "TypeSpec Input \u2192 Compiler \u2192 TCGC SdkPackage \u2192 Alloy JSX Components \u2192 Symbol Tree \u2192 TypeScript Files",
     "key_concepts": {
       "refkeys": "Symbolic reference keys created via refkey(entity, discriminator). Each declaration gets a refkey; references use the same refkey. Alloy resolves cross-file references and auto-generates imports.",
       "code_templates": "Tagged template literals (code`...`) that treat interpolated refkeys as live symbolic references. Alloy tracks them and resolves imports automatically.",
@@ -378,11 +380,41 @@
       "external_packages": "NPM packages defined via createPackage() with typed symbol accessors. Used in code templates for auto-import from runtime libraries."
     },
     "component_hierarchy": {
-      "top_level": ["Output", "SdkContextProvider"],
-      "orchestrators": ["ModelFiles", "Operations", "ClassicalClient", "ClassicalOperationGroups"],
-      "source_files": ["ClientContext", "OperationOptions", "RestorePoller", "LoggerFile", "Samples"],
-      "declarations": ["ModelDeclaration", "EnumDeclaration", "UnionDeclaration", "PolymorphicType", "SendFunction", "DeserializeFunction", "OperationFunction", "JsonSerializer", "JsonDeserializer", "XmlSerializer"],
-      "utilities": ["TypeExpression", "RootIndex", "SubpathIndex", "StaticHelpers"]
+      "top_level": [
+        "Output",
+        "SdkContextProvider"
+      ],
+      "orchestrators": [
+        "ModelFiles",
+        "Operations",
+        "ClassicalClient",
+        "ClassicalOperationGroups"
+      ],
+      "source_files": [
+        "ClientContext",
+        "OperationOptions",
+        "RestorePoller",
+        "LoggerFile",
+        "Samples"
+      ],
+      "declarations": [
+        "ModelDeclaration",
+        "EnumDeclaration",
+        "UnionDeclaration",
+        "PolymorphicType",
+        "SendFunction",
+        "DeserializeFunction",
+        "OperationFunction",
+        "JsonSerializer",
+        "JsonDeserializer",
+        "XmlSerializer"
+      ],
+      "utilities": [
+        "TypeExpression",
+        "RootIndex",
+        "SubpathIndex",
+        "StaticHelpers"
+      ]
     },
     "external_dependencies": {
       "runtime": {
@@ -428,10 +460,10 @@
       }
     ],
     "test_infrastructure": {
-      "test_host": "test/test-host.ts — Tester instance with TypeSpec library imports",
-      "test_utils": "test/utils.tsx — TestFile, DeclarationTestFile wrappers, testHelper()",
-      "custom_matchers": "test/vitest.d.ts — toRenderTo, toRenderToAsync from @alloy-js/core/testing",
-      "scenario_harness": "test/scenarios/scenarios.spec.ts — MD file parser + assertion engine"
+      "test_host": "test/test-host.ts \u2014 Tester instance with TypeSpec library imports",
+      "test_utils": "test/utils.tsx \u2014 TestFile, DeclarationTestFile wrappers, testHelper()",
+      "custom_matchers": "test/vitest.d.ts \u2014 toRenderTo, toRenderToAsync from @alloy-js/core/testing",
+      "scenario_harness": "test/scenarios/scenarios.spec.ts \u2014 MD file parser + assertion engine"
     },
     "acceptable_differences": [
       "Import statement ordering",
@@ -452,7 +484,11 @@
     "categories": {
       "models_core": {
         "count": 3,
-        "tests": ["models/models.md", "models/azureCoreErrorModels.md", "models/missingErrorResponseModel.md"]
+        "tests": [
+          "models/models.md",
+          "models/azureCoreErrorModels.md",
+          "models/missingErrorResponseModel.md"
+        ]
       },
       "models_serialization": {
         "count": 8,
@@ -478,7 +514,10 @@
       },
       "models_nullable": {
         "count": 2,
-        "tests": ["models/nullable/nullableOptional.md", "models/nullable/nullableUnion.md"]
+        "tests": [
+          "models/nullable/nullableOptional.md",
+          "models/nullable/nullableUnion.md"
+        ]
       },
       "models_property_flatten": {
         "count": 3,
@@ -514,7 +553,9 @@
       },
       "models_template": {
         "count": 1,
-        "tests": ["models/template/template.md"]
+        "tests": [
+          "models/template/template.md"
+        ]
       },
       "operations_core": {
         "count": 6,
@@ -552,11 +593,15 @@
       },
       "operations_header_param": {
         "count": 1,
-        "tests": ["operations/headerParam/headerParamWithClientInitialization.md"]
+        "tests": [
+          "operations/headerParam/headerParamWithClientInitialization.md"
+        ]
       },
       "operations_cookie_param": {
         "count": 1,
-        "tests": ["operations/cookieParam/ignoreCookieParam.md"]
+        "tests": [
+          "operations/cookieParam/ignoreCookieParam.md"
+        ]
       },
       "operations_error_deserialization": {
         "count": 2,
@@ -567,7 +612,9 @@
       },
       "operations_pagination": {
         "count": 1,
-        "tests": ["operations/pagination/disablePagination.md"]
+        "tests": [
+          "operations/pagination/disablePagination.md"
+        ]
       },
       "api_operations": {
         "count": 3,
@@ -579,7 +626,10 @@
       },
       "client_context": {
         "count": 2,
-        "tests": ["clientContext/clientContext.md", "clientContext/optionalApiVersion.md"]
+        "tests": [
+          "clientContext/clientContext.md",
+          "clientContext/optionalApiVersion.md"
+        ]
       },
       "classic_client": {
         "count": 3,
@@ -591,7 +641,9 @@
       },
       "enum_union": {
         "count": 1,
-        "tests": ["enumUnion/enumUnion.md"]
+        "tests": [
+          "enumUnion/enumUnion.md"
+        ]
       },
       "multipart": {
         "count": 4,
@@ -679,7 +731,7 @@
           "id": "0.1",
           "title": "Add Dependencies",
           "description": "Add TCGC, TypeSpec compiler, emitter framework, and testing dependencies to package.json",
-          "pass": false,
+          "pass": true,
           "pass_criteria": [
             "package.json includes @azure-tools/typespec-client-generator-core, @typespec/compiler, @typespec/http, @typespec/rest, @typespec/versioning, @typespec/emitter-framework",
             "pnpm install completes without errors",
@@ -742,7 +794,7 @@
           "id": "0.6",
           "title": "Test Infrastructure",
           "description": "Create test-host.ts, utils.tsx, vitest.d.ts, and port scenario test harness",
-          "pass": false,
+          "pass": true,
           "pass_criteria": [
             "test/test-host.ts creates Tester instance with @typespec/http and @typespec/versioning libraries",
             "test/utils.tsx provides TestFile and DeclarationTestFile wrapper components",
@@ -768,7 +820,7 @@
           "pass_criteria": [
             "Handles all SdkType kinds: model, enum, union, array, dict, nullable, built-in scalars, datetime, duration, bytes",
             "Model types return typeRefkey(type) for cross-file reference",
-            "Scalar mappings match legacy: string→string, int32→number, int64→bigint, float→number, boolean→boolean, utcDateTime→Date, bytes→Uint8Array, duration→string",
+            "Scalar mappings match legacy: string\u2192string, int32\u2192number, int64\u2192bigint, float\u2192number, boolean\u2192boolean, utcDateTime\u2192Date, bytes\u2192Uint8Array, duration\u2192string",
             "Array types produce T[] with recursive element type resolution",
             "Dict types produce Record<K, V>",
             "Nullable types produce T | null",
@@ -785,7 +837,7 @@
             "Properties rendered as <ts.InterfaceMember> with correct name, type, optional, readonly",
             "Base model inheritance via extends prop on InterfaceDeclaration",
             "Discriminator property rendered with correct literal type",
-            "Additional properties support (additionalProperties → Record<string, unknown> index signature)",
+            "Additional properties support (additionalProperties \u2192 Record<string, unknown> index signature)",
             "Flattened properties expanded inline (not nested)",
             "JSDoc documentation from SDK model.doc and model.summary",
             "Scenario tests pass: models/models.md model interfaces match legacy output"
@@ -846,7 +898,9 @@
           ]
         }
       ],
-      "dependencies": [0]
+      "dependencies": [
+        0
+      ]
     },
     {
       "phase": 2,
@@ -860,7 +914,7 @@
           "pass": false,
           "pass_criteria": [
             "Produces function xxxSerializer(item: Xxx): any with correct refkey",
-            "Property mapping: item.propName → result['wireName'] for each property",
+            "Property mapping: item.propName \u2192 result['wireName'] for each property",
             "Nested model properties call child serializerRefkey via code template",
             "Array properties use .map() with child serializer",
             "Dict properties use serializeRecord() static helper refkey",
@@ -878,7 +932,7 @@
           "pass": false,
           "pass_criteria": [
             "Produces function xxxDeserializer(item: any): Xxx with correct refkey",
-            "Property mapping: item['wireName'] → result.propName (reverse of serializer)",
+            "Property mapping: item['wireName'] \u2192 result.propName (reverse of serializer)",
             "Nested model properties call child deserializerRefkey",
             "Array deserialization with .map() and child deserializer",
             "Dict deserialization mirroring serializer",
@@ -929,7 +983,9 @@
           ]
         }
       ],
-      "dependencies": [1]
+      "dependencies": [
+        1
+      ]
     },
     {
       "phase": 3,
@@ -1013,7 +1069,9 @@
           ]
         }
       ],
-      "dependencies": [2]
+      "dependencies": [
+        2
+      ]
     },
     {
       "phase": 4,
@@ -1030,7 +1088,7 @@
             "API version property included for versioned services",
             "Factory function createXxx(endpoint, credentials?, options?) exported",
             "Endpoint parameter with correct default or template",
-            "Credential handling: API key → KeyCredential, Bearer → TokenCredential, OAuth2 → TokenCredential",
+            "Credential handling: API key \u2192 KeyCredential, Bearer \u2192 TokenCredential, OAuth2 \u2192 TokenCredential",
             "Pipeline configured via getClient() from runtime package",
             "API version defaults set from TCGC metadata",
             "Scenario tests pass: clientContext/clientContext.md, clientContext/optionalApiVersion.md"
@@ -1050,7 +1108,9 @@
           ]
         }
       ],
-      "dependencies": [3]
+      "dependencies": [
+        3
+      ]
     },
     {
       "phase": 5,
@@ -1089,7 +1149,9 @@
           ]
         }
       ],
-      "dependencies": [4]
+      "dependencies": [
+        4
+      ]
     },
     {
       "phase": 6,
@@ -1139,7 +1201,9 @@
           ]
         }
       ],
-      "dependencies": [5]
+      "dependencies": [
+        5
+      ]
     },
     {
       "phase": 7,
@@ -1176,7 +1240,9 @@
           ]
         }
       ],
-      "dependencies": [6]
+      "dependencies": [
+        6
+      ]
     },
     {
       "phase": 8,
@@ -1212,7 +1278,9 @@
           ]
         }
       ],
-      "dependencies": [7]
+      "dependencies": [
+        7
+      ]
     },
     {
       "phase": 9,
@@ -1262,7 +1330,9 @@
           ]
         }
       ],
-      "dependencies": [0]
+      "dependencies": [
+        0
+      ]
     }
   ],
   "risks": [
