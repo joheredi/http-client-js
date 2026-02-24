@@ -1729,3 +1729,60 @@
   standard await pattern (no polling loop in samples — just the initial call).
 - The `SampleFiles` component is placed OUTSIDE the `<SourceDirectory path="src">` in
   emitter.tsx so that samples go to `samples-dev/` rather than `src/samples-dev/`.
+
+## 2026-02-24 — Logger File Component (Phase 4, Task 4.2 / FR19)
+
+### What was done
+- Created `src/components/logger-file.tsx`: LoggerFile component that generates `logger.ts`
+  for Azure-flavored SDKs. Uses `createClientLogger()` from `@azure/logger` with a
+  configurable package name prop.
+- Added `azureLoggerLib` external package definition to `src/utils/external-packages.ts`
+  for `@azure/logger` with `createClientLogger` named export.
+- Added `loggerRefkey()` to `src/utils/refkeys.ts` for cross-file reference resolution
+  to the logger variable declaration.
+- Updated `src/utils/index.ts` to export `azureLoggerLib` and `loggerRefkey`.
+- Updated `src/components/index.ts` to export `LoggerFile`.
+- Created `test/components/logger-file.test.tsx` with 7 tests:
+  - Imports createClientLogger from @azure/logger
+  - Exports the logger constant
+  - Uses the provided package name in createClientLogger call
+  - Works with different package names (dynamic, not hardcoded)
+  - Declares logger as const (not let/var)
+  - Is referenceable via loggerRefkey (cross-file import resolution)
+  - Produces output matching legacy emitter format
+- Updated PRD: FR19 marked as implemented. Also updated FR1, FR7, FR8, FR10-FR18
+  from not_started to implemented to reflect actual codebase state.
+- All 300 tests pass (7 new + 293 existing).
+
+### Architecture decisions
+- **Props-based package name**: The LoggerFile component takes a `packageName` prop
+  rather than reading from emitter options. This keeps the component pure and
+  composable — the orchestrator (emitter.tsx or Azure extension) provides the name.
+- **Not wired into emitter.tsx**: The logger should only be emitted for Azure flavor.
+  Since the emitter doesn't have flavor configuration yet (Phase 8), the component
+  is exported but not auto-included. The Azure Extension (Phase 8) will add
+  `<LoggerFile packageName={...} />` to the component tree when flavor is "azure".
+- **VarDeclaration with const**: Uses Alloy's `<VarDeclaration>` with `const` prop
+  for the `export const logger = ...` pattern, ensuring proper refkey registration.
+- **Refkey for logger**: Added `loggerRefkey()` so other components (e.g., operation
+  functions in Azure flavor) can reference the logger and get automatic import
+  resolution.
+
+### Notes for next person
+- Completed: Phase 0 (0.1-0.6), Phase 1 (1.1-1.6), Phase 2 (2.1-2.5),
+  Phase 3 (3.1-3.5), Phase 4 (4.1-4.2 — ALL DONE), Phase 5 (5.1-5.2),
+  Phase 6 (6.1-6.3), Phase 7 (7.1-7.2), Phase 9 (9.1).
+- **ALL PRD functional requirements (FR1-FR19) are now implemented.**
+- **Remaining tasks by priority**:
+  1. 8.x (Azure Extension) — Azure-specific composition (swap httpRuntimeLib → Azure
+     packages, add LoggerFile, ARM features)
+  2. 9.2 (Scenario Porting) — Copy 101 scenario .md files from legacy emitter
+  3. 9.3 (Validation) — Run all 101 scenarios, fix discrepancies
+- The LoggerFile component is NOT wired into emitter.tsx yet. It should be added
+  inside `<SourceDirectory path="src">` in the Azure extension's emitter.
+- When the Azure extension is implemented, use it like:
+  ```tsx
+  <LoggerFile packageName={packageDetails.nameWithoutScope ?? packageDetails.name} />
+  ```
+- The `azureLoggerLib` package is available for any component that needs to
+  reference `@azure/logger` symbols.

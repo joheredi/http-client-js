@@ -197,3 +197,21 @@ export const azureIdentityLib = createPackage({
     },
   },
 });
+
+/**
+ * External package definition for `@azure/logger`.
+ *
+ * Provides the `createClientLogger` factory for Azure SDKs. Each Azure SDK
+ * package creates a namespaced logger instance that integrates with the
+ * Azure SDK logging infrastructure, enabling consumers to enable/disable
+ * logging per-package via environment variables or programmatic configuration.
+ */
+export const azureLoggerLib = createPackage({
+  name: "@azure/logger",
+  version: "^1.1.4",
+  descriptor: {
+    ".": {
+      named: ["createClientLogger"],
+    },
+  },
+});

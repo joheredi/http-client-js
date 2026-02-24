@@ -96,7 +96,9 @@
           "Extracts SdkPackage with clients, models, enums",
           "Renders JSX tree via writeOutput()",
           "Emits TypeScript files to configured output directory"
-        ]
+        ],
+        "status": "implemented",
+        "implementation_notes": "Emitter entry point ($onEmit) implemented in emitter.tsx. Registers with TypeSpec compiler, calls createSdkContext(), builds JSX tree, renders via writeOutput()."
       },
       {
         "id": "FR2",
@@ -182,7 +184,9 @@
           "Property metadata arrays with XML options",
           "Uses serializeToXml/deserializeFromXml static helpers",
           "XML namespace handling"
-        ]
+        ],
+        "status": "implemented",
+        "implementation_notes": "XML serialization implemented via XmlSerializer, XmlObjectSerializer, XmlDeserializer, XmlObjectDeserializer components. Metadata-driven approach with 4 functions per model. XmlHelpersFile provides static helper functions. 14 unit tests."
       },
       {
         "id": "FR8",
@@ -196,8 +200,9 @@
           "Operations grouped by operation group path",
           "Each group in separate source file under src/api/"
         ],
-        "status": "in_progress",
-        "notes": "Send function (3.2), Deserialize function (3.3), and Public operation function (3.4) are all implemented. Remaining: Operations orchestrator (3.5) to group operations into files."
+        "status": "implemented",
+        "notes": "Send function (3.2), Deserialize function (3.3), and Public operation function (3.4) are all implemented. Remaining: Operations orchestrator (3.5) to group operations into files.",
+        "implementation_notes": "All 5 sub-tasks complete: OperationOptionsDeclaration (3.1), SendOperation (3.2), DeserializeOperation (3.3), PublicOperation (3.4), OperationFiles orchestrator (3.5). Operations grouped by path prefix into separate source files under api/."
       },
       {
         "id": "FR9",
@@ -226,7 +231,9 @@
           "Factory function with endpoint, credentials, options parameters",
           "Credential handling (API key, bearer, OAuth2)",
           "Pipeline configuration"
-        ]
+        ],
+        "status": "implemented",
+        "implementation_notes": "ClientContextFile generates context interface extending Client, options interface extending ClientOptions, and factory function with endpoint/credential/options handling. Handles URL templates, API version, telemetry."
       },
       {
         "id": "FR11",
@@ -241,7 +248,9 @@
           "Operation methods delegating to API functions",
           "Operation group getters for nested groups",
           "Child client getters"
-        ]
+        ],
+        "status": "implemented",
+        "implementation_notes": "ClassicalClientFile generates class with private _client field, public pipeline property, constructor calling factory function, operation methods delegating to API functions, and operation group getters."
       },
       {
         "id": "FR12",
@@ -253,7 +262,9 @@
           "Factory function returning operation methods",
           "Nested group properties",
           "LRO helper methods (begin_*, begin_*_andWait)"
-        ]
+        ],
+        "status": "implemented",
+        "implementation_notes": "ClassicalOperationGroupFiles generates interface per group level, factory function returning operation methods, nested group properties, and LRO helper methods."
       },
       {
         "id": "FR13",
@@ -265,7 +276,9 @@
           "RestorePoller helper generated for state restoration",
           "Operation-to-deserializer mapping for poller restore",
           "URL template matching for operation routing"
-        ]
+        ],
+        "status": "implemented",
+        "implementation_notes": "RestorePollerFile generates LRO restore poller helper. PollingHelpersFile provides getLongRunningPoller. Operations wrapped with getLongRunningPoller via PublicOperation component."
       },
       {
         "id": "FR14",
@@ -276,7 +289,9 @@
           "Paging operations wrapped with buildPagedAsyncIterator",
           "Combined LRO+paging operations supported",
           "PageSettings, ContinuablePage types exported"
-        ]
+        ],
+        "status": "implemented",
+        "implementation_notes": "PagingHelpersFile provides buildPagedAsyncIterator, PagedAsyncIterableIterator, PageSettings. Paging operations wrapped in PublicOperation component."
       },
       {
         "id": "FR15",
@@ -287,7 +302,9 @@
           "Multipart body parameters detected",
           "File part descriptors generated",
           "createFilePartDescriptor helper used"
-        ]
+        ],
+        "status": "implemented",
+        "implementation_notes": "MultipartSerializer generates multipart form-data serialization. MultipartHelpersFile provides FileContents type and createFilePartDescriptor function. 6 unit tests."
       },
       {
         "id": "FR16",
@@ -299,7 +316,9 @@
           "Subpath index.ts in api/, models/, classic/",
           "Internal symbols (_prefixed) excluded from exports",
           "Serializer functions excluded from public exports"
-        ]
+        ],
+        "status": "implemented",
+        "implementation_notes": "IndexFiles generates root index.ts, models/index.ts, api/index.ts, classic/index.ts barrel files with selective exports. Internal _prefixed symbols excluded."
       },
       {
         "id": "FR17",
@@ -311,7 +330,9 @@
           "Each helper has refkey declaration for cross-file reference",
           "Helpers only included when referenced",
           "Import remapping for Azure vs non-Azure packages"
-        ]
+        ],
+        "status": "implemented",
+        "implementation_notes": "StaticHelpers orchestrator renders 5 helper files: serializationHelpers.ts, pagingHelpers.ts, pollingHelpers.ts, multipartHelpers.ts, xmlHelpers.ts. Each uses refkeys for cross-file reference."
       },
       {
         "id": "FR18",
@@ -323,7 +344,9 @@
           "Client construction code",
           "Parameter setup from examples",
           "API call invocation"
-        ]
+        ],
+        "status": "implemented",
+        "implementation_notes": "SampleFiles generates per-operation sample files in samples-dev/. Handles OAuth2/API key credentials, endpoint env vars, operation calls. 18 unit tests."
       },
       {
         "id": "FR19",
@@ -334,7 +357,9 @@
           "Only emitted for Azure flavor",
           "Uses createClientLogger from @azure/logger",
           "Package name derived from package details"
-        ]
+        ],
+        "status": "implemented",
+        "implementation_notes": "LoggerFile component generates logger.ts with createClientLogger() from @azure/logger. Takes packageName prop for the logger namespace. Exports logger via refkey for cross-file references. 7 unit tests cover import generation, export, package name embedding, const declaration, refkey resolution, and legacy output parity."
       }
     ],
     "non_functional": [

@@ -54,3 +54,4 @@ export {
 } from "./static-helpers/index.js";
 export { RestorePollerFile } from "./restore-poller.js";
 export { SampleFiles } from "./sample-files.js";
+export { LoggerFile } from "./logger-file.js";

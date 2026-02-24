@@ -337,3 +337,17 @@ export function operationGroupInterfaceRefkey(entity: unknown): Refkey {
 export function operationGroupFactoryRefkey(entity: unknown): Refkey {
   return refkey(entity, "operationGroupFactory");
 }
+
+/**
+ * Creates a refkey for the logger instance exported from `logger.ts`.
+ *
+ * The logger is a namespaced `AzureLogger` instance created via
+ * `createClientLogger()` from `@azure/logger`. It is used throughout
+ * Azure-flavored SDKs for structured logging that integrates with the
+ * Azure SDK logging infrastructure.
+ *
+ * @returns A stable refkey for the logger variable declaration.
+ */
+export function loggerRefkey(): Refkey {
+  return refkey("logger");
+}

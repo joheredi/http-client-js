@@ -21,6 +21,7 @@ export {
   publicOperationRefkey,
   operationGroupInterfaceRefkey,
   operationGroupFactoryRefkey,
+  loggerRefkey,
 } from "./refkeys.js";
 
 export {
@@ -32,6 +33,7 @@ export {
   azureCoreAuthLib,
   azureCoreLroLib,
   azureIdentityLib,
+  azureLoggerLib,
 } from "./external-packages.js";
 
 export { getExampleValueCode } from "./example-values.js";
