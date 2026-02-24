@@ -647,3 +647,41 @@ elements:
 For refkey resolution in tests, render stub declarations (`ClassDeclaration`, `FunctionDeclaration`) alongside the component under test so that refkeys like `classicalClientRefkey(client)` and `deserializeOperationRefkey(method)` resolve correctly in the output.
 
 **Date:** 2026-02-24
+
+## Multipart serializer tests require MultipartHelpersFile in render tree
+
+**Problem:** The `MultipartSerializer` component uses `multipartHelperRefkey("createFilePartDescriptor")`
+to reference the `createFilePartDescriptor` helper function. When testing the serializer in isolation
+with `SdkTestFile` (which only wraps in Output + SourceFile), the refkey renders as
+`<Unresolved Symbol: refkey[...]>` because there's no declaration for it in the render tree.
+
+**Fix:** Include `MultipartHelpersFile` alongside the serializer in the test render tree:
+```tsx
+<Output program={program} namePolicy={createTSNamePolicy()}>
+  <SdkContextProvider sdkContext={sdkContext}>
+    <MultipartHelpersFile />
+    <SourceFile path="test.ts">
+      <MultipartSerializer model={model} />
+    </SourceFile>
+  </SdkContextProvider>
+</Output>
+```
+Use `renderToString()` and `toContain()` assertions since the output spans multiple files.
+
+**Date:** 2026-02-24
+
+## TCGC multipart model properties have serializationOptions.multipart metadata
+
+**Problem:** Need to know how to detect and handle multipart properties in TCGC models.
+
+**Fix:** Each property in a multipart/form-data model has `serializationOptions.multipart` with:
+- `name: string` — the part name in the multipart payload
+- `isFilePart: boolean` — whether this is a file upload part
+- `isMulti: boolean` — whether this is an array of parts
+- `defaultContentTypes: string[]` — default content types (e.g., `["application/octet-stream"]`)
+- `headers: SdkHeaderParameter[]` — part headers
+
+The model itself has `(usage & UsageFlags.MultipartFormData) !== 0` when used in
+a multipart/form-data context. `UsageFlags.MultipartFormData` is `1 << 5` (32).
+
+**Date:** 2026-02-24

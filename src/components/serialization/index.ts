@@ -12,3 +12,5 @@ export type { JsonPolymorphicSerializerProps } from "./json-polymorphic-serializ
 export { buildPolymorphicSwitchBody } from "./json-polymorphic-serializer.js";
 export { JsonPolymorphicDeserializer } from "./json-polymorphic-deserializer.js";
 export type { JsonPolymorphicDeserializerProps } from "./json-polymorphic-deserializer.js";
+export { MultipartSerializer } from "./multipart-serializer.js";
+export type { MultipartSerializerProps } from "./multipart-serializer.js";

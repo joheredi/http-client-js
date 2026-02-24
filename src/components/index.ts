@@ -7,6 +7,7 @@ export { ModelFiles } from "./model-files.js";
 export {
   JsonSerializer,
   JsonDeserializer,
+  MultipartSerializer,
   getSerializationExpression,
   getDeserializationExpression,
   needsTransformation,
@@ -44,5 +45,6 @@ export {
   SerializationHelpersFile,
   PagingHelpersFile,
   PollingHelpersFile,
+  MultipartHelpersFile,
 } from "./static-helpers/index.js";
 export { RestorePollerFile } from "./restore-poller.js";

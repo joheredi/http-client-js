@@ -1418,3 +1418,80 @@
   by the `@azure/core-lro` library in Azure scenarios, not by the generated helper.
 - Consider adding `@azure-tools/typespec-azure-core` as a devDependency to enable
   proper end-to-end LRO testing with real TypeSpec LRO decorators.
+
+## 2026-02-24 — Multipart Support (Phase 6, Task 6.2)
+
+### What was done
+- Created `src/components/static-helpers/multipart-helpers.tsx`: Static helper file containing:
+  - `FileContents` type alias — union of valid binary content types
+    (string, NodeJS.ReadableStream, ReadableStream<Uint8Array>, Uint8Array, Blob)
+  - `createFilePartDescriptor` function — factory for creating part descriptors
+    from file inputs, handling both structured file objects (with contents,
+    contentType, filename) and raw binary values
+  - Both registered with `multipartHelperRefkey` for cross-file import resolution
+- Created `src/components/serialization/multipart-serializer.tsx`: Alloy component that
+  generates multipart serializer functions for models used in multipart/form-data
+  request bodies. The serializer returns an array of part descriptors instead of
+  a JSON object. Handles:
+  - File parts via `createFilePartDescriptor(name, value, contentType)`
+  - Non-file parts via `{ name, body }` object literals
+  - Multi-valued parts (arrays) via `.map()` spread expressions
+  - Optional parts via conditional spread `...(val === undefined ? [] : [part])`
+- Added `multipartHelperRefkey` to `src/utils/refkeys.ts`
+- Updated `src/components/static-helpers/index.tsx`: Added MultipartHelpersFile
+- Updated `src/components/serialization/index.ts`: Exported MultipartSerializer
+- Updated `src/components/model-files.tsx`: Separated MFD models from regular JSON
+  input models. MFD models get MultipartSerializer instead of JsonSerializer.
+  Uses `UsageFlags.MultipartFormData` bitmask check for detection.
+- Updated `src/components/index.ts`: Exported MultipartSerializer and MultipartHelpersFile
+- Created `test/components/static-helpers/multipart-helpers.test.tsx`: 6 tests covering
+  FileContents type rendering, createFilePartDescriptor signature, structured file
+  handling, raw binary handling, and cross-file refkey resolution.
+- Created `test/components/serialization/multipart-serializer.test.tsx`: 8 tests covering
+  file + optional text parts, content type passing, required parts without conditional
+  spread, multi-valued file parts, multi-valued non-file parts, optional multi parts,
+  mixed part types, and function signature.
+- Updated `test/components/static-helpers/static-helpers.test.tsx`: Added multipart
+  helpers file to expected output paths and content checks.
+- Updated PRD: Task 6.2 marked as done.
+- All 242 tests pass (14 new + 228 existing).
+
+### Architecture decisions
+- **Multipart takes priority over JSON**: A model with `UsageFlags.MultipartFormData`
+  gets a multipart serializer, not a JSON serializer. This matches the legacy emitter
+  behavior where MFD models return part arrays instead of objects.
+- **Same refkey as JSON serializer**: The multipart serializer uses `serializerRefkey(model)`
+  — the same refkey the JSON serializer would use. This is safe because a model is either
+  used in JSON or multipart context, not both. The send function calls the serializer via
+  the same refkey and the correct implementation is selected at generation time.
+- **Static helpers in helpers/ directory**: `multipartHelpers.ts` is emitted alongside
+  `serializationHelpers.ts`, `pagingHelpers.ts`, and `pollingHelpers.ts` in the `helpers/`
+  directory.
+- **No send function changes needed**: The existing send function already calls the serializer
+  via refkey for model-typed body parameters. Since the multipart serializer uses the same
+  refkey, it works without modifications.
+
+### Key learnings (see knowledge.md)
+- Multipart serializer tests need `MultipartHelpersFile` in the render tree for
+  `createFilePartDescriptor` refkey resolution
+- TCGC multipart metadata is on `property.serializationOptions.multipart` with
+  isFilePart, isMulti, defaultContentTypes, and name fields
+- `UsageFlags.MultipartFormData` is `1 << 5` (32), use bitmask check
+
+### Notes for next person
+- Completed: Phase 0 (0.1-0.6), Phase 1 (1.1-1.6), Phase 2 (2.1-2.3, 2.5),
+  Phase 3 (3.1-3.5), Phase 4 (4.1), Phase 5 (5.1-5.2), Phase 6 (6.1-6.2),
+  Phase 7 (7.1-7.2).
+- **Remaining tasks by priority**:
+  1. 2.4 (XML Serializers) — XML serialization/deserialization functions
+  2. 4.2 (Logger Component) — Azure-only logging
+  3. 6.3 (Sample Files) — per-operation sample TypeScript files
+  4. 8.x (Azure Extension) — Azure-specific composition
+  5. 9.x (Test Porting & Validation) — scenario testing
+- The multipart helpers and serializer are complete but the index files (Phase 7)
+  may need to export `FileContents` from the root index when consumers need direct
+  access to the type.
+- Part headers (from `multipartOptions.headers`) are not yet handled in the serializer.
+  This may need attention for operations that require per-part headers.
+- The `createFilePartDescriptor` function handles the File interface pattern used by
+  `@typespec/ts-http-runtime`. Azure flavor may need adjustments in Phase 8.

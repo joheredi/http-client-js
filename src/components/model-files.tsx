@@ -13,6 +13,7 @@ import { JsonSerializer } from "./serialization/json-serializer.js";
 import { JsonDeserializer } from "./serialization/json-deserializer.js";
 import { JsonPolymorphicSerializer } from "./serialization/json-polymorphic-serializer.js";
 import { JsonPolymorphicDeserializer } from "./serialization/json-polymorphic-deserializer.js";
+import { MultipartSerializer } from "./serialization/multipart-serializer.js";
 import { UnionDeclaration } from "./union-declaration.js";
 
 /**
@@ -51,6 +52,10 @@ export function ModelFiles() {
     m.discriminatorProperty !== undefined &&
     getDirectSubtypes(m).length > 0;
 
+  // Check if a model is used in multipart/form-data context
+  const isMultipartFormData = (m: SdkModelType) =>
+    (m.usage & UsageFlags.MultipartFormData) !== 0;
+
   // Filter models by usage flags for serialization/deserialization
   const inputModels = models.filter(
     (m) => (m.usage & UsageFlags.Input) !== 0,
@@ -61,14 +66,20 @@ export function ModelFiles() {
       (m.usage & UsageFlags.Exception) !== 0,
   );
 
-  // Split into regular and polymorphic models for serialization
-  const regularInputModels = inputModels.filter((m) => !isDiscriminated(m));
-  const polymorphicInputModels = inputModels.filter(isDiscriminated);
+  // Separate multipart models from regular JSON models — multipart takes priority
+  const multipartInputModels = inputModels.filter(isMultipartFormData);
+  const jsonInputModels = inputModels.filter((m) => !isMultipartFormData(m));
+
+  // Split JSON input models into regular and polymorphic for serialization
+  const regularInputModels = jsonInputModels.filter((m) => !isDiscriminated(m));
+  const polymorphicInputModels = jsonInputModels.filter(isDiscriminated);
   const regularOutputModels = outputModels.filter((m) => !isDiscriminated(m));
   const polymorphicOutputModels = outputModels.filter(isDiscriminated);
 
   const hasSerializers =
-    regularInputModels.length > 0 || polymorphicInputModels.length > 0;
+    regularInputModels.length > 0 ||
+    polymorphicInputModels.length > 0 ||
+    multipartInputModels.length > 0;
   const hasDeserializers =
     regularOutputModels.length > 0 || polymorphicOutputModels.length > 0;
 
@@ -96,6 +107,11 @@ export function ModelFiles() {
           ? "\n\n"
           : undefined}
         <PolymorphicSerializerDeclarations models={polymorphicInputModels} />
+        {(regularInputModels.length > 0 || polymorphicInputModels.length > 0) &&
+        multipartInputModels.length > 0
+          ? "\n\n"
+          : undefined}
+        <MultipartSerializerDeclarations models={multipartInputModels} />
         {hasSerializers && hasDeserializers ? "\n\n" : undefined}
         <DeserializerDeclarations models={regularOutputModels} />
         {regularOutputModels.length > 0 && polymorphicOutputModels.length > 0
@@ -340,6 +356,37 @@ function PolymorphicDeserializerDeclarations(
   return (
     <For each={props.models} doubleHardline>
       {(model) => <JsonPolymorphicDeserializer model={model} />}
+    </For>
+  );
+}
+
+/**
+ * Props for the {@link MultipartSerializerDeclarations} component.
+ */
+interface MultipartSerializerDeclarationsProps {
+  /** The list of TCGC model types with MultipartFormData usage that need multipart serializers. */
+  models: SdkModelType[];
+}
+
+/**
+ * Renders all multipart serializer function declarations.
+ *
+ * Each model with `UsageFlags.MultipartFormData` gets a multipart serializer
+ * function that converts typed SDK objects into an array of part descriptors
+ * for multipart/form-data request bodies. These serializers are used instead
+ * of (not in addition to) JSON serializers for the same model.
+ *
+ * @param props - Component props containing the list of multipart input models.
+ * @returns Alloy JSX tree with multipart serializer declarations, or undefined if empty.
+ */
+function MultipartSerializerDeclarations(
+  props: MultipartSerializerDeclarationsProps,
+) {
+  if (props.models.length === 0) return undefined;
+
+  return (
+    <For each={props.models} doubleHardline>
+      {(model) => <MultipartSerializer model={model} />}
     </For>
   );
 }

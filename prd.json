@@ -1222,7 +1222,8 @@
             "Multipart form data assembled correctly",
             "Content-Type set to multipart/form-data",
             "Scenario tests pass: multipart/file.md, multipart/json.md, multipart/text.md, multipart/renamewithWireNameAndClientName.md"
-          ]
+          ],
+          "status": "done"
         },
         {
           "id": "6.3",

@@ -2,10 +2,10 @@
  * Test suite for the StaticHelpers orchestrator component.
  *
  * StaticHelpers renders all static helper source files: serialization helpers,
- * paging helpers, and polling helpers.
+ * paging helpers, polling helpers, and multipart helpers.
  *
  * What is tested:
- * - StaticHelpers produces all three helper files in the output
+ * - StaticHelpers produces all four helper files in the output
  * - Helper files are placed in the helpers/ directory
  * - Integration with the emitter: static helpers are included in emitter output
  *
@@ -26,7 +26,7 @@ import { TesterWithService } from "../../test-host.js";
 
 describe("StaticHelpers", () => {
   /**
-   * Tests that the StaticHelpers orchestrator renders all three helper
+   * Tests that the StaticHelpers orchestrator renders all four helper
    * files. This verifies the integration point — if any file component
    * is missing from the orchestrator, its helpers won't be in the output.
    */
@@ -54,6 +54,10 @@ describe("StaticHelpers", () => {
     // Polling helpers
     expect(result).toContain("PollerLike");
     expect(result).toContain("getLongRunningPoller");
+
+    // Multipart helpers
+    expect(result).toContain("FileContents");
+    expect(result).toContain("createFilePartDescriptor");
   });
 
   /**
@@ -74,6 +78,7 @@ describe("StaticHelpers", () => {
       "helpers/serializationHelpers.ts": expect.stringContaining("serializeRecord"),
       "helpers/pagingHelpers.ts": expect.stringContaining("buildPagedAsyncIterator"),
       "helpers/pollingHelpers.ts": expect.stringContaining("getLongRunningPoller"),
+      "helpers/multipartHelpers.ts": expect.stringContaining("createFilePartDescriptor"),
     });
   });
 });

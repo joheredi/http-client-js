@@ -245,6 +245,21 @@ export function publicOperationRefkey(entity: unknown): Refkey {
 }
 
 /**
+ * Creates a refkey for a multipart helper function or type.
+ *
+ * Multipart helpers manage multipart/form-data request body construction —
+ * creating file part descriptors, defining the FileContents type alias, etc.
+ * Each helper is identified by name (e.g., `"createFilePartDescriptor"`,
+ * `"FileContents"`).
+ *
+ * @param name - The multipart helper function or type name.
+ * @returns A stable refkey for the named multipart helper declaration.
+ */
+export function multipartHelperRefkey(name: string): Refkey {
+  return refkey("multipartHelper", name);
+}
+
+/**
  * Creates a refkey for a polling (long-running operation) helper function or type.
  *
  * Polling helpers manage LRO lifecycle — creating pollers, checking status,
