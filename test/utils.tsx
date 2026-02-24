@@ -1,4 +1,4 @@
-import { Children } from "@alloy-js/core";
+import { Children, type SymbolCreator } from "@alloy-js/core";
 import { createTSNamePolicy, SourceFile } from "@alloy-js/typescript";
 import { Program } from "@typespec/compiler";
 import { Output } from "@typespec/emitter-framework";
@@ -13,6 +13,8 @@ export interface TestFileProps {
   program: Program;
   /** Child components to render inside the test source file. */
   children: Children;
+  /** Optional external package definitions to register for refkey resolution. */
+  externals?: SymbolCreator[];
 }
 
 /**
@@ -38,7 +40,7 @@ export interface TestFileProps {
  */
 export function TestFile(props: TestFileProps) {
   return (
-    <Output program={props.program} namePolicy={createTSNamePolicy()}>
+    <Output program={props.program} namePolicy={createTSNamePolicy()} externals={props.externals}>
       <SourceFile path="test.ts">{props.children}</SourceFile>
     </Output>
   );
@@ -52,6 +54,8 @@ export interface SdkTestFileProps {
   sdkContext: SdkContext<Record<string, any>, SdkHttpOperation>;
   /** Child components to render inside the test source file. */
   children: Children;
+  /** Optional external package definitions to register for refkey resolution. */
+  externals?: SymbolCreator[];
 }
 
 /**
@@ -78,7 +82,7 @@ export interface SdkTestFileProps {
  */
 export function SdkTestFile(props: SdkTestFileProps) {
   return (
-    <Output program={props.sdkContext.emitContext.program} namePolicy={createTSNamePolicy()}>
+    <Output program={props.sdkContext.emitContext.program} namePolicy={createTSNamePolicy()} externals={props.externals}>
       <SdkContextProvider sdkContext={props.sdkContext}>
         <SourceFile path="test.ts">{props.children}</SourceFile>
       </SdkContextProvider>

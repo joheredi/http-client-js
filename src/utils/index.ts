@@ -14,3 +14,14 @@ export {
   pagingHelperRefkey,
   pollingHelperRefkey,
 } from "./refkeys.js";
+
+export {
+  httpRuntimeLib,
+  azureCoreClientLib,
+  azureCorePipelineLib,
+  azureAbortControllerLib,
+  azureCoreUtilLib,
+  azureCoreAuthLib,
+  azureCoreLroLib,
+  azureIdentityLib,
+} from "./external-packages.js";

@@ -62,3 +62,16 @@ TS2395 "Individual declarations in merged declaration must be all exported or al
 **Fix:** Import the TCGC type with an alias: `import type { SdkContext as TcgcSdkContext }`.
 
 **Date:** 2026-02-24
+
+## Alloy import ordering is NOT alphabetical by package name
+
+**Problem:** When using `toRenderTo` with multi-package imports, assuming alphabetical
+ordering by package name causes test failures. For example, expecting `@azure/abort-controller`
+before `@azure/core-rest-pipeline` fails if the symbols are referenced in a different order.
+
+**Fix:** Alloy orders imports based on the order externals are registered and symbols
+are first encountered during the rendering pass. Write expected imports in the same
+order as the package registration in `<Output externals={[...]}>` and the order symbols
+appear in the rendered code.
+
+**Date:** 2026-02-24

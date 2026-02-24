@@ -104,3 +104,62 @@
 - All refkey helpers are exported from `src/index.ts` — import them from the package root.
 - When implementing components, use these helpers instead of calling `refkey()` directly with
   raw strings. This ensures consistent discriminator naming across the codebase.
+
+## 2026-02-24 — External Package Definitions (Phase 0, Task 0.5)
+
+### What was done
+- Created `src/utils/external-packages.ts`: 8 external package definitions using Alloy's
+  `createPackage()` for all runtime packages the emitter references.
+- Updated `src/utils/index.ts`: Added exports for all 8 package definitions.
+- Updated `test/utils.tsx`: Added optional `externals` prop to `TestFile` and `SdkTestFile`
+  wrappers so tests can register external packages for refkey resolution.
+- Created `test/utils/external-packages.test.tsx`: 11 tests covering:
+  - httpRuntimeLib exposes all 16 core runtime symbols
+  - httpRuntimeLib symbols generate correct imports in rendered output
+  - Multiple symbols from same package grouped into single import
+  - azureCoreClientLib exposes Azure-specific client symbols
+  - azureCoreClientLib generates imports from @azure-rest/core-client
+  - Azure supplementary packages expose expected symbols (pipeline, abort, util, auth)
+  - Azure supplementary packages generate imports from correct packages
+  - azureCoreLroLib exposes all 4 LRO symbols
+  - azureCoreLroLib generates imports from @azure/core-lro
+  - azureIdentityLib exposes DefaultAzureCredential
+  - Multiple packages can be registered and used together
+- All 30 tests pass (11 new + 19 existing).
+
+### Packages defined
+1. `httpRuntimeLib` — `@typespec/ts-http-runtime` (16 symbols: Client, ClientOptions, getClient,
+   Pipeline, OperationOptions, operationOptionsToRequestParameters, StreamableMethod,
+   PathUncheckedResponse, RestError, createRestError, ErrorModel, AbortSignalLike,
+   uint8ArrayToString, stringToUint8Array, KeyCredential, isKeyCredential, TokenCredential)
+2. `azureCoreClientLib` — `@azure-rest/core-client` (11 symbols)
+3. `azureCorePipelineLib` — `@azure/core-rest-pipeline` (Pipeline)
+4. `azureAbortControllerLib` — `@azure/abort-controller` (AbortSignalLike)
+5. `azureCoreUtilLib` — `@azure/core-util` (uint8ArrayToString, stringToUint8Array)
+6. `azureCoreAuthLib` — `@azure/core-auth` (KeyCredential, isKeyCredential, TokenCredential)
+7. `azureCoreLroLib` — `@azure/core-lro` (PollerLike, OperationState, deserializeState,
+   ResourceLocationConfig)
+8. `azureIdentityLib` — `@azure/identity` (DefaultAzureCredential)
+
+### Key learnings
+- Alloy import ordering is determined by the order externals are registered and symbols
+  are encountered during rendering, NOT alphabetical by package name. Tests must match
+  the actual rendering order.
+- The `TestFile` and `SdkTestFile` wrappers now accept an optional `externals` prop,
+  allowing component tests to register external packages without creating custom Output
+  wrappers.
+
+### Notes for next person
+- Completed: 0.1 (Dependencies), 0.3 (SDK Context), 0.4 (Refkey Helpers),
+  0.5 (External Package Definitions), 0.6 (Test Infrastructure).
+- Phase 0 is now complete except for 0.2 (Emitter Entry Point).
+- 0.2 (Emitter Entry Point) can be implemented now, but Phase 1 (Type Components)
+  can also proceed since all foundation infrastructure is in place.
+- When generating code that references runtime types, use the package refkeys:
+  ```tsx
+  code`const client: ${httpRuntimeLib.Client} = ${httpRuntimeLib.getClient}(endpoint);`
+  ```
+  Alloy will auto-generate `import { Client, getClient } from "@typespec/ts-http-runtime";`
+- For Azure-flavored SDKs, swap `httpRuntimeLib` for `azureCoreClientLib` and the
+  supplementary Azure packages. The symbol names are the same logical concepts but
+  import from different packages.

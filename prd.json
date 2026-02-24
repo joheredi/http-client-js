@@ -736,7 +736,8 @@
             "package.json includes @azure-tools/typespec-client-generator-core, @typespec/compiler, @typespec/http, @typespec/rest, @typespec/versioning, @typespec/emitter-framework",
             "pnpm install completes without errors",
             "TypeScript can resolve all new package imports without type errors"
-          ]
+          ],
+          "status": "done"
         },
         {
           "id": "0.2",
@@ -762,7 +763,8 @@
             "useSdkContext() hook returns typed context value",
             "Child components can access SDK data without prop drilling",
             "TypeScript types are correct (no any casts)"
-          ]
+          ],
+          "status": "done"
         },
         {
           "id": "0.4",
@@ -775,7 +777,8 @@
             "Different discriminators return different refkeys for the same entity",
             "Helpers cover: typeRefkey, serializerRefkey, deserializerRefkey, polymorphicTypeRefkey, knownValuesRefkey, operationOptionsRefkey, clientContextRefkey, createClientRefkey, classicalClientRefkey, xmlSerializerRefkey, xmlDeserializerRefkey, serializationHelperRefkey, pagingHelperRefkey, pollingHelperRefkey",
             "Unit test validates refkey identity and uniqueness"
-          ]
+          ],
+          "status": "done"
         },
         {
           "id": "0.5",
@@ -788,7 +791,8 @@
             "Azure package definitions prepared (azureCoreDeps, azurePollingDeps, azureIdentityDeps)",
             "Packages can be registered in Output component's externals prop",
             "code templates with package symbols resolve correctly in a test render"
-          ]
+          ],
+          "status": "done"
         },
         {
           "id": "0.6",
@@ -802,7 +806,8 @@
             "A sample component render test compiles, runs, and passes with vitest",
             "toRenderTo matcher correctly compares rendered Alloy output",
             "vitest run executes without configuration errors"
-          ]
+          ],
+          "status": "done"
         }
       ],
       "dependencies": []
