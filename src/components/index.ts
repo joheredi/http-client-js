@@ -1,1 +1,1 @@
-// barrel file for components
+export { getTypeExpression } from "./type-expression.js";

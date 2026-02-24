@@ -163,3 +163,47 @@
 - For Azure-flavored SDKs, swap `httpRuntimeLib` for `azureCoreClientLib` and the
   supplementary Azure packages. The symbol names are the same logical concepts but
   import from different packages.
+
+## 2026-02-24 — Type Expression Component (Phase 1, Task 1.1)
+
+### What was done
+- Created `src/components/type-expression.tsx`: `getTypeExpression()` function that maps
+  TCGC `SdkType` to TypeScript type expressions (Alloy `Children`).
+- Updated `src/components/index.ts`: Exports `getTypeExpression` from barrel file.
+- Created `test/components/type-expression.test.tsx`: 13 tests covering:
+  - Primitive scalars (string, int32, float32, boolean, bytes, utcDateTime)
+  - All numeric types (int8, int16, int64, uint8-64, float64) → number
+  - plainDate → Date
+  - offsetDateTime → string
+  - duration → string (default encoding)
+  - Array types → (T)[] syntax
+  - Dictionary types → Record<string, T>
+  - Nullable types → T | null
+  - Nested composite types (int32[][] → ((number)[])[] )
+  - Model reference via refkey (renders as model name)
+  - Enum reference via refkey (renders as enum name)
+  - String constant literals → quoted strings
+  - Numeric constant literals → unquoted numbers
+- All 43 tests pass (13 new + 30 existing).
+
+### Architecture decisions
+- **Function, not JSX component**: `getTypeExpression` returns `Children` (string, refkey,
+  or code template) rather than being a JSX component. This is because it's a type
+  mapping utility consumed by other components, not a standalone renderable unit.
+- **Legacy emitter parity**: All type mappings match the legacy emitter's behavior exactly.
+  Notably, int64/uint64 → "number" (not bigint) for output parity with existing SDKs.
+- **No context dependency**: The function is pure — it only needs the SdkType, not any
+  Alloy context. This makes it easy to test and compose.
+- **Refkeys for named types**: Model, enum, and union types return `typeRefkey(entity)`
+  which enables Alloy's automatic cross-file import resolution.
+
+### Notes for next person
+- Completed Phase 0: 0.1, 0.3, 0.4, 0.5, 0.6. Phase 0 remaining: 0.2 (Emitter Entry Point).
+- Completed Phase 1.1 (Type Expression).
+- Next priorities: 1.2 (Model Interface), 1.3 (Enum Declaration), 1.4 (Union Declaration).
+  All three depend on 1.1 (Type Expression) which is now available.
+- `getTypeExpression` is exported from `src/index.ts` — import from the package root.
+- The function handles `credential` type as a placeholder (returns "string"). Full
+  credential type expression will be implemented in Phase 4 (Client Infrastructure).
+- For testing type expressions with reference types (model, enum), you need to provide
+  a declaration with the matching refkey in the same render tree so the refkey resolves.

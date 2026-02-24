@@ -821,7 +821,7 @@
           "id": "1.1",
           "title": "Type Expression Component",
           "description": "Map SdkType to TypeScript type strings/refkeys for all type kinds",
-          "pass": false,
+          "pass": true,
           "pass_criteria": [
             "Handles all SdkType kinds: model, enum, union, array, dict, nullable, built-in scalars, datetime, duration, bytes",
             "Model types return typeRefkey(type) for cross-file reference",
@@ -830,7 +830,8 @@
             "Dict types produce Record<K, V>",
             "Nullable types produce T | null",
             "Component render test validates each type kind"
-          ]
+          ],
+          "status": "done"
         },
         {
           "id": "1.2",
