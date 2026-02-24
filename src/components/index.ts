@@ -8,6 +8,10 @@ export {
   JsonSerializer,
   JsonDeserializer,
   MultipartSerializer,
+  XmlSerializer,
+  XmlObjectSerializer,
+  XmlDeserializer,
+  XmlObjectDeserializer,
   getSerializationExpression,
   getDeserializationExpression,
   needsTransformation,
@@ -46,5 +50,6 @@ export {
   PagingHelpersFile,
   PollingHelpersFile,
   MultipartHelpersFile,
+  XmlHelpersFile,
 } from "./static-helpers/index.js";
 export { RestorePollerFile } from "./restore-poller.js";

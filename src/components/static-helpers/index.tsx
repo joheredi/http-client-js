@@ -3,6 +3,7 @@ import { SerializationHelpersFile } from "./serialization-helpers.js";
 import { PagingHelpersFile } from "./paging-helpers.js";
 import { PollingHelpersFile } from "./polling-helpers.js";
 import { MultipartHelpersFile } from "./multipart-helpers.js";
+import { XmlHelpersFile } from "./xml-helpers.js";
 
 /**
  * Orchestrator component that renders all static helper source files.
@@ -23,6 +24,7 @@ import { MultipartHelpersFile } from "./multipart-helpers.js";
  *   pagingHelpers.ts         — PagedAsyncIterableIterator, buildPagedAsyncIterator
  *   pollingHelpers.ts        — PollerLike, getLongRunningPoller
  *   multipartHelpers.ts      — FileContents type, createFilePartDescriptor
+ *   xmlHelpers.ts            — XML serialization/deserialization types and functions
  * ```
  *
  * @returns An Alloy JSX tree containing all static helper source files.
@@ -34,6 +36,7 @@ export function StaticHelpers() {
       <PagingHelpersFile />
       <PollingHelpersFile />
       <MultipartHelpersFile />
+      <XmlHelpersFile />
     </>
   );
 }
@@ -42,3 +45,4 @@ export { SerializationHelpersFile } from "./serialization-helpers.js";
 export { PagingHelpersFile } from "./paging-helpers.js";
 export { PollingHelpersFile } from "./polling-helpers.js";
 export { MultipartHelpersFile } from "./multipart-helpers.js";
+export { XmlHelpersFile } from "./xml-helpers.js";

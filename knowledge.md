@@ -685,3 +685,35 @@ The model itself has `(usage & UsageFlags.MultipartFormData) !== 0` when used in
 a multipart/form-data context. `UsageFlags.MultipartFormData` is `1 << 5` (32).
 
 **Date:** 2026-02-24
+
+## UsageFlags.Xml is set by TCGC when content-type includes application/xml
+
+**Problem:** Need to know how TCGC determines which models are XML-typed and sets
+the `UsageFlags.Xml` flag.
+
+**Fix:** TCGC checks `httpBody.contentTypes` for XML media types (via `isMediaTypeXml()`).
+When an operation's request body or response body has `application/xml` content type,
+the associated model gets `UsageFlags.Xml` set. The XML serialization options
+(`serializationOptions.xml`) are populated from `@typespec/xml` decorators
+(`@Xml.name()`, `@Xml.attribute`, `@Xml.unwrapped`, etc.) and `@encodedName`.
+
+The bitmask value is `1 << 9` (512). Check with: `(model.usage & UsageFlags.Xml) !== 0`.
+
+**Date:** 2026-02-24
+
+## Output component requires program prop in tests
+
+**Problem:** Using `<Output namePolicy={createTSNamePolicy()}>` without a `program`
+prop causes TypeScript compilation errors in tests because `OutputProps` requires
+`program: Program`.
+
+**Fix:** Always compile a minimal TypeSpec program and pass it to Output:
+```tsx
+const runner = await TesterWithService.createInstance();
+const { program } = await runner.compile(t.code`op test(): void;`);
+<Output program={program} namePolicy={createTSNamePolicy()}>
+```
+
+This applies even when testing components with mock data that don't use TCGC.
+
+**Date:** 2026-02-24

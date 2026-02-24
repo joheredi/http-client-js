@@ -14,6 +14,10 @@ import { JsonDeserializer } from "./serialization/json-deserializer.js";
 import { JsonPolymorphicSerializer } from "./serialization/json-polymorphic-serializer.js";
 import { JsonPolymorphicDeserializer } from "./serialization/json-polymorphic-deserializer.js";
 import { MultipartSerializer } from "./serialization/multipart-serializer.js";
+import { XmlSerializer } from "./serialization/xml-serializer.js";
+import { XmlObjectSerializer } from "./serialization/xml-object-serializer.js";
+import { XmlDeserializer } from "./serialization/xml-deserializer.js";
+import { XmlObjectDeserializer } from "./serialization/xml-object-deserializer.js";
 import { UnionDeclaration } from "./union-declaration.js";
 
 /**
@@ -56,6 +60,9 @@ export function ModelFiles() {
   const isMultipartFormData = (m: SdkModelType) =>
     (m.usage & UsageFlags.MultipartFormData) !== 0;
 
+  // Check if a model is used in XML context
+  const isXml = (m: SdkModelType) => (m.usage & UsageFlags.Xml) !== 0;
+
   // Filter models by usage flags for serialization/deserialization
   const inputModels = models.filter(
     (m) => (m.usage & UsageFlags.Input) !== 0,
@@ -68,13 +75,26 @@ export function ModelFiles() {
 
   // Separate multipart models from regular JSON models — multipart takes priority
   const multipartInputModels = inputModels.filter(isMultipartFormData);
-  const jsonInputModels = inputModels.filter((m) => !isMultipartFormData(m));
+
+  // Separate XML models from JSON models — XML takes priority over JSON
+  const xmlInputModels = inputModels.filter(
+    (m) => !isMultipartFormData(m) && isXml(m),
+  );
+  const xmlOutputModels = outputModels.filter(isXml);
+
+  const jsonInputModels = inputModels.filter(
+    (m) => !isMultipartFormData(m) && !isXml(m),
+  );
 
   // Split JSON input models into regular and polymorphic for serialization
   const regularInputModels = jsonInputModels.filter((m) => !isDiscriminated(m));
   const polymorphicInputModels = jsonInputModels.filter(isDiscriminated);
-  const regularOutputModels = outputModels.filter((m) => !isDiscriminated(m));
-  const polymorphicOutputModels = outputModels.filter(isDiscriminated);
+  const regularOutputModels = outputModels.filter(
+    (m) => !isDiscriminated(m) && !isXml(m),
+  );
+  const polymorphicOutputModels = outputModels.filter(
+    (m) => isDiscriminated(m) && !isXml(m),
+  );
 
   const hasSerializers =
     regularInputModels.length > 0 ||
@@ -82,6 +102,8 @@ export function ModelFiles() {
     multipartInputModels.length > 0;
   const hasDeserializers =
     regularOutputModels.length > 0 || polymorphicOutputModels.length > 0;
+  const hasXmlSerializers = xmlInputModels.length > 0;
+  const hasXmlDeserializers = xmlOutputModels.length > 0;
 
   // Skip rendering entirely if there are no type declarations to emit
   if (models.length === 0 && enums.length === 0 && namedUnions.length === 0) {
@@ -99,7 +121,7 @@ export function ModelFiles() {
           : undefined}
         <UnionDeclarations unions={namedUnions} />
         {(models.length > 0 || enums.length > 0 || namedUnions.length > 0) &&
-        (hasSerializers || hasDeserializers)
+        (hasSerializers || hasDeserializers || hasXmlSerializers || hasXmlDeserializers)
           ? "\n\n"
           : undefined}
         <SerializerDeclarations models={regularInputModels} />
@@ -118,6 +140,12 @@ export function ModelFiles() {
           ? "\n\n"
           : undefined}
         <PolymorphicDeserializerDeclarations models={polymorphicOutputModels} />
+        {(hasSerializers || hasDeserializers) && hasXmlSerializers
+          ? "\n\n"
+          : undefined}
+        <XmlSerializerDeclarations models={xmlInputModels} />
+        {hasXmlSerializers && hasXmlDeserializers ? "\n\n" : undefined}
+        <XmlDeserializerDeclarations models={xmlOutputModels} />
       </SourceFile>
     </SourceDirectory>
   );
@@ -387,6 +415,78 @@ function MultipartSerializerDeclarations(
   return (
     <For each={props.models} doubleHardline>
       {(model) => <MultipartSerializer model={model} />}
+    </For>
+  );
+}
+
+/**
+ * Props for the {@link XmlSerializerDeclarations} component.
+ */
+interface XmlSerializerDeclarationsProps {
+  /** The list of TCGC model types with Xml usage that need XML serializers. */
+  models: SdkModelType[];
+}
+
+/**
+ * Renders all XML serializer function declarations (4 functions per model).
+ *
+ * Each model with `UsageFlags.Xml` and `UsageFlags.Input` gets:
+ * - `{name}XmlSerializer` — root-level XML string serializer
+ * - `{name}XmlObjectSerializer` — nested object serializer (returns XmlSerializedObject)
+ *
+ * These are used instead of JSON serializers for models in XML content type contexts.
+ *
+ * @param props - Component props containing the list of XML input models.
+ * @returns Alloy JSX tree with XML serializer declarations, or undefined if empty.
+ */
+function XmlSerializerDeclarations(props: XmlSerializerDeclarationsProps) {
+  if (props.models.length === 0) return undefined;
+
+  return (
+    <For each={props.models} doubleHardline>
+      {(model) => (
+        <>
+          <XmlSerializer model={model} />
+          {"\n\n"}
+          <XmlObjectSerializer model={model} />
+        </>
+      )}
+    </For>
+  );
+}
+
+/**
+ * Props for the {@link XmlDeserializerDeclarations} component.
+ */
+interface XmlDeserializerDeclarationsProps {
+  /** The list of TCGC model types with Xml usage that need XML deserializers. */
+  models: SdkModelType[];
+}
+
+/**
+ * Renders all XML deserializer function declarations (2 functions per model).
+ *
+ * Each model with `UsageFlags.Xml` and `UsageFlags.Output`/`UsageFlags.Exception` gets:
+ * - `{name}XmlDeserializer` — root-level XML string deserializer
+ * - `{name}XmlObjectDeserializer` — nested object deserializer (takes Record<string, unknown>)
+ *
+ * These are used instead of JSON deserializers for models in XML content type contexts.
+ *
+ * @param props - Component props containing the list of XML output/exception models.
+ * @returns Alloy JSX tree with XML deserializer declarations, or undefined if empty.
+ */
+function XmlDeserializerDeclarations(props: XmlDeserializerDeclarationsProps) {
+  if (props.models.length === 0) return undefined;
+
+  return (
+    <For each={props.models} doubleHardline>
+      {(model) => (
+        <>
+          <XmlDeserializer model={model} />
+          {"\n\n"}
+          <XmlObjectDeserializer model={model} />
+        </>
+      )}
     </For>
   );
 }

@@ -1495,3 +1495,90 @@
   This may need attention for operations that require per-part headers.
 - The `createFilePartDescriptor` function handles the File interface pattern used by
   `@typespec/ts-http-runtime`. Azure flavor may need adjustments in Phase 8.
+
+## 2026-02-24 — XML Serializer Components (Phase 2, Task 2.4)
+
+### What was done
+- Created `src/components/serialization/xml-serializer.tsx`: Generates `{name}XmlSerializer(item: T): string`
+  functions that build a `XmlPropertyMetadata[]` array and call `serializeToXml()` static helper.
+  Handles primitive types, nested models (via `xmlObjectSerializerRefkey`), attribute properties,
+  arrays, date/bytes encoding, and custom XML root names from `serializationOptions.xml`.
+- Created `src/components/serialization/xml-object-serializer.tsx`: Generates
+  `{name}XmlObjectSerializer(item: T): XmlSerializedObject` functions that return objects with
+  XML-named keys. Used for nested model serialization within parent XML structures.
+- Created `src/components/serialization/xml-deserializer.tsx`: Generates
+  `{name}XmlDeserializer(xmlString: string): T` functions that build a
+  `XmlPropertyDeserializeMetadata[]` array and call `deserializeFromXml()` static helper.
+  Includes `primitiveSubtype` for XML string-to-JS type conversion.
+- Created `src/components/serialization/xml-object-deserializer.tsx`: Generates
+  `{name}XmlObjectDeserializer(xmlObject: Record<string, unknown>): T` functions for nested
+  model deserialization. Calls `deserializeXmlObject()` static helper.
+- Created `src/components/static-helpers/xml-helpers.tsx`: Static helper file generating
+  `helpers/xmlHelpers.ts` with:
+  - `XmlSerializationOptions` interface (element/attribute/namespace descriptor)
+  - `XmlPropertyMetadata` interface (serialization metadata per property)
+  - `XmlPropertyDeserializeMetadata` interface (deserialization metadata per property)
+  - `XmlSerializedObject` type alias (intermediate object representation)
+  - `serializeToXml()` function (model → XML string via metadata)
+  - `deserializeFromXml()` function (XML string → typed model via metadata)
+  - `deserializeXmlObject()` function (pre-parsed XML object → typed model)
+- Added `xmlObjectSerializerRefkey` and `xmlObjectDeserializerRefkey` to `src/utils/refkeys.ts`.
+- Updated `src/utils/index.ts` to export new refkeys.
+- Updated `src/components/serialization/index.ts` to export all XML components.
+- Updated `src/components/static-helpers/index.tsx` to include XmlHelpersFile.
+- Updated `src/components/index.ts` to export XML components and XmlHelpersFile.
+- Updated `src/components/model-files.tsx`: Detects XML models via `UsageFlags.Xml` bitmask,
+  separates them from JSON models, and emits XmlSerializer + XmlObjectSerializer for input
+  models and XmlDeserializer + XmlObjectDeserializer for output models.
+- Created 4 test files with 21 total tests:
+  - `test/components/static-helpers/xml-helpers.test.tsx` (7 tests): XmlSerializationOptions,
+    XmlPropertyMetadata, XmlPropertyDeserializeMetadata, XmlSerializedObject, serializeToXml,
+    deserializeFromXml, deserializeXmlObject.
+  - `test/components/serialization/xml-serializer.test.tsx` (4 tests): basic model metadata,
+    attribute properties, nested model serializer reference, custom XML root name.
+  - `test/components/serialization/xml-object-serializer.test.tsx` (3 tests): basic property
+    mapping, nested model reference, XmlSerializedObject return type.
+  - `test/components/serialization/xml-deserializer.test.tsx` (4 tests): primitive subtype
+    metadata, nested model deserializer reference, custom root name, attribute handling.
+  - `test/components/serialization/xml-object-deserializer.test.tsx` (3 tests): primitive
+    subtype metadata, nested model reference, correct return type.
+- Updated existing static-helpers test to include xmlHelpers.ts in expected output.
+- Updated PRD: Task 2.4 marked as done.
+- All 263 tests pass (21 new + 242 existing).
+
+### Architecture decisions
+- **Metadata-driven approach**: Matches the legacy emitter's pattern where each serializer/
+  deserializer builds a metadata array describing property-to-XML mappings, then delegates
+  to static helper functions. This is more declarative and testable than inline serialization.
+- **4 functions per model**: Following the legacy emitter exactly:
+  - `XmlSerializer` — root-level, returns XML string (calls `serializeToXml`)
+  - `XmlObjectSerializer` — nested, returns object with XML keys (used by parent serializers)
+  - `XmlDeserializer` — root-level, parses XML string (calls `deserializeFromXml`)
+  - `XmlObjectDeserializer` — nested, converts pre-parsed object (calls `deserializeXmlObject`)
+- **UsageFlags.Xml detection**: Models with `(usage & UsageFlags.Xml) !== 0` get XML
+  serializers/deserializers instead of JSON ones. A model can't be both JSON and XML
+  in current TCGC behavior, so this is a clean separation.
+- **Mock-based testing**: Since `@typespec/xml` is not in the project's dependency tree,
+  tests use mock `SdkModelType` objects with pre-populated `serializationOptions.xml`.
+  This matches the project's existing pattern (multipart serializer, LRO restore poller).
+- **Refkey strategy**: Added `xmlObjectSerializerRefkey` and `xmlObjectDeserializerRefkey`
+  as new refkeys. The existing `xmlSerializerRefkey` and `xmlDeserializerRefkey` were
+  already defined. This gives each of the 4 functions a distinct refkey.
+
+### Notes for next person
+- Completed: Phase 0 (0.1-0.6), Phase 1 (1.1-1.6), Phase 2 (2.1-2.5 — ALL DONE),
+  Phase 3 (3.1-3.5), Phase 4 (4.1), Phase 5 (5.1-5.2), Phase 6 (6.1-6.2),
+  Phase 7 (7.1-7.2).
+- **Remaining tasks by priority**:
+  1. 4.2 (Logger Component) — Azure-only logging
+  2. 6.3 (Sample Files) — per-operation sample TypeScript files
+  3. 8.x (Azure Extension) — Azure-specific composition
+  4. 9.x (Test Porting & Validation) — scenario testing
+- The XML helpers file (`xmlHelpers.ts`) contains full serialization/deserialization logic
+  inline. In production, `@typespec/ts-http-runtime` may provide these functions, in
+  which case the helpers should be swapped to external package references.
+- To test with real TypeSpec XML models, add `@typespec/xml` as a devDependency and
+  update the Tester to include it. Then use `@Xml.name()`, `@Xml.attribute`, etc.
+- The `model-files.tsx` now handles JSON, Multipart, and XML serialization in order.
+  If future content types need support, follow the same pattern: detect via UsageFlags,
+  separate models, add declaration components at the bottom.

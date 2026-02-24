@@ -985,7 +985,7 @@
           "id": "2.4",
           "title": "XML Serializer Components",
           "description": "4 functions per type using metadata-driven approach",
-          "pass": false,
+          "pass": true,
           "pass_criteria": [
             "Generates 4 functions per type: serializer, objectSerializer, deserializer, objectDeserializer",
             "Uses metadata arrays with XML property descriptors",
@@ -993,7 +993,8 @@
             "Handles XML namespaces, attributes, and element names",
             "Correct refkeys set: xmlSerializerRefkey, xmlObjectSerializerRefkey, xmlDeserializerRefkey, xmlObjectDeserializerRefkey",
             "Scenario tests pass: payload/xml/*.md"
-          ]
+          ],
+          "status": "done"
         },
         {
           "id": "2.5",

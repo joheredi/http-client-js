@@ -79,6 +79,7 @@ describe("StaticHelpers", () => {
       "helpers/pagingHelpers.ts": expect.stringContaining("buildPagedAsyncIterator"),
       "helpers/pollingHelpers.ts": expect.stringContaining("getLongRunningPoller"),
       "helpers/multipartHelpers.ts": expect.stringContaining("createFilePartDescriptor"),
+      "helpers/xmlHelpers.ts": expect.stringContaining("serializeToXml"),
     });
   });
 });

@@ -147,10 +147,12 @@ export function classicalClientRefkey(entity: unknown): Refkey {
 }
 
 /**
- * Creates a refkey for an XML serializer function.
+ * Creates a refkey for an XML serializer function that converts a model
+ * to an XML string.
  *
- * When a service uses XML content types, each model type gets a dedicated
- * XML serializer in addition to (or instead of) the JSON serializer.
+ * The XML serializer is the root-level function that produces a complete
+ * XML document string. It uses metadata arrays and delegates to the
+ * `serializeToXml` static helper.
  *
  * @param entity - The TCGC type entity whose XML serializer is being referenced.
  * @returns A stable refkey for the XML serializer function declaration.
@@ -160,16 +162,48 @@ export function xmlSerializerRefkey(entity: unknown): Refkey {
 }
 
 /**
- * Creates a refkey for an XML deserializer function.
+ * Creates a refkey for an XML object serializer function that converts
+ * a model to an `XmlSerializedObject` (plain object with XML property names).
  *
- * When a service uses XML content types, each model type gets a dedicated
- * XML deserializer in addition to (or instead of) the JSON deserializer.
+ * The object serializer is used for nested model types. Instead of producing
+ * an XML string, it returns an object with XML-named keys that can be
+ * embedded inside a parent serializer's output.
+ *
+ * @param entity - The TCGC type entity whose XML object serializer is being referenced.
+ * @returns A stable refkey for the XML object serializer function declaration.
+ */
+export function xmlObjectSerializerRefkey(entity: unknown): Refkey {
+  return refkey(entity, "xmlObjectSerializer");
+}
+
+/**
+ * Creates a refkey for an XML deserializer function that converts an
+ * XML string back to a typed model.
+ *
+ * The XML deserializer is the root-level function that parses a complete
+ * XML document string. It uses metadata arrays and delegates to the
+ * `deserializeFromXml` static helper.
  *
  * @param entity - The TCGC type entity whose XML deserializer is being referenced.
  * @returns A stable refkey for the XML deserializer function declaration.
  */
 export function xmlDeserializerRefkey(entity: unknown): Refkey {
   return refkey(entity, "xmlDeserializer");
+}
+
+/**
+ * Creates a refkey for an XML object deserializer function that converts
+ * a pre-parsed XML object (`Record<string, unknown>`) back to a typed model.
+ *
+ * The object deserializer is used for nested model types. Instead of parsing
+ * an XML string, it takes an already-parsed object and maps XML-named keys
+ * back to client-side property names.
+ *
+ * @param entity - The TCGC type entity whose XML object deserializer is being referenced.
+ * @returns A stable refkey for the XML object deserializer function declaration.
+ */
+export function xmlObjectDeserializerRefkey(entity: unknown): Refkey {
+  return refkey(entity, "xmlObjectDeserializer");
 }
 
 /**
