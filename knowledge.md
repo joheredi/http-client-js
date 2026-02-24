@@ -542,3 +542,83 @@ Note: `expect.stringContaining()` DOES work with `toRenderTo` when the expected 
 is an **object** (multi-file output), because the object-path matching doesn't call `dedent`.
 
 **Date:** 2026-02-24
+
+## Alloy name policy transforms type parameter names to camelCase
+
+**Problem:** When using `typeParameters={["TResult"]}` on `InterfaceDeclaration`
+or `FunctionDeclaration`, Alloy's TypeScript name policy transforms the type
+parameter names to camelCase: `TResult` → `tResult`, `TElement` → `tElement`.
+However, within the body of the declaration, manually written type references
+like `TResult` in code templates are NOT transformed (they're raw strings).
+
+**Fix:** In test assertions, expect camelCase type parameter names in the
+declaration signature but original casing in the body:
+```tsx
+// ✅ Correct assertion
+expect(result).toContain("export interface OperationState<tResult>");
+// Body still uses TResult as written in code templates
+```
+
+**Date:** 2026-02-24
+
+## TypeParameterDescriptor uses `extends` not `constraint` for type constraints
+
+**Problem:** The Alloy TypeParameterDescriptor interface uses `extends` as the
+property name for type constraints, not `constraint`. Using `constraint` causes
+TypeScript compilation errors.
+
+**Fix:** Use `extends` property:
+```tsx
+// ✅ Correct
+typeParameters={[{name: "TState", extends: code`OperationState<TResult>`}]}
+
+// ❌ Wrong
+typeParameters={[{name: "TState", constraint: code`OperationState<TResult>`}]}
+```
+
+**Date:** 2026-02-24
+
+## Mixed TypeParameterDescriptor arrays require all-object form
+
+**Problem:** The `typeParameters` prop type is `TypeParameterDescriptor[] | string[]`.
+When mixing objects and strings, TypeScript infers the wrong union type and
+rejects the mixed array.
+
+**Fix:** Make all entries TypeParameterDescriptor objects:
+```tsx
+// ✅ Correct
+typeParameters={[{name: "TState", extends: constraint}, {name: "TResult"}]}
+
+// ❌ Wrong - mixed array
+typeParameters={[{name: "TState", extends: constraint}, "TResult"]}
+```
+
+**Date:** 2026-02-24
+
+## Symbol.asyncIterator rendered as symbolAsyncIterator by Alloy name policy
+
+**Problem:** When using `[Symbol.asyncIterator]` as an InterfaceMember name,
+Alloy's name policy transforms it to `symbolAsyncIterator`. This is because
+the bracket-access property name is run through the camelCase name policy.
+
+**Fix:** Accept the transformed name in test assertions, or consider using
+raw code templates for members that shouldn't be transformed.
+
+**Date:** 2026-02-24
+
+## External packages must be registered in Output for refkey resolution
+
+**Problem:** When rendering static helper files that reference external
+package symbols (e.g., `httpRuntimeLib.Client`), the external package must
+be registered via the `externals` prop on `<Output>`. Without registration,
+the symbols render as `<Unresolved Symbol: refkey[...]>`.
+
+**Fix:** Always include the required external packages in test `<Output>`
+elements:
+```tsx
+<Output program={program} namePolicy={createTSNamePolicy()} externals={[httpRuntimeLib]}>
+  <PagingHelpersFile />
+</Output>
+```
+
+**Date:** 2026-02-24

@@ -999,7 +999,7 @@
           "id": "2.5",
           "title": "Static Serialization Helpers",
           "description": "Refkey declarations and source loading for all 21 static helper files",
-          "pass": false,
+          "pass": true,
           "pass_criteria": [
             "Refkey declarations for all static helpers: collection builders (csv, multi, newline, pipe, ssv, tsv), collection parsers, serializers, serialize-record, check-prop-undefined, xml-helpers, get-binary-response",
             "Helper source files loaded and emitted as <ts.SourceFile> with proper declarations",
@@ -1007,7 +1007,8 @@
             "Helpers only included in output when referenced (demand-driven)",
             "Import remapping works for Azure vs non-Azure package references",
             "Also covers: pagingHelpers, pollingHelpers, simplePollerHelpers, urlTemplate, multipartHelpers, cloudSettingHelpers"
-          ]
+          ],
+          "status": "done"
         }
       ],
       "dependencies": [

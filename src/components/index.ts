@@ -39,3 +39,9 @@ export {
   ClassicIndexFile,
   IndexFiles,
 } from "./index-file.js";
+export {
+  StaticHelpers,
+  SerializationHelpersFile,
+  PagingHelpersFile,
+  PollingHelpersFile,
+} from "./static-helpers/index.js";

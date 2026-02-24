@@ -9,7 +9,7 @@ import type {
   SdkModelType,
   SdkType,
 } from "@azure-tools/typespec-client-generator-core";
-import { deserializerRefkey, typeRefkey } from "../../utils/refkeys.js";
+import { deserializerRefkey, serializationHelperRefkey, typeRefkey } from "../../utils/refkeys.js";
 import { httpRuntimeLib } from "../../utils/external-packages.js";
 import { needsTransformation } from "./json-serializer.js";
 
@@ -147,7 +147,7 @@ export function getDeserializationExpression(
           type.valueType,
           "v",
         );
-        return code`deserializeRecord(${accessor} as any, (v: any) => ${valueExpr})`;
+        return code`${serializationHelperRefkey("deserializeRecord")}(${accessor} as any, (v: any) => ${valueExpr})`;
       }
       return accessor;
     }

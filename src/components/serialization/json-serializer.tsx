@@ -10,7 +10,7 @@ import type {
   SdkModelType,
   SdkType,
 } from "@azure-tools/typespec-client-generator-core";
-import { serializerRefkey, typeRefkey } from "../../utils/refkeys.js";
+import { serializationHelperRefkey, serializerRefkey, typeRefkey } from "../../utils/refkeys.js";
 import { httpRuntimeLib } from "../../utils/external-packages.js";
 
 /**
@@ -146,7 +146,7 @@ export function getSerializationExpression(
     case "dict": {
       if (needsTransformation(type.valueType)) {
         const valueExpr = getSerializationExpression(type.valueType, "v");
-        return code`serializeRecord(${accessor} as any, (v: any) => ${valueExpr})`;
+        return code`${serializationHelperRefkey("serializeRecord")}(${accessor} as any, (v: any) => ${valueExpr})`;
       }
       return accessor;
     }
