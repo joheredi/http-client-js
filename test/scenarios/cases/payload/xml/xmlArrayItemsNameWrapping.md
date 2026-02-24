@@ -71,7 +71,7 @@ export interface ArrowConfiguration {
 ```ts models function arrowFieldXmlObjectSerializer
 export function arrowFieldXmlObjectSerializer(
   item: ArrowField,
-): XmlSerializedObject {
+): XmlSerializedObject_1 {
   return {
     Type: item["type"],
     Name: item["name"],
@@ -84,7 +84,7 @@ export function arrowFieldXmlObjectSerializer(
 export function arrowConfigurationXmlSerializer(
   item: ArrowConfiguration,
 ): string {
-  const properties: XmlPropertyMetadata[] = [
+  const properties: XmlPropertyMetadata_1[] = [
     {
       propertyName: "schema",
       xmlOptions: { name: "Schema", itemsName: "Field" },
@@ -92,18 +92,16 @@ export function arrowConfigurationXmlSerializer(
       serializer: arrowFieldXmlObjectSerializer,
     },
   ];
-  return serializeToXml(item, properties, "ArrowConfiguration");
+  return serializeToXml_1(item, properties, "ArrowConfiguration");
 }
 ```
 
 ```ts models function arrowConfigurationXmlObjectSerializer
 export function arrowConfigurationXmlObjectSerializer(
   item: ArrowConfiguration,
-): XmlSerializedObject {
+): XmlSerializedObject_1 {
   return {
-    Schema: {
-      Field: item["schema"]?.map((i: any) => arrowFieldXmlObjectSerializer(i)),
-    },
+    Schema: item["schema"]?.map((i: any) => arrowFieldXmlObjectSerializer(i)),
   };
 }
 ```
@@ -171,14 +169,19 @@ export interface BlobTags {
 ```
 
 ```ts models function blobTagXmlObjectSerializer
-export function blobTagXmlObjectSerializer(item: BlobTag): XmlSerializedObject {
-  return { Key: item["key"], Value: item["value"] };
+export function blobTagXmlObjectSerializer(
+  item: BlobTag,
+): XmlSerializedObject_1 {
+  return {
+    Key: item["key"],
+    Value: item["value"],
+  };
 }
 ```
 
 ```ts models function blobTagsXmlSerializer
 export function blobTagsXmlSerializer(item: BlobTags): string {
-  const properties: XmlPropertyMetadata[] = [
+  const properties: XmlPropertyMetadata_1[] = [
     {
       propertyName: "blobTagSet",
       xmlOptions: { name: "TagSet", unwrapped: true, itemsName: "TagSet" },
@@ -186,14 +189,14 @@ export function blobTagsXmlSerializer(item: BlobTags): string {
       serializer: blobTagXmlObjectSerializer,
     },
   ];
-  return serializeToXml(item, properties, "Tags");
+  return serializeToXml_1(item, properties, "Tags");
 }
 ```
 
 ```ts models function blobTagsXmlObjectSerializer
 export function blobTagsXmlObjectSerializer(
   item: BlobTags,
-): XmlSerializedObject {
+): XmlSerializedObject_1 {
   return {
     TagSet: item["blobTagSet"]?.map((i: any) => blobTagXmlObjectSerializer(i)),
   };

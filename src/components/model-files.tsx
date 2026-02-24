@@ -19,6 +19,7 @@ import { XmlObjectSerializer } from "./serialization/xml-object-serializer.js";
 import { XmlDeserializer } from "./serialization/xml-deserializer.js";
 import { XmlObjectDeserializer } from "./serialization/xml-object-deserializer.js";
 import { UnionDeclaration } from "./union-declaration.js";
+import { hasXmlSerialization } from "../utils/xml-detection.js";
 
 /**
  * Orchestrator component that organizes all type declarations into model source files.
@@ -60,8 +61,11 @@ export function ModelFiles() {
   const isMultipartFormData = (m: SdkModelType) =>
     (m.usage & UsageFlags.MultipartFormData) !== 0;
 
-  // Check if a model is used in XML context
-  const isXml = (m: SdkModelType) => (m.usage & UsageFlags.Xml) !== 0;
+  // Check if a model is used in XML context by inspecting serialization options.
+  // TCGC sets UsageFlags.Xml only when operations explicitly use application/xml content type,
+  // but @Xml.name decorators populate serializationOptions.xml on properties regardless.
+  // The legacy emitter uses serializationOptions.xml for detection, so we do the same.
+  const isXml = (m: SdkModelType) => hasXmlSerialization(m);
 
   // Filter models by usage flags for serialization/deserialization
   const inputModels = models.filter(

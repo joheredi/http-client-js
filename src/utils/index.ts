@@ -37,3 +37,5 @@ export {
 } from "./external-packages.js";
 
 export { getExampleValueCode } from "./example-values.js";
+
+export { hasXmlSerialization } from "./xml-detection.js";
