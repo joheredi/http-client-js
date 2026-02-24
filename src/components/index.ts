@@ -23,3 +23,7 @@ export {
   ClientContextFactory,
   getClientName,
 } from "./client-context.js";
+export {
+  ClassicalClientFile,
+  ClassicalClientDeclaration,
+} from "./classical-client.js";

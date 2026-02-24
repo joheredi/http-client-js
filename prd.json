@@ -1154,7 +1154,7 @@
           "id": "5.1",
           "title": "Classical Client Component",
           "description": "Generate client class with constructor, pipeline, methods, group getters",
-          "pass": false,
+          "pass": true,
           "pass_criteria": [
             "Class with private _client: XxxContext field",
             "Public pipeline: Pipeline readonly property",
@@ -1164,7 +1164,8 @@
             "Operation group getters return typed operation group objects",
             "Child client getters for multi-client scenarios",
             "Scenario tests pass: classicClient/classicClient.md, classicClient/clientConstructorOverloads.md"
-          ]
+          ],
+          "status": "done"
         },
         {
           "id": "5.2",
