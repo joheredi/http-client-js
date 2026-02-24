@@ -6,7 +6,7 @@ import {
   SourceFile,
 } from "@alloy-js/typescript";
 import { pagingHelperRefkey } from "../../utils/refkeys.js";
-import { httpRuntimeLib } from "../../utils/external-packages.js";
+import { useRuntimeLib } from "../../context/flavor-context.js";
 
 /**
  * Renders the `helpers/pagingHelpers.ts` source file containing types
@@ -122,6 +122,7 @@ function BuildPagedAsyncIteratorOptionsInterface() {
  * - Providing both element-by-element and page-by-page iteration
  */
 function BuildPagedAsyncIteratorFunction() {
+  const runtimeLib = useRuntimeLib();
   return (
     <FunctionDeclaration
       name="buildPagedAsyncIterator"
@@ -130,9 +131,9 @@ function BuildPagedAsyncIteratorFunction() {
       returnType={code`${pagingHelperRefkey("PagedAsyncIterableIterator")}<TElement>`}
       typeParameters={["TElement"]}
       parameters={[
-        { name: "client", type: httpRuntimeLib.Client },
-        { name: "getInitialResponse", type: code`() => Promise<${httpRuntimeLib.PathUncheckedResponse}>` },
-        { name: "processResponseBody", type: code`(result: ${httpRuntimeLib.PathUncheckedResponse}) => Promise<unknown>` },
+        { name: "client", type: runtimeLib.Client },
+        { name: "getInitialResponse", type: code`() => Promise<${runtimeLib.PathUncheckedResponse}>` },
+        { name: "processResponseBody", type: code`(result: ${runtimeLib.PathUncheckedResponse}) => Promise<unknown>` },
         { name: "expectedStatuses", type: "string[]" },
         { name: "options", type: code`${pagingHelperRefkey("BuildPagedAsyncIteratorOptions")}`, optional: true },
       ]}
@@ -147,7 +148,7 @@ async function getPage(pageLink?: string): Promise<{ values: TElement[]; nextPag
 
   const statusStr = String(result.status);
   if (!expectedStatuses.includes(statusStr)) {
-    throw ${httpRuntimeLib.createRestError}(result);
+    throw ${runtimeLib.createRestError}(result);
   }
 
   const body = await processResponseBody(result);

@@ -14,7 +14,7 @@ import {
   typeRefkey,
   xmlObjectSerializerRefkey,
 } from "../../utils/refkeys.js";
-import { httpRuntimeLib } from "../../utils/external-packages.js";
+import { useRuntimeLib } from "../../context/flavor-context.js";
 
 /**
  * Props for the {@link XmlObjectSerializer} component.
@@ -122,7 +122,7 @@ function getXmlObjectSerializationExpression(
       return code`(${accessor}).toISOString()`;
 
     case "bytes":
-      return code`${httpRuntimeLib.uint8ArrayToString}(${accessor}, "base64")`;
+      return code`${useRuntimeLib().uint8ArrayToString}(${accessor}, "base64")`;
 
     case "nullable":
       return getXmlObjectSerializationExpression(type.type, accessor, prop);

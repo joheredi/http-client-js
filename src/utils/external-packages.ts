@@ -86,6 +86,8 @@ export const azureCoreClientLib = createPackage({
         "ErrorModel",
         // ErrorResponse is the Azure-specific error response shape
         "ErrorResponse",
+        // isKeyCredential is re-exported from @azure/core-auth
+        "isKeyCredential",
       ],
     },
   },

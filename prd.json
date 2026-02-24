@@ -1159,14 +1159,15 @@
           "id": "4.2",
           "title": "Logger Component",
           "description": "Generate Azure-specific logger module",
-          "pass": false,
+          "pass": true,
           "pass_criteria": [
             "Only emitted when Azure flavor is active",
             "Produces src/logger.ts with createClientLogger(packageName)",
             "Import from @azure/logger via external package refkey",
             "Logger name derived from package details",
             "Not emitted for non-Azure (core) flavor"
-          ]
+          ],
+          "status": "done"
         }
       ],
       "dependencies": [
@@ -1321,7 +1322,7 @@
           "id": "8.1",
           "title": "Azure Extension Points",
           "description": "Package swapping, auth policies, polling, identity, ARM features",
-          "pass": false,
+          "pass": true,
           "pass_criteria": [
             "httpRuntimeLib swappable to Azure package references (@azure-rest/core-client, etc.)",
             "Azure auth policies (Bearer challenge, custom headers) injectable",
@@ -1330,20 +1331,22 @@
             "ARM features: subscriptionId handling, cloud settings helpers",
             "Logger uses @azure/logger instead of console",
             "All Azure-specific scenario tests pass"
-          ]
+          ],
+          "status": "done"
         },
         {
           "id": "8.2",
           "title": "Azure Composition Pattern",
           "description": "Core emitter + Azure wrapper via JSX composition",
-          "pass": false,
+          "pass": true,
           "pass_criteria": [
             "Core emitter generates valid non-Azure SDK with @typespec/ts-http-runtime",
             "Azure wrapper composes core components with Azure-specific additions",
             "No if-else Azure checks inside core components",
             "Azure extension does not modify core component source files",
             "Both flavors produce correct output for their respective scenarios"
-          ]
+          ],
+          "status": "done"
         }
       ],
       "dependencies": [

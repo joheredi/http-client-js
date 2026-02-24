@@ -12,6 +12,7 @@ import { For, SourceDirectory, renderAsync, type OutputDirectory } from "@alloy-
 import { createTSNamePolicy, tsNameConflictResolver } from "@alloy-js/typescript";
 import { Output } from "@typespec/emitter-framework";
 import { SdkContextProvider } from "../../src/context/sdk-context.js";
+import { FlavorProvider } from "../../src/context/flavor-context.js";
 import { ModelFiles } from "../../src/components/model-files.js";
 import { OperationFiles } from "../../src/components/operation-files.js";
 import { ClientContextFile } from "../../src/components/client-context.js";
@@ -49,24 +50,26 @@ export async function emitForScenario(code: string): Promise<Record<string, stri
       nameConflictResolver={tsNameConflictResolver}
       externals={[httpRuntimeLib, azureCoreLroLib]}
     >
-      <SdkContextProvider sdkContext={sdkContext}>
-        <SourceDirectory path="src">
-          <ModelFiles />
-          <OperationFiles />
-          <For each={sdkContext.sdkPackage.clients}>
-            {(client) => (
-              <>
-                <ClientContextFile client={client} />
-                <ClassicalClientFile client={client} />
-                <ClassicalOperationGroupFiles client={client} />
-                <RestorePollerFile client={client} />
-              </>
-            )}
-          </For>
-          <IndexFiles />
-          <StaticHelpers />
-        </SourceDirectory>
-      </SdkContextProvider>
+      <FlavorProvider flavor="core">
+        <SdkContextProvider sdkContext={sdkContext}>
+          <SourceDirectory path="src">
+            <ModelFiles />
+            <OperationFiles />
+            <For each={sdkContext.sdkPackage.clients}>
+              {(client) => (
+                <>
+                  <ClientContextFile client={client} />
+                  <ClassicalClientFile client={client} />
+                  <ClassicalOperationGroupFiles client={client} />
+                  <RestorePollerFile client={client} />
+                </>
+              )}
+            </For>
+            <IndexFiles />
+            <StaticHelpers />
+          </SourceDirectory>
+        </SdkContextProvider>
+      </FlavorProvider>
     </Output>
   );
 

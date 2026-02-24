@@ -8,7 +8,7 @@ import type {
   SdkMethodParameter,
   SdkServiceMethod,
 } from "@azure-tools/typespec-client-generator-core";
-import { httpRuntimeLib } from "../utils/external-packages.js";
+import { useRuntimeLib } from "../context/flavor-context.js";
 import { operationOptionsRefkey } from "../utils/refkeys.js";
 import { getTypeExpression } from "./type-expression.js";
 
@@ -44,6 +44,7 @@ export interface OperationOptionsProps {
  * @returns An Alloy JSX tree representing the TypeScript interface declaration.
  */
 export function OperationOptionsDeclaration(props: OperationOptionsProps) {
+  const runtimeLib = useRuntimeLib();
   const { method } = props;
   const interfaceName = getOptionsInterfaceName(method);
   const optionalParams = getOptionalParameters(method);
@@ -54,7 +55,7 @@ export function OperationOptionsDeclaration(props: OperationOptionsProps) {
       name={interfaceName}
       refkey={operationOptionsRefkey(method)}
       export
-      extends={code`${httpRuntimeLib.OperationOptions}`}
+      extends={code`${runtimeLib.OperationOptions}`}
       doc={`Optional parameters for the ${method.name} operation.`}
     >
       <For each={[...additionalMembers, ...optionalParams]} semicolon hardline enderPunctuation>

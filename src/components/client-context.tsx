@@ -14,7 +14,7 @@ import type {
   SdkMethodParameter,
   SdkPathParameter,
 } from "@azure-tools/typespec-client-generator-core";
-import { httpRuntimeLib } from "../utils/external-packages.js";
+import { useRuntimeLib } from "../context/flavor-context.js";
 import {
   clientContextRefkey,
   clientOptionsRefkey,
@@ -95,6 +95,7 @@ export interface ClientContextDeclarationProps {
  * @returns An Alloy JSX tree for the interface declaration.
  */
 export function ClientContextDeclaration(props: ClientContextDeclarationProps) {
+  const runtimeLib = useRuntimeLib();
   const { client } = props;
   const clientName = getClientName(client);
   const interfaceName = `${clientName}Context`;
@@ -105,7 +106,7 @@ export function ClientContextDeclaration(props: ClientContextDeclarationProps) {
       name={interfaceName}
       refkey={clientContextRefkey(client)}
       export
-      extends={code`${httpRuntimeLib.Client}`}
+      extends={code`${runtimeLib.Client}`}
     >
       {contextMembers.length > 0 && (
         <For each={contextMembers} semicolon hardline enderPunctuation>
@@ -151,6 +152,7 @@ export interface ClientContextOptionsDeclarationProps {
 export function ClientContextOptionsDeclaration(
   props: ClientContextOptionsDeclarationProps,
 ) {
+  const runtimeLib = useRuntimeLib();
   const { client } = props;
   const interfaceName = `${client.name}OptionalParams`;
   const optionalMembers = getOptionsMembers(client);
@@ -160,7 +162,7 @@ export function ClientContextOptionsDeclaration(
       name={interfaceName}
       refkey={clientOptionsRefkey(client)}
       export
-      extends={code`${httpRuntimeLib.ClientOptions}`}
+      extends={code`${runtimeLib.ClientOptions}`}
     >
       {optionalMembers.length > 0 && (
         <For each={optionalMembers} semicolon hardline enderPunctuation>
@@ -505,6 +507,7 @@ function getRequiredEndpointArgs(
 function getCredentialTypeExpression(
   credentialParam: SdkCredentialParameter,
 ): Children {
+  const runtimeLib = useRuntimeLib();
   const credType = credentialParam.type;
   const types = new Set<string>();
 
@@ -524,10 +527,10 @@ function getCredentialTypeExpression(
 
   const refs: Children[] = [];
   if (types.has("KeyCredential")) {
-    refs.push(httpRuntimeLib.KeyCredential);
+    refs.push(runtimeLib.KeyCredential);
   }
   if (types.has("TokenCredential")) {
-    refs.push(httpRuntimeLib.TokenCredential);
+    refs.push(runtimeLib.TokenCredential);
   }
 
   if (refs.length === 1) {
@@ -732,12 +735,13 @@ function buildGetClientCall(
   hasEndpoint: boolean,
   hasCredential: boolean,
 ): Children {
+  const runtimeLib = useRuntimeLib();
   const endpointArg = hasEndpoint ? "endpointUrl" : '""';
 
   if (hasCredential) {
-    return code`${httpRuntimeLib.getClient}(${endpointArg}, credential, options);`;
+    return code`${runtimeLib.getClient}(${endpointArg}, credential, options);`;
   }
-  return code`${httpRuntimeLib.getClient}(${endpointArg}, options);`;
+  return code`${runtimeLib.getClient}(${endpointArg}, options);`;
 }
 
 /**

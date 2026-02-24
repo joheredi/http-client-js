@@ -4,6 +4,7 @@ import type { EmitContext } from "@typespec/compiler";
 import { createSdkContext } from "@azure-tools/typespec-client-generator-core";
 import { Output, writeOutput } from "@typespec/emitter-framework";
 import { SdkContextProvider } from "./context/sdk-context.js";
+import { FlavorProvider } from "./context/flavor-context.js";
 import { ModelFiles } from "./components/model-files.js";
 import { OperationFiles } from "./components/operation-files.js";
 import { ClientContextFile } from "./components/client-context.js";
@@ -51,25 +52,27 @@ export async function $onEmit(context: EmitContext) {
       nameConflictResolver={tsNameConflictResolver}
       externals={[httpRuntimeLib, azureCoreLroLib]}
     >
-      <SdkContextProvider sdkContext={sdkContext}>
-        <SourceDirectory path="src">
-          <ModelFiles />
-          <OperationFiles />
-          <For each={sdkContext.sdkPackage.clients}>
-            {(client) => (
-              <>
-                <ClientContextFile client={client} />
-                <ClassicalClientFile client={client} />
-                <ClassicalOperationGroupFiles client={client} />
-                <RestorePollerFile client={client} />
-              </>
-            )}
-          </For>
-          <IndexFiles />
-          <StaticHelpers />
-        </SourceDirectory>
-        <SampleFiles />
-      </SdkContextProvider>
+      <FlavorProvider flavor="core">
+        <SdkContextProvider sdkContext={sdkContext}>
+          <SourceDirectory path="src">
+            <ModelFiles />
+            <OperationFiles />
+            <For each={sdkContext.sdkPackage.clients}>
+              {(client) => (
+                <>
+                  <ClientContextFile client={client} />
+                  <ClassicalClientFile client={client} />
+                  <ClassicalOperationGroupFiles client={client} />
+                  <RestorePollerFile client={client} />
+                </>
+              )}
+            </For>
+            <IndexFiles />
+            <StaticHelpers />
+          </SourceDirectory>
+          <SampleFiles />
+        </SdkContextProvider>
+      </FlavorProvider>
     </Output>
   );
 

@@ -6,7 +6,7 @@ import {
   SourceFile,
 } from "@alloy-js/typescript";
 import { pollingHelperRefkey } from "../../utils/refkeys.js";
-import { httpRuntimeLib } from "../../utils/external-packages.js";
+import { useRuntimeLib } from "../../context/flavor-context.js";
 
 /**
  * Renders the `helpers/pollingHelpers.ts` source file containing types
@@ -49,6 +49,7 @@ export function PollingHelpersFile() {
  * Contains the current status string and optional result and error fields.
  */
 function OperationStateInterface() {
+  const runtimeLib = useRuntimeLib();
   return (
     <InterfaceDeclaration
       name="OperationState"
@@ -60,7 +61,7 @@ function OperationStateInterface() {
       {"\n"}
       <InterfaceMember name="result" type="TResult" optional />
       {"\n"}
-      <InterfaceMember name="error" type={code`${httpRuntimeLib.RestError}`} optional />
+      <InterfaceMember name="error" type={code`${runtimeLib.RestError}`} optional />
     </InterfaceDeclaration>
   );
 }
@@ -100,6 +101,7 @@ function PollerLikeInterface() {
  * fetcher, and resource location config.
  */
 function GetLongRunningPollerOptionsInterface() {
+  const runtimeLib = useRuntimeLib();
   return (
     <InterfaceDeclaration
       name="GetLongRunningPollerOptions"
@@ -109,7 +111,7 @@ function GetLongRunningPollerOptionsInterface() {
     >
       <InterfaceMember name="updateIntervalInMs" type="number" optional />
       {"\n"}
-      <InterfaceMember name="abortSignal" type={code`${httpRuntimeLib.AbortSignalLike}`} optional />
+      <InterfaceMember name="abortSignal" type={code`${runtimeLib.AbortSignalLike}`} optional />
       {"\n"}
       <InterfaceMember name="getInitialResponse" type={code`() => Promise<TResponse>`} />
       {"\n"}
@@ -136,6 +138,7 @@ function GetLongRunningPollerOptionsInterface() {
  * - Error handling for unexpected status codes
  */
 function GetLongRunningPollerFunction() {
+  const runtimeLib = useRuntimeLib();
   return (
     <FunctionDeclaration
       name="getLongRunningPoller"
@@ -145,17 +148,17 @@ function GetLongRunningPollerFunction() {
       returnType={code`${pollingHelperRefkey("PollerLike")}<${pollingHelperRefkey("OperationState")}<TResponse>, TResponse>`}
       typeParameters={["TResponse"]}
       parameters={[
-        { name: "client", type: httpRuntimeLib.Client },
-        { name: "processResponseBody", type: code`(result: ${httpRuntimeLib.PathUncheckedResponse}) => Promise<TResponse>` },
+        { name: "client", type: runtimeLib.Client },
+        { name: "processResponseBody", type: code`(result: ${runtimeLib.PathUncheckedResponse}) => Promise<TResponse>` },
         { name: "expectedStatuses", type: "string[]" },
-        { name: "options", type: code`${pollingHelperRefkey("GetLongRunningPollerOptions")}<${httpRuntimeLib.PathUncheckedResponse}>` },
+        { name: "options", type: code`${pollingHelperRefkey("GetLongRunningPollerOptions")}<${runtimeLib.PathUncheckedResponse}>` },
       ]}
     >
       {code`const initialResponse = await options.getInitialResponse();
 
 const statusStr = String(initialResponse.status);
 if (!expectedStatuses.includes(statusStr)) {
-  throw ${httpRuntimeLib.createRestError}(initialResponse);
+  throw ${runtimeLib.createRestError}(initialResponse);
 }
 
 const state: ${pollingHelperRefkey("OperationState")}<TResponse> = {

@@ -1786,3 +1786,93 @@
   ```
 - The `azureLoggerLib` package is available for any component that needs to
   reference `@azure/logger` symbols.
+
+## 2026-02-24 — Azure Flavor Extension (Phase 8, Tasks 8.1 + 8.2 / 4.2)
+
+### What was done
+- Created `src/context/flavor-context.tsx`: FlavorContext, FlavorProvider, useRuntimeLib hook.
+  - `FlavorKind` type: "core" | "azure"
+  - `RuntimeLib` interface: maps 17 runtime symbols to Alloy refkeys
+  - `createCoreRuntimeLib()`: all symbols from `@typespec/ts-http-runtime`
+  - `createAzureRuntimeLib()`: symbols from respective Azure packages
+  - `FlavorProvider` component: wraps children with flavor-appropriate runtime lib
+  - `useFlavorContext()` / `useRuntimeLib()` hooks for component consumption
+  - Default value on context: falls back to core flavor when no provider present
+- Updated `src/context/index.ts` to export all flavor context types and functions.
+- Refactored 13 component files to use `useRuntimeLib()` instead of direct
+  `httpRuntimeLib` imports:
+  - send-operation.tsx, deserialize-operation.tsx, operation-options.tsx
+  - client-context.tsx, classical-client.tsx, classical-operation-groups.tsx
+  - restore-poller.tsx, public-operation.tsx
+  - serialization/json-serializer.tsx, json-deserializer.tsx, xml-object-serializer.tsx
+  - static-helpers/paging-helpers.tsx, polling-helpers.tsx
+- Created `src/azure-emitter.tsx`: Azure-flavored emitter entry point with:
+  - `AzureCoreEmitter` component: composable JSX wrapper with LoggerFile + Azure packages
+  - `$onEmitAzure()`: TypeSpec emitter hook for Azure flavor
+  - Full Azure externals array (8 packages including azureLoggerLib)
+- Updated `src/emitter.tsx`: Wrapped component tree with `<FlavorProvider flavor="core">`
+- Updated `src/utils/external-packages.ts`: Added `isKeyCredential` to azureCoreClientLib
+- Updated `src/index.ts`: Exports $onEmitAzure, AzureCoreEmitter
+- Updated `test/utils.tsx`: Added FlavorProvider to TestFile and SdkTestFile wrappers
+  with optional `flavor` prop (defaults to "core")
+- Updated `test/scenarios/emit-for-scenario.tsx`: Added FlavorProvider wrapping
+- Created `test/components/azure-emitter.test.tsx` with 10 tests:
+  - Azure uses @azure-rest/core-client instead of @typespec/ts-http-runtime
+  - Azure generates logger.ts with @azure/logger
+  - Core does NOT generate logger
+  - Core uses @typespec/ts-http-runtime
+  - Azure uses @azure/core-rest-pipeline for Pipeline
+  - Both flavors produce same structural output
+  - AzureCoreEmitter works as composable JSX component
+  - FlavorProvider provides core runtime lib references
+  - FlavorProvider provides azure runtime lib references
+  - Default flavor is core when no provider present
+- Created `test/context/flavor-context.test.tsx` with 4 tests:
+  - Core runtime lib has all 17 required properties
+  - Azure runtime lib has same keys as core
+  - Swapped symbols have different refkeys
+  - expandUrlTemplate uses same refkey in both flavors
+- Updated PRD: Tasks 4.2, 8.1, 8.2 marked as done with pass=true.
+- All 314 tests pass (14 new + 300 existing).
+
+### Architecture decisions
+- **Context-based package swapping**: Instead of if/else checks in components,
+  the FlavorContext provides flavor-specific refkeys. Components call
+  `useRuntimeLib()` and get the right package references automatically.
+- **Default context value**: The FlavorContext defaults to core flavor, making
+  the provider opt-in. This enables backwards compatibility with existing tests
+  (50+ custom Output wrappers) without requiring changes.
+- **Composable Azure emitter**: `AzureCoreEmitter` is a JSX component that
+  wraps the same core components with Azure additions (FlavorProvider + LoggerFile).
+  No core component files are modified by the Azure extension.
+- **Separate entry point**: `$onEmitAzure` is a standalone emitter entry point.
+  This allows Azure and core to be registered as separate TypeSpec emitters.
+- **expandUrlTemplate stays from httpRuntimeLib**: No Azure equivalent exists,
+  so both flavors use `@typespec/ts-http-runtime` for URI template expansion.
+- **useRuntimeLib() in helper functions**: Alloy's context system uses a global
+  render-time context, so hooks work in helper functions called during render.
+
+### Key learnings (see knowledge.md)
+- Alloy's `useContext` works in any synchronous function during render
+- Alloy's `createNamedContext` accepts a default value for provider-less use
+- All Azure external packages must be in the `externals` array or symbols
+  render as `<Unresolved Symbol>`
+- `isKeyCredential` must be added to `azureCoreClientLib` (re-exported by
+  `@azure-rest/core-client` from `@azure/core-auth`)
+
+### Notes for next person
+- Completed: Phase 0 (0.1-0.6), Phase 1 (1.1-1.6), Phase 2 (2.1-2.5),
+  Phase 3 (3.1-3.5), Phase 4 (4.1-4.2 — ALL DONE), Phase 5 (5.1-5.2),
+  Phase 6 (6.1-6.3), Phase 7 (7.1-7.2), Phase 8 (8.1-8.2 — ALL DONE),
+  Phase 9 (9.1).
+- **ALL PRD phases except Phase 9 (Test Porting & Validation) are COMPLETE.**
+- **Remaining tasks by priority**:
+  1. 9.2 (Scenario Porting) — Copy 101 scenario .md files from legacy emitter
+  2. 9.3 (Validation) — Run all 101 scenarios, fix discrepancies
+- To use the Azure emitter, call `$onEmitAzure(context)` instead of `$onEmit(context)`.
+- To extend the Azure emitter, compose `<AzureCoreEmitter>` with additional components.
+- The `useRuntimeLib()` hook is the single abstraction point for package references.
+  If a new runtime symbol is needed, add it to the `RuntimeLib` interface and both
+  `createCoreRuntimeLib()` and `createAzureRuntimeLib()` functions.
+- The `FlavorProvider` can be extended with additional properties in `FlavorContextValue`
+  for flavor-specific configuration beyond package references.

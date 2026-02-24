@@ -827,3 +827,50 @@ For tests using `TesterWithService` (which wraps input in `@service namespace Te
 use the raw `Tester` instead and define the full namespace with `@useAuth` applied to it.
 
 **Date:** 2026-02-24
+
+## Azure External Packages Must Include azureLoggerLib
+
+**Problem:** When rendering the Azure emitter output, the `LoggerFile` component
+renders `createClientLogger` as `<Unresolved Symbol>` instead of a proper import.
+
+**Root Cause:** The `azureLoggerLib` package was not included in the `externals`
+array passed to the `<Output>` component. Alloy can only resolve refkeys for
+packages registered as externals.
+
+**Solution:** Add `azureLoggerLib` to the `azureExternals` array in both
+`azure-emitter.tsx` and any test wrappers that render Azure-flavored output.
+
+**Date:** 2026-02-24
+
+## Alloy useContext Works in Helper Functions During Render
+
+**Problem:** Helper functions called during component render (like
+`getSerializationExpression()`) need access to the `FlavorContext` but
+aren't component functions themselves.
+
+**Root Cause:** Unlike React's strict hook rules, Alloy's `useContext`
+reads from a global `getContext()` reference that's set during the current
+render cycle. Any synchronous function call during render has access to
+the same reactive context.
+
+**Solution:** `useRuntimeLib()` can be called directly in helper functions
+that are called synchronously during component render. No need to pass
+the runtime lib as a parameter.
+
+**Date:** 2026-02-24
+
+## FlavorContext Default Value Enables Backwards Compatibility
+
+**Problem:** Adding a required `FlavorProvider` to the component tree
+would break all 50+ existing test wrappers that use custom `<Output>`
+components without the provider.
+
+**Root Cause:** Alloy's `createNamedContext` supports a `defaultValue`
+parameter that `useContext` returns when no provider is in the tree.
+
+**Solution:** Set `defaultFlavorValue` (core flavor) as the default on
+the `FlavorContext`. Components work without explicit providers, falling
+back to `@typespec/ts-http-runtime` references. This makes the context
+opt-in rather than required.
+
+**Date:** 2026-02-24

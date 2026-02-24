@@ -10,7 +10,7 @@ import type {
   SdkType,
 } from "@azure-tools/typespec-client-generator-core";
 import { deserializerRefkey, serializationHelperRefkey, typeRefkey } from "../../utils/refkeys.js";
-import { httpRuntimeLib } from "../../utils/external-packages.js";
+import { useRuntimeLib } from "../../context/flavor-context.js";
 import { needsTransformation } from "./json-serializer.js";
 
 /**
@@ -163,7 +163,7 @@ export function getDeserializationExpression(
       return accessor;
 
     case "bytes":
-      return code`${httpRuntimeLib.stringToUint8Array}(${accessor}, "base64")`;
+      return code`${useRuntimeLib().stringToUint8Array}(${accessor}, "base64")`;
 
     case "nullable":
       return getDeserializationExpression(type.type, accessor);

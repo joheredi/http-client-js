@@ -11,7 +11,6 @@ import type {
   SdkHttpOperation,
   SdkServiceMethod,
 } from "@azure-tools/typespec-client-generator-core";
-import { httpRuntimeLib } from "../utils/external-packages.js";
 import {
   clientContextRefkey,
   operationGroupFactoryRefkey,

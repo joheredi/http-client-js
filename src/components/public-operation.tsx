@@ -10,8 +10,8 @@ import type {
 } from "@azure-tools/typespec-client-generator-core";
 import {
   azureCoreLroLib,
-  httpRuntimeLib,
 } from "../utils/external-packages.js";
+import { useRuntimeLib } from "../context/flavor-context.js";
 import {
   deserializeOperationRefkey,
   operationOptionsRefkey,
@@ -269,7 +269,7 @@ function LroPagingOperation(props: {
   const pagingOptions = buildPagingOptions(method);
 
   const returnType = code`${pagingHelperRefkey("PagedAsyncIterableIterator")}<${innerType}>`;
-  const pollerCast = code`${azureCoreLroLib.PollerLike}<${azureCoreLroLib.OperationState}<${httpRuntimeLib.PathUncheckedResponse}>, ${httpRuntimeLib.PathUncheckedResponse}>`;
+  const pollerCast = code`${azureCoreLroLib.PollerLike}<${azureCoreLroLib.OperationState}<${useRuntimeLib().PathUncheckedResponse}>, ${useRuntimeLib().PathUncheckedResponse}>`;
 
   const resourceConfigPart = resourceLocationConfig
     ? `, resourceLocationConfig: "${resourceLocationConfig}"`
@@ -284,7 +284,7 @@ function LroPagingOperation(props: {
       parameters={parameters}
       doc={method.doc}
     >
-      {code`const initialPagingPoller = ${pollingHelperRefkey("getLongRunningPoller")}(context, async (result: ${httpRuntimeLib.PathUncheckedResponse}) => result, ${expectedStatuses}, { updateIntervalInMs: options?.updateIntervalInMs, abortSignal: options?.abortSignal, getInitialResponse: () => ${sendOperationRefkey(method)}(${callArgs})${resourceConfigPart} }) as ${pollerCast};`}
+      {code`const initialPagingPoller = ${pollingHelperRefkey("getLongRunningPoller")}(context, async (result: ${useRuntimeLib().PathUncheckedResponse}) => result, ${expectedStatuses}, { updateIntervalInMs: options?.updateIntervalInMs, abortSignal: options?.abortSignal, getInitialResponse: () => ${sendOperationRefkey(method)}(${callArgs})${resourceConfigPart} }) as ${pollerCast};`}
       {"\n\n"}
       {code`return ${pagingHelperRefkey("buildPagedAsyncIterator")}(context, async () => await initialPagingPoller, ${deserializeOperationRefkey(method)}, ${expectedStatuses}${pagingOptions});`}
     </FunctionDeclaration>
@@ -312,8 +312,9 @@ function LroPagingOperation(props: {
 function buildFunctionParameters(
   method: SdkServiceMethod<SdkHttpOperation>,
 ): ParameterDescriptor[] {
+  const runtimeLib = useRuntimeLib();
   const params: ParameterDescriptor[] = [
-    { name: "context", type: httpRuntimeLib.Client },
+    { name: "context", type: runtimeLib.Client },
   ];
 
   for (const param of method.parameters) {

@@ -12,8 +12,8 @@ import type {
 } from "@azure-tools/typespec-client-generator-core";
 import {
   azureCoreLroLib,
-  httpRuntimeLib,
 } from "../utils/external-packages.js";
+import { useRuntimeLib } from "../context/flavor-context.js";
 import {
   classicalClientRefkey,
   deserializeOperationRefkey,
@@ -114,6 +114,7 @@ export function RestorePollerFile(props: RestorePollerFileProps) {
  * ```
  */
 function RestorePollerOptionsInterface() {
+  const runtimeLib = useRuntimeLib();
   return (
     <InterfaceDeclaration
       name="RestorePollerOptions"
@@ -123,11 +124,11 @@ function RestorePollerOptionsInterface() {
         { name: "TResult" },
         {
           name: "TResponse",
-          extends: code`${httpRuntimeLib.PathUncheckedResponse}`,
-          default: code`${httpRuntimeLib.PathUncheckedResponse}`,
+          extends: code`${runtimeLib.PathUncheckedResponse}`,
+          default: code`${runtimeLib.PathUncheckedResponse}`,
         },
       ]}
-      extends={httpRuntimeLib.OperationOptions}
+      extends={runtimeLib.OperationOptions}
     >
       {code`/** Delay to wait until next poll, in milliseconds. */`}
       {"\n"}
@@ -137,7 +138,7 @@ function RestorePollerOptionsInterface() {
       {"\n"}
       <InterfaceMember
         name="abortSignal"
-        type={code`${httpRuntimeLib.AbortSignalLike}`}
+        type={code`${runtimeLib.AbortSignalLike}`}
         optional
       />
       {"\n"}
@@ -178,6 +179,7 @@ interface RestorePollerFunctionProps {
  * @returns An Alloy JSX tree for the function declaration.
  */
 function RestorePollerFunction(props: RestorePollerFunctionProps) {
+  const runtimeLib = useRuntimeLib();
   const { client } = props;
 
   const returnType = code`${azureCoreLroLib.PollerLike}<${azureCoreLroLib.OperationState}<TResult>, TResult>`;
@@ -191,7 +193,7 @@ function RestorePollerFunction(props: RestorePollerFunctionProps) {
       typeParameters={[
         {
           name: "TResponse",
-          extends: code`${httpRuntimeLib.PathUncheckedResponse}`,
+          extends: code`${runtimeLib.PathUncheckedResponse}`,
         },
         { name: "TResult" },
       ]}
@@ -252,11 +254,12 @@ return ${pollingHelperRefkey("getLongRunningPoller")}(
  * a deserializer function and the expected HTTP status codes.
  */
 function DeserializationHelperInterface() {
+  const runtimeLib = useRuntimeLib();
   return (
     <InterfaceDeclaration name="DeserializationHelper">
       <InterfaceMember
         name="deserializer"
-        type={code`(result: ${httpRuntimeLib.PathUncheckedResponse}) => Promise<unknown>`}
+        type={code`(result: ${runtimeLib.PathUncheckedResponse}) => Promise<unknown>`}
       />
       {"\n"}
       <InterfaceMember name="expectedStatuses" type="string[]" />

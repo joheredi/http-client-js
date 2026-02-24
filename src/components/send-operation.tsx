@@ -9,7 +9,7 @@ import type {
   SdkQueryParameter,
   SdkServiceMethod,
 } from "@azure-tools/typespec-client-generator-core";
-import { httpRuntimeLib } from "../utils/external-packages.js";
+import { useRuntimeLib } from "../context/flavor-context.js";
 import {
   operationOptionsRefkey,
   sendOperationRefkey,
@@ -56,6 +56,7 @@ export interface SendOperationProps {
  * @returns An Alloy JSX tree representing the send function declaration.
  */
 export function SendOperation(props: SendOperationProps) {
+  const runtimeLib = useRuntimeLib();
   const { method } = props;
   const operation = method.operation;
   const functionName = `_${method.name}Send`;
@@ -86,7 +87,7 @@ export function SendOperation(props: SendOperationProps) {
       name={functionName}
       refkey={sendOperationRefkey(method)}
       export
-      returnType={code`${httpRuntimeLib.StreamableMethod}`}
+      returnType={code`${runtimeLib.StreamableMethod}`}
       parameters={parameters}
     >
       {bodyParts.length > 1 ? bodyParts.map((p, i) => i > 0 ? ["\n", p] : p) : bodyParts}
@@ -112,8 +113,9 @@ export function SendOperation(props: SendOperationProps) {
 function buildFunctionParameters(
   method: SdkServiceMethod<SdkHttpOperation>,
 ): ParameterDescriptor[] {
+  const runtimeLib = useRuntimeLib();
   const params: ParameterDescriptor[] = [
-    { name: "context", type: httpRuntimeLib.Client },
+    { name: "context", type: runtimeLib.Client },
   ];
 
   // Add required method-level parameters
@@ -280,7 +282,7 @@ function buildUrlTemplateExpansion(
     .map((p) => `"${p.serializedName}": ${p.valueExpression}`)
     .join(", ");
 
-  return code`const path = ${httpRuntimeLib.expandUrlTemplate}("${uriTemplate}", { ${paramEntries} }, { allowReserved: options?.requestOptions?.skipUrlEncoding });`;
+  return code`const path = ${useRuntimeLib().expandUrlTemplate}("${uriTemplate}", { ${paramEntries} }, { allowReserved: options?.requestOptions?.skipUrlEncoding });`;
 }
 
 /**
@@ -414,7 +416,7 @@ function buildReturnStatement(
   const stringParts = optionLines.map((l) => `, ${l}`).join("");
   const bodyPart = bodyExpr !== undefined ? code`, body: ${bodyExpr}` : "";
 
-  return code`return context.path(${pathExpr}).${verb}({ ...${httpRuntimeLib.operationOptionsToRequestParameters}(options)${stringParts}${bodyPart} });`;
+  return code`return context.path(${pathExpr}).${verb}({ ...${useRuntimeLib().operationOptionsToRequestParameters}(options)${stringParts}${bodyPart} });`;
 }
 
 /**

@@ -13,7 +13,7 @@ import type {
   SdkHttpOperation,
   SdkServiceMethod,
 } from "@azure-tools/typespec-client-generator-core";
-import { httpRuntimeLib } from "../utils/external-packages.js";
+import { useRuntimeLib } from "../context/flavor-context.js";
 import {
   classicalClientRefkey,
   clientContextRefkey,
@@ -124,7 +124,7 @@ export function ClassicalClientDeclaration(
         type={clientContextRefkey(client)}
       />
       {"\n"}
-      {code`/** The pipeline used by this client to make requests */\npublic readonly pipeline: ${httpRuntimeLib.Pipeline};`}
+      {code`/** The pipeline used by this client to make requests */\npublic readonly pipeline: ${useRuntimeLib().Pipeline};`}
       {childClients.length > 0 && (
         <>
           {"\n"}
@@ -475,6 +475,7 @@ function getRequiredEndpointArgs(
 function getCredentialTypeExpression(
   credentialParam: SdkCredentialParameter,
 ): Children {
+  const runtimeLib = useRuntimeLib();
   const credType = credentialParam.type;
   const types = new Set<string>();
 
@@ -494,10 +495,10 @@ function getCredentialTypeExpression(
 
   const refs: Children[] = [];
   if (types.has("KeyCredential")) {
-    refs.push(httpRuntimeLib.KeyCredential);
+    refs.push(runtimeLib.KeyCredential);
   }
   if (types.has("TokenCredential")) {
-    refs.push(httpRuntimeLib.TokenCredential);
+    refs.push(runtimeLib.TokenCredential);
   }
 
   if (refs.length === 1) {

@@ -4,6 +4,7 @@ import { Program } from "@typespec/compiler";
 import { Output } from "@typespec/emitter-framework";
 import type { SdkContext, SdkHttpOperation } from "@azure-tools/typespec-client-generator-core";
 import { SdkContextProvider } from "../src/context/sdk-context.js";
+import { FlavorProvider, type FlavorKind } from "../src/context/flavor-context.js";
 
 /**
  * Props for the TestFile wrapper component.
@@ -15,6 +16,8 @@ export interface TestFileProps {
   children: Children;
   /** Optional external package definitions to register for refkey resolution. */
   externals?: SymbolCreator[];
+  /** Optional flavor for the emitter context. Defaults to "core". */
+  flavor?: FlavorKind;
 }
 
 /**
@@ -23,6 +26,7 @@ export interface TestFileProps {
  * This component provides the bare minimum structure needed to render and assert
  * on Alloy component output in unit tests. It wraps children in:
  * - `<Output>` with a TypeScript name policy and the compiled program
+ * - `<FlavorProvider>` with the specified flavor (defaults to "core")
  * - `<SourceFile>` with a fixed path of "test.ts"
  *
  * Use this wrapper when testing leaf components that don't require
@@ -41,7 +45,9 @@ export interface TestFileProps {
 export function TestFile(props: TestFileProps) {
   return (
     <Output program={props.program} namePolicy={createTSNamePolicy()} externals={props.externals}>
-      <SourceFile path="test.ts">{props.children}</SourceFile>
+      <FlavorProvider flavor={props.flavor ?? "core"}>
+        <SourceFile path="test.ts">{props.children}</SourceFile>
+      </FlavorProvider>
     </Output>
   );
 }
@@ -56,6 +62,8 @@ export interface SdkTestFileProps {
   children: Children;
   /** Optional external package definitions to register for refkey resolution. */
   externals?: SymbolCreator[];
+  /** Optional flavor for the emitter context. Defaults to "core". */
+  flavor?: FlavorKind;
 }
 
 /**
@@ -64,6 +72,7 @@ export interface SdkTestFileProps {
  *
  * This wraps children in:
  * - `<Output>` with a TypeScript name policy and the compiled program
+ * - `<FlavorProvider>` with the specified flavor (defaults to "core")
  * - `<SdkContextProvider>` with the TCGC context
  * - `<SourceFile>` with a fixed path of "test.ts"
  *
@@ -83,9 +92,11 @@ export interface SdkTestFileProps {
 export function SdkTestFile(props: SdkTestFileProps) {
   return (
     <Output program={props.sdkContext.emitContext.program} namePolicy={createTSNamePolicy()} externals={props.externals}>
-      <SdkContextProvider sdkContext={props.sdkContext}>
-        <SourceFile path="test.ts">{props.children}</SourceFile>
-      </SdkContextProvider>
+      <FlavorProvider flavor={props.flavor ?? "core"}>
+        <SdkContextProvider sdkContext={props.sdkContext}>
+          <SourceFile path="test.ts">{props.children}</SourceFile>
+        </SdkContextProvider>
+      </FlavorProvider>
     </Output>
   );
 }

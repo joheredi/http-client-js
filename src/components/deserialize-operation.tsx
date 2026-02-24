@@ -7,7 +7,7 @@ import type {
   SdkType,
 } from "@azure-tools/typespec-client-generator-core";
 import type { HttpStatusCodeRange } from "@typespec/http";
-import { httpRuntimeLib } from "../utils/external-packages.js";
+import { useRuntimeLib } from "../context/flavor-context.js";
 import { deserializeOperationRefkey } from "../utils/refkeys.js";
 import { getTypeExpression } from "./type-expression.js";
 import {
@@ -50,6 +50,7 @@ export interface DeserializeOperationProps {
  * @returns An Alloy JSX tree representing the deserialize function declaration.
  */
 export function DeserializeOperation(props: DeserializeOperationProps) {
+  const runtimeLib = useRuntimeLib();
   const { method } = props;
   const functionName = `_${method.name}Deserialize`;
   const returnTypeExpr = getReturnType(method);
@@ -63,13 +64,13 @@ export function DeserializeOperation(props: DeserializeOperationProps) {
       export
       async
       returnType={returnTypeExpr}
-      parameters={[{ name: "result", type: httpRuntimeLib.PathUncheckedResponse }]}
+      parameters={[{ name: "result", type: runtimeLib.PathUncheckedResponse }]}
     >
       {code`const expectedStatuses = [${expectedStatuses}];`}
       {"\n"}
       {code`if (!expectedStatuses.includes(result.status)) {`}
       {"\n"}
-      {code`  throw ${httpRuntimeLib.createRestError}(result);`}
+      {code`  throw ${runtimeLib.createRestError}(result);`}
       {"\n"}
       {code`}`}
       {"\n\n"}

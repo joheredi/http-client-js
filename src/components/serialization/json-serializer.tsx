@@ -11,7 +11,7 @@ import type {
   SdkType,
 } from "@azure-tools/typespec-client-generator-core";
 import { serializationHelperRefkey, serializerRefkey, typeRefkey } from "../../utils/refkeys.js";
-import { httpRuntimeLib } from "../../utils/external-packages.js";
+import { useRuntimeLib } from "../../context/flavor-context.js";
 
 /**
  * Props for the {@link JsonSerializer} component.
@@ -162,7 +162,7 @@ export function getSerializationExpression(
       return accessor;
 
     case "bytes":
-      return code`${httpRuntimeLib.uint8ArrayToString}(${accessor}, "base64")`;
+      return code`${useRuntimeLib().uint8ArrayToString}(${accessor}, "base64")`;
 
     case "nullable":
       return getSerializationExpression(type.type, accessor);
