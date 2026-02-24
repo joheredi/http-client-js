@@ -26,7 +26,7 @@ const prompt = readFileSync(promptPath, "utf-8");
 
 function runCopilot(promptText) {
   return new Promise((resolve, reject) => {
-    const child = spawn("copilot", ["--yolo", "-p", promptText], {
+    const child = spawn("copilot", ["--yolo", "--model", "claude-opus-4.6-1m", "-p", promptText], {
       stdio: ["inherit", "pipe", "pipe"],
       env: process.env,
     });

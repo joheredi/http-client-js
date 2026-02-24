@@ -12,5 +12,6 @@ This should be the one YOU decide has the highest prority - not necessarily the 
 10. Append your progress to the progress.txt file.
 Use this to leave a note for the next person working on the codebase.
 11. Make a git commit of that feature.
+12. NEVER MAKE CHANGES IN submodules
 ONLY WORK ON A SINGLE FEATURE.
 If, while implementing the feature, you notcie the PRD is complete, output <promise>COMPLETED</promise>

@@ -179,6 +179,8 @@ type Children = Child | Children[];
 
 ### 4.2 The Refkey System
 
+IMPORTANT: You should try to use an object and a discriminator for refkey. Refkey of only string is usually a bad practice
+
 Refkeys are **unique identifiers for declarations** that enable Alloy's automatic cross-file reference resolution and import generation. This is the most important concept in Alloy.
 
 #### Creating Refkeys
