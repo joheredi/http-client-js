@@ -136,7 +136,9 @@
           "SdkUnionType \u2192 type XXX = A | B | C",
           "Variant types correctly referenced via refkeys",
           "Nullable types include | null"
-        ]
+        ],
+        "status": "implemented",
+        "implementation_notes": "UnionDeclaration component generates type alias from SdkUnionType using <For> with joiner for pipe-separated variant types. Uses getTypeExpression() for variant resolution and typeRefkey() for declaration identity. 7 unit tests cover mixed primitives, model variants, JSDoc docs, single-variant edge case, and cross-reference via refkey."
       },
       {
         "id": "FR5",

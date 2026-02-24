@@ -146,3 +146,28 @@ correctly quotes strings (`= "value"`) and leaves numbers bare (`= 42`). This ma
 TypeScript enum member syntax. Use `jsValue` (not `value`) for literal enum member values.
 
 **Date:** 2026-02-24
+
+## TCGC converts string-literal unions to enums
+
+**Problem:** TypeSpec unions of string literals (e.g., `union Foo { a: "a", b: "b" }`)
+are converted by TCGC into `SdkEnumType` rather than `SdkUnionType`. Only unions with
+mixed types (e.g., `string | int32`) or model/enum variants remain as `SdkUnionType`
+in `sdkPackage.unions`. Tests that define string-literal unions and expect them in
+`sdkPackage.unions` will find the array empty.
+
+**Fix:** Use mixed-type unions (e.g., `union Foo { s: string, n: int32 }`) in tests
+for the `UnionDeclaration` component. String-literal unions should be tested via the
+`EnumDeclaration` component instead.
+
+**Date:** 2026-02-24
+
+## sdkPackage.unions array type includes SdkNullableType
+
+**Problem:** The `sdkPackage.unions` array has type `(SdkNullableType | SdkUnionType)[]`,
+not just `SdkUnionType[]`. Accessing `unions[0]` and passing it to a component expecting
+`SdkUnionType` causes a TypeScript type error because `SdkNullableType` lacks `variantTypes`.
+
+**Fix:** Cast union elements in tests: `sdkContext.sdkPackage.unions[0] as SdkUnionType`.
+In production code, filter by `kind === "union"` before passing to `UnionDeclaration`.
+
+**Date:** 2026-02-24
