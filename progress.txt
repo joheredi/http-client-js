@@ -460,3 +460,82 @@
   `ModelFiles` AFTER the type declarations. The structure is ready for this.
 - The `ModelFilesTestWrapper` in the test file shows how to test components that create
   their own SourceDirectory/SourceFile — reuse this pattern for future orchestrator tests.
+
+## 2026-02-24 — JSON Serialization (Phase 2, Tasks 2.1 & 2.2)
+
+### What was done
+- Created `src/components/serialization/json-serializer.tsx`: `JsonSerializer` JSX component
+  that generates `export function {name}Serializer(item: {Type}): any { return { ... }; }`
+  functions from TCGC `SdkModelType`.
+- Created `src/components/serialization/json-deserializer.tsx`: `JsonDeserializer` JSX component
+  that generates `export function {name}Deserializer(item: any): {Type} { return { ... }; }`
+  functions from TCGC `SdkModelType`.
+- Created `src/components/serialization/index.ts`: Barrel file exporting all serialization components
+  and utilities.
+- Updated `src/components/index.ts`: Added exports for serialization components.
+- Updated `src/components/model-files.tsx`: Integrated serializers and deserializers into the
+  same `<SourceFile>` as type declarations, with Usage flag filtering:
+  - Serializers generated for models with `UsageFlags.Input`
+  - Deserializers generated for models with `UsageFlags.Output` or `UsageFlags.Exception`
+- Updated `test/components/model-files.test.tsx`: Three existing tests updated to include
+  expected deserializer output (since test models have Output usage from return types).
+- Created `test/components/serialization/json-serializer.test.tsx`: 8 tests covering:
+  - Basic model with simple properties
+  - Client name to wire name mapping (@encodedName)
+  - Optional nested model properties with null-check guard
+  - Required nested model calling child serializer directly
+  - Array of models with .map() and child serializer
+  - Simple array passthrough without transformation
+  - Serializer referenceable via serializerRefkey
+  - Optional simple properties without null check
+- Created `test/components/serialization/json-deserializer.test.tsx`: 7 tests covering:
+  - Basic model with simple properties
+  - Wire name to client name mapping (@encodedName)
+  - Optional nested model properties with null-check guard
+  - Required nested model calling child deserializer directly
+  - Array of models with .map() and child deserializer
+  - Deserializer referenceable via deserializerRefkey
+  - Return type referencing model interface
+- Updated PRD: FR5 (JSON Serialization) marked as implemented.
+- All 96 tests pass (15 new + 81 existing).
+
+### Architecture decisions
+- **Alloy ObjectExpression/ObjectProperty**: Used Alloy's structural components for the
+  return object literal instead of raw `code` templates. This ensures proper indentation,
+  property name quoting (via `PropertyName`), and consistent formatting with Alloy's
+  rendering engine.
+- **Same SourceFile**: Serializers and deserializers are rendered in the same `models.ts`
+  file as type declarations. This prevents the well-known Alloy self-import bug where
+  splitting declarations and their serializers causes circular imports.
+- **Usage flag filtering**: Models are filtered by `UsageFlags.Input` for serializers
+  and `UsageFlags.Output | UsageFlags.Exception` for deserializers, matching the legacy
+  emitter's behavior.
+- **Null-check pattern**: Optional/nullable properties with complex types (models, dates,
+  bytes) get wrapped with `!value ? value : serialize(value)`. Simple passthrough types
+  (string, number, boolean) skip the guard since undefined passes through safely.
+- **Exported utilities**: `getSerializationExpression()`, `getDeserializationExpression()`,
+  and `needsTransformation()` are exported for reuse by future components (e.g.,
+  polymorphic serializers, operation request builders).
+
+### Key learnings (see knowledge.md)
+- Alloy's ObjectExpression with ObjectProperty handles proper indentation and property
+  name quoting automatically — prefer this over raw `code` templates for object literals.
+- UsageFlags is a bitmask — use `(model.usage & UsageFlags.Input) !== 0` not `===`.
+
+### Notes for next person
+- Completed: Phase 0 (0.1, 0.3, 0.4, 0.5, 0.6), Phase 1 (1.1–1.6), Phase 2 (2.1, 2.2).
+- Phase 0 remaining: 0.2 (Emitter Entry Point).
+- Phase 2 remaining: 2.3 (Polymorphic Serialization), 2.4 (XML Serializers), 2.5 (Static Helpers).
+- **Next priorities**: 2.3 (Polymorphic Serialization) or 0.2 (Emitter Entry Point).
+  - 2.3 builds directly on the serializers and is the last P0 serialization piece.
+  - 0.2 is needed to wire everything into a working emitter.
+- The serialization components use Alloy's `ObjectExpression` and `ObjectProperty` — if you
+  need to add new object literal generation elsewhere, use these instead of raw code templates.
+- `getSerializationExpression()` and `getDeserializationExpression()` are generic type-based
+  expression generators. They can be extended for new type kinds (e.g., XML types, LRO types)
+  by adding cases to the switch statement.
+- Date serialization currently uses `.toISOString()` for all datetime types. Unix timestamp
+  encoding is handled but not yet tested. Bytes use `uint8ArrayToString`/`stringToUint8Array`
+  from the HTTP runtime library.
+- Dictionary (Record) serialization generates a `serializeRecord()` call pattern but the
+  static helper function itself is not yet implemented (Task 2.5).

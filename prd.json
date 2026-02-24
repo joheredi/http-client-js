@@ -156,7 +156,9 @@
           "Null checks for nullable properties",
           "Additional properties spread",
           "Flatten property handling"
-        ]
+        ],
+        "status": "implemented",
+        "implementation_notes": "JsonSerializer and JsonDeserializer components generate serializer/deserializer functions from SdkModelType. Serializers map client names to wire names, deserializers reverse. Handles nested models (child serializer calls via refkey), arrays (.map() with child serializer), optional properties (null-check ternary guards), and simple passthrough types. Uses Alloy ObjectExpression/ObjectProperty for proper formatting. Integrated into ModelFiles orchestrator with Usage flag filtering (Input for serializers, Output/Exception for deserializers). 15 unit tests."
       },
       {
         "id": "FR6",

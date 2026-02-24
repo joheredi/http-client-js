@@ -4,10 +4,13 @@ import type {
   SdkModelType,
   SdkUnionType,
 } from "@azure-tools/typespec-client-generator-core";
+import { UsageFlags } from "@azure-tools/typespec-client-generator-core";
 import { useSdkContext } from "../context/sdk-context.js";
 import { EnumDeclaration } from "./enum-declaration.js";
 import { ModelInterface } from "./model-interface.js";
 import { getDirectSubtypes, PolymorphicType } from "./polymorphic-type.js";
+import { JsonSerializer } from "./serialization/json-serializer.js";
+import { JsonDeserializer } from "./serialization/json-deserializer.js";
 import { UnionDeclaration } from "./union-declaration.js";
 
 /**
@@ -41,6 +44,16 @@ export function ModelFiles() {
     (u): u is SdkUnionType => u.kind === "union",
   );
 
+  // Filter models by usage flags for serialization/deserialization
+  const inputModels = models.filter(
+    (m) => (m.usage & UsageFlags.Input) !== 0,
+  );
+  const outputModels = models.filter(
+    (m) =>
+      (m.usage & UsageFlags.Output) !== 0 ||
+      (m.usage & UsageFlags.Exception) !== 0,
+  );
+
   // Skip rendering entirely if there are no type declarations to emit
   if (models.length === 0 && enums.length === 0 && namedUnions.length === 0) {
     return undefined;
@@ -56,6 +69,15 @@ export function ModelFiles() {
           ? "\n\n"
           : undefined}
         <UnionDeclarations unions={namedUnions} />
+        {(models.length > 0 || enums.length > 0 || namedUnions.length > 0) &&
+        (inputModels.length > 0 || outputModels.length > 0)
+          ? "\n\n"
+          : undefined}
+        <SerializerDeclarations models={inputModels} />
+        {inputModels.length > 0 && outputModels.length > 0
+          ? "\n\n"
+          : undefined}
+        <DeserializerDeclarations models={outputModels} />
       </SourceFile>
     </SourceDirectory>
   );
@@ -175,6 +197,63 @@ function UnionDeclarations(props: UnionDeclarationsProps) {
   return (
     <For each={props.unions} doubleHardline>
       {(unionType) => <UnionDeclaration type={unionType} />}
+    </For>
+  );
+}
+
+/**
+ * Props for the {@link SerializerDeclarations} component.
+ */
+interface SerializerDeclarationsProps {
+  /** The list of TCGC model types that have Input usage and need serializers. */
+  models: SdkModelType[];
+}
+
+/**
+ * Renders all JSON serializer function declarations.
+ *
+ * Each model with `UsageFlags.Input` gets a serializer function that converts
+ * typed SDK objects into wire-format JSON. Serializers are placed in the same
+ * source file as type declarations to prevent self-import bugs.
+ *
+ * @param props - Component props containing the list of input models.
+ * @returns Alloy JSX tree with serializer declarations, or undefined if empty.
+ */
+function SerializerDeclarations(props: SerializerDeclarationsProps) {
+  if (props.models.length === 0) return undefined;
+
+  return (
+    <For each={props.models} doubleHardline>
+      {(model) => <JsonSerializer model={model} />}
+    </For>
+  );
+}
+
+/**
+ * Props for the {@link DeserializerDeclarations} component.
+ */
+interface DeserializerDeclarationsProps {
+  /** The list of TCGC model types that have Output/Exception usage and need deserializers. */
+  models: SdkModelType[];
+}
+
+/**
+ * Renders all JSON deserializer function declarations.
+ *
+ * Each model with `UsageFlags.Output` or `UsageFlags.Exception` gets a
+ * deserializer function that converts wire-format JSON into typed SDK objects.
+ * Deserializers are placed in the same source file as type declarations to
+ * prevent self-import bugs.
+ *
+ * @param props - Component props containing the list of output/exception models.
+ * @returns Alloy JSX tree with deserializer declarations, or undefined if empty.
+ */
+function DeserializerDeclarations(props: DeserializerDeclarationsProps) {
+  if (props.models.length === 0) return undefined;
+
+  return (
+    <For each={props.models} doubleHardline>
+      {(model) => <JsonDeserializer model={model} />}
     </For>
   );
 }

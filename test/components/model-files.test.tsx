@@ -92,6 +92,13 @@ describe("ModelFiles", () => {
           name: string;
           age: number;
         }
+
+        export function widgetDeserializer(item: any): Widget {
+          return {
+            name: item["name"],
+            age: item["age"],
+          };
+        }
       `,
     });
   });
@@ -206,6 +213,13 @@ describe("ModelFiles", () => {
            * Inactive
            */
           Inactive = "Inactive",
+        }
+
+        export function widgetDeserializer(item: any): Widget {
+          return {
+            name: item["name"],
+            status: item["status"],
+          };
         }
       `,
     });
@@ -375,6 +389,18 @@ describe("ModelFiles", () => {
 
         export interface Bar {
           y: number;
+        }
+
+        export function fooDeserializer(item: any): Foo {
+          return {
+            x: item["x"],
+          };
+        }
+
+        export function barDeserializer(item: any): Bar {
+          return {
+            y: item["y"],
+          };
         }
       `,
     });

@@ -252,3 +252,50 @@ expect(template).toRenderTo({
 For empty output (component returns undefined), use `toRenderTo("")`.
 
 **Date:** 2026-02-24
+
+## Use Alloy ObjectExpression for object literal code generation
+
+**Problem:** Using raw `code` templates with `\n` and `<For>` for object literals
+(e.g., serializer return statements) produces poorly formatted output because
+Alloy's indentation context doesn't apply properly to raw newlines. Properties
+end up at wrong indentation levels and on unexpected lines.
+
+**Fix:** Use Alloy's `ObjectExpression` and `ObjectProperty` components from
+`@alloy-js/typescript` instead of raw code templates for object literal rendering.
+These components use Alloy's `<Block>` internally, which properly handles indentation
+and brace placement:
+```tsx
+import { ObjectExpression, ObjectProperty } from "@alloy-js/typescript";
+
+// ✅ GOOD — proper formatting
+<FunctionDeclaration ...>
+  {code`return `}
+  <ObjectExpression>
+    <For each={properties} comma softline enderPunctuation>
+      {(prop) => <ObjectProperty name={wireName} value={valueExpr} />}
+    </For>
+  </ObjectExpression>
+  {code`;`}
+</FunctionDeclaration>
+```
+
+`ObjectProperty` also uses `PropertyName` internally, which automatically quotes
+property names that aren't valid JavaScript identifiers.
+
+**Date:** 2026-02-24
+
+## UsageFlags is a bitmask — use bitwise AND for checks
+
+**Problem:** Checking `model.usage === UsageFlags.Input` fails for models that
+have multiple usage flags (e.g., `Input | Output`). The equality check only
+matches models with exactly one flag set.
+
+**Fix:** Use bitwise AND: `(model.usage & UsageFlags.Input) !== 0`. This correctly
+matches models that have the Input flag set regardless of other flags:
+```typescript
+const hasInput = (model.usage & UsageFlags.Input) !== 0;
+const hasOutput = (model.usage & UsageFlags.Output) !== 0;
+const hasException = (model.usage & UsageFlags.Exception) !== 0;
+```
+
+**Date:** 2026-02-24
