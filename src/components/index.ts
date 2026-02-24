@@ -32,3 +32,10 @@ export {
   OperationGroupInterface,
   OperationGroupFactory,
 } from "./classical-operation-groups.js";
+export {
+  RootIndexFile,
+  ModelsIndexFile,
+  ApiIndexFile,
+  ClassicIndexFile,
+  IndexFiles,
+} from "./index-file.js";

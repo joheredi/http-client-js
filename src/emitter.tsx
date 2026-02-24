@@ -10,6 +10,7 @@ import { ClientContextFile } from "./components/client-context.js";
 import { ClassicalClientFile } from "./components/classical-client.js";
 import { ClassicalOperationGroupFiles } from "./components/classical-operation-groups.js";
 import { httpRuntimeLib } from "./utils/external-packages.js";
+import { IndexFiles } from "./components/index-file.js";
 
 /**
  * TypeSpec emitter entry point for generating TypeScript HTTP client libraries.
@@ -60,6 +61,7 @@ export async function $onEmit(context: EmitContext) {
               </>
             )}
           </For>
+          <IndexFiles />
         </SourceDirectory>
       </SdkContextProvider>
     </Output>

@@ -1181,3 +1181,77 @@
     pattern from the legacy emitter. May not be needed in the rewrite.
   - Reserved word escaping for operation group names — will be handled by Alloy's
     name policy if needed.
+
+## 2026-02-24 — Index & Barrel Files (Phase 7, Tasks 7.1 & 7.2)
+
+### What was done
+- Created `src/components/index-file.tsx`: Five components that generate barrel/index files
+  for the SDK output:
+  - `RootIndexFile` — Generates `src/index.ts` with selective exports of model types,
+    client classes, client context/options/factory, operation options, and public operation
+    functions. Excludes serializers, deserializers, and `_prefixed` internal symbols.
+  - `ModelsIndexFile` — Generates `models/index.ts` that re-exports type declarations
+    (interfaces, enums, unions, polymorphic aliases) from `models.ts`, excluding
+    serializer/deserializer functions.
+  - `ApiIndexFile` — Generates `api/index.ts` that re-exports public operation functions,
+    options interfaces, and client context symbols from operation and context files.
+    Excludes `_send` and `_deserialize` private functions.
+  - `ClassicIndexFile` — Generates `classic/index.ts` using Alloy's `BarrelFile`
+    for automatic re-export discovery of operation group interfaces.
+  - `IndexFiles` — Orchestrator that composes all index files (root, models, api, classic)
+    based on the SDK package contents.
+- Updated `src/components/index.ts`: Exports all new index components.
+- Updated `src/emitter.tsx`: Added `IndexFiles` to the emitter component tree so
+  index files are generated alongside all other output.
+- Created `test/components/index-file.test.tsx`: 16 tests covering:
+  - Root index exports model types from models/index.js
+  - Root index exports enum type alias and KnownXxx enum
+  - Root index exports classical client class
+  - Root index exports client context, options, and factory
+  - Root index exports operation options interfaces and public functions
+  - Root index does NOT export serializer/deserializer functions
+  - Root index does NOT export _prefixed internal symbols
+  - Root index returns undefined when no clients exist
+  - Root index exports operation group interfaces for clients with children
+  - Models index exports types but not serializers
+  - Models index returns undefined when no models exist
+  - API index exports public operations and context symbols
+  - API index does NOT export _prefixed internal functions
+  - IndexFiles orchestrator produces all index files
+  - IndexFiles returns undefined when no clients exist
+  - IndexFiles exports polymorphic union type aliases
+- Updated PRD: Tasks 7.1 and 7.2 marked as done.
+- All 195 tests pass (16 new + 179 existing).
+
+### Architecture decisions
+- **Explicit named exports over BarrelFile**: The root index and subpath indexes use
+  explicit `export { X } from "Y"` statements built from TCGC SDK data rather than
+  Alloy's `BarrelFile` component. This is necessary because `BarrelFile` does `export *`
+  which would expose internal symbols (serializers, deserializers, _prefixed functions).
+- **Export names derived from TCGC data**: The export lists are built by iterating
+  over `sdkPackage.models`, `sdkPackage.enums`, `sdkPackage.unions`, and client methods.
+  Name derivation matches the conventions used in model-interface, enum-declaration,
+  union-declaration, and operation-options components.
+- **ClassicIndexFile uses BarrelFile**: Unlike other indexes, the classic directory
+  contains only operation group interfaces (all public), so `BarrelFile` is appropriate.
+- **No paging/LRO type exports yet**: Paging types (PagedAsyncIterableIterator, etc.)
+  and LRO types (SimplePollerLike) are not yet exported because the paging/LRO helper
+  components (Phase 6) have not been implemented. The index will be extended when those
+  features are added.
+
+### Notes for next person
+- Completed: Phase 0 (0.1-0.6), Phase 1 (1.1-1.6), Phase 2 (2.1-2.3),
+  Phase 3 (3.1-3.5), Phase 4 (4.1), Phase 5 (5.1-5.2), Phase 7 (7.1-7.2).
+- **Phase 7 is now COMPLETE**: Both root index (7.1) and subpath index (7.2) done.
+- **Remaining tasks by priority**:
+  1. 2.4/2.5 (XML Serializers, Static Helpers) — advanced serialization
+  2. 4.2 (Logger Component) — Azure-only logging
+  3. 6.x (Advanced Features) — LRO, multipart, samples
+  4. 8.x (Azure Extension) — Azure-specific composition
+  5. 9.x (Test Porting & Validation) — scenario testing
+- The index components will need to be extended when:
+  - Paging support (6.x) is implemented: add PagedAsyncIterableIterator, PageSettings,
+    ContinuablePage exports conditionally
+  - LRO support (6.x) is implemented: add SimplePollerLike export conditionally
+  - Azure flavor (8.x) is implemented: add Azure cloud type exports for ARM scenarios
+  - Multipart support (6.2) is implemented: add FileContents export conditionally

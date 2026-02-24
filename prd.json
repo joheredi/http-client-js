@@ -1250,7 +1250,7 @@
           "id": "7.1",
           "title": "Root Index Component",
           "description": "Generate root index.ts with filtered exports",
-          "pass": false,
+          "pass": true,
           "pass_criteria": [
             "Root src/index.ts exports client classes, models, operation options, helper types",
             "Internal symbols (_prefixed) excluded from exports",
@@ -1259,13 +1259,14 @@
             "SimplePollerLike exported for LRO",
             "Azure cloud types exported for ARM scenarios",
             "No duplicate exports"
-          ]
+          ],
+          "status": "done"
         },
         {
           "id": "7.2",
           "title": "Subpath Index Component",
           "description": "Generate index.ts in api/, models/, classic/",
-          "pass": false,
+          "pass": true,
           "pass_criteria": [
             "api/index.ts re-exports from operation group files",
             "models/index.ts re-exports from model namespace files",
@@ -1273,7 +1274,8 @@
             "Recursive index generation for nested directories",
             "No internal helpers (pagingHelpers, pollingHelpers) in public indexes",
             "Correct relative paths in export declarations"
-          ]
+          ],
+          "status": "done"
         }
       ],
       "dependencies": [
