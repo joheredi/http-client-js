@@ -7,8 +7,11 @@ import type { Program } from "@typespec/compiler";
  * Shared Tester instance for all unit tests in the http-client-js emitter.
  *
  * Uses `createTester` from `@typespec/compiler/testing` to provide a pre-configured
- * TypeSpec compilation environment. Libraries `@typespec/http` and `@typespec/versioning`
- * are pre-loaded and auto-imported so individual tests don't need to set them up.
+ * TypeSpec compilation environment. All commonly used libraries are pre-loaded and
+ * auto-imported so individual tests don't need to set them up.
+ *
+ * The `using` declarations match the legacy emitter's test infrastructure to ensure
+ * maximum compatibility with ported scenario files.
  *
  * Usage:
  * ```ts
@@ -19,18 +22,45 @@ import type { Program } from "@typespec/compiler";
 export const Tester = createTester(resolvePath(import.meta.dirname, ".."), {
   libraries: [
     "@typespec/http",
+    "@typespec/rest",
     "@typespec/versioning",
+    "@typespec/openapi",
+    "@typespec/xml",
+    "@azure-tools/typespec-azure-core",
+    "@azure-tools/typespec-azure-resource-manager",
     "@azure-tools/typespec-client-generator-core",
   ],
 })
   .importLibraries()
   .using("Http")
+  .using("Rest")
   .using("Versioning");
+
+/**
+ * Raw Tester that only loads libraries but does NOT auto-import or add `using`
+ * statements. Used for legacy scenarios that have their own `import` and `using`
+ * declarations to avoid "imports must come before declarations" errors.
+ */
+export const RawTester = createTester(resolvePath(import.meta.dirname, ".."), {
+  libraries: [
+    "@typespec/http",
+    "@typespec/rest",
+    "@typespec/versioning",
+    "@typespec/openapi",
+    "@typespec/xml",
+    "@azure-tools/typespec-azure-core",
+    "@azure-tools/typespec-azure-resource-manager",
+    "@azure-tools/typespec-client-generator-core",
+  ],
+});
 
 /**
  * Tester pre-wrapped with a `@service` namespace so individual tests only need
  * to define models, operations, etc. without boilerplate. Uses TCGC's
  * `@azure-tools/typespec-client-generator-core` for SDK context creation.
+ *
+ * Includes ALL common `using` statements matching the legacy emitter's test
+ * infrastructure for maximum compatibility with ported scenarios.
  *
  * Usage:
  * ```ts
@@ -41,6 +71,7 @@ export const Tester = createTester(resolvePath(import.meta.dirname, ".."), {
  */
 export const TesterWithService = Tester.wrap(
   (x) => `
+#suppress "@azure-tools/typespec-azure-core/auth-required" "for test"
 @service(#{title: "Test Service"})
 namespace TestService;
 

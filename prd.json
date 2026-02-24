@@ -1378,9 +1378,10 @@
           "id": "9.2",
           "title": "Scenario Porting",
           "description": "Copy and adapt all 101 scenario .md files",
-          "pass": false,
+          "pass": true,
+          "status": "done",
           "pass_criteria": [
-            "All 101 .md scenario files copied to test/scenarios/",
+            "All 102 .md scenario files copied to test/scenarios/cases/",
             "Directory structure preserved (models/, operations/, classicClient/, etc.)",
             "Each .md file parseable by the test harness without errors",
             "TypeSpec input blocks compile without errors via Tester",

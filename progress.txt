@@ -1876,3 +1876,50 @@
   `createCoreRuntimeLib()` and `createAzureRuntimeLib()` functions.
 - The `FlavorProvider` can be extended with additional properties in `FlavorContextValue`
   for flavor-specific configuration beyond package references.
+
+---
+
+## Session: Phase 9.2 — Scenario Porting (2026-02-24)
+
+### What was done
+- **Copied 102 legacy scenario .md files** from `submodules/autorest.typescript/packages/typespec-ts/test/modularUnit/scenarios/` to `test/scenarios/cases/`
+- **Enhanced scenario harness** (`test/scenarios/scenario-harness.ts`) to support legacy format:
+  - Legacy category-to-file mapping (models → models/models.ts, operations → api/operations.ts, etc.)
+  - Multi-word category parsing (e.g., "root index")
+  - JSON example block parsing (`json for <operationId>`)
+  - YAML config block parsing
+  - Plain markdown code block handling (skipped — they're documentation)
+  - `alias` type support in snippet extraction
+  - `getSamplesConcatenated` for the `samples` category
+- **Enhanced emit-for-scenario.tsx** with smart tester selection:
+  - 3-tier tester selection: RawTester (own imports), Tester (own @service), TesterWithService (simple)
+  - Dynamic `using` statement injection via `buildExtraUsings()`
+  - Detects Azure Core, TCGC, ARM, Xml, Foundations usage patterns
+- **Enhanced test-host.ts**:
+  - Added all libraries to Tester (@typespec/rest, @typespec/openapi, @typespec/xml, @azure-tools/typespec-azure-core, @azure-tools/typespec-azure-resource-manager)
+  - Created `RawTester` for self-contained scenarios with own imports
+  - Added `using Rest;` to Tester
+  - Added auth-required suppress to TesterWithService
+- **Installed missing peer dependencies**: @azure-tools/typespec-azure-core, @azure-tools/typespec-azure-resource-manager, @typespec/openapi, @typespec/xml
+- **Fixed critical regex bug**: `\b@service\b` never matches TypeSpec decorators because `@` is a non-word character. Fixed to `/@service\b/`.
+
+### Test Results
+- 40 non-scenario test files: ALL PASS (316 tests)
+- Scenario tests: 455 assertion failures (expected — output parity not yet achieved), 316 passed, 6 skipped
+- Zero compilation errors — all 102 legacy scenarios compile successfully
+- The 455 failures are expected and will be addressed in task 9.3 (Validation)
+
+### Key Gotchas
+- `\b` before `@` in JavaScript regex NEVER matches because `@` is a non-word character
+- TypeSpec requires ALL `import` statements before any other declarations — scenarios with own imports MUST use RawTester
+- Extra `using` statements must be placed BEFORE `namespace X;` declarations
+- Tester's `.using("Xml")` generates `using Xml;` (compiler resolves from imported library)
+- ARM library import (`@azure-tools/typespec-azure-resource-manager`) is safe to include even when not used
+
+### Notes for next person
+- Completed: Phase 0-8 (ALL DONE), Phase 9 (9.1, 9.2).
+- **Remaining tasks**:
+  1. 9.3 (Validation) — Run all scenarios, fix assertion failures to achieve output parity
+- The 455 failing scenario tests are assertion mismatches (our output vs legacy expected output)
+- Use `SCENARIOS_UPDATE=true pnpm test` to regenerate expected output from our emitter
+- The `beforeAll` hooks in `executeScenarios` are at the file-level `describe` scope, not inside individual `describeFn` scopes — if one scenario in a multi-scenario file fails compilation, ALL tests in that file fail

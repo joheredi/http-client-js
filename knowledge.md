@@ -874,3 +874,66 @@ back to `@typespec/ts-http-runtime` references. This makes the context
 opt-in rather than required.
 
 **Date:** 2026-02-24
+
+## Regex \b Before @ Does Not Match TypeSpec Decorators
+
+**Problem:** `hasServiceDeclaration` used `/\b@service\b/` to detect
+`@service` decorators in TypeSpec code. This NEVER matched because `@`
+is a non-word character and `\b` before `@` requires the preceding
+character to be a word character (letter, digit, underscore).
+
+**Root Cause:** In JavaScript regex, `\b` asserts a word boundary between
+a word character `[a-zA-Z0-9_]` and a non-word character. Since `@` is
+non-word, `\b@` only matches when a word character precedes `@` (e.g.,
+`a@service`). TypeSpec decorators always have whitespace, newline, or
+string-start before `@`, so `\b@` never matches in practice.
+
+**Solution:** Use `/@service\b/` (no leading `\b`) to match the decorator.
+The trailing `\b` still works correctly because `e` in `service` IS a
+word character, so `\b` matches between `e` and `(`.
+
+**Impact:** Without this fix, ALL scenarios with their own `@service`
+declaration were incorrectly wrapped with `TesterWithService`, adding
+a SECOND `@service(#{title: "Test Service"}) namespace TestService;`,
+causing `multiple-blockless-namespace` compilation errors.
+
+**Date:** 2026-02-24
+
+## TypeSpec Tester: imports, usings, wraps Are Separate Mechanisms
+
+**Problem:** When building custom testers for legacy scenarios, understanding
+how `importLibraries()`, `.using()`, and `.wrap()` interact is critical.
+
+**Root Cause:** The TypeSpec Tester's `wrapMain()` function generates code as:
+```
+[...imports.map(x => `import "${x}";`), ...usings.map(x => `using ${x};`), applyWraps(code, wraps)].join("\n")
+```
+- `importLibraries()` adds to `params.imports` (generates `import "...";` lines)
+- `.using("X")` adds to `params.usings` (generates `using X;` lines)
+- `.wrap(fn)` adds to `params.wraps` (transforms the user code before prepending imports/usings)
+
+The order is: imports first, usings second, wrapped code last.
+Each method returns a NEW tester instance (immutable builder pattern).
+
+**Solution:** Use the right mechanism for each purpose:
+- Use `.importLibraries()` only once to auto-import all libraries
+- Use `.using()` for `using` directives
+- Use `.wrap()` for code transformations like adding `@service` namespace
+
+**Date:** 2026-02-24
+
+## Legacy Scenario Files Have Multiple Scenarios Per File
+
+**Problem:** Some legacy `.md` files contain multiple `# Heading` (H1)
+sections, each defining a separate scenario with different TypeSpec code,
+test blocks, and YAML configs.
+
+**Root Cause:** The legacy emitter's test format allows multiple scenarios
+in one file for related test cases.
+
+**Solution:** `splitByH1()` splits the markdown content by `\n(?=# )` regex.
+Each section is parsed independently with its own TypeSpec code, JSON
+examples, and YAML config. The `executeScenarios` function creates
+separate `beforeAll` + `describeFn` for each scenario in the file.
+
+**Date:** 2026-02-24

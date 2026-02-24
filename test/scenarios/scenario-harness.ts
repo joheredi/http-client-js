@@ -92,6 +92,22 @@ interface ScenarioContents {
   lines: Array<string | ScenarioCodeBlock>;
   specBlock: { kind: "spec"; content: string };
   testBlocks: TestCodeBlock[];
+  /** JSON example blocks parsed from ```json for <operationId> blocks */
+  jsonExamples: JsonExampleBlock[];
+  /** YAML config blocks parsed from ```yaml blocks */
+  yamlConfig: Record<string, unknown>;
+}
+
+/**
+ * A JSON example block from a scenario file.
+ * Used by the legacy emitter for sample generation — each block provides
+ * example request/response data for a specific operation.
+ */
+interface JsonExampleBlock {
+  /** Filename derived from the heading (e.g., "json_for_Widgets_ListWidgets") */
+  filename: string;
+  /** Raw JSON content of the example */
+  rawContent: string;
 }
 
 interface TestCodeBlock {
@@ -101,7 +117,83 @@ interface TestCodeBlock {
   expectation: CodeBlockExpectation;
 }
 
-type ScenarioCodeBlock = { kind: "spec"; content: string } | TestCodeBlock;
+type ScenarioCodeBlock =
+  | { kind: "spec"; content: string }
+  | { kind: "json"; heading: string; content: string }
+  | { kind: "yaml"; content: string }
+  | TestCodeBlock;
+
+// ─── Legacy Category Name Resolution ────────────────────────────────────
+
+/**
+ * Known legacy category names used in the legacy emitter's scenario files.
+ * These are short names like "models", "operations", etc. that map to
+ * actual file paths in the emitter output.
+ */
+const LEGACY_CATEGORIES: Record<string, (outputs: Record<string, string>) => string | undefined> = {
+  models: (outputs) => findOutputFile(outputs, /models\/models\.ts$/),
+  "models:withOptions": (outputs) => findOutputFile(outputs, /api\/options\.ts$/),
+  operations: (outputs) => findOutputFile(outputs, /api\/operations\.ts$/),
+  clientContext: (outputs) => findOutputFile(outputs, /Context\.ts$/),
+  classicClient: (outputs) =>
+    findOutputFile(outputs, /Client\.ts$/, (p) => !p.includes("Context")),
+  "root index": (outputs) => findOutputFile(outputs, /^src\/index\.ts$/),
+  samples: (outputs) => findOutputFile(outputs, /samples-dev\//),
+};
+
+/**
+ * Finds the first output file matching a pattern, with an optional filter.
+ *
+ * Used to resolve legacy category names (like "models") to actual file paths
+ * in the emitter output (like "src/models/models.ts").
+ *
+ * @param outputs - Record of emitter output files (path → content)
+ * @param pattern - Regex pattern to match against file paths
+ * @param filter - Optional additional filter function
+ * @returns The first matching file path, or undefined if none match
+ */
+function findOutputFile(
+  outputs: Record<string, string>,
+  pattern: RegExp,
+  filter?: (path: string) => boolean,
+): string | undefined {
+  return Object.keys(outputs).find((p) => pattern.test(p) && (!filter || filter(p)));
+}
+
+/**
+ * Checks whether a file identifier is a legacy category name rather than
+ * a real file path. Legacy categories don't contain "/" characters.
+ *
+ * @param file - The file identifier from a code block heading
+ * @returns true if it's a legacy category name
+ */
+function isLegacyCategory(file: string): boolean {
+  return !file.includes("/");
+}
+
+/**
+ * Resolves a legacy category name to an actual file path in the emitter output.
+ *
+ * @param category - The legacy category name (e.g., "models", "operations")
+ * @param outputs - Record of emitter output files
+ * @returns The resolved file path
+ * @throws If the category is unknown or no matching file is found
+ */
+function resolveLegacyCategory(category: string, outputs: Record<string, string>): string {
+  const resolver = LEGACY_CATEGORIES[category];
+  if (!resolver) {
+    throw new Error(
+      `Unknown legacy category "${category}". Known categories: ${Object.keys(LEGACY_CATEGORIES).join(", ")}`,
+    );
+  }
+  const file = resolver(outputs);
+  if (!file) {
+    throw new Error(
+      `No output file found for legacy category "${category}". Available files:\n  ${Object.keys(outputs).join("\n  ")}`,
+    );
+  }
+  return file;
+}
 
 // ─── Code Block Expectation Parsing ─────────────────────────────────────
 
@@ -141,29 +233,57 @@ interface CodeBlockExpectation extends CodeBlockQuery {
 /**
  * Parses a markdown code block heading into a structured expectation.
  *
- * Expected format: `ts src/path/file.ts [type] [name]`
+ * Supports two formats:
+ * 1. **File path format**: `ts src/path/file.ts [type] [name]`
+ * 2. **Legacy category format**: `ts models [type] [name]`, `ts root index`, etc.
+ *
+ * For legacy categories, the file path is resolved at query time via
+ * `resolveLegacyCategory()`. Multi-word categories like "root index" are
+ * detected and joined before parsing type/name.
  *
  * Examples:
- * - `ts src/models/models.ts` — full file comparison
- * - `ts src/models/models.ts interface Widget` — extract and compare a specific interface
- * - `ts src/api/operations.ts function _getWidgetSend` — extract a specific function
+ * - `ts src/models/models.ts` — full file comparison (path format)
+ * - `ts models interface Widget` — extract interface from models (legacy format)
+ * - `ts root index` — full root index file (legacy 2-word category)
+ * - `ts models:withOptions` — options file (legacy category with modifier)
  *
  * @param heading - The code block heading (text after ```)
  * @param content - The code block content (expected output)
  * @returns Parsed expectation with file path and optional element query
  */
 function parseCodeblockExpectation(heading: string, content: string): CodeBlockExpectation {
-  const [lang, file, type, name] = heading.split(" ");
-  if (!file) {
+  const parts = heading.split(" ");
+  const lang = parts[0];
+
+  if (parts.length < 2) {
     throw new Error(
       `Invalid code block heading: "${heading}". Missing file path. Expected format: "<lang> <path>"`,
     );
   }
+
+  // Handle multi-word legacy categories (e.g., "root index")
+  // If parts[1] + " " + parts[2] form a known category, join them
+  let file: string;
+  let restStart: number;
+
+  const twoWordCategory = parts.length >= 3 ? `${parts[1]} ${parts[2]}` : "";
+  if (LEGACY_CATEGORIES[twoWordCategory]) {
+    file = twoWordCategory;
+    restStart = 3;
+  } else {
+    file = parts[1];
+    restStart = 2;
+  }
+
+  const type = parts[restStart];
+  const name = parts[restStart + 1];
+
   if (type && !name) {
     throw new Error(
       `Invalid code block heading: "${heading}". Missing name when using type. Expected format: "<lang> <path> [type] [name]"`,
     );
   }
+
   return {
     lang,
     file,
@@ -179,6 +299,13 @@ function parseCodeblockExpectation(heading: string, content: string): CodeBlockE
  * pull out just that declaration (e.g., a single interface). Otherwise, returns
  * the full file content.
  *
+ * Supports both file path format (e.g., "src/models/models.ts") and legacy
+ * category names (e.g., "models", "operations"). Legacy categories are resolved
+ * to actual file paths via `resolveLegacyCategory()`.
+ *
+ * For the special "samples" category, all sample files are concatenated with
+ * file path comments, matching the legacy emitter's output format.
+ *
  * @param extractor - Tree-sitter snippet extractor
  * @param expectation - The code block query (file path + optional element query)
  * @param outputs - Record of emitter output files (path → content)
@@ -190,10 +317,22 @@ function getExcerptForQuery(
   expectation: CodeBlockQuery,
   outputs: Record<string, string>,
 ): string {
-  const content = outputs[expectation.file];
+  let filePath = expectation.file;
+
+  // Handle legacy "samples" category specially — concatenate all sample files
+  if (filePath === "samples") {
+    return getSamplesConcatenated(outputs);
+  }
+
+  // Resolve legacy category names to actual file paths
+  if (isLegacyCategory(filePath)) {
+    filePath = resolveLegacyCategory(filePath, outputs);
+  }
+
+  const content = outputs[filePath];
   if (!content) {
     throw new Error(
-      `File ${expectation.file} not found in emitted files:\n ${Object.keys(outputs).join("\n")}`,
+      `File ${filePath} not found in emitted files:\n ${Object.keys(outputs).join("\n")}`,
     );
   }
 
@@ -220,17 +359,47 @@ function getExcerptForQuery(
     case "class":
       excerpt = extractor.getClass(content, name);
       break;
+    case "alias":
+      // Legacy format uses "alias" for type aliases
+      excerpt = extractor.getTypeAlias(content, name);
+      break;
     default:
       throw new Error("Unsupported type in code block expectation: " + type);
   }
 
   if (!excerpt) {
     throw new Error(
-      `Could not find ${type} "${name}" in file "${expectation.file}".`,
+      `Could not find ${type} "${name}" in file "${filePath}".`,
     );
   }
 
   return excerpt;
+}
+
+/**
+ * Concatenates all sample files from the emitter output into a single string,
+ * with file path comments matching the legacy emitter's format.
+ *
+ * The legacy emitter outputs samples as a single string with
+ * `/** This file path is /path/to/sample.ts *​/` comments separating each file.
+ *
+ * @param outputs - Record of emitter output files
+ * @returns Concatenated sample file contents with path comments
+ */
+function getSamplesConcatenated(outputs: Record<string, string>): string {
+  const sampleFiles = Object.entries(outputs)
+    .filter(([path]) => path.includes("samples-dev/"))
+    .sort(([a], [b]) => a.localeCompare(b));
+
+  if (sampleFiles.length === 0) {
+    throw new Error(
+      `No sample files found in emitted output. Available files:\n  ${Object.keys(outputs).join("\n  ")}`,
+    );
+  }
+
+  return sampleFiles
+    .map(([path, content]) => `/** This file path is /${path} */\n ${content}`)
+    .join("\n");
 }
 
 // ─── MD Parser ──────────────────────────────────────────────────────────
@@ -284,12 +453,13 @@ function splitByH1(content: string): { title: string; content: string }[] {
 /**
  * Parses a single scenario section into structured code blocks.
  *
- * Extracts TypeSpec input (```tsp blocks) and expected TypeScript output
- * (```ts blocks with file/type/name headings). Regular text lines are
- * preserved for snapshot regeneration.
+ * Extracts TypeSpec input (```tsp blocks), expected TypeScript output
+ * (```ts blocks with file/type/name headings), JSON example blocks
+ * (```json for <operationId>), and YAML config blocks (```yaml).
+ * Regular text lines are preserved for snapshot regeneration.
  *
  * @param content - The content section of a scenario (after H1 header)
- * @returns Parsed scenario with spec block and test blocks
+ * @returns Parsed scenario with spec block, test blocks, examples, and config
  */
 function parseScenario(content: string): ScenarioContents {
   const rawLines = content.split("\n");
@@ -297,6 +467,8 @@ function parseScenario(content: string): ScenarioContents {
     lines: [],
     specBlock: { kind: "spec", content: "" },
     testBlocks: [],
+    jsonExamples: [],
+    yamlConfig: {},
   };
 
   let currentCodeBlock: { heading: string; content: string[] } | null = null;
@@ -305,19 +477,47 @@ function parseScenario(content: string): ScenarioContents {
     if (line.startsWith("```") && currentCodeBlock) {
       // End of code block
       const heading = currentCodeBlock.heading;
-      const isTsp = heading.includes("tsp") || heading.includes("typespec");
-      const content = currentCodeBlock.content.join("\n");
+      const blockContent = currentCodeBlock.content.join("\n");
 
-      if (isTsp) {
-        const block = { kind: "spec" as const, content };
+      if (!heading) {
+        // Plain markdown code block (no language tag) — treat as text, not a test block
+        scenario.lines.push("```");
+        for (const codeLine of currentCodeBlock.content) {
+          scenario.lines.push(codeLine);
+        }
+        scenario.lines.push("```");
+      } else if (heading.includes("tsp") || heading.includes("typespec")) {
+        const block = { kind: "spec" as const, content: blockContent };
         scenario.lines.push(block);
-        scenario.specBlock.content = content;
+        scenario.specBlock.content = blockContent;
+      } else if (heading.startsWith("json")) {
+        // JSON example block (e.g., "json for Widgets_ListWidgets")
+        const jsonBlock = {
+          kind: "json" as const,
+          heading,
+          content: blockContent,
+        };
+        scenario.lines.push(jsonBlock);
+        scenario.jsonExamples.push({
+          filename: heading.trim().replace(/ /g, "_"),
+          rawContent: blockContent,
+        });
+      } else if (heading.startsWith("yaml")) {
+        // YAML config block
+        const yamlBlock = { kind: "yaml" as const, content: blockContent };
+        scenario.lines.push(yamlBlock);
+        try {
+          const parsed = parseYamlConfig(blockContent);
+          Object.assign(scenario.yamlConfig, parsed);
+        } catch {
+          // Ignore invalid YAML — tests may still work without config
+        }
       } else {
         const block: TestCodeBlock = {
           kind: "test",
           heading,
-          content,
-          expectation: parseCodeblockExpectation(heading, content),
+          content: blockContent,
+          expectation: parseCodeblockExpectation(heading, blockContent),
         };
         scenario.lines.push(block);
         scenario.testBlocks.push(block);
@@ -325,7 +525,7 @@ function parseScenario(content: string): ScenarioContents {
       currentCodeBlock = null;
     } else if (line.startsWith("```")) {
       // Start of code block
-      currentCodeBlock = { heading: line.substring(3), content: [] };
+      currentCodeBlock = { heading: line.substring(3).trim(), content: [] };
     } else if (currentCodeBlock) {
       currentCodeBlock.content.push(line);
     } else {
@@ -334,6 +534,29 @@ function parseScenario(content: string): ScenarioContents {
   }
 
   return scenario;
+}
+
+/**
+ * Parses a YAML config string into a key-value record.
+ * Used for legacy scenario configs that modify emitter behavior.
+ *
+ * @param content - Raw YAML string
+ * @returns Parsed config object
+ */
+function parseYamlConfig(content: string): Record<string, unknown> {
+  // Simple YAML parser for key: value pairs (no nested objects needed)
+  const result: Record<string, unknown> = {};
+  for (const line of content.split("\n")) {
+    const match = line.match(/^(\S+):\s*(.+)$/);
+    if (match) {
+      const [, key, value] = match;
+      if (value === "true") result[key] = true;
+      else if (value === "false") result[key] = false;
+      else if (!isNaN(Number(value))) result[key] = Number(value);
+      else result[key] = value;
+    }
+  }
+  return result;
 }
 
 /**
@@ -377,9 +600,20 @@ async function updateFile(scenarioFile: ScenarioFile) {
     for (const line of scenario.content.lines) {
       if (typeof line === "string") {
         newContent.push(line);
+      } else if (line.kind === "spec") {
+        newContent.push("```tsp");
+        newContent.push(line.content);
+        newContent.push("```");
+      } else if (line.kind === "json") {
+        newContent.push("```" + line.heading);
+        newContent.push(line.content);
+        newContent.push("```");
+      } else if (line.kind === "yaml") {
+        newContent.push("```yaml");
+        newContent.push(line.content);
+        newContent.push("```");
       } else {
-        const heading = line.kind === "test" ? line.heading : "tsp";
-        newContent.push("```" + heading);
+        newContent.push("```" + line.heading);
         newContent.push(line.content);
         newContent.push("```");
       }
@@ -426,7 +660,11 @@ export function executeScenarios(
         let outputFiles: Record<string, string>;
 
         beforeAll(async () => {
-          outputFiles = await emitForScenario(scenario.content.specBlock.content);
+          outputFiles = await emitForScenario(
+            scenario.content.specBlock.content,
+            scenario.content.jsonExamples,
+            scenario.content.yamlConfig,
+          );
         });
 
         describeFn(`Scenario: ${scenario.title}`, () => {
