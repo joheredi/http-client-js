@@ -40,10 +40,8 @@ ignoreWeirdLine: false
 ## classicClient
 
 ```ts classicClient
-import {
-  foo as foo_1,
-  type FooOptionalParams as FooOptionalParams_1,
-} from "./api/operations.js";
+import { foo as foo_1 } from "./api/operations.js";
+import type { FooOptionalParams as FooOptionalParams_1 } from "./api/options.js";
 import {
   createService as createService_1,
   type ServiceClientOptionalParams as ServiceClientOptionalParams_1,

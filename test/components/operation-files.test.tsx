@@ -8,7 +8,8 @@
  *
  * What is tested:
  * - A service with root-level operations renders `api/operations.ts`.
- * - Each operation produces four declarations: options, send, deserialize, public.
+ * - Each operation produces three declarations: send, deserialize, public.
+ * - The options interface is in a separate options.ts file.
  * - Multiple operations in the same group are separated by blank lines.
  * - A service with nested operation groups renders into subdirectories.
  * - A service with no operations produces no output.
@@ -70,11 +71,11 @@ function OperationFilesTestWrapper(props: {
 
 describe("OperationFiles", () => {
   /**
-   * Tests that a service with a single GET operation renders all four
-   * operation declarations in api/operations.ts. This is the baseline
-   * test — if this fails, the entire operation file generation pipeline
-   * is broken. Verifies the options interface, send, deserialize, and
-   * public function are all present and correctly structured.
+   * Tests that a service with a single GET operation renders all three
+   * operation declarations in api/operations.ts. The options interface
+   * is in a separate options.ts file, imported via refkey. Verifies the
+   * send, deserialize, and public function are all present and correctly
+   * structured, and that the options interface is imported.
    */
   it("should render root-level operations into api/operations.ts", async () => {
     const runner = await TesterWithService.createInstance();
@@ -92,13 +93,12 @@ describe("OperationFiles", () => {
       </OperationFilesTestWrapper>
     );
 
-    // Should have all four declarations in api/operations.ts
+    // Should have send, deserialize, and public function in api/operations.ts
     expect(template).toRenderTo({
       "api/operations.ts": expect.stringContaining("export async function ping"),
     });
-    expect(template).toRenderTo({
-      "api/operations.ts": expect.stringContaining("PingOptionalParams"),
-    });
+    // Options interface is no longer declared in operations.ts — it's in options.ts
+    // but operations.ts imports it via refkey
     expect(template).toRenderTo({
       "api/operations.ts": expect.stringContaining("_pingSend"),
     });
@@ -109,9 +109,10 @@ describe("OperationFiles", () => {
 
   /**
    * Tests that multiple operations in the same group are rendered in the
-   * same file, each with all four declarations. This validates that the
-   * <For> iterator correctly separates operations with blank lines and
-   * that refkeys for different operations don't conflict.
+   * same file, each with their declarations. The options interfaces are
+   * in a separate options.ts file. This validates that the <For> iterator
+   * correctly separates operations with blank lines and that refkeys for
+   * different operations don't conflict.
    */
   it("should render multiple operations in the same file", async () => {
     const runner = await TesterWithService.createInstance();
@@ -137,15 +138,6 @@ describe("OperationFiles", () => {
     expect(template).toRenderTo({
       "api/operations.ts": expect.stringContaining(
         "export async function healthCheck",
-      ),
-    });
-    // Both should have their options interfaces
-    expect(template).toRenderTo({
-      "api/operations.ts": expect.stringContaining("PingOptionalParams"),
-    });
-    expect(template).toRenderTo({
-      "api/operations.ts": expect.stringContaining(
-        "HealthCheckOptionalParams",
       ),
     });
   });

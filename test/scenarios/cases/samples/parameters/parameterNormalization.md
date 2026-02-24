@@ -46,33 +46,20 @@ Raw json files.
 Operations
 
 ```ts operations
-import {
-  type ListCredentialsRequest as ListCredentialsRequest_1,
-  listCredentialsRequestSerializer as listCredentialsRequestSerializer_1,
-} from "../models/models.js";
+import { listCredentialsRequestSerializer as listCredentialsRequestSerializer_1 } from "../models/models.js";
+import { PostOptionalParams as PostOptionalParams_1 } from "./options.js";
 import {
   Client as Client_1,
   createRestError as createRestError_1,
   expandUrlTemplate as expandUrlTemplate_1,
-  type OperationOptions as OperationOptions_1,
   operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
   type PathUncheckedResponse as PathUncheckedResponse_1,
   type StreamableMethod as StreamableMethod_1,
 } from "@typespec/ts-http-runtime";
 
-/**
- * Optional parameters for the post operation.
- */
-export interface PostOptionalParams extends OperationOptions_1 {
-  queryParam?: string;
-  headerParam?: string;
-  pathParam?: string;
-  listCredentialsRequest?: ListCredentialsRequest_1;
-}
-
 export function _postSend(
   context: Client_1,
-  options: PostOptionalParams = { requestOptions: {} },
+  options: PostOptionalParams_1 = { requestOptions: {} },
 ): StreamableMethod_1 {
   const path = expandUrlTemplate_1(
     "{/PATH_PARAM}{?QUERY_PARAM}",
@@ -107,11 +94,11 @@ export async function _postDeserialize(
  * show example demo
  *
  * @param {Client_1} context
- * @param {PostOptionalParams} options
+ * @param {PostOptionalParams_1} options
  */
 export async function post(
   context: Client_1,
-  options: PostOptionalParams = { requestOptions: {} },
+  options: PostOptionalParams_1 = { requestOptions: {} },
 ): Promise<void> {
   const result = await _postSend(context, options);
   return _postDeserialize(result);
@@ -121,15 +108,17 @@ export async function post(
 Models
 
 ```ts models:withOptions
-import { ListCredentialsRequest } from "../models/models.js";
-import { OperationOptions } from "@azure-rest/core-client";
+import type { ListCredentialsRequest as ListCredentialsRequest_1 } from "../models/models.js";
+import type { OperationOptions as OperationOptions_1 } from "@typespec/ts-http-runtime";
 
-/** Optional parameters. */
-export interface PostOptionalParams extends OperationOptions {
+/**
+ * Optional parameters for the post operation.
+ */
+export interface PostOptionalParams extends OperationOptions_1 {
   queryParam?: string;
   headerParam?: string;
   pathParam?: string;
-  listCredentialsRequest?: ListCredentialsRequest;
+  listCredentialsRequest?: ListCredentialsRequest_1;
 }
 ```
 

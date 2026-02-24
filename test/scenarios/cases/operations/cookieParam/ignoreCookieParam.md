@@ -23,24 +23,19 @@ mustEmptyDiagnostic: false
 Should normal path parameter:
 
 ```ts operations
+import type { TestOptionalParams as TestOptionalParams_1 } from "./options.js";
 import {
   type Client as Client_1,
   createRestError as createRestError_1,
-  type OperationOptions as OperationOptions_1,
   operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
   type PathUncheckedResponse as PathUncheckedResponse_1,
   type StreamableMethod as StreamableMethod_1,
 } from "@typespec/ts-http-runtime";
 
-/**
- * Optional parameters for the test operation.
- */
-export interface TestOptionalParams extends OperationOptions_1 {}
-
 export function _testSend(
   context: Client_1,
   token: string,
-  options: TestOptionalParams = { requestOptions: {} },
+  options: TestOptionalParams_1 = { requestOptions: {} },
 ): StreamableMethod_1 {
   return context.path("/").get({
     ...operationOptionsToRequestParameters_1(options),
@@ -62,7 +57,7 @@ export async function _testDeserialize(
 export async function test(
   context: Client_1,
   token: string,
-  options: TestOptionalParams = { requestOptions: {} },
+  options: TestOptionalParams_1 = { requestOptions: {} },
 ): Promise<string> {
   const result = await _testSend(context, token, options);
   return _testDeserialize(result);

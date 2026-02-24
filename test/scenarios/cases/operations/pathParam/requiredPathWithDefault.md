@@ -17,10 +17,12 @@ op read(@path strDefault: "foobar", @path numberDefault: 1): void;
 Generated operation options.
 
 ```ts models:withOptions
-import { OperationOptions } from "@azure-rest/core-client";
+import type { OperationOptions as OperationOptions_1 } from "@typespec/ts-http-runtime";
 
-/** Optional parameters. */
-export interface ReadOptionalParams extends OperationOptions {}
+/**
+ * Optional parameters for the read operation.
+ */
+export interface ReadOptionalParams extends OperationOptions_1 {}
 ```
 
 ## Provide generated operations to call rest-level methods
@@ -30,26 +32,21 @@ export interface ReadOptionalParams extends OperationOptions {}
 Should generate operations correctly:
 
 ```ts operations
+import { ReadOptionalParams as ReadOptionalParams_1 } from "./options.js";
 import {
   Client as Client_1,
   createRestError as createRestError_1,
   expandUrlTemplate as expandUrlTemplate_1,
-  type OperationOptions as OperationOptions_1,
   operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
   type PathUncheckedResponse as PathUncheckedResponse_1,
   type StreamableMethod as StreamableMethod_1,
 } from "@typespec/ts-http-runtime";
 
-/**
- * Optional parameters for the read operation.
- */
-export interface ReadOptionalParams extends OperationOptions_1 {}
-
 export function _readSend(
   context: Client_1,
   strDefault: "foobar",
   numberDefault: 1,
-  options: ReadOptionalParams = { requestOptions: {} },
+  options: ReadOptionalParams_1 = { requestOptions: {} },
 ): StreamableMethod_1 {
   const path = expandUrlTemplate_1(
     "/{strDefault}/{numberDefault}",
@@ -78,13 +75,13 @@ export async function _readDeserialize(
  * @param {Client_1} context
  * @param {"foobar"} strDefault
  * @param {1} numberDefault
- * @param {ReadOptionalParams} options
+ * @param {ReadOptionalParams_1} options
  */
 export async function read(
   context: Client_1,
   strDefault: "foobar",
   numberDefault: 1,
-  options: ReadOptionalParams = { requestOptions: {} },
+  options: ReadOptionalParams_1 = { requestOptions: {} },
 ): Promise<void> {
   const result = await _readSend(context, strDefault, numberDefault, options);
   return _readDeserialize(result);

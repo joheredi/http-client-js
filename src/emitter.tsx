@@ -7,6 +7,7 @@ import { SdkContextProvider } from "./context/sdk-context.js";
 import { FlavorProvider } from "./context/flavor-context.js";
 import { ModelFiles } from "./components/model-files.js";
 import { OperationFiles } from "./components/operation-files.js";
+import { OperationOptionsFiles } from "./components/operation-options-files.js";
 import { ClientContextFile } from "./components/client-context.js";
 import { ClassicalClientFile } from "./components/classical-client.js";
 import { ClassicalOperationGroupFiles } from "./components/classical-operation-groups.js";
@@ -57,6 +58,7 @@ export async function $onEmit(context: EmitContext) {
           <SourceDirectory path="src">
             <ModelFiles />
             <OperationFiles />
+            <OperationOptionsFiles />
             <For each={sdkContext.sdkPackage.clients}>
               {(client) => (
                 <>

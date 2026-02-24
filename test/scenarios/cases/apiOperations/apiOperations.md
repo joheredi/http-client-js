@@ -15,25 +15,20 @@ Api operations should handle contentTypes has binary data
 ## Operations
 
 ```ts operations
+import type { UploadFileViaBodyOptionalParams as UploadFileViaBodyOptionalParams_1 } from "./options.js";
 import {
   type Client as Client_1,
   createRestError as createRestError_1,
-  type OperationOptions as OperationOptions_1,
   operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
   type PathUncheckedResponse as PathUncheckedResponse_1,
   type StreamableMethod as StreamableMethod_1,
 } from "@typespec/ts-http-runtime";
 
-/**
- * Optional parameters for the uploadFileViaBody operation.
- */
-export interface UploadFileViaBodyOptionalParams extends OperationOptions_1 {}
-
 export function _uploadFileViaBodySend(
   context: Client_1,
   contentType: "application/octet-stream",
   body: Uint8Array,
-  options: UploadFileViaBodyOptionalParams = { requestOptions: {} },
+  options: UploadFileViaBodyOptionalParams_1 = { requestOptions: {} },
 ): StreamableMethod_1 {
   return context.path("/uploadFileViaBody").post({
     ...operationOptionsToRequestParameters_1(options),
@@ -57,7 +52,7 @@ export async function uploadFileViaBody(
   context: Client_1,
   contentType: "application/octet-stream",
   body: Uint8Array,
-  options: UploadFileViaBodyOptionalParams = { requestOptions: {} },
+  options: UploadFileViaBodyOptionalParams_1 = { requestOptions: {} },
 ): Promise<void> {
   const result = await _uploadFileViaBodySend(
     context,
@@ -87,25 +82,20 @@ scalar BinaryBytes extends bytes;
 ## Operations
 
 ```ts operations
+import type { UploadFileViaBodyOptionalParams as UploadFileViaBodyOptionalParams_1 } from "./options.js";
 import {
   type Client as Client_1,
   createRestError as createRestError_1,
-  type OperationOptions as OperationOptions_1,
   operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
   type PathUncheckedResponse as PathUncheckedResponse_1,
   type StreamableMethod as StreamableMethod_1,
 } from "@typespec/ts-http-runtime";
 
-/**
- * Optional parameters for the uploadFileViaBody operation.
- */
-export interface UploadFileViaBodyOptionalParams extends OperationOptions_1 {}
-
 export function _uploadFileViaBodySend(
   context: Client_1,
   contentType: "application/octet-stream",
   body: Uint8Array,
-  options: UploadFileViaBodyOptionalParams = { requestOptions: {} },
+  options: UploadFileViaBodyOptionalParams_1 = { requestOptions: {} },
 ): StreamableMethod_1 {
   return context.path("/uploadFileViaBody").post({
     ...operationOptionsToRequestParameters_1(options),
@@ -129,7 +119,7 @@ export async function uploadFileViaBody(
   context: Client_1,
   contentType: "application/octet-stream",
   body: Uint8Array,
-  options: UploadFileViaBodyOptionalParams = { requestOptions: {} },
+  options: UploadFileViaBodyOptionalParams_1 = { requestOptions: {} },
 ): Promise<void> {
   const result = await _uploadFileViaBodySend(
     context,
@@ -193,25 +183,20 @@ import {
   type UploadFileRequest as UploadFileRequest_1,
   uploadFileRequestSerializer as uploadFileRequestSerializer_1,
 } from "../models/models.js";
+import type { UploadFileOptionalParams as UploadFileOptionalParams_1 } from "./options.js";
 import {
   type Client as Client_1,
   createRestError as createRestError_1,
-  type OperationOptions as OperationOptions_1,
   operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
   type PathUncheckedResponse as PathUncheckedResponse_1,
   type StreamableMethod as StreamableMethod_1,
 } from "@typespec/ts-http-runtime";
 
-/**
- * Optional parameters for the uploadFile operation.
- */
-export interface UploadFileOptionalParams extends OperationOptions_1 {}
-
 export function _uploadFileSend(
   context: Client_1,
   contentType: "multipart/form-data",
   body: UploadFileRequest_1,
-  options: UploadFileOptionalParams = { requestOptions: {} },
+  options: UploadFileOptionalParams_1 = { requestOptions: {} },
 ): StreamableMethod_1 {
   return context.path("/uploadFile").post({
     ...operationOptionsToRequestParameters_1(options),
@@ -235,7 +220,7 @@ export async function uploadFile(
   context: Client_1,
   contentType: "multipart/form-data",
   body: UploadFileRequest_1,
-  options: UploadFileOptionalParams = { requestOptions: {} },
+  options: UploadFileOptionalParams_1 = { requestOptions: {} },
 ): Promise<void> {
   const result = await _uploadFileSend(context, contentType, body, options);
   return _uploadFileDeserialize(result);
@@ -284,25 +269,20 @@ import {
   type UploadFilesRequest as UploadFilesRequest_1,
   uploadFilesRequestSerializer as uploadFilesRequestSerializer_1,
 } from "../models/models.js";
+import type { UploadFilesOptionalParams as UploadFilesOptionalParams_1 } from "./options.js";
 import {
   type Client as Client_1,
   createRestError as createRestError_1,
-  type OperationOptions as OperationOptions_1,
   operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
   type PathUncheckedResponse as PathUncheckedResponse_1,
   type StreamableMethod as StreamableMethod_1,
 } from "@typespec/ts-http-runtime";
 
-/**
- * Optional parameters for the uploadFiles operation.
- */
-export interface UploadFilesOptionalParams extends OperationOptions_1 {}
-
 export function _uploadFilesSend(
   context: Client_1,
   contentType: "multipart/form-data",
   body: UploadFilesRequest_1,
-  options: UploadFilesOptionalParams = { requestOptions: {} },
+  options: UploadFilesOptionalParams_1 = { requestOptions: {} },
 ): StreamableMethod_1 {
   return context.path("/uploadFiles").post({
     ...operationOptionsToRequestParameters_1(options),
@@ -326,7 +306,7 @@ export async function uploadFiles(
   context: Client_1,
   contentType: "multipart/form-data",
   body: UploadFilesRequest_1,
-  options: UploadFilesOptionalParams = { requestOptions: {} },
+  options: UploadFilesOptionalParams_1 = { requestOptions: {} },
 ): Promise<void> {
   const result = await _uploadFilesSend(context, contentType, body, options);
   return _uploadFilesDeserialize(result);
@@ -349,24 +329,19 @@ op downloadFile(): {
 ## Operations
 
 ```ts operations
+import type { DownloadFileOptionalParams as DownloadFileOptionalParams_1 } from "./options.js";
 import {
   type Client as Client_1,
   createRestError as createRestError_1,
-  type OperationOptions as OperationOptions_1,
   operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
   type PathUncheckedResponse as PathUncheckedResponse_1,
   type StreamableMethod as StreamableMethod_1,
   stringToUint8Array as stringToUint8Array_1,
 } from "@typespec/ts-http-runtime";
 
-/**
- * Optional parameters for the downloadFile operation.
- */
-export interface DownloadFileOptionalParams extends OperationOptions_1 {}
-
 export function _downloadFileSend(
   context: Client_1,
-  options: DownloadFileOptionalParams = { requestOptions: {} },
+  options: DownloadFileOptionalParams_1 = { requestOptions: {} },
 ): StreamableMethod_1 {
   return context.path("/downloadFile").post({
     ...operationOptionsToRequestParameters_1(options),
@@ -390,7 +365,7 @@ export async function _downloadFileDeserialize(
 
 export async function downloadFile(
   context: Client_1,
-  options: DownloadFileOptionalParams = { requestOptions: {} },
+  options: DownloadFileOptionalParams_1 = { requestOptions: {} },
 ): Promise<Uint8Array> {
   const result = await _downloadFileSend(context, options);
   return _downloadFileDeserialize(result);
@@ -416,24 +391,19 @@ op downloadFile(): {
 ## Operations
 
 ```ts operations
+import type { DownloadFileOptionalParams as DownloadFileOptionalParams_1 } from "./options.js";
 import {
   type Client as Client_1,
   createRestError as createRestError_1,
-  type OperationOptions as OperationOptions_1,
   operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
   type PathUncheckedResponse as PathUncheckedResponse_1,
   type StreamableMethod as StreamableMethod_1,
   stringToUint8Array as stringToUint8Array_1,
 } from "@typespec/ts-http-runtime";
 
-/**
- * Optional parameters for the downloadFile operation.
- */
-export interface DownloadFileOptionalParams extends OperationOptions_1 {}
-
 export function _downloadFileSend(
   context: Client_1,
-  options: DownloadFileOptionalParams = { requestOptions: {} },
+  options: DownloadFileOptionalParams_1 = { requestOptions: {} },
 ): StreamableMethod_1 {
   return context.path("/downloadFile").post({
     ...operationOptionsToRequestParameters_1(options),
@@ -457,7 +427,7 @@ export async function _downloadFileDeserialize(
 
 export async function downloadFile(
   context: Client_1,
-  options: DownloadFileOptionalParams = { requestOptions: {} },
+  options: DownloadFileOptionalParams_1 = { requestOptions: {} },
 ): Promise<Uint8Array> {
   const result = await _downloadFileSend(context, options);
   return _downloadFileDeserialize(result);
@@ -481,25 +451,20 @@ Api operations should handle contentTypes has default value
 ## Operations
 
 ```ts operations
+import type { UploadFileViaBodyOptionalParams as UploadFileViaBodyOptionalParams_1 } from "./options.js";
 import {
   type Client as Client_1,
   createRestError as createRestError_1,
-  type OperationOptions as OperationOptions_1,
   operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
   type PathUncheckedResponse as PathUncheckedResponse_1,
   type StreamableMethod as StreamableMethod_1,
 } from "@typespec/ts-http-runtime";
 
-/**
- * Optional parameters for the uploadFileViaBody operation.
- */
-export interface UploadFileViaBodyOptionalParams extends OperationOptions_1 {}
-
 export function _uploadFileViaBodySend(
   context: Client_1,
   contentType: string,
   body: Uint8Array,
-  options: UploadFileViaBodyOptionalParams = { requestOptions: {} },
+  options: UploadFileViaBodyOptionalParams_1 = { requestOptions: {} },
 ): StreamableMethod_1 {
   return context.path("/uploadFileViaBody").post({
     ...operationOptionsToRequestParameters_1(options),
@@ -523,7 +488,7 @@ export async function uploadFileViaBody(
   context: Client_1,
   contentType: string,
   body: Uint8Array,
-  options: UploadFileViaBodyOptionalParams = { requestOptions: {} },
+  options: UploadFileViaBodyOptionalParams_1 = { requestOptions: {} },
 ): Promise<void> {
   const result = await _uploadFileViaBodySend(
     context,
@@ -550,25 +515,20 @@ op test(...ApiVersionParameter): string;
 ## Operations
 
 ```ts operations
+import type { TestOptionalParams as TestOptionalParams_1 } from "./options.js";
 import {
   type Client as Client_1,
   createRestError as createRestError_1,
   expandUrlTemplate as expandUrlTemplate_1,
-  type OperationOptions as OperationOptions_1,
   operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
   type PathUncheckedResponse as PathUncheckedResponse_1,
   type StreamableMethod as StreamableMethod_1,
 } from "@typespec/ts-http-runtime";
 
-/**
- * Optional parameters for the test operation.
- */
-export interface TestOptionalParams extends OperationOptions_1 {}
-
 export function _testSend(
   context: Client_1,
   apiVersion: string,
-  options: TestOptionalParams = { requestOptions: {} },
+  options: TestOptionalParams_1 = { requestOptions: {} },
 ): StreamableMethod_1 {
   const path = expandUrlTemplate_1(
     "/{?api%2Dversion}",
@@ -595,7 +555,7 @@ export async function _testDeserialize(
 export async function test(
   context: Client_1,
   apiVersion: string,
-  options: TestOptionalParams = { requestOptions: {} },
+  options: TestOptionalParams_1 = { requestOptions: {} },
 ): Promise<string> {
   const result = await _testSend(context, api - version, options);
   return _testDeserialize(result);
@@ -624,10 +584,8 @@ export function createTestService(
 ## classicClient
 
 ```ts classicClient
-import {
-  test as test_1,
-  type TestOptionalParams as TestOptionalParams_1,
-} from "./api/operations.js";
+import { test as test_1 } from "./api/operations.js";
+import type { TestOptionalParams as TestOptionalParams_1 } from "./api/options.js";
 import {
   createTestService as createTestService_1,
   type TestServiceClientOptionalParams as TestServiceClientOptionalParams_1,
@@ -681,25 +639,20 @@ withRawContent: false
 ## Operations
 
 ```ts operations
+import type { TestOptionalParams as TestOptionalParams_1 } from "./options.js";
 import {
   type Client as Client_1,
   createRestError as createRestError_1,
   expandUrlTemplate as expandUrlTemplate_1,
-  type OperationOptions as OperationOptions_1,
   operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
   type PathUncheckedResponse as PathUncheckedResponse_1,
   type StreamableMethod as StreamableMethod_1,
 } from "@typespec/ts-http-runtime";
 
-/**
- * Optional parameters for the test operation.
- */
-export interface TestOptionalParams extends OperationOptions_1 {}
-
 export function _testSend(
   context: Client_1,
   apiVersion: string,
-  options: TestOptionalParams = { requestOptions: {} },
+  options: TestOptionalParams_1 = { requestOptions: {} },
 ): StreamableMethod_1 {
   const path = expandUrlTemplate_1(
     "/{?api%2Dversion}",
@@ -726,7 +679,7 @@ export async function _testDeserialize(
 export async function test(
   context: Client_1,
   apiVersion: string,
-  options: TestOptionalParams = { requestOptions: {} },
+  options: TestOptionalParams_1 = { requestOptions: {} },
 ): Promise<string> {
   const result = await _testSend(context, api - version, options);
   return _testDeserialize(result);
@@ -755,10 +708,8 @@ export function createTestService(
 ## classicClient
 
 ```ts classicClient
-import {
-  test as test_1,
-  type TestOptionalParams as TestOptionalParams_1,
-} from "./api/operations.js";
+import { test as test_1 } from "./api/operations.js";
+import type { TestOptionalParams as TestOptionalParams_1 } from "./api/options.js";
 import {
   createTestService as createTestService_1,
   type TestServiceClientOptionalParams as TestServiceClientOptionalParams_1,
@@ -806,25 +757,23 @@ op test1(): string;
 ## Operations
 
 ```ts operations
+import type {
+  Test1OptionalParams as Test1OptionalParams_1,
+  TestOptionalParams as TestOptionalParams_1,
+} from "./options.js";
 import {
   type Client as Client_1,
   createRestError as createRestError_1,
   expandUrlTemplate as expandUrlTemplate_1,
-  type OperationOptions as OperationOptions_1,
   operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
   type PathUncheckedResponse as PathUncheckedResponse_1,
   type StreamableMethod as StreamableMethod_1,
 } from "@typespec/ts-http-runtime";
 
-/**
- * Optional parameters for the test operation.
- */
-export interface TestOptionalParams extends OperationOptions_1 {}
-
 export function _testSend(
   context: Client_1,
   apiVersion: string,
-  options: TestOptionalParams = { requestOptions: {} },
+  options: TestOptionalParams_1 = { requestOptions: {} },
 ): StreamableMethod_1 {
   const path = expandUrlTemplate_1(
     "/test{?api%2Dversion}",
@@ -851,20 +800,15 @@ export async function _testDeserialize(
 export async function test(
   context: Client_1,
   apiVersion: string,
-  options: TestOptionalParams = { requestOptions: {} },
+  options: TestOptionalParams_1 = { requestOptions: {} },
 ): Promise<string> {
   const result = await _testSend(context, api - version, options);
   return _testDeserialize(result);
 }
 
-/**
- * Optional parameters for the test1 operation.
- */
-export interface Test1OptionalParams extends OperationOptions_1 {}
-
 export function _test1Send(
   context: Client_1,
-  options: Test1OptionalParams = { requestOptions: {} },
+  options: Test1OptionalParams_1 = { requestOptions: {} },
 ): StreamableMethod_1 {
   return context.path("/test1").get({
     ...operationOptionsToRequestParameters_1(options),
@@ -885,7 +829,7 @@ export async function _test1Deserialize(
 
 export async function test1(
   context: Client_1,
-  options: Test1OptionalParams = { requestOptions: {} },
+  options: Test1OptionalParams_1 = { requestOptions: {} },
 ): Promise<string> {
   const result = await _test1Send(context, options);
   return _test1Deserialize(result);
@@ -914,12 +858,11 @@ export function createTestService(
 ## classicClient
 
 ```ts classicClient
-import {
-  test as test_1,
-  test1 as test1_1,
-  type Test1OptionalParams as Test1OptionalParams_1,
-  type TestOptionalParams as TestOptionalParams_1,
-} from "./api/operations.js";
+import { test as test_1, test1 as test1_1 } from "./api/operations.js";
+import type {
+  Test1OptionalParams as Test1OptionalParams_1,
+  TestOptionalParams as TestOptionalParams_1,
+} from "./api/options.js";
 import {
   createTestService as createTestService_1,
   type TestServiceClientOptionalParams as TestServiceClientOptionalParams_1,

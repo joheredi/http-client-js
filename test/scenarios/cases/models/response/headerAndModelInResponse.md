@@ -29,7 +29,7 @@ export interface User {
 ```ts operations function getUser
 export async function getUser(
   context: Client_1,
-  options: GetUserOptionalParams = { requestOptions: {} },
+  options: GetUserOptionalParams_1 = { requestOptions: {} },
 ): Promise<User_1> {
   const result = await _getUserSend(context, options);
   return _getUserDeserialize(result);

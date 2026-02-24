@@ -1016,3 +1016,19 @@ generate header deserialization functions. The `emitForScenario()` test utility 
 config keys to emitter options.
 
 **Date:** 2026-02-24
+
+## Alloy toRenderTo Matcher: Exact File Key Matching
+
+When using `expect(template).toRenderTo({ ... })`, the matcher requires ALL files
+in the rendered output to be specified in the expected object. If the template renders
+`api/operations.ts` and `api/options.ts`, you must include both files in the expected
+object, even if you only care about one. Use `expect.stringContaining()` for files
+you don't want to assert fully.
+
+## Test Harness Regex: Subdirectory Matching for Legacy Categories
+
+The scenario test harness uses regex patterns to match output files to legacy categories.
+When operations are grouped (e.g., `interface Widgets { ... }`), files go into subdirectories
+like `api/widgets/options.ts`. The regex must account for subdirectories:
+- Wrong: `/api\/options\.ts$/` — only matches `api/options.ts`
+- Right: `/api\/.*options\.ts$/` — matches `api/options.ts` and `api/widgets/options.ts`

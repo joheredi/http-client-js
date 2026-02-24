@@ -44,34 +44,31 @@ withRawContent: true
 The options interface should be correctly generated:
 
 ```ts models:withOptions
-import { OperationOptions } from "@azure-rest/core-client";
-
-/** Optional parameters. */
-export interface GetSecretOriginalOptionalParams extends OperationOptions {}
-```
-
-## Operations
-
-```ts operations
-import {
-  type Client as Client_1,
-  createRestError as createRestError_1,
-  expandUrlTemplate as expandUrlTemplate_1,
-  type OperationOptions as OperationOptions_1,
-  operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
-  type PathUncheckedResponse as PathUncheckedResponse_1,
-  type StreamableMethod as StreamableMethod_1,
-} from "@typespec/ts-http-runtime";
+import type { OperationOptions as OperationOptions_1 } from "@typespec/ts-http-runtime";
 
 /**
  * Optional parameters for the getSecretOriginal operation.
  */
 export interface GetSecretOriginalOptionalParams extends OperationOptions_1 {}
+```
+
+## Operations
+
+```ts operations
+import type { GetSecretOriginalOptionalParams as GetSecretOriginalOptionalParams_1 } from "./options.js";
+import {
+  type Client as Client_1,
+  createRestError as createRestError_1,
+  expandUrlTemplate as expandUrlTemplate_1,
+  operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
+  type PathUncheckedResponse as PathUncheckedResponse_1,
+  type StreamableMethod as StreamableMethod_1,
+} from "@typespec/ts-http-runtime";
 
 export function _getSecretOriginalSend(
   context: Client_1,
   secretName: string,
-  options: GetSecretOriginalOptionalParams = { requestOptions: {} },
+  options: GetSecretOriginalOptionalParams_1 = { requestOptions: {} },
 ): StreamableMethod_1 {
   const path = expandUrlTemplate_1(
     "/secrets/{secretName}{?outContentType}",
@@ -97,7 +94,7 @@ export async function _getSecretOriginalDeserialize(
 export async function getSecretOriginal(
   context: Client_1,
   secretName: string,
-  options: GetSecretOriginalOptionalParams = { requestOptions: {} },
+  options: GetSecretOriginalOptionalParams_1 = { requestOptions: {} },
 ): Promise<void> {
   const result = await _getSecretOriginalSend(context, secretName, options);
   return _getSecretOriginalDeserialize(result);
@@ -284,27 +281,7 @@ withRawContent: true
 The options interface should only include parameters that exist in the override operation:
 
 ```ts models:withOptions
-import { OperationOptions } from "@azure-rest/core-client";
-
-/** Optional parameters. */
-export interface RemoveOptionalOriginalOptionalParams extends OperationOptions {
-  param2?: string;
-  param4?: string;
-}
-```
-
-## Operations
-
-```ts operations
-import {
-  type Client as Client_1,
-  createRestError as createRestError_1,
-  expandUrlTemplate as expandUrlTemplate_1,
-  type OperationOptions as OperationOptions_1,
-  operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
-  type PathUncheckedResponse as PathUncheckedResponse_1,
-  type StreamableMethod as StreamableMethod_1,
-} from "@typespec/ts-http-runtime";
+import type { OperationOptions as OperationOptions_1 } from "@typespec/ts-http-runtime";
 
 /**
  * Optional parameters for the removeOptionalOriginal operation.
@@ -313,11 +290,25 @@ export interface RemoveOptionalOriginalOptionalParams extends OperationOptions_1
   param2?: string;
   param4?: string;
 }
+```
+
+## Operations
+
+```ts operations
+import type { RemoveOptionalOriginalOptionalParams as RemoveOptionalOriginalOptionalParams_1 } from "./options.js";
+import {
+  type Client as Client_1,
+  createRestError as createRestError_1,
+  expandUrlTemplate as expandUrlTemplate_1,
+  operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
+  type PathUncheckedResponse as PathUncheckedResponse_1,
+  type StreamableMethod as StreamableMethod_1,
+} from "@typespec/ts-http-runtime";
 
 export function _removeOptionalOriginalSend(
   context: Client_1,
   param1: string,
-  options: RemoveOptionalOriginalOptionalParams = { requestOptions: {} },
+  options: RemoveOptionalOriginalOptionalParams_1 = { requestOptions: {} },
 ): StreamableMethod_1 {
   const path = expandUrlTemplate_1(
     "/remove-optional/{param1}{?param2,param3}",
@@ -348,7 +339,7 @@ export async function _removeOptionalOriginalDeserialize(
 export async function removeOptionalOriginal(
   context: Client_1,
   param1: string,
-  options: RemoveOptionalOriginalOptionalParams = { requestOptions: {} },
+  options: RemoveOptionalOriginalOptionalParams_1 = { requestOptions: {} },
 ): Promise<void> {
   const result = await _removeOptionalOriginalSend(context, param1, options);
   return _removeOptionalOriginalDeserialize(result);

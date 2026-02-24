@@ -212,7 +212,7 @@ type ScenarioCodeBlock =
  */
 const LEGACY_CATEGORIES: Record<string, (outputs: Record<string, string>) => string | undefined> = {
   models: (outputs) => findOutputFile(outputs, /models\/models\.ts$/),
-  "models:withOptions": (outputs) => findOutputFile(outputs, /api\/options\.ts$/),
+  "models:withOptions": (outputs) => findOutputFile(outputs, /api\/.*options\.ts$/),
   operations: (outputs) => findOutputFile(outputs, /api\/operations\.ts$/),
   clientContext: (outputs) => findOutputFile(outputs, /Context\.ts$/),
   classicClient: (outputs) =>

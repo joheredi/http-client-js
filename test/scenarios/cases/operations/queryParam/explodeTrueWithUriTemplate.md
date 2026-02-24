@@ -22,25 +22,24 @@ op `record`(param: Record<int32>): void;
 Should enable URI template parse for parameters:
 
 ```ts operations
+import type {
+  ArrayOptionalParams as ArrayOptionalParams_1,
+  PrimitiveOptionalParams as PrimitiveOptionalParams_1,
+  RecordOptionalParams as RecordOptionalParams_1,
+} from "./options.js";
 import {
   type Client as Client_1,
   createRestError as createRestError_1,
   expandUrlTemplate as expandUrlTemplate_1,
-  type OperationOptions as OperationOptions_1,
   operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
   type PathUncheckedResponse as PathUncheckedResponse_1,
   type StreamableMethod as StreamableMethod_1,
 } from "@typespec/ts-http-runtime";
 
-/**
- * Optional parameters for the primitive operation.
- */
-export interface PrimitiveOptionalParams extends OperationOptions_1 {}
-
 export function _primitiveSend(
   context: Client_1,
   param: string,
-  options: PrimitiveOptionalParams = { requestOptions: {} },
+  options: PrimitiveOptionalParams_1 = { requestOptions: {} },
 ): StreamableMethod_1 {
   const path = expandUrlTemplate_1(
     "/primitive?fixed=true{&param*}",
@@ -66,21 +65,16 @@ export async function _primitiveDeserialize(
 export async function primitive(
   context: Client_1,
   param: string,
-  options: PrimitiveOptionalParams = { requestOptions: {} },
+  options: PrimitiveOptionalParams_1 = { requestOptions: {} },
 ): Promise<void> {
   const result = await _primitiveSend(context, param, options);
   return _primitiveDeserialize(result);
 }
 
-/**
- * Optional parameters for the array operation.
- */
-export interface ArrayOptionalParams extends OperationOptions_1 {}
-
 export function _arraySend(
   context: Client_1,
   param: string[],
-  options: ArrayOptionalParams = { requestOptions: {} },
+  options: ArrayOptionalParams_1 = { requestOptions: {} },
 ): StreamableMethod_1 {
   const path = expandUrlTemplate_1(
     "/array?fixed=true{&param*}",
@@ -106,21 +100,16 @@ export async function _arrayDeserialize(
 export async function array(
   context: Client_1,
   param: string[],
-  options: ArrayOptionalParams = { requestOptions: {} },
+  options: ArrayOptionalParams_1 = { requestOptions: {} },
 ): Promise<void> {
   const result = await _arraySend(context, param, options);
   return _arrayDeserialize(result);
 }
 
-/**
- * Optional parameters for the record operation.
- */
-export interface RecordOptionalParams extends OperationOptions_1 {}
-
 export function _recordSend(
   context: Client_1,
   param: Record<string, number>,
-  options: RecordOptionalParams = { requestOptions: {} },
+  options: RecordOptionalParams_1 = { requestOptions: {} },
 ): StreamableMethod_1 {
   const path = expandUrlTemplate_1(
     "/record?fixed=true{&param*}",
@@ -146,7 +135,7 @@ export async function _recordDeserialize(
 export async function record(
   context: Client_1,
   param: Record<string, number>,
-  options: RecordOptionalParams = { requestOptions: {} },
+  options: RecordOptionalParams_1 = { requestOptions: {} },
 ): Promise<void> {
   const result = await _recordSend(context, param, options);
   return _recordDeserialize(result);

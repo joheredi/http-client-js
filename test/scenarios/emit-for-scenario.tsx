@@ -19,6 +19,7 @@ import { FlavorProvider } from "../../src/context/flavor-context.js";
 import { EmitterOptionsProvider } from "../../src/context/emitter-options-context.js";
 import { ModelFiles } from "../../src/components/model-files.js";
 import { OperationFiles } from "../../src/components/operation-files.js";
+import { OperationOptionsFiles } from "../../src/components/operation-options-files.js";
 import { ClientContextFile } from "../../src/components/client-context.js";
 import { ClassicalClientFile } from "../../src/components/classical-client.js";
 import { ClassicalOperationGroupFiles } from "../../src/components/classical-operation-groups.js";
@@ -196,6 +197,7 @@ ${x}
             <SourceDirectory path="src">
               <ModelFiles />
               <OperationFiles />
+              <OperationOptionsFiles />
               <For each={sdkContext.sdkPackage.clients}>
                 {(client) => (
                   <>

@@ -31,28 +31,24 @@ op required(...RequiredSelectQueryParameter): void;
 Should enable URI template parse for parameters:
 
 ```ts operations
+import type {
+  OptionalOptionalParams as OptionalOptionalParams_1,
+  RequiredOptionalParams as RequiredOptionalParams_1,
+} from "./options.js";
 import {
   type Client as Client_1,
   createRestError as createRestError_1,
   expandUrlTemplate as expandUrlTemplate_1,
-  type OperationOptions as OperationOptions_1,
   operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
   type PathUncheckedResponse as PathUncheckedResponse_1,
   type StreamableMethod as StreamableMethod_1,
 } from "@typespec/ts-http-runtime";
 
-/**
- * Optional parameters for the optional operation.
- */
-export interface OptionalOptionalParams extends OperationOptions_1 {
-  select?: string[];
-}
-
 export function _optionalSend(
   context: Client_1,
   foo: string,
   apiVersion: string,
-  options: OptionalOptionalParams = { requestOptions: {} },
+  options: OptionalOptionalParams_1 = { requestOptions: {} },
 ): StreamableMethod_1 {
   const path = expandUrlTemplate_1(
     "/annotation/optional{?select*,bar,api%2Dversion}",
@@ -79,21 +75,16 @@ export async function optional(
   context: Client_1,
   foo: string,
   apiVersion: string,
-  options: OptionalOptionalParams = { requestOptions: {} },
+  options: OptionalOptionalParams_1 = { requestOptions: {} },
 ): Promise<void> {
   const result = await _optionalSend(context, foo, api - version, options);
   return _optionalDeserialize(result);
 }
 
-/**
- * Optional parameters for the required operation.
- */
-export interface RequiredOptionalParams extends OperationOptions_1 {}
-
 export function _requiredSend(
   context: Client_1,
   select: string[],
-  options: RequiredOptionalParams = { requestOptions: {} },
+  options: RequiredOptionalParams_1 = { requestOptions: {} },
 ): StreamableMethod_1 {
   const path = expandUrlTemplate_1(
     "/annotation/required{?select*}",
@@ -119,7 +110,7 @@ export async function _requiredDeserialize(
 export async function required(
   context: Client_1,
   select: string[],
-  options: RequiredOptionalParams = { requestOptions: {} },
+  options: RequiredOptionalParams_1 = { requestOptions: {} },
 ): Promise<void> {
   const result = await _requiredSend(context, select, options);
   return _requiredDeserialize(result);

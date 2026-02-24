@@ -22,6 +22,7 @@ export { DeserializeOperation } from "./deserialize-operation.js";
 export { DeserializeHeaders, DeserializeExceptionHeaders } from "./deserialize-headers.js";
 export { PublicOperation } from "./public-operation.js";
 export { OperationFiles } from "./operation-files.js";
+export { OperationOptionsFiles } from "./operation-options-files.js";
 export {
   ClientContextFile,
   ClientContextDeclaration,

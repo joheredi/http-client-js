@@ -26,7 +26,7 @@ export function _getResultFileSend(
   context: Client_1,
   operationId: string,
   path: string,
-  options: GetResultFileOptionalParams = { requestOptions: {} },
+  options: GetResultFileOptionalParams_1 = { requestOptions: {} },
 ): StreamableMethod_1 {
   const path = expandUrlTemplate_1(
     "/analyzerResults/{operationId}/files/{+path}",

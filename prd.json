@@ -1492,7 +1492,7 @@
         {
           "id": "10.4",
           "title": "Fix `models:withOptions` category resolution (14 failures)",
-          "status": "not_started",
+          "status": "done",
           "description": "14 tests fail with 'No output file found for legacy category models:withOptions'. The test harness resolves 'models:withOptions' using regex `/api\\/options\\.ts$/` expecting a file like `src/api/options.ts`. The new emitter doesn't generate a separate options file; operation options interfaces are generated inside the operation files (e.g., `src/api/<group>/operations.ts`). Fix options: (a) update the harness to look for options in operation files, (b) generate a separate options.ts file, or (c) update the harness to concatenate operation files and search for option interfaces within them.",
           "failure_count": 14,
           "affected_scenarios": [
@@ -1508,7 +1508,8 @@
             "samples/parameters/bodyOptionalParameterName.md"
           ],
           "error_pattern": "No output file found for legacy category \"models:withOptions\"",
-          "component": "test/scenarios/scenario-harness.ts (LEGACY_CATEGORIES['models:withOptions'])"
+          "component": "test/scenarios/scenario-harness.ts (LEGACY_CATEGORIES['models:withOptions'])",
+          "pass": true
         },
         {
           "id": "10.5",

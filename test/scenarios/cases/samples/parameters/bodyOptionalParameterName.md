@@ -120,15 +120,21 @@ Raw json files.
 Generated operation options.
 
 ```ts models:withOptions
-import { BackupRequestProperties } from "../models/models.js";
-import { OperationOptions } from "@azure-rest/core-client";
+import type { BackupRequestProperties as BackupRequestProperties_1 } from "../models/models.js";
+import type { OperationOptions as OperationOptions_1 } from "@typespec/ts-http-runtime";
 
-/** Optional parameters. */
-export interface BackupOptionalParams extends OperationOptions {
-  /** Delay to wait until next poll, in milliseconds. */
+/**
+ * Optional parameters for the backup operation.
+ */
+export interface BackupOptionalParams extends OperationOptions_1 {
+  /**
+   * Delay to wait until next poll, in milliseconds.
+   */
   updateIntervalInMs?: number;
-  /** The content of the action request */
-  backupRequestProperties?: BackupRequestProperties;
+  /**
+   * The content of the action request
+   */
+  backupRequestProperties?: BackupRequestProperties_1;
 }
 ```
 

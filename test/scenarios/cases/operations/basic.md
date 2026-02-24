@@ -16,7 +16,7 @@ Should generate the public operation function.
 ```ts src/api/operations.ts function getWidget
 export async function getWidget(
   context: Client_1,
-  options: GetWidgetOptionalParams = { requestOptions: {} },
+  options: GetWidgetOptionalParams_1 = { requestOptions: {} },
 ): Promise<Widget_1> {
   const result = await _getWidgetSend(context, options);
   return _getWidgetDeserialize(result);
@@ -40,7 +40,7 @@ model Widget {
 export async function createWidget(
   context: Client_1,
   body: Widget_1,
-  options: CreateWidgetOptionalParams = { requestOptions: {} },
+  options: CreateWidgetOptionalParams_1 = { requestOptions: {} },
 ): Promise<Widget_1> {
   const result = await _createWidgetSend(context, body, options);
   return _createWidgetDeserialize(result);

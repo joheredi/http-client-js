@@ -54,20 +54,15 @@ import {
   type KeyBundle as KeyBundle_1,
   keyBundleDeserializer as keyBundleDeserializer_1,
 } from "../models/models.js";
+import { UpdateKeyOptionalParams as UpdateKeyOptionalParams_1 } from "./options.js";
 import {
   Client as Client_1,
   createRestError as createRestError_1,
   expandUrlTemplate as expandUrlTemplate_1,
-  type OperationOptions as OperationOptions_1,
   operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
   type PathUncheckedResponse as PathUncheckedResponse_1,
   type StreamableMethod as StreamableMethod_1,
 } from "@typespec/ts-http-runtime";
-
-/**
- * Optional parameters for the updateKey operation.
- */
-export interface UpdateKeyOptionalParams extends OperationOptions_1 {}
 
 export function _updateKeySend(
   context: Client_1,
@@ -75,7 +70,7 @@ export function _updateKeySend(
   keyName: string,
   keyVersion: string,
   parameters: string,
-  options: UpdateKeyOptionalParams = { requestOptions: {} },
+  options: UpdateKeyOptionalParams_1 = { requestOptions: {} },
 ): StreamableMethod_1 {
   const path = expandUrlTemplate_1(
     "/keys/{key-name}/{key-version}{?api%2Dversion}",
@@ -116,7 +111,7 @@ export async function _updateKeyDeserialize(
  * @param {string} keyName
  * @param {string} keyVersion
  * @param {string} parameters
- * @param {UpdateKeyOptionalParams} options
+ * @param {UpdateKeyOptionalParams_1} options
  */
 export async function updateKey(
   context: Client_1,
@@ -124,7 +119,7 @@ export async function updateKey(
   keyName: string,
   keyVersion: string,
   parameters: string,
-  options: UpdateKeyOptionalParams = { requestOptions: {} },
+  options: UpdateKeyOptionalParams_1 = { requestOptions: {} },
 ): Promise<KeyBundle_1> {
   const result = await _updateKeySend(
     context,

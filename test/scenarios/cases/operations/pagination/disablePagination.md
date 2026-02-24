@@ -80,23 +80,21 @@ import {
   type ListTestResult as ListTestResult_1,
   listTestResultDeserializer as listTestResultDeserializer_1,
 } from "../models/models.js";
+import type {
+  BarOptionalParams as BarOptionalParams_1,
+  FooOptionalParams as FooOptionalParams_1,
+} from "./options.js";
 import {
   type Client as Client_1,
   createRestError as createRestError_1,
-  type OperationOptions as OperationOptions_1,
   operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
   type PathUncheckedResponse as PathUncheckedResponse_1,
   type StreamableMethod as StreamableMethod_1,
 } from "@typespec/ts-http-runtime";
 
-/**
- * Optional parameters for the bar operation.
- */
-export interface BarOptionalParams extends OperationOptions_1 {}
-
 export function _barSend(
   context: Client_1,
-  options: BarOptionalParams = { requestOptions: {} },
+  options: BarOptionalParams_1 = { requestOptions: {} },
 ): StreamableMethod_1 {
   return context.path("/list-get").post({
     ...operationOptionsToRequestParameters_1(options),
@@ -120,20 +118,15 @@ export async function _barDeserialize(
 
 export async function bar(
   context: Client_1,
-  options: BarOptionalParams = { requestOptions: {} },
+  options: BarOptionalParams_1 = { requestOptions: {} },
 ): Promise<ListTestResult_1> {
   const result = await _barSend(context, options);
   return _barDeserialize(result);
 }
 
-/**
- * Optional parameters for the foo operation.
- */
-export interface FooOptionalParams extends OperationOptions_1 {}
-
 export function _fooSend(
   context: Client_1,
-  options: FooOptionalParams = { requestOptions: {} },
+  options: FooOptionalParams_1 = { requestOptions: {} },
 ): StreamableMethod_1 {
   return context.path("/list-post").post({
     ...operationOptionsToRequestParameters_1(options),
@@ -157,7 +150,7 @@ export async function _fooDeserialize(
 
 export async function foo(
   context: Client_1,
-  options: FooOptionalParams = { requestOptions: {} },
+  options: FooOptionalParams_1 = { requestOptions: {} },
 ): Promise<ListTestResult_1> {
   const result = await _fooSend(context, options);
   return _fooDeserialize(result);

@@ -16,25 +16,20 @@ op template(param: string): void;
 Should enable `allowReserved:true` for path parameter:
 
 ```ts operations
+import type { TemplateOptionalParams as TemplateOptionalParams_1 } from "./options.js";
 import {
   type Client as Client_1,
   createRestError as createRestError_1,
   expandUrlTemplate as expandUrlTemplate_1,
-  type OperationOptions as OperationOptions_1,
   operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
   type PathUncheckedResponse as PathUncheckedResponse_1,
   type StreamableMethod as StreamableMethod_1,
 } from "@typespec/ts-http-runtime";
 
-/**
- * Optional parameters for the template operation.
- */
-export interface TemplateOptionalParams extends OperationOptions_1 {}
-
 export function _templateSend(
   context: Client_1,
   param: string,
-  options: TemplateOptionalParams = { requestOptions: {} },
+  options: TemplateOptionalParams_1 = { requestOptions: {} },
 ): StreamableMethod_1 {
   const path = expandUrlTemplate_1(
     "/template/{+param}",
@@ -60,7 +55,7 @@ export async function _templateDeserialize(
 export async function template(
   context: Client_1,
   param: string,
-  options: TemplateOptionalParams = { requestOptions: {} },
+  options: TemplateOptionalParams_1 = { requestOptions: {} },
 ): Promise<void> {
   const result = await _templateSend(context, param, options);
   return _templateDeserialize(result);

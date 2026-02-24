@@ -336,24 +336,19 @@ model StreamingChatCompletionOptions {
 ## Operations
 
 ```ts operations
+import type { CreateStreamingOptionalParams as CreateStreamingOptionalParams_1 } from "./options.js";
 import {
   type Client as Client_1,
   createRestError as createRestError_1,
-  type OperationOptions as OperationOptions_1,
   operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
   type PathUncheckedResponse as PathUncheckedResponse_1,
   type StreamableMethod as StreamableMethod_1,
 } from "@typespec/ts-http-runtime";
 
-/**
- * Optional parameters for the createStreaming operation.
- */
-export interface CreateStreamingOptionalParams extends OperationOptions_1 {}
-
 export function _createStreamingSend(
   context: Client_1,
   stream: true,
-  options: CreateStreamingOptionalParams = { requestOptions: {} },
+  options: CreateStreamingOptionalParams_1 = { requestOptions: {} },
 ): StreamableMethod_1 {
   return context.path("/createStreaming").post({
     ...operationOptionsToRequestParameters_1(options),
@@ -376,7 +371,7 @@ export async function _createStreamingDeserialize(
 export async function createStreaming(
   context: Client_1,
   stream: true,
-  options: CreateStreamingOptionalParams = { requestOptions: {} },
+  options: CreateStreamingOptionalParams_1 = { requestOptions: {} },
 ): Promise<void> {
   const result = await _createStreamingSend(context, stream, options);
   return _createStreamingDeserialize(result);
@@ -442,24 +437,19 @@ import {
   fooDeserializer as fooDeserializer_1,
   fooSerializer as fooSerializer_1,
 } from "../models/models.js";
+import type { ReadOptionalParams as ReadOptionalParams_1 } from "./options.js";
 import {
   type Client as Client_1,
   createRestError as createRestError_1,
-  type OperationOptions as OperationOptions_1,
   operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
   type PathUncheckedResponse as PathUncheckedResponse_1,
   type StreamableMethod as StreamableMethod_1,
 } from "@typespec/ts-http-runtime";
 
-/**
- * Optional parameters for the read operation.
- */
-export interface ReadOptionalParams extends OperationOptions_1 {}
-
 export function _readSend(
   context: Client_1,
   body: Foo_1,
-  options: ReadOptionalParams = { requestOptions: {} },
+  options: ReadOptionalParams_1 = { requestOptions: {} },
 ): StreamableMethod_1 {
   return context.path("/").post({
     ...operationOptionsToRequestParameters_1(options),
@@ -486,7 +476,7 @@ export async function _readDeserialize(
 export async function read(
   context: Client_1,
   body: Foo_1,
-  options: ReadOptionalParams = { requestOptions: {} },
+  options: ReadOptionalParams_1 = { requestOptions: {} },
 ): Promise<Foo_1> {
   const result = await _readSend(context, body, options);
   return _readDeserialize(result);
@@ -504,24 +494,19 @@ op read(@header prop: utcDateTime): OkResponse;
 ## Operations
 
 ```ts operations
+import type { ReadOptionalParams as ReadOptionalParams_1 } from "./options.js";
 import {
   type Client as Client_1,
   createRestError as createRestError_1,
-  type OperationOptions as OperationOptions_1,
   operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
   type PathUncheckedResponse as PathUncheckedResponse_1,
   type StreamableMethod as StreamableMethod_1,
 } from "@typespec/ts-http-runtime";
 
-/**
- * Optional parameters for the read operation.
- */
-export interface ReadOptionalParams extends OperationOptions_1 {}
-
 export function _readSend(
   context: Client_1,
   prop: Date,
-  options: ReadOptionalParams = { requestOptions: {} },
+  options: ReadOptionalParams_1 = { requestOptions: {} },
 ): StreamableMethod_1 {
   return context.path("/").get({
     ...operationOptionsToRequestParameters_1(options),
@@ -543,7 +528,7 @@ export async function _readDeserialize(
 export async function read(
   context: Client_1,
   prop: Date,
-  options: ReadOptionalParams = { requestOptions: {} },
+  options: ReadOptionalParams_1 = { requestOptions: {} },
 ): Promise<void> {
   const result = await _readSend(context, prop, options);
   return _readDeserialize(result);
@@ -592,24 +577,19 @@ import {
   fooDeserializer as fooDeserializer_1,
   fooSerializer as fooSerializer_1,
 } from "../models/models.js";
+import type { ReadOptionalParams as ReadOptionalParams_1 } from "./options.js";
 import {
   type Client as Client_1,
   createRestError as createRestError_1,
-  type OperationOptions as OperationOptions_1,
   operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
   type PathUncheckedResponse as PathUncheckedResponse_1,
   type StreamableMethod as StreamableMethod_1,
 } from "@typespec/ts-http-runtime";
 
-/**
- * Optional parameters for the read operation.
- */
-export interface ReadOptionalParams extends OperationOptions_1 {}
-
 export function _readSend(
   context: Client_1,
   body: Foo_1,
-  options: ReadOptionalParams = { requestOptions: {} },
+  options: ReadOptionalParams_1 = { requestOptions: {} },
 ): StreamableMethod_1 {
   return context.path("/").post({
     ...operationOptionsToRequestParameters_1(options),
@@ -636,7 +616,7 @@ export async function _readDeserialize(
 export async function read(
   context: Client_1,
   body: Foo_1,
-  options: ReadOptionalParams = { requestOptions: {} },
+  options: ReadOptionalParams_1 = { requestOptions: {} },
 ): Promise<Foo_1> {
   const result = await _readSend(context, body, options);
   return _readDeserialize(result);
@@ -685,24 +665,19 @@ import {
   fooDeserializer as fooDeserializer_1,
   fooSerializer as fooSerializer_1,
 } from "../models/models.js";
+import type { ReadOptionalParams as ReadOptionalParams_1 } from "./options.js";
 import {
   type Client as Client_1,
   createRestError as createRestError_1,
-  type OperationOptions as OperationOptions_1,
   operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
   type PathUncheckedResponse as PathUncheckedResponse_1,
   type StreamableMethod as StreamableMethod_1,
 } from "@typespec/ts-http-runtime";
 
-/**
- * Optional parameters for the read operation.
- */
-export interface ReadOptionalParams extends OperationOptions_1 {}
-
 export function _readSend(
   context: Client_1,
   body: Foo_1,
-  options: ReadOptionalParams = { requestOptions: {} },
+  options: ReadOptionalParams_1 = { requestOptions: {} },
 ): StreamableMethod_1 {
   return context.path("/").post({
     ...operationOptionsToRequestParameters_1(options),
@@ -729,7 +704,7 @@ export async function _readDeserialize(
 export async function read(
   context: Client_1,
   body: Foo_1,
-  options: ReadOptionalParams = { requestOptions: {} },
+  options: ReadOptionalParams_1 = { requestOptions: {} },
 ): Promise<Foo_1> {
   const result = await _readSend(context, body, options);
   return _readDeserialize(result);
@@ -774,24 +749,19 @@ import {
   fooDeserializer as fooDeserializer_1,
   fooSerializer as fooSerializer_1,
 } from "../models/models.js";
+import type { ReadOptionalParams as ReadOptionalParams_1 } from "./options.js";
 import {
   type Client as Client_1,
   createRestError as createRestError_1,
-  type OperationOptions as OperationOptions_1,
   operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
   type PathUncheckedResponse as PathUncheckedResponse_1,
   type StreamableMethod as StreamableMethod_1,
 } from "@typespec/ts-http-runtime";
 
-/**
- * Optional parameters for the read operation.
- */
-export interface ReadOptionalParams extends OperationOptions_1 {}
-
 export function _readSend(
   context: Client_1,
   body: Foo_1,
-  options: ReadOptionalParams = { requestOptions: {} },
+  options: ReadOptionalParams_1 = { requestOptions: {} },
 ): StreamableMethod_1 {
   return context.path("/").post({
     ...operationOptionsToRequestParameters_1(options),
@@ -818,7 +788,7 @@ export async function _readDeserialize(
 export async function read(
   context: Client_1,
   body: Foo_1,
-  options: ReadOptionalParams = { requestOptions: {} },
+  options: ReadOptionalParams_1 = { requestOptions: {} },
 ): Promise<Foo_1> {
   const result = await _readSend(context, body, options);
   return _readDeserialize(result);
@@ -852,24 +822,19 @@ import {
   fooDeserializer as fooDeserializer_1,
   fooSerializer as fooSerializer_1,
 } from "../models/models.js";
+import type { ReadOptionalParams as ReadOptionalParams_1 } from "./options.js";
 import {
   type Client as Client_1,
   createRestError as createRestError_1,
-  type OperationOptions as OperationOptions_1,
   operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
   type PathUncheckedResponse as PathUncheckedResponse_1,
   type StreamableMethod as StreamableMethod_1,
 } from "@typespec/ts-http-runtime";
 
-/**
- * Optional parameters for the read operation.
- */
-export interface ReadOptionalParams extends OperationOptions_1 {}
-
 export function _readSend(
   context: Client_1,
   body: Foo_1,
-  options: ReadOptionalParams = { requestOptions: {} },
+  options: ReadOptionalParams_1 = { requestOptions: {} },
 ): StreamableMethod_1 {
   return context.path("/").post({
     ...operationOptionsToRequestParameters_1(options),
@@ -896,7 +861,7 @@ export async function _readDeserialize(
 export async function read(
   context: Client_1,
   body: Foo_1,
-  options: ReadOptionalParams = { requestOptions: {} },
+  options: ReadOptionalParams_1 = { requestOptions: {} },
 ): Promise<Foo_1> {
   const result = await _readSend(context, body, options);
   return _readDeserialize(result);
@@ -931,24 +896,19 @@ import {
   fooDeserializer as fooDeserializer_1,
   fooSerializer as fooSerializer_1,
 } from "../models/models.js";
+import type { ReadOptionalParams as ReadOptionalParams_1 } from "./options.js";
 import {
   type Client as Client_1,
   createRestError as createRestError_1,
-  type OperationOptions as OperationOptions_1,
   operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
   type PathUncheckedResponse as PathUncheckedResponse_1,
   type StreamableMethod as StreamableMethod_1,
 } from "@typespec/ts-http-runtime";
 
-/**
- * Optional parameters for the read operation.
- */
-export interface ReadOptionalParams extends OperationOptions_1 {}
-
 export function _readSend(
   context: Client_1,
   body: Foo_1,
-  options: ReadOptionalParams = { requestOptions: {} },
+  options: ReadOptionalParams_1 = { requestOptions: {} },
 ): StreamableMethod_1 {
   return context.path("/").post({
     ...operationOptionsToRequestParameters_1(options),
@@ -975,7 +935,7 @@ export async function _readDeserialize(
 export async function read(
   context: Client_1,
   body: Foo_1,
-  options: ReadOptionalParams = { requestOptions: {} },
+  options: ReadOptionalParams_1 = { requestOptions: {} },
 ): Promise<Foo_1> {
   const result = await _readSend(context, body, options);
   return _readDeserialize(result);
@@ -1013,24 +973,19 @@ import {
   fooDeserializer as fooDeserializer_1,
   fooSerializer as fooSerializer_1,
 } from "../models/models.js";
+import type { ReadOptionalParams as ReadOptionalParams_1 } from "./options.js";
 import {
   type Client as Client_1,
   createRestError as createRestError_1,
-  type OperationOptions as OperationOptions_1,
   operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
   type PathUncheckedResponse as PathUncheckedResponse_1,
   type StreamableMethod as StreamableMethod_1,
 } from "@typespec/ts-http-runtime";
 
-/**
- * Optional parameters for the read operation.
- */
-export interface ReadOptionalParams extends OperationOptions_1 {}
-
 export function _readSend(
   context: Client_1,
   body: Foo_1,
-  options: ReadOptionalParams = { requestOptions: {} },
+  options: ReadOptionalParams_1 = { requestOptions: {} },
 ): StreamableMethod_1 {
   return context.path("/").post({
     ...operationOptionsToRequestParameters_1(options),
@@ -1057,7 +1012,7 @@ export async function _readDeserialize(
 export async function read(
   context: Client_1,
   body: Foo_1,
-  options: ReadOptionalParams = { requestOptions: {} },
+  options: ReadOptionalParams_1 = { requestOptions: {} },
 ): Promise<Foo_1> {
   const result = await _readSend(context, body, options);
   return _readDeserialize(result);
@@ -1111,24 +1066,19 @@ import {
   fooDeserializer as fooDeserializer_1,
   fooSerializer as fooSerializer_1,
 } from "../models/models.js";
+import type { ReadOptionalParams as ReadOptionalParams_1 } from "./options.js";
 import {
   type Client as Client_1,
   createRestError as createRestError_1,
-  type OperationOptions as OperationOptions_1,
   operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
   type PathUncheckedResponse as PathUncheckedResponse_1,
   type StreamableMethod as StreamableMethod_1,
 } from "@typespec/ts-http-runtime";
 
-/**
- * Optional parameters for the read operation.
- */
-export interface ReadOptionalParams extends OperationOptions_1 {}
-
 export function _readSend(
   context: Client_1,
   body: Foo_1,
-  options: ReadOptionalParams = { requestOptions: {} },
+  options: ReadOptionalParams_1 = { requestOptions: {} },
 ): StreamableMethod_1 {
   return context.path("/").post({
     ...operationOptionsToRequestParameters_1(options),
@@ -1155,7 +1105,7 @@ export async function _readDeserialize(
 export async function read(
   context: Client_1,
   body: Foo_1,
-  options: ReadOptionalParams = { requestOptions: {} },
+  options: ReadOptionalParams_1 = { requestOptions: {} },
 ): Promise<Foo_1> {
   const result = await _readSend(context, body, options);
   return _readDeserialize(result);
@@ -1210,24 +1160,19 @@ import {
   fooDeserializer as fooDeserializer_1,
   fooSerializer as fooSerializer_1,
 } from "../models/models.js";
+import type { ReadOptionalParams as ReadOptionalParams_1 } from "./options.js";
 import {
   type Client as Client_1,
   createRestError as createRestError_1,
-  type OperationOptions as OperationOptions_1,
   operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
   type PathUncheckedResponse as PathUncheckedResponse_1,
   type StreamableMethod as StreamableMethod_1,
 } from "@typespec/ts-http-runtime";
 
-/**
- * Optional parameters for the read operation.
- */
-export interface ReadOptionalParams extends OperationOptions_1 {}
-
 export function _readSend(
   context: Client_1,
   body: Foo_1,
-  options: ReadOptionalParams = { requestOptions: {} },
+  options: ReadOptionalParams_1 = { requestOptions: {} },
 ): StreamableMethod_1 {
   return context.path("/").post({
     ...operationOptionsToRequestParameters_1(options),
@@ -1254,7 +1199,7 @@ export async function _readDeserialize(
 export async function read(
   context: Client_1,
   body: Foo_1,
-  options: ReadOptionalParams = { requestOptions: {} },
+  options: ReadOptionalParams_1 = { requestOptions: {} },
 ): Promise<Foo_1> {
   const result = await _readSend(context, body, options);
   return _readDeserialize(result);
@@ -1309,24 +1254,19 @@ import {
   fooDeserializer as fooDeserializer_1,
   fooSerializer as fooSerializer_1,
 } from "../models/models.js";
+import type { ReadOptionalParams as ReadOptionalParams_1 } from "./options.js";
 import {
   type Client as Client_1,
   createRestError as createRestError_1,
-  type OperationOptions as OperationOptions_1,
   operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
   type PathUncheckedResponse as PathUncheckedResponse_1,
   type StreamableMethod as StreamableMethod_1,
 } from "@typespec/ts-http-runtime";
 
-/**
- * Optional parameters for the read operation.
- */
-export interface ReadOptionalParams extends OperationOptions_1 {}
-
 export function _readSend(
   context: Client_1,
   body: Foo_1,
-  options: ReadOptionalParams = { requestOptions: {} },
+  options: ReadOptionalParams_1 = { requestOptions: {} },
 ): StreamableMethod_1 {
   return context.path("/").post({
     ...operationOptionsToRequestParameters_1(options),
@@ -1353,7 +1293,7 @@ export async function _readDeserialize(
 export async function read(
   context: Client_1,
   body: Foo_1,
-  options: ReadOptionalParams = { requestOptions: {} },
+  options: ReadOptionalParams_1 = { requestOptions: {} },
 ): Promise<Foo_1> {
   const result = await _readSend(context, body, options);
   return _readDeserialize(result);
@@ -1480,23 +1420,18 @@ import {
   type Cat as Cat_1,
   catDeserializer as catDeserializer_1,
 } from "../models/models.js";
+import type { ReadOptionalParams as ReadOptionalParams_1 } from "./options.js";
 import {
   type Client as Client_1,
   createRestError as createRestError_1,
-  type OperationOptions as OperationOptions_1,
   operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
   type PathUncheckedResponse as PathUncheckedResponse_1,
   type StreamableMethod as StreamableMethod_1,
 } from "@typespec/ts-http-runtime";
 
-/**
- * Optional parameters for the read operation.
- */
-export interface ReadOptionalParams extends OperationOptions_1 {}
-
 export function _readSend(
   context: Client_1,
-  options: ReadOptionalParams = { requestOptions: {} },
+  options: ReadOptionalParams_1 = { requestOptions: {} },
 ): StreamableMethod_1 {
   return context.path("/").get({
     ...operationOptionsToRequestParameters_1(options),
@@ -1520,7 +1455,7 @@ export async function _readDeserialize(
 
 export async function read(
   context: Client_1,
-  options: ReadOptionalParams = { requestOptions: {} },
+  options: ReadOptionalParams_1 = { requestOptions: {} },
 ): Promise<Cat_1> {
   const result = await _readSend(context, options);
   return _readDeserialize(result);
@@ -1588,23 +1523,18 @@ import {
   type Cat as Cat_1,
   catDeserializer as catDeserializer_1,
 } from "../models/models.js";
+import type { ReadOptionalParams as ReadOptionalParams_1 } from "./options.js";
 import {
   type Client as Client_1,
   createRestError as createRestError_1,
-  type OperationOptions as OperationOptions_1,
   operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
   type PathUncheckedResponse as PathUncheckedResponse_1,
   type StreamableMethod as StreamableMethod_1,
 } from "@typespec/ts-http-runtime";
 
-/**
- * Optional parameters for the read operation.
- */
-export interface ReadOptionalParams extends OperationOptions_1 {}
-
 export function _readSend(
   context: Client_1,
-  options: ReadOptionalParams = { requestOptions: {} },
+  options: ReadOptionalParams_1 = { requestOptions: {} },
 ): StreamableMethod_1 {
   return context.path("/").get({
     ...operationOptionsToRequestParameters_1(options),
@@ -1628,7 +1558,7 @@ export async function _readDeserialize(
 
 export async function read(
   context: Client_1,
-  options: ReadOptionalParams = { requestOptions: {} },
+  options: ReadOptionalParams_1 = { requestOptions: {} },
 ): Promise<Cat_1> {
   const result = await _readSend(context, options);
   return _readDeserialize(result);
@@ -1717,24 +1647,19 @@ import {
   psDogDeserializer as psDogDeserializer_1,
   psDogSerializer as psDogSerializer_1,
 } from "../models/models.js";
+import type { ReadOptionalParams as ReadOptionalParams_1 } from "./options.js";
 import {
   type Client as Client_1,
   createRestError as createRestError_1,
-  type OperationOptions as OperationOptions_1,
   operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
   type PathUncheckedResponse as PathUncheckedResponse_1,
   type StreamableMethod as StreamableMethod_1,
 } from "@typespec/ts-http-runtime";
 
-/**
- * Optional parameters for the read operation.
- */
-export interface ReadOptionalParams extends OperationOptions_1 {}
-
 export function _readSend(
   context: Client_1,
   body: PsDog_1,
-  options: ReadOptionalParams = { requestOptions: {} },
+  options: ReadOptionalParams_1 = { requestOptions: {} },
 ): StreamableMethod_1 {
   return context.path("/").post({
     ...operationOptionsToRequestParameters_1(options),
@@ -1761,7 +1686,7 @@ export async function _readDeserialize(
 export async function read(
   context: Client_1,
   body: PsDog_1,
-  options: ReadOptionalParams = { requestOptions: {} },
+  options: ReadOptionalParams_1 = { requestOptions: {} },
 ): Promise<PsDog_1> {
   const result = await _readSend(context, body, options);
   return _readDeserialize(result);
@@ -1847,23 +1772,18 @@ import {
   type Pet as Pet_1,
   petUnionDeserializer as petUnionDeserializer_1,
 } from "../models/models.js";
+import type { ReadOptionalParams as ReadOptionalParams_1 } from "./options.js";
 import {
   type Client as Client_1,
   createRestError as createRestError_1,
-  type OperationOptions as OperationOptions_1,
   operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
   type PathUncheckedResponse as PathUncheckedResponse_1,
   type StreamableMethod as StreamableMethod_1,
 } from "@typespec/ts-http-runtime";
 
-/**
- * Optional parameters for the read operation.
- */
-export interface ReadOptionalParams extends OperationOptions_1 {}
-
 export function _readSend(
   context: Client_1,
-  options: ReadOptionalParams = { requestOptions: {} },
+  options: ReadOptionalParams_1 = { requestOptions: {} },
 ): StreamableMethod_1 {
   return context.path("/").get({
     ...operationOptionsToRequestParameters_1(options),
@@ -1887,7 +1807,7 @@ export async function _readDeserialize(
 
 export async function read(
   context: Client_1,
-  options: ReadOptionalParams = { requestOptions: {} },
+  options: ReadOptionalParams_1 = { requestOptions: {} },
 ): Promise<Pet_1> {
   const result = await _readSend(context, options);
   return _readDeserialize(result);
@@ -2001,23 +1921,18 @@ import {
   type Pet as Pet_1,
   petUnionDeserializer as petUnionDeserializer_1,
 } from "../models/models.js";
+import type { ReadOptionalParams as ReadOptionalParams_1 } from "./options.js";
 import {
   type Client as Client_1,
   createRestError as createRestError_1,
-  type OperationOptions as OperationOptions_1,
   operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
   type PathUncheckedResponse as PathUncheckedResponse_1,
   type StreamableMethod as StreamableMethod_1,
 } from "@typespec/ts-http-runtime";
 
-/**
- * Optional parameters for the read operation.
- */
-export interface ReadOptionalParams extends OperationOptions_1 {}
-
 export function _readSend(
   context: Client_1,
-  options: ReadOptionalParams = { requestOptions: {} },
+  options: ReadOptionalParams_1 = { requestOptions: {} },
 ): StreamableMethod_1 {
   return context.path("/").get({
     ...operationOptionsToRequestParameters_1(options),
@@ -2041,7 +1956,7 @@ export async function _readDeserialize(
 
 export async function read(
   context: Client_1,
-  options: ReadOptionalParams = { requestOptions: {} },
+  options: ReadOptionalParams_1 = { requestOptions: {} },
 ): Promise<Pet_1> {
   const result = await _readSend(context, options);
   return _readDeserialize(result);
@@ -2099,23 +2014,18 @@ import {
   type Foo as Foo_1,
   fooDeserializer as fooDeserializer_1,
 } from "../models/models.js";
+import type { ReadOptionalParams as ReadOptionalParams_1 } from "./options.js";
 import {
   type Client as Client_1,
   createRestError as createRestError_1,
-  type OperationOptions as OperationOptions_1,
   operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
   type PathUncheckedResponse as PathUncheckedResponse_1,
   type StreamableMethod as StreamableMethod_1,
 } from "@typespec/ts-http-runtime";
 
-/**
- * Optional parameters for the read operation.
- */
-export interface ReadOptionalParams extends OperationOptions_1 {}
-
 export function _readSend(
   context: Client_1,
-  options: ReadOptionalParams = { requestOptions: {} },
+  options: ReadOptionalParams_1 = { requestOptions: {} },
 ): StreamableMethod_1 {
   return context.path("/").get({
     ...operationOptionsToRequestParameters_1(options),
@@ -2139,7 +2049,7 @@ export async function _readDeserialize(
 
 export async function read(
   context: Client_1,
-  options: ReadOptionalParams = { requestOptions: {} },
+  options: ReadOptionalParams_1 = { requestOptions: {} },
 ): Promise<Foo_1> {
   const result = await _readSend(context, options);
   return _readDeserialize(result);
@@ -2222,25 +2132,20 @@ export enum KnownSchemaContentTypeValues {
 
 ```ts operations
 import type { SchemaContentTypeValues as SchemaContentTypeValues_1 } from "../models/models.js";
+import type { GetOptionalParams as GetOptionalParams_1 } from "./options.js";
 import {
   type Client as Client_1,
   createRestError as createRestError_1,
-  type OperationOptions as OperationOptions_1,
   operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
   type PathUncheckedResponse as PathUncheckedResponse_1,
   type StreamableMethod as StreamableMethod_1,
 } from "@typespec/ts-http-runtime";
 
-/**
- * Optional parameters for the get operation.
- */
-export interface GetOptionalParams extends OperationOptions_1 {}
-
 export function _getSend(
   context: Client_1,
   contentType: SchemaContentTypeValues_1,
   body: string,
-  options: GetOptionalParams = { requestOptions: {} },
+  options: GetOptionalParams_1 = { requestOptions: {} },
 ): StreamableMethod_1 {
   return context.path("/").post({
     ...operationOptionsToRequestParameters_1(options),
@@ -2264,7 +2169,7 @@ export async function get(
   context: Client_1,
   contentType: SchemaContentTypeValues_1,
   body: string,
-  options: GetOptionalParams = { requestOptions: {} },
+  options: GetOptionalParams_1 = { requestOptions: {} },
 ): Promise<void> {
   const result = await _getSend(context, contentType, body, options);
   return _getDeserialize(result);
@@ -2420,25 +2325,20 @@ export enum KnownGetResponseTestHeader {
 
 ```ts operations
 import type { GetRequestTestHeader as GetRequestTestHeader_1 } from "../models/models.js";
+import type { GetOptionalParams as GetOptionalParams_1 } from "./options.js";
 import {
   type Client as Client_1,
   createRestError as createRestError_1,
-  type OperationOptions as OperationOptions_1,
   operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
   type PathUncheckedResponse as PathUncheckedResponse_1,
   type StreamableMethod as StreamableMethod_1,
 } from "@typespec/ts-http-runtime";
 
-/**
- * Optional parameters for the get operation.
- */
-export interface GetOptionalParams extends OperationOptions_1 {}
-
 export function _getSend(
   context: Client_1,
   testHeader: GetRequestTestHeader_1,
   body: string,
-  options: GetOptionalParams = { requestOptions: {} },
+  options: GetOptionalParams_1 = { requestOptions: {} },
 ): StreamableMethod_1 {
   return context.path("/").post({
     ...operationOptionsToRequestParameters_1(options),
@@ -2466,7 +2366,7 @@ export async function get(
   context: Client_1,
   testHeader: GetRequestTestHeader_1,
   body: string,
-  options: GetOptionalParams = { requestOptions: {} },
+  options: GetOptionalParams_1 = { requestOptions: {} },
 ): Promise<void> {
   const result = await _getSend(context, testHeader, body, options);
   return _getDeserialize(result);
@@ -2930,24 +2830,19 @@ import {
   clientDeserializer as clientDeserializer_1,
   clientSerializer as clientSerializer_1,
 } from "../models/models.js";
+import type { ReadOptionalParams as ReadOptionalParams_1 } from "./options.js";
 import {
   type Client as Client_1,
   createRestError as createRestError_1,
-  type OperationOptions as OperationOptions_1,
   operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
   type PathUncheckedResponse as PathUncheckedResponse_1,
   type StreamableMethod as StreamableMethod_1,
 } from "@typespec/ts-http-runtime";
 
-/**
- * Optional parameters for the read operation.
- */
-export interface ReadOptionalParams extends OperationOptions_1 {}
-
 export function _readSend(
   context: Client_1,
   body: Client_2,
-  options: ReadOptionalParams = { requestOptions: {} },
+  options: ReadOptionalParams_1 = { requestOptions: {} },
 ): StreamableMethod_1 {
   return context.path("/").post({
     ...operationOptionsToRequestParameters_1(options),
@@ -2974,7 +2869,7 @@ export async function _readDeserialize(
 export async function read(
   context: Client_1,
   body: Client_2,
-  options: ReadOptionalParams = { requestOptions: {} },
+  options: ReadOptionalParams_1 = { requestOptions: {} },
 ): Promise<Client_2> {
   const result = await _readSend(context, body, options);
   return _readDeserialize(result);

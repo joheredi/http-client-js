@@ -9,10 +9,8 @@ op continue(): void;
 ## classicClient
 
 ```ts classicClient
-import {
-  continue_ as continue__1,
-  type ContinueOptionalParams as ContinueOptionalParams_1,
-} from "./api/operations.js";
+import { continue_ as continue__1 } from "./api/operations.js";
+import type { ContinueOptionalParams as ContinueOptionalParams_1 } from "./api/options.js";
 import {
   createTestService as createTestService_1,
   type TestServiceClientOptionalParams as TestServiceClientOptionalParams_1,

@@ -2032,3 +2032,56 @@
   - models (1): Missing model for @usage case
 - Priority for next fix: operations (17 failures) — clientInitialization (4), clientDefaultValue (2),
   queryParamCollectionFormat (2), LRO (3)
+
+## 2026-02-24 — Separate options.ts Files for Operation Options (Task 10.4)
+
+### What was done
+- **Created `src/components/operation-options-files.tsx`**: New `OperationOptionsFiles` component
+  that generates separate `api/{group}/options.ts` files per operation group, containing the
+  `XxxOptionalParams` interfaces. Previously these were inline in `operations.ts`.
+- **Updated `src/components/operation-files.tsx`**: Removed `OperationOptionsDeclaration` from
+  `OperationDeclarations`. The operations.ts file now imports options from options.ts via refkeys.
+- **Updated emitters**: Added `OperationOptionsFiles` to `emitter.tsx`, `azure-emitter.tsx`,
+  and `test/scenarios/emit-for-scenario.tsx`.
+- **Updated `src/components/index.ts`**: Exports `OperationOptionsFiles`.
+- **Fixed test harness regex**: Changed `models:withOptions` category resolution from
+  `/api\/options\.ts$/` to `/api\/.*options\.ts$/` to match options.ts in subdirectories
+  (e.g., `api/testOperations/options.ts`).
+- **Created unit tests**: `test/components/operation-options-files.test.tsx` with 7 tests covering:
+  - Root-level options.ts generation
+  - OperationOptions extension
+  - Multiple interfaces in one file
+  - No output for empty services
+  - Subdirectory placement for operation groups
+  - Optional parameters as interface members
+  - Cross-file import resolution (operations.ts imports from options.ts)
+- **Updated existing tests**: Fixed `operation-files.test.tsx` and `emitter.test.tsx` to reflect
+  that options interfaces are no longer inline in operations.ts.
+
+### Test Results
+- Before: 113 scenario failures, 667 passed (42 test files, 1 failing)
+- After: 99 scenario failures, 688 passed (43 test files, 42 passing)
+- Fixed: 14 models:withOptions scenario tests now pass
+- Added: 7 new unit tests (all pass)
+- Zero regressions in existing tests
+
+### Architecture decisions
+- **Separate options.ts per operation group**: Matches the legacy emitter's file structure.
+  Each operation group directory gets both `operations.ts` and `options.ts`.
+- **Refkey-based imports**: The options interfaces keep the same refkeys, so Alloy
+  automatically generates `import type { XxxOptionalParams } from "./options.js"` in operations.ts.
+- **Duplicated collectOperationGroups**: The operation group collection logic is duplicated
+  between operation-files.tsx and operation-options-files.tsx. Both need the same BFS traversal
+  to ensure matching directory structures. Could be extracted to a shared utility if needed.
+
+### Notes for next person
+- Completed: All Phases 0-8, Phase 9 (9.1, 9.2, 9.3 in progress), Task 10.4 (DONE).
+- **Remaining 99 scenario failures by category**:
+  - samples (51): Sample generation issues
+  - XML serializers (~15): Format mismatches
+  - operations (17): clientInitialization, clientDefaultValue, LRO, queryParamCollectionFormat
+  - enum/union aliases (4): LR, UD, LeftAndRight, UpAndDown
+  - root index (2): model-only case index file
+  - multipart (2): _UploadFileRequest prefix
+  - models (1): model-only @usage case
+  - classicClient (1): empty project

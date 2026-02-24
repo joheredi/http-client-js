@@ -57,13 +57,15 @@ Raw json files.
 Generated operation options.
 
 ```ts models:withOptions
-import { BodyParameter } from "../models/models.js";
-import { OperationOptions } from "@azure-rest/core-client";
+import type { BodyParameter as BodyParameter_1 } from "../models/models.js";
+import type { OperationOptions as OperationOptions_1 } from "@typespec/ts-http-runtime";
 
-/** Optional parameters. */
-export interface ReadOptionalParams extends OperationOptions {
+/**
+ * Optional parameters for the read operation.
+ */
+export interface ReadOptionalParams extends OperationOptions_1 {
   optionalQuery?: string;
-  widget?: BodyParameter;
+  widget?: BodyParameter_1;
 }
 ```
 
@@ -75,34 +77,25 @@ Should generate operations correctly:
 
 ```ts operations
 import {
-  type BodyParameter as BodyParameter_1,
   bodyParameterSerializer as bodyParameterSerializer_1,
   type ReadResponse as ReadResponse_1,
   readResponseDeserializer as readResponseDeserializer_1,
 } from "../models/models.js";
+import { ReadOptionalParams as ReadOptionalParams_1 } from "./options.js";
 import {
   Client as Client_1,
   createRestError as createRestError_1,
   expandUrlTemplate as expandUrlTemplate_1,
-  type OperationOptions as OperationOptions_1,
   operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
   type PathUncheckedResponse as PathUncheckedResponse_1,
   type StreamableMethod as StreamableMethod_1,
 } from "@typespec/ts-http-runtime";
 
-/**
- * Optional parameters for the read operation.
- */
-export interface ReadOptionalParams extends OperationOptions_1 {
-  optionalQuery?: string;
-  widget?: BodyParameter_1;
-}
-
 export function _readSend(
   context: Client_1,
   name: string,
   requiredQuery: string,
-  options: ReadOptionalParams = { requestOptions: {} },
+  options: ReadOptionalParams_1 = { requestOptions: {} },
 ): StreamableMethod_1 {
   const path = expandUrlTemplate_1(
     "/{name}{?requiredQuery,optionalQuery}",
@@ -143,13 +136,13 @@ export async function _readDeserialize(
  * @param {Client_1} context
  * @param {string} name
  * @param {string} requiredQuery
- * @param {ReadOptionalParams} options
+ * @param {ReadOptionalParams_1} options
  */
 export async function read(
   context: Client_1,
   name: string,
   requiredQuery: string,
-  options: ReadOptionalParams = { requestOptions: {} },
+  options: ReadOptionalParams_1 = { requestOptions: {} },
 ): Promise<ReadResponse_1> {
   const result = await _readSend(context, name, requiredQuery, options);
   return _readDeserialize(result);

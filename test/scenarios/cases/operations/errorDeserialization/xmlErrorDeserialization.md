@@ -30,25 +30,20 @@ import {
   type Widget as Widget_1,
   widgetDeserializer as widgetDeserializer_1,
 } from "../models/models.js";
+import type { GetWidgetOptionalParams as GetWidgetOptionalParams_1 } from "./options.js";
 import {
   type Client as Client_1,
   createRestError as createRestError_1,
   expandUrlTemplate as expandUrlTemplate_1,
-  type OperationOptions as OperationOptions_1,
   operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
   type PathUncheckedResponse as PathUncheckedResponse_1,
   type StreamableMethod as StreamableMethod_1,
 } from "@typespec/ts-http-runtime";
 
-/**
- * Optional parameters for the getWidget operation.
- */
-export interface GetWidgetOptionalParams extends OperationOptions_1 {}
-
 export function _getWidgetSend(
   context: Client_1,
   id: string,
-  options: GetWidgetOptionalParams = { requestOptions: {} },
+  options: GetWidgetOptionalParams_1 = { requestOptions: {} },
 ): StreamableMethod_1 {
   const path = expandUrlTemplate_1(
     "/widgets/{id}",
@@ -78,7 +73,7 @@ export async function _getWidgetDeserialize(
 export async function getWidget(
   context: Client_1,
   id: string,
-  options: GetWidgetOptionalParams = { requestOptions: {} },
+  options: GetWidgetOptionalParams_1 = { requestOptions: {} },
 ): Promise<Widget_1> {
   const result = await _getWidgetSend(context, id, options);
   return _getWidgetDeserialize(result);
@@ -119,18 +114,14 @@ op getDocument(@path id: string): {
 ## Operations
 
 ```ts operations
-import { type Client as Client_1, createRestError as createRestError_1, expandUrlTemplate as expandUrlTemplate_1, type OperationOptions as OperationOptions_1, operationOptionsToRequestParameters as operationOptionsToRequestParameters_1, type PathUncheckedResponse as PathUncheckedResponse_1, type StreamableMethod as StreamableMethod_1 } from "@typespec/ts-http-runtime";
+import { type Client as Client_1, createRestError as createRestError_1, expandUrlTemplate as expandUrlTemplate_1, operationOptionsToRequestParameters as operationOptionsToRequestParameters_1, type PathUncheckedResponse as PathUncheckedResponse_1, type StreamableMethod as StreamableMethod_1 } from "@typespec/ts-http-runtime";
+import type { GetDocumentOptionalParams as GetDocumentOptionalParams_1 } from "./options.js";
 import type { Document as Document_1 } from "../models/models.js";
-
-/**
- * Optional parameters for the getDocument operation.
- */
-export interface GetDocumentOptionalParams extends OperationOptions_1 {}
 
 export function _getDocumentSend(
   context: Client_1,
   id: string,
-  options: GetDocumentOptionalParams = { requestOptions: {} },
+  options: GetDocumentOptionalParams_1 = { requestOptions: {} },
 ): StreamableMethod_1 {
   const path = expandUrlTemplate_1("/documents/{id}", { "id": id }, { allowReserved: options?.requestOptions?.skipUrlEncoding });
   return context.path(path).get({ ...operationOptionsToRequestParameters_1(options), headers: { accept: "application/json, application/xml", ...options.requestOptions?.headers } });
@@ -150,7 +141,7 @@ export async function _getDocumentDeserialize(
 export async function getDocument(
   context: Client_1,
   id: string,
-  options: GetDocumentOptionalParams = { requestOptions: {} },
+  options: GetDocumentOptionalParams_1 = { requestOptions: {} },
 ): Promise<Document_1> {
   const result = await _getDocumentSend(context, id, options);
   return _getDocumentDeserialize(result);
@@ -189,25 +180,20 @@ import {
   type Item as Item_1,
   itemDeserializer as itemDeserializer_1,
 } from "../models/models.js";
+import type { GetItemOptionalParams as GetItemOptionalParams_1 } from "./options.js";
 import {
   type Client as Client_1,
   createRestError as createRestError_1,
   expandUrlTemplate as expandUrlTemplate_1,
-  type OperationOptions as OperationOptions_1,
   operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
   type PathUncheckedResponse as PathUncheckedResponse_1,
   type StreamableMethod as StreamableMethod_1,
 } from "@typespec/ts-http-runtime";
 
-/**
- * Optional parameters for the getItem operation.
- */
-export interface GetItemOptionalParams extends OperationOptions_1 {}
-
 export function _getItemSend(
   context: Client_1,
   id: string,
-  options: GetItemOptionalParams = { requestOptions: {} },
+  options: GetItemOptionalParams_1 = { requestOptions: {} },
 ): StreamableMethod_1 {
   const path = expandUrlTemplate_1(
     "/items/{id}",
@@ -237,7 +223,7 @@ export async function _getItemDeserialize(
 export async function getItem(
   context: Client_1,
   id: string,
-  options: GetItemOptionalParams = { requestOptions: {} },
+  options: GetItemOptionalParams_1 = { requestOptions: {} },
 ): Promise<Item_1> {
   const result = await _getItemSend(context, id, options);
   return _getItemDeserialize(result);

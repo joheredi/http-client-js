@@ -37,6 +37,7 @@ import { describe, expect, it } from "vitest";
 import { SdkContextProvider } from "../../src/context/sdk-context.js";
 import { ModelFiles } from "../../src/components/model-files.js";
 import { OperationFiles } from "../../src/components/operation-files.js";
+import { OperationOptionsFiles } from "../../src/components/operation-options-files.js";
 import { ClientContextFile } from "../../src/components/client-context.js";
 import { ClassicalClientFile } from "../../src/components/classical-client.js";
 import { httpRuntimeLib } from "../../src/utils/external-packages.js";
@@ -65,6 +66,7 @@ function EmitterTestWrapper(props: {
         <SourceDirectory path="src">
           <ModelFiles />
           <OperationFiles />
+          <OperationOptionsFiles />
           <For each={props.sdkContext.sdkPackage.clients}>
             {(client) => (
               <>

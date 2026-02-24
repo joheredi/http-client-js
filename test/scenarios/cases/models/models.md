@@ -51,26 +51,21 @@ import {
   streamingChatCompletionOptionsDeserializer as streamingChatCompletionOptionsDeserializer_1,
   streamingChatCompletionOptionsSerializer as streamingChatCompletionOptionsSerializer_1,
 } from "../models/models.js";
+import type { ReadOptionalParams as ReadOptionalParams_1 } from "./options.js";
 import {
   type Client as Client_1,
   createRestError as createRestError_1,
   expandUrlTemplate as expandUrlTemplate_1,
-  type OperationOptions as OperationOptions_1,
   operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
   type PathUncheckedResponse as PathUncheckedResponse_1,
   type StreamableMethod as StreamableMethod_1,
 } from "@typespec/ts-http-runtime";
 
-/**
- * Optional parameters for the read operation.
- */
-export interface ReadOptionalParams extends OperationOptions_1 {}
-
 export function _readSend(
   context: Client_1,
   id: string,
   body: StreamingChatCompletionOptions_1,
-  options: ReadOptionalParams = { requestOptions: {} },
+  options: ReadOptionalParams_1 = { requestOptions: {} },
 ): StreamableMethod_1 {
   const path = expandUrlTemplate_1(
     "/{id}",
@@ -103,7 +98,7 @@ export async function read(
   context: Client_1,
   id: string,
   body: StreamingChatCompletionOptions_1,
-  options: ReadOptionalParams = { requestOptions: {} },
+  options: ReadOptionalParams_1 = { requestOptions: {} },
 ): Promise<StreamingChatCompletionOptions_1> {
   const result = await _readSend(context, id, body, options);
   return _readDeserialize(result);
@@ -138,26 +133,21 @@ export interface StreamingChatCompletionOptions {
 ## Operations
 
 ```ts operations
+import type { ReadOptionalParams as ReadOptionalParams_1 } from "./options.js";
 import {
   type Client as Client_1,
   createRestError as createRestError_1,
-  type OperationOptions as OperationOptions_1,
   operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
   type PathUncheckedResponse as PathUncheckedResponse_1,
   type StreamableMethod as StreamableMethod_1,
 } from "@typespec/ts-http-runtime";
-
-/**
- * Optional parameters for the read operation.
- */
-export interface ReadOptionalParams extends OperationOptions_1 {}
 
 export function _readSend(
   context: Client_1,
   stream: true,
   messages: "aaaaa",
   index: 123,
-  options: ReadOptionalParams = { requestOptions: {} },
+  options: ReadOptionalParams_1 = { requestOptions: {} },
 ): StreamableMethod_1 {
   return context.path("/").post({
     ...operationOptionsToRequestParameters_1(options),
@@ -183,7 +173,7 @@ export async function read(
   stream: true,
   messages: "aaaaa",
   index: 123,
-  options: ReadOptionalParams = { requestOptions: {} },
+  options: ReadOptionalParams_1 = { requestOptions: {} },
 ): Promise<true> {
   const result = await _readSend(context, stream, messages, index, options);
   return _readDeserialize(result);

@@ -162,10 +162,8 @@ withRawContent: true
 ## classicClient
 
 ```ts classicClient
-import {
-  checkNameAvailability as checkNameAvailability_1,
-  type CheckNameAvailabilityOptionalParams as CheckNameAvailabilityOptionalParams_1,
-} from "./api/operations.js";
+import { checkNameAvailability as checkNameAvailability_1 } from "./api/operations.js";
+import type { CheckNameAvailabilityOptionalParams as CheckNameAvailabilityOptionalParams_1 } from "./api/options.js";
 import {
   _getOperationsOperations as _getOperationsOperations_1,
   OperationsOperations as OperationsOperations_1,
@@ -298,10 +296,8 @@ withRawContent: true
 ## classicClient
 
 ```ts classicClient
-import {
-  listSkus as listSkus_1,
-  type ListSkusOptionalParams as ListSkusOptionalParams_1,
-} from "./api/operations.js";
+import { listSkus as listSkus_1 } from "./api/operations.js";
+import type { ListSkusOptionalParams as ListSkusOptionalParams_1 } from "./api/options.js";
 import {
   _getMixedResourcesOperations as _getMixedResourcesOperations_1,
   MixedResourcesOperations as MixedResourcesOperations_1,

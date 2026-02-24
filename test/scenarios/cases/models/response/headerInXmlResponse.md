@@ -36,7 +36,7 @@ export interface User {
 ```ts operations function getUser
 export async function getUser(
   context: Client_1,
-  options: GetUserOptionalParams = { requestOptions: {} },
+  options: GetUserOptionalParams_1 = { requestOptions: {} },
 ): Promise<User_1> {
   const result = await _getUserSend(context, options);
   return _getUserDeserialize(result);
@@ -96,7 +96,7 @@ include-headers-in-response: true
 ```ts operations function deleteUser
 export async function deleteUser(
   context: Client_1,
-  options: DeleteUserOptionalParams = { requestOptions: {} },
+  options: DeleteUserOptionalParams_1 = { requestOptions: {} },
 ): Promise<void> {
   const result = await _deleteUserSend(context, options);
   return _deleteUserDeserialize(result);
@@ -153,7 +153,7 @@ include-headers-in-response: true
 ```ts operations function getAccountInfo
 export async function getAccountInfo(
   context: Client_1,
-  options: GetAccountInfoOptionalParams = { requestOptions: {} },
+  options: GetAccountInfoOptionalParams_1 = { requestOptions: {} },
 ): Promise<void> {
   const result = await _getAccountInfoSend(context, options);
   return _getAccountInfoDeserialize(result);

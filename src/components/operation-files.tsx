@@ -9,7 +9,6 @@ import { useSdkContext } from "../context/sdk-context.js";
 import { useEmitterOptions } from "../context/emitter-options-context.js";
 import { DeserializeHeaders, DeserializeExceptionHeaders } from "./deserialize-headers.js";
 import { DeserializeOperation } from "./deserialize-operation.js";
-import { OperationOptionsDeclaration } from "./operation-options.js";
 import { PublicOperation } from "./public-operation.js";
 import { SendOperation } from "./send-operation.js";
 
@@ -49,10 +48,12 @@ interface OperationGroup {
  * ```
  *
  * Each operations file contains, per operation:
- * - `XxxOptionalParams` interface (operation options)
  * - `_xxxSend` function (request builder)
  * - `_xxxDeserialize` function (response processor)
  * - `xxx` function (public API that composes send + deserialize)
+ *
+ * The `XxxOptionalParams` interfaces are rendered in a separate `options.ts`
+ * file by the {@link OperationOptionsFiles} component.
  *
  * If no operations exist in the SDK package, the component renders nothing.
  *
@@ -129,11 +130,13 @@ interface OperationDeclarationsProps {
  * Renders all four declarations for a single operation.
  *
  * The declarations are rendered in the legacy emitter's order:
- * 1. Options interface — defines the optional parameters bag
- * 2. Send function — builds and dispatches the HTTP request
- * 3. Header deserialize functions (if enabled) — extract typed response headers
- * 4. Deserialize function — validates and parses the response
- * 5. Public function — composes send + deserialize for consumers
+ * 1. Send function — builds and dispatches the HTTP request
+ * 2. Header deserialize functions (if enabled) — extract typed response headers
+ * 3. Deserialize function — validates and parses the response
+ * 4. Public function — composes send + deserialize for consumers
+ *
+ * Note: The options interface (`XxxOptionalParams`) is rendered in a separate
+ * `options.ts` file by the {@link OperationOptionsFiles} component.
  *
  * Each declaration is separated by a blank line (via Fragment + newlines)
  * to produce readable output.
@@ -146,8 +149,6 @@ function OperationDeclarations(props: OperationDeclarationsProps) {
 
   return (
     <>
-      <OperationOptionsDeclaration method={method} />
-      {"\n\n"}
       <SendOperation method={method} />
       {"\n\n"}
       <HeaderDeserializationBlock method={method} />
