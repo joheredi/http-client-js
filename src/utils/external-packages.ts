@@ -51,6 +51,9 @@ export const httpRuntimeLib = createPackage({
         "KeyCredential",
         "isKeyCredential",
         "TokenCredential",
+
+        // URL template expansion
+        "expandUrlTemplate",
       ],
     },
   },

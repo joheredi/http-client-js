@@ -187,6 +187,20 @@ export function pagingHelperRefkey(name: string): Refkey {
 }
 
 /**
+ * Creates a refkey for a send function that builds and dispatches an HTTP request.
+ *
+ * Each operation gets a private `_xxxSend` function that constructs the URL,
+ * assembles headers and query parameters, serializes the request body, and
+ * calls `context.path(path).verb(options)` to dispatch the request.
+ *
+ * @param entity - The TCGC operation or method entity.
+ * @returns A stable refkey for the send function declaration.
+ */
+export function sendOperationRefkey(entity: unknown): Refkey {
+  return refkey(entity, "sendOperation");
+}
+
+/**
  * Creates a refkey for a polling (long-running operation) helper function or type.
  *
  * Polling helpers manage LRO lifecycle — creating pollers, checking status,

@@ -1034,7 +1034,7 @@
           "id": "3.2",
           "title": "Send Function Component",
           "description": "Generate _sendXXX functions building HTTP requests",
-          "pass": false,
+          "pass": true,
           "pass_criteria": [
             "Async function _xxxSend(context: XxxContext, ...params): StreamableMethod",
             "URL path built with parameter substitution (using urlTemplate helper or template literals)",
@@ -1044,7 +1044,8 @@
             "context.path(...).method(options) call pattern",
             "Path parameters with allowReserved handled correctly",
             "Scenario tests pass: operations/operations.md send functions match"
-          ]
+          ],
+          "status": "done"
         },
         {
           "id": "3.3",

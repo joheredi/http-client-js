@@ -354,3 +354,62 @@ implicit optional transform to the body in 1.0.0.`
 ```
 
 **Date:** 2026-02-24
+
+## Alloy code templates with \n produce inconsistent indentation
+
+**Problem:** Using raw `\n` characters inside Alloy `code` template literals for line breaks
+produces inconsistent indentation because Alloy's indentation context only applies to
+backtick-delimited line breaks, not raw `\n` characters injected via string interpolation.
+
+**Fix:** Avoid raw `\n` in code templates for multiline output. Either:
+1. Use backtick line breaks within the code template (Alloy manages indentation)
+2. Or render single-line output and let Alloy handle formatting
+
+For the send function's return statement, a single-line format works well:
+```tsx
+code`return context.path(${pathExpr}).${verb}({ ...${refkey}(options), headers: { ... } });`
+```
+
+**Date:** 2026-02-24
+
+## Alloy combines imports from same package with inline `type` annotation
+
+**Problem:** When multiple symbols from the same external package are used (some in
+type-only positions, some in value positions), Alloy renders a single import statement
+with inline `type` annotations for type-only symbols instead of separate `import` and
+`import type` statements.
+
+**Fix:** Expect a single combined import in test assertions:
+```tsx
+// ✅ Correct expectation
+import { type Client, expandUrlTemplate, type OperationOptions, operationOptionsToRequestParameters, type StreamableMethod } from "@typespec/ts-http-runtime";
+
+// ❌ Wrong - Alloy doesn't split imports like this
+import type { OperationOptions } from "@typespec/ts-http-runtime";
+import { StreamableMethod } from "@typespec/ts-http-runtime";
+```
+
+Symbols are sorted alphabetically within the import statement.
+
+**Date:** 2026-02-24
+
+## Alloy FunctionDeclaration formats parameters on separate lines
+
+**Problem:** When a function has 2 or more parameters, Alloy's `FunctionDeclaration`
+component renders each parameter on its own line with 2-space indentation, followed
+by a closing `) :` on a separate line.
+
+**Fix:** Always expect multi-line parameter formatting in test assertions for functions
+with 2+ parameters:
+```tsx
+// ✅ Correct
+export function _getItemSend(
+  context: Client,
+  options: GetItemOptionalParams = { requestOptions: {} },
+): StreamableMethod {
+
+// ❌ Wrong
+export function _getItemSend(context: Client, options: GetItemOptionalParams = { requestOptions: {} }): StreamableMethod {
+```
+
+**Date:** 2026-02-24
