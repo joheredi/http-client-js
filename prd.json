@@ -1088,7 +1088,7 @@
           "id": "3.5",
           "title": "Operations Orchestrator",
           "description": "Group and organize operations by operation group path",
-          "pass": false,
+          "pass": true,
           "pass_criteria": [
             "Operations grouped by operation group hierarchy",
             "Each group emits src/api/{group}/operations.ts",
@@ -1096,7 +1096,8 @@
             "All functions exported with correct names",
             "Operation group path correctly computed from client hierarchy",
             "Scenario tests pass: apiOperations/apiOperations.md"
-          ]
+          ],
+          "status": "done"
         }
       ],
       "dependencies": [

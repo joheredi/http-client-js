@@ -468,3 +468,41 @@ looks different from what you might expect.
 return types. For model types, it renders as `(ModelName)[]`.
 
 **Date:** 2026-02-24
+
+## toRenderTo with expect.stringContaining requires ALL output files
+
+**Problem:** When using `toRenderTo` with `expect.stringContaining()` for a
+multi-file component (e.g., one that renders both `models/models.ts` and
+`api/operations.ts`), specifying only one file in the expected object causes
+a test failure. The matcher requires ALL rendered files to be accounted for.
+
+**Fix:** When asserting on multi-file output with `expect.stringContaining()`,
+include ALL files in the assertion object:
+```tsx
+// ✅ Correct — both files specified
+expect(template).toRenderTo({
+  "api/operations.ts": expect.stringContaining("widgetSerializer"),
+  "models/models.ts": expect.stringContaining("export interface Widget"),
+});
+
+// ❌ Wrong — missing models/models.ts
+expect(template).toRenderTo({
+  "api/operations.ts": expect.stringContaining("widgetSerializer"),
+});
+```
+
+**Date:** 2026-02-24
+
+## Empty @service namespace produces 0 clients in TCGC
+
+**Problem:** A TypeSpec `@service` namespace with no operations compiles
+successfully but produces 0 clients in `sdkPackage.clients` (not 1 empty
+client as might be expected).
+
+**Fix:** Don't assert `clients.length === 1` for empty services. Instead,
+test the empty case by verifying the component output is empty directly:
+```tsx
+expect(template).toRenderTo("");
+```
+
+**Date:** 2026-02-24
