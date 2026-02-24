@@ -408,3 +408,55 @@
   to determine if a model needs a polymorphic type alias alongside its interface.
 - The component returns `undefined` for non-discriminated models, so it's safe to
   render `<PolymorphicType model={anyModel} />` without conditional checks.
+
+## 2026-02-24 — ModelFiles Orchestrator (Phase 1, Task 1.6)
+
+### What was done
+- Created `src/components/model-files.tsx`: `ModelFiles` JSX component that orchestrates
+  all type declarations into a `models/models.ts` source file inside a `models/` directory.
+- Helper components: `ModelDeclarations`, `EnumDeclarations`, `UnionDeclarations`,
+  `ModelWithPolymorphic` — each responsible for rendering its category of types.
+- Updated `src/components/index.ts`: Added `ModelFiles` export.
+- Created `test/components/model-files.test.tsx`: 8 tests covering:
+  - Basic model renders into models/models.ts
+  - Enums-only service renders enum declarations
+  - Models render before enums (ordering)
+  - Polymorphic types rendered after their base model
+  - Empty service produces no output
+  - Union declarations rendered correctly
+  - Multiple models separated by blank lines
+  - Cross-model references resolved in same file
+- All 81 tests pass (8 new + 73 existing).
+
+### Architecture decisions
+- **Single file for now**: All types go into `models/models.ts`. Namespace grouping
+  is deferred to a future task since it requires deeper TCGC namespace analysis.
+- **Same SourceFile for serializers**: The component is structured so that serializers
+  (Phase 2) will be added to the same `<SourceFile>`, preventing the self-import bug
+  that is a well-known Alloy pitfall.
+- **Union filtering**: `sdkPackage.unions` contains `SdkNullableType | SdkUnionType`.
+  The component filters to only `SdkUnionType` (kind === "union") for rendering.
+- **Declaration order**: Models (with polymorphic types) → Enums → Unions, matching
+  the legacy emitter's convention.
+- **Empty skip**: Returns undefined when no types exist, so no empty files/dirs.
+
+### Key learnings (see knowledge.md)
+- `t.model()` markers only work for TypeSpec `model` entities; use plain strings for
+  enums and unions in test templates.
+- TCGC may not include return-type-only unions in `sdkPackage.unions` — use them as
+  input parameters in tests.
+- Multiple operations with same HTTP route cause compilation errors — use `@route()`
+  decorator to differentiate.
+- Multi-file output testing: use `toRenderTo({ "path/file.ts": content })` with a
+  custom wrapper that doesn't include its own SourceFile.
+
+### Notes for next person
+- Completed: Phase 0 (0.1, 0.3, 0.4, 0.5, 0.6), Phase 1 (1.1–1.6). Phase 1 is complete.
+- Phase 0 remaining: 0.2 (Emitter Entry Point).
+- **Next priority: Phase 2 (Serialization)** — FR5 (JSON Serialization) is the highest
+  priority P0 feature remaining. Phase 2 depends on Phase 1 which is now complete.
+- The `ModelFiles` component is exported from `src/index.ts` — import from package root.
+- When implementing serializers (Phase 2), add them inside the `<SourceFile>` in
+  `ModelFiles` AFTER the type declarations. The structure is ready for this.
+- The `ModelFilesTestWrapper` in the test file shows how to test components that create
+  their own SourceDirectory/SourceFile — reuse this pattern for future orchestrator tests.

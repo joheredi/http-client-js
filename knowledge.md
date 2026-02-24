@@ -196,3 +196,59 @@ them.
 Use the actual rendered output to drive assertions rather than guessing from TypeSpec input.
 
 **Date:** 2026-02-24
+
+## t.model() marker only works for TypeSpec `model` entities
+
+**Problem:** Using `t.model("Color")` in a `t.code` template where `Color` is defined
+as a TypeSpec `enum` (not a `model`) causes a compile error: "Expected Color to be of
+kind Model but got (Enum)". Similarly, using `t.model()` for a `union` fails with
+"Expected ... to be of kind Model but got (Union)".
+
+**Fix:** Only use `t.model()` for actual TypeSpec model definitions. For enums and unions,
+write them as plain strings in the template without markers. Operations referencing them
+still work — markers are only needed if you want to extract the entity by marker later.
+
+**Date:** 2026-02-24
+
+## TCGC does not include return-type-only unions in sdkPackage.unions
+
+**Problem:** A TypeSpec union used only as an operation return type (e.g.,
+`op getMixed(): MixedType;`) may not appear in `sdkPackage.unions`. Testing
+the ModelFiles orchestrator with such a union produces empty output because
+`unions.length === 0`.
+
+**Fix:** Use the union as an input parameter (e.g., `op sendMixed(@body value: MixedType): void;`)
+to ensure TCGC includes it in `sdkPackage.unions`. This mirrors real-world usage where
+unions are typically used in request bodies.
+
+**Date:** 2026-02-24
+
+## Duplicate HTTP operation routes cause compilation errors
+
+**Problem:** Multiple operations with the same HTTP method and route (e.g., two `op` 
+declarations that both resolve to `GET /`) cause `@typespec/http/duplicate-operation`
+compilation errors.
+
+**Fix:** Give operations different routes using `@route("path")` decorator or different
+HTTP methods. Example: `@get op getFoo(): Foo;` and `@get @route("bar") op getBar(): Bar;`
+
+**Date:** 2026-02-24
+
+## Testing multi-file Alloy output with toRenderTo
+
+**Problem:** Components that produce SourceDirectory + SourceFile output can't be tested
+with `SdkTestFile` (which wraps in its own SourceFile), and need a different assertion
+pattern than single-file tests.
+
+**Fix:** Create a custom test wrapper that provides only `<Output>` and
+`<SdkContextProvider>` without a `<SourceFile>`. Use `toRenderTo` with an object
+argument where keys are file paths (including directory prefixes) and values are
+expected content:
+```tsx
+expect(template).toRenderTo({
+  "models/models.ts": d\`expected content\`,
+});
+```
+For empty output (component returns undefined), use `toRenderTo("")`.
+
+**Date:** 2026-02-24

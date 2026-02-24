@@ -898,7 +898,7 @@
           "id": "1.6",
           "title": "ModelFiles Orchestrator",
           "description": "Organize models by namespace, unify declarations + serializers in same SourceFile",
-          "pass": false,
+          "pass": true,
           "pass_criteria": [
             "Models organized into src/models/{namespace}/models.ts per namespace",
             "Type declarations and serializers unified in same <ts.SourceFile> (no self-imports)",
@@ -906,7 +906,8 @@
             "Empty model files (no declarations) not emitted",
             "All model types from sdkPackage.models processed",
             "Cross-namespace references resolved via refkeys (auto-imports between model files)"
-          ]
+          ],
+          "status": "done"
         }
       ],
       "dependencies": [
