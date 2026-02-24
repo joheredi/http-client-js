@@ -755,7 +755,7 @@
           "id": "0.3",
           "title": "SDK Context Provider",
           "description": "Create src/context/sdk-context.tsx with named context, provider component, and useSdkContext() hook",
-          "pass": false,
+          "pass": true,
           "pass_criteria": [
             "SdkContext created via createNamedContext() from @alloy-js/core",
             "SdkContextProvider component wraps children and provides sdkPackage, program, options",

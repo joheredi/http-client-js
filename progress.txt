@@ -24,3 +24,45 @@
   or Emitter Entry Point (0.2). These are all Phase 0 foundation tasks.
 - The `TestFile` wrapper is intentionally minimal. It will need to be extended with context
   providers (e.g., `SdkContext`) once those components are created (Task 0.3).
+
+## 2026-02-24 — SDK Context Provider (Phase 0, Task 0.3)
+
+### What was done
+- Created `src/context/sdk-context.tsx`: Named context (`SdkContext`), provider component
+  (`SdkContextProvider`), and `useSdkContext()` hook for accessing TCGC SDK package data.
+- Created `src/context/index.ts`: Barrel file exporting all context types and components.
+- Updated `src/index.ts`: Re-exports context module.
+- Updated `test/test-host.ts`:
+  - Added `@azure-tools/typespec-client-generator-core` to Tester libraries.
+  - Added `TesterWithService` pre-wrapped with `@service` namespace.
+  - Added `createSdkContextForTest()` helper for creating TCGC contexts in tests.
+- Updated `test/utils.tsx`: Added `SdkTestFile` wrapper that includes `SdkContextProvider`
+  for testing components that depend on SDK context.
+- Created `test/context/sdk-context.test.tsx`: 6 tests covering:
+  - Providing sdkPackage data to child components
+  - Exposing clients from SDK package
+  - Exposing enums from SDK package
+  - Throwing when used without provider
+  - Consuming via raw `useContext()`
+  - Exposing full sdkPackage object
+- All 11 tests pass (5 infrastructure + 6 context).
+
+### Architecture decisions
+- Context value exposes `sdkPackage`, `clients`, `models`, `enums`, `unions` as typed accessors.
+- `program` is NOT duplicated in our context — it's already available via `useTsp()` from
+  `@typespec/emitter-framework`.
+- TCGC `SdkContext` type is aliased as `TcgcSdkContext` to avoid name collision with our
+  Alloy named context.
+
+### Key learnings (see knowledge.md)
+- TCGC prunes unreferenced models — always include operations that reference types in tests.
+- Alloy JSX is lazy — use `renderToString()` to trigger throws in error-path tests.
+- `EmitContext` requires a `perf` property — provide no-op mock in tests.
+
+### Notes for next person
+- Completed: 0.1 (Dependencies), 0.3 (SDK Context), 0.6 (Test Infrastructure).
+- Next priorities: Refkey Helpers (0.4), External Package Definitions (0.5), Emitter Entry Point (0.2).
+- The `SdkTestFile` wrapper and `createSdkContextForTest()` are ready for use in all future
+  component tests that need TCGC data.
+- The `TesterWithService` tester wraps TypeSpec in a `@service` namespace, which is needed for
+  TCGC to produce clients. Use it instead of `Tester` for tests that call `createSdkContextForTest()`.
