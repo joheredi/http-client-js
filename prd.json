@@ -784,7 +784,7 @@
           "id": "0.5",
           "title": "External Package Definitions",
           "description": "Create src/utils/external-packages.ts with createPackage() definitions for runtime libs",
-          "pass": false,
+          "pass": true,
           "pass_criteria": [
             "httpRuntimeLib defined via createPackage() with all @typespec/ts-http-runtime exports (Client, getClient, Pipeline, RestError, OperationOptions, StreamableMethod, etc.)",
             "Package symbols accessible as typed refkeys (e.g., httpRuntimeLib.Client)",
@@ -837,7 +837,7 @@
           "id": "1.2",
           "title": "Model Interface Component",
           "description": "Generate ts.InterfaceDeclaration from SdkModelType with properties, inheritance, discriminators",
-          "pass": false,
+          "pass": true,
           "pass_criteria": [
             "Produces <ts.InterfaceDeclaration> with correct name, refkey, and export",
             "Properties rendered as <ts.InterfaceMember> with correct name, type, optional, readonly",

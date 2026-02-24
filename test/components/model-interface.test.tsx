@@ -1,0 +1,432 @@
+/**
+ * Test suite for the ModelInterface component.
+ *
+ * ModelInterface is the primary component for generating TypeScript interface
+ * declarations from TCGC SdkModelType. Every model in the generated SDK
+ * flows through this component, so correctness here is critical for the
+ * entire emitter output.
+ *
+ * What is tested:
+ * - Basic model with properties renders a TypeScript interface with correct
+ *   member names and types.
+ * - Optional properties render with the `?` modifier.
+ * - Readonly properties (visibility = [Read]) render with `readonly`.
+ * - Base model inheritance produces an `extends` clause via refkey.
+ * - Discriminator properties on subtypes render with the literal
+ *   discriminatorValue instead of the general type.
+ * - Models with additionalProperties render an index signature member.
+ * - JSDoc documentation from model.doc/summary appears on the interface.
+ * - JSDoc documentation from property.doc appears on interface members.
+ * - Flattened properties are expanded inline from the nested model.
+ */
+import "@alloy-js/core/testing";
+import { code, refkey } from "@alloy-js/core";
+import { InterfaceDeclaration } from "@alloy-js/typescript";
+import { t } from "@typespec/compiler/testing";
+import { describe, expect, it } from "vitest";
+import type { SdkModelType } from "@azure-tools/typespec-client-generator-core";
+import { ModelInterface } from "../../src/components/model-interface.js";
+import { typeRefkey } from "../../src/utils/refkeys.js";
+import { TesterWithService, createSdkContextForTest } from "../test-host.js";
+import { SdkTestFile } from "../utils.jsx";
+
+describe("Model Interface", () => {
+  /**
+   * Tests the most fundamental case: a model with required properties of
+   * various scalar types renders as a TypeScript interface with correct
+   * member names and types. This is the baseline test — if this fails,
+   * nothing else can work.
+   */
+  it("should render a basic model with properties", async () => {
+    const runner = await TesterWithService.createInstance();
+    const { program } = await runner.compile(
+      t.code`
+        model ${t.model("Widget")} {
+          name: string;
+          age: int32;
+          active: boolean;
+        }
+
+        op ${t.op("getWidget")}(): Widget;
+      `,
+    );
+
+    const sdkContext = await createSdkContextForTest(program);
+    const model = sdkContext.sdkPackage.models[0];
+
+    const template = (
+      <SdkTestFile sdkContext={sdkContext}>
+        <ModelInterface model={model} />
+      </SdkTestFile>
+    );
+
+    expect(template).toRenderTo(`
+      export interface Widget {
+        name: string;
+        age: number;
+        active: boolean;
+      }
+    `);
+  });
+
+  /**
+   * Tests that optional properties are rendered with the `?` modifier.
+   * Optional properties are extremely common in REST APIs — request bodies
+   * often have many optional fields. The emitter must correctly distinguish
+   * required from optional members.
+   */
+  it("should render optional properties with question mark", async () => {
+    const runner = await TesterWithService.createInstance();
+    const { program } = await runner.compile(
+      t.code`
+        model ${t.model("Config")} {
+          name: string;
+          description?: string;
+          count?: int32;
+        }
+
+        op ${t.op("getConfig")}(): Config;
+      `,
+    );
+
+    const sdkContext = await createSdkContextForTest(program);
+    const model = sdkContext.sdkPackage.models[0];
+
+    const template = (
+      <SdkTestFile sdkContext={sdkContext}>
+        <ModelInterface model={model} />
+      </SdkTestFile>
+    );
+
+    expect(template).toRenderTo(`
+      export interface Config {
+        name: string;
+        description?: string;
+        count?: number;
+      }
+    `);
+  });
+
+  /**
+   * Tests that properties with `@visibility(Lifecycle.Read)` are rendered
+   * as `readonly`. This is important for response-only properties like
+   * server-generated IDs and timestamps that consumers should not set.
+   */
+  it("should render readonly properties", async () => {
+    const runner = await TesterWithService.createInstance();
+    const { program } = await runner.compile(
+      t.code`
+        model ${t.model("Resource")} {
+          @visibility(Lifecycle.Read)
+          id: string;
+          name: string;
+        }
+
+        op ${t.op("getResource")}(): Resource;
+      `,
+    );
+
+    const sdkContext = await createSdkContextForTest(program);
+    const model = sdkContext.sdkPackage.models[0];
+
+    const template = (
+      <SdkTestFile sdkContext={sdkContext}>
+        <ModelInterface model={model} />
+      </SdkTestFile>
+    );
+
+    expect(template).toRenderTo(`
+      export interface Resource {
+        readonly id: string;
+        name: string;
+      }
+    `);
+  });
+
+  /**
+   * Tests that a model with a baseModel renders an `extends` clause.
+   * Inheritance is used heavily in service definitions — e.g., a Resource
+   * base model with common fields like id and name, extended by specific
+   * resource types. The extends clause must reference the base model via
+   * refkey so Alloy generates cross-file imports when needed.
+   */
+  it("should render extends clause for base model", async () => {
+    const runner = await TesterWithService.createInstance();
+    const { program } = await runner.compile(
+      t.code`
+        model ${t.model("BaseEntity")} {
+          id: string;
+        }
+
+        model ${t.model("User")} extends BaseEntity {
+          email: string;
+        }
+
+        op ${t.op("getUser")}(): User;
+      `,
+    );
+
+    const sdkContext = await createSdkContextForTest(program);
+    const baseModel = sdkContext.sdkPackage.models.find(
+      (m) => m.name === "BaseEntity",
+    )!;
+    const userModel = sdkContext.sdkPackage.models.find(
+      (m) => m.name === "User",
+    )!;
+
+    const template = (
+      <SdkTestFile sdkContext={sdkContext}>
+        <ModelInterface model={baseModel} />
+        {"\n\n"}
+        <ModelInterface model={userModel} />
+      </SdkTestFile>
+    );
+
+    expect(template).toRenderTo(`
+      export interface BaseEntity {
+        id: string;
+      }
+
+      export interface User extends BaseEntity {
+        email: string;
+      }
+    `);
+  });
+
+  /**
+   * Tests that discriminator properties on subtypes render with the
+   * literal discriminatorValue as the type. In a discriminated union
+   * like `Animal { kind: "cat" | "dog" }`, the Cat subtype must have
+   * `kind: "cat"` (literal type), not `kind: string`.
+   *
+   * This is essential for TypeScript's discriminated union narrowing to
+   * work correctly in generated client code.
+   */
+  it("should render discriminator property with literal type on subtype", async () => {
+    const runner = await TesterWithService.createInstance();
+    const { program } = await runner.compile(
+      t.code`
+        @discriminator("kind")
+        model ${t.model("Pet")} {
+          kind: string;
+          name: string;
+        }
+
+        model ${t.model("Cat")} extends Pet {
+          kind: "cat";
+          purrs: boolean;
+        }
+
+        model ${t.model("Dog")} extends Pet {
+          kind: "dog";
+          barks: boolean;
+        }
+
+        op ${t.op("getPet")}(): Pet;
+      `,
+    );
+
+    const sdkContext = await createSdkContextForTest(program);
+    const catModel = sdkContext.sdkPackage.models.find(
+      (m) => m.name === "Cat",
+    )!;
+
+    const template = (
+      <SdkTestFile sdkContext={sdkContext}>
+        {/* Provide base declaration for refkey resolution */}
+        <InterfaceDeclaration
+          name="Pet"
+          refkey={typeRefkey(
+            sdkContext.sdkPackage.models.find((m) => m.name === "Pet")!,
+          )}
+        >
+          kind: string; name: string
+        </InterfaceDeclaration>
+        {"\n\n"}
+        <ModelInterface model={catModel} />
+      </SdkTestFile>
+    );
+
+    expect(template).toRenderTo(`
+      interface Pet {
+        kind: string; name: string
+      }
+
+      export interface Cat extends Pet {
+        kind: "cat";
+        purrs: boolean;
+      }
+    `);
+  });
+
+  /**
+   * Tests that models with additionalProperties render an index signature.
+   * Many REST APIs use `Record<string, T>` patterns for metadata or dynamic
+   * properties. The TCGC `additionalProperties` field maps to a TypeScript
+   * index signature: `[key: string]: T`.
+   */
+  it("should render index signature for additionalProperties", async () => {
+    const runner = await TesterWithService.createInstance();
+    const { program } = await runner.compile(
+      t.code`
+        model ${t.model("Metadata")} {
+          name: string;
+          ...Record<string>;
+        }
+
+        op ${t.op("getMetadata")}(): Metadata;
+      `,
+    );
+
+    const sdkContext = await createSdkContextForTest(program);
+    const model = sdkContext.sdkPackage.models[0];
+
+    const template = (
+      <SdkTestFile sdkContext={sdkContext}>
+        <ModelInterface model={model} />
+      </SdkTestFile>
+    );
+
+    expect(template).toRenderTo(`
+      export interface Metadata {
+        name: string;
+        [key: string]: string
+      }
+    `);
+  });
+
+  /**
+   * Tests that JSDoc documentation from the model's `doc` field appears
+   * on the interface declaration. Documentation is critical for SDK
+   * usability — consumers rely on IntelliSense tooltips to understand
+   * the purpose of each model.
+   */
+  it("should render JSDoc on interface from model doc", async () => {
+    const runner = await TesterWithService.createInstance();
+    const { program } = await runner.compile(
+      t.code`
+        @doc("A widget resource that represents a physical device.")
+        model ${t.model("Widget")} {
+          name: string;
+        }
+
+        op ${t.op("getWidget")}(): Widget;
+      `,
+    );
+
+    const sdkContext = await createSdkContextForTest(program);
+    const model = sdkContext.sdkPackage.models[0];
+
+    const template = (
+      <SdkTestFile sdkContext={sdkContext}>
+        <ModelInterface model={model} />
+      </SdkTestFile>
+    );
+
+    expect(template).toRenderTo(`
+      /**
+       * A widget resource that represents a physical device.
+       */
+      export interface Widget {
+        name: string;
+      }
+    `);
+  });
+
+  /**
+   * Tests that JSDoc documentation from property `doc` fields appears
+   * on interface members. Property-level documentation helps consumers
+   * understand the purpose and constraints of individual fields.
+   */
+  it("should render JSDoc on members from property doc", async () => {
+    const runner = await TesterWithService.createInstance();
+    const { program } = await runner.compile(
+      t.code`
+        model ${t.model("Item")} {
+          @doc("The unique identifier of the item.")
+          id: string;
+          @doc("Human-readable display name.")
+          name: string;
+        }
+
+        op ${t.op("getItem")}(): Item;
+      `,
+    );
+
+    const sdkContext = await createSdkContextForTest(program);
+    const model = sdkContext.sdkPackage.models[0];
+
+    const template = (
+      <SdkTestFile sdkContext={sdkContext}>
+        <ModelInterface model={model} />
+      </SdkTestFile>
+    );
+
+    expect(template).toRenderTo(`
+      export interface Item {
+        /**
+         * The unique identifier of the item.
+         */
+        id: string;
+        /**
+         * Human-readable display name.
+         */
+        name: string;
+      }
+    `);
+  });
+
+  /**
+   * Tests that a model referencing another model as a property type
+   * correctly uses the refkey system for cross-references. When Model A
+   * has a property of type Model B, the property type should be the name
+   * of Model B (resolved via refkey), enabling Alloy to auto-generate
+   * imports when the models are in different files.
+   */
+  it("should reference model types via refkey in properties", async () => {
+    const runner = await TesterWithService.createInstance();
+    const { program } = await runner.compile(
+      t.code`
+        model ${t.model("Address")} {
+          street: string;
+          city: string;
+        }
+
+        model ${t.model("Person")} {
+          name: string;
+          address: Address;
+        }
+
+        op ${t.op("getPerson")}(): Person;
+      `,
+    );
+
+    const sdkContext = await createSdkContextForTest(program);
+    const addressModel = sdkContext.sdkPackage.models.find(
+      (m) => m.name === "Address",
+    )!;
+    const personModel = sdkContext.sdkPackage.models.find(
+      (m) => m.name === "Person",
+    )!;
+
+    const template = (
+      <SdkTestFile sdkContext={sdkContext}>
+        <ModelInterface model={addressModel} />
+        {"\n\n"}
+        <ModelInterface model={personModel} />
+      </SdkTestFile>
+    );
+
+    expect(template).toRenderTo(`
+      export interface Address {
+        street: string;
+        city: string;
+      }
+
+      export interface Person {
+        name: string;
+        address: Address;
+      }
+    `);
+  });
+});

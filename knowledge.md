@@ -75,3 +75,47 @@ order as the package registration in `<Output externals={[...]}>` and the order 
 appear in the rendered code.
 
 **Date:** 2026-02-24
+
+## Alloy JSDoc renders multi-line format even for short descriptions
+
+**Problem:** When passing a short doc string to Alloy's `doc` prop on
+`InterfaceDeclaration` or `InterfaceMember`, the rendered JSDoc always uses
+multi-line format:
+```ts
+/**
+ * Short description.
+ */
+```
+Not the single-line `/** Short description. */` format. Tests must match
+the multi-line format.
+
+**Fix:** Always expect multi-line JSDoc format in test assertions, even for
+single-sentence documentation strings.
+
+**Date:** 2026-02-24
+
+## TCGC subtypes only contain their own properties, not inherited ones
+
+**Problem:** When a model extends a base model (e.g., `Cat extends Pet`),
+TCGC's `SdkModelType.properties` array only contains properties declared
+directly on the subtype, not properties inherited from the base model.
+Tests should not expect inherited properties in the subtype's interface body.
+
+**Fix:** Only assert on properties directly declared on the subtype. The
+`extends` clause handles inheritance — consumers access base properties
+through the TypeScript type system, not through duplication.
+
+**Date:** 2026-02-24
+
+## Index signature members outside <For> don't get semicolons
+
+**Problem:** When rendering additionalProperties as an `<InterfaceMember indexer=...>`
+after the `<For>` block for regular properties, the index signature member does
+not automatically get a trailing semicolon. The `<For>` component's `enderPunctuation`
+only applies to items inside the For.
+
+**Fix:** Accept the index signature without a trailing semicolon in test assertions.
+The Alloy `InterfaceMember` renders the member as `[key: string]: T` without
+a terminating semicolon when used outside a `<For>` with `enderPunctuation`.
+
+**Date:** 2026-02-24
