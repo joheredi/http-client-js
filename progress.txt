@@ -603,3 +603,49 @@
   they serialize their own properties. Only the discriminated parent (Pet) gets the switch.
 - The existing serializer's inheritance handling (subtypes only serialize their own properties,
   not inherited ones) is a separate concern not addressed by FR6.
+
+## 2026-02-24 — Operation Options Component (Phase 3, Task 3.1)
+
+### What was done
+- Created `src/components/operation-options.tsx`: `OperationOptionsDeclaration` component
+  that generates `XXXOptionalParams` interfaces for each operation.
+- Updated `src/components/index.ts`: Exports `OperationOptionsDeclaration`.
+- Created `test/components/operation-options.test.tsx`: 8 tests covering:
+  - Basic operation with optional query parameters
+  - Interface extends OperationOptions from runtime package
+  - Refkey referenceable via operationOptionsRefkey
+  - JSDoc documentation from parameter descriptions
+  - Required parameters excluded
+  - Empty interface for no optional parameters
+  - Optional header parameters included
+  - Optional body parameter included (with model reference)
+- Also updated PRD to mark tasks 1.2-1.5, 2.1-2.2 as done (they were already
+  implemented but not tracked).
+- All 114 tests pass (8 new + 106 existing).
+
+### Component behavior
+- **Naming**: `{OperationName}OptionalParams` (e.g., `GetUserOptionalParams`)
+- **Extends**: `OperationOptions` from `@typespec/ts-http-runtime` via refkey
+- **Included params**: Method-level params where `onClient=false`, `optional=true` (or
+  has `clientDefaultValue`), not auto-generated contentType/accept, not API version
+- **LRO ops**: Adds `updateIntervalInMs?: number` for `kind === "lro"` or `"lropaging"`
+- **Dual-format body**: Adds `contentType?: string` when body supports both JSON and XML
+- **Refkey**: Registered via `operationOptionsRefkey(method)`
+
+### Key learnings (see knowledge.md)
+- Alloy renders `import type` when symbols are only in type positions
+- Empty interfaces render as `{}` on one line
+- Component names must not collide with external package symbol names
+- `@patch` decorator needs `#{implicitOptionality: true}` for optional bodies
+
+### Notes for next person
+- Completed: 0.1, 0.3, 0.4, 0.5, 0.6 (Phase 0), 1.1-1.6 (Phase 1), 2.1-2.3 (Phase 2), 3.1 (Phase 3).
+- Next priorities: Send Function (3.2), Deserialize Function (3.3), Public Operation Function (3.4),
+  Operations Orchestrator (3.5). These form the core operations pipeline.
+- 3.2 (Send Function) is the logical next step — it generates `_sendXXX` functions that
+  build HTTP requests from the operation's parameters and options.
+- The `OperationOptionsDeclaration` uses `getTypeExpression()` for parameter types, so model
+  types referenced in options need a corresponding `ModelInterface` declaration in the same
+  output tree for refkey resolution to work.
+- Component is named `OperationOptionsDeclaration` (not `OperationOptions`) to avoid name
+  collision with `httpRuntimeLib.OperationOptions`.

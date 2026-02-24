@@ -299,3 +299,58 @@ const hasException = (model.usage & UsageFlags.Exception) !== 0;
 ```
 
 **Date:** 2026-02-24
+
+## Alloy renders `import type` when symbol is only used in type position
+
+**Problem:** When an external package symbol (e.g., `OperationOptions` from `httpRuntimeLib`)
+is only used in a type position (e.g., `extends` clause of an interface), Alloy renders
+`import type { ... }` instead of `import { ... }`. Test assertions that use the non-type
+import syntax will fail.
+
+**Fix:** Always use `import type { ... }` in test assertions when the imported symbol
+is only referenced in type positions (extends clauses, type annotations, etc.).
+
+**Date:** 2026-02-24
+
+## Empty Alloy interface bodies render as `{}` on one line
+
+**Problem:** When an `InterfaceDeclaration` has no children (empty interface), Alloy renders
+`export interface Foo extends Bar {}` on a single line, NOT with the braces on separate lines.
+
+**Fix:** Use `{}` on the same line in test assertions for empty interfaces:
+```tsx
+// ✅ Correct
+export interface FooOptionalParams extends OperationOptions {}
+
+// ❌ Wrong
+export interface FooOptionalParams extends OperationOptions {
+}
+```
+
+**Date:** 2026-02-24
+
+## Component name collision with external package symbols in JSX
+
+**Problem:** Naming a component the same as an external package symbol (e.g., naming a
+component `OperationOptions` when `httpRuntimeLib.OperationOptions` exists) causes
+`ReferenceError: OperationOptions is not defined` in some test contexts. Alloy's JSX
+resolution can confuse the component function with the external symbol.
+
+**Fix:** Use distinct names for components that would collide with external package symbols.
+For example, use `OperationOptionsDeclaration` instead of `OperationOptions` to avoid
+collision with `httpRuntimeLib.OperationOptions`.
+
+**Date:** 2026-02-24
+
+## @patch decorator requires explicit implicitOptionality flag
+
+**Problem:** Using `@patch op myOp(@body body?: MyModel): void;` produces a diagnostic
+warning: `@typespec/http/patch-implicit-optional: Patch operation stopped applying an
+implicit optional transform to the body in 1.0.0.`
+
+**Fix:** Use `@patch(#{implicitOptionality: true})` when the body parameter should be optional:
+```tsp
+@patch(#{implicitOptionality: true}) op updateItem(@path id: string, @body body?: PatchData): string;
+```
+
+**Date:** 2026-02-24

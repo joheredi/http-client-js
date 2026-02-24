@@ -855,13 +855,14 @@
             "Flattened properties expanded inline (not nested)",
             "JSDoc documentation from SDK model.doc and model.summary",
             "Scenario tests pass: models/models.md model interfaces match legacy output"
-          ]
+          ],
+          "status": "done"
         },
         {
           "id": "1.3",
           "title": "Enum Declaration Component",
           "description": "Generate KnownXXX enum + extensible type alias pattern from SdkEnumType",
-          "pass": false,
+          "pass": true,
           "pass_criteria": [
             "Fixed enums (isFixed=true) produce standard TypeScript enum",
             "Extensible enums produce KnownXXX enum + type XXX = string alias",
@@ -869,33 +870,36 @@
             "JSDoc documentation on enum and members",
             "Refkey set on both enum and type alias declarations",
             "Scenario tests pass: enumUnion/enumUnion.md, models/apiVersion/*.md"
-          ]
+          ],
+          "status": "done"
         },
         {
           "id": "1.4",
           "title": "Union Type Component",
           "description": "Generate type alias from SdkUnionType",
-          "pass": false,
+          "pass": true,
           "pass_criteria": [
             "Produces type XXX = A | B | C with correct variant type references",
             "Variant types use refkeys for cross-file reference when they are models",
             "String/number literal union variants rendered correctly",
             "Nullable unions include | null",
             "Refkey set on type alias declaration"
-          ]
+          ],
+          "status": "done"
         },
         {
           "id": "1.5",
           "title": "Polymorphic Type Component",
           "description": "Generate discriminated union type alias",
-          "pass": false,
+          "pass": true,
           "pass_criteria": [
             "Produces type XXX = SubA | SubB | SubC from discriminatedSubtypes",
             "Uses polymorphicTypeRefkey(type) as declaration refkey",
             "Each subtype referenced via typeRefkey(subtype)",
             "Only generated for models with discriminatedSubtypes",
             "Used as parameter type in polymorphic serializers"
-          ]
+          ],
+          "status": "done"
         },
         {
           "id": "1.6",
@@ -926,7 +930,7 @@
           "id": "2.1",
           "title": "JSON Serializer Component",
           "description": "Generate xxxSerializer functions with property mapping, nested calls, array/dict handling",
-          "pass": false,
+          "pass": true,
           "pass_criteria": [
             "Produces function xxxSerializer(item: Xxx): any with correct refkey",
             "Property mapping: item.propName \u2192 result['wireName'] for each property",
@@ -938,13 +942,14 @@
             "Flatten properties correctly navigate nested paths",
             "Only generated for types with Usage.Input flag",
             "Scenario tests pass: models/serialization/propertyType.md"
-          ]
+          ],
+          "status": "done"
         },
         {
           "id": "2.2",
           "title": "JSON Deserializer Component",
           "description": "Generate xxxDeserializer functions mirroring serializer structure",
-          "pass": false,
+          "pass": true,
           "pass_criteria": [
             "Produces function xxxDeserializer(item: any): Xxx with correct refkey",
             "Property mapping: item['wireName'] \u2192 result.propName (reverse of serializer)",
@@ -953,7 +958,8 @@
             "Dict deserialization mirroring serializer",
             "Only generated for types with Usage.Output or Usage.Exception flag",
             "Scenario tests pass: models/deserialization/propertyType.md"
-          ]
+          ],
+          "status": "done"
         },
         {
           "id": "2.3",
@@ -1012,7 +1018,7 @@
           "id": "3.1",
           "title": "Operation Options Component",
           "description": "Generate options interfaces extending OperationOptions",
-          "pass": false,
+          "pass": true,
           "pass_criteria": [
             "Interface extends OperationOptions from runtime package (via refkey)",
             "Optional method parameters included with correct types",
@@ -1021,7 +1027,8 @@
             "JSDoc documentation from parameter descriptions",
             "Refkey set via operationOptionsRefkey(method)",
             "Auto-generated contentType/accept headers excluded from options"
-          ]
+          ],
+          "status": "done"
         },
         {
           "id": "3.2",

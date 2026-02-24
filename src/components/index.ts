@@ -11,3 +11,4 @@ export {
   getDeserializationExpression,
   needsTransformation,
 } from "./serialization/index.js";
+export { OperationOptionsDeclaration } from "./operation-options.js";
