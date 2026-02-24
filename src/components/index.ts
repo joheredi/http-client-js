@@ -27,3 +27,8 @@ export {
   ClassicalClientFile,
   ClassicalClientDeclaration,
 } from "./classical-client.js";
+export {
+  ClassicalOperationGroupFiles,
+  OperationGroupInterface,
+  OperationGroupFactory,
+} from "./classical-operation-groups.js";

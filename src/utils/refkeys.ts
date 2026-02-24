@@ -257,3 +257,34 @@ export function publicOperationRefkey(entity: unknown): Refkey {
 export function pollingHelperRefkey(name: string): Refkey {
   return refkey("pollingHelper", name);
 }
+
+/**
+ * Creates a refkey for an operation group's `XxxOperations` interface.
+ *
+ * Each operation group (represented as a child client in TCGC) gets an
+ * interface that defines the available operations and nested group
+ * accessors. For example, `WidgetsOperations` would contain method
+ * signatures like `getWidget(...)` and nested group properties like
+ * `parts: PartsOperations`.
+ *
+ * @param entity - The TCGC child client type representing the operation group.
+ * @returns A stable refkey for the operation group interface declaration.
+ */
+export function operationGroupInterfaceRefkey(entity: unknown): Refkey {
+  return refkey(entity, "operationGroupInterface");
+}
+
+/**
+ * Creates a refkey for an operation group's `_getXxxOperations` factory function.
+ *
+ * The factory function creates the operation group object by binding
+ * the client context to each operation method and recursively composing
+ * nested operation group factories. It is called in the classical client's
+ * constructor to initialize readonly operation group properties.
+ *
+ * @param entity - The TCGC child client type representing the operation group.
+ * @returns A stable refkey for the operation group factory function declaration.
+ */
+export function operationGroupFactoryRefkey(entity: unknown): Refkey {
+  return refkey(entity, "operationGroupFactory");
+}

@@ -1172,7 +1172,7 @@
           "id": "5.2",
           "title": "Classical Operation Groups",
           "description": "Generate operation group interfaces and factory functions",
-          "pass": false,
+          "pass": true,
           "pass_criteria": [
             "Interface XxxOperations per operation group level",
             "Factory function _getXxxOperations(context) returning operation methods",
@@ -1181,7 +1181,8 @@
             "Operation method signatures match legacy output exactly",
             "Classic files emitted under src/classic/{group}/index.ts",
             "Scenario tests pass: classicClient/reservedWordOperations.md"
-          ]
+          ],
+          "status": "done"
         }
       ],
       "dependencies": [

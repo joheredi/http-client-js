@@ -19,6 +19,8 @@ import {
   clientContextRefkey,
   clientOptionsRefkey,
   createClientRefkey,
+  operationGroupFactoryRefkey,
+  operationGroupInterfaceRefkey,
   operationOptionsRefkey,
   publicOperationRefkey,
 } from "../utils/refkeys.js";
@@ -108,6 +110,7 @@ export function ClassicalClientDeclaration(
   const constructorParams = buildConstructorParameters(client);
   const constructorBody = buildConstructorBody(client);
   const methods = collectClientMethods(client);
+  const childClients = client.children ?? [];
 
   return (
     <ClassDeclaration
@@ -122,6 +125,17 @@ export function ClassicalClientDeclaration(
       />
       {"\n"}
       {code`/** The pipeline used by this client to make requests */\npublic readonly pipeline: ${httpRuntimeLib.Pipeline};`}
+      {childClients.length > 0 && (
+        <>
+          {"\n"}
+          {childClients.map((child) => (
+            <>
+              {"\n"}
+              {code`/** The operation group for ${child.name} */\npublic readonly ${camelCase(child.name)}: ${operationGroupInterfaceRefkey(child)};`}
+            </>
+          ))}
+        </>
+      )}
       {"\n\n"}
       <ClassMethod name="constructor" parameters={constructorParams}>
         {constructorBody}
@@ -257,12 +271,19 @@ function buildConstructorParameters(
  */
 function buildConstructorBody(client: SdkClientType<SdkHttpOperation>): Children {
   const factoryArgs = buildFactoryCallArguments(client);
+  const childClients = client.children ?? [];
 
   return (
     <>
       {code`this._client = ${createClientRefkey(client)}(${factoryArgs});`}
       {"\n"}
       {code`this.pipeline = this._client.pipeline;`}
+      {childClients.map((child) => (
+        <>
+          {"\n"}
+          {code`this.${camelCase(child.name)} = ${operationGroupFactoryRefkey(child)}(this._client);`}
+        </>
+      ))}
     </>
   );
 }

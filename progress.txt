@@ -1106,3 +1106,78 @@
   - Azure external packages (only `httpRuntimeLib` is registered)
   - Index/barrel files (Phase 7)
   - Operation group classes (Phase 5.2)
+
+## 2026-02-24 — Classical Operation Groups (Phase 5, Task 5.2)
+
+### What was done
+- Created `src/components/classical-operation-groups.tsx`: Four components that generate
+  the classical operation group infrastructure:
+  - `ClassicalOperationGroupFiles` — Orchestrator that traverses the client hierarchy
+    via BFS and generates `classic/{path}/index.ts` files for each child client.
+  - `ClassicalOperationGroupFile` — Renders a single operation group file containing
+    the interface and factory function.
+  - `OperationGroupInterface` — Renders `{GroupName}Operations` interface with method
+    signatures for operations and property references for nested child groups.
+  - `OperationGroupFactory` — Renders `_get{GroupName}Operations(context)` factory
+    function that returns an object implementing the interface, delegating each method
+    to the corresponding public API function with context bound.
+- Added `operationGroupInterfaceRefkey` and `operationGroupFactoryRefkey` to
+  `src/utils/refkeys.ts` for cross-file reference resolution.
+- Updated `src/components/classical-client.tsx`:
+  - Added readonly properties for each child client (operation group) on the class.
+  - Added JSDoc comments for each operation group property.
+  - Constructor now initializes each group property via the factory function.
+- Updated `src/emitter.tsx`: Added `ClassicalOperationGroupFiles` to the emitter
+  component tree so operation group files are generated alongside other output.
+- Updated `src/components/index.ts`: Exports all new operation group components.
+- Updated `src/utils/index.ts`: Exports new refkey helpers.
+- Created `test/components/classical-operation-groups.test.tsx`: 11 tests covering:
+  - Interface with method signatures for leaf operations
+  - Factory function with method delegates to public API functions
+  - Nested group reference in interface (parent → child)
+  - Nested factory composing child factory calls
+  - Classical client class with readonly group properties initialized in constructor
+  - File orchestrator producing correct `classic/{group}/index.ts` paths
+  - Required parameters included in interface method signatures
+  - Multiple operation groups at same level rendered correctly
+  - Interface referenceable via operationGroupInterfaceRefkey
+  - Factory referenceable via operationGroupFactoryRefkey
+  - Returns undefined when client has no operation groups
+- Updated PRD: Task 5.2 marked as done.
+- All 179 tests pass (11 new + 168 existing).
+
+### Architecture decisions
+- **Child clients = operation groups**: TCGC represents operation groups as child clients
+  via `client.children`. Each child client has its own `methods` and potentially its own
+  `children` for nested groups. The `SdkClientAccessor` pattern is deprecated in favor
+  of the `parent`/`children` hierarchy.
+- **Naming convention matches legacy emitter**: Interface is `{ChildName}Operations`,
+  factory is `_get{ChildName}Operations`, property is `camelCase(childName)`. The
+  child client's name from TCGC is used directly (e.g., `Widgets` → `WidgetsOperations`).
+- **Factory function delegates via refkeys**: Each method in the factory's return object
+  references the public operation function via `publicOperationRefkey(method)`, enabling
+  Alloy to auto-generate cross-file imports.
+- **Context flows through factory chain**: All factory functions take the root client
+  context as a parameter and pass it to both operation delegates and nested factory
+  calls. This mirrors the legacy emitter's pattern where the RLC client flows through
+  all operation group layers.
+- **BFS traversal for file generation**: Same BFS queue pattern used in `operation-files.tsx`
+  for collecting operation groups. Each child client is visited with its accumulated
+  prefix path, producing the correct directory nesting.
+
+### Notes for next person
+- Completed: Phase 0 (0.1-0.6), Phase 1 (1.1-1.6), Phase 2 (2.1-2.3),
+  Phase 3 (3.1-3.5), Phase 4 (4.1), Phase 5 (5.1-5.2).
+- **Phase 5 is now COMPLETE**: Both classical client (5.1) and operation groups (5.2) done.
+- **Remaining tasks by priority**:
+  1. 7.1/7.2 (Index Files) — generates barrel files for `index.ts` exports
+  2. 2.4/2.5 (XML Serializers, Static Helpers) — advanced serialization
+  3. 4.2 (Logger Component) — Azure-only logging
+  4. 6.x (Advanced Features) — LRO, multipart, samples
+  5. 8.x (Azure Extension) — Azure-specific composition
+  6. 9.x (Test Porting & Validation) — scenario testing
+- The operation group components do NOT yet handle:
+  - LRO helper methods (`begin_*` and `begin_*_andWait`) — these are a deprecated
+    pattern from the legacy emitter. May not be needed in the rewrite.
+  - Reserved word escaping for operation group names — will be handled by Alloy's
+    name policy if needed.

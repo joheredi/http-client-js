@@ -17,6 +17,8 @@ export {
   sendOperationRefkey,
   deserializeOperationRefkey,
   publicOperationRefkey,
+  operationGroupInterfaceRefkey,
+  operationGroupFactoryRefkey,
 } from "./refkeys.js";
 
 export {

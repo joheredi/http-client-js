@@ -8,6 +8,7 @@ import { ModelFiles } from "./components/model-files.js";
 import { OperationFiles } from "./components/operation-files.js";
 import { ClientContextFile } from "./components/client-context.js";
 import { ClassicalClientFile } from "./components/classical-client.js";
+import { ClassicalOperationGroupFiles } from "./components/classical-operation-groups.js";
 import { httpRuntimeLib } from "./utils/external-packages.js";
 
 /**
@@ -55,6 +56,7 @@ export async function $onEmit(context: EmitContext) {
               <>
                 <ClientContextFile client={client} />
                 <ClassicalClientFile client={client} />
+                <ClassicalOperationGroupFiles client={client} />
               </>
             )}
           </For>
