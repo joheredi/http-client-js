@@ -1,0 +1,1330 @@
+{
+  "document": {
+    "title": "Product Requirements Document: Alloy Framework TypeSpec Emitter",
+    "version": "1.0.0",
+    "status": "draft",
+    "created": "2026-02-24",
+    "authors": ["@joheredi"]
+  },
+  "product_overview": {
+    "name": "@microsoft/http-client-js",
+    "description": "A TypeSpec-to-TypeScript code emitter built on the Alloy Framework that generates modular TypeScript client SDKs for REST services. This is a ground-up rewrite of the legacy autorest.typescript/typespec-ts emitter, replacing ts-morph imperative AST manipulation with declarative Alloy JSX components.",
+    "problem_statement": "The legacy emitter (autorest.typescript/packages/typespec-ts) suffers from: (1) overly complex code using raw string concatenation and manual import management, (2) fragile string-based reference resolution causing self-import bugs, (3) monolithic helper files (2700+ lines) that are hard to maintain, (4) no framework for symbol tracking or cross-file reference management. These issues increase maintenance cost, slow feature development, and introduce subtle bugs.",
+    "solution": "Rewrite the emitter using Alloy Framework JSX components with automatic symbol resolution, refkey-based cross-file references, and composable component architecture. The rewrite must produce output-identical TypeScript SDKs to prevent breaking changes for existing Azure SDK consumers.",
+    "target_users": [
+      "TypeSpec SDK authors generating TypeScript client libraries",
+      "Azure SDK team generating Azure service client SDKs",
+      "Internal Microsoft teams generating REST client code from TypeSpec definitions"
+    ]
+  },
+  "goals": [
+    {
+      "id": "G1",
+      "title": "Output Parity",
+      "description": "Generated TypeScript SDK code must be functionally identical to the legacy emitter output. The public API surface (exported types, function signatures, class shapes) must not change.",
+      "priority": "P0",
+      "success_metric": "All 101 scenario tests pass with matching output (modulo whitespace and import ordering)"
+    },
+    {
+      "id": "G2",
+      "title": "Pure Alloy Architecture",
+      "description": "The entire emitter must use idiomatic Alloy patterns: JSX components, refkeys for all declarations/references, code tagged templates, context providers. No legacy bridges, no string concatenation for imports, no manual path calculation.",
+      "priority": "P0",
+      "success_metric": "Zero instances of manual import string construction or string-based reference resolution in codebase"
+    },
+    {
+      "id": "G3",
+      "title": "Composable Azure Extension",
+      "description": "Core emitter works standalone for non-Azure scenarios. Azure-specific features (auth, logging, polling, cloud settings) are added via JSX composition, not conditional flags.",
+      "priority": "P1",
+      "success_metric": "Core emitter generates valid non-Azure SDK; Azure wrapper adds Azure-specific features without modifying core components"
+    },
+    {
+      "id": "G4",
+      "title": "Maintainability",
+      "description": "Dramatically reduce code complexity compared to legacy emitter. Each component has single responsibility, is independently testable, and is under 300 lines.",
+      "priority": "P1",
+      "success_metric": "No component file exceeds 300 lines; each component has at least one test"
+    },
+    {
+      "id": "G5",
+      "title": "Developer Experience",
+      "description": "New components are easy to add and test. The component architecture makes it straightforward to extend the emitter for new features.",
+      "priority": "P2",
+      "success_metric": "Adding a new feature (e.g., new serialization format) requires creating a new component, not modifying existing ones"
+    }
+  ],
+  "non_goals": [
+    {
+      "id": "NG1",
+      "title": "RLC (Rest Level Client) Rewrite",
+      "description": "The RLC code path will NOT be ported. Only the modular path is being rewritten."
+    },
+    {
+      "id": "NG2",
+      "title": "typespec-test Package",
+      "description": "The integration test package (typespec-test) will not be ported in this phase."
+    },
+    {
+      "id": "NG3",
+      "title": "Behavioral Changes",
+      "description": "This rewrite must NOT introduce behavioral changes to generated code. Output parity is the primary constraint."
+    },
+    {
+      "id": "NG4",
+      "title": "New Features",
+      "description": "No new code generation features will be added during the rewrite. Feature parity only."
+    },
+    {
+      "id": "NG5",
+      "title": "Runtime Library Changes",
+      "description": "No changes to @typespec/ts-http-runtime or Azure runtime packages."
+    }
+  ],
+  "requirements": {
+    "functional": [
+      {
+        "id": "FR1",
+        "title": "TypeSpec Emitter Integration",
+        "description": "Implement $onEmit hook that receives TypeSpec EmitContext, initializes TCGC SdkContext, builds Alloy JSX component tree, and writes output files.",
+        "priority": "P0",
+        "acceptance_criteria": [
+          "Emitter registers via TypeSpec lib definition",
+          "Calls createSdkContext() to initialize TCGC",
+          "Extracts SdkPackage with clients, models, enums",
+          "Renders JSX tree via writeOutput()",
+          "Emits TypeScript files to configured output directory"
+        ]
+      },
+      {
+        "id": "FR2",
+        "title": "Model Type Generation",
+        "description": "Generate TypeScript interfaces from SdkModelType, including properties, inheritance, discriminators, additional properties, and documentation.",
+        "priority": "P0",
+        "acceptance_criteria": [
+          "SdkModelType → ts.InterfaceDeclaration with correct properties",
+          "Base model inheritance via extends",
+          "Discriminator property marked correctly",
+          "Additional properties support (Record types)",
+          "Flattened properties expanded inline",
+          "Optional/readonly modifiers applied",
+          "JSDoc documentation from SDK model doc/summary"
+        ]
+      },
+      {
+        "id": "FR3",
+        "title": "Enum Type Generation",
+        "description": "Generate TypeScript enums from SdkEnumType with the KnownXXX pattern for extensible enums.",
+        "priority": "P0",
+        "acceptance_criteria": [
+          "Fixed enums → standard TypeScript enum",
+          "Extensible enums → KnownXXX enum + type XXX = string alias",
+          "Enum values correctly mapped",
+          "Enum members have JSDoc documentation"
+        ]
+      },
+      {
+        "id": "FR4",
+        "title": "Union Type Generation",
+        "description": "Generate TypeScript union type aliases from SdkUnionType.",
+        "priority": "P0",
+        "acceptance_criteria": [
+          "SdkUnionType → type XXX = A | B | C",
+          "Variant types correctly referenced via refkeys",
+          "Nullable types include | null"
+        ]
+      },
+      {
+        "id": "FR5",
+        "title": "JSON Serialization",
+        "description": "Generate serializer and deserializer functions for all model types used in request/response bodies.",
+        "priority": "P0",
+        "acceptance_criteria": [
+          "Serializer function per model with Input usage",
+          "Deserializer function per model with Output/Exception usage",
+          "Property name mapping (client name → wire name and vice versa)",
+          "Nested model types call child serializer refkeys",
+          "Array types use .map() with child serializer",
+          "Dictionary types use serializeRecord() helper",
+          "Null checks for nullable properties",
+          "Additional properties spread",
+          "Flatten property handling"
+        ]
+      },
+      {
+        "id": "FR6",
+        "title": "Polymorphic Serialization",
+        "description": "Generate discriminated union serializers that switch on discriminator property to route to subtype serializers.",
+        "priority": "P0",
+        "acceptance_criteria": [
+          "Switch statement on discriminator property",
+          "Each case routes to subtype serializer/deserializer refkey",
+          "Parameter type uses polymorphicTypeRefkey (union type, not base)"
+        ]
+      },
+      {
+        "id": "FR7",
+        "title": "XML Serialization",
+        "description": "Generate XML serializer/deserializer functions (4 per type) using metadata-driven approach.",
+        "priority": "P1",
+        "acceptance_criteria": [
+          "4 functions per type: serializer, objectSerializer, deserializer, objectDeserializer",
+          "Property metadata arrays with XML options",
+          "Uses serializeToXml/deserializeFromXml static helpers",
+          "XML namespace handling"
+        ]
+      },
+      {
+        "id": "FR8",
+        "title": "Operation Generation",
+        "description": "Generate operation functions with the send/deserialize/public pattern for each API operation.",
+        "priority": "P0",
+        "acceptance_criteria": [
+          "_sendXXX function builds HTTP request (URL, headers, query, body)",
+          "_deserializeXXX function processes response (status check, body parse, headers)",
+          "Public xxx function calls send → deserialize",
+          "Operations grouped by operation group path",
+          "Each group in separate source file under src/api/"
+        ]
+      },
+      {
+        "id": "FR9",
+        "title": "Operation Options",
+        "description": "Generate TypeScript interfaces for optional operation parameters.",
+        "priority": "P0",
+        "acceptance_criteria": [
+          "Interface extends OperationOptions",
+          "Optional method parameters included",
+          "LRO operations get updateIntervalInMs",
+          "Dual-format operations get contentType",
+          "JSDoc documentation from parameter docs"
+        ]
+      },
+      {
+        "id": "FR10",
+        "title": "Client Context",
+        "description": "Generate client context interface and factory function.",
+        "priority": "P0",
+        "acceptance_criteria": [
+          "Context interface extends Client",
+          "Required properties from clientInitialization",
+          "API version property for versioned services",
+          "Factory function with endpoint, credentials, options parameters",
+          "Credential handling (API key, bearer, OAuth2)",
+          "Pipeline configuration"
+        ]
+      },
+      {
+        "id": "FR11",
+        "title": "Classical Client Class",
+        "description": "Generate the user-facing client class wrapping operation-level API.",
+        "priority": "P0",
+        "acceptance_criteria": [
+          "Class with private _client field",
+          "Public pipeline property",
+          "Constructor calling factory function",
+          "Constructor overloads for subscriptionId (ARM)",
+          "Operation methods delegating to API functions",
+          "Operation group getters for nested groups",
+          "Child client getters"
+        ]
+      },
+      {
+        "id": "FR12",
+        "title": "Classical Operation Groups",
+        "description": "Generate operation group interfaces and factory functions for hierarchical client APIs.",
+        "priority": "P0",
+        "acceptance_criteria": [
+          "Interface per operation group level",
+          "Factory function returning operation methods",
+          "Nested group properties",
+          "LRO helper methods (begin_*, begin_*_andWait)"
+        ]
+      },
+      {
+        "id": "FR13",
+        "title": "LRO Support",
+        "description": "Support long-running operations with polling and restore capabilities.",
+        "priority": "P0",
+        "acceptance_criteria": [
+          "LRO operations wrapped with getLongRunningPoller",
+          "RestorePoller helper generated for state restoration",
+          "Operation-to-deserializer mapping for poller restore",
+          "URL template matching for operation routing"
+        ]
+      },
+      {
+        "id": "FR14",
+        "title": "Paging Support",
+        "description": "Support paginated operations with async iterators.",
+        "priority": "P0",
+        "acceptance_criteria": [
+          "Paging operations wrapped with buildPagedAsyncIterator",
+          "Combined LRO+paging operations supported",
+          "PageSettings, ContinuablePage types exported"
+        ]
+      },
+      {
+        "id": "FR15",
+        "title": "Multipart Support",
+        "description": "Support multipart form data request bodies.",
+        "priority": "P1",
+        "acceptance_criteria": [
+          "Multipart body parameters detected",
+          "File part descriptors generated",
+          "createFilePartDescriptor helper used"
+        ]
+      },
+      {
+        "id": "FR16",
+        "title": "Index/Barrel Files",
+        "description": "Generate proper export structure with root and subpath index files.",
+        "priority": "P0",
+        "acceptance_criteria": [
+          "Root index.ts exports clients, models, options, helper types",
+          "Subpath index.ts in api/, models/, classic/",
+          "Internal symbols (_prefixed) excluded from exports",
+          "Serializer functions excluded from public exports"
+        ]
+      },
+      {
+        "id": "FR17",
+        "title": "Static Helper Files",
+        "description": "Emit static helper source files (serialization utils, collection builders, URL template, etc.).",
+        "priority": "P0",
+        "acceptance_criteria": [
+          "All 21 static helper files emittable",
+          "Each helper has refkey declaration for cross-file reference",
+          "Helpers only included when referenced",
+          "Import remapping for Azure vs non-Azure packages"
+        ]
+      },
+      {
+        "id": "FR18",
+        "title": "Sample Generation",
+        "description": "Generate per-operation sample TypeScript files.",
+        "priority": "P2",
+        "acceptance_criteria": [
+          "Sample file per operation",
+          "Client construction code",
+          "Parameter setup from examples",
+          "API call invocation"
+        ]
+      },
+      {
+        "id": "FR19",
+        "title": "Logger File",
+        "description": "Generate logger module for Azure-flavored SDKs.",
+        "priority": "P1",
+        "acceptance_criteria": [
+          "Only emitted for Azure flavor",
+          "Uses createClientLogger from @azure/logger",
+          "Package name derived from package details"
+        ]
+      }
+    ],
+    "non_functional": [
+      {
+        "id": "NFR1",
+        "title": "Output Parity",
+        "description": "Generated TypeScript code must match legacy emitter output. All 101 scenario tests must pass.",
+        "priority": "P0"
+      },
+      {
+        "id": "NFR2",
+        "title": "Performance",
+        "description": "Emitter performance should be comparable to or better than legacy emitter for typical service specs.",
+        "priority": "P2"
+      },
+      {
+        "id": "NFR3",
+        "title": "Code Quality",
+        "description": "All components follow Alloy idiomatic patterns. No anti-patterns (string-based refs, manual imports, monolithic code blocks).",
+        "priority": "P0"
+      },
+      {
+        "id": "NFR4",
+        "title": "Testability",
+        "description": "Every component is independently testable with the Alloy testing utilities (toRenderTo matcher, TypeSpec test host).",
+        "priority": "P1"
+      },
+      {
+        "id": "NFR5",
+        "title": "Extensibility",
+        "description": "Azure-specific features addable via JSX composition without modifying core components.",
+        "priority": "P1"
+      }
+    ]
+  },
+  "technical_architecture": {
+    "framework": {
+      "name": "Alloy Framework",
+      "packages": [
+        "@alloy-js/core@0.22.0",
+        "@alloy-js/typescript@0.22.0"
+      ],
+      "description": "JSX-based code generation framework. NOT React. Uses JSX purely as structural description language for code output. Provides automatic symbol resolution, cross-file import management, and naming policies."
+    },
+    "sdk_model": {
+      "name": "TCGC (TypeSpec Client Generator Core)",
+      "package": "@azure-tools/typespec-client-generator-core",
+      "description": "Provides SdkPackage object model that pre-computes data from TypeSpec definitions. Language-agnostic SDK type system with clients, operations, models, enums, and type metadata."
+    },
+    "data_flow": "TypeSpec Input → Compiler → TCGC SdkPackage → Alloy JSX Components → Symbol Tree → TypeScript Files",
+    "key_concepts": {
+      "refkeys": "Symbolic reference keys created via refkey(entity, discriminator). Each declaration gets a refkey; references use the same refkey. Alloy resolves cross-file references and auto-generates imports.",
+      "code_templates": "Tagged template literals (code`...`) that treat interpolated refkeys as live symbolic references. Alloy tracks them and resolves imports automatically.",
+      "context_providers": "Named contexts via createNamedContext() for dependency injection. Eliminates prop drilling across deeply nested component trees.",
+      "external_packages": "NPM packages defined via createPackage() with typed symbol accessors. Used in code templates for auto-import from runtime libraries."
+    },
+    "component_hierarchy": {
+      "top_level": ["Output", "SdkContextProvider"],
+      "orchestrators": ["ModelFiles", "Operations", "ClassicalClient", "ClassicalOperationGroups"],
+      "source_files": ["ClientContext", "OperationOptions", "RestorePoller", "LoggerFile", "Samples"],
+      "declarations": ["ModelDeclaration", "EnumDeclaration", "UnionDeclaration", "PolymorphicType", "SendFunction", "DeserializeFunction", "OperationFunction", "JsonSerializer", "JsonDeserializer", "XmlSerializer"],
+      "utilities": ["TypeExpression", "RootIndex", "SubpathIndex", "StaticHelpers"]
+    },
+    "external_dependencies": {
+      "runtime": {
+        "core": "@typespec/ts-http-runtime",
+        "azure_client": "@azure-rest/core-client",
+        "azure_pipeline": "@azure/core-rest-pipeline",
+        "azure_auth": "@azure/core-auth",
+        "azure_lro": "@azure/core-lro",
+        "azure_identity": "@azure/identity",
+        "azure_logger": "@azure/logger"
+      },
+      "build_time": {
+        "compiler": "@typespec/compiler",
+        "http": "@typespec/http",
+        "rest": "@typespec/rest",
+        "versioning": "@typespec/versioning",
+        "tcgc": "@azure-tools/typespec-client-generator-core",
+        "emitter_framework": "@typespec/emitter-framework"
+      }
+    }
+  },
+  "testing_strategy": {
+    "framework": "vitest",
+    "test_categories": [
+      {
+        "category": "Scenario Tests",
+        "count": 101,
+        "description": "Markdown-based tests ported from legacy emitter. Each .md file contains TypeSpec input and expected TypeScript output blocks. Tests validate output parity between legacy and new emitter.",
+        "source": "autorest.typescript/packages/typespec-ts/test/modularUnit/scenarios/",
+        "format": "H1 = test name, ```tsp = TypeSpec input, ```typescript <type> = expected output"
+      },
+      {
+        "category": "Component Render Tests",
+        "count": "TBD",
+        "description": "JSX component tests using Alloy's toRenderTo matcher. Compile TypeSpec snippets, render components, assert output text.",
+        "pattern": "src/components/*.test.tsx"
+      },
+      {
+        "category": "Unit Tests",
+        "count": "TBD",
+        "description": "Pure function tests for utilities (refkey helpers, type mapping, etc.).",
+        "pattern": "src/utils/*.test.ts"
+      }
+    ],
+    "test_infrastructure": {
+      "test_host": "test/test-host.ts — Tester instance with TypeSpec library imports",
+      "test_utils": "test/utils.tsx — TestFile, DeclarationTestFile wrappers, testHelper()",
+      "custom_matchers": "test/vitest.d.ts — toRenderTo, toRenderToAsync from @alloy-js/core/testing",
+      "scenario_harness": "test/scenarios/scenarios.spec.ts — MD file parser + assertion engine"
+    },
+    "acceptable_differences": [
+      "Import statement ordering",
+      "Trailing whitespace",
+      "Trailing commas",
+      "Empty line variations"
+    ],
+    "unacceptable_differences": [
+      "Public API surface changes (exported types, function signatures)",
+      "Type changes (different TypeScript types)",
+      "Missing exports",
+      "Missing or extra function parameters",
+      "Different runtime behavior"
+    ]
+  },
+  "scenario_test_inventory": {
+    "total": 101,
+    "categories": {
+      "models_core": {
+        "count": 3,
+        "tests": ["models/models.md", "models/azureCoreErrorModels.md", "models/missingErrorResponseModel.md"]
+      },
+      "models_serialization": {
+        "count": 8,
+        "tests": [
+          "models/serialization/propertyType.md",
+          "models/serialization/additionalProperties.md",
+          "models/serialization/anonymousModel.md",
+          "models/serialization/encodeIntAsString.md",
+          "models/serialization/enumKeyNorm.md",
+          "models/serialization/errorModels.md",
+          "models/serialization/modelPropertyArrayEncoding.md",
+          "models/serialization/readonlyFlattenModel.md"
+        ]
+      },
+      "models_deserialization": {
+        "count": 4,
+        "tests": [
+          "models/deserialization/propertyType.md",
+          "models/deserialization/additionalProperties.md",
+          "models/deserialization/anonymousModel.md",
+          "models/deserialization/extends.md"
+        ]
+      },
+      "models_nullable": {
+        "count": 2,
+        "tests": ["models/nullable/nullableOptional.md", "models/nullable/nullableUnion.md"]
+      },
+      "models_property_flatten": {
+        "count": 3,
+        "tests": [
+          "models/propertyFlatten/singleLayer.md",
+          "models/propertyFlatten/mulipleLayers.md",
+          "models/propertyFlatten/nameCollision.md"
+        ]
+      },
+      "models_api_version": {
+        "count": 2,
+        "tests": [
+          "models/apiVersion/apiVersionAsFixedEnum.md",
+          "models/apiVersion/apiVersionAsKnownVersions.md"
+        ]
+      },
+      "models_nested_enum": {
+        "count": 3,
+        "tests": [
+          "models/nestedEnum/flatten/experimentalExtensibleEnumsTrue.md",
+          "models/nestedEnum/notFlatten/experimentalExtensibleEnumsFalse.md",
+          "models/nestedEnum/notFlatten/experimentalExtensibleEnumsUndefined.md"
+        ]
+      },
+      "models_response": {
+        "count": 4,
+        "tests": [
+          "models/response/headerAndModelInResponse.md",
+          "models/response/headerAndModelSpread.md",
+          "models/response/headerInResponse.md",
+          "models/response/headerInXmlResponse.md"
+        ]
+      },
+      "models_template": {
+        "count": 1,
+        "tests": ["models/template/template.md"]
+      },
+      "operations_core": {
+        "count": 6,
+        "tests": [
+          "operations/operations.md",
+          "operations/override.md",
+          "operations/overrideReservedkeywords.md",
+          "operations/clientDefaultValue.md",
+          "operations/armPatchWithUnionResponse.md",
+          "operations/lroPaging.md"
+        ]
+      },
+      "operations_path_param": {
+        "count": 8,
+        "tests": [
+          "operations/pathParam/allowReservedFalseInAnnotation.md",
+          "operations/pathParam/allowReservedTrueInAnnotation.md",
+          "operations/pathParam/allowReservedTrueWithUriTemplate.md",
+          "operations/pathParam/allowReservedWithUriTemplate.md",
+          "operations/pathParam/optionalPath.md",
+          "operations/pathParam/pathParamUrlTemplate.md",
+          "operations/pathParam/pathParameterNamedPath.md",
+          "operations/pathParam/requiredPathWithDefault.md"
+        ]
+      },
+      "operations_query_param": {
+        "count": 5,
+        "tests": [
+          "operations/queryParam/explodeTrueWithAnnotation.md",
+          "operations/queryParam/explodeTrueWithUriTemplate.md",
+          "operations/queryParam/queryParamCollectionFormat.md",
+          "operations/queryParam/queryParamUrlTemplate.md",
+          "operations/queryParam/queryParamWithClientInitialization.md"
+        ]
+      },
+      "operations_header_param": {
+        "count": 1,
+        "tests": ["operations/headerParam/headerParamWithClientInitialization.md"]
+      },
+      "operations_cookie_param": {
+        "count": 1,
+        "tests": ["operations/cookieParam/ignoreCookieParam.md"]
+      },
+      "operations_error_deserialization": {
+        "count": 2,
+        "tests": [
+          "operations/errorDeserialization/errorHeaderDeserialization.md",
+          "operations/errorDeserialization/xmlErrorDeserialization.md"
+        ]
+      },
+      "operations_pagination": {
+        "count": 1,
+        "tests": ["operations/pagination/disablePagination.md"]
+      },
+      "api_operations": {
+        "count": 3,
+        "tests": [
+          "apiOperations/apiOperations.md",
+          "apiOperations/azureCoreOperations.md",
+          "apiOperations/reservedWordOperations.md"
+        ]
+      },
+      "client_context": {
+        "count": 2,
+        "tests": ["clientContext/clientContext.md", "clientContext/optionalApiVersion.md"]
+      },
+      "classic_client": {
+        "count": 3,
+        "tests": [
+          "classicClient/classicClient.md",
+          "classicClient/clientConstructorOverloads.md",
+          "classicClient/reservedWordOperations.md"
+        ]
+      },
+      "enum_union": {
+        "count": 1,
+        "tests": ["enumUnion/enumUnion.md"]
+      },
+      "multipart": {
+        "count": 4,
+        "tests": [
+          "multipart/file.md",
+          "multipart/json.md",
+          "multipart/text.md",
+          "multipart/renamewithWireNameAndClientName.md"
+        ]
+      },
+      "payload_xml": {
+        "count": 3,
+        "tests": [
+          "payload/xml/xmlArrayItemTypes.md",
+          "payload/xml/xmlArrayItemsNameWrapping.md",
+          "payload/xml/xmlName.md"
+        ]
+      },
+      "samples_client": {
+        "count": 8,
+        "tests": [
+          "samples/client/apiKeyCredentialClient.md",
+          "samples/client/multipleClient.md",
+          "samples/client/parameterizedHost.md",
+          "samples/client/renameClientName.md",
+          "samples/client/subscriptionIdHandling.md",
+          "samples/client/disableHierarchy/disableOperationGroup.md",
+          "samples/client/disableHierarchy/enableOperationGroup.md",
+          "samples/client/enableHierarchy/disableOperationGroup.md",
+          "samples/client/enableHierarchy/enableOperationGroup.md"
+        ]
+      },
+      "samples_operations": {
+        "count": 4,
+        "tests": [
+          "samples/operations/armCurdOperations.md",
+          "samples/operations/disableHierarchyArmCurdOperations.md",
+          "samples/operations/dpgCurdOperations.md",
+          "samples/operations/multipleExamplesInOneFile.md"
+        ]
+      },
+      "samples_parameters": {
+        "count": 12,
+        "tests": [
+          "samples/parameters/bodyOptionalCheck.md",
+          "samples/parameters/bodyOptionalParameterName.md",
+          "samples/parameters/bodyReadonlyOptionalCheck.md",
+          "samples/parameters/bodyRequiredCheck.md",
+          "samples/parameters/clientConstructorArgs.md",
+          "samples/parameters/inheritedPropertyMapping.md",
+          "samples/parameters/optionalParameter.md",
+          "samples/parameters/paramaterSpreadCheck.md",
+          "samples/parameters/parameterName.md",
+          "samples/parameters/parameterNormalization.md",
+          "samples/parameters/parameterOrdering.md",
+          "samples/parameters/parameterTypesCheck.md"
+        ]
+      },
+      "samples_property_flatten": {
+        "count": 3,
+        "tests": [
+          "samples/propertyFlatten/complexFlattenCases.md",
+          "samples/propertyFlatten/mulipleFlattenCases.md",
+          "samples/propertyFlatten/simpleFlattenCases.md"
+        ]
+      },
+      "other": {
+        "count": 4,
+        "tests": [
+          "anonymous/anonymous.md",
+          "emptyProject/emptyProject.md",
+          "example/example.md",
+          "modelsGenerator/modelsGenerator.md"
+        ]
+      }
+    }
+  },
+  "implementation_phases": [
+    {
+      "phase": 0,
+      "name": "Project Foundation & Infrastructure",
+      "description": "Set up dependencies, emitter entry point, context system, refkey helpers, external packages, and test infrastructure.",
+      "tasks": [
+        {
+          "id": "0.1",
+          "title": "Add Dependencies",
+          "description": "Add TCGC, TypeSpec compiler, emitter framework, and testing dependencies to package.json",
+          "pass": false,
+          "pass_criteria": [
+            "package.json includes @azure-tools/typespec-client-generator-core, @typespec/compiler, @typespec/http, @typespec/rest, @typespec/versioning, @typespec/emitter-framework",
+            "pnpm install completes without errors",
+            "TypeScript can resolve all new package imports without type errors"
+          ]
+        },
+        {
+          "id": "0.2",
+          "title": "Emitter Entry Point",
+          "description": "Create src/emitter.tsx with $onEmit hook, TCGC initialization, JSX tree, and writeOutput()",
+          "pass": false,
+          "pass_criteria": [
+            "src/emitter.tsx exists with exported $onEmit function",
+            "$onEmit calls createSdkContext() and extracts sdkPackage",
+            "JSX component tree renders via writeOutput() without runtime errors",
+            "Emitter can be invoked by TypeSpec compiler on a minimal .tsp file",
+            "Uses idiomatic Alloy Output component with namePolicy and externals"
+          ]
+        },
+        {
+          "id": "0.3",
+          "title": "SDK Context Provider",
+          "description": "Create src/context/sdk-context.tsx with named context, provider component, and useSdkContext() hook",
+          "pass": false,
+          "pass_criteria": [
+            "SdkContext created via createNamedContext() from @alloy-js/core",
+            "SdkContextProvider component wraps children and provides sdkPackage, program, options",
+            "useSdkContext() hook returns typed context value",
+            "Child components can access SDK data without prop drilling",
+            "TypeScript types are correct (no any casts)"
+          ]
+        },
+        {
+          "id": "0.4",
+          "title": "Refkey Helpers",
+          "description": "Create src/utils/refkeys.ts with all refkey helper functions (typeRefkey, serializerRefkey, etc.)",
+          "pass": false,
+          "pass_criteria": [
+            "All refkey helpers use refkey() from @alloy-js/core (NOT legacy framework refkey)",
+            "Same entity + discriminator always returns the same refkey (deterministic)",
+            "Different discriminators return different refkeys for the same entity",
+            "Helpers cover: typeRefkey, serializerRefkey, deserializerRefkey, polymorphicTypeRefkey, knownValuesRefkey, operationOptionsRefkey, clientContextRefkey, createClientRefkey, classicalClientRefkey, xmlSerializerRefkey, xmlDeserializerRefkey, serializationHelperRefkey, pagingHelperRefkey, pollingHelperRefkey",
+            "Unit test validates refkey identity and uniqueness"
+          ]
+        },
+        {
+          "id": "0.5",
+          "title": "External Package Definitions",
+          "description": "Create src/utils/external-packages.ts with createPackage() definitions for runtime libs",
+          "pass": false,
+          "pass_criteria": [
+            "httpRuntimeLib defined via createPackage() with all @typespec/ts-http-runtime exports (Client, getClient, Pipeline, RestError, OperationOptions, StreamableMethod, etc.)",
+            "Package symbols accessible as typed refkeys (e.g., httpRuntimeLib.Client)",
+            "Azure package definitions prepared (azureCoreDeps, azurePollingDeps, azureIdentityDeps)",
+            "Packages can be registered in Output component's externals prop",
+            "code templates with package symbols resolve correctly in a test render"
+          ]
+        },
+        {
+          "id": "0.6",
+          "title": "Test Infrastructure",
+          "description": "Create test-host.ts, utils.tsx, vitest.d.ts, and port scenario test harness",
+          "pass": false,
+          "pass_criteria": [
+            "test/test-host.ts creates Tester instance with @typespec/http and @typespec/versioning libraries",
+            "test/utils.tsx provides TestFile and DeclarationTestFile wrapper components",
+            "test/vitest.d.ts declares toRenderTo and toRenderToAsync custom matchers",
+            "A sample component render test compiles, runs, and passes with vitest",
+            "toRenderTo matcher correctly compares rendered Alloy output",
+            "vitest run executes without configuration errors"
+          ]
+        }
+      ],
+      "dependencies": []
+    },
+    {
+      "phase": 1,
+      "name": "Models & Type Declarations",
+      "description": "Generate TypeScript interfaces, enums, type aliases, and union types from TCGC types.",
+      "tasks": [
+        {
+          "id": "1.1",
+          "title": "Type Expression Component",
+          "description": "Map SdkType to TypeScript type strings/refkeys for all type kinds",
+          "pass": false,
+          "pass_criteria": [
+            "Handles all SdkType kinds: model, enum, union, array, dict, nullable, built-in scalars, datetime, duration, bytes",
+            "Model types return typeRefkey(type) for cross-file reference",
+            "Scalar mappings match legacy: string→string, int32→number, int64→bigint, float→number, boolean→boolean, utcDateTime→Date, bytes→Uint8Array, duration→string",
+            "Array types produce T[] with recursive element type resolution",
+            "Dict types produce Record<K, V>",
+            "Nullable types produce T | null",
+            "Component render test validates each type kind"
+          ]
+        },
+        {
+          "id": "1.2",
+          "title": "Model Interface Component",
+          "description": "Generate ts.InterfaceDeclaration from SdkModelType with properties, inheritance, discriminators",
+          "pass": false,
+          "pass_criteria": [
+            "Produces <ts.InterfaceDeclaration> with correct name, refkey, and export",
+            "Properties rendered as <ts.InterfaceMember> with correct name, type, optional, readonly",
+            "Base model inheritance via extends prop on InterfaceDeclaration",
+            "Discriminator property rendered with correct literal type",
+            "Additional properties support (additionalProperties → Record<string, unknown> index signature)",
+            "Flattened properties expanded inline (not nested)",
+            "JSDoc documentation from SDK model.doc and model.summary",
+            "Scenario tests pass: models/models.md model interfaces match legacy output"
+          ]
+        },
+        {
+          "id": "1.3",
+          "title": "Enum Declaration Component",
+          "description": "Generate KnownXXX enum + extensible type alias pattern from SdkEnumType",
+          "pass": false,
+          "pass_criteria": [
+            "Fixed enums (isFixed=true) produce standard TypeScript enum",
+            "Extensible enums produce KnownXXX enum + type XXX = string alias",
+            "Enum members have correct name and value",
+            "JSDoc documentation on enum and members",
+            "Refkey set on both enum and type alias declarations",
+            "Scenario tests pass: enumUnion/enumUnion.md, models/apiVersion/*.md"
+          ]
+        },
+        {
+          "id": "1.4",
+          "title": "Union Type Component",
+          "description": "Generate type alias from SdkUnionType",
+          "pass": false,
+          "pass_criteria": [
+            "Produces type XXX = A | B | C with correct variant type references",
+            "Variant types use refkeys for cross-file reference when they are models",
+            "String/number literal union variants rendered correctly",
+            "Nullable unions include | null",
+            "Refkey set on type alias declaration"
+          ]
+        },
+        {
+          "id": "1.5",
+          "title": "Polymorphic Type Component",
+          "description": "Generate discriminated union type alias",
+          "pass": false,
+          "pass_criteria": [
+            "Produces type XXX = SubA | SubB | SubC from discriminatedSubtypes",
+            "Uses polymorphicTypeRefkey(type) as declaration refkey",
+            "Each subtype referenced via typeRefkey(subtype)",
+            "Only generated for models with discriminatedSubtypes",
+            "Used as parameter type in polymorphic serializers"
+          ]
+        },
+        {
+          "id": "1.6",
+          "title": "ModelFiles Orchestrator",
+          "description": "Organize models by namespace, unify declarations + serializers in same SourceFile",
+          "pass": false,
+          "pass_criteria": [
+            "Models organized into src/models/{namespace}/models.ts per namespace",
+            "Type declarations and serializers unified in same <ts.SourceFile> (no self-imports)",
+            "Ordering: model declarations first, then serializers, then XML serializers",
+            "Empty model files (no declarations) not emitted",
+            "All model types from sdkPackage.models processed",
+            "Cross-namespace references resolved via refkeys (auto-imports between model files)"
+          ]
+        }
+      ],
+      "dependencies": [0]
+    },
+    {
+      "phase": 2,
+      "name": "Serialization & Deserialization",
+      "description": "Generate JSON and XML serializer/deserializer functions for all model types.",
+      "tasks": [
+        {
+          "id": "2.1",
+          "title": "JSON Serializer Component",
+          "description": "Generate xxxSerializer functions with property mapping, nested calls, array/dict handling",
+          "pass": false,
+          "pass_criteria": [
+            "Produces function xxxSerializer(item: Xxx): any with correct refkey",
+            "Property mapping: item.propName → result['wireName'] for each property",
+            "Nested model properties call child serializerRefkey via code template",
+            "Array properties use .map() with child serializer",
+            "Dict properties use serializeRecord() static helper refkey",
+            "Null/undefined checks for optional properties",
+            "Additional properties spread into result object",
+            "Flatten properties correctly navigate nested paths",
+            "Only generated for types with Usage.Input flag",
+            "Scenario tests pass: models/serialization/propertyType.md"
+          ]
+        },
+        {
+          "id": "2.2",
+          "title": "JSON Deserializer Component",
+          "description": "Generate xxxDeserializer functions mirroring serializer structure",
+          "pass": false,
+          "pass_criteria": [
+            "Produces function xxxDeserializer(item: any): Xxx with correct refkey",
+            "Property mapping: item['wireName'] → result.propName (reverse of serializer)",
+            "Nested model properties call child deserializerRefkey",
+            "Array deserialization with .map() and child deserializer",
+            "Dict deserialization mirroring serializer",
+            "Only generated for types with Usage.Output or Usage.Exception flag",
+            "Scenario tests pass: models/deserialization/propertyType.md"
+          ]
+        },
+        {
+          "id": "2.3",
+          "title": "Polymorphic Serialization",
+          "description": "Discriminated union switch-based serialization/deserialization",
+          "pass": false,
+          "pass_criteria": [
+            "Switch statement on discriminator property value",
+            "Each case routes to subtype-specific serializer/deserializer refkey",
+            "Parameter type uses polymorphicTypeRefkey (union type, not base interface)",
+            "Deserializer return type uses polymorphicTypeRefkey",
+            "Default case handles unknown discriminator values",
+            "All subtypes in discriminatedSubtypes have corresponding cases"
+          ]
+        },
+        {
+          "id": "2.4",
+          "title": "XML Serializer Components",
+          "description": "4 functions per type using metadata-driven approach",
+          "pass": false,
+          "pass_criteria": [
+            "Generates 4 functions per type: serializer, objectSerializer, deserializer, objectDeserializer",
+            "Uses metadata arrays with XML property descriptors",
+            "Calls serializeToXml/deserializeFromXml static helper refkeys",
+            "Handles XML namespaces, attributes, and element names",
+            "Correct refkeys set: xmlSerializerRefkey, xmlObjectSerializerRefkey, xmlDeserializerRefkey, xmlObjectDeserializerRefkey",
+            "Scenario tests pass: payload/xml/*.md"
+          ]
+        },
+        {
+          "id": "2.5",
+          "title": "Static Serialization Helpers",
+          "description": "Refkey declarations and source loading for all 21 static helper files",
+          "pass": false,
+          "pass_criteria": [
+            "Refkey declarations for all static helpers: collection builders (csv, multi, newline, pipe, ssv, tsv), collection parsers, serializers, serialize-record, check-prop-undefined, xml-helpers, get-binary-response",
+            "Helper source files loaded and emitted as <ts.SourceFile> with proper declarations",
+            "Each helper function has a refkey that can be referenced from other components",
+            "Helpers only included in output when referenced (demand-driven)",
+            "Import remapping works for Azure vs non-Azure package references",
+            "Also covers: pagingHelpers, pollingHelpers, simplePollerHelpers, urlTemplate, multipartHelpers, cloudSettingHelpers"
+          ]
+        }
+      ],
+      "dependencies": [1]
+    },
+    {
+      "phase": 3,
+      "name": "Operations",
+      "description": "Generate operation functions with send/deserialize pattern.",
+      "tasks": [
+        {
+          "id": "3.1",
+          "title": "Operation Options Component",
+          "description": "Generate options interfaces extending OperationOptions",
+          "pass": false,
+          "pass_criteria": [
+            "Interface extends OperationOptions from runtime package (via refkey)",
+            "Optional method parameters included with correct types",
+            "LRO operations include updateIntervalInMs?: number",
+            "Dual-format (JSON/XML) operations include contentType?: string",
+            "JSDoc documentation from parameter descriptions",
+            "Refkey set via operationOptionsRefkey(method)",
+            "Auto-generated contentType/accept headers excluded from options"
+          ]
+        },
+        {
+          "id": "3.2",
+          "title": "Send Function Component",
+          "description": "Generate _sendXXX functions building HTTP requests",
+          "pass": false,
+          "pass_criteria": [
+            "Async function _xxxSend(context: XxxContext, ...params): StreamableMethod",
+            "URL path built with parameter substitution (using urlTemplate helper or template literals)",
+            "Request headers constructed (Content-Type, Accept, custom headers)",
+            "Query parameters assembled correctly (collection formats, explode)",
+            "Request body serialized using serializer refkeys",
+            "context.path(...).method(options) call pattern",
+            "Path parameters with allowReserved handled correctly",
+            "Scenario tests pass: operations/operations.md send functions match"
+          ]
+        },
+        {
+          "id": "3.3",
+          "title": "Deserialize Function Component",
+          "description": "Generate _deserializeXXX functions processing responses",
+          "pass": false,
+          "pass_criteria": [
+            "Async function _xxxDeserialize(result: PathUncheckedResponse): Promise<T>",
+            "Expected status codes checked; unexpected throws createRestError",
+            "Response body deserialized using deserializer refkeys",
+            "Response headers extracted when needed",
+            "Binary/stream responses handled (Uint8Array return)",
+            "Exception body deserialized for error responses",
+            "XML response deserialization supported",
+            "Scenario tests pass: operations/operations.md deserialize functions match"
+          ]
+        },
+        {
+          "id": "3.4",
+          "title": "Public Operation Function",
+          "description": "Generate public xxx functions (standard, LRO, paging patterns)",
+          "pass": false,
+          "pass_criteria": [
+            "Standard: async function xxx(context, ...params) calls _send() then _deserialize()",
+            "LRO: wraps with getLongRunningPoller() from polling helpers",
+            "Paging: wraps with buildPagedAsyncIterator() from paging helpers",
+            "LRO+Paging: combined handling",
+            "Correct return types for each pattern",
+            "JSDoc documentation from operation metadata",
+            "Scenario tests pass: operations/lroPaging.md"
+          ]
+        },
+        {
+          "id": "3.5",
+          "title": "Operations Orchestrator",
+          "description": "Group and organize operations by operation group path",
+          "pass": false,
+          "pass_criteria": [
+            "Operations grouped by operation group hierarchy",
+            "Each group emits src/api/{group}/operations.ts",
+            "Each file contains: send + deserialize + public function per operation",
+            "All functions exported with correct names",
+            "Operation group path correctly computed from client hierarchy",
+            "Scenario tests pass: apiOperations/apiOperations.md"
+          ]
+        }
+      ],
+      "dependencies": [2]
+    },
+    {
+      "phase": 4,
+      "name": "Client Infrastructure",
+      "description": "Generate client context interface, factory function, and logger.",
+      "tasks": [
+        {
+          "id": "4.1",
+          "title": "Client Context Component",
+          "description": "Generate context interface + factory function with credentials and pipeline",
+          "pass": false,
+          "pass_criteria": [
+            "Interface XxxContext extends Client with required properties from clientInitialization",
+            "API version property included for versioned services",
+            "Factory function createXxx(endpoint, credentials?, options?) exported",
+            "Endpoint parameter with correct default or template",
+            "Credential handling: API key → KeyCredential, Bearer → TokenCredential, OAuth2 → TokenCredential",
+            "Pipeline configured via getClient() from runtime package",
+            "API version defaults set from TCGC metadata",
+            "Scenario tests pass: clientContext/clientContext.md, clientContext/optionalApiVersion.md"
+          ]
+        },
+        {
+          "id": "4.2",
+          "title": "Logger Component",
+          "description": "Generate Azure-specific logger module",
+          "pass": false,
+          "pass_criteria": [
+            "Only emitted when Azure flavor is active",
+            "Produces src/logger.ts with createClientLogger(packageName)",
+            "Import from @azure/logger via external package refkey",
+            "Logger name derived from package details",
+            "Not emitted for non-Azure (core) flavor"
+          ]
+        }
+      ],
+      "dependencies": [3]
+    },
+    {
+      "phase": 5,
+      "name": "Classical Client",
+      "description": "Generate user-facing client class and operation groups.",
+      "tasks": [
+        {
+          "id": "5.1",
+          "title": "Classical Client Component",
+          "description": "Generate client class with constructor, pipeline, methods, group getters",
+          "pass": false,
+          "pass_criteria": [
+            "Class with private _client: XxxContext field",
+            "Public pipeline: Pipeline readonly property",
+            "Constructor calls createXxx() factory via refkey",
+            "Constructor overloads for subscriptionId (ARM scenarios)",
+            "Operation methods delegate to API functions via refkeys",
+            "Operation group getters return typed operation group objects",
+            "Child client getters for multi-client scenarios",
+            "Scenario tests pass: classicClient/classicClient.md, classicClient/clientConstructorOverloads.md"
+          ]
+        },
+        {
+          "id": "5.2",
+          "title": "Classical Operation Groups",
+          "description": "Generate operation group interfaces and factory functions",
+          "pass": false,
+          "pass_criteria": [
+            "Interface XxxOperations per operation group level",
+            "Factory function _getXxxOperations(context) returning operation methods",
+            "Nested group properties for hierarchical operation groups",
+            "LRO helper methods: begin_*(params) and begin_*_andWait(params)",
+            "Operation method signatures match legacy output exactly",
+            "Classic files emitted under src/classic/{group}/index.ts",
+            "Scenario tests pass: classicClient/reservedWordOperations.md"
+          ]
+        }
+      ],
+      "dependencies": [4]
+    },
+    {
+      "phase": 6,
+      "name": "Advanced Features",
+      "description": "Implement LRO restore, multipart, and sample generation.",
+      "tasks": [
+        {
+          "id": "6.1",
+          "title": "RestorePoller Component",
+          "description": "Generate LRO restore poller with operation-to-deserializer mapping",
+          "pass": false,
+          "pass_criteria": [
+            "Produces src/api/restorePollerHelpers.ts",
+            "RestorePollerOptions<TResult> interface exported",
+            "restorePoller() function exported with correct signature",
+            "Operation-to-deserializer map covers all LRO operations",
+            "URL template matching routes to correct deserializer",
+            "Parameterized paths (e.g., {guid}) handled with regex matching",
+            "Only generated when client has LRO operations"
+          ]
+        },
+        {
+          "id": "6.2",
+          "title": "Multipart Support",
+          "description": "Detect and generate multipart form data handling in send functions",
+          "pass": false,
+          "pass_criteria": [
+            "Multipart body parameters detected from SdkHttpOperation",
+            "File part descriptors generated using createFilePartDescriptor helper refkey",
+            "Multipart form data assembled correctly",
+            "Content-Type set to multipart/form-data",
+            "Scenario tests pass: multipart/file.md, multipart/json.md, multipart/text.md, multipart/renamewithWireNameAndClientName.md"
+          ]
+        },
+        {
+          "id": "6.3",
+          "title": "Sample Generation",
+          "description": "Generate per-operation sample TypeScript files",
+          "pass": false,
+          "pass_criteria": [
+            "Sample file per operation with executable TypeScript code",
+            "Client construction with correct parameters",
+            "Parameter setup from TCGC examples (when available)",
+            "Credential setup (Azure credentials, API keys)",
+            "API call invocation with correct arguments",
+            "Scenario tests pass: samples/client/*.md, samples/operations/*.md, samples/parameters/*.md"
+          ]
+        }
+      ],
+      "dependencies": [5]
+    },
+    {
+      "phase": 7,
+      "name": "Index & Barrel Files",
+      "description": "Generate proper export structure.",
+      "tasks": [
+        {
+          "id": "7.1",
+          "title": "Root Index Component",
+          "description": "Generate root index.ts with filtered exports",
+          "pass": false,
+          "pass_criteria": [
+            "Root src/index.ts exports client classes, models, operation options, helper types",
+            "Internal symbols (_prefixed) excluded from exports",
+            "Serializer/deserializer functions excluded from public exports",
+            "PagedAsyncIterableIterator, PageSettings, ContinuablePage exported for paging",
+            "SimplePollerLike exported for LRO",
+            "Azure cloud types exported for ARM scenarios",
+            "No duplicate exports"
+          ]
+        },
+        {
+          "id": "7.2",
+          "title": "Subpath Index Component",
+          "description": "Generate index.ts in api/, models/, classic/",
+          "pass": false,
+          "pass_criteria": [
+            "api/index.ts re-exports from operation group files",
+            "models/index.ts re-exports from model namespace files",
+            "classic/index.ts re-exports from operation group interfaces (interfaces only)",
+            "Recursive index generation for nested directories",
+            "No internal helpers (pagingHelpers, pollingHelpers) in public indexes",
+            "Correct relative paths in export declarations"
+          ]
+        }
+      ],
+      "dependencies": [6]
+    },
+    {
+      "phase": 8,
+      "name": "Azure Flavor Extension",
+      "description": "Design and implement Azure-specific extensions via composition.",
+      "tasks": [
+        {
+          "id": "8.1",
+          "title": "Azure Extension Points",
+          "description": "Package swapping, auth policies, polling, identity, ARM features",
+          "pass": false,
+          "pass_criteria": [
+            "httpRuntimeLib swappable to Azure package references (@azure-rest/core-client, etc.)",
+            "Azure auth policies (Bearer challenge, custom headers) injectable",
+            "Azure polling dependencies (@azure/core-lro) usable via refkeys",
+            "Azure identity (DefaultAzureCredential) referenced in samples",
+            "ARM features: subscriptionId handling, cloud settings helpers",
+            "Logger uses @azure/logger instead of console",
+            "All Azure-specific scenario tests pass"
+          ]
+        },
+        {
+          "id": "8.2",
+          "title": "Azure Composition Pattern",
+          "description": "Core emitter + Azure wrapper via JSX composition",
+          "pass": false,
+          "pass_criteria": [
+            "Core emitter generates valid non-Azure SDK with @typespec/ts-http-runtime",
+            "Azure wrapper composes core components with Azure-specific additions",
+            "No if-else Azure checks inside core components",
+            "Azure extension does not modify core component source files",
+            "Both flavors produce correct output for their respective scenarios"
+          ]
+        }
+      ],
+      "dependencies": [7]
+    },
+    {
+      "phase": 9,
+      "name": "Test Porting & Validation",
+      "description": "Port all 101 scenario tests and validate output parity.",
+      "tasks": [
+        {
+          "id": "9.1",
+          "title": "Test Harness",
+          "description": "Adapt scenario test harness for vitest with MD parser and assertion engine",
+          "pass": false,
+          "pass_criteria": [
+            "Scenario harness reads .md files recursively from test/scenarios/",
+            "MD parser extracts TypeSpec input (```tsp) and expected output (```typescript <type>) blocks",
+            "All 14 output block types supported (models, operations, clientContext, classicClient, root index, samples, etc.)",
+            "assertEqualContent normalizes formatting before comparison (whitespace, import ordering)",
+            "SCENARIOS_UPDATE=true environment variable regenerates snapshots",
+            "vitest run --reporter=verbose shows individual scenario results",
+            "Harness integrates with vitest describe/it/expect API"
+          ]
+        },
+        {
+          "id": "9.2",
+          "title": "Scenario Porting",
+          "description": "Copy and adapt all 101 scenario .md files",
+          "pass": false,
+          "pass_criteria": [
+            "All 101 .md scenario files copied to test/scenarios/",
+            "Directory structure preserved (models/, operations/, classicClient/, etc.)",
+            "Each .md file parseable by the test harness without errors",
+            "TypeSpec input blocks compile without errors via Tester",
+            "No modifications to expected output blocks (baseline preserved)"
+          ]
+        },
+        {
+          "id": "9.3",
+          "title": "Validation",
+          "description": "Run all tests, fix discrepancies, document acceptable differences",
+          "pass": false,
+          "pass_criteria": [
+            "All 101 scenario tests pass (vitest run reports 0 failures)",
+            "Public API surface identical to legacy emitter output",
+            "Only acceptable differences present: import ordering, whitespace, trailing commas",
+            "No self-import bugs in any generated output",
+            "No missing or extra exports compared to legacy",
+            "Documented list of any intentional differences with justification"
+          ]
+        }
+      ],
+      "dependencies": [0]
+    }
+  ],
+  "risks": [
+    {
+      "id": "R1",
+      "title": "Output Parity Failures",
+      "impact": "high",
+      "probability": "medium",
+      "description": "Generated code may differ from legacy emitter in ways that break existing Azure SDK consumers.",
+      "mitigation": "Run scenario tests incrementally during each phase. Accept only cosmetic differences (import ordering, whitespace)."
+    },
+    {
+      "id": "R2",
+      "title": "Alloy Version Incompatibilities",
+      "impact": "medium",
+      "probability": "low",
+      "description": "Alloy API changes between versions may require migration work.",
+      "mitigation": "Pin to @alloy-js/*@0.22.0. Update deliberately with version bumps."
+    },
+    {
+      "id": "R3",
+      "title": "TCGC API Surface Changes",
+      "impact": "medium",
+      "probability": "medium",
+      "description": "TCGC types may evolve during development, requiring adaptation.",
+      "mitigation": "Pin TCGC version. Monitor TCGC releases and adapt incrementally."
+    },
+    {
+      "id": "R4",
+      "title": "Self-Import Bugs",
+      "impact": "high",
+      "probability": "high",
+      "description": "Separate SourceFile elements for related declarations (types + serializers) cause Alloy to generate self-imports.",
+      "mitigation": "Always unify declarations and serializers in same SourceFile via ModelFiles pattern."
+    },
+    {
+      "id": "R5",
+      "title": "Static Helper Loading Complexity",
+      "impact": "medium",
+      "probability": "medium",
+      "description": "21 helper files with varied formats need proper refkey registration and source loading.",
+      "mitigation": "Start with refkey declarations. Load helper sources as-is. Test each helper independently."
+    },
+    {
+      "id": "R6",
+      "title": "Performance Regression",
+      "impact": "low",
+      "probability": "low",
+      "description": "Alloy framework overhead may slow code generation for very large service specs.",
+      "mitigation": "Benchmark against legacy emitter on large specs. Alloy is optimized for codegen."
+    }
+  ],
+  "references": {
+    "alloy_core": "submodules/alloy/packages/core",
+    "alloy_typescript": "submodules/alloy/packages/typescript",
+    "typespec_compiler": "submodules/typespec/packages/compiler",
+    "typespec_http": "submodules/typespec/packages/http",
+    "emitter_framework": "submodules/typespec/packages/emitter-framework",
+    "tcgc": "submodules/typespec-azure/packages/typespec-client-generator-core",
+    "reference_emitter_priority1": "submodules/flight-instructor/src/typescript",
+    "reference_emitter_priority2": "submodules/typespec/packages/http-client-js",
+    "legacy_emitter": "submodules/autorest.typescript/packages/typespec-ts",
+    "tcgc_python_usage": "submodules/typespec/packages/http-client-python"
+  }
+}
