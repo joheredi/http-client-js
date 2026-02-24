@@ -1055,7 +1055,7 @@
           "id": "3.3",
           "title": "Deserialize Function Component",
           "description": "Generate _deserializeXXX functions processing responses",
-          "pass": false,
+          "pass": true,
           "pass_criteria": [
             "Async function _xxxDeserialize(result: PathUncheckedResponse): Promise<T>",
             "Expected status codes checked; unexpected throws createRestError",
@@ -1065,7 +1065,8 @@
             "Exception body deserialized for error responses",
             "XML response deserialization supported",
             "Scenario tests pass: operations/operations.md deserialize functions match"
-          ]
+          ],
+          "status": "done"
         },
         {
           "id": "3.4",
@@ -1113,7 +1114,7 @@
           "id": "4.1",
           "title": "Client Context Component",
           "description": "Generate context interface + factory function with credentials and pipeline",
-          "pass": false,
+          "pass": true,
           "pass_criteria": [
             "Interface XxxContext extends Client with required properties from clientInitialization",
             "API version property included for versioned services",
@@ -1123,7 +1124,8 @@
             "Pipeline configured via getClient() from runtime package",
             "API version defaults set from TCGC metadata",
             "Scenario tests pass: clientContext/clientContext.md, clientContext/optionalApiVersion.md"
-          ]
+          ],
+          "status": "done"
         },
         {
           "id": "4.2",

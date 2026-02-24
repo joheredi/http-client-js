@@ -118,6 +118,21 @@ export function createClientRefkey(entity: unknown): Refkey {
 }
 
 /**
+ * Creates a refkey for a client's optional parameters interface
+ * (e.g., `FooClientOptionalParams`).
+ *
+ * The options interface extends `ClientOptions` from the HTTP runtime and
+ * includes optional client-level parameters such as endpoint overrides,
+ * API version, and custom parameters with default values.
+ *
+ * @param entity - The TCGC client type entity.
+ * @returns A stable refkey for the client options interface declaration.
+ */
+export function clientOptionsRefkey(entity: unknown): Refkey {
+  return refkey(entity, "clientOptions");
+}
+
+/**
  * Creates a refkey for the classical (class-based) client declaration.
  *
  * The classical client wraps the modular client context in a class with

@@ -907,3 +907,76 @@
 - The test for operation groups uses a TypeSpec `interface Widgets {}` pattern, which
   TCGC may or may not flatten into the root client depending on version. The test is
   flexible — it checks both the root and subdirectory cases.
+
+## 2026-02-24 — Client Context Component (Phase 4, Task 4.1)
+
+### What was done
+- Created `src/components/client-context.tsx`: Four components that generate the client
+  context infrastructure:
+  - `ClientContextDeclaration` — Interface `{Name}Context extends Client` with optional
+    custom properties (API version, custom client params).
+  - `ClientContextOptionsDeclaration` — Interface `{Name}ClientOptionalParams extends ClientOptions`
+    with all optional client-initialization parameters.
+  - `ClientContextFactory` — Factory function `create{Name}(endpoint, credential?, options?)`
+    that constructs the endpoint URL, calls `getClient()`, and returns the typed context.
+  - `ClientContextFile` — Orchestrator rendering all three into `api/{name}Context.ts`.
+- Added `clientOptionsRefkey` to `src/utils/refkeys.ts` for the options interface.
+- Updated `src/utils/index.ts`: Added exports for `clientOptionsRefkey` and other missing
+  refkeys (`sendOperationRefkey`, `deserializeOperationRefkey`, `publicOperationRefkey`).
+- Updated `src/components/index.ts`: Exports all new client context components and
+  `getClientName` helper.
+- Created `test/components/client-context.test.tsx`: 8 tests covering:
+  - Context interface extending Client from HTTP runtime
+  - Options interface extending ClientOptions from HTTP runtime
+  - Factory function calling getClient with endpoint URL
+  - Factory function refkey referenceable via createClientRefkey
+  - Context interface refkey referenceable via clientContextRefkey
+  - Options interface refkey referenceable via clientOptionsRefkey
+  - Complete context file with all three declarations
+  - API version included when operations use api-version parameter
+- Updated PRD: Tasks 3.3 and 4.1 marked as done.
+- All 154 tests pass (8 new + 146 existing).
+
+### Architecture decisions
+- **Naming convention matches legacy emitter**: Context interface is `{ClientName}Context`,
+  options is `{TCGCClientName}OptionalParams`, factory is `create{ClientName}` where
+  `ClientName` = TCGC name stripped of "Client" suffix.
+- **Endpoint URL template handling**: Supports simple endpoints (single `{endpoint}` param),
+  template endpoints with multiple parameters, and endpoints with default values.
+  Optional template args are extracted from options with nullish coalescing defaults.
+- **Credential type mapping**: Maps TCGC auth scheme types to TypeScript credential types:
+  apiKey/http → KeyCredential, oauth2/openIdConnect → TokenCredential. Supports union
+  types for multiple auth schemes.
+- **Context members vs options members**: Context interface contains non-endpoint,
+  non-credential params that need to be on the client object (e.g., apiVersion). Options
+  interface contains all optional params consumers can configure at creation time.
+- **getClient() call pattern**: Without credentials: `getClient(endpointUrl, options)`.
+  With credentials: `getClient(endpointUrl, credential, options)`.
+
+### Key learnings (see knowledge.md)
+- TCGC only adds `apiVersion` to `clientInitialization.parameters` when operations
+  explicitly use an api-version query parameter. The `@versioned()` decorator alone
+  only populates `client.apiVersions` array.
+- Alloy's `toRenderTo` matcher calls `dedent()` internally which expects a string —
+  `expect.stringContaining()` doesn't work for single-file renders. Use `renderToString()`
+  + `toContain()` instead.
+
+### Notes for next person
+- Completed: Phase 0 (0.1, 0.3-0.6), Phase 1 (1.1-1.6), Phase 2 (2.1-2.3),
+  Phase 3 (3.1-3.5), Phase 4 (4.1).
+- Phase 0 remaining: 0.2 (Emitter Entry Point).
+- Phase 2 remaining: 2.4 (XML Serializers), 2.5 (Static Helpers).
+- Phase 4 remaining: 4.2 (Logger Component — Azure-only).
+- **Next priorities**:
+  - 0.2 (Emitter Entry Point) — ties everything together with `$onEmit` hook. Now that
+    we have ModelFiles, OperationFiles, and ClientContextFile, the emitter can produce
+    a functional output tree.
+  - 5.1 (Classical Client) — generates the class-based client that wraps the context.
+    Depends on 4.1 (done) and 3.5 (done).
+  - 7.1/7.2 (Index Files) — generates barrel files for the output.
+- The `ClientContextFactory` does NOT yet handle:
+  - User-agent prefix configuration (will be added when emitter options are available)
+  - Custom pipeline policies (e.g., custom API key auth headers)
+  - Logger integration (depends on 4.2 Logger Component)
+  - ARM/Azure-specific endpoint resolution (depends on 8.1 Azure Extensions)
+  These will be enhanced in later phases when the corresponding infrastructure exists.

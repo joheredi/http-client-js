@@ -506,3 +506,39 @@ expect(template).toRenderTo("");
 ```
 
 **Date:** 2026-02-24
+
+## TCGC only adds apiVersion to clientInitialization when operations use it
+
+**Problem:** Testing versioned services with `@Versioning.versioned(Versions)` but
+without operations that explicitly declare `@query apiVersion` does not produce an
+`apiVersion` parameter in `client.clientInitialization.parameters`. The `@versioned()`
+decorator only populates the `client.apiVersions` string array.
+
+**Fix:** To test api-version in client context, declare operations with an explicit
+api-version query parameter:
+```tsp
+@get op getItem(@query apiVersion?: string): string;
+```
+This causes TCGC to add a method parameter with `isApiVersionParam: true` to the
+client initialization parameters.
+
+**Date:** 2026-02-24
+
+## Alloy toRenderTo cannot accept expect.stringContaining for single-file renders
+
+**Problem:** Using `expect(template).toRenderTo(expect.stringContaining("..."))` with
+a single-file component (wrapped in `SdkTestFile`) throws `str.replace is not a function`
+because `toRenderTo` calls `dedent()` which expects a string argument, not a Vitest
+asymmetric matcher.
+
+**Fix:** For partial matching on single-file output, use `renderToString()` from
+`@alloy-js/core/testing` and then `expect(result).toContain("...")`:
+```tsx
+import { renderToString } from "@alloy-js/core/testing";
+const result = renderToString(template);
+expect(result).toContain("expectedContent");
+```
+Note: `expect.stringContaining()` DOES work with `toRenderTo` when the expected value
+is an **object** (multi-file output), because the object-path matching doesn't call `dedent`.
+
+**Date:** 2026-02-24

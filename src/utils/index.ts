@@ -7,12 +7,16 @@ export {
   operationOptionsRefkey,
   clientContextRefkey,
   createClientRefkey,
+  clientOptionsRefkey,
   classicalClientRefkey,
   xmlSerializerRefkey,
   xmlDeserializerRefkey,
   serializationHelperRefkey,
   pagingHelperRefkey,
   pollingHelperRefkey,
+  sendOperationRefkey,
+  deserializeOperationRefkey,
+  publicOperationRefkey,
 } from "./refkeys.js";
 
 export {
