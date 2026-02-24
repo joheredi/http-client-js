@@ -66,3 +66,41 @@
   component tests that need TCGC data.
 - The `TesterWithService` tester wraps TypeSpec in a `@service` namespace, which is needed for
   TCGC to produce clients. Use it instead of `Tester` for tests that call `createSdkContextForTest()`.
+
+## 2026-02-24 — Refkey Helpers (Phase 0, Task 0.4)
+
+### What was done
+- Created `src/utils/refkeys.ts`: 14 refkey helper functions covering all artifact types
+  needed by the emitter — types, serializers, deserializers, polymorphic types, known values,
+  operation options, client artifacts (context, factory, classical class), XML serializers/
+  deserializers, and utility helpers (serialization, paging, polling).
+- Created `src/utils/index.ts`: Barrel file exporting all refkey helpers.
+- Updated `src/index.ts`: Re-exports the utils module.
+- Created `test/utils/refkeys.test.tsx`: 8 tests covering:
+  - Identity/memoization (same entity → same refkey)
+  - Uniqueness (different discriminators → different refkeys)
+  - Entity isolation (different entities → different refkeys)
+  - Helper name isolation (different names → different refkeys)
+  - Cross-category isolation (same name, different category → different refkeys)
+  - Base refkey vs discriminated refkeys
+  - XML vs JSON serializer refkey distinction
+  - Client-related refkey distinction (context, factory, classical)
+- All 19 tests pass (8 refkey + 5 infrastructure + 6 context).
+
+### Architecture decisions
+- Entity-based helpers (typeRefkey, serializerRefkey, etc.) accept `unknown` entities — they
+  wrap `refkey(entity, discriminator)` from `@alloy-js/core` with descriptive discriminator strings.
+- `typeRefkey(entity)` uses no discriminator — it returns `refkey(entity)` directly, making it
+  the "identity" refkey for any entity.
+- String-based helpers (serializationHelperRefkey, pagingHelperRefkey, pollingHelperRefkey)
+  accept a name string and use a category prefix as the first argument to prevent cross-category
+  collisions (e.g., `refkey("serializationHelper", name)`).
+- Discriminator strings follow the legacy emitter's naming convention for consistency.
+
+### Notes for next person
+- Completed: 0.1 (Dependencies), 0.3 (SDK Context), 0.4 (Refkey Helpers), 0.6 (Test Infrastructure).
+- Next priorities: External Package Definitions (0.5), Emitter Entry Point (0.2).
+- After 0.5, Phase 0 is complete and Phase 1 (Type Components) can begin.
+- All refkey helpers are exported from `src/index.ts` — import them from the package root.
+- When implementing components, use these helpers instead of calling `refkey()` directly with
+  raw strings. This ensures consistent discriminator naming across the codebase.

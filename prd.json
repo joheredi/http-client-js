@@ -768,7 +768,7 @@
           "id": "0.4",
           "title": "Refkey Helpers",
           "description": "Create src/utils/refkeys.ts with all refkey helper functions (typeRefkey, serializerRefkey, etc.)",
-          "pass": false,
+          "pass": true,
           "pass_criteria": [
             "All refkey helpers use refkey() from @alloy-js/core (NOT legacy framework refkey)",
             "Same entity + discriminator always returns the same refkey (deterministic)",
