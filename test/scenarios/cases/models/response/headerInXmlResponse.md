@@ -27,13 +27,6 @@ op getUser(): {...User,   @header("content-type")
 ## Models
 
 ```ts models interface User
-/**
- * This file contains only generated model types and their (de)serializers.
- * Disable the following rules for internal models with '_' prefix and deserializers which require 'any' for raw JSON input.
- */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/** model interface User */
 export interface User {
   name: string;
   email: string;
@@ -42,19 +35,11 @@ export interface User {
 
 ```ts operations function getUser
 export async function getUser(
-  context: Client,
+  context: Client_1,
   options: GetUserOptionalParams = { requestOptions: {} },
-): Promise<{
-  name: string;
-  email: string;
-  userId?: string;
-  createdAt?: Date;
-  contentType: "application/xml";
-}> {
+): Promise<User_1> {
   const result = await _getUserSend(context, options);
-  const headers = _getUserDeserializeHeaders(result);
-  const payload = await _getUserDeserialize(result);
-  return { ...payload, ...headers };
+  return _getUserDeserialize(result);
 }
 ```
 
@@ -66,11 +51,13 @@ export function _getUserDeserializeHeaders(result: PathUncheckedResponse): {
 } {
   return {
     userId:
-      result.headers["x-user-id"] === undefined || result.headers["x-user-id"] === null
+      result.headers["x-user-id"] === undefined ||
+      result.headers["x-user-id"] === null
         ? result.headers["x-user-id"]
         : result.headers["x-user-id"],
     createdAt:
-      result.headers["created-at"] === undefined || result.headers["created-at"] === null
+      result.headers["created-at"] === undefined ||
+      result.headers["created-at"] === null
         ? result.headers["created-at"]
         : new Date(result.headers["created-at"]),
     contentType: result.headers["content-type"] as any,
@@ -79,13 +66,15 @@ export function _getUserDeserializeHeaders(result: PathUncheckedResponse): {
 ```
 
 ```ts operations function _getUserDeserialize
-export async function _getUserDeserialize(result: PathUncheckedResponse): Promise<User> {
+export async function _getUserDeserialize(
+  result: PathUncheckedResponse_1,
+): Promise<User_1> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError(result);
+    throw createRestError_1(result);
   }
 
-  return userXmlDeserializer(result.body);
+  return <Unresolved Symbol: refkey[o762⁣sdeserializer]>(result.body);
 }
 ```
 
@@ -106,13 +95,11 @@ include-headers-in-response: true
 
 ```ts operations function deleteUser
 export async function deleteUser(
-  context: Client,
+  context: Client_1,
   options: DeleteUserOptionalParams = { requestOptions: {} },
-): Promise<{ requestId: string; optionalHeader?: string }> {
+): Promise<void> {
   const result = await _deleteUserSend(context, options);
-  const headers = _deleteUserDeserializeHeaders(result);
-  await _deleteUserDeserialize(result);
-  return { ...headers };
+  return _deleteUserDeserialize(result);
 }
 ```
 
@@ -133,10 +120,12 @@ export function _deleteUserDeserializeHeaders(result: PathUncheckedResponse): {
 ```
 
 ```ts operations function _deleteUserDeserialize
-export async function _deleteUserDeserialize(result: PathUncheckedResponse): Promise<void> {
+export async function _deleteUserDeserialize(
+  result: PathUncheckedResponse_1,
+): Promise<void> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError(result);
+    throw createRestError_1(result);
   }
 
   return;
@@ -164,18 +153,18 @@ include-headers-in-response: true
 
 ```ts operations function getAccountInfo
 export async function getAccountInfo(
-  context: Client,
+  context: Client_1,
   options: GetAccountInfoOptionalParams = { requestOptions: {} },
-): Promise<{ date: Date; legalHold: boolean; contentMd5: Uint8Array; requestId?: string }> {
+): Promise<void> {
   const result = await _getAccountInfoSend(context, options);
-  const headers = _getAccountInfoDeserializeHeaders(result);
-  await _getAccountInfoDeserialize(result);
-  return { ...headers };
+  return _getAccountInfoDeserialize(result);
 }
 ```
 
 ```ts operations function _getAccountInfoDeserializeHeaders
-export function _getAccountInfoDeserializeHeaders(result: PathUncheckedResponse): {
+export function _getAccountInfoDeserializeHeaders(
+  result: PathUncheckedResponse,
+): {
   date: Date;
   legalHold: boolean;
   contentMd5: Uint8Array;
@@ -183,13 +172,15 @@ export function _getAccountInfoDeserializeHeaders(result: PathUncheckedResponse)
 } {
   return {
     date: new Date(result.headers["date"]),
-    legalHold: result.headers["x-ms-legal-hold"].trim().toLowerCase() === "true",
+    legalHold:
+      result.headers["x-ms-legal-hold"].trim().toLowerCase() === "true",
     contentMd5:
       typeof result.headers["content-md5"] === "string"
         ? stringToUint8Array(result.headers["content-md5"], "base64")
         : result.headers["content-md5"],
     requestId:
-      result.headers["x-ms-request-id"] === undefined || result.headers["x-ms-request-id"] === null
+      result.headers["x-ms-request-id"] === undefined ||
+      result.headers["x-ms-request-id"] === null
         ? result.headers["x-ms-request-id"]
         : result.headers["x-ms-request-id"],
   };
@@ -197,10 +188,12 @@ export function _getAccountInfoDeserializeHeaders(result: PathUncheckedResponse)
 ```
 
 ```ts operations function _getAccountInfoDeserialize
-export async function _getAccountInfoDeserialize(result: PathUncheckedResponse): Promise<void> {
+export async function _getAccountInfoDeserialize(
+  result: PathUncheckedResponse_1,
+): Promise<void> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError(result);
+    throw createRestError_1(result);
   }
 
   return;

@@ -50,63 +50,90 @@ withVersionedApiVersion: true
 ## Operations
 
 ```ts operations
-import { TestingContext as Client } from "./index.js";
-import { KeyBundle, keyBundleDeserializer } from "../models/models.js";
-import { expandUrlTemplate } from "../static-helpers/urlTemplate.js";
-import { UpdateKeyOptionalParams } from "./options.js";
 import {
-  StreamableMethod,
-  PathUncheckedResponse,
-  createRestError,
-  operationOptionsToRequestParameters,
-} from "@azure-rest/core-client";
+  type KeyBundle as KeyBundle_1,
+  keyBundleDeserializer as keyBundleDeserializer_1,
+} from "../models/models.js";
+import {
+  Client as Client_1,
+  createRestError as createRestError_1,
+  expandUrlTemplate as expandUrlTemplate_1,
+  type OperationOptions as OperationOptions_1,
+  operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
+  type PathUncheckedResponse as PathUncheckedResponse_1,
+  type StreamableMethod as StreamableMethod_1,
+} from "@typespec/ts-http-runtime";
+
+/**
+ * Optional parameters for the updateKey operation.
+ */
+export interface UpdateKeyOptionalParams extends OperationOptions_1 {}
 
 export function _updateKeySend(
-  context: Client,
+  context: Client_1,
+  apiVersion: string,
   keyName: string,
   keyVersion: string,
   parameters: string,
   options: UpdateKeyOptionalParams = { requestOptions: {} },
-): StreamableMethod {
-  const path = expandUrlTemplate(
+): StreamableMethod_1 {
+  const path = expandUrlTemplate_1(
     "/keys/{key-name}/{key-version}{?api%2Dversion}",
     {
+      "api-version": apiVersion,
       "key-name": keyName,
       "key-version": keyVersion,
-      "api%2Dversion": context.apiVersion ?? "2022-05-15-preview",
     },
-    {
-      allowReserved: options?.requestOptions?.skipUrlEncoding,
-    },
+    { allowReserved: options?.requestOptions?.skipUrlEncoding },
   );
-  return context
-    .path(path)
-    .patch({
-      ...operationOptionsToRequestParameters(options),
-      contentType: "text/plain",
-      headers: { accept: "application/json", ...options.requestOptions?.headers },
-      body: parameters,
-    });
+  return context.path(path).patch({
+    ...operationOptionsToRequestParameters_1(options),
+    contentType: "text/plain",
+    headers: {
+      accept: "application/json",
+      ...options.requestOptions?.headers,
+    },
+    body: parameters,
+  });
 }
 
-export async function _updateKeyDeserialize(result: PathUncheckedResponse): Promise<KeyBundle> {
+export async function _updateKeyDeserialize(
+  result: PathUncheckedResponse_1,
+): Promise<KeyBundle_1> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError(result);
+    throw createRestError_1(result);
   }
 
-  return keyBundleDeserializer(result.body);
+  return keyBundleDeserializer_1(result.body);
 }
 
-/** The most basic operation. */
+/**
+ * The most basic operation.
+ *
+ * @param {Client_1} context
+ * @param {string} apiVersion
+ * @param {string} keyName
+ * @param {string} keyVersion
+ * @param {string} parameters
+ * @param {UpdateKeyOptionalParams} options
+ */
 export async function updateKey(
-  context: Client,
+  context: Client_1,
+  apiVersion: string,
   keyName: string,
   keyVersion: string,
   parameters: string,
   options: UpdateKeyOptionalParams = { requestOptions: {} },
-): Promise<KeyBundle> {
-  const result = await _updateKeySend(context, keyName, keyVersion, parameters, options);
+): Promise<KeyBundle_1> {
+  const result = await _updateKeySend(
+    context,
+    apiVersion,
+    keyName,
+    keyVersion,
+    parameters,
+    options,
+  );
   return _updateKeyDeserialize(result);
 }
 ```

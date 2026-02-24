@@ -5,6 +5,7 @@ import type {
   SdkHeaderParameter,
   SdkHttpOperation,
   SdkMethodParameter,
+  SdkModelPropertyType,
   SdkPathParameter,
   SdkQueryParameter,
   SdkServiceMethod,
@@ -478,11 +479,39 @@ function getHeaderAccessor(
 }
 
 /**
+ * Determines whether a body parameter is spread from a model/alias.
+ *
+ * Spread bodies have their model properties flattened into individual method
+ * parameters rather than a single body argument. This occurs when TypeSpec uses
+ * the `...Model` syntax to spread model properties into operation parameters.
+ *
+ * Detection logic (mirrors legacy emitter's `isSpreadBodyParameter`):
+ * - Multiple corresponding method params → definitely spread
+ * - Single corresponding method param with a different type → spread alias
+ *
+ * @param bodyParam - The TCGC body parameter to check.
+ * @returns `true` if the body parameter is spread.
+ */
+function isSpreadBody(bodyParam: SdkBodyParameter): boolean {
+  const params = bodyParam.correspondingMethodParams;
+  if (params.length > 1) return true;
+  if (params.length === 1 && params[0].type !== bodyParam.type) return true;
+  return false;
+}
+
+/**
  * Builds the body expression for the request options.
  *
- * For model types, calls the model's serializer function via refkey.
- * For simple types, passes through directly. For optional bodies,
- * wraps with a null check to avoid calling serializers on undefined values.
+ * Handles two cases:
+ * 1. **Direct body**: Calls the model's serializer function via refkey
+ *    (e.g., `body: itemSerializer(body)`)
+ * 2. **Spread body**: Constructs an inline object literal with per-property
+ *    serialization (e.g., `body: { prop1: prop1, prop2: prop2.toISOString() }`)
+ *
+ * Spread bodies occur when TypeSpec uses `...Model` or `...Alias` syntax to
+ * flatten model properties into individual operation parameters. Since the
+ * anonymous spread model has no declared serializer function, properties must
+ * be serialized individually in an inline object.
  *
  * @param bodyParam - The TCGC body parameter.
  * @param method - The parent service method.
@@ -492,6 +521,11 @@ function buildBodyExpression(
   bodyParam: SdkBodyParameter,
   method: SdkServiceMethod<SdkHttpOperation>,
 ): Children {
+  // Spread bodies must be handled as inline objects
+  if (isSpreadBody(bodyParam)) {
+    return buildSpreadBodyExpression(bodyParam, method);
+  }
+
   const accessor = getBodyAccessor(bodyParam, method);
   const bodyType = bodyParam.type;
 
@@ -506,6 +540,86 @@ function buildBodyExpression(
   }
 
   return accessor;
+}
+
+/**
+ * Builds an inline object literal for a spread body parameter.
+ *
+ * When operation parameters are spread from a model/alias, the body is not
+ * a single argument but a collection of individual method parameters that
+ * must be assembled into a JSON object. Each property is individually
+ * serialized based on its type (dates → toISOString, models → serializer call,
+ * etc.) and mapped to its wire-format name via `serializedName`.
+ *
+ * For example, given `...Foo` where Foo has `{ name: string; date: utcDateTime }`:
+ * ```typescript
+ * body: { name: name, date: date.toISOString() }
+ * ```
+ *
+ * @param bodyParam - The spread body parameter.
+ * @param method - The parent service method.
+ * @returns Alloy Children representing the inline body object.
+ */
+function buildSpreadBodyExpression(
+  bodyParam: SdkBodyParameter,
+  method: SdkServiceMethod<SdkHttpOperation>,
+): Children {
+  const bodyType = bodyParam.type;
+
+  // For non-model spread types, fall back to simple accessor
+  if (bodyType.kind !== "model") {
+    return getBodyAccessor(bodyParam, method);
+  }
+
+  const properties = bodyType.properties;
+  const parts: Children[] = [];
+
+  for (const prop of properties) {
+    const accessor = getSpreadPropertyAccessor(prop, method);
+    let valueExpr: Children;
+
+    if (needsTransformation(prop.type)) {
+      const serExpr = getSerializationExpression(prop.type, accessor);
+      // Null guard for optional/nullable properties that need transformation
+      const isNullable = prop.type.kind === "nullable" || prop.optional;
+      if (isNullable) {
+        valueExpr = code`!${accessor} ? ${accessor} : ${serExpr}`;
+      } else {
+        valueExpr = serExpr;
+      }
+    } else {
+      valueExpr = accessor;
+    }
+
+    if (parts.length > 0) {
+      parts.push(", ");
+    }
+    parts.push(code`"${prop.serializedName}": ${valueExpr}`);
+  }
+
+  return code`{ ${parts} }`;
+}
+
+/**
+ * Determines the accessor expression for a property within a spread body.
+ *
+ * Maps a body model property to its corresponding method parameter. Required
+ * parameters are direct function arguments (accessed by name); optional
+ * parameters are in the options bag (accessed as `options?.name`).
+ *
+ * @param prop - The body model property.
+ * @param method - The parent service method for parameter lookup.
+ * @returns A JavaScript expression string for accessing the property value.
+ */
+function getSpreadPropertyAccessor(
+  prop: SdkModelPropertyType,
+  method: SdkServiceMethod<SdkHttpOperation>,
+): string {
+  const methodParam = method.parameters.find((p) => p.name === prop.name);
+  if (methodParam && isRequiredSignatureParameter(methodParam)) {
+    return prop.name;
+  }
+  return `options?.${prop.name}`;
 }
 
 /**

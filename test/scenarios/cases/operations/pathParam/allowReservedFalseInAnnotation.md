@@ -16,46 +16,49 @@ op annotationWithFalse(@path(#{ allowReserved: false }) param: string): void;
 Should normal path parameter:
 
 ```ts operations
-import { TestingContext as Client } from "./index.js";
-import { expandUrlTemplate } from "../static-helpers/urlTemplate.js";
-import { AnnotationWithFalseOptionalParams } from "./options.js";
 import {
-  StreamableMethod,
-  PathUncheckedResponse,
-  createRestError,
-  operationOptionsToRequestParameters,
-} from "@azure-rest/core-client";
+  type Client as Client_1,
+  createRestError as createRestError_1,
+  expandUrlTemplate as expandUrlTemplate_1,
+  type OperationOptions as OperationOptions_1,
+  operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
+  type PathUncheckedResponse as PathUncheckedResponse_1,
+  type StreamableMethod as StreamableMethod_1,
+} from "@typespec/ts-http-runtime";
+
+/**
+ * Optional parameters for the annotationWithFalse operation.
+ */
+export interface AnnotationWithFalseOptionalParams extends OperationOptions_1 {}
 
 export function _annotationWithFalseSend(
-  context: Client,
+  context: Client_1,
   param: string,
   options: AnnotationWithFalseOptionalParams = { requestOptions: {} },
-): StreamableMethod {
-  const path = expandUrlTemplate(
+): StreamableMethod_1 {
+  const path = expandUrlTemplate_1(
     "/annotationWithFalse/{param}",
-    {
-      param: param,
-    },
-    {
-      allowReserved: options?.requestOptions?.skipUrlEncoding,
-    },
+    { param: param },
+    { allowReserved: options?.requestOptions?.skipUrlEncoding },
   );
-  return context.path(path).get({ ...operationOptionsToRequestParameters(options) });
+  return context
+    .path(path)
+    .get({ ...operationOptionsToRequestParameters_1(options) });
 }
 
 export async function _annotationWithFalseDeserialize(
-  result: PathUncheckedResponse,
+  result: PathUncheckedResponse_1,
 ): Promise<void> {
   const expectedStatuses = ["204"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError(result);
+    throw createRestError_1(result);
   }
 
   return;
 }
 
 export async function annotationWithFalse(
-  context: Client,
+  context: Client_1,
   param: string,
   options: AnnotationWithFalseOptionalParams = { requestOptions: {} },
 ): Promise<void> {

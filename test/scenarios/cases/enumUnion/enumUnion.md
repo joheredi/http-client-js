@@ -39,59 +39,82 @@ withRawContent: true
 
 ```ts models
 /**
- * This file contains only generated model types and their (de)serializers.
- * Disable the following rules for internal models with '_' prefix and deserializers which require 'any' for raw JSON input.
+ * Type of SchemaContentTypeValues
  */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/** Type of SchemaContentTypeValues */
 export type SchemaContentTypeValues =
   | "application/json; serialization=Avro"
   | "application/json; serialization=json"
   | "text/plain; charset=utf-8"
   | "text/vnd.ms.protobuf";
+
+/**
+ * Known values of {@link SchemaContentTypeValues} that the service accepts.
+ */
+export enum KnownSchemaContentTypeValues {
+  /**
+   * application/json; serialization=Avro
+   */
+  Avro = "application/json; serialization=Avro",
+  /**
+   * application/json; serialization=json
+   */
+  Json = "application/json; serialization=json",
+  /**
+   * text/plain; charset=utf-8
+   */
+  Custom = "text/plain; charset=utf-8",
+  /**
+   * text/vnd.ms.protobuf
+   */
+  Protobuf = "text/vnd.ms.protobuf",
+}
 ```
 
 ## paramOutput
 
 ```ts operations
-import { DemoServiceContext as Client } from "./index.js";
-import { SchemaContentTypeValues } from "../models/models.js";
-import { GetOptionalParams } from "./options.js";
+import type { SchemaContentTypeValues as SchemaContentTypeValues_1 } from "../models/models.js";
 import {
-  StreamableMethod,
-  PathUncheckedResponse,
-  createRestError,
-  operationOptionsToRequestParameters,
-} from "@azure-rest/core-client";
+  type Client as Client_1,
+  createRestError as createRestError_1,
+  type OperationOptions as OperationOptions_1,
+  operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
+  type PathUncheckedResponse as PathUncheckedResponse_1,
+  type StreamableMethod as StreamableMethod_1,
+} from "@typespec/ts-http-runtime";
+
+/**
+ * Optional parameters for the get operation.
+ */
+export interface GetOptionalParams extends OperationOptions_1 {}
 
 export function _getSend(
-  context: Client,
-  contentType: SchemaContentTypeValues,
+  context: Client_1,
+  contentType: SchemaContentTypeValues_1,
   body: string,
   options: GetOptionalParams = { requestOptions: {} },
-): StreamableMethod {
-  return context
-    .path("/")
-    .post({
-      ...operationOptionsToRequestParameters(options),
-      contentType: contentType,
-      body: body,
-    });
+): StreamableMethod_1 {
+  return context.path("/").post({
+    ...operationOptionsToRequestParameters_1(options),
+    contentType: "application/json; serialization=Avro",
+    body: body,
+  });
 }
 
-export async function _getDeserialize(result: PathUncheckedResponse): Promise<void> {
+export async function _getDeserialize(
+  result: PathUncheckedResponse_1,
+): Promise<void> {
   const expectedStatuses = ["204"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError(result);
+    throw createRestError_1(result);
   }
 
   return;
 }
 
 export async function get(
-  context: Client,
-  contentType: SchemaContentTypeValues,
+  context: Client_1,
+  contentType: SchemaContentTypeValues_1,
   body: string,
   options: GetOptionalParams = { requestOptions: {} },
 ): Promise<void> {
@@ -139,17 +162,35 @@ withRawContent: true
 
 ```ts models
 /**
- * This file contains only generated model types and their (de)serializers.
- * Disable the following rules for internal models with '_' prefix and deserializers which require 'any' for raw JSON input.
+ * Type of SchemaContentTypeValues
  */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/** Type of SchemaContentTypeValues */
 export type SchemaContentTypeValues =
   | "application/json; serialization=Avro"
   | "application/json; serialization=json"
   | "text/plain; charset=utf-8"
   | "text/vnd.ms.protobuf";
+
+/**
+ * Known values of {@link SchemaContentTypeValues} that the service accepts.
+ */
+export enum KnownSchemaContentTypeValues {
+  /**
+   * application/json; serialization=Avro
+   */
+  Avro = "application/json; serialization=Avro",
+  /**
+   * application/json; serialization=json
+   */
+  Json = "application/json; serialization=json",
+  /**
+   * text/plain; charset=utf-8
+   */
+  Custom = "text/plain; charset=utf-8",
+  /**
+   * text/vnd.ms.protobuf
+   */
+  Protobuf = "text/vnd.ms.protobuf",
+}
 ```
 
 # union with string as extensible enum is exhaustive
@@ -190,13 +231,23 @@ withRawContent: true
 
 ```ts models
 /**
- * This file contains only generated model types and their (de)serializers.
- * Disable the following rules for internal models with '_' prefix and deserializers which require 'any' for raw JSON input.
+ * Type of SchemaContentTypeValues
  */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/** Type of SchemaContentTypeValues */
-export type SchemaContentTypeValues = "text/plain; charset=utf-8" | "text/vnd.ms.protobuf";
+export type SchemaContentTypeValues = string;
+
+/**
+ * Known values of {@link SchemaContentTypeValues} that the service accepts.
+ */
+export enum KnownSchemaContentTypeValues {
+  /**
+   * text/plain; charset=utf-8
+   */
+  Custom = "text/plain; charset=utf-8",
+  /**
+   * text/vnd.ms.protobuf
+   */
+  Protobuf = "text/vnd.ms.protobuf",
+}
 ```
 
 # union contains union with string element
@@ -243,26 +294,31 @@ withRawContent: true
 
 ```ts models
 /**
- * This file contains only generated model types and their (de)serializers.
- * Disable the following rules for internal models with '_' prefix and deserializers which require 'any' for raw JSON input.
+ * Type of SchemaContentTypeValues
  */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/** Alias for SchemaContentTypeValues */
-export type SchemaContentTypeValues =
-  | JsonContentType
-  | "text/plain; charset=utf-8"
-  | "text/vnd.ms.protobuf"
-  | string;
+export type SchemaContentTypeValues = string;
 
-export function schemaContentTypeValuesSerializer(item: SchemaContentTypeValues): any {
-  return item;
+/**
+ * Known values of {@link SchemaContentTypeValues} that the service accepts.
+ */
+export enum KnownSchemaContentTypeValues {
+  /**
+   * application/json; serialization=Avro
+   */
+  Avro = "application/json; serialization=Avro",
+  /**
+   * application/json; serialization=json
+   */
+  Json = "application/json; serialization=json",
+  /**
+   * text/plain; charset=utf-8
+   */
+  Custom = "text/plain; charset=utf-8",
+  /**
+   * text/vnd.ms.protobuf
+   */
+  Protobuf = "text/vnd.ms.protobuf",
 }
-
-/** Type of JsonContentType */
-export type JsonContentType =
-  | "application/json; serialization=Avro"
-  | "application/json; serialization=json";
 ```
 
 # union contains enum with string element
@@ -309,26 +365,31 @@ withRawContent: true
 
 ```ts models
 /**
- * This file contains only generated model types and their (de)serializers.
- * Disable the following rules for internal models with '_' prefix and deserializers which require 'any' for raw JSON input.
+ * Type of SchemaContentTypeValues
  */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/** Alias for SchemaContentTypeValues */
-export type SchemaContentTypeValues =
-  | JsonContentType
-  | "text/plain; charset=utf-8"
-  | "text/vnd.ms.protobuf"
-  | string;
+export type SchemaContentTypeValues = string;
 
-export function schemaContentTypeValuesSerializer(item: SchemaContentTypeValues): any {
-  return item;
+/**
+ * Known values of {@link SchemaContentTypeValues} that the service accepts.
+ */
+export enum KnownSchemaContentTypeValues {
+  /**
+   * application/json; serialization=Avro
+   */
+  Avro = "application/json; serialization=Avro",
+  /**
+   * application/json; serialization=json
+   */
+  Json = "application/json; serialization=json",
+  /**
+   * text/plain; charset=utf-8
+   */
+  Custom = "text/plain; charset=utf-8",
+  /**
+   * text/vnd.ms.protobuf
+   */
+  Protobuf = "text/vnd.ms.protobuf",
 }
-
-/** Type of JsonContentType */
-export type JsonContentType =
-  | "application/json; serialization=Avro"
-  | "application/json; serialization=json";
 ```
 
 # union with string as extensible enum
@@ -369,13 +430,23 @@ withRawContent: true
 
 ```ts models
 /**
- * This file contains only generated model types and their (de)serializers.
- * Disable the following rules for internal models with '_' prefix and deserializers which require 'any' for raw JSON input.
+ * Type of SchemaContentTypeValues
  */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/** Type of SchemaContentTypeValues */
-export type SchemaContentTypeValues = "text/plain; charset=utf-8" | "text/vnd.ms.protobuf";
+export type SchemaContentTypeValues = string;
+
+/**
+ * Known values of {@link SchemaContentTypeValues} that the service accepts.
+ */
+export enum KnownSchemaContentTypeValues {
+  /**
+   * text/plain; charset=utf-8
+   */
+  Custom = "text/plain; charset=utf-8",
+  /**
+   * text/vnd.ms.protobuf
+   */
+  Protobuf = "text/vnd.ms.protobuf",
+}
 ```
 
 # union contains union with string element
@@ -422,26 +493,31 @@ withRawContent: true
 
 ```ts models
 /**
- * This file contains only generated model types and their (de)serializers.
- * Disable the following rules for internal models with '_' prefix and deserializers which require 'any' for raw JSON input.
+ * Type of SchemaContentTypeValues
  */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/** Alias for SchemaContentTypeValues */
-export type SchemaContentTypeValues =
-  | JsonContentType
-  | "text/plain; charset=utf-8"
-  | "text/vnd.ms.protobuf"
-  | string;
+export type SchemaContentTypeValues = string;
 
-export function schemaContentTypeValuesSerializer(item: SchemaContentTypeValues): any {
-  return item;
+/**
+ * Known values of {@link SchemaContentTypeValues} that the service accepts.
+ */
+export enum KnownSchemaContentTypeValues {
+  /**
+   * application/json; serialization=Avro
+   */
+  Avro = "application/json; serialization=Avro",
+  /**
+   * application/json; serialization=json
+   */
+  Json = "application/json; serialization=json",
+  /**
+   * text/plain; charset=utf-8
+   */
+  Custom = "text/plain; charset=utf-8",
+  /**
+   * text/vnd.ms.protobuf
+   */
+  Protobuf = "text/vnd.ms.protobuf",
 }
-
-/** Type of JsonContentType */
-export type JsonContentType =
-  | "application/json; serialization=Avro"
-  | "application/json; serialization=json";
 ```
 
 # union contains enum with string element
@@ -488,26 +564,31 @@ withRawContent: true
 
 ```ts models
 /**
- * This file contains only generated model types and their (de)serializers.
- * Disable the following rules for internal models with '_' prefix and deserializers which require 'any' for raw JSON input.
+ * Type of SchemaContentTypeValues
  */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/** Alias for SchemaContentTypeValues */
-export type SchemaContentTypeValues =
-  | JsonContentType
-  | "text/plain; charset=utf-8"
-  | "text/vnd.ms.protobuf"
-  | string;
+export type SchemaContentTypeValues = string;
 
-export function schemaContentTypeValuesSerializer(item: SchemaContentTypeValues): any {
-  return item;
+/**
+ * Known values of {@link SchemaContentTypeValues} that the service accepts.
+ */
+export enum KnownSchemaContentTypeValues {
+  /**
+   * application/json; serialization=Avro
+   */
+  Avro = "application/json; serialization=Avro",
+  /**
+   * application/json; serialization=json
+   */
+  Json = "application/json; serialization=json",
+  /**
+   * text/plain; charset=utf-8
+   */
+  Custom = "text/plain; charset=utf-8",
+  /**
+   * text/vnd.ms.protobuf
+   */
+  Protobuf = "text/vnd.ms.protobuf",
 }
-
-/** Type of JsonContentType */
-export type JsonContentType =
-  | "application/json; serialization=Avro"
-  | "application/json; serialization=json";
 ```
 
 # anonymous union with "|" fixed in regular headers
@@ -544,49 +625,94 @@ needOptions: false
 ## schemaOutput
 
 ```ts models
-// (file was not generated)
+/**
+ * Type of GetRequestTestHeader
+ */
+export type GetRequestTestHeader = "A" | "B";
+
+/**
+ * Known values of {@link GetRequestTestHeader} that the service accepts.
+ */
+export enum KnownGetRequestTestHeader {
+  /**
+   * A
+   */
+  A = "A",
+  /**
+   * B
+   */
+  B = "B",
+}
+
+/**
+ * Type of GetResponseTestHeader
+ */
+export type GetResponseTestHeader = "A" | "B";
+
+/**
+ * Known values of {@link GetResponseTestHeader} that the service accepts.
+ */
+export enum KnownGetResponseTestHeader {
+  /**
+   * A
+   */
+  A = "A",
+  /**
+   * B
+   */
+  B = "B",
+}
 ```
 
 ## Operations
 
 ```ts operations
-import { DemoServiceContext as Client } from "./index.js";
-import { GetOptionalParams } from "./options.js";
+import type { GetRequestTestHeader as GetRequestTestHeader_1 } from "../models/models.js";
 import {
-  StreamableMethod,
-  PathUncheckedResponse,
-  createRestError,
-  operationOptionsToRequestParameters,
-} from "@azure-rest/core-client";
+  type Client as Client_1,
+  createRestError as createRestError_1,
+  type OperationOptions as OperationOptions_1,
+  operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
+  type PathUncheckedResponse as PathUncheckedResponse_1,
+  type StreamableMethod as StreamableMethod_1,
+} from "@typespec/ts-http-runtime";
+
+/**
+ * Optional parameters for the get operation.
+ */
+export interface GetOptionalParams extends OperationOptions_1 {}
 
 export function _getSend(
-  context: Client,
-  testHeader: "A" | "B",
+  context: Client_1,
+  testHeader: GetRequestTestHeader_1,
   body: string,
   options: GetOptionalParams = { requestOptions: {} },
-): StreamableMethod {
-  return context
-    .path("/")
-    .post({
-      ...operationOptionsToRequestParameters(options),
-      contentType: "text/plain",
-      headers: { "test-header": testHeader, ...options.requestOptions?.headers },
-      body: body,
-    });
+): StreamableMethod_1 {
+  return context.path("/").post({
+    ...operationOptionsToRequestParameters_1(options),
+    contentType: "text/plain",
+    headers: {
+      "test-header": testHeader,
+      ...options.requestOptions?.headers,
+    },
+    body: body,
+  });
 }
 
-export async function _getDeserialize(result: PathUncheckedResponse): Promise<void> {
+export async function _getDeserialize(
+  result: PathUncheckedResponse_1,
+): Promise<void> {
   const expectedStatuses = ["204"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError(result);
+    throw createRestError_1(result);
   }
 
   return;
 }
 
 export async function get(
-  context: Client,
-  testHeader: "A" | "B",
+  context: Client_1,
+  testHeader: GetRequestTestHeader_1,
   body: string,
   options: GetOptionalParams = { requestOptions: {} },
 ): Promise<void> {
@@ -630,49 +756,94 @@ experimental-extensible-enums: true
 ## schemaOutput
 
 ```ts models
-// (file was not generated)
+/**
+ * Type of GetRequestTestHeader
+ */
+export type GetRequestTestHeader = string;
+
+/**
+ * Known values of {@link GetRequestTestHeader} that the service accepts.
+ */
+export enum KnownGetRequestTestHeader {
+  /**
+   * A
+   */
+  A = "A",
+  /**
+   * B
+   */
+  B = "B",
+}
+
+/**
+ * Type of GetResponseTestHeader
+ */
+export type GetResponseTestHeader = string;
+
+/**
+ * Known values of {@link GetResponseTestHeader} that the service accepts.
+ */
+export enum KnownGetResponseTestHeader {
+  /**
+   * A
+   */
+  A = "A",
+  /**
+   * B
+   */
+  B = "B",
+}
 ```
 
 ## Operations
 
 ```ts operations
-import { DemoServiceContext as Client } from "./index.js";
-import { GetOptionalParams } from "./options.js";
+import type { GetRequestTestHeader as GetRequestTestHeader_1 } from "../models/models.js";
 import {
-  StreamableMethod,
-  PathUncheckedResponse,
-  createRestError,
-  operationOptionsToRequestParameters,
-} from "@azure-rest/core-client";
+  type Client as Client_1,
+  createRestError as createRestError_1,
+  type OperationOptions as OperationOptions_1,
+  operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
+  type PathUncheckedResponse as PathUncheckedResponse_1,
+  type StreamableMethod as StreamableMethod_1,
+} from "@typespec/ts-http-runtime";
+
+/**
+ * Optional parameters for the get operation.
+ */
+export interface GetOptionalParams extends OperationOptions_1 {}
 
 export function _getSend(
-  context: Client,
-  testHeader: string,
+  context: Client_1,
+  testHeader: GetRequestTestHeader_1,
   body: string,
   options: GetOptionalParams = { requestOptions: {} },
-): StreamableMethod {
-  return context
-    .path("/")
-    .post({
-      ...operationOptionsToRequestParameters(options),
-      contentType: "text/plain",
-      headers: { "test-header": testHeader, ...options.requestOptions?.headers },
-      body: body,
-    });
+): StreamableMethod_1 {
+  return context.path("/").post({
+    ...operationOptionsToRequestParameters_1(options),
+    contentType: "text/plain",
+    headers: {
+      "test-header": testHeader,
+      ...options.requestOptions?.headers,
+    },
+    body: body,
+  });
 }
 
-export async function _getDeserialize(result: PathUncheckedResponse): Promise<void> {
+export async function _getDeserialize(
+  result: PathUncheckedResponse_1,
+): Promise<void> {
   const expectedStatuses = ["204"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError(result);
+    throw createRestError_1(result);
   }
 
   return;
 }
 
 export async function get(
-  context: Client,
-  testHeader: string,
+  context: Client_1,
+  testHeader: GetRequestTestHeader_1,
   body: string,
   options: GetOptionalParams = { requestOptions: {} },
 ): Promise<void> {
@@ -723,17 +894,35 @@ withRawContent: true
 
 ```ts models
 /**
- * This file contains only generated model types and their (de)serializers.
- * Disable the following rules for internal models with '_' prefix and deserializers which require 'any' for raw JSON input.
+ * Type of SchemaContentTypeValues
  */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/** Type of SchemaContentTypeValues */
 export type SchemaContentTypeValues =
   | "application/json; serialization=Avro"
   | "application/json; serialization=json"
   | "text/plain; charset=utf-8"
   | "text/vnd.ms.protobuf";
+
+/**
+ * Known values of {@link SchemaContentTypeValues} that the service accepts.
+ */
+export enum KnownSchemaContentTypeValues {
+  /**
+   * application/json; serialization=Avro
+   */
+  Avro = "application/json; serialization=Avro",
+  /**
+   * application/json; serialization=json
+   */
+  Json = "application/json; serialization=json",
+  /**
+   * text/plain; charset=utf-8
+   */
+  Custom = "text/plain; charset=utf-8",
+  /**
+   * text/vnd.ms.protobuf
+   */
+  Protobuf = "text/vnd.ms.protobuf",
+}
 ```
 
 # should be taken as fixed enum without @fixed
@@ -778,17 +967,35 @@ withRawContent: true
 
 ```ts models
 /**
- * This file contains only generated model types and their (de)serializers.
- * Disable the following rules for internal models with '_' prefix and deserializers which require 'any' for raw JSON input.
+ * Type of SchemaContentTypeValues
  */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/** Type of SchemaContentTypeValues */
 export type SchemaContentTypeValues =
   | "application/json; serialization=Avro"
   | "application/json; serialization=json"
   | "text/plain; charset=utf-8"
   | "text/vnd.ms.protobuf";
+
+/**
+ * Known values of {@link SchemaContentTypeValues} that the service accepts.
+ */
+export enum KnownSchemaContentTypeValues {
+  /**
+   * application/json; serialization=Avro
+   */
+  Avro = "application/json; serialization=Avro",
+  /**
+   * application/json; serialization=json
+   */
+  Json = "application/json; serialization=json",
+  /**
+   * text/plain; charset=utf-8
+   */
+  Custom = "text/plain; charset=utf-8",
+  /**
+   * text/vnd.ms.protobuf
+   */
+  Protobuf = "text/vnd.ms.protobuf",
+}
 ```
 
 # number extensible enum should be generated correctly
@@ -834,13 +1041,31 @@ withRawContent: true
 
 ```ts models
 /**
- * This file contains only generated model types and their (de)serializers.
- * Disable the following rules for internal models with '_' prefix and deserializers which require 'any' for raw JSON input.
+ * Type of EnumTest
  */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/** Type of EnumTest */
-export type EnumTest = 1 | 2 | 3 | 4;
+export type EnumTest = number;
+
+/**
+ * Known values of {@link EnumTest} that the service accepts.
+ */
+export enum KnownEnumTest {
+  /**
+   * 1
+   */
+  One = 1,
+  /**
+   * 2
+   */
+  Two = 2,
+  /**
+   * 3
+   */
+  Three = 3,
+  /**
+   * 4
+   */
+  Four = 4,
+}
 ```
 
 # mixed union types should be generated correctly
@@ -895,28 +1120,43 @@ mustEmptyDiagnostic: false
 ## schemaOutput
 
 ```ts models
-/**
- * This file contains only generated model types and their (de)serializers.
- * Disable the following rules for internal models with '_' prefix and deserializers which require 'any' for raw JSON input.
- */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/** model interface Foo */
 export interface Foo {}
 
-export function fooSerializer(item: Foo): any {
-  return item;
+/**
+ * Type of EnumTest
+ */
+export type EnumTest = 1 | 2 | 3 | 4;
+
+/**
+ * Known values of {@link EnumTest} that the service accepts.
+ */
+export enum KnownEnumTest {
+  /**
+   * 1
+   */
+  One = 1,
+  /**
+   * 2
+   */
+  Two = 2,
+  /**
+   * 3
+   */
+  Three = 3,
+  /**
+   * 4
+   */
+  Four = 4,
 }
 
-/** Alias for MixedTypes */
+/**
+ * Alias for MixedTypes
+ */
 export type MixedTypes = EnumTest | string | Foo;
 
-export function mixedTypesSerializer(item: MixedTypes): any {
-  return item;
+export function fooSerializer(item: Foo): any {
+  return {};
 }
-
-/** Type of EnumTest */
-export type EnumTest = 1 | 2 | 3 | 4;
 ```
 
 # model type string enum
@@ -933,15 +1173,8 @@ op read(@body body: Test): void;
 ## Model interface Test
 
 ```ts models interface Test
-/**
- * This file contains only generated model types and their (de)serializers.
- * Disable the following rules for internal models with '_' prefix and deserializers which require 'any' for raw JSON input.
- */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/** model interface Test */
 export interface Test {
-  color: "red" | "blue";
+  color: TestColor;
 }
 ```
 
@@ -949,7 +1182,9 @@ export interface Test {
 
 ```ts models function testSerializer
 export function testSerializer(item: Test): any {
-  return { color: item["color"] };
+  return {
+    color: item["color"],
+  };
 }
 ```
 
@@ -971,13 +1206,6 @@ op read(@body body: Test): void;
 ## Model interface Test
 
 ```ts models interface Test
-/**
- * This file contains only generated model types and their (de)serializers.
- * Disable the following rules for internal models with '_' prefix and deserializers which require 'any' for raw JSON input.
- */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/** model interface Test */
 export interface Test {
   color: "red";
 }
@@ -986,7 +1214,6 @@ export interface Test {
 ## Model Alias Color
 
 ```ts models alias Color
-/** Type of Color */
 export type Color = "red" | "blue";
 ```
 
@@ -1004,13 +1231,6 @@ op read(@body body: Test): void;
 ## Model interface Test
 
 ```ts models interface Test
-/**
- * This file contains only generated model types and their (de)serializers.
- * Disable the following rules for internal models with '_' prefix and deserializers which require 'any' for raw JSON input.
- */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/** model interface Test */
 export interface Test {
   content: "red" | null;
 }
@@ -1020,7 +1240,9 @@ export interface Test {
 
 ```ts models function testSerializer
 export function testSerializer(item: Test): any {
-  return { content: item["content"] };
+  return {
+    content: item["content"],
+  };
 }
 ```
 
@@ -1038,13 +1260,6 @@ op read(@body body: Test): void;
 ## Model interface Test
 
 ```ts models interface Test
-/**
- * This file contains only generated model types and their (de)serializers.
- * Disable the following rules for internal models with '_' prefix and deserializers which require 'any' for raw JSON input.
- */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/** model interface Test */
 export interface Test {
   content: string | null;
 }
@@ -1054,7 +1269,9 @@ export interface Test {
 
 ```ts models function testSerializer
 export function testSerializer(item: Test): any {
-  return { content: item["content"] };
+  return {
+    content: item["content"],
+  };
 }
 ```
 
@@ -1072,15 +1289,8 @@ op read(@body body: Test): void;
 ## Model interface Test
 
 ```ts models interface Test
-/**
- * This file contains only generated model types and their (de)serializers.
- * Disable the following rules for internal models with '_' prefix and deserializers which require 'any' for raw JSON input.
- */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/** model interface Test */
 export interface Test {
-  color: 1 | 2;
+  color: TestColor;
 }
 ```
 
@@ -1088,7 +1298,9 @@ export interface Test {
 
 ```ts models function testSerializer
 export function testSerializer(item: Test): any {
-  return { color: item["color"] };
+  return {
+    color: item["color"],
+  };
 }
 ```
 
@@ -1110,13 +1322,6 @@ op read(@body body: Test): void;
 ## Model interface Test
 
 ```ts models interface Test
-/**
- * This file contains only generated model types and their (de)serializers.
- * Disable the following rules for internal models with '_' prefix and deserializers which require 'any' for raw JSON input.
- */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/** model interface Test */
 export interface Test {
   color: 1;
 }
@@ -1125,7 +1330,6 @@ export interface Test {
 ## Model Alias Color
 
 ```ts models alias Color
-/** Type of Color */
 export type Color = 1 | 2;
 ```
 
@@ -1147,13 +1351,6 @@ op read(@body body: Test): void;
 ## Model interface Test
 
 ```ts models interface Test
-/**
- * This file contains only generated model types and their (de)serializers.
- * Disable the following rules for internal models with '_' prefix and deserializers which require 'any' for raw JSON input.
- */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/** model interface Test */
 export interface Test {
   color: Color | null;
 }
@@ -1185,13 +1382,6 @@ needAzureCore: true
 ## Model interface Test
 
 ```ts models interface Test
-/**
- * This file contains only generated model types and their (de)serializers.
- * Disable the following rules for internal models with '_' prefix and deserializers which require 'any' for raw JSON input.
- */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/** model interface Test */
 export interface Test {
   color: Color | null;
 }
@@ -1200,7 +1390,6 @@ export interface Test {
 ## Model alias Color
 
 ```ts models alias Color
-/** Type of Color */
 export type Color = 1 | 2;
 ```
 
@@ -1262,13 +1451,6 @@ experimental-extensible-enums: true
 ## Model interface Test
 
 ```ts models interface Test
-/**
- * This file contains only generated model types and their (de)serializers.
- * Disable the following rules for internal models with '_' prefix and deserializers which require 'any' for raw JSON input.
- */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/** model interface Test */
 export interface Test {
   color: ImageSize;
 }
@@ -1277,33 +1459,32 @@ export interface Test {
 ## Model Enum KnownImageSize
 
 ```ts models enum KnownImageSize
-/** Known values of {@link ImageSize} that the service accepts. */
 export enum KnownImageSize {
   /**
    * Very small image size of 256x256 pixels.
    * Only supported with dall-e-2 models.
    */
-  Size256X256 = "256x256",
+  Size256x256 = "256x256",
   /**
    * A smaller image size of 512x512 pixels.
    * Only supported with dall-e-2 models.
    */
-  Size512X512 = "512x512",
+  Size512x512 = "512x512",
   /**
    * A standard, square image size of 1024x1024 pixels.
    * Supported by both dall-e-2 and dall-e-3 models.
    */
-  Size1024X1024 = "1024x1024",
+  Size1024x1024 = "1024x1024",
   /**
    * A wider image size of 1024x1792 pixels.
    * Only supported with dall-e-3 models.
    */
-  Size1792X1024 = "1792x1024",
+  Size1792x1024 = "1792x1024",
   /**
    * A taller image size of 1792x1024 pixels.
    * Only supported with dall-e-3 models.
    */
-  Size1024X1792 = "1024x1792",
+  Size1024x1792 = "1024x1792",
 }
 ```
 
@@ -1330,15 +1511,8 @@ op read(@body body: Test): void;
 ## Model interface Test
 
 ```ts models interface Test
-/**
- * This file contains only generated model types and their (de)serializers.
- * Disable the following rules for internal models with '_' prefix and deserializers which require 'any' for raw JSON input.
- */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/** model interface Test */
 export interface Test {
-  color: LR | UD;
+  color: TestColor;
 }
 ```
 
@@ -1379,15 +1553,8 @@ op read(@body body: Test): void;
 ## Model interface Test
 
 ```ts models interface Test
-/**
- * This file contains only generated model types and their (de)serializers.
- * Disable the following rules for internal models with '_' prefix and deserializers which require 'any' for raw JSON input.
- */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/** model interface Test */
 export interface Test {
-  color: LeftAndRight | UpAndDown;
+  color: TestColor;
 }
 ```
 
@@ -1419,13 +1586,6 @@ op read(@body body: Test): void;
 ## Model interface Test
 
 ```ts models interface Test
-/**
- * This file contains only generated model types and their (de)serializers.
- * Disable the following rules for internal models with '_' prefix and deserializers which require 'any' for raw JSON input.
- */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/** model interface Test */
 export interface Test {
   content: 1 | null;
 }
@@ -1435,7 +1595,9 @@ export interface Test {
 
 ```ts models function testSerializer
 export function testSerializer(item: Test): any {
-  return { content: item["content"] };
+  return {
+    content: item["content"],
+  };
 }
 ```
 
@@ -1453,13 +1615,6 @@ op read(@body body: Test): void;
 ## Model interface Test
 
 ```ts models interface Test
-/**
- * This file contains only generated model types and their (de)serializers.
- * Disable the following rules for internal models with '_' prefix and deserializers which require 'any' for raw JSON input.
- */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/** model interface Test */
 export interface Test {
   content: number | null;
 }
@@ -1469,6 +1624,8 @@ export interface Test {
 
 ```ts models function testSerializer
 export function testSerializer(item: Test): any {
-  return { content: item["content"] };
+  return {
+    content: item["content"],
+  };
 }
 ```

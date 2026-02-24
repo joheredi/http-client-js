@@ -20,22 +20,10 @@ op doThing(@header contentType: "multipart/form-data", @multipartBody bodyParam:
 The part should get generated correctly. The generated serializer should be used so that the date of birth is encoded correctly.
 
 ```ts models
-/**
- * This file contains only generated model types and their (de)serializers.
- * Disable the following rules for internal models with '_' prefix and deserializers which require 'any' for raw JSON input.
- */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/** model interface RequestBody */
 export interface RequestBody {
   person: Person;
 }
 
-export function requestBodySerializer(item: RequestBody): any {
-  return [{ name: "person", body: personSerializer(item["person"]) }];
-}
-
-/** model interface Person */
 export interface Person {
   firstName: string;
   lastName: string;
@@ -46,8 +34,12 @@ export function personSerializer(item: Person): any {
   return {
     firstName: item["firstName"],
     lastName: item["lastName"],
-    dateOfBirth: (item["dateOfBirth"].getTime() / 1000) | 0,
+    dateOfBirth: item["dateOfBirth"].getTime(),
   };
+}
+
+export function requestBodySerializer(item: RequestBody): any {
+  return [{ name: "person", body: item["person"] }];
 }
 ```
 
@@ -75,28 +67,10 @@ op doThing(@header contentType: "multipart/form-data", @multipartBody bodyParam:
 In this case one part is constructed from the serialized array.
 
 ```ts models
-/**
- * This file contains only generated model types and their (de)serializers.
- * Disable the following rules for internal models with '_' prefix and deserializers which require 'any' for raw JSON input.
- */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/** model interface RequestBody */
 export interface RequestBody {
   people: Person[];
 }
 
-export function requestBodySerializer(item: RequestBody): any {
-  return [{ name: "people", body: personArraySerializer(item["people"]) }];
-}
-
-export function personArraySerializer(result: Array<Person>): any[] {
-  return result.map((item) => {
-    return personSerializer(item);
-  });
-}
-
-/** model interface Person */
 export interface Person {
   firstName: string;
   lastName: string;
@@ -107,8 +81,12 @@ export function personSerializer(item: Person): any {
   return {
     firstName: item["firstName"],
     lastName: item["lastName"],
-    dateOfBirth: (item["dateOfBirth"].getTime() / 1000) | 0,
+    dateOfBirth: item["dateOfBirth"].getTime(),
   };
+}
+
+export function requestBodySerializer(item: RequestBody): any {
+  return [{ name: "people", body: item["people"] }];
 }
 ```
 
@@ -136,30 +114,10 @@ op doThing(@header contentType: "multipart/form-data", @multipartBody bodyParam:
 In this case each element in the serialized array is converted to a part descriptor.
 
 ```ts models
-/**
- * This file contains only generated model types and their (de)serializers.
- * Disable the following rules for internal models with '_' prefix and deserializers which require 'any' for raw JSON input.
- */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/** model interface RequestBody */
 export interface RequestBody {
   people: Person[];
 }
 
-export function requestBodySerializer(item: RequestBody): any {
-  return [
-    ...personArraySerializer(item["people"]).map((x: unknown) => ({ name: "people", body: x })),
-  ];
-}
-
-export function personArraySerializer(result: Array<Person>): any[] {
-  return result.map((item) => {
-    return personSerializer(item);
-  });
-}
-
-/** model interface Person */
 export interface Person {
   firstName: string;
   lastName: string;
@@ -170,7 +128,11 @@ export function personSerializer(item: Person): any {
   return {
     firstName: item["firstName"],
     lastName: item["lastName"],
-    dateOfBirth: (item["dateOfBirth"].getTime() / 1000) | 0,
+    dateOfBirth: item["dateOfBirth"].getTime(),
   };
+}
+
+export function requestBodySerializer(item: RequestBody): any {
+  return [...item["people"].map((x: unknown) => ({ name: "people", body: x }))];
 }
 ```

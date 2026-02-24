@@ -83,7 +83,9 @@ import { TestingClient } from "@azure/internal-test";
 async function read(): Promise<void> {
   const endpoint = process.env.TESTING_ENDPOINT || "";
   const client = new TestingClient(endpoint);
-  await client.read({ widget: { name: "body name", baz: [{ x: "bbb" }], bar: [{ x: "xx" }] } });
+  await client.read({
+    widget: { name: "body name", baz: [{ x: "bbb" }], bar: [{ x: "xx" }] },
+  });
 }
 
 async function main(): Promise<void> {
@@ -179,7 +181,11 @@ async function read(): Promise<void> {
   const endpoint = process.env.TESTING_ENDPOINT || "";
   const client = new TestingClient(endpoint);
   await client.read({
-    widget: { baz: "body name", bazPropertiesBaz: [{ x: "bbb" }], bar: [{ x: "xx" }] },
+    widget: {
+      baz: "body name",
+      bazPropertiesBaz: [{ x: "bbb" }],
+      bar: [{ x: "xx" }],
+    },
   });
 }
 

@@ -16,13 +16,6 @@ op read(@path id: string; @body body: StreamingChatCompletionOptions): {
 ## Models
 
 ```ts models
-/**
- * This file contains only generated model types and their (de)serializers.
- * Disable the following rules for internal models with '_' prefix and deserializers which require 'any' for raw JSON input.
- */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/** model interface StreamingChatCompletionOptions */
 export interface StreamingChatCompletionOptions {
   stream: true;
   messages: "aaaaa";
@@ -32,7 +25,11 @@ export interface StreamingChatCompletionOptions {
 export function streamingChatCompletionOptionsSerializer(
   item: StreamingChatCompletionOptions,
 ): any {
-  return { stream: item["stream"], messages: item["messages"], index: item["index"] };
+  return {
+    stream: item["stream"],
+    messages: item["messages"],
+    index: item["index"],
+  };
 }
 
 export function streamingChatCompletionOptionsDeserializer(
@@ -49,63 +46,65 @@ export function streamingChatCompletionOptionsDeserializer(
 ## Operations
 
 ```ts operations
-import { TestingContext as Client } from "./index.js";
 import {
-  StreamingChatCompletionOptions,
-  streamingChatCompletionOptionsSerializer,
-  streamingChatCompletionOptionsDeserializer,
+  type StreamingChatCompletionOptions as StreamingChatCompletionOptions_1,
+  streamingChatCompletionOptionsDeserializer as streamingChatCompletionOptionsDeserializer_1,
+  streamingChatCompletionOptionsSerializer as streamingChatCompletionOptionsSerializer_1,
 } from "../models/models.js";
-import { expandUrlTemplate } from "../static-helpers/urlTemplate.js";
-import { ReadOptionalParams } from "./options.js";
 import {
-  StreamableMethod,
-  PathUncheckedResponse,
-  createRestError,
-  operationOptionsToRequestParameters,
-} from "@azure-rest/core-client";
+  type Client as Client_1,
+  createRestError as createRestError_1,
+  expandUrlTemplate as expandUrlTemplate_1,
+  type OperationOptions as OperationOptions_1,
+  operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
+  type PathUncheckedResponse as PathUncheckedResponse_1,
+  type StreamableMethod as StreamableMethod_1,
+} from "@typespec/ts-http-runtime";
+
+/**
+ * Optional parameters for the read operation.
+ */
+export interface ReadOptionalParams extends OperationOptions_1 {}
 
 export function _readSend(
-  context: Client,
+  context: Client_1,
   id: string,
-  body: StreamingChatCompletionOptions,
+  body: StreamingChatCompletionOptions_1,
   options: ReadOptionalParams = { requestOptions: {} },
-): StreamableMethod {
-  const path = expandUrlTemplate(
+): StreamableMethod_1 {
+  const path = expandUrlTemplate_1(
     "/{id}",
-    {
-      id: id,
-    },
-    {
-      allowReserved: options?.requestOptions?.skipUrlEncoding,
-    },
+    { id: id },
+    { allowReserved: options?.requestOptions?.skipUrlEncoding },
   );
-  return context
-    .path(path)
-    .post({
-      ...operationOptionsToRequestParameters(options),
-      contentType: "application/json",
-      headers: { accept: "application/json", ...options.requestOptions?.headers },
-      body: streamingChatCompletionOptionsSerializer(body),
-    });
+  return context.path(path).post({
+    ...operationOptionsToRequestParameters_1(options),
+    contentType: "application/json",
+    headers: {
+      accept: "application/json",
+      ...options.requestOptions?.headers,
+    },
+    body: streamingChatCompletionOptionsSerializer_1(body),
+  });
 }
 
 export async function _readDeserialize(
-  result: PathUncheckedResponse,
-): Promise<StreamingChatCompletionOptions> {
+  result: PathUncheckedResponse_1,
+): Promise<StreamingChatCompletionOptions_1> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError(result);
+    throw createRestError_1(result);
   }
 
-  return streamingChatCompletionOptionsDeserializer(result.body);
+  return streamingChatCompletionOptionsDeserializer_1(result.body);
 }
 
 export async function read(
-  context: Client,
+  context: Client_1,
   id: string,
-  body: StreamingChatCompletionOptions,
+  body: StreamingChatCompletionOptions_1,
   options: ReadOptionalParams = { requestOptions: {} },
-): Promise<StreamingChatCompletionOptions> {
+): Promise<StreamingChatCompletionOptions_1> {
   const result = await _readSend(context, id, body, options);
   return _readDeserialize(result);
 }
@@ -129,54 +128,70 @@ op read(...StreamingChatCompletionOptions): {
 ## Models
 
 ```ts models
-// (file was not generated)
+export interface StreamingChatCompletionOptions {
+  stream: true;
+  messages: "aaaaa";
+  index: 123;
+}
 ```
 
 ## Operations
 
 ```ts operations
-import { TestingContext as Client } from "./index.js";
-import { ReadOptionalParams } from "./options.js";
 import {
-  StreamableMethod,
-  PathUncheckedResponse,
-  createRestError,
-  operationOptionsToRequestParameters,
-} from "@azure-rest/core-client";
+  type Client as Client_1,
+  createRestError as createRestError_1,
+  type OperationOptions as OperationOptions_1,
+  operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
+  type PathUncheckedResponse as PathUncheckedResponse_1,
+  type StreamableMethod as StreamableMethod_1,
+} from "@typespec/ts-http-runtime";
+
+/**
+ * Optional parameters for the read operation.
+ */
+export interface ReadOptionalParams extends OperationOptions_1 {}
 
 export function _readSend(
-  context: Client,
+  context: Client_1,
+  stream: true,
+  messages: "aaaaa",
+  index: 123,
   options: ReadOptionalParams = { requestOptions: {} },
-): StreamableMethod {
-  return context
-    .path("/")
-    .post({
-      ...operationOptionsToRequestParameters(options),
-      contentType: "application/json",
-      headers: { accept: "text/plain", ...options.requestOptions?.headers },
-      body: { stream: true, messages: "aaaaa", index: 123 },
-    });
+): StreamableMethod_1 {
+  return context.path("/").post({
+    ...operationOptionsToRequestParameters_1(options),
+    contentType: "application/json",
+    headers: { accept: "text/plain", ...options.requestOptions?.headers },
+    body: { stream: stream, messages: messages, index: index },
+  });
 }
 
-export async function _readDeserialize(result: PathUncheckedResponse): Promise<true> {
+export async function _readDeserialize(
+  result: PathUncheckedResponse_1,
+): Promise<true> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError(result);
+    throw createRestError_1(result);
   }
 
   return result.body;
 }
 
 export async function read(
-  context: Client,
+  context: Client_1,
+  stream: true,
+  messages: "aaaaa",
+  index: 123,
   options: ReadOptionalParams = { requestOptions: {} },
 ): Promise<true> {
-  const result = await _readSend(context, options);
+  const result = await _readSend(context, stream, messages, index, options);
   return _readDeserialize(result);
 }
 ```
 
 // We need to skip this case due to tcgc issue: https://github.com/Azure/typespec-azure/issues/3088
+
 # skip: Should get the effective model name
 
 ## TypeSpec

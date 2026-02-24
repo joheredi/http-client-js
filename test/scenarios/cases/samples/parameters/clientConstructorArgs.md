@@ -56,47 +56,46 @@ withRawContent: true
 The client constructor should expect all server template parameters:
 
 ```ts classicClient
-import { createOrUpdate } from "./api/operations.js";
-import { CreateOrUpdateOptionalParams } from "./api/options.js";
-import { TokenCredential } from "@azure/core-auth";
-import { Pipeline } from "@azure/core-rest-pipeline";
-
-export { MachineLearningServicesClientOptionalParams } from "./api/machineLearningServicesContext.js";
+import {
+  _getIndexesOperations as _getIndexesOperations_1,
+  IndexesOperations as IndexesOperations_1,
+} from "./classic/indexes/index.js";
+import {
+  createMachineLearningServices as createMachineLearningServices_1,
+  type MachineLearningServicesClientOptionalParams as MachineLearningServicesClientOptionalParams_1,
+  type MachineLearningServicesContext as MachineLearningServicesContext_1,
+} from "./machineLearningServicesClientContext.js";
+import {
+  Pipeline as Pipeline_1,
+  type TokenCredential as TokenCredential_1,
+} from "@typespec/ts-http-runtime";
 
 export class MachineLearningServicesClient {
-  private _client: MachineLearningServicesContext;
+  private _client: MachineLearningServicesContext_1;
   /** The pipeline used by this client to make requests */
-  public readonly pipeline: Pipeline;
+  public readonly pipeline: Pipeline_1;
+
+  /** The operation group for Indexes */
+  public readonly indexes: IndexesOperations_1;
 
   constructor(
-    endpointParam: string,
+    endpoint: string,
     subscriptionId: string,
     resourceGroupName: string,
     workspaceName: string,
-    credential: TokenCredential,
-    options: MachineLearningServicesClientOptionalParams = {},
+    credential: TokenCredential_1,
+    options: MachineLearningServicesClientOptionalParams_1 = {},
   ) {
-    const prefixFromOptions = options?.userAgentOptions?.userAgentPrefix;
-    const userAgentPrefix = prefixFromOptions
-      ? `${prefixFromOptions} azsdk-js-client`
-      : `azsdk-js-client`;
-    this._client = createMachineLearningServices(
-      endpointParam,
+    this._client = createMachineLearningServices_1(
+      endpoint,
       subscriptionId,
       resourceGroupName,
       workspaceName,
       credential,
-      { ...options, userAgentOptions: { userAgentPrefix } },
+      options,
     );
     this.pipeline = this._client.pipeline;
-  }
-
-  createOrUpdate(
-    name: string,
-    version: string,
-    options: CreateOrUpdateOptionalParams = { requestOptions: {} },
-  ): Promise<void> {
-    return createOrUpdate(this._client, name, version, options);
+    this.indexes = _getIndexesOperations_1(this._client);
   }
 }
 ```
@@ -149,9 +148,12 @@ import { DefaultAzureCredential } from "@azure/identity";
  */
 async function indexesCreateOrUpdate(): Promise<void> {
   const endpoint = process.env.MACHINE_LEARNING_SERVICES_ENDPOINT || "";
-  const subscriptionId = process.env.MACHINE_LEARNING_SERVICES_SUBSCRIPTION_ID || "";
-  const resourceGroupName = process.env.MACHINE_LEARNING_SERVICES_RESOURCE_GROUP_NAME || "";
-  const workspaceName = process.env.MACHINE_LEARNING_SERVICES_WORKSPACE_NAME || "";
+  const subscriptionId =
+    process.env.MACHINE_LEARNING_SERVICES_SUBSCRIPTION_ID || "";
+  const resourceGroupName =
+    process.env.MACHINE_LEARNING_SERVICES_RESOURCE_GROUP_NAME || "";
+  const workspaceName =
+    process.env.MACHINE_LEARNING_SERVICES_WORKSPACE_NAME || "";
   const credential = new DefaultAzureCredential();
   const client = new MachineLearningServicesClient(
     endpoint,

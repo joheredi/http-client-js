@@ -38,14 +38,17 @@ Should generate KnownVersions in models.ts.
 
 ```ts models
 /**
- * This file contains only generated model types and their (de)serializers.
- * Disable the following rules for internal models with '_' prefix and deserializers which require 'any' for raw JSON input.
+ * The available API versions.
  */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/** The available API versions. */
+export type Versions = "2021-10-01-preview";
+
+/**
+ * The available API versions.
+ */
 export enum KnownVersions {
-  /** 2021-10-01-preview version */
-  V20211001Preview = "2021-10-01-preview",
+  /**
+   * 2021-10-01-preview version
+   */
+  V2021_10_01Preview = "2021-10-01-preview",
 }
 ```

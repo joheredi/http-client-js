@@ -276,16 +276,16 @@ export function _publishSend(
   endpointParam: DocumentBase,
   options: PublishOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
-  return context
-    .path("/documents")
-    .post({
-      ...operationOptionsToRequestParameters(options),
-      contentType: "application/json",
-      body: documentBaseSerializer(endpointParam),
-    });
+  return context.path("/documents").post({
+    ...operationOptionsToRequestParameters(options),
+    contentType: "application/json",
+    body: documentBaseSerializer(endpointParam),
+  });
 }
 
-export async function _publishDeserialize(result: PathUncheckedResponse): Promise<void> {
+export async function _publishDeserialize(
+  result: PathUncheckedResponse,
+): Promise<void> {
   const expectedStatuses = ["204"];
   if (!expectedStatuses.includes(result.status)) {
     throw createRestError(result);
@@ -319,7 +319,10 @@ import { TestingClient } from "@azure/internal-test";
 async function publishDocuments(): Promise<void> {
   const endpoint = process.env.TESTING_ENDPOINT || "";
   const client = new TestingClient(endpoint);
-  await client.publish({ documentType: "Exception", properties: ["stream-1", "stream-2"] });
+  await client.publish({
+    documentType: "Exception",
+    properties: ["stream-1", "stream-2"],
+  });
 }
 
 async function main(): Promise<void> {

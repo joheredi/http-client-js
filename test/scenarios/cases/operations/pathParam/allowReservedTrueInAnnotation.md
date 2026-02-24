@@ -16,44 +16,49 @@ op annotation(@path(#{ allowReserved: true }) param: string): void;
 Should enable `allowReserved:true` for path parameter:
 
 ```ts operations
-import { TestingContext as Client } from "./index.js";
-import { expandUrlTemplate } from "../static-helpers/urlTemplate.js";
-import { AnnotationOptionalParams } from "./options.js";
 import {
-  StreamableMethod,
-  PathUncheckedResponse,
-  createRestError,
-  operationOptionsToRequestParameters,
-} from "@azure-rest/core-client";
+  type Client as Client_1,
+  createRestError as createRestError_1,
+  expandUrlTemplate as expandUrlTemplate_1,
+  type OperationOptions as OperationOptions_1,
+  operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
+  type PathUncheckedResponse as PathUncheckedResponse_1,
+  type StreamableMethod as StreamableMethod_1,
+} from "@typespec/ts-http-runtime";
+
+/**
+ * Optional parameters for the annotation operation.
+ */
+export interface AnnotationOptionalParams extends OperationOptions_1 {}
 
 export function _annotationSend(
-  context: Client,
+  context: Client_1,
   param: string,
   options: AnnotationOptionalParams = { requestOptions: {} },
-): StreamableMethod {
-  const path = expandUrlTemplate(
+): StreamableMethod_1 {
+  const path = expandUrlTemplate_1(
     "/annotation/{+param}",
-    {
-      param: param,
-    },
-    {
-      allowReserved: options?.requestOptions?.skipUrlEncoding,
-    },
+    { param: param },
+    { allowReserved: options?.requestOptions?.skipUrlEncoding },
   );
-  return context.path(path).get({ ...operationOptionsToRequestParameters(options) });
+  return context
+    .path(path)
+    .get({ ...operationOptionsToRequestParameters_1(options) });
 }
 
-export async function _annotationDeserialize(result: PathUncheckedResponse): Promise<void> {
+export async function _annotationDeserialize(
+  result: PathUncheckedResponse_1,
+): Promise<void> {
   const expectedStatuses = ["204"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError(result);
+    throw createRestError_1(result);
   }
 
   return;
 }
 
 export async function annotation(
-  context: Client,
+  context: Client_1,
   param: string,
   options: AnnotationOptionalParams = { requestOptions: {} },
 ): Promise<void> {

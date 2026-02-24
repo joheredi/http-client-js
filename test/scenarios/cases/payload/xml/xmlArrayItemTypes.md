@@ -43,19 +43,18 @@ The key validation here is that:
 2. The runtime will use this metadata to properly base64-encode each `Uint8Array` item
 
 ```ts models interface BlockLookupList
-/**
- * This file contains only generated model types and their (de)serializers.
- * Disable the following rules for internal models with '_' prefix and deserializers which require 'any' for raw JSON input.
- */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/** A block lookup list with arrays of base64 encoded block IDs */
 export interface BlockLookupList {
-  /** The committed blocks */
+  /**
+   * The committed blocks
+   */
   committed?: Uint8Array[];
-  /** The uncommitted blocks */
+  /**
+   * The uncommitted blocks
+   */
   uncommitted?: Uint8Array[];
-  /** The latest blocks */
+  /**
+   * The latest blocks
+   */
   latest?: Uint8Array[];
 }
 ```
@@ -65,14 +64,22 @@ export function blockLookupListXmlSerializer(item: BlockLookupList): string {
   const properties: XmlPropertyMetadata[] = [
     {
       propertyName: "committed",
-      xmlOptions: { name: "Committed", unwrapped: true, itemsName: "Committed" },
+      xmlOptions: {
+        name: "Committed",
+        unwrapped: true,
+        itemsName: "Committed",
+      },
       type: "array",
       bytesEncoding: "base64",
       itemType: "bytes",
     },
     {
       propertyName: "uncommitted",
-      xmlOptions: { name: "Uncommitted", unwrapped: true, itemsName: "Uncommitted" },
+      xmlOptions: {
+        name: "Uncommitted",
+        unwrapped: true,
+        itemsName: "Uncommitted",
+      },
       type: "array",
       bytesEncoding: "base64",
       itemType: "bytes",
@@ -90,7 +97,9 @@ export function blockLookupListXmlSerializer(item: BlockLookupList): string {
 ```
 
 ```ts models function blockLookupListXmlObjectSerializer
-export function blockLookupListXmlObjectSerializer(item: BlockLookupList): XmlSerializedObject {
+export function blockLookupListXmlObjectSerializer(
+  item: BlockLookupList,
+): XmlSerializedObject {
   return {
     Committed: item["committed"]?.map((i: any) =>
       i !== undefined ? uint8ArrayToString(i, "base64") : undefined,
@@ -139,17 +148,14 @@ interface DateOperations {
 ## Provide generated models with XML serializers that include itemType for date arrays
 
 ```ts models interface DateArraysModel
-/**
- * This file contains only generated model types and their (de)serializers.
- * Disable the following rules for internal models with '_' prefix and deserializers which require 'any' for raw JSON input.
- */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/** A model with arrays of dates using different encodings */
 export interface DateArraysModel {
-  /** Timestamps in RFC3339 format (default) */
+  /**
+   * Timestamps in RFC3339 format (default)
+   */
   timestamps?: Date[];
-  /** Timestamps in RFC7231 format */
+  /**
+   * Timestamps in RFC7231 format
+   */
   httpDates?: Date[];
 }
 ```
@@ -177,7 +183,9 @@ export function dateArraysModelXmlSerializer(item: DateArraysModel): string {
 ```
 
 ```ts models function dateArraysModelXmlDeserializer
-export function dateArraysModelXmlDeserializer(xmlString: string): DateArraysModel {
+export function dateArraysModelXmlDeserializer(
+  xmlString: string,
+): DateArraysModel {
   const properties: XmlPropertyDeserializeMetadata[] = [
     {
       propertyName: "timestamps",
@@ -194,6 +202,10 @@ export function dateArraysModelXmlDeserializer(xmlString: string): DateArraysMod
       itemType: "date",
     },
   ];
-  return deserializeFromXml<DateArraysModel>(xmlString, properties, "DateArraysModel");
+  return deserializeFromXml<DateArraysModel>(
+    xmlString,
+    properties,
+    "DateArraysModel",
+  );
 }
 ```

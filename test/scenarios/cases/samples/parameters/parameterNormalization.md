@@ -46,58 +46,71 @@ Raw json files.
 Operations
 
 ```ts operations
-import { TestingContext as Client } from "./index.js";
-import { listCredentialsRequestSerializer } from "../models/models.js";
-import { expandUrlTemplate } from "../static-helpers/urlTemplate.js";
-import { PostOptionalParams } from "./options.js";
 import {
-  StreamableMethod,
-  PathUncheckedResponse,
-  createRestError,
-  operationOptionsToRequestParameters,
-} from "@azure-rest/core-client";
+  type ListCredentialsRequest as ListCredentialsRequest_1,
+  listCredentialsRequestSerializer as listCredentialsRequestSerializer_1,
+} from "../models/models.js";
+import {
+  Client as Client_1,
+  createRestError as createRestError_1,
+  expandUrlTemplate as expandUrlTemplate_1,
+  type OperationOptions as OperationOptions_1,
+  operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
+  type PathUncheckedResponse as PathUncheckedResponse_1,
+  type StreamableMethod as StreamableMethod_1,
+} from "@typespec/ts-http-runtime";
 
-export function _postSend(
-  context: Client,
-  options: PostOptionalParams = { requestOptions: {} },
-): StreamableMethod {
-  const path = expandUrlTemplate(
-    "{/PATH_PARAM}{?QUERY_PARAM}",
-    {
-      PATH_PARAM: options["pathParam"],
-      QUERY_PARAM: options?.queryParam,
-    },
-    {
-      allowReserved: options?.requestOptions?.skipUrlEncoding,
-    },
-  );
-  return context
-    .path(path)
-    .post({
-      ...operationOptionsToRequestParameters(options),
-      contentType: "application/json",
-      headers: {
-        ...(options?.headerParam !== undefined ? { header_param: options?.headerParam } : {}),
-        ...options.requestOptions?.headers,
-      },
-      body: !options["listCredentialsRequest"]
-        ? options["listCredentialsRequest"]
-        : listCredentialsRequestSerializer(options["listCredentialsRequest"]),
-    });
+/**
+ * Optional parameters for the post operation.
+ */
+export interface PostOptionalParams extends OperationOptions_1 {
+  queryParam?: string;
+  headerParam?: string;
+  pathParam?: string;
+  listCredentialsRequest?: ListCredentialsRequest_1;
 }
 
-export async function _postDeserialize(result: PathUncheckedResponse): Promise<void> {
+export function _postSend(
+  context: Client_1,
+  options: PostOptionalParams = { requestOptions: {} },
+): StreamableMethod_1 {
+  const path = expandUrlTemplate_1(
+    "{/PATH_PARAM}{?QUERY_PARAM}",
+    { QUERY_PARAM: options?.QUERY_PARAM, PATH_PARAM: options?.PATH_PARAM },
+    { allowReserved: options?.requestOptions?.skipUrlEncoding },
+  );
+  return context.path(path).post({
+    ...operationOptionsToRequestParameters_1(options),
+    contentType: "application/json",
+    headers: {
+      header_param: options?.HEADER_PARAM,
+      ...options.requestOptions?.headers,
+    },
+    body: !options?.ListCredentialsRequest
+      ? options?.ListCredentialsRequest
+      : listCredentialsRequestSerializer_1(options?.ListCredentialsRequest),
+  });
+}
+
+export async function _postDeserialize(
+  result: PathUncheckedResponse_1,
+): Promise<void> {
   const expectedStatuses = ["204"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError(result);
+    throw createRestError_1(result);
   }
 
   return;
 }
 
-/** show example demo */
+/**
+ * show example demo
+ *
+ * @param {Client_1} context
+ * @param {PostOptionalParams} options
+ */
 export async function post(
-  context: Client,
+  context: Client_1,
   options: PostOptionalParams = { requestOptions: {} },
 ): Promise<void> {
   const result = await _postSend(context, options);

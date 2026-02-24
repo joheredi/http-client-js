@@ -937,3 +937,54 @@ examples, and YAML config. The `executeScenarios` function creates
 separate `beforeAll` + `describeFn` for each scenario in the file.
 
 **Date:** 2026-02-24
+
+## Prettier is not idempotent for chain expressions
+
+**Problem:** Formatting raw emitter output through prettier produces different results
+than formatting already-formatted code through prettier. Specifically, method chain
+expressions like `return context.path(path).post({...})` are formatted differently
+depending on whether the input is a single long line or already broken across lines.
+
+**Root Cause:** Prettier's line-breaking algorithm for chain member expressions treats
+single long lines differently from already-broken expressions. This causes scenario tests
+to fail non-deterministically when comparing SCENARIOS_UPDATE output (formatted once)
+with verification output (formatted once from different raw input).
+
+**Fix:** Double-format: apply `format(format(normalizeImports(rawOutput)))` to reach
+prettier's stable state. After two passes, prettier produces consistent output
+regardless of input whitespace structure.
+
+**Date:** 2025-07-14
+
+## Alloy import ordering is non-deterministic
+
+**Problem:** Alloy generates import specifiers in non-deterministic order based on refkey
+resolution timing. Different import orderings → different line lengths → prettier makes
+different line-breaking decisions for the entire file body.
+
+**Root Cause:** Refkey resolution order varies between runs. The import specifier list
+order depends on when each refkey is first encountered during tree traversal.
+
+**Fix:** `normalizeImports()` function in scenario-harness.ts sorts import specifiers
+alphabetically within each import statement, and sorts import statements by module path.
+Applied before prettier formatting to ensure consistent input. Combined with double-format
+to handle prettier's non-idempotency. The PRD explicitly states import ordering is an
+acceptable difference.
+
+**Date:** 2025-07-14
+
+## Spread body parameters produce unresolved symbols without special handling
+
+**Problem:** When TypeSpec uses `...Model` or `...Alias` to spread body parameters, TCGC
+creates an anonymous body model. The emitter tried to call `serializerRefkey(anonymousModel)`
+which produced `<Unresolved Symbol>` text because no serializer was declared for anonymous models.
+
+**Root Cause:** `bodyParam.correspondingMethodParams.length > 1` indicates a spread body.
+The anonymous body model has no serializer declaration in the symbol tree.
+
+**Fix:** Added `isSpreadBody()` detection in send-operation.tsx that checks for multiple
+corresponding method params or type mismatch. For spread bodies, `buildSpreadBodyExpression()`
+constructs an inline object literal with per-property serialization (matching legacy emitter
+behavior). Each property uses `getSerializationExpression()` for type-specific transformation.
+
+**Date:** 2025-07-14

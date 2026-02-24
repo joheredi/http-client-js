@@ -56,37 +56,35 @@ ignoreWeirdLine: false
 ## clientContext
 
 ```ts clientContext
-import { logger } from "../logger.js";
-import { KnownVersions } from "../models/models.js";
-import { Client, ClientOptions, getClient } from "@azure-rest/core-client";
+import {
+  type Client as Client_1,
+  type ClientOptions as ClientOptions_1,
+  getClient as getClient_1,
+} from "@typespec/ts-http-runtime";
 
-export interface DataMapServiceContext extends Client {
-  /** The API version to use for this operation. */
-  /** Known values of {@link KnownVersions} that the service accepts. */
+export interface DataMapServiceContext extends Client_1 {
+  /**
+   * The API version to use for this operation.
+   */
   apiVersion?: string;
 }
 
-/** Optional parameters for the client. */
-export interface DataMapServiceClientOptionalParams extends ClientOptions {
-  /** The API version to use for this operation. */
-  /** Known values of {@link KnownVersions} that the service accepts. */
+export interface DataMapServiceClientOptionalParams extends ClientOptions_1 {
+  /**
+   * The API version to use for this operation.
+   */
   apiVersion?: string;
 }
 
 export function createDataMapService(
-  endpointParam: string,
+  endpoint: string,
   options: DataMapServiceClientOptionalParams = {},
 ): DataMapServiceContext {
-  const endpointUrl = options.endpoint ?? String(endpointParam);
-  const prefixFromOptions = options?.userAgentOptions?.userAgentPrefix;
-  const userAgentPrefix = prefixFromOptions ? `${prefixFromOptions} azsdk-js-api` : `azsdk-js-api`;
-  const { apiVersion: _, ...updatedOptions } = {
-    ...options,
-    userAgentOptions: { userAgentPrefix },
-    loggingOptions: { logger: options.loggingOptions?.logger ?? logger.info },
-  };
-  const clientContext = getClient(endpointUrl, undefined, updatedOptions);
-  const apiVersion = options.apiVersion;
-  return { ...clientContext, apiVersion } as DataMapServiceContext;
+  const endpointUrl = options.endpoint ?? endpoint;
+  const clientContext = getClient_1(endpointUrl, options);
+  return {
+    ...clientContext,
+    apiVersion: options.apiVersion ?? "2023-09-01",
+  } as DataMapServiceContext;
 }
 ```

@@ -9,36 +9,34 @@ op continue(): void;
 ## classicClient
 
 ```ts classicClient
-import { $continue } from "./api/operations.js";
-import { ContinueOptionalParams } from "./api/options.js";
-import { Pipeline } from "@azure/core-rest-pipeline";
+import {
+  continue_ as continue__1,
+  type ContinueOptionalParams as ContinueOptionalParams_1,
+} from "./api/operations.js";
+import {
+  createTestService as createTestService_1,
+  type TestServiceClientOptionalParams as TestServiceClientOptionalParams_1,
+  type TestServiceContext as TestServiceContext_1,
+} from "./testServiceClientContext.js";
+import { Pipeline as Pipeline_1 } from "@typespec/ts-http-runtime";
 
-export { TestingClientOptionalParams } from "./api/testingContext.js";
-
-export class TestingClient {
-  private _client: TestingContext;
+export class TestServiceClient {
+  private _client: TestServiceContext_1;
   /** The pipeline used by this client to make requests */
-  public readonly pipeline: Pipeline;
+  public readonly pipeline: Pipeline_1;
 
-  constructor(endpointParam: string, options: TestingClientOptionalParams = {}) {
-    const prefixFromOptions = options?.userAgentOptions?.userAgentPrefix;
-    const userAgentPrefix = prefixFromOptions
-      ? `${prefixFromOptions} azsdk-js-client`
-      : `azsdk-js-client`;
-    this._client = createTesting(endpointParam, {
-      ...options,
-      userAgentOptions: { userAgentPrefix },
-    });
+  constructor(
+    endpoint: string,
+    options: TestServiceClientOptionalParams_1 = {},
+  ) {
+    this._client = createTestService_1(endpoint, options);
     this.pipeline = this._client.pipeline;
   }
 
-  /**
-   *  @fixme continue is a reserved word that cannot be used as an operation name.
-   *         Please add @clientName("clientName") or @clientName("<JS-Specific-Name>", "javascript")
-   *         to the operation to override the generated name.
-   */
-  continue(options: ContinueOptionalParams = { requestOptions: {} }): Promise<void> {
-    return $continue(this._client, options);
+  continue_(
+    options: ContinueOptionalParams_1 = { requestOptions: {} },
+  ): Promise<void> {
+    return continue__1(this._client, options);
   }
 }
 ```

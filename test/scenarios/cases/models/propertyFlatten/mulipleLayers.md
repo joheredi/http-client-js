@@ -42,90 +42,70 @@ mustEmptyDiagnostic: false
 Model generated.
 
 ```ts models
-/**
- * This file contains only generated model types and their (de)serializers.
- * Disable the following rules for internal models with '_' prefix and deserializers which require 'any' for raw JSON input.
- */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/** model interface NestedFlattenModel */
 export interface NestedFlattenModel {
   name: string;
   summary: string;
   properties: ChildModel;
 }
 
-export function nestedFlattenModelSerializer(item: NestedFlattenModel): any {
-  return { name: item["name"], properties: _nestedFlattenModelPropertiesSerializer(item) };
-}
-
-export function nestedFlattenModelDeserializer(item: any): NestedFlattenModel {
-  return {
-    name: item["name"],
-    ..._nestedFlattenModelPropertiesDeserializer(item["properties"]),
-  };
-}
-
-/** model interface ChildFlattenModel */
 export interface ChildFlattenModel {
   summary: string;
   description: string;
   age: number;
 }
 
-export function childFlattenModelSerializer(item: ChildFlattenModel): any {
-  return { summary: item["summary"], properties: _childFlattenModelPropertiesSerializer(item) };
-}
-
-export function childFlattenModelDeserializer(item: any): ChildFlattenModel {
-  return {
-    summary: item["summary"],
-    ..._childFlattenModelPropertiesDeserializer(item["properties"]),
-  };
-}
-
-/** model interface ChildModel */
 export interface ChildModel {
   description: string;
   age: number;
 }
 
+export interface FooRequest {
+  body: NestedFlattenModel;
+}
+
+export function nestedFlattenModelSerializer(item: NestedFlattenModel): any {
+  return {
+    name: item["name"],
+    summary: item["summary"],
+    properties: childModelSerializer(item["properties"]),
+  };
+}
+
+export function childFlattenModelSerializer(item: ChildFlattenModel): any {
+  return {
+    summary: item["summary"],
+    description: item["description"],
+    age: item["age"],
+  };
+}
+
 export function childModelSerializer(item: ChildModel): any {
-  return { description: item["description"], age: item["age"] };
+  return {
+    description: item["description"],
+    age: item["age"],
+  };
+}
+
+export function nestedFlattenModelDeserializer(item: any): NestedFlattenModel {
+  return {
+    name: item["name"],
+    summary: item["summary"],
+    properties: childModelDeserializer(item["properties"]),
+  };
+}
+
+export function childFlattenModelDeserializer(item: any): ChildFlattenModel {
+  return {
+    summary: item["summary"],
+    description: item["description"],
+    age: item["age"],
+  };
 }
 
 export function childModelDeserializer(item: any): ChildModel {
   return {
     description: item["description"],
     age: item["age"],
-  };
-}
-
-/** Known values of {@link Versions} that the service accepts. */
-export enum KnownVersions {
-  /** 2022-05-15-preview */
-  V20220515Preview = "2022-05-15-preview",
-}
-
-export function _childFlattenModelPropertiesSerializer(item: ChildFlattenModel): any {
-  return { description: item["description"], age: item["age"] };
-}
-
-export function _childFlattenModelPropertiesDeserializer(item: any) {
-  return {
-    description: item["description"],
-    age: item["age"],
-  };
-}
-
-export function _nestedFlattenModelPropertiesSerializer(item: NestedFlattenModel): any {
-  return { summary: item["summary"], properties: childModelSerializer(item["properties"]) };
-}
-
-export function _nestedFlattenModelPropertiesDeserializer(item: any) {
-  return {
-    summary: item["summary"],
-    properties: childModelDeserializer(item["properties"]),
   };
 }
 ```
@@ -177,38 +157,66 @@ needTCGC: true
 Model generated.
 
 ```ts models
-/**
- * This file contains only generated model types and their (de)serializers.
- * Disable the following rules for internal models with '_' prefix and deserializers which require 'any' for raw JSON input.
- */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/** model interface NestedFlattenModel */
 export interface NestedFlattenModel {
   name: string;
   summary: string;
   foo: Foo;
 }
 
-export function nestedFlattenModelSerializer(item: NestedFlattenModel): any {
-  return { name: item["name"], properties: _nestedFlattenModelPropertiesSerializer(item) };
-}
-
-export function nestedFlattenModelDeserializer(item: any): NestedFlattenModel {
-  return {
-    name: item["name"],
-    ..._nestedFlattenModelPropertiesDeserializer(item["properties"]),
-  };
-}
-
-/** model interface ChildFlattenModel */
 export interface ChildFlattenModel {
   summary: string;
   foo: Foo;
 }
 
+export interface Foo {
+  description: string;
+  age: number;
+}
+
+export interface ChildModel {
+  description: string;
+  age: number;
+}
+
+export interface FooRequest {
+  body: NestedFlattenModel;
+}
+
+export function nestedFlattenModelSerializer(item: NestedFlattenModel): any {
+  return {
+    name: item["name"],
+    summary: item["summary"],
+    foo: fooSerializer(item["foo"]),
+  };
+}
+
 export function childFlattenModelSerializer(item: ChildFlattenModel): any {
-  return { summary: item["summary"], foo: fooSerializer(item["foo"]) };
+  return {
+    summary: item["summary"],
+    foo: fooSerializer(item["foo"]),
+  };
+}
+
+export function fooSerializer(item: Foo): any {
+  return {
+    description: item["description"],
+    age: item["age"],
+  };
+}
+
+export function childModelSerializer(item: ChildModel): any {
+  return {
+    description: item["description"],
+    age: item["age"],
+  };
+}
+
+export function nestedFlattenModelDeserializer(item: any): NestedFlattenModel {
+  return {
+    name: item["name"],
+    summary: item["summary"],
+    foo: fooDeserializer(item["foo"]),
+  };
 }
 
 export function childFlattenModelDeserializer(item: any): ChildFlattenModel {
@@ -218,64 +226,17 @@ export function childFlattenModelDeserializer(item: any): ChildFlattenModel {
   };
 }
 
-/** model interface Foo */
-export interface Foo {
-  description: string;
-  age: number;
-}
-
-export function fooSerializer(item: Foo): any {
-  return { properties: _fooPropertiesSerializer(item) };
-}
-
 export function fooDeserializer(item: any): Foo {
   return {
-    ..._fooPropertiesDeserializer(item["properties"]),
+    description: item["description"],
+    age: item["age"],
   };
-}
-
-/** model interface ChildModel */
-export interface ChildModel {
-  description: string;
-  age: number;
-}
-
-export function childModelSerializer(item: ChildModel): any {
-  return { description: item["description"], age: item["age"] };
 }
 
 export function childModelDeserializer(item: any): ChildModel {
   return {
     description: item["description"],
     age: item["age"],
-  };
-}
-
-/** Known values of {@link Versions} that the service accepts. */
-export enum KnownVersions {
-  /** 2022-05-15-preview */
-  V20220515Preview = "2022-05-15-preview",
-}
-
-export function _fooPropertiesSerializer(item: Foo): any {
-  return { description: item["description"], age: item["age"] };
-}
-
-export function _fooPropertiesDeserializer(item: any) {
-  return {
-    description: item["description"],
-    age: item["age"],
-  };
-}
-
-export function _nestedFlattenModelPropertiesSerializer(item: NestedFlattenModel): any {
-  return { summary: item["summary"], foo: fooSerializer(item["foo"]) };
-}
-
-export function _nestedFlattenModelPropertiesDeserializer(item: any) {
-  return {
-    summary: item["summary"],
-    foo: fooDeserializer(item["foo"]),
   };
 }
 ```

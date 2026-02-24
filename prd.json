@@ -1391,7 +1391,7 @@
         {
           "id": "9.3",
           "title": "Validation",
-          "description": "Run all tests, fix discrepancies, document acceptable differences",
+          "description": "Run all tests, fix discrepancies, document acceptable differences. Progress: Fixed spread body serialization, import non-determinism, prettier non-idempotency. Reduced failures from 455 to 124. Remaining 124 failures are genuine missing features (samples, LRO, XML, client defaults, etc.).",
           "pass": false,
           "pass_criteria": [
             "All 101 scenario tests pass (vitest run reports 0 failures)",

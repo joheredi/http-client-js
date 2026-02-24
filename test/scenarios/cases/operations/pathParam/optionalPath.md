@@ -13,43 +13,50 @@ op read(@path param?: string): OkResponse;
 Should normal path parameter:
 
 ```ts operations
-import { TestingContext as Client } from "./index.js";
-import { expandUrlTemplate } from "../static-helpers/urlTemplate.js";
-import { ReadOptionalParams } from "./options.js";
 import {
-  StreamableMethod,
-  PathUncheckedResponse,
-  createRestError,
-  operationOptionsToRequestParameters,
-} from "@azure-rest/core-client";
+  type Client as Client_1,
+  createRestError as createRestError_1,
+  expandUrlTemplate as expandUrlTemplate_1,
+  type OperationOptions as OperationOptions_1,
+  operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
+  type PathUncheckedResponse as PathUncheckedResponse_1,
+  type StreamableMethod as StreamableMethod_1,
+} from "@typespec/ts-http-runtime";
 
-export function _readSend(
-  context: Client,
-  options: ReadOptionalParams = { requestOptions: {} },
-): StreamableMethod {
-  const path = expandUrlTemplate(
-    "{/param}",
-    {
-      param: options["param"],
-    },
-    {
-      allowReserved: options?.requestOptions?.skipUrlEncoding,
-    },
-  );
-  return context.path(path).get({ ...operationOptionsToRequestParameters(options) });
+/**
+ * Optional parameters for the read operation.
+ */
+export interface ReadOptionalParams extends OperationOptions_1 {
+  param?: string;
 }
 
-export async function _readDeserialize(result: PathUncheckedResponse): Promise<void> {
+export function _readSend(
+  context: Client_1,
+  options: ReadOptionalParams = { requestOptions: {} },
+): StreamableMethod_1 {
+  const path = expandUrlTemplate_1(
+    "{/param}",
+    { param: options?.param },
+    { allowReserved: options?.requestOptions?.skipUrlEncoding },
+  );
+  return context
+    .path(path)
+    .get({ ...operationOptionsToRequestParameters_1(options) });
+}
+
+export async function _readDeserialize(
+  result: PathUncheckedResponse_1,
+): Promise<void> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError(result);
+    throw createRestError_1(result);
   }
 
   return;
 }
 
 export async function read(
-  context: Client,
+  context: Client_1,
   options: ReadOptionalParams = { requestOptions: {} },
 ): Promise<void> {
   const result = await _readSend(context, options);

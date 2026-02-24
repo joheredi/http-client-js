@@ -1,4 +1,5 @@
 # Should generate serializer for property types
+
 Will prompt all operations into top-level.
 
 ## TypeSpec
@@ -88,58 +89,207 @@ interface D {
 Generated Models.
 
 ```ts models
-/**
- * This file contains only generated model types and their (de)serializers.
- * Disable the following rules for internal models with '_' prefix and deserializers which require 'any' for raw JSON input.
- */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/** model interface SimpleModel */
+import { serializeRecord as serializeRecord_1 } from "../helpers/serializationHelpers.js";
+
 export interface SimpleModel {
   propString: string;
   propboolean: boolean;
   propNumber: number;
   propStringOptional?: string;
-  propSimpleUnion: string | boolean | number;
-  propSimpleUnionOptional?: string | boolean | number;
+  propSimpleUnion: SimpleModelPropSimpleUnion;
+  propSimpleUnionOptional?: SimpleModelPropSimpleUnionOptional;
   propStringLiteral: "A";
   propBooleanLiteral: false;
   propNumberLiteral: 1;
   propStringLiteralOptional?: "A";
-  propStringUnion: "A" | "B";
-  propStringUnionOptioanl: "A" | "B";
-  propStringUnionNullable: ("A" | "B") | null;
-  propStringUnionAsExtensible: "A" | "B";
-  propStringUnionAsExtensibleOptional?: "A" | "B";
-  propStringUnionAsExtensibleNullable: ("A" | "B") | null;
-  propStringUnionAsExtensibleOptionalAndNullable?: "A" | "B";
-  propMixedTypeLiteral: "A" | false | 1;
-  propStringArray: string[];
-  propBooleanArray: boolean[];
-  propNumberArray: number[];
-  propSimpleUnionArray: (string | boolean | number)[];
-  propStringArrayOptional?: string[];
-  propSimpleUnionArrayOptional?: (string | boolean | number)[];
+  propStringUnion: SimpleModelPropStringUnion;
+  propStringUnionOptioanl: SimpleModelPropStringUnionOptioanl;
+  propStringUnionNullable: <Unresolved Symbol: refkey[o845]> | null;
+  propStringUnionAsExtensible: SimpleModelPropStringUnionAsExtensible;
+  propStringUnionAsExtensibleOptional?: SimpleModelPropStringUnionAsExtensibleOptional;
+  propStringUnionAsExtensibleNullable: <Unresolved Symbol: refkey[o848]> | null;
+  propStringUnionAsExtensibleOptionalAndNullable?: <Unresolved Symbol: refkey[o849]> | null;
+  propMixedTypeLiteral: SimpleModelPropMixedTypeLiteral;
+  propStringArray: (string)[];
+  propBooleanArray: (boolean)[];
+  propNumberArray: (number)[];
+  propSimpleUnionArray: (SimpleModelPropSimpleUnionArray)[];
+  propStringArrayOptional?: (string)[];
+  propSimpleUnionArrayOptional?: (SimpleModelPropSimpleUnionArrayOptional)[];
   propRecordOfString: Record<string, string>;
   propRecordOfDate: Record<string, Date>;
   propRecordOfBoolean: Record<string, boolean>;
   propRecordOfNumber: Record<string, number>;
-  propRecordOfSimpleUnion: Record<string, string | boolean | number>;
+  propRecordOfSimpleUnion: Record<string, SimpleModelPropRecordOfSimpleUnion>;
   propRecordOfStringOptional?: Record<string, string>;
-  propRecordOfStringArray: Record<string, string[]>;
-  propArrayOfRecordOfString: Record<string, string>[];
-  propArrayOfRecordOfStringOptional?: Record<string, string>[];
-  propRecordOfUnionArray: Record<string, (string | boolean | number)[]>;
-  propRecordOfUnionArrayOptional?: Record<string, (string | boolean | number)[]>;
-  propArrayOfRecordOfUnion: Record<string, string | boolean | number>[];
-  propArrayOfRecordOfUnionOptional?: Record<string, string | boolean | number>[];
+  propRecordOfStringArray: Record<string, (string)[]>;
+  propArrayOfRecordOfString: (Record<string, string>)[];
+  propArrayOfRecordOfStringOptional?: (Record<string, string>)[];
+  propRecordOfUnionArray: Record<string, (SimpleModelPropRecordOfUnionArray)[]>;
+  propRecordOfUnionArrayOptional?: Record<string, (SimpleModelPropRecordOfUnionArrayOptional)[]>;
+  propArrayOfRecordOfUnion: (Record<string, SimpleModelPropArrayOfRecordOfUnion>)[];
+  propArrayOfRecordOfUnionOptional?: (Record<string, SimpleModelPropArrayOfRecordOfUnionOptional>)[];
   propEncoded: string;
-  propNotNormalizeModel: FOO;
+  propNotNormalizeModel: Foo;
   propNormalizeModel: Foobar;
-  propRecordOfUnionArrayNotNormalize: Record<string, NFVIsUnion[]>;
-  propUnionArrayNotNormalize: NFVIsUnion[];
-  propRecordOfUnionNotNormalize: Record<string, NFVIsUnion>;
+  propRecordOfUnionArrayNotNormalize: Record<string, (NfvIs)[]>;
+  propUnionArrayNotNormalize: (NfvIs)[];
+  propRecordOfUnionNotNormalize: Record<string, NfvIs>;
 }
+
+export interface Foo {
+  param?: Foobar;
+}
+
+export interface Foobar {
+  name?: Record<string, (NfvIs)[]>;
+}
+
+export interface NfvIs {
+  name?: string;
+  nfviType: string;
+}
+
+/**
+ * Alias for `NFVIs`
+ */
+export type NfvIsUnion = AzureCoreNfviDetails | AzureArcK8sClusterNfviDetails | NfvIs;
+
+export interface AzureCoreNfviDetails extends NfvIs {
+  location?: string;
+  nfviType: "AzureCore";
+}
+
+export interface AzureArcK8sClusterNfviDetails extends NfvIs {
+  customLocationId?: string;
+  nfviType: "AzureArcKubernetes";
+}
+
+/**
+ * Type of SimpleModelPropStringUnion
+ */
+export type SimpleModelPropStringUnion = "A" | "B";
+
+/**
+ * Known values of {@link SimpleModelPropStringUnion} that the service accepts.
+ */
+export enum KnownSimpleModelPropStringUnion {
+  /**
+   * A
+   */
+  A = "A",
+  /**
+   * B
+   */
+  B = "B",
+}
+
+/**
+ * Type of SimpleModelPropStringUnionOptioanl
+ */
+export type SimpleModelPropStringUnionOptioanl = "A" | "B";
+
+/**
+ * Known values of {@link SimpleModelPropStringUnionOptioanl} that the service accepts.
+ */
+export enum KnownSimpleModelPropStringUnionOptioanl {
+  /**
+   * A
+   */
+  A = "A",
+  /**
+   * B
+   */
+  B = "B",
+}
+
+/**
+ * Type of SimpleModelPropStringUnionAsExtensible
+ */
+export type SimpleModelPropStringUnionAsExtensible = string;
+
+/**
+ * Known values of {@link SimpleModelPropStringUnionAsExtensible} that the service accepts.
+ */
+export enum KnownSimpleModelPropStringUnionAsExtensible {
+  /**
+   * A
+   */
+  A = "A",
+  /**
+   * B
+   */
+  B = "B",
+}
+
+/**
+ * Type of SimpleModelPropStringUnionAsExtensibleOptional
+ */
+export type SimpleModelPropStringUnionAsExtensibleOptional = string;
+
+/**
+ * Known values of {@link SimpleModelPropStringUnionAsExtensibleOptional} that the service accepts.
+ */
+export enum KnownSimpleModelPropStringUnionAsExtensibleOptional {
+  /**
+   * A
+   */
+  A = "A",
+  /**
+   * B
+   */
+  B = "B",
+}
+
+/**
+ * Alias for SimpleModelPropSimpleUnion
+ */
+export type SimpleModelPropSimpleUnion = string | boolean | number;
+
+/**
+ * Alias for SimpleModelPropSimpleUnionOptional
+ */
+export type SimpleModelPropSimpleUnionOptional = string | boolean | number;
+
+/**
+ * Alias for SimpleModelPropMixedTypeLiteral
+ */
+export type SimpleModelPropMixedTypeLiteral = "A" | false | 1;
+
+/**
+ * Alias for SimpleModelPropSimpleUnionArray
+ */
+export type SimpleModelPropSimpleUnionArray = string | boolean | number;
+
+/**
+ * Alias for SimpleModelPropSimpleUnionArrayOptional
+ */
+export type SimpleModelPropSimpleUnionArrayOptional = string | boolean | number;
+
+/**
+ * Alias for SimpleModelPropRecordOfSimpleUnion
+ */
+export type SimpleModelPropRecordOfSimpleUnion = string | boolean | number;
+
+/**
+ * Alias for SimpleModelPropRecordOfUnionArray
+ */
+export type SimpleModelPropRecordOfUnionArray = string | boolean | number;
+
+/**
+ * Alias for SimpleModelPropRecordOfUnionArrayOptional
+ */
+export type SimpleModelPropRecordOfUnionArrayOptional = string | boolean | number;
+
+/**
+ * Alias for SimpleModelPropArrayOfRecordOfUnion
+ */
+export type SimpleModelPropArrayOfRecordOfUnion = string | boolean | number;
+
+/**
+ * Alias for SimpleModelPropArrayOfRecordOfUnionOptional
+ */
+export type SimpleModelPropArrayOfRecordOfUnionOptional = string | boolean | number;
 
 export function simpleModelSerializer(item: SimpleModel): any {
   return {
@@ -147,10 +297,8 @@ export function simpleModelSerializer(item: SimpleModel): any {
     propboolean: item["propboolean"],
     propNumber: item["propNumber"],
     propStringOptional: item["propStringOptional"],
-    propSimpleUnion: _simpleModelPropSimpleUnionSerializer(item["propSimpleUnion"]),
-    propSimpleUnionOptional: !item["propSimpleUnionOptional"]
-      ? item["propSimpleUnionOptional"]
-      : _simpleModelPropSimpleUnionOptionalSerializer(item["propSimpleUnionOptional"]),
+    propSimpleUnion: item["propSimpleUnion"],
+    propSimpleUnionOptional: item["propSimpleUnionOptional"],
     propStringLiteral: item["propStringLiteral"],
     propBooleanLiteral: item["propBooleanLiteral"],
     propNumberLiteral: item["propNumberLiteral"],
@@ -161,360 +309,75 @@ export function simpleModelSerializer(item: SimpleModel): any {
     propStringUnionAsExtensible: item["propStringUnionAsExtensible"],
     propStringUnionAsExtensibleOptional: item["propStringUnionAsExtensibleOptional"],
     propStringUnionAsExtensibleNullable: item["propStringUnionAsExtensibleNullable"],
-    propStringUnionAsExtensibleOptionalAndNullable:
-      item["propStringUnionAsExtensibleOptionalAndNullable"],
-    propMixedTypeLiteral: _simpleModelPropMixedTypeLiteralSerializer(item["propMixedTypeLiteral"]),
-    propStringArray: item["propStringArray"].map((p: any) => {
-      return p;
-    }),
-    propBooleanArray: item["propBooleanArray"].map((p: any) => {
-      return p;
-    }),
-    propNumberArray: item["propNumberArray"].map((p: any) => {
-      return p;
-    }),
-    propSimpleUnionArray: _simpleModelPropSimpleUnionArrayArraySerializer(
-      item["propSimpleUnionArray"],
-    ),
-    propStringArrayOptional: !item["propStringArrayOptional"]
-      ? item["propStringArrayOptional"]
-      : item["propStringArrayOptional"].map((p: any) => {
-          return p;
-        }),
-    propSimpleUnionArrayOptional: !item["propSimpleUnionArrayOptional"]
-      ? item["propSimpleUnionArrayOptional"]
-      : _simpleModelPropSimpleUnionArrayOptionalArraySerializer(
-          item["propSimpleUnionArrayOptional"],
-        ),
+    propStringUnionAsExtensibleOptionalAndNullable: item["propStringUnionAsExtensibleOptionalAndNullable"],
+    propMixedTypeLiteral: item["propMixedTypeLiteral"],
+    propStringArray: item["propStringArray"],
+    propBooleanArray: item["propBooleanArray"],
+    propNumberArray: item["propNumberArray"],
+    propSimpleUnionArray: item["propSimpleUnionArray"],
+    propStringArrayOptional: item["propStringArrayOptional"],
+    propSimpleUnionArrayOptional: item["propSimpleUnionArrayOptional"],
     propRecordOfString: item["propRecordOfString"],
-    propRecordOfDate: item["propRecordOfDate"],
+    propRecordOfDate: serializeRecord_1(item["propRecordOfDate"] as any, (v: any) => (v).toISOString()),
     propRecordOfBoolean: item["propRecordOfBoolean"],
     propRecordOfNumber: item["propRecordOfNumber"],
-    propRecordOfSimpleUnion: _simpleModelPropRecordOfSimpleUnionRecordSerializer(
-      item["propRecordOfSimpleUnion"],
-    ),
+    propRecordOfSimpleUnion: item["propRecordOfSimpleUnion"],
     propRecordOfStringOptional: item["propRecordOfStringOptional"],
     propRecordOfStringArray: item["propRecordOfStringArray"],
-    propArrayOfRecordOfString: item["propArrayOfRecordOfString"].map((p: any) => {
-      return p;
-    }),
-    propArrayOfRecordOfStringOptional: !item["propArrayOfRecordOfStringOptional"]
-      ? item["propArrayOfRecordOfStringOptional"]
-      : item["propArrayOfRecordOfStringOptional"].map((p: any) => {
-          return p;
-        }),
-    propRecordOfUnionArray: _simpleModelPropRecordOfUnionArrayArrayRecordSerializer(
-      item["propRecordOfUnionArray"],
-    ),
-    propRecordOfUnionArrayOptional: !item["propRecordOfUnionArrayOptional"]
-      ? item["propRecordOfUnionArrayOptional"]
-      : _simpleModelPropRecordOfUnionArrayOptionalArrayRecordSerializer(
-          item["propRecordOfUnionArrayOptional"],
-        ),
-    propArrayOfRecordOfUnion: _simpleModelPropArrayOfRecordOfUnionRecordArraySerializer(
-      item["propArrayOfRecordOfUnion"],
-    ),
-    propArrayOfRecordOfUnionOptional: !item["propArrayOfRecordOfUnionOptional"]
-      ? item["propArrayOfRecordOfUnionOptional"]
-      : _simpleModelPropArrayOfRecordOfUnionOptionalRecordArraySerializer(
-          item["propArrayOfRecordOfUnionOptional"],
-        ),
+    propArrayOfRecordOfString: item["propArrayOfRecordOfString"],
+    propArrayOfRecordOfStringOptional: item["propArrayOfRecordOfStringOptional"],
+    propRecordOfUnionArray: item["propRecordOfUnionArray"],
+    propRecordOfUnionArrayOptional: item["propRecordOfUnionArrayOptional"],
+    propArrayOfRecordOfUnion: item["propArrayOfRecordOfUnion"],
+    propArrayOfRecordOfUnionOptional: item["propArrayOfRecordOfUnionOptional"],
     prop_encoded: item["propEncoded"],
     propNotNormalizeModel: fooSerializer(item["propNotNormalizeModel"]),
     propNormalizeModel: foobarSerializer(item["propNormalizeModel"]),
-    propRecordOfUnionArrayNotNormalize: nfvIsUnionArrayRecordSerializer(
-      item["propRecordOfUnionArrayNotNormalize"],
-    ),
-    propUnionArrayNotNormalize: nfvIsUnionArraySerializer(item["propUnionArrayNotNormalize"]),
-    propRecordOfUnionNotNormalize: nfvIsUnionRecordSerializer(
-      item["propRecordOfUnionNotNormalize"],
-    ),
+    propRecordOfUnionArrayNotNormalize: serializeRecord_1(item["propRecordOfUnionArrayNotNormalize"] as any, (v: any) => v.map((p: any) => { return nfvIsUnionSerializer(p); })),
+    propUnionArrayNotNormalize: item["propUnionArrayNotNormalize"].map((p: any) => { return nfvIsUnionSerializer(p); }),
+    propRecordOfUnionNotNormalize: serializeRecord_1(item["propRecordOfUnionNotNormalize"] as any, (v: any) => nfvIsUnionSerializer(v)),
   };
 }
 
-/** Alias for _SimpleModelPropSimpleUnion */
-export type _SimpleModelPropSimpleUnion = string | boolean | number;
-
-export function _simpleModelPropSimpleUnionSerializer(item: _SimpleModelPropSimpleUnion): any {
-  return item;
-}
-
-/** Alias for _SimpleModelPropSimpleUnionOptional */
-export type _SimpleModelPropSimpleUnionOptional = string | boolean | number;
-
-export function _simpleModelPropSimpleUnionOptionalSerializer(
-  item: _SimpleModelPropSimpleUnionOptional,
-): any {
-  return item;
-}
-
-/** Alias for _SimpleModelPropMixedTypeLiteral */
-export type _SimpleModelPropMixedTypeLiteral = "A" | false | 1;
-
-export function _simpleModelPropMixedTypeLiteralSerializer(
-  item: _SimpleModelPropMixedTypeLiteral,
-): any {
-  return item;
-}
-
-export function _simpleModelPropSimpleUnionArrayArraySerializer(
-  result: Array<_SimpleModelPropSimpleUnionArray>,
-): any[] {
-  return result.map((item) => {
-    return _simpleModelPropSimpleUnionArraySerializer(item);
-  });
-}
-
-/** Alias for _SimpleModelPropSimpleUnionArray */
-export type _SimpleModelPropSimpleUnionArray = string | boolean | number;
-
-export function _simpleModelPropSimpleUnionArraySerializer(
-  item: _SimpleModelPropSimpleUnionArray,
-): any {
-  return item;
-}
-
-export function _simpleModelPropSimpleUnionArrayOptionalArraySerializer(
-  result: Array<_SimpleModelPropSimpleUnionArrayOptional>,
-): any[] {
-  return result.map((item) => {
-    return _simpleModelPropSimpleUnionArrayOptionalSerializer(item);
-  });
-}
-
-/** Alias for _SimpleModelPropSimpleUnionArrayOptional */
-export type _SimpleModelPropSimpleUnionArrayOptional = string | boolean | number;
-
-export function _simpleModelPropSimpleUnionArrayOptionalSerializer(
-  item: _SimpleModelPropSimpleUnionArrayOptional,
-): any {
-  return item;
-}
-
-export function _simpleModelPropRecordOfSimpleUnionRecordSerializer(
-  item: Record<string, _SimpleModelPropRecordOfSimpleUnion>,
-): Record<string, any> {
-  const result: Record<string, any> = {};
-  Object.keys(item).map((key) => {
-    result[key] = !item[key] ? item[key] : _simpleModelPropRecordOfSimpleUnionSerializer(item[key]);
-  });
-  return result;
-}
-
-/** Alias for _SimpleModelPropRecordOfSimpleUnion */
-export type _SimpleModelPropRecordOfSimpleUnion = string | boolean | number;
-
-export function _simpleModelPropRecordOfSimpleUnionSerializer(
-  item: _SimpleModelPropRecordOfSimpleUnion,
-): any {
-  return item;
-}
-
-export function _simpleModelPropRecordOfUnionArrayArrayRecordSerializer(
-  item: Record<string, Array<_SimpleModelPropRecordOfUnionArray>>,
-): Record<string, any> {
-  const result: Record<string, any> = {};
-  Object.keys(item).map((key) => {
-    result[key] = !item[key]
-      ? item[key]
-      : _simpleModelPropRecordOfUnionArrayArraySerializer(item[key]);
-  });
-  return result;
-}
-
-export function _simpleModelPropRecordOfUnionArrayArraySerializer(
-  result: Array<_SimpleModelPropRecordOfUnionArray>,
-): any[] {
-  return result.map((item) => {
-    return _simpleModelPropRecordOfUnionArraySerializer(item);
-  });
-}
-
-/** Alias for _SimpleModelPropRecordOfUnionArray */
-export type _SimpleModelPropRecordOfUnionArray = string | boolean | number;
-
-export function _simpleModelPropRecordOfUnionArraySerializer(
-  item: _SimpleModelPropRecordOfUnionArray,
-): any {
-  return item;
-}
-
-export function _simpleModelPropRecordOfUnionArrayOptionalArrayRecordSerializer(
-  item: Record<string, Array<_SimpleModelPropRecordOfUnionArrayOptional>>,
-): Record<string, any> {
-  const result: Record<string, any> = {};
-  Object.keys(item).map((key) => {
-    result[key] = !item[key]
-      ? item[key]
-      : _simpleModelPropRecordOfUnionArrayOptionalArraySerializer(item[key]);
-  });
-  return result;
-}
-
-export function _simpleModelPropRecordOfUnionArrayOptionalArraySerializer(
-  result: Array<_SimpleModelPropRecordOfUnionArrayOptional>,
-): any[] {
-  return result.map((item) => {
-    return _simpleModelPropRecordOfUnionArrayOptionalSerializer(item);
-  });
-}
-
-/** Alias for _SimpleModelPropRecordOfUnionArrayOptional */
-export type _SimpleModelPropRecordOfUnionArrayOptional = string | boolean | number;
-
-export function _simpleModelPropRecordOfUnionArrayOptionalSerializer(
-  item: _SimpleModelPropRecordOfUnionArrayOptional,
-): any {
-  return item;
-}
-
-export function _simpleModelPropArrayOfRecordOfUnionRecordArraySerializer(
-  result: Array<Record<string, _SimpleModelPropArrayOfRecordOfUnion>>,
-): any[] {
-  return result.map((item) => {
-    return _simpleModelPropArrayOfRecordOfUnionRecordSerializer(item);
-  });
-}
-
-export function _simpleModelPropArrayOfRecordOfUnionRecordSerializer(
-  item: Record<string, _SimpleModelPropArrayOfRecordOfUnion>,
-): Record<string, any> {
-  const result: Record<string, any> = {};
-  Object.keys(item).map((key) => {
-    result[key] = !item[key]
-      ? item[key]
-      : _simpleModelPropArrayOfRecordOfUnionSerializer(item[key]);
-  });
-  return result;
-}
-
-/** Alias for _SimpleModelPropArrayOfRecordOfUnion */
-export type _SimpleModelPropArrayOfRecordOfUnion = string | boolean | number;
-
-export function _simpleModelPropArrayOfRecordOfUnionSerializer(
-  item: _SimpleModelPropArrayOfRecordOfUnion,
-): any {
-  return item;
-}
-
-export function _simpleModelPropArrayOfRecordOfUnionOptionalRecordArraySerializer(
-  result: Array<Record<string, _SimpleModelPropArrayOfRecordOfUnionOptional>>,
-): any[] {
-  return result.map((item) => {
-    return _simpleModelPropArrayOfRecordOfUnionOptionalRecordSerializer(item);
-  });
-}
-
-export function _simpleModelPropArrayOfRecordOfUnionOptionalRecordSerializer(
-  item: Record<string, _SimpleModelPropArrayOfRecordOfUnionOptional>,
-): Record<string, any> {
-  const result: Record<string, any> = {};
-  Object.keys(item).map((key) => {
-    result[key] = !item[key]
-      ? item[key]
-      : _simpleModelPropArrayOfRecordOfUnionOptionalSerializer(item[key]);
-  });
-  return result;
-}
-
-/** Alias for _SimpleModelPropArrayOfRecordOfUnionOptional */
-export type _SimpleModelPropArrayOfRecordOfUnionOptional = string | boolean | number;
-
-export function _simpleModelPropArrayOfRecordOfUnionOptionalSerializer(
-  item: _SimpleModelPropArrayOfRecordOfUnionOptional,
-): any {
-  return item;
-}
-
-/** model interface FOO */
-export interface FOO {
-  param?: Foobar;
-}
-
-export function fooSerializer(item: FOO): any {
-  return { param: !item["param"] ? item["param"] : foobarSerializer(item["param"]) };
-}
-
-/** model interface Foobar */
-export interface Foobar {
-  name?: Record<string, NFVIsUnion[]>;
+export function fooSerializer(item: Foo): any {
+  return {
+    param: !item["param"] ? item["param"] : foobarSerializer(item["param"]),
+  };
 }
 
 export function foobarSerializer(item: Foobar): any {
-  return { name: !item["name"] ? item["name"] : nfvIsUnionArrayRecordSerializer(item["name"]) };
-}
-
-export function nfvIsUnionArrayRecordSerializer(
-  item: Record<string, Array<NFVIsUnion>>,
-): Record<string, any> {
-  const result: Record<string, any> = {};
-  Object.keys(item).map((key) => {
-    result[key] = !item[key] ? item[key] : nfvIsUnionArraySerializer(item[key]);
-  });
-  return result;
-}
-
-export function nfvIsUnionArraySerializer(result: Array<NFVIsUnion>): any[] {
-  return result.map((item) => {
-    return nfvIsUnionSerializer(item);
-  });
-}
-
-/** model interface NFVIs */
-export interface NFVIs {
-  name?: string;
-  nfviType: string;
-}
-
-export function nfvIsSerializer(item: NFVIs): any {
-  return { name: item["name"], nfviType: item["nfviType"] };
-}
-
-/** Alias for NFVIsUnion */
-export type NFVIsUnion = AzureCoreNfviDetails | AzureArcK8SClusterNfviDetails | NFVIs;
-
-export function nfvIsUnionSerializer(item: NFVIsUnion): any {
-  switch (item.nfviType) {
-    case "AzureCore":
-      return azureCoreNfviDetailsSerializer(item as AzureCoreNfviDetails);
-
-    case "AzureArcKubernetes":
-      return azureArcK8SClusterNfviDetailsSerializer(item as AzureArcK8SClusterNfviDetails);
-
-    default:
-      return nfvIsSerializer(item);
-  }
-}
-
-/** model interface AzureCoreNfviDetails */
-export interface AzureCoreNfviDetails extends NFVIs {
-  location?: string;
-  nfviType: "AzureCore";
-}
-
-export function azureCoreNfviDetailsSerializer(item: AzureCoreNfviDetails): any {
-  return { name: item["name"], nfviType: item["nfviType"], location: item["location"] };
-}
-
-/** model interface AzureArcK8SClusterNfviDetails */
-export interface AzureArcK8SClusterNfviDetails extends NFVIs {
-  customLocationId?: string;
-  nfviType: "AzureArcKubernetes";
-}
-
-export function azureArcK8SClusterNfviDetailsSerializer(item: AzureArcK8SClusterNfviDetails): any {
   return {
-    name: item["name"],
-    nfviType: item["nfviType"],
-    customLocationId: item["customLocationId"],
+    name: !item["name"] ? item["name"] : serializeRecord_1(item["name"] as any, (v: any) => v.map((p: any) => { return nfvIsUnionSerializer(p); })),
   };
 }
 
-export function nfvIsUnionRecordSerializer(item: Record<string, NFVIs>): Record<string, any> {
-  const result: Record<string, any> = {};
-  Object.keys(item).map((key) => {
-    result[key] = !item[key] ? item[key] : nfvIsUnionSerializer(item[key]);
-  });
-  return result;
+export function azureCoreNfviDetailsSerializer(
+  item: AzureCoreNfviDetails,
+): any {
+  return {
+    location: item["location"],
+    nfviType: item["nfviType"],
+  };
 }
+
+export function azureArcK8sClusterNfviDetailsSerializer(
+  item: AzureArcK8sClusterNfviDetails,
+): any {
+  return {
+    customLocationId: item["customLocationId"],
+    nfviType: item["nfviType"],
+  };
+}
+
+export function nfvIsUnionSerializer(item: NfvIsUnion): any {
+  switch (item["nfviType"]) {
+    case "AzureCore":
+      return azureCoreNfviDetailsSerializer(item as AzureCoreNfviDetails);
+    case "AzureArcKubernetes":
+      return azureArcK8sClusterNfviDetailsSerializer(item as AzureArcK8sClusterNfviDetails);
+    default:
+      return item;
+  }
+}
+
 ```

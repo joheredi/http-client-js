@@ -20,13 +20,6 @@ op getUser(): {@header requestId: string, ...User};
 ## Models
 
 ```ts models interface User
-/**
- * This file contains only generated model types and their (de)serializers.
- * Disable the following rules for internal models with '_' prefix and deserializers which require 'any' for raw JSON input.
- */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/** model interface User */
 export interface User {
   name: string;
   email: string;
@@ -35,22 +28,18 @@ export interface User {
 
 ```ts operations function getUser
 export async function getUser(
-  context: Client,
+  context: Client_1,
   options: GetUserOptionalParams = { requestOptions: {} },
-): Promise<{
-  name: string;
-  email: string;
-  requestId: string;
-}> {
+): Promise<User_1> {
   const result = await _getUserSend(context, options);
-  const headers = _getUserDeserializeHeaders(result);
-  const payload = await _getUserDeserialize(result);
-  return { ...payload, ...headers };
+  return _getUserDeserialize(result);
 }
 ```
 
 ```ts operations function _getUserDeserializeHeaders
-export function _getUserDeserializeHeaders(result: PathUncheckedResponse): { requestId: string } {
+export function _getUserDeserializeHeaders(result: PathUncheckedResponse): {
+  requestId: string;
+} {
   return { requestId: result.headers["request-id"] };
 }
 ```

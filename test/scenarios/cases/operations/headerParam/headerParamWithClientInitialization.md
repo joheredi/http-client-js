@@ -109,40 +109,36 @@ withRawContent: true
 ## clientContext
 
 ```ts clientContext
-import { logger } from "../logger.js";
-import { Client, ClientOptions, getClient } from "@azure-rest/core-client";
+import {
+  type Client as Client_1,
+  type ClientOptions as ClientOptions_1,
+  getClient as getClient_1,
+} from "@typespec/ts-http-runtime";
 
-export interface BillingBenefitsContext extends Client {
-  /** The expand header parameter. */
-  expand?: string;
+export interface BillingBenefitsContext extends Client_1 {
+  /**
+   * The expand header parameter.
+   */
+  $expand?: string;
 }
 
-/** Optional parameters for the client. */
-export interface BillingBenefitsClientOptionalParams extends ClientOptions {
-  /** The expand header parameter. */
-  expand?: string;
+export interface BillingBenefitsClientOptionalParams extends ClientOptions_1 {
+  /**
+   * The expand header parameter.
+   */
+  $expand?: string;
 }
 
 export function createBillingBenefits(
-  endpointParam: string,
+  endpoint: string,
   options: BillingBenefitsClientOptionalParams = {},
 ): BillingBenefitsContext {
-  const endpointUrl = options.endpoint ?? String(endpointParam);
-  const prefixFromOptions = options?.userAgentOptions?.userAgentPrefix;
-  const userAgentPrefix = prefixFromOptions ? `${prefixFromOptions} azsdk-js-api` : `azsdk-js-api`;
-  const { apiVersion: _, ...updatedOptions } = {
-    ...options,
-    userAgentOptions: { userAgentPrefix },
-    loggingOptions: { logger: options.loggingOptions?.logger ?? logger.info },
-  };
-  const clientContext = getClient(endpointUrl, undefined, updatedOptions);
-
-  if (options.apiVersion) {
-    logger.warning(
-      "This client does not support client api-version, please change it at the operation level",
-    );
-  }
-  return { ...clientContext, expand: options.expand } as BillingBenefitsContext;
+  const endpointUrl = options.endpoint ?? endpoint;
+  const clientContext = getClient_1(endpointUrl, options);
+  return {
+    ...clientContext,
+    $expand: options.$expand,
+  } as BillingBenefitsContext;
 }
 ```
 
@@ -186,19 +182,19 @@ export function _getSend(
       allowReserved: options?.requestOptions?.skipUrlEncoding,
     },
   );
-  return context
-    .path(path)
-    .get({
-      ...operationOptionsToRequestParameters(options),
-      headers: {
-        ...(options?.expand !== undefined ? { $expand: context.expand } : {}),
-        accept: "application/json",
-        ...options.requestOptions?.headers,
-      },
-    });
+  return context.path(path).get({
+    ...operationOptionsToRequestParameters(options),
+    headers: {
+      ...(options?.expand !== undefined ? { $expand: context.expand } : {}),
+      accept: "application/json",
+      ...options.requestOptions?.headers,
+    },
+  });
 }
 
-export async function _getDeserialize(result: PathUncheckedResponse): Promise<SavingsPlanModel> {
+export async function _getDeserialize(
+  result: PathUncheckedResponse,
+): Promise<SavingsPlanModel> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
     const error = createRestError(result);
@@ -344,38 +340,28 @@ withRawContent: true
 ## clientContext
 
 ```ts clientContext
-import { logger } from "../logger.js";
-import { Client, ClientOptions, getClient } from "@azure-rest/core-client";
+import {
+  type Client as Client_1,
+  type ClientOptions as ClientOptions_1,
+  getClient as getClient_1,
+} from "@typespec/ts-http-runtime";
 
-export interface BillingBenefitsContext extends Client {
-  /** The expand header parameter. */
-  expand: string;
+export interface BillingBenefitsContext extends Client_1 {
+  /**
+   * The expand header parameter.
+   */
+  $expand: string;
 }
 
-/** Optional parameters for the client. */
-export interface BillingBenefitsClientOptionalParams extends ClientOptions {}
+export interface BillingBenefitsClientOptionalParams extends ClientOptions_1 {}
 
 export function createBillingBenefits(
-  endpointParam: string,
-  expand: string,
+  endpoint: string,
   options: BillingBenefitsClientOptionalParams = {},
 ): BillingBenefitsContext {
-  const endpointUrl = options.endpoint ?? String(endpointParam);
-  const prefixFromOptions = options?.userAgentOptions?.userAgentPrefix;
-  const userAgentPrefix = prefixFromOptions ? `${prefixFromOptions} azsdk-js-api` : `azsdk-js-api`;
-  const { apiVersion: _, ...updatedOptions } = {
-    ...options,
-    userAgentOptions: { userAgentPrefix },
-    loggingOptions: { logger: options.loggingOptions?.logger ?? logger.info },
-  };
-  const clientContext = getClient(endpointUrl, undefined, updatedOptions);
-
-  if (options.apiVersion) {
-    logger.warning(
-      "This client does not support client api-version, please change it at the operation level",
-    );
-  }
-  return { ...clientContext, expand } as BillingBenefitsContext;
+  const endpointUrl = options.endpoint ?? endpoint;
+  const clientContext = getClient_1(endpointUrl, options);
+  return { ...clientContext, $expand } as BillingBenefitsContext;
 }
 ```
 
@@ -419,19 +405,19 @@ export function _getSend(
       allowReserved: options?.requestOptions?.skipUrlEncoding,
     },
   );
-  return context
-    .path(path)
-    .get({
-      ...operationOptionsToRequestParameters(options),
-      headers: {
-        ...(options?.expand !== undefined ? { $expand: context.expand } : {}),
-        accept: "application/json",
-        ...options.requestOptions?.headers,
-      },
-    });
+  return context.path(path).get({
+    ...operationOptionsToRequestParameters(options),
+    headers: {
+      ...(options?.expand !== undefined ? { $expand: context.expand } : {}),
+      accept: "application/json",
+      ...options.requestOptions?.headers,
+    },
+  });
 }
 
-export async function _getDeserialize(result: PathUncheckedResponse): Promise<SavingsPlanModel> {
+export async function _getDeserialize(
+  result: PathUncheckedResponse,
+): Promise<SavingsPlanModel> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
     const error = createRestError(result);

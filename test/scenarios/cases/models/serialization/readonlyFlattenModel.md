@@ -35,49 +35,37 @@ needTCGC: true
 ## Models
 
 ```ts models
-import { areAllPropsUndefined } from "../static-helpers/serialization/check-prop-undefined.js";
-
-/**
- * This file contains only generated model types and their (de)serializers.
- * Disable the following rules for internal models with '_' prefix and deserializers which require 'any' for raw JSON input.
- */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/** model interface Solution */
 export interface Solution {
   readonly solutionId?: string;
   readonly title?: string;
   readonly content?: string;
-  readonly solutionIdPropertiesOptionalSolutionId?: string;
-  readonly titlePropertiesOptionalTitle?: string;
-  readonly contentPropertiesOptionalContent?: string;
+  readonly solutionId?: string;
+  readonly title?: string;
+  readonly content?: string;
 }
 
-export function solutionSerializer(item: Solution): any {
-  return {
-    properties: _solutionPropertiesSerializer(item),
-    propertiesOptional: areAllPropsUndefined(item, [])
-      ? undefined
-      : _solutionPropertiesOptionalSerializer(item),
-  };
-}
-
-/** model interface SolutionProperties */
 export interface SolutionProperties {
   readonly solutionId?: string;
   readonly title?: string;
   readonly content?: string;
 }
 
+export function solutionSerializer(item: Solution): any {
+  return {
+    solutionId: item["solutionId"],
+    title: item["title"],
+    content: item["content"],
+    solutionId: item["solutionId"],
+    title: item["title"],
+    content: item["content"],
+  };
+}
+
 export function solutionPropertiesSerializer(item: SolutionProperties): any {
-  return item;
-}
-
-export function _solutionPropertiesSerializer(item: Solution): any {
-  return item;
-}
-
-export function _solutionPropertiesOptionalSerializer(item: Solution): any {
-  return item;
+  return {
+    solutionId: item["solutionId"],
+    title: item["title"],
+    content: item["content"],
+  };
 }
 ```

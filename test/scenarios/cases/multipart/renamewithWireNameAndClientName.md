@@ -16,24 +16,23 @@ op withWireName(
 ## Models
 
 ```ts models
-import { FileContents, createFilePartDescriptor } from "../static-helpers/multipartHelpers.js";
+import { createFilePartDescriptor as createFilePartDescriptor_1 } from "../helpers/multipartHelpers.js";
 
-/**
- * This file contains only generated model types and their (de)serializers.
- * Disable the following rules for internal models with '_' prefix and deserializers which require 'any' for raw JSON input.
- */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/** model interface MultiPartRequestWithWireName */
 export interface MultiPartRequestWithWireName {
   identifier: string;
-  image: FileContents | { contents: FileContents; contentType?: string; filename?: string };
+  image: Uint8Array;
 }
 
-export function multiPartRequestWithWireNameSerializer(item: MultiPartRequestWithWireName): any {
+export function multiPartRequestWithWireNameSerializer(
+  item: MultiPartRequestWithWireName,
+): any {
   return [
     { name: "id", body: item["identifier"] },
-    createFilePartDescriptor("profileImage", item["image"], "application/octet-stream"),
+    createFilePartDescriptor_1(
+      "profileImage",
+      item["image"],
+      "application/octet-stream",
+    ),
   ];
 }
 ```
@@ -64,24 +63,21 @@ needTCGC: true
 ## Models
 
 ```ts models
-import { FileContents, createFilePartDescriptor } from "../static-helpers/multipartHelpers.js";
+import { createFilePartDescriptor as createFilePartDescriptor_1 } from "../helpers/multipartHelpers.js";
 
-/**
- * This file contains only generated model types and their (de)serializers.
- * Disable the following rules for internal models with '_' prefix and deserializers which require 'any' for raw JSON input.
- */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/** model interface MultiPartRequest */
 export interface MultiPartRequest {
   identifier: string;
-  image: FileContents | { contents: FileContents; contentType?: string; filename?: string };
+  image: Uint8Array;
 }
 
 export function multiPartRequestSerializer(item: MultiPartRequest): any {
   return [
     { name: "id", body: item["identifier"] },
-    createFilePartDescriptor("profileImage", item["image"], "application/octet-stream"),
+    createFilePartDescriptor_1(
+      "profileImage",
+      item["image"],
+      "application/octet-stream",
+    ),
   ];
 }
 ```

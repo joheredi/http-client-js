@@ -59,65 +59,65 @@ withRawContent: true
 ## Operations
 
 ```ts operations
-import { ContosoContext as Client } from "./index.js";
-import { errorResponseDeserializer } from "../models/models.js";
-import { expandUrlTemplate } from "../static-helpers/urlTemplate.js";
-import { CheckNameAvailabilityOptionalParams } from "./options.js";
 import {
-  StreamableMethod,
-  PathUncheckedResponse,
-  createRestError,
-  operationOptionsToRequestParameters,
-} from "@azure-rest/core-client";
+  type Client as Client_1,
+  createRestError as createRestError_1,
+  expandUrlTemplate as expandUrlTemplate_1,
+  type OperationOptions as OperationOptions_1,
+  operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
+  type PathUncheckedResponse as PathUncheckedResponse_1,
+  type StreamableMethod as StreamableMethod_1,
+} from "@typespec/ts-http-runtime";
+
+/**
+ * Optional parameters for the checkNameAvailability operation.
+ */
+export interface CheckNameAvailabilityOptionalParams extends OperationOptions_1 {}
 
 export function _checkNameAvailabilitySend(
-  context: Client,
+  context: Client_1,
   apiVersion: string,
   name: string,
-  typeParam: string,
+  type: string,
   options: CheckNameAvailabilityOptionalParams = { requestOptions: {} },
-): StreamableMethod {
-  const path = expandUrlTemplate(
+): StreamableMethod_1 {
+  const path = expandUrlTemplate_1(
     "/subscriptions/{subscriptionId}/providers/Microsoft.ThisWillBeReplaced/checknameavailability{?api%2Dversion}",
-    {
-      subscriptionId: context.subscriptionId,
-      "api%2Dversion": apiVersion,
-    },
-    {
-      allowReserved: options?.requestOptions?.skipUrlEncoding,
-    },
+    { "api-version": apiVersion, subscriptionId: context["subscriptionId"] },
+    { allowReserved: options?.requestOptions?.skipUrlEncoding },
   );
-  return context
-    .path(path)
-    .post({
-      ...operationOptionsToRequestParameters(options),
-      contentType: "application/json",
-      body: { name: name, type: typeParam },
-    });
+  return context.path(path).post({
+    ...operationOptionsToRequestParameters_1(options),
+    contentType: "application/json",
+    body: { name: name, type: type },
+  });
 }
 
 export async function _checkNameAvailabilityDeserialize(
-  result: PathUncheckedResponse,
+  result: PathUncheckedResponse_1,
 ): Promise<void> {
   const expectedStatuses = ["204"];
   if (!expectedStatuses.includes(result.status)) {
-    const error = createRestError(result);
-    error.details = errorResponseDeserializer(result.body);
-
-    throw error;
+    throw createRestError_1(result);
   }
 
   return;
 }
 
 export async function checkNameAvailability(
-  context: Client,
+  context: Client_1,
   apiVersion: string,
   name: string,
-  typeParam: string,
+  type: string,
   options: CheckNameAvailabilityOptionalParams = { requestOptions: {} },
 ): Promise<void> {
-  const result = await _checkNameAvailabilitySend(context, apiVersion, name, typeParam, options);
+  const result = await _checkNameAvailabilitySend(
+    context,
+    apiVersion,
+    name,
+    type,
+    options,
+  );
   return _checkNameAvailabilityDeserialize(result);
 }
 ```

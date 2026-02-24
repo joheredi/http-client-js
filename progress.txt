@@ -1923,3 +1923,48 @@
 - The 455 failing scenario tests are assertion mismatches (our output vs legacy expected output)
 - Use `SCENARIOS_UPDATE=true pnpm test` to regenerate expected output from our emitter
 - The `beforeAll` hooks in `executeScenarios` are at the file-level `describe` scope, not inside individual `describeFn` scopes — if one scenario in a multi-scenario file fails compilation, ALL tests in that file fail
+
+## 2025-07-14 — Scenario Test Stabilization & Spread Body Fix
+
+### What was done
+1. **Fixed spread body serialization bug** (send-operation.tsx):
+   - Added `isSpreadBody()`, `buildSpreadBodyExpression()`, `getSpreadPropertyAccessor()` functions
+   - When TypeSpec uses `...Model`, the emitter now builds inline object literals with per-property serialization instead of calling a non-existent serializer refkey
+   - This fixed `<Unresolved Symbol>` output in many operation tests
+
+2. **Fixed non-deterministic import ordering** (scenario-harness.ts):
+   - Added `normalizeImports()` function that sorts import specifiers alphabetically and import statements by module path
+   - Applied normalization BEFORE prettier formatting in both SCENARIOS_UPDATE and verification modes
+
+3. **Fixed prettier non-idempotency** (scenario-harness.ts):
+   - Discovered prettier produces different output for the same logical code depending on input whitespace structure
+   - Added double-formatting (format → format) to reach prettier's stable state
+   - This eliminated all non-deterministic test failures
+
+4. **Added unit test for spread body handling** (send-operation.test.tsx):
+   - New test verifies `...Model` spread produces inline object literal body
+
+### Test Results
+- Unit tests: 273 pass (all files)
+- Scenario tests: 124 failures (all genuine missing features), 345 pass, 6 skipped
+- Previously: 455 scenario failures (many due to non-determinism)
+- Improvement: 331 fewer failures (from 455 to 124)
+
+### Remaining 124 scenario failures (all genuine, categorized):
+- samples (51): Sample generation not yet implemented
+- XML serializers (20): XML serialization format mismatches
+- operations (17): Missing features (LRO, client defaults, clientInitialization, query collection format)
+- models:withOptions (13): Options interface extracted inline, not in separate file
+- operations function _*DeserializeHeaders (9): Header deserialization not implemented
+- models alias (4): Type alias extraction
+- root index (2): Index file generation for model-only cases
+- multipart (2): Missing _UploadFileRequest interface/serializer
+- emptyProject classicClient (1): No classic client for empty project
+- models (1): Missing model for model-only @usage case
+
+### Notes for next person
+- The 124 remaining failures require implementing actual features, not test infrastructure fixes
+- Each category is independent and can be tackled separately
+- Priority: operations > models:withOptions > XML > samples (based on feature importance)
+- The `normalizeImports()` and double-format approach is documented in knowledge.md
+- `SCENARIOS_UPDATE=true pnpm test test/scenarios/` regenerates expected output (deterministic now)

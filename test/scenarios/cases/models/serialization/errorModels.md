@@ -26,15 +26,23 @@ model ApiError {
 Generated Models.
 
 ```ts models
-/**
- * This file contains only generated model types and their (de)serializers.
- * Disable the following rules for internal models with '_' prefix and deserializers which require 'any' for raw JSON input.
- */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/** model interface Foo */
 export interface Foo {
   name: string;
+}
+
+export interface ApiError {
+  /**
+   * A machine readable error code
+   */
+  code: string;
+  detail?: ErrorDetail;
+}
+
+export interface ErrorDetail {
+  /**
+   * A human readable message
+   */
+  message: string;
 }
 
 export function fooDeserializer(item: any): Foo {
@@ -43,24 +51,13 @@ export function fooDeserializer(item: any): Foo {
   };
 }
 
-/** model interface ApiError */
-export interface ApiError {
-  /** A machine readable error code */
-  code: string;
-  detail?: ErrorDetail;
-}
-
 export function apiErrorDeserializer(item: any): ApiError {
   return {
     code: item["code"],
-    detail: !item["detail"] ? item["detail"] : errorDetailDeserializer(item["detail"]),
+    detail: !item["detail"]
+      ? item["detail"]
+      : errorDetailDeserializer(item["detail"]),
   };
-}
-
-/** model interface ErrorDetail */
-export interface ErrorDetail {
-  /** A human readable message */
-  message: string;
 }
 
 export function errorDetailDeserializer(item: any): ErrorDetail {
@@ -99,16 +96,24 @@ model ApiError {
 Generated Models.
 
 ```ts models
-/**
- * This file contains only generated model types and their (de)serializers.
- * Disable the following rules for internal models with '_' prefix and deserializers which require 'any' for raw JSON input.
- */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/** model interface Foo */
 export interface Foo {
   name: string;
   options: ErrorDetail;
+}
+
+export interface ErrorDetail {
+  /**
+   * A human readable message
+   */
+  message: string;
+}
+
+export interface ApiError {
+  /**
+   * A machine readable error code
+   */
+  code: string;
+  detail?: ErrorDetail;
 }
 
 export function fooDeserializer(item: any): Foo {
@@ -118,29 +123,18 @@ export function fooDeserializer(item: any): Foo {
   };
 }
 
-/** model interface ErrorDetail */
-export interface ErrorDetail {
-  /** A human readable message */
-  message: string;
-}
-
 export function errorDetailDeserializer(item: any): ErrorDetail {
   return {
     message: item["message"],
   };
 }
 
-/** model interface ApiError */
-export interface ApiError {
-  /** A machine readable error code */
-  code: string;
-  detail?: ErrorDetail;
-}
-
 export function apiErrorDeserializer(item: any): ApiError {
   return {
     code: item["code"],
-    detail: !item["detail"] ? item["detail"] : errorDetailDeserializer(item["detail"]),
+    detail: !item["detail"]
+      ? item["detail"]
+      : errorDetailDeserializer(item["detail"]),
   };
 }
 ```

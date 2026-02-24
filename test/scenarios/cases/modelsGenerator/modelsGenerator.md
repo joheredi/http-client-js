@@ -17,6 +17,7 @@ model Test {
 Shouldn't be included in root index file
 
 ```ts root index
+
 ```
 
 # should generate models with `@usage` added for model-only case
@@ -40,13 +41,6 @@ needTCGC: true
 ## Models
 
 ```ts models
-/**
- * This file contains only generated model types and their (de)serializers.
- * Disable the following rules for internal models with '_' prefix and deserializers which require 'any' for raw JSON input.
- */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/** model interface Test */
 export interface Test {
   prop: string;
 }
@@ -105,19 +99,14 @@ withRawContent: true
 ## Models
 
 ```ts models
-/**
- * This file contains only generated model types and their (de)serializers.
- * Disable the following rules for internal models with '_' prefix and deserializers which require 'any' for raw JSON input.
- */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/** model interface InputOutputModel */
 export interface InputOutputModel {
   prop: true;
 }
 
 export function inputOutputModelSerializer(item: InputOutputModel): any {
-  return { prop: item["prop"] };
+  return {
+    prop: item["prop"],
+  };
 }
 
 export function inputOutputModelDeserializer(item: any): InputOutputModel {
@@ -169,19 +158,14 @@ withRawContent: true
 ## Models
 
 ```ts models
-/**
- * This file contains only generated model types and their (de)serializers.
- * Disable the following rules for internal models with '_' prefix and deserializers which require 'any' for raw JSON input.
- */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/** model interface InputOutputModel */
 export interface InputOutputModel {
   prop: 1;
 }
 
 export function inputOutputModelSerializer(item: InputOutputModel): any {
-  return { prop: item["prop"] };
+  return {
+    prop: item["prop"],
+  };
 }
 
 export function inputOutputModelDeserializer(item: any): InputOutputModel {
@@ -232,19 +216,14 @@ withRawContent: true
 ## Models
 
 ```ts models
-/**
- * This file contains only generated model types and their (de)serializers.
- * Disable the following rules for internal models with '_' prefix and deserializers which require 'any' for raw JSON input.
- */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/** model interface InputOutputModel */
 export interface InputOutputModel {
   prop: "foo";
 }
 
 export function inputOutputModelSerializer(item: InputOutputModel): any {
-  return { prop: item["prop"] };
+  return {
+    prop: item["prop"],
+  };
 }
 
 export function inputOutputModelDeserializer(item: any): InputOutputModel {
@@ -302,19 +281,33 @@ withRawContent: true
 ## Models
 
 ```ts models
-/**
- * This file contains only generated model types and their (de)serializers.
- * Disable the following rules for internal models with '_' prefix and deserializers which require 'any' for raw JSON input.
- */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/** model interface InputOutputModel */
 export interface InputOutputModel {
   prop: "English";
 }
 
+/**
+ * Translation Language Values
+ */
+export type TranslationLanguageValues = "English" | "Chinese";
+
+/**
+ * Translation Language Values
+ */
+export enum KnownTranslationLanguageValues {
+  /**
+   * English descriptions
+   */
+  English = "English",
+  /**
+   * Chinese descriptions
+   */
+  Chinese = "Chinese",
+}
+
 export function inputOutputModelSerializer(item: InputOutputModel): any {
-  return { prop: item["prop"] };
+  return {
+    prop: item["prop"],
+  };
 }
 
 export function inputOutputModelDeserializer(item: any): InputOutputModel {
@@ -322,9 +315,6 @@ export function inputOutputModelDeserializer(item: any): InputOutputModel {
     prop: item["prop"],
   };
 }
-
-/** Translation Language Values */
-export type TranslationLanguageValues = "English" | "Chinese";
 ```
 
 # should handle boolean literal type
@@ -346,42 +336,49 @@ model StreamingChatCompletionOptions {
 ## Operations
 
 ```ts operations
-import { TestingContext as Client } from "./index.js";
-import { CreateStreamingOptionalParams } from "./options.js";
 import {
-  StreamableMethod,
-  PathUncheckedResponse,
-  createRestError,
-  operationOptionsToRequestParameters,
-} from "@azure-rest/core-client";
+  type Client as Client_1,
+  createRestError as createRestError_1,
+  type OperationOptions as OperationOptions_1,
+  operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
+  type PathUncheckedResponse as PathUncheckedResponse_1,
+  type StreamableMethod as StreamableMethod_1,
+} from "@typespec/ts-http-runtime";
+
+/**
+ * Optional parameters for the createStreaming operation.
+ */
+export interface CreateStreamingOptionalParams extends OperationOptions_1 {}
 
 export function _createStreamingSend(
-  context: Client,
+  context: Client_1,
+  stream: true,
   options: CreateStreamingOptionalParams = { requestOptions: {} },
-): StreamableMethod {
-  return context
-    .path("/createStreaming")
-    .post({
-      ...operationOptionsToRequestParameters(options),
-      contentType: "application/json",
-      body: { stream: true },
-    });
+): StreamableMethod_1 {
+  return context.path("/createStreaming").post({
+    ...operationOptionsToRequestParameters_1(options),
+    contentType: "application/json",
+    body: { stream: stream },
+  });
 }
 
-export async function _createStreamingDeserialize(result: PathUncheckedResponse): Promise<void> {
+export async function _createStreamingDeserialize(
+  result: PathUncheckedResponse_1,
+): Promise<void> {
   const expectedStatuses = ["204"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError(result);
+    throw createRestError_1(result);
   }
 
   return;
 }
 
 export async function createStreaming(
-  context: Client,
+  context: Client_1,
+  stream: true,
   options: CreateStreamingOptionalParams = { requestOptions: {} },
 ): Promise<void> {
-  const result = await _createStreamingSend(context, options);
+  const result = await _createStreamingSend(context, stream, options);
   return _createStreamingDeserialize(result);
 }
 ```
@@ -403,13 +400,6 @@ op read(@body body: Foo): { @body body: Foo };
 ## Models interface Foo
 
 ```ts models interface Foo
-/**
- * This file contains only generated model types and their (de)serializers.
- * Disable the following rules for internal models with '_' prefix and deserializers which require 'any' for raw JSON input.
- */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/** model interface Foo */
 export interface Foo {
   prop1: Date;
   prop2: string;
@@ -423,7 +413,7 @@ export interface Foo {
 ```ts models function fooSerializer
 export function fooSerializer(item: Foo): any {
   return {
-    prop1: item["prop1"].toISOString().split("T")[0],
+    prop1: item["prop1"].toISOString(),
     prop2: item["prop2"],
     prop3: item["prop3"].toISOString(),
     prop4: item["prop4"],
@@ -447,45 +437,57 @@ export function fooDeserializer(item: any): Foo {
 ## Operations
 
 ```ts operations
-import { TestingContext as Client } from "./index.js";
-import { Foo, fooSerializer, fooDeserializer } from "../models/models.js";
-import { ReadOptionalParams } from "./options.js";
 import {
-  StreamableMethod,
-  PathUncheckedResponse,
-  createRestError,
-  operationOptionsToRequestParameters,
-} from "@azure-rest/core-client";
+  type Foo as Foo_1,
+  fooDeserializer as fooDeserializer_1,
+  fooSerializer as fooSerializer_1,
+} from "../models/models.js";
+import {
+  type Client as Client_1,
+  createRestError as createRestError_1,
+  type OperationOptions as OperationOptions_1,
+  operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
+  type PathUncheckedResponse as PathUncheckedResponse_1,
+  type StreamableMethod as StreamableMethod_1,
+} from "@typespec/ts-http-runtime";
+
+/**
+ * Optional parameters for the read operation.
+ */
+export interface ReadOptionalParams extends OperationOptions_1 {}
 
 export function _readSend(
-  context: Client,
-  body: Foo,
+  context: Client_1,
+  body: Foo_1,
   options: ReadOptionalParams = { requestOptions: {} },
-): StreamableMethod {
-  return context
-    .path("/")
-    .post({
-      ...operationOptionsToRequestParameters(options),
-      contentType: "application/json",
-      headers: { accept: "application/json", ...options.requestOptions?.headers },
-      body: fooSerializer(body),
-    });
+): StreamableMethod_1 {
+  return context.path("/").post({
+    ...operationOptionsToRequestParameters_1(options),
+    contentType: "application/json",
+    headers: {
+      accept: "application/json",
+      ...options.requestOptions?.headers,
+    },
+    body: fooSerializer_1(body),
+  });
 }
 
-export async function _readDeserialize(result: PathUncheckedResponse): Promise<Foo> {
+export async function _readDeserialize(
+  result: PathUncheckedResponse_1,
+): Promise<Foo_1> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError(result);
+    throw createRestError_1(result);
   }
 
-  return fooDeserializer(result.body);
+  return fooDeserializer_1(result.body);
 }
 
 export async function read(
-  context: Client,
-  body: Foo,
+  context: Client_1,
+  body: Foo_1,
   options: ReadOptionalParams = { requestOptions: {} },
-): Promise<Foo> {
+): Promise<Foo_1> {
   const result = await _readSend(context, body, options);
   return _readDeserialize(result);
 }
@@ -502,39 +504,44 @@ op read(@header prop: utcDateTime): OkResponse;
 ## Operations
 
 ```ts operations
-import { TestingContext as Client } from "./index.js";
-import { ReadOptionalParams } from "./options.js";
 import {
-  StreamableMethod,
-  PathUncheckedResponse,
-  createRestError,
-  operationOptionsToRequestParameters,
-} from "@azure-rest/core-client";
+  type Client as Client_1,
+  createRestError as createRestError_1,
+  type OperationOptions as OperationOptions_1,
+  operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
+  type PathUncheckedResponse as PathUncheckedResponse_1,
+  type StreamableMethod as StreamableMethod_1,
+} from "@typespec/ts-http-runtime";
+
+/**
+ * Optional parameters for the read operation.
+ */
+export interface ReadOptionalParams extends OperationOptions_1 {}
 
 export function _readSend(
-  context: Client,
+  context: Client_1,
   prop: Date,
   options: ReadOptionalParams = { requestOptions: {} },
-): StreamableMethod {
-  return context
-    .path("/")
-    .get({
-      ...operationOptionsToRequestParameters(options),
-      headers: { prop: prop.toUTCString(), ...options.requestOptions?.headers },
-    });
+): StreamableMethod_1 {
+  return context.path("/").get({
+    ...operationOptionsToRequestParameters_1(options),
+    headers: { prop: prop, ...options.requestOptions?.headers },
+  });
 }
 
-export async function _readDeserialize(result: PathUncheckedResponse): Promise<void> {
+export async function _readDeserialize(
+  result: PathUncheckedResponse_1,
+): Promise<void> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError(result);
+    throw createRestError_1(result);
   }
 
   return;
 }
 
 export async function read(
-  context: Client,
+  context: Client_1,
   prop: Date,
   options: ReadOptionalParams = { requestOptions: {} },
 ): Promise<void> {
@@ -560,13 +567,6 @@ op read(@body body: Foo): { @body body: Foo };
 ## Models Foo
 
 ```ts models interface Foo
-/**
- * This file contains only generated model types and their (de)serializers.
- * Disable the following rules for internal models with '_' prefix and deserializers which require 'any' for raw JSON input.
- */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/** model interface Foo */
 export interface Foo {
   prop1: Date;
   prop2: string;
@@ -577,52 +577,67 @@ export interface Foo {
 
 ```ts models function fooSerializer
 export function fooSerializer(item: Foo): any {
-  return { prop1: item["prop1"].toISOString(), prop2: item["prop2"] };
+  return {
+    prop1: item["prop1"].toISOString(),
+    prop2: item["prop2"],
+  };
 }
 ```
 
 ## Operations
 
 ```ts operations
-import { TestingContext as Client } from "./index.js";
-import { Foo, fooSerializer, fooDeserializer } from "../models/models.js";
-import { ReadOptionalParams } from "./options.js";
 import {
-  StreamableMethod,
-  PathUncheckedResponse,
-  createRestError,
-  operationOptionsToRequestParameters,
-} from "@azure-rest/core-client";
+  type Foo as Foo_1,
+  fooDeserializer as fooDeserializer_1,
+  fooSerializer as fooSerializer_1,
+} from "../models/models.js";
+import {
+  type Client as Client_1,
+  createRestError as createRestError_1,
+  type OperationOptions as OperationOptions_1,
+  operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
+  type PathUncheckedResponse as PathUncheckedResponse_1,
+  type StreamableMethod as StreamableMethod_1,
+} from "@typespec/ts-http-runtime";
+
+/**
+ * Optional parameters for the read operation.
+ */
+export interface ReadOptionalParams extends OperationOptions_1 {}
 
 export function _readSend(
-  context: Client,
-  body: Foo,
+  context: Client_1,
+  body: Foo_1,
   options: ReadOptionalParams = { requestOptions: {} },
-): StreamableMethod {
-  return context
-    .path("/")
-    .post({
-      ...operationOptionsToRequestParameters(options),
-      contentType: "application/json",
-      headers: { accept: "application/json", ...options.requestOptions?.headers },
-      body: fooSerializer(body),
-    });
+): StreamableMethod_1 {
+  return context.path("/").post({
+    ...operationOptionsToRequestParameters_1(options),
+    contentType: "application/json",
+    headers: {
+      accept: "application/json",
+      ...options.requestOptions?.headers,
+    },
+    body: fooSerializer_1(body),
+  });
 }
 
-export async function _readDeserialize(result: PathUncheckedResponse): Promise<Foo> {
+export async function _readDeserialize(
+  result: PathUncheckedResponse_1,
+): Promise<Foo_1> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError(result);
+    throw createRestError_1(result);
   }
 
-  return fooDeserializer(result.body);
+  return fooDeserializer_1(result.body);
 }
 
 export async function read(
-  context: Client,
-  body: Foo,
+  context: Client_1,
+  body: Foo_1,
   options: ReadOptionalParams = { requestOptions: {} },
-): Promise<Foo> {
+): Promise<Foo_1> {
   const result = await _readSend(context, body, options);
   return _readDeserialize(result);
 }
@@ -645,13 +660,6 @@ op read(@body body: Foo): { @body body: Foo };
 ## Models Foo
 
 ```ts models interface Foo
-/**
- * This file contains only generated model types and their (de)serializers.
- * Disable the following rules for internal models with '_' prefix and deserializers which require 'any' for raw JSON input.
- */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/** model interface Foo */
 export interface Foo {
   prop1: Date;
   prop2: string;
@@ -662,52 +670,67 @@ export interface Foo {
 
 ```ts models function fooSerializer
 export function fooSerializer(item: Foo): any {
-  return { prop1: item["prop1"].toUTCString(), prop2: item["prop2"] };
+  return {
+    prop1: item["prop1"].toISOString(),
+    prop2: item["prop2"],
+  };
 }
 ```
 
 ## Operations
 
 ```ts operations
-import { TestingContext as Client } from "./index.js";
-import { Foo, fooSerializer, fooDeserializer } from "../models/models.js";
-import { ReadOptionalParams } from "./options.js";
 import {
-  StreamableMethod,
-  PathUncheckedResponse,
-  createRestError,
-  operationOptionsToRequestParameters,
-} from "@azure-rest/core-client";
+  type Foo as Foo_1,
+  fooDeserializer as fooDeserializer_1,
+  fooSerializer as fooSerializer_1,
+} from "../models/models.js";
+import {
+  type Client as Client_1,
+  createRestError as createRestError_1,
+  type OperationOptions as OperationOptions_1,
+  operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
+  type PathUncheckedResponse as PathUncheckedResponse_1,
+  type StreamableMethod as StreamableMethod_1,
+} from "@typespec/ts-http-runtime";
+
+/**
+ * Optional parameters for the read operation.
+ */
+export interface ReadOptionalParams extends OperationOptions_1 {}
 
 export function _readSend(
-  context: Client,
-  body: Foo,
+  context: Client_1,
+  body: Foo_1,
   options: ReadOptionalParams = { requestOptions: {} },
-): StreamableMethod {
-  return context
-    .path("/")
-    .post({
-      ...operationOptionsToRequestParameters(options),
-      contentType: "application/json",
-      headers: { accept: "application/json", ...options.requestOptions?.headers },
-      body: fooSerializer(body),
-    });
+): StreamableMethod_1 {
+  return context.path("/").post({
+    ...operationOptionsToRequestParameters_1(options),
+    contentType: "application/json",
+    headers: {
+      accept: "application/json",
+      ...options.requestOptions?.headers,
+    },
+    body: fooSerializer_1(body),
+  });
 }
 
-export async function _readDeserialize(result: PathUncheckedResponse): Promise<Foo> {
+export async function _readDeserialize(
+  result: PathUncheckedResponse_1,
+): Promise<Foo_1> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError(result);
+    throw createRestError_1(result);
   }
 
-  return fooDeserializer(result.body);
+  return fooDeserializer_1(result.body);
 }
 
 export async function read(
-  context: Client,
-  body: Foo,
+  context: Client_1,
+  body: Foo_1,
   options: ReadOptionalParams = { requestOptions: {} },
-): Promise<Foo> {
+): Promise<Foo_1> {
   const result = await _readSend(context, body, options);
   return _readDeserialize(result);
 }
@@ -728,13 +751,6 @@ op read(@body body: Foo): { @body body: Foo };
 ## Models Foo
 
 ```ts models interface Foo
-/**
- * This file contains only generated model types and their (de)serializers.
- * Disable the following rules for internal models with '_' prefix and deserializers which require 'any' for raw JSON input.
- */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/** model interface Foo */
 export interface Foo {
   prop1: Date;
 }
@@ -744,52 +760,66 @@ export interface Foo {
 
 ```ts models function fooSerializer
 export function fooSerializer(item: Foo): any {
-  return { prop1: (item["prop1"].getTime() / 1000) | 0 };
+  return {
+    prop1: item["prop1"].getTime(),
+  };
 }
 ```
 
 ## Operations
 
 ```ts operations
-import { TestingContext as Client } from "./index.js";
-import { Foo, fooSerializer, fooDeserializer } from "../models/models.js";
-import { ReadOptionalParams } from "./options.js";
 import {
-  StreamableMethod,
-  PathUncheckedResponse,
-  createRestError,
-  operationOptionsToRequestParameters,
-} from "@azure-rest/core-client";
+  type Foo as Foo_1,
+  fooDeserializer as fooDeserializer_1,
+  fooSerializer as fooSerializer_1,
+} from "../models/models.js";
+import {
+  type Client as Client_1,
+  createRestError as createRestError_1,
+  type OperationOptions as OperationOptions_1,
+  operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
+  type PathUncheckedResponse as PathUncheckedResponse_1,
+  type StreamableMethod as StreamableMethod_1,
+} from "@typespec/ts-http-runtime";
+
+/**
+ * Optional parameters for the read operation.
+ */
+export interface ReadOptionalParams extends OperationOptions_1 {}
 
 export function _readSend(
-  context: Client,
-  body: Foo,
+  context: Client_1,
+  body: Foo_1,
   options: ReadOptionalParams = { requestOptions: {} },
-): StreamableMethod {
-  return context
-    .path("/")
-    .post({
-      ...operationOptionsToRequestParameters(options),
-      contentType: "application/json",
-      headers: { accept: "application/json", ...options.requestOptions?.headers },
-      body: fooSerializer(body),
-    });
+): StreamableMethod_1 {
+  return context.path("/").post({
+    ...operationOptionsToRequestParameters_1(options),
+    contentType: "application/json",
+    headers: {
+      accept: "application/json",
+      ...options.requestOptions?.headers,
+    },
+    body: fooSerializer_1(body),
+  });
 }
 
-export async function _readDeserialize(result: PathUncheckedResponse): Promise<Foo> {
+export async function _readDeserialize(
+  result: PathUncheckedResponse_1,
+): Promise<Foo_1> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError(result);
+    throw createRestError_1(result);
   }
 
-  return fooDeserializer(result.body);
+  return fooDeserializer_1(result.body);
 }
 
 export async function read(
-  context: Client,
-  body: Foo,
+  context: Client_1,
+  body: Foo_1,
   options: ReadOptionalParams = { requestOptions: {} },
-): Promise<Foo> {
+): Promise<Foo_1> {
   const result = await _readSend(context, body, options);
   return _readDeserialize(result);
 }
@@ -809,13 +839,6 @@ op read(@body body: Foo): { @body body: Foo };
 ## Models Foo
 
 ```ts models interface Foo
-/**
- * This file contains only generated model types and their (de)serializers.
- * Disable the following rules for internal models with '_' prefix and deserializers which require 'any' for raw JSON input.
- */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/** model interface Foo */
 export interface Foo {
   prop1: string;
 }
@@ -824,45 +847,57 @@ export interface Foo {
 ## Operations
 
 ```ts operations
-import { TestingContext as Client } from "./index.js";
-import { Foo, fooSerializer, fooDeserializer } from "../models/models.js";
-import { ReadOptionalParams } from "./options.js";
 import {
-  StreamableMethod,
-  PathUncheckedResponse,
-  createRestError,
-  operationOptionsToRequestParameters,
-} from "@azure-rest/core-client";
+  type Foo as Foo_1,
+  fooDeserializer as fooDeserializer_1,
+  fooSerializer as fooSerializer_1,
+} from "../models/models.js";
+import {
+  type Client as Client_1,
+  createRestError as createRestError_1,
+  type OperationOptions as OperationOptions_1,
+  operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
+  type PathUncheckedResponse as PathUncheckedResponse_1,
+  type StreamableMethod as StreamableMethod_1,
+} from "@typespec/ts-http-runtime";
+
+/**
+ * Optional parameters for the read operation.
+ */
+export interface ReadOptionalParams extends OperationOptions_1 {}
 
 export function _readSend(
-  context: Client,
-  body: Foo,
+  context: Client_1,
+  body: Foo_1,
   options: ReadOptionalParams = { requestOptions: {} },
-): StreamableMethod {
-  return context
-    .path("/")
-    .post({
-      ...operationOptionsToRequestParameters(options),
-      contentType: "application/json",
-      headers: { accept: "application/json", ...options.requestOptions?.headers },
-      body: fooSerializer(body),
-    });
+): StreamableMethod_1 {
+  return context.path("/").post({
+    ...operationOptionsToRequestParameters_1(options),
+    contentType: "application/json",
+    headers: {
+      accept: "application/json",
+      ...options.requestOptions?.headers,
+    },
+    body: fooSerializer_1(body),
+  });
 }
 
-export async function _readDeserialize(result: PathUncheckedResponse): Promise<Foo> {
+export async function _readDeserialize(
+  result: PathUncheckedResponse_1,
+): Promise<Foo_1> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError(result);
+    throw createRestError_1(result);
   }
 
-  return fooDeserializer(result.body);
+  return fooDeserializer_1(result.body);
 }
 
 export async function read(
-  context: Client,
-  body: Foo,
+  context: Client_1,
+  body: Foo_1,
   options: ReadOptionalParams = { requestOptions: {} },
-): Promise<Foo> {
+): Promise<Foo_1> {
   const result = await _readSend(context, body, options);
   return _readDeserialize(result);
 }
@@ -883,13 +918,6 @@ op read(@body body: Foo): { @body body: Foo };
 ## Models Foo
 
 ```ts models interface Foo
-/**
- * This file contains only generated model types and their (de)serializers.
- * Disable the following rules for internal models with '_' prefix and deserializers which require 'any' for raw JSON input.
- */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/** model interface Foo */
 export interface Foo {
   prop1: string;
 }
@@ -898,45 +926,57 @@ export interface Foo {
 ## Operations
 
 ```ts operations
-import { TestingContext as Client } from "./index.js";
-import { Foo, fooSerializer, fooDeserializer } from "../models/models.js";
-import { ReadOptionalParams } from "./options.js";
 import {
-  StreamableMethod,
-  PathUncheckedResponse,
-  createRestError,
-  operationOptionsToRequestParameters,
-} from "@azure-rest/core-client";
+  type Foo as Foo_1,
+  fooDeserializer as fooDeserializer_1,
+  fooSerializer as fooSerializer_1,
+} from "../models/models.js";
+import {
+  type Client as Client_1,
+  createRestError as createRestError_1,
+  type OperationOptions as OperationOptions_1,
+  operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
+  type PathUncheckedResponse as PathUncheckedResponse_1,
+  type StreamableMethod as StreamableMethod_1,
+} from "@typespec/ts-http-runtime";
+
+/**
+ * Optional parameters for the read operation.
+ */
+export interface ReadOptionalParams extends OperationOptions_1 {}
 
 export function _readSend(
-  context: Client,
-  body: Foo,
+  context: Client_1,
+  body: Foo_1,
   options: ReadOptionalParams = { requestOptions: {} },
-): StreamableMethod {
-  return context
-    .path("/")
-    .post({
-      ...operationOptionsToRequestParameters(options),
-      contentType: "application/json",
-      headers: { accept: "application/json", ...options.requestOptions?.headers },
-      body: fooSerializer(body),
-    });
+): StreamableMethod_1 {
+  return context.path("/").post({
+    ...operationOptionsToRequestParameters_1(options),
+    contentType: "application/json",
+    headers: {
+      accept: "application/json",
+      ...options.requestOptions?.headers,
+    },
+    body: fooSerializer_1(body),
+  });
 }
 
-export async function _readDeserialize(result: PathUncheckedResponse): Promise<Foo> {
+export async function _readDeserialize(
+  result: PathUncheckedResponse_1,
+): Promise<Foo_1> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError(result);
+    throw createRestError_1(result);
   }
 
-  return fooDeserializer(result.body);
+  return fooDeserializer_1(result.body);
 }
 
 export async function read(
-  context: Client,
-  body: Foo,
+  context: Client_1,
+  body: Foo_1,
   options: ReadOptionalParams = { requestOptions: {} },
-): Promise<Foo> {
+): Promise<Foo_1> {
   const result = await _readSend(context, body, options);
   return _readDeserialize(result);
 }
@@ -959,13 +999,6 @@ op read(@body body: Foo): { @body body: Foo };
 ## Models Foo
 
 ```ts models interface Foo
-/**
- * This file contains only generated model types and their (de)serializers.
- * Disable the following rules for internal models with '_' prefix and deserializers which require 'any' for raw JSON input.
- */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/** model interface Foo */
 export interface Foo {
   prop1: number;
   prop2: number;
@@ -975,45 +1008,57 @@ export interface Foo {
 ## Operations
 
 ```ts operations
-import { TestingContext as Client } from "./index.js";
-import { Foo, fooSerializer, fooDeserializer } from "../models/models.js";
-import { ReadOptionalParams } from "./options.js";
 import {
-  StreamableMethod,
-  PathUncheckedResponse,
-  createRestError,
-  operationOptionsToRequestParameters,
-} from "@azure-rest/core-client";
+  type Foo as Foo_1,
+  fooDeserializer as fooDeserializer_1,
+  fooSerializer as fooSerializer_1,
+} from "../models/models.js";
+import {
+  type Client as Client_1,
+  createRestError as createRestError_1,
+  type OperationOptions as OperationOptions_1,
+  operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
+  type PathUncheckedResponse as PathUncheckedResponse_1,
+  type StreamableMethod as StreamableMethod_1,
+} from "@typespec/ts-http-runtime";
+
+/**
+ * Optional parameters for the read operation.
+ */
+export interface ReadOptionalParams extends OperationOptions_1 {}
 
 export function _readSend(
-  context: Client,
-  body: Foo,
+  context: Client_1,
+  body: Foo_1,
   options: ReadOptionalParams = { requestOptions: {} },
-): StreamableMethod {
-  return context
-    .path("/")
-    .post({
-      ...operationOptionsToRequestParameters(options),
-      contentType: "application/json",
-      headers: { accept: "application/json", ...options.requestOptions?.headers },
-      body: fooSerializer(body),
-    });
+): StreamableMethod_1 {
+  return context.path("/").post({
+    ...operationOptionsToRequestParameters_1(options),
+    contentType: "application/json",
+    headers: {
+      accept: "application/json",
+      ...options.requestOptions?.headers,
+    },
+    body: fooSerializer_1(body),
+  });
 }
 
-export async function _readDeserialize(result: PathUncheckedResponse): Promise<Foo> {
+export async function _readDeserialize(
+  result: PathUncheckedResponse_1,
+): Promise<Foo_1> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError(result);
+    throw createRestError_1(result);
   }
 
-  return fooDeserializer(result.body);
+  return fooDeserializer_1(result.body);
 }
 
 export async function read(
-  context: Client,
-  body: Foo,
+  context: Client_1,
+  body: Foo_1,
   options: ReadOptionalParams = { requestOptions: {} },
-): Promise<Foo> {
+): Promise<Foo_1> {
   const result = await _readSend(context, body, options);
   return _readDeserialize(result);
 }
@@ -1033,13 +1078,6 @@ op read(@body body: Foo): { @body body: Foo };
 ## Models Foo
 
 ```ts models interface Foo
-/**
- * This file contains only generated model types and their (de)serializers.
- * Disable the following rules for internal models with '_' prefix and deserializers which require 'any' for raw JSON input.
- */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/** model interface Foo */
 export interface Foo {
   prop1: Uint8Array;
 }
@@ -1049,7 +1087,9 @@ export interface Foo {
 
 ```ts models function fooSerializer
 export function fooSerializer(item: Foo): any {
-  return { prop1: uint8ArrayToString(item["prop1"], "base64") };
+  return {
+    prop1: uint8ArrayToString_1(item["prop1"], "base64"),
+  };
 }
 ```
 
@@ -1058,10 +1098,7 @@ export function fooSerializer(item: Foo): any {
 ```ts models function fooDeserializer
 export function fooDeserializer(item: any): Foo {
   return {
-    prop1:
-      typeof item["prop1"] === "string"
-        ? stringToUint8Array(item["prop1"], "base64")
-        : item["prop1"],
+    prop1: stringToUint8Array_1(item["prop1"], "base64"),
   };
 }
 ```
@@ -1069,45 +1106,57 @@ export function fooDeserializer(item: any): Foo {
 ## Operations
 
 ```ts operations
-import { TestingContext as Client } from "./index.js";
-import { Foo, fooSerializer, fooDeserializer } from "../models/models.js";
-import { ReadOptionalParams } from "./options.js";
 import {
-  StreamableMethod,
-  PathUncheckedResponse,
-  createRestError,
-  operationOptionsToRequestParameters,
-} from "@azure-rest/core-client";
+  type Foo as Foo_1,
+  fooDeserializer as fooDeserializer_1,
+  fooSerializer as fooSerializer_1,
+} from "../models/models.js";
+import {
+  type Client as Client_1,
+  createRestError as createRestError_1,
+  type OperationOptions as OperationOptions_1,
+  operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
+  type PathUncheckedResponse as PathUncheckedResponse_1,
+  type StreamableMethod as StreamableMethod_1,
+} from "@typespec/ts-http-runtime";
+
+/**
+ * Optional parameters for the read operation.
+ */
+export interface ReadOptionalParams extends OperationOptions_1 {}
 
 export function _readSend(
-  context: Client,
-  body: Foo,
+  context: Client_1,
+  body: Foo_1,
   options: ReadOptionalParams = { requestOptions: {} },
-): StreamableMethod {
-  return context
-    .path("/")
-    .post({
-      ...operationOptionsToRequestParameters(options),
-      contentType: "application/json",
-      headers: { accept: "application/json", ...options.requestOptions?.headers },
-      body: fooSerializer(body),
-    });
+): StreamableMethod_1 {
+  return context.path("/").post({
+    ...operationOptionsToRequestParameters_1(options),
+    contentType: "application/json",
+    headers: {
+      accept: "application/json",
+      ...options.requestOptions?.headers,
+    },
+    body: fooSerializer_1(body),
+  });
 }
 
-export async function _readDeserialize(result: PathUncheckedResponse): Promise<Foo> {
+export async function _readDeserialize(
+  result: PathUncheckedResponse_1,
+): Promise<Foo_1> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError(result);
+    throw createRestError_1(result);
   }
 
-  return fooDeserializer(result.body);
+  return fooDeserializer_1(result.body);
 }
 
 export async function read(
-  context: Client,
-  body: Foo,
+  context: Client_1,
+  body: Foo_1,
   options: ReadOptionalParams = { requestOptions: {} },
-): Promise<Foo> {
+): Promise<Foo_1> {
   const result = await _readSend(context, body, options);
   return _readDeserialize(result);
 }
@@ -1128,13 +1177,6 @@ op read(@body body: Foo): { @body body: Foo };
 ## Models Foo
 
 ```ts models interface Foo
-/**
- * This file contains only generated model types and their (de)serializers.
- * Disable the following rules for internal models with '_' prefix and deserializers which require 'any' for raw JSON input.
- */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/** model interface Foo */
 export interface Foo {
   prop1: Uint8Array;
 }
@@ -1144,7 +1186,9 @@ export interface Foo {
 
 ```ts models function fooSerializer
 export function fooSerializer(item: Foo): any {
-  return { prop1: uint8ArrayToString(item["prop1"], "base64") };
+  return {
+    prop1: uint8ArrayToString_1(item["prop1"], "base64"),
+  };
 }
 ```
 
@@ -1153,10 +1197,7 @@ export function fooSerializer(item: Foo): any {
 ```ts models function fooDeserializer
 export function fooDeserializer(item: any): Foo {
   return {
-    prop1:
-      typeof item["prop1"] === "string"
-        ? stringToUint8Array(item["prop1"], "base64")
-        : item["prop1"],
+    prop1: stringToUint8Array_1(item["prop1"], "base64"),
   };
 }
 ```
@@ -1164,45 +1205,57 @@ export function fooDeserializer(item: any): Foo {
 ## Operations
 
 ```ts operations
-import { TestingContext as Client } from "./index.js";
-import { Foo, fooSerializer, fooDeserializer } from "../models/models.js";
-import { ReadOptionalParams } from "./options.js";
 import {
-  StreamableMethod,
-  PathUncheckedResponse,
-  createRestError,
-  operationOptionsToRequestParameters,
-} from "@azure-rest/core-client";
+  type Foo as Foo_1,
+  fooDeserializer as fooDeserializer_1,
+  fooSerializer as fooSerializer_1,
+} from "../models/models.js";
+import {
+  type Client as Client_1,
+  createRestError as createRestError_1,
+  type OperationOptions as OperationOptions_1,
+  operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
+  type PathUncheckedResponse as PathUncheckedResponse_1,
+  type StreamableMethod as StreamableMethod_1,
+} from "@typespec/ts-http-runtime";
+
+/**
+ * Optional parameters for the read operation.
+ */
+export interface ReadOptionalParams extends OperationOptions_1 {}
 
 export function _readSend(
-  context: Client,
-  body: Foo,
+  context: Client_1,
+  body: Foo_1,
   options: ReadOptionalParams = { requestOptions: {} },
-): StreamableMethod {
-  return context
-    .path("/")
-    .post({
-      ...operationOptionsToRequestParameters(options),
-      contentType: "application/json",
-      headers: { accept: "application/json", ...options.requestOptions?.headers },
-      body: fooSerializer(body),
-    });
+): StreamableMethod_1 {
+  return context.path("/").post({
+    ...operationOptionsToRequestParameters_1(options),
+    contentType: "application/json",
+    headers: {
+      accept: "application/json",
+      ...options.requestOptions?.headers,
+    },
+    body: fooSerializer_1(body),
+  });
 }
 
-export async function _readDeserialize(result: PathUncheckedResponse): Promise<Foo> {
+export async function _readDeserialize(
+  result: PathUncheckedResponse_1,
+): Promise<Foo_1> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError(result);
+    throw createRestError_1(result);
   }
 
-  return fooDeserializer(result.body);
+  return fooDeserializer_1(result.body);
 }
 
 export async function read(
-  context: Client,
-  body: Foo,
+  context: Client_1,
+  body: Foo_1,
   options: ReadOptionalParams = { requestOptions: {} },
-): Promise<Foo> {
+): Promise<Foo_1> {
   const result = await _readSend(context, body, options);
   return _readDeserialize(result);
 }
@@ -1223,13 +1276,6 @@ op read(@body body: Foo): { @body body: Foo };
 ## Models Foo
 
 ```ts models interface Foo
-/**
- * This file contains only generated model types and their (de)serializers.
- * Disable the following rules for internal models with '_' prefix and deserializers which require 'any' for raw JSON input.
- */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/** model interface Foo */
 export interface Foo {
   prop1: Uint8Array;
 }
@@ -1239,7 +1285,9 @@ export interface Foo {
 
 ```ts models function fooSerializer
 export function fooSerializer(item: Foo): any {
-  return { prop1: uint8ArrayToString(item["prop1"], "base64url") };
+  return {
+    prop1: uint8ArrayToString_1(item["prop1"], "base64"),
+  };
 }
 ```
 
@@ -1248,10 +1296,7 @@ export function fooSerializer(item: Foo): any {
 ```ts models function fooDeserializer
 export function fooDeserializer(item: any): Foo {
   return {
-    prop1:
-      typeof item["prop1"] === "string"
-        ? stringToUint8Array(item["prop1"], "base64url")
-        : item["prop1"],
+    prop1: stringToUint8Array_1(item["prop1"], "base64"),
   };
 }
 ```
@@ -1259,45 +1304,57 @@ export function fooDeserializer(item: any): Foo {
 ## Operations
 
 ```ts operations
-import { TestingContext as Client } from "./index.js";
-import { Foo, fooSerializer, fooDeserializer } from "../models/models.js";
-import { ReadOptionalParams } from "./options.js";
 import {
-  StreamableMethod,
-  PathUncheckedResponse,
-  createRestError,
-  operationOptionsToRequestParameters,
-} from "@azure-rest/core-client";
+  type Foo as Foo_1,
+  fooDeserializer as fooDeserializer_1,
+  fooSerializer as fooSerializer_1,
+} from "../models/models.js";
+import {
+  type Client as Client_1,
+  createRestError as createRestError_1,
+  type OperationOptions as OperationOptions_1,
+  operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
+  type PathUncheckedResponse as PathUncheckedResponse_1,
+  type StreamableMethod as StreamableMethod_1,
+} from "@typespec/ts-http-runtime";
+
+/**
+ * Optional parameters for the read operation.
+ */
+export interface ReadOptionalParams extends OperationOptions_1 {}
 
 export function _readSend(
-  context: Client,
-  body: Foo,
+  context: Client_1,
+  body: Foo_1,
   options: ReadOptionalParams = { requestOptions: {} },
-): StreamableMethod {
-  return context
-    .path("/")
-    .post({
-      ...operationOptionsToRequestParameters(options),
-      contentType: "application/json",
-      headers: { accept: "application/json", ...options.requestOptions?.headers },
-      body: fooSerializer(body),
-    });
+): StreamableMethod_1 {
+  return context.path("/").post({
+    ...operationOptionsToRequestParameters_1(options),
+    contentType: "application/json",
+    headers: {
+      accept: "application/json",
+      ...options.requestOptions?.headers,
+    },
+    body: fooSerializer_1(body),
+  });
 }
 
-export async function _readDeserialize(result: PathUncheckedResponse): Promise<Foo> {
+export async function _readDeserialize(
+  result: PathUncheckedResponse_1,
+): Promise<Foo_1> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError(result);
+    throw createRestError_1(result);
   }
 
-  return fooDeserializer(result.body);
+  return fooDeserializer_1(result.body);
 }
 
 export async function read(
-  context: Client,
-  body: Foo,
+  context: Client_1,
+  body: Foo_1,
   options: ReadOptionalParams = { requestOptions: {} },
-): Promise<Foo> {
+): Promise<Foo_1> {
   const result = await _readSend(context, body, options);
   return _readDeserialize(result);
 }
@@ -1326,31 +1383,31 @@ op read(): { @body body: Cat | Dog };
 ## Models
 
 ```ts models
-/**
- * This file contains only generated model types and their (de)serializers.
- * Disable the following rules for internal models with '_' prefix and deserializers which require 'any' for raw JSON input.
- */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/** model interface Cat */
 export interface Cat extends Pet {
   kind: "cat";
   meow: number;
 }
 
-export function catDeserializer(item: any): Cat {
-  return {
-    name: item["name"],
-    weight: item["weight"],
-    kind: item["kind"],
-    meow: item["meow"],
-  };
-}
-
-/** model interface Pet */
 export interface Pet {
   name: string;
   weight?: number;
+}
+
+export interface Dog extends Pet {
+  kind: "dog";
+  bark: string;
+}
+
+/**
+ * Alias for ReadResponse
+ */
+export type ReadResponse = Cat | Dog;
+
+export function catDeserializer(item: any): Cat {
+  return {
+    kind: item["kind"],
+    meow: item["meow"],
+  };
 }
 
 export function petDeserializer(item: any): Pet {
@@ -1360,26 +1417,11 @@ export function petDeserializer(item: any): Pet {
   };
 }
 
-/** model interface Dog */
-export interface Dog extends Pet {
-  kind: "dog";
-  bark: string;
-}
-
 export function dogDeserializer(item: any): Dog {
   return {
-    name: item["name"],
-    weight: item["weight"],
     kind: item["kind"],
     bark: item["bark"],
   };
-}
-
-/** Alias for _ReadResponse */
-export type _ReadResponse = Cat | Dog;
-
-export function _readResponseDeserializer(item: any): _ReadResponse {
-  return item;
 }
 ```
 
@@ -1406,31 +1448,21 @@ op read(): { @body body: Cat };
 ## Models
 
 ```ts models
-/**
- * This file contains only generated model types and their (de)serializers.
- * Disable the following rules for internal models with '_' prefix and deserializers which require 'any' for raw JSON input.
- */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/** model interface Cat */
 export interface Cat extends Pet {
   kind: "cat";
   meow: number;
 }
 
-export function catDeserializer(item: any): Cat {
-  return {
-    name: item["name"],
-    weight: item["weight"],
-    kind: item["kind"],
-    meow: item["meow"],
-  };
-}
-
-/** model interface Pet */
 export interface Pet {
   name: string;
   weight?: number;
+}
+
+export function catDeserializer(item: any): Cat {
+  return {
+    kind: item["kind"],
+    meow: item["meow"],
+  };
 }
 
 export function petDeserializer(item: any): Pet {
@@ -1444,41 +1476,52 @@ export function petDeserializer(item: any): Pet {
 ## Operations
 
 ```ts operations
-import { TestingContext as Client } from "./index.js";
-import { Cat, catDeserializer } from "../models/models.js";
-import { ReadOptionalParams } from "./options.js";
 import {
-  StreamableMethod,
-  PathUncheckedResponse,
-  createRestError,
-  operationOptionsToRequestParameters,
-} from "@azure-rest/core-client";
+  type Cat as Cat_1,
+  catDeserializer as catDeserializer_1,
+} from "../models/models.js";
+import {
+  type Client as Client_1,
+  createRestError as createRestError_1,
+  type OperationOptions as OperationOptions_1,
+  operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
+  type PathUncheckedResponse as PathUncheckedResponse_1,
+  type StreamableMethod as StreamableMethod_1,
+} from "@typespec/ts-http-runtime";
+
+/**
+ * Optional parameters for the read operation.
+ */
+export interface ReadOptionalParams extends OperationOptions_1 {}
 
 export function _readSend(
-  context: Client,
+  context: Client_1,
   options: ReadOptionalParams = { requestOptions: {} },
-): StreamableMethod {
-  return context
-    .path("/")
-    .get({
-      ...operationOptionsToRequestParameters(options),
-      headers: { accept: "application/json", ...options.requestOptions?.headers },
-    });
+): StreamableMethod_1 {
+  return context.path("/").get({
+    ...operationOptionsToRequestParameters_1(options),
+    headers: {
+      accept: "application/json",
+      ...options.requestOptions?.headers,
+    },
+  });
 }
 
-export async function _readDeserialize(result: PathUncheckedResponse): Promise<Cat> {
+export async function _readDeserialize(
+  result: PathUncheckedResponse_1,
+): Promise<Cat_1> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError(result);
+    throw createRestError_1(result);
   }
 
-  return catDeserializer(result.body);
+  return catDeserializer_1(result.body);
 }
 
 export async function read(
-  context: Client,
+  context: Client_1,
   options: ReadOptionalParams = { requestOptions: {} },
-): Promise<Cat> {
+): Promise<Cat_1> {
   const result = await _readSend(context, options);
   return _readDeserialize(result);
 }
@@ -1505,42 +1548,30 @@ op read(): { @body body: Cat };
 ## Models
 
 ```ts models
-/**
- * This file contains only generated model types and their (de)serializers.
- * Disable the following rules for internal models with '_' prefix and deserializers which require 'any' for raw JSON input.
- */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/** model interface Cat */
 export interface Cat extends Pet {
   kind: "cat";
   meow: number;
 }
 
+export interface Pet extends Animal {
+  weight?: number;
+}
+
+export interface Animal {
+  name: string;
+}
+
 export function catDeserializer(item: any): Cat {
   return {
-    weight: item["weight"],
-    name: item["name"],
     kind: item["kind"],
     meow: item["meow"],
   };
 }
 
-/** model interface Pet */
-export interface Pet extends Animal {
-  weight?: number;
-}
-
 export function petDeserializer(item: any): Pet {
   return {
-    name: item["name"],
     weight: item["weight"],
   };
-}
-
-/** model interface Animal */
-export interface Animal {
-  name: string;
 }
 
 export function animalDeserializer(item: any): Animal {
@@ -1553,41 +1584,52 @@ export function animalDeserializer(item: any): Animal {
 ## Operations
 
 ```ts operations
-import { TestingContext as Client } from "./index.js";
-import { Cat, catDeserializer } from "../models/models.js";
-import { ReadOptionalParams } from "./options.js";
 import {
-  StreamableMethod,
-  PathUncheckedResponse,
-  createRestError,
-  operationOptionsToRequestParameters,
-} from "@azure-rest/core-client";
+  type Cat as Cat_1,
+  catDeserializer as catDeserializer_1,
+} from "../models/models.js";
+import {
+  type Client as Client_1,
+  createRestError as createRestError_1,
+  type OperationOptions as OperationOptions_1,
+  operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
+  type PathUncheckedResponse as PathUncheckedResponse_1,
+  type StreamableMethod as StreamableMethod_1,
+} from "@typespec/ts-http-runtime";
+
+/**
+ * Optional parameters for the read operation.
+ */
+export interface ReadOptionalParams extends OperationOptions_1 {}
 
 export function _readSend(
-  context: Client,
+  context: Client_1,
   options: ReadOptionalParams = { requestOptions: {} },
-): StreamableMethod {
-  return context
-    .path("/")
-    .get({
-      ...operationOptionsToRequestParameters(options),
-      headers: { accept: "application/json", ...options.requestOptions?.headers },
-    });
+): StreamableMethod_1 {
+  return context.path("/").get({
+    ...operationOptionsToRequestParameters_1(options),
+    headers: {
+      accept: "application/json",
+      ...options.requestOptions?.headers,
+    },
+  });
 }
 
-export async function _readDeserialize(result: PathUncheckedResponse): Promise<Cat> {
+export async function _readDeserialize(
+  result: PathUncheckedResponse_1,
+): Promise<Cat_1> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError(result);
+    throw createRestError_1(result);
   }
 
-  return catDeserializer(result.body);
+  return catDeserializer_1(result.body);
 }
 
 export async function read(
-  context: Client,
+  context: Client_1,
   options: ReadOptionalParams = { requestOptions: {} },
-): Promise<Cat> {
+): Promise<Cat_1> {
   const result = await _readSend(context, options);
   return _readDeserialize(result);
 }
@@ -1618,70 +1660,51 @@ op read(@body body: PSDog): { @body body: PSDog };
 ## Models
 
 ```ts models
-/**
- * This file contains only generated model types and their (de)serializers.
- * Disable the following rules for internal models with '_' prefix and deserializers which require 'any' for raw JSON input.
- */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/** model interface PSDog */
-export interface PSDog extends Pet {
+export interface PsDog extends Pet {
   kind: "dog";
   bark: string;
 }
 
-export function psDogSerializer(item: PSDog): any {
-  return { kind: item["kind"], name: item["name"], weight: item["weight"], bark: item["bark"] };
-}
-
-export function psDogDeserializer(item: any): PSDog {
-  return {
-    kind: item["kind"],
-    name: item["name"],
-    weight: item["weight"],
-    bark: item["bark"],
-  };
-}
-
-/** model interface Pet */
 export interface Pet {
   kind: string;
   name: string;
   weight?: number;
 }
 
-export function petSerializer(item: Pet): any {
-  return { kind: item["kind"], name: item["name"], weight: item["weight"] };
-}
+/**
+ * Alias for `Pet`
+ */
+export type PetUnion = PsDog | Pet;
 
-export function petDeserializer(item: any): Pet {
+export function psDogSerializer(item: PsDog): any {
   return {
     kind: item["kind"],
-    name: item["name"],
-    weight: item["weight"],
+    bark: item["bark"],
   };
 }
 
-/** Alias for PetUnion */
-export type PetUnion = PSDog | Pet;
-
 export function petUnionSerializer(item: PetUnion): any {
-  switch (item.kind) {
+  switch (item["kind"]) {
     case "dog":
-      return psDogSerializer(item as PSDog);
-
+      return psDogSerializer(item as PsDog);
     default:
-      return petSerializer(item);
+      return item;
   }
+}
+
+export function psDogDeserializer(item: any): PsDog {
+  return {
+    kind: item["kind"],
+    bark: item["bark"],
+  };
 }
 
 export function petUnionDeserializer(item: any): PetUnion {
   switch (item["kind"]) {
     case "dog":
-      return psDogDeserializer(item as PSDog);
-
+      return psDogDeserializer(item as PsDog);
     default:
-      return petDeserializer(item);
+      return item;
   }
 }
 ```
@@ -1689,45 +1712,57 @@ export function petUnionDeserializer(item: any): PetUnion {
 ## Operations
 
 ```ts operations
-import { TestingContext as Client } from "./index.js";
-import { PSDog, psDogSerializer, psDogDeserializer } from "../models/models.js";
-import { ReadOptionalParams } from "./options.js";
 import {
-  StreamableMethod,
-  PathUncheckedResponse,
-  createRestError,
-  operationOptionsToRequestParameters,
-} from "@azure-rest/core-client";
+  type PsDog as PsDog_1,
+  psDogDeserializer as psDogDeserializer_1,
+  psDogSerializer as psDogSerializer_1,
+} from "../models/models.js";
+import {
+  type Client as Client_1,
+  createRestError as createRestError_1,
+  type OperationOptions as OperationOptions_1,
+  operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
+  type PathUncheckedResponse as PathUncheckedResponse_1,
+  type StreamableMethod as StreamableMethod_1,
+} from "@typespec/ts-http-runtime";
+
+/**
+ * Optional parameters for the read operation.
+ */
+export interface ReadOptionalParams extends OperationOptions_1 {}
 
 export function _readSend(
-  context: Client,
-  body: PSDog,
+  context: Client_1,
+  body: PsDog_1,
   options: ReadOptionalParams = { requestOptions: {} },
-): StreamableMethod {
-  return context
-    .path("/")
-    .post({
-      ...operationOptionsToRequestParameters(options),
-      contentType: "application/json",
-      headers: { accept: "application/json", ...options.requestOptions?.headers },
-      body: psDogSerializer(body),
-    });
+): StreamableMethod_1 {
+  return context.path("/").post({
+    ...operationOptionsToRequestParameters_1(options),
+    contentType: "application/json",
+    headers: {
+      accept: "application/json",
+      ...options.requestOptions?.headers,
+    },
+    body: psDogSerializer_1(body),
+  });
 }
 
-export async function _readDeserialize(result: PathUncheckedResponse): Promise<PSDog> {
+export async function _readDeserialize(
+  result: PathUncheckedResponse_1,
+): Promise<PsDog_1> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError(result);
+    throw createRestError_1(result);
   }
 
-  return psDogDeserializer(result.body);
+  return psDogDeserializer_1(result.body);
 }
 
 export async function read(
-  context: Client,
-  body: PSDog,
+  context: Client_1,
+  body: PsDog_1,
   options: ReadOptionalParams = { requestOptions: {} },
-): Promise<PSDog> {
+): Promise<PsDog_1> {
   const result = await _readSend(context, body, options);
   return _readDeserialize(result);
 }
@@ -1758,112 +1793,102 @@ op read(): { @body body: Pet };
 ## Models
 
 ```ts models
-/**
- * This file contains only generated model types and their (de)serializers.
- * Disable the following rules for internal models with '_' prefix and deserializers which require 'any' for raw JSON input.
- */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/** model interface Pet */
 export interface Pet {
   kind: string;
   name: string;
   weight?: number;
 }
 
-export function petDeserializer(item: any): Pet {
-  return {
-    kind: item["kind"],
-    name: item["name"],
-    weight: item["weight"],
-  };
-}
-
-/** Alias for PetUnion */
+/**
+ * Alias for `Pet`
+ */
 export type PetUnion = Cat | Dog | Pet;
 
-export function petUnionDeserializer(item: any): PetUnion {
-  switch (item["kind"]) {
-    case "cat":
-      return catDeserializer(item as Cat);
-
-    case "dog":
-      return dogDeserializer(item as Dog);
-
-    default:
-      return petDeserializer(item);
-  }
-}
-
-/** model interface Cat */
 export interface Cat extends Pet {
   kind: "cat";
   meow: number;
 }
 
-export function catDeserializer(item: any): Cat {
-  return {
-    kind: item["kind"],
-    name: item["name"],
-    weight: item["weight"],
-    meow: item["meow"],
-  };
-}
-
-/** model interface Dog */
 export interface Dog extends Pet {
   kind: "dog";
   bark: string;
 }
 
+export function catDeserializer(item: any): Cat {
+  return {
+    kind: item["kind"],
+    meow: item["meow"],
+  };
+}
+
 export function dogDeserializer(item: any): Dog {
   return {
     kind: item["kind"],
-    name: item["name"],
-    weight: item["weight"],
     bark: item["bark"],
   };
+}
+
+export function petUnionDeserializer(item: any): PetUnion {
+  switch (item["kind"]) {
+    case "cat":
+      return catDeserializer(item as Cat);
+    case "dog":
+      return dogDeserializer(item as Dog);
+    default:
+      return item;
+  }
 }
 ```
 
 ## Operations
 
 ```ts operations
-import { TestingContext as Client } from "./index.js";
-import { petUnionDeserializer, PetUnion } from "../models/models.js";
-import { ReadOptionalParams } from "./options.js";
 import {
-  StreamableMethod,
-  PathUncheckedResponse,
-  createRestError,
-  operationOptionsToRequestParameters,
-} from "@azure-rest/core-client";
+  type Pet as Pet_1,
+  petUnionDeserializer as petUnionDeserializer_1,
+} from "../models/models.js";
+import {
+  type Client as Client_1,
+  createRestError as createRestError_1,
+  type OperationOptions as OperationOptions_1,
+  operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
+  type PathUncheckedResponse as PathUncheckedResponse_1,
+  type StreamableMethod as StreamableMethod_1,
+} from "@typespec/ts-http-runtime";
+
+/**
+ * Optional parameters for the read operation.
+ */
+export interface ReadOptionalParams extends OperationOptions_1 {}
 
 export function _readSend(
-  context: Client,
+  context: Client_1,
   options: ReadOptionalParams = { requestOptions: {} },
-): StreamableMethod {
-  return context
-    .path("/")
-    .get({
-      ...operationOptionsToRequestParameters(options),
-      headers: { accept: "application/json", ...options.requestOptions?.headers },
-    });
+): StreamableMethod_1 {
+  return context.path("/").get({
+    ...operationOptionsToRequestParameters_1(options),
+    headers: {
+      accept: "application/json",
+      ...options.requestOptions?.headers,
+    },
+  });
 }
 
-export async function _readDeserialize(result: PathUncheckedResponse): Promise<PetUnion> {
+export async function _readDeserialize(
+  result: PathUncheckedResponse_1,
+): Promise<Pet_1> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError(result);
+    throw createRestError_1(result);
   }
 
-  return petUnionDeserializer(result.body);
+  return petUnionDeserializer_1(result.body);
 }
 
 export async function read(
-  context: Client,
+  context: Client_1,
   options: ReadOptionalParams = { requestOptions: {} },
-): Promise<PetUnion> {
+): Promise<Pet_1> {
   const result = await _readSend(context, options);
   return _readDeserialize(result);
 }
@@ -1900,150 +1925,124 @@ op read(): { @body body: Pet };
 ## Models
 
 ```ts models
-/**
- * This file contains only generated model types and their (de)serializers.
- * Disable the following rules for internal models with '_' prefix and deserializers which require 'any' for raw JSON input.
- */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/** model interface Pet */
 export interface Pet {
   kind: string;
   name: string;
   weight?: number;
 }
 
-export function petDeserializer(item: any): Pet {
-  return {
-    kind: item["kind"],
-    name: item["name"],
-    weight: item["weight"],
-  };
-}
+/**
+ * Alias for `Pet`
+ */
+export type PetUnion = Cat | Dog | Pet;
 
-/** Alias for PetUnion */
-export type PetUnion = Cat | DogUnion | Pet;
-
-export function petUnionDeserializer(item: any): PetUnion {
-  switch (item["kind"]) {
-    case "cat":
-      return catDeserializer(item as Cat);
-
-    case "dog":
-      return dogUnionDeserializer(item as DogUnion);
-
-    default:
-      return petDeserializer(item);
-  }
-}
-
-/** model interface Cat */
 export interface Cat extends Pet {
   kind: "cat";
   meow: number;
 }
 
+export interface Dog extends Pet {
+  kind: "dog";
+  type: "dog";
+  bark: string;
+}
+
+/**
+ * Alias for `Dog`
+ */
+export type DogUnion = Gold | Dog;
+
+export interface Gold extends Dog {
+  type: "gold";
+  friends: Pet[];
+}
+
 export function catDeserializer(item: any): Cat {
   return {
     kind: item["kind"],
-    name: item["name"],
-    weight: item["weight"],
     meow: item["meow"],
   };
 }
 
-/** model interface Dog */
-export interface Dog extends Pet {
-  kind: "dog";
-  type: string;
-  bark: string;
-}
-
-export function dogDeserializer(item: any): Dog {
+export function goldDeserializer(item: any): Gold {
   return {
-    kind: item["kind"],
-    name: item["name"],
-    weight: item["weight"],
     type: item["type"],
-    bark: item["bark"],
+    friends: item["friends"].map((p: any) => {
+      return petUnionDeserializer(p);
+    }),
   };
 }
 
-/** Alias for DogUnion */
-export type DogUnion = Gold | Dog;
+export function petUnionDeserializer(item: any): PetUnion {
+  switch (item["kind"]) {
+    case "cat":
+      return catDeserializer(item as Cat);
+    case "dog":
+      return dogUnionDeserializer(item as Dog);
+    default:
+      return item;
+  }
+}
 
 export function dogUnionDeserializer(item: any): DogUnion {
   switch (item["type"]) {
     case "gold":
       return goldDeserializer(item as Gold);
-
     default:
-      return dogDeserializer(item);
+      return item;
   }
-}
-
-/** model interface Gold */
-export interface Gold extends Dog {
-  type: "gold";
-  friends: PetUnion[];
-}
-
-export function goldDeserializer(item: any): Gold {
-  return {
-    kind: item["kind"],
-    type: item["type"],
-    bark: item["bark"],
-    name: item["name"],
-    weight: item["weight"],
-    friends: petUnionArrayDeserializer(item["friends"]),
-  };
-}
-
-export function petUnionArrayDeserializer(result: Array<PetUnion>): any[] {
-  return result.map((item) => {
-    return petUnionDeserializer(item);
-  });
 }
 ```
 
 ## Operations
 
 ```ts operations
-import { TestingContext as Client } from "./index.js";
-import { petUnionDeserializer, PetUnion } from "../models/models.js";
-import { ReadOptionalParams } from "./options.js";
 import {
-  StreamableMethod,
-  PathUncheckedResponse,
-  createRestError,
-  operationOptionsToRequestParameters,
-} from "@azure-rest/core-client";
+  type Pet as Pet_1,
+  petUnionDeserializer as petUnionDeserializer_1,
+} from "../models/models.js";
+import {
+  type Client as Client_1,
+  createRestError as createRestError_1,
+  type OperationOptions as OperationOptions_1,
+  operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
+  type PathUncheckedResponse as PathUncheckedResponse_1,
+  type StreamableMethod as StreamableMethod_1,
+} from "@typespec/ts-http-runtime";
+
+/**
+ * Optional parameters for the read operation.
+ */
+export interface ReadOptionalParams extends OperationOptions_1 {}
 
 export function _readSend(
-  context: Client,
+  context: Client_1,
   options: ReadOptionalParams = { requestOptions: {} },
-): StreamableMethod {
-  return context
-    .path("/")
-    .get({
-      ...operationOptionsToRequestParameters(options),
-      headers: { accept: "application/json", ...options.requestOptions?.headers },
-    });
+): StreamableMethod_1 {
+  return context.path("/").get({
+    ...operationOptionsToRequestParameters_1(options),
+    headers: {
+      accept: "application/json",
+      ...options.requestOptions?.headers,
+    },
+  });
 }
 
-export async function _readDeserialize(result: PathUncheckedResponse): Promise<PetUnion> {
+export async function _readDeserialize(
+  result: PathUncheckedResponse_1,
+): Promise<Pet_1> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError(result);
+    throw createRestError_1(result);
   }
 
-  return petUnionDeserializer(result.body);
+  return petUnionDeserializer_1(result.body);
 }
 
 export async function read(
-  context: Client,
+  context: Client_1,
   options: ReadOptionalParams = { requestOptions: {} },
-): Promise<PetUnion> {
+): Promise<Pet_1> {
   const result = await _readSend(context, options);
   return _readDeserialize(result);
 }
@@ -2068,17 +2067,14 @@ op read(): { @body body: Foo };
 ## Models
 
 ```ts models
-/**
- * This file contains only generated model types and their (de)serializers.
- * Disable the following rules for internal models with '_' prefix and deserializers which require 'any' for raw JSON input.
- */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/** model interface Foo */
 export interface Foo {
   name: string;
   weight?: number;
   bar: Bar;
+}
+
+export interface Bar {
+  foo: Foo;
 }
 
 export function fooDeserializer(item: any): Foo {
@@ -2087,11 +2083,6 @@ export function fooDeserializer(item: any): Foo {
     weight: item["weight"],
     bar: barDeserializer(item["bar"]),
   };
-}
-
-/** model interface Bar */
-export interface Bar {
-  foo: Foo;
 }
 
 export function barDeserializer(item: any): Bar {
@@ -2104,41 +2095,52 @@ export function barDeserializer(item: any): Bar {
 ## Operations
 
 ```ts operations
-import { TestingContext as Client } from "./index.js";
-import { Foo, fooDeserializer } from "../models/models.js";
-import { ReadOptionalParams } from "./options.js";
 import {
-  StreamableMethod,
-  PathUncheckedResponse,
-  createRestError,
-  operationOptionsToRequestParameters,
-} from "@azure-rest/core-client";
+  type Foo as Foo_1,
+  fooDeserializer as fooDeserializer_1,
+} from "../models/models.js";
+import {
+  type Client as Client_1,
+  createRestError as createRestError_1,
+  type OperationOptions as OperationOptions_1,
+  operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
+  type PathUncheckedResponse as PathUncheckedResponse_1,
+  type StreamableMethod as StreamableMethod_1,
+} from "@typespec/ts-http-runtime";
+
+/**
+ * Optional parameters for the read operation.
+ */
+export interface ReadOptionalParams extends OperationOptions_1 {}
 
 export function _readSend(
-  context: Client,
+  context: Client_1,
   options: ReadOptionalParams = { requestOptions: {} },
-): StreamableMethod {
-  return context
-    .path("/")
-    .get({
-      ...operationOptionsToRequestParameters(options),
-      headers: { accept: "application/json", ...options.requestOptions?.headers },
-    });
+): StreamableMethod_1 {
+  return context.path("/").get({
+    ...operationOptionsToRequestParameters_1(options),
+    headers: {
+      accept: "application/json",
+      ...options.requestOptions?.headers,
+    },
+  });
 }
 
-export async function _readDeserialize(result: PathUncheckedResponse): Promise<Foo> {
+export async function _readDeserialize(
+  result: PathUncheckedResponse_1,
+): Promise<Foo_1> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError(result);
+    throw createRestError_1(result);
   }
 
-  return fooDeserializer(result.body);
+  return fooDeserializer_1(result.body);
 }
 
 export async function read(
-  context: Client,
+  context: Client_1,
   options: ReadOptionalParams = { requestOptions: {} },
-): Promise<Foo> {
+): Promise<Foo_1> {
   const result = await _readSend(context, options);
   return _readDeserialize(result);
 }
@@ -2185,59 +2187,82 @@ needAzureCore: false
 
 ```ts models
 /**
- * This file contains only generated model types and their (de)serializers.
- * Disable the following rules for internal models with '_' prefix and deserializers which require 'any' for raw JSON input.
+ * Type of SchemaContentTypeValues
  */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/** Type of SchemaContentTypeValues */
 export type SchemaContentTypeValues =
   | "application/json; serialization=Avro"
   | "application/json; serialization=json"
   | "text/plain; charset=utf-8"
   | "text/vnd.ms.protobuf";
+
+/**
+ * Known values of {@link SchemaContentTypeValues} that the service accepts.
+ */
+export enum KnownSchemaContentTypeValues {
+  /**
+   * application/json; serialization=Avro
+   */
+  Avro = "application/json; serialization=Avro",
+  /**
+   * application/json; serialization=json
+   */
+  Json = "application/json; serialization=json",
+  /**
+   * text/plain; charset=utf-8
+   */
+  Custom = "text/plain; charset=utf-8",
+  /**
+   * text/vnd.ms.protobuf
+   */
+  Protobuf = "text/vnd.ms.protobuf",
+}
 ```
 
 ## Operations
 
 ```ts operations
-import { DemoServiceContext as Client } from "./index.js";
-import { SchemaContentTypeValues } from "../models/models.js";
-import { GetOptionalParams } from "./options.js";
+import type { SchemaContentTypeValues as SchemaContentTypeValues_1 } from "../models/models.js";
 import {
-  StreamableMethod,
-  PathUncheckedResponse,
-  createRestError,
-  operationOptionsToRequestParameters,
-} from "@azure-rest/core-client";
+  type Client as Client_1,
+  createRestError as createRestError_1,
+  type OperationOptions as OperationOptions_1,
+  operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
+  type PathUncheckedResponse as PathUncheckedResponse_1,
+  type StreamableMethod as StreamableMethod_1,
+} from "@typespec/ts-http-runtime";
+
+/**
+ * Optional parameters for the get operation.
+ */
+export interface GetOptionalParams extends OperationOptions_1 {}
 
 export function _getSend(
-  context: Client,
-  contentType: SchemaContentTypeValues,
+  context: Client_1,
+  contentType: SchemaContentTypeValues_1,
   body: string,
   options: GetOptionalParams = { requestOptions: {} },
-): StreamableMethod {
-  return context
-    .path("/")
-    .post({
-      ...operationOptionsToRequestParameters(options),
-      contentType: contentType,
-      body: body,
-    });
+): StreamableMethod_1 {
+  return context.path("/").post({
+    ...operationOptionsToRequestParameters_1(options),
+    contentType: "application/json; serialization=Avro",
+    body: body,
+  });
 }
 
-export async function _getDeserialize(result: PathUncheckedResponse): Promise<void> {
+export async function _getDeserialize(
+  result: PathUncheckedResponse_1,
+): Promise<void> {
   const expectedStatuses = ["204"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError(result);
+    throw createRestError_1(result);
   }
 
   return;
 }
 
 export async function get(
-  context: Client,
-  contentType: SchemaContentTypeValues,
+  context: Client_1,
+  contentType: SchemaContentTypeValues_1,
   body: string,
   options: GetOptionalParams = { requestOptions: {} },
 ): Promise<void> {
@@ -2286,17 +2311,35 @@ withRawContent: true
 
 ```ts models
 /**
- * This file contains only generated model types and their (de)serializers.
- * Disable the following rules for internal models with '_' prefix and deserializers which require 'any' for raw JSON input.
+ * Type of SchemaContentTypeValues
  */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/** Type of SchemaContentTypeValues */
 export type SchemaContentTypeValues =
   | "application/json; serialization=Avro"
   | "application/json; serialization=json"
   | "text/plain; charset=utf-8"
   | "text/vnd.ms.protobuf";
+
+/**
+ * Known values of {@link SchemaContentTypeValues} that the service accepts.
+ */
+export enum KnownSchemaContentTypeValues {
+  /**
+   * application/json; serialization=Avro
+   */
+  Avro = "application/json; serialization=Avro",
+  /**
+   * application/json; serialization=json
+   */
+  Json = "application/json; serialization=json",
+  /**
+   * text/plain; charset=utf-8
+   */
+  Custom = "text/plain; charset=utf-8",
+  /**
+   * text/vnd.ms.protobuf
+   */
+  Protobuf = "text/vnd.ms.protobuf",
+}
 ```
 
 # anonymous union with string literals being used in regular headers
@@ -2334,49 +2377,94 @@ needAzureCore: false
 ## Models
 
 ```ts models
-// (file was not generated)
+/**
+ * Type of GetRequestTestHeader
+ */
+export type GetRequestTestHeader = "A" | "B";
+
+/**
+ * Known values of {@link GetRequestTestHeader} that the service accepts.
+ */
+export enum KnownGetRequestTestHeader {
+  /**
+   * A
+   */
+  A = "A",
+  /**
+   * B
+   */
+  B = "B",
+}
+
+/**
+ * Type of GetResponseTestHeader
+ */
+export type GetResponseTestHeader = "A" | "B";
+
+/**
+ * Known values of {@link GetResponseTestHeader} that the service accepts.
+ */
+export enum KnownGetResponseTestHeader {
+  /**
+   * A
+   */
+  A = "A",
+  /**
+   * B
+   */
+  B = "B",
+}
 ```
 
 ## Operations
 
 ```ts operations
-import { DemoServiceContext as Client } from "./index.js";
-import { GetOptionalParams } from "./options.js";
+import type { GetRequestTestHeader as GetRequestTestHeader_1 } from "../models/models.js";
 import {
-  StreamableMethod,
-  PathUncheckedResponse,
-  createRestError,
-  operationOptionsToRequestParameters,
-} from "@azure-rest/core-client";
+  type Client as Client_1,
+  createRestError as createRestError_1,
+  type OperationOptions as OperationOptions_1,
+  operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
+  type PathUncheckedResponse as PathUncheckedResponse_1,
+  type StreamableMethod as StreamableMethod_1,
+} from "@typespec/ts-http-runtime";
+
+/**
+ * Optional parameters for the get operation.
+ */
+export interface GetOptionalParams extends OperationOptions_1 {}
 
 export function _getSend(
-  context: Client,
-  testHeader: "A" | "B",
+  context: Client_1,
+  testHeader: GetRequestTestHeader_1,
   body: string,
   options: GetOptionalParams = { requestOptions: {} },
-): StreamableMethod {
-  return context
-    .path("/")
-    .post({
-      ...operationOptionsToRequestParameters(options),
-      contentType: "text/plain",
-      headers: { "test-header": testHeader, ...options.requestOptions?.headers },
-      body: body,
-    });
+): StreamableMethod_1 {
+  return context.path("/").post({
+    ...operationOptionsToRequestParameters_1(options),
+    contentType: "text/plain",
+    headers: {
+      "test-header": testHeader,
+      ...options.requestOptions?.headers,
+    },
+    body: body,
+  });
 }
 
-export async function _getDeserialize(result: PathUncheckedResponse): Promise<void> {
+export async function _getDeserialize(
+  result: PathUncheckedResponse_1,
+): Promise<void> {
   const expectedStatuses = ["204"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError(result);
+    throw createRestError_1(result);
   }
 
   return;
 }
 
 export async function get(
-  context: Client,
-  testHeader: "A" | "B",
+  context: Client_1,
+  testHeader: GetRequestTestHeader_1,
   body: string,
   options: GetOptionalParams = { requestOptions: {} },
 ): Promise<void> {
@@ -2404,16 +2492,10 @@ op read(@bodyRoot body: A): void;
 ## Model interface A
 
 ```ts models interface A
-/**
- * This file contains only generated model types and their (de)serializers.
- * Disable the following rules for internal models with '_' prefix and deserializers which require 'any' for raw JSON input.
- */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/** model interface A */
 export interface A {
   prop1: string;
   prop2: string;
+  name: string;
 }
 ```
 
@@ -2421,7 +2503,11 @@ export interface A {
 
 ```ts models function aSerializer
 export function aSerializer(item: A): any {
-  return { prop1: item["prop1"], prop2: item["prop2"] };
+  return {
+    prop1: item["prop1"],
+    prop2: item["prop2"],
+    name: item["name"],
+  };
 }
 ```
 
@@ -2444,7 +2530,6 @@ op read(@bodyRoot body: A): void;
 ## Model interface B
 
 ```ts models interface B
-/** model interface B */
 export interface B {
   prop1: string;
   prop2: string;
@@ -2455,28 +2540,28 @@ export interface B {
 
 ```ts models function bSerializer
 export function bSerializer(item: B): any {
-  return { prop1: item["prop1"], prop2: item["prop2"] };
+  return {
+    prop1: item["prop1"],
+    prop2: item["prop2"],
+  };
 }
 ```
 
 ## Model interface A
 
 ```ts models interface A
-/**
- * This file contains only generated model types and their (de)serializers.
- * Disable the following rules for internal models with '_' prefix and deserializers which require 'any' for raw JSON input.
- */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/** model interface A */
-export interface A extends B {}
+export interface A extends B {
+  name: string;
+}
 ```
 
 ## Model function aSerializer
 
 ```ts models function aSerializer
 export function aSerializer(item: A): any {
-  return { prop1: item["prop1"], prop2: item["prop2"] };
+  return {
+    name: item["name"],
+  };
 }
 ```
 
@@ -2495,19 +2580,14 @@ op read(@body body: A): void;
 ## Models
 
 ```ts models
-/**
- * This file contains only generated model types and their (de)serializers.
- * Disable the following rules for internal models with '_' prefix and deserializers which require 'any' for raw JSON input.
- */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/** model interface A */
 export interface A {
   readonly exactVersion?: string;
 }
 
 export function aSerializer(item: A): any {
-  return item;
+  return {
+    exactVersion: item["exactVersion"],
+  };
 }
 ```
 
@@ -2526,13 +2606,6 @@ op read(@body body: A): void;
 ## Model interface A
 
 ```ts models interface A
-/**
- * This file contains only generated model types and their (de)serializers.
- * Disable the following rules for internal models with '_' prefix and deserializers which require 'any' for raw JSON input.
- */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/** model interface A */
 export interface A {
   exactVersion?: string;
 }
@@ -2542,7 +2615,9 @@ export interface A {
 
 ```ts models function aSerializer
 export function aSerializer(item: A): any {
-  return { exactVersion: item["exactVersion"] };
+  return {
+    exactVersion: item["exactVersion"],
+  };
 }
 ```
 
@@ -2568,16 +2643,10 @@ compatibility-mode: true
 ## Model interface Vegetables
 
 ```ts models interface Vegetables
-/**
- * This file contains only generated model types and their (de)serializers.
- * Disable the following rules for internal models with '_' prefix and deserializers which require 'any' for raw JSON input.
- */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/** model interface Vegetables */
-export interface Vegetables extends Record<string, number | string> {
+export interface Vegetables {
   carrots: number;
   beans: number;
+  [key: string]: VegetablesAdditionalProperty;
 }
 ```
 
@@ -2585,7 +2654,11 @@ export interface Vegetables extends Record<string, number | string> {
 
 ```ts models function vegetablesSerializer
 export function vegetablesSerializer(item: Vegetables): any {
-  return { ...item, carrots: item["carrots"], beans: item["beans"] };
+  return {
+    carrots: item["carrots"],
+    beans: item["beans"],
+    ...(item["additionalProperties"] ?? {}),
+  };
 }
 ```
 
@@ -2611,57 +2684,30 @@ mustEmptyDiagnostic: true
 ## Models
 
 ```ts models
-import { serializeRecord } from "../static-helpers/serialization/serialize-record.js";
-
-/**
- * This file contains only generated model types and their (de)serializers.
- * Disable the following rules for internal models with '_' prefix and deserializers which require 'any' for raw JSON input.
- */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/** model interface Vegetables */
 export interface Vegetables {
   carrots: number;
   beans: number;
-  /** Additional properties */
-  additionalProperties?: Record<string, number | string>;
+  [key: string]: VegetablesAdditionalProperty;
 }
+
+/**
+ * Alias for VegetablesAdditionalProperty
+ */
+export type VegetablesAdditionalProperty = number | string;
 
 export function vegetablesSerializer(item: Vegetables): any {
   return {
-    ...serializeRecord(
-      item.additionalProperties ?? {},
-      undefined,
-      _vegetablesAdditionalPropertySerializer,
-    ),
     carrots: item["carrots"],
     beans: item["beans"],
+    ...(item["additionalProperties"] ?? {}),
   };
 }
 
 export function vegetablesDeserializer(item: any): Vegetables {
   return {
-    additionalProperties: serializeRecord(
-      item,
-      ["carrots", "beans"],
-      _vegetablesAdditionalPropertyDeserializer,
-    ),
     carrots: item["carrots"],
     beans: item["beans"],
   };
-}
-
-/** Alias for _VegetablesAdditionalProperty */
-export type _VegetablesAdditionalProperty = number | string;
-
-export function _vegetablesAdditionalPropertySerializer(item: _VegetablesAdditionalProperty): any {
-  return item;
-}
-
-export function _vegetablesAdditionalPropertyDeserializer(
-  item: any,
-): _VegetablesAdditionalProperty {
-  return item;
 }
 ```
 
@@ -2689,15 +2735,9 @@ compatibility-mode: true
 ## Model interface A
 
 ```ts models interface A
-/**
- * This file contains only generated model types and their (de)serializers.
- * Disable the following rules for internal models with '_' prefix and deserializers which require 'any' for raw JSON input.
- */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/** model interface A */
-export interface A extends Base, Record<string, number> {
+export interface A extends Base {
   prop: number;
+  [key: string]: number;
 }
 ```
 
@@ -2705,14 +2745,16 @@ export interface A extends Base, Record<string, number> {
 
 ```ts models function aSerializer
 export function aSerializer(item: A): any {
-  return { ...item, foo: item["foo"], prop: item["prop"] };
+  return {
+    prop: item["prop"],
+    ...(item["additionalProperties"] ?? {}),
+  };
 }
 ```
 
 ## Model interface Base
 
 ```ts models interface Base
-/** model interface Base */
 export interface Base {
   foo: number;
 }
@@ -2722,7 +2764,9 @@ export interface Base {
 
 ```ts models function baseSerializer
 export function baseSerializer(item: Base): any {
-  return { foo: item["foo"] };
+  return {
+    foo: item["foo"],
+  };
 }
 ```
 
@@ -2757,59 +2801,68 @@ op createService(@body body: ServiceResourceProperties): ServiceResourceProperti
 ## Models
 
 ```ts models
-/**
- * This file contains only generated model types and their (de)serializers.
- * Disable the following rules for internal models with '_' prefix and deserializers which require 'any' for raw JSON input.
- */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/** model interface ServiceResourceProperties */
 export interface ServiceResourceProperties {
   servicePlacementPolicies?: ServicePlacementPolicyDescription[];
 }
 
-export function serviceResourcePropertiesSerializer(item: ServiceResourceProperties): any {
-  return {
-    servicePlacementPolicies: !item["servicePlacementPolicies"]
-      ? item["servicePlacementPolicies"]
-      : servicePlacementPolicyDescriptionArraySerializer(item["servicePlacementPolicies"]),
-  };
-}
-
-export function serviceResourcePropertiesDeserializer(item: any): ServiceResourceProperties {
-  return {
-    servicePlacementPolicies: !item["servicePlacementPolicies"]
-      ? item["servicePlacementPolicies"]
-      : servicePlacementPolicyDescriptionArrayDeserializer(item["servicePlacementPolicies"]),
-  };
-}
-
-export function servicePlacementPolicyDescriptionArraySerializer(
-  result: Array<ServicePlacementPolicyDescription>,
-): any[] {
-  return result.map((item) => {
-    return servicePlacementPolicyDescriptionSerializer(item);
-  });
-}
-
-export function servicePlacementPolicyDescriptionArrayDeserializer(
-  result: Array<ServicePlacementPolicyDescription>,
-): any[] {
-  return result.map((item) => {
-    return servicePlacementPolicyDescriptionDeserializer(item);
-  });
-}
-
-/** model interface ServicePlacementPolicyDescription */
 export interface ServicePlacementPolicyDescription extends Pet {
   kind: "dog";
-  type: string;
+  type: "dog";
+}
+
+export interface Pet {
+  kind: string;
+  name: string;
+  weight?: number;
+}
+
+/**
+ * Alias for `Pet`
+ */
+export type PetUnion = ServicePlacementPolicyDescription | Pet;
+
+export function serviceResourcePropertiesSerializer(
+  item: ServiceResourceProperties,
+): any {
+  return {
+    servicePlacementPolicies: !item["servicePlacementPolicies"]
+      ? item["servicePlacementPolicies"]
+      : item["servicePlacementPolicies"].map((p: any) => {
+          return servicePlacementPolicyDescriptionSerializer(p);
+        }),
+  };
 }
 
 export function servicePlacementPolicyDescriptionSerializer(
   item: ServicePlacementPolicyDescription,
 ): any {
-  return { kind: item["kind"], name: item["name"], weight: item["weight"], type: item["type"] };
+  return {
+    kind: item["kind"],
+    type: item["type"],
+  };
+}
+
+export function petUnionSerializer(item: PetUnion): any {
+  switch (item["kind"]) {
+    case "dog":
+      return servicePlacementPolicyDescriptionSerializer(
+        item as ServicePlacementPolicyDescription,
+      );
+    default:
+      return item;
+  }
+}
+
+export function serviceResourcePropertiesDeserializer(
+  item: any,
+): ServiceResourceProperties {
+  return {
+    servicePlacementPolicies: !item["servicePlacementPolicies"]
+      ? item["servicePlacementPolicies"]
+      : item["servicePlacementPolicies"].map((p: any) => {
+          return servicePlacementPolicyDescriptionDeserializer(p);
+        }),
+  };
 }
 
 export function servicePlacementPolicyDescriptionDeserializer(
@@ -2817,42 +2870,8 @@ export function servicePlacementPolicyDescriptionDeserializer(
 ): ServicePlacementPolicyDescription {
   return {
     kind: item["kind"],
-    name: item["name"],
-    weight: item["weight"],
     type: item["type"],
   };
-}
-
-/** model interface Pet */
-export interface Pet {
-  kind: string;
-  name: string;
-  weight?: number;
-}
-
-export function petSerializer(item: Pet): any {
-  return { kind: item["kind"], name: item["name"], weight: item["weight"] };
-}
-
-export function petDeserializer(item: any): Pet {
-  return {
-    kind: item["kind"],
-    name: item["name"],
-    weight: item["weight"],
-  };
-}
-
-/** Alias for PetUnion */
-export type PetUnion = ServicePlacementPolicyDescription | Pet;
-
-export function petUnionSerializer(item: PetUnion): any {
-  switch (item.kind) {
-    case "dog":
-      return servicePlacementPolicyDescriptionSerializer(item as ServicePlacementPolicyDescription);
-
-    default:
-      return petSerializer(item);
-  }
 }
 
 export function petUnionDeserializer(item: any): PetUnion {
@@ -2861,9 +2880,8 @@ export function petUnionDeserializer(item: any): PetUnion {
       return servicePlacementPolicyDescriptionDeserializer(
         item as ServicePlacementPolicyDescription,
       );
-
     default:
-      return petDeserializer(item);
+      return item;
   }
 }
 ```
@@ -2884,20 +2902,16 @@ op read(@body body: Client): Client;
 ## Models
 
 ```ts models
-/**
- * This file contains only generated model types and their (de)serializers.
- * Disable the following rules for internal models with '_' prefix and deserializers which require 'any' for raw JSON input.
- */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/** model interface Client */
 export interface Client {
   id: string;
   email: string;
 }
 
 export function clientSerializer(item: Client): any {
-  return { id: item["id"], email: item["email"] };
+  return {
+    id: item["id"],
+    email: item["email"],
+  };
 }
 
 export function clientDeserializer(item: any): Client {
@@ -2911,45 +2925,57 @@ export function clientDeserializer(item: any): Client {
 ## Operations
 
 ```ts operations
-import { TestingContext as Client } from "./index.js";
-import { Client as Client_1, clientSerializer, clientDeserializer } from "../models/models.js";
-import { ReadOptionalParams } from "./options.js";
 import {
-  StreamableMethod,
-  PathUncheckedResponse,
-  createRestError,
-  operationOptionsToRequestParameters,
-} from "@azure-rest/core-client";
+  type Client as Client_2,
+  clientDeserializer as clientDeserializer_1,
+  clientSerializer as clientSerializer_1,
+} from "../models/models.js";
+import {
+  type Client as Client_1,
+  createRestError as createRestError_1,
+  type OperationOptions as OperationOptions_1,
+  operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
+  type PathUncheckedResponse as PathUncheckedResponse_1,
+  type StreamableMethod as StreamableMethod_1,
+} from "@typespec/ts-http-runtime";
+
+/**
+ * Optional parameters for the read operation.
+ */
+export interface ReadOptionalParams extends OperationOptions_1 {}
 
 export function _readSend(
-  context: Client,
-  body: Client_1,
+  context: Client_1,
+  body: Client_2,
   options: ReadOptionalParams = { requestOptions: {} },
-): StreamableMethod {
-  return context
-    .path("/")
-    .post({
-      ...operationOptionsToRequestParameters(options),
-      contentType: "application/json",
-      headers: { accept: "application/json", ...options.requestOptions?.headers },
-      body: clientSerializer(body),
-    });
+): StreamableMethod_1 {
+  return context.path("/").post({
+    ...operationOptionsToRequestParameters_1(options),
+    contentType: "application/json",
+    headers: {
+      accept: "application/json",
+      ...options.requestOptions?.headers,
+    },
+    body: clientSerializer_1(body),
+  });
 }
 
-export async function _readDeserialize(result: PathUncheckedResponse): Promise<Client_1> {
+export async function _readDeserialize(
+  result: PathUncheckedResponse_1,
+): Promise<Client_2> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError(result);
+    throw createRestError_1(result);
   }
 
-  return clientDeserializer(result.body);
+  return clientDeserializer_1(result.body);
 }
 
 export async function read(
-  context: Client,
-  body: Client_1,
+  context: Client_1,
+  body: Client_2,
   options: ReadOptionalParams = { requestOptions: {} },
-): Promise<Client_1> {
+): Promise<Client_2> {
   const result = await _readSend(context, body, options);
   return _readDeserialize(result);
 }

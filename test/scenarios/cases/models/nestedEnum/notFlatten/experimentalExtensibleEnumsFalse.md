@@ -66,40 +66,71 @@ experimental-extensible-enums: false
 Model generated.
 
 ```ts models
-/**
- * This file contains only generated model types and their (de)serializers.
- * Disable the following rules for internal models with '_' prefix and deserializers which require 'any' for raw JSON input.
- */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/** model interface _FooRequestBody */
-export interface _FooRequestBody {
+export interface FooRequestBody {
   status: ProvisioningState;
 }
 
-export function _fooRequestBodySerializer(item: _FooRequestBody): any {
-  return { status: provisioningStateSerializer(item["status"]) };
+export interface FooRequest {
+  body: FooRequestBody;
 }
 
-/** The resource provisioning state. */
-export type ProvisioningState =
-  | ResourceProvisioningState
-  | "Provisioning"
-  | "Updating"
-  | "Deleting"
-  | "Accepted"
-  | string;
+/**
+ * The resource provisioning state.
+ */
+export type ProvisioningState = string;
 
-export function provisioningStateSerializer(item: ProvisioningState): any {
-  return item;
+/**
+ * The resource provisioning state.
+ */
+export enum KnownProvisioningState {
+  /**
+   * Resource has been created.
+   */
+  Succeeded = "Succeeded",
+  /**
+   * Resource creation failed.
+   */
+  Failed = "Failed",
+  /**
+   * Resource creation was canceled.
+   */
+  Canceled = "Canceled",
+  /**
+   * The resource is being provisioned
+   */
+  Provisioning = "Provisioning",
+  /**
+   * The resource is updating
+   */
+  Updating = "Updating",
+  /**
+   * The resource is being deleted
+   */
+  Deleting = "Deleting",
+  /**
+   * The resource create request has been accepted
+   */
+  Accepted = "Accepted",
 }
 
-/** The provisioning state of a resource type. */
-export type ResourceProvisioningState = "Succeeded" | "Failed" | "Canceled";
+/**
+ * The available API versions.
+ */
+export type Versions = "2021-10-01-preview";
 
-/** The available API versions. */
+/**
+ * The available API versions.
+ */
 export enum KnownVersions {
-  /** 2021-10-01-preview version */
-  V20211001Preview = "2021-10-01-preview",
+  /**
+   * 2021-10-01-preview version
+   */
+  V2021_10_01Preview = "2021-10-01-preview",
+}
+
+export function fooRequestBodySerializer(item: FooRequestBody): any {
+  return {
+    status: item["status"],
+  };
 }
 ```

@@ -15,6 +15,7 @@
  * - Optional body parameters get null-check guards.
  * - Send function is referenceable via sendOperationRefkey.
  * - Combined path + query parameters work together.
+ * - Spread body parameters produce inline object literals with per-property serialization.
  */
 import "@alloy-js/core/testing";
 import { code } from "@alloy-js/core";
@@ -443,6 +444,58 @@ describe("SendOperation", () => {
       ): StreamableMethod {
         const path = expandUrlTemplate("/items/{id}", { "id": id }, { allowReserved: options?.requestOptions?.skipUrlEncoding });
         return context.path(path).patch({ ...operationOptionsToRequestParameters(options), contentType: "application/json", headers: { accept: "text/plain", ...options.requestOptions?.headers }, body: !options?.body ? options?.body : patchDataSerializer(options?.body) });
+      }
+    `);
+  });
+
+  /**
+   * Tests that spread body parameters produce an inline object literal with
+   * per-property serialization. When TypeSpec uses `...Model` to spread model
+   * properties into operation parameters, the emitter must construct the body
+   * as `{ prop1: val1, prop2: serializeDate(val2) }` rather than calling a
+   * model serializer. This is critical because spread anonymous models have
+   * no declared serializer function — property-level serialization is the
+   * only correct approach.
+   */
+  it("should handle spread body as inline object literal", async () => {
+    const runner = await TesterWithService.createInstance();
+    const { program } = await runner.compile(
+      t.code`
+        model SpreadData {
+          name: string;
+          count: int32;
+        }
+
+        @post op ${t.op("createItem")}(...SpreadData): void;
+      `,
+    );
+
+    const sdkContext = await createSdkContextForTest(program);
+    const method = getFirstMethod(sdkContext);
+
+    const template = (
+      <SdkTestFile sdkContext={sdkContext} externals={[httpRuntimeLib]}>
+        <OperationOptionsDeclaration method={method} />
+        {"\n\n"}
+        <SendOperation method={method} />
+      </SdkTestFile>
+    );
+
+    expect(template).toRenderTo(d`
+      import { type Client, type OperationOptions, operationOptionsToRequestParameters, type StreamableMethod } from "@typespec/ts-http-runtime";
+
+      /**
+       * Optional parameters for the createItem operation.
+       */
+      export interface CreateItemOptionalParams extends OperationOptions {}
+
+      export function _createItemSend(
+        context: Client,
+        name: string,
+        count: number,
+        options: CreateItemOptionalParams = { requestOptions: {} },
+      ): StreamableMethod {
+        return context.path("/").post({ ...operationOptionsToRequestParameters(options), contentType: "application/json", body: { "name": name, "count": count } });
       }
     `);
   });

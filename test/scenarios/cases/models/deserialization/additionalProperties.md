@@ -28,21 +28,14 @@ compatibility-mode: true
 Generated Models.
 
 ```ts models
-/**
- * This file contains only generated model types and their (de)serializers.
- * Disable the following rules for internal models with '_' prefix and deserializers which require 'any' for raw JSON input.
- */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/** model interface SimpleModel */
-export interface SimpleModel extends Record<string, string> {
+export interface SimpleModel {
   propA: string;
   propB: string;
+  [key: string]: string;
 }
 
 export function simpleModelDeserializer(item: any): SimpleModel {
   return {
-    ...item,
     propA: item["propA"],
     propB: item["propB"],
   };
@@ -114,117 +107,85 @@ mustEmptyDiagnostic: false
 Generated Models.
 
 ```ts models
-import { serializeRecord } from "../static-helpers/serialization/serialize-record.js";
-
-/**
- * This file contains only generated model types and their (de)serializers.
- * Disable the following rules for internal models with '_' prefix and deserializers which require 'any' for raw JSON input.
- */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/** model interface SimpleModel */
 export interface SimpleModel {
   propA: string;
   propB: string;
-  /** Additional properties */
-  additionalProperties?: Record<string, string>;
+  [key: string]: string;
 }
 
-export function simpleModelDeserializer(item: any): SimpleModel {
-  return {
-    additionalProperties: serializeRecord(item, ["propA", "propB"]),
-    propA: item["propA"],
-    propB: item["propB"],
-  };
-}
-
-/** model interface EmptyModel */
 export interface EmptyModel {
-  /** Additional properties */
-  additionalProperties?: Record<string, string>;
+  [key: string]: string;
 }
 
-export function emptyModelDeserializer(item: any): EmptyModel {
-  return {
-    additionalProperties: serializeRecord(item, []),
-  };
-}
-
-/** model interface UnionModel */
 export interface UnionModel {
   propA: string;
   propB: string;
-  /** Additional properties */
-  additionalProperties?: Record<string, string | number>;
+  [key: string]: UnionModelAdditionalProperty;
 }
 
-export function unionModelDeserializer(item: any): UnionModel {
-  return {
-    additionalProperties: serializeRecord(
-      item,
-      ["propA", "propB"],
-      _unionModelAdditionalPropertyDeserializer,
-    ),
-    propA: item["propA"],
-    propB: item["propB"],
-  };
-}
-
-/** Alias for _UnionModelAdditionalProperty */
-export type _UnionModelAdditionalProperty = string | number;
-
-export function _unionModelAdditionalPropertyDeserializer(
-  item: any,
-): _UnionModelAdditionalProperty {
-  return item;
-}
-
-/** model interface NameConflictModel */
 export interface NameConflictModel {
   additionalProperties: Record<string, number>;
   propA: string;
   propB: string;
-  /** Additional properties */
-  additionalPropertiesBag?: Record<string, string>;
+  [key: string]: string;
+}
+
+export interface ObjectAdditionalPropsModel {
+  additionalProperties: ObjectAdditionalPropsModelAdditionalProperties;
+  propA: string;
+  propB: string;
+  [key: string]: string;
+}
+
+export interface ObjectAdditionalPropsModelAdditionalProperties {}
+
+/**
+ * Alias for UnionModelAdditionalProperty
+ */
+export type UnionModelAdditionalProperty = string | number;
+
+export function simpleModelDeserializer(item: any): SimpleModel {
+  return {
+    propA: item["propA"],
+    propB: item["propB"],
+  };
+}
+
+export function emptyModelDeserializer(item: any): EmptyModel {
+  return {};
+}
+
+export function unionModelDeserializer(item: any): UnionModel {
+  return {
+    propA: item["propA"],
+    propB: item["propB"],
+  };
 }
 
 export function nameConflictModelDeserializer(item: any): NameConflictModel {
   return {
-    additionalPropertiesBag: serializeRecord(item, ["additionalProperties", "propA", "propB"]),
-    additionalProperties: Object.fromEntries(
-      Object.entries(item["additionalProperties"]).map(([k, p]: [string, any]) => [k, p]),
-    ),
+    additionalProperties: item["additionalProperties"],
     propA: item["propA"],
     propB: item["propB"],
   };
 }
 
-/** model interface ObjectAdditionalPropsModel */
-export interface ObjectAdditionalPropsModel {
-  additionalProperties: Record<string, any>;
-  propA: string;
-  propB: string;
-  /** Additional properties */
-  additionalPropertiesBag?: Record<string, string>;
-}
-
-export function objectAdditionalPropsModelDeserializer(item: any): ObjectAdditionalPropsModel {
-  return {
-    additionalPropertiesBag: serializeRecord(item, ["additionalProperties", "propA", "propB"]),
-    additionalProperties: _objectAdditionalPropsModelAdditionalPropertiesDeserializer(
-      item["additionalProperties"],
-    ),
-    propA: item["propA"],
-    propB: item["propB"],
-  };
-}
-
-/** model interface _ObjectAdditionalPropsModelAdditionalProperties */
-export interface _ObjectAdditionalPropsModelAdditionalProperties {}
-
-export function _objectAdditionalPropsModelAdditionalPropertiesDeserializer(
+export function objectAdditionalPropsModelDeserializer(
   item: any,
-): _ObjectAdditionalPropsModelAdditionalProperties {
-  return item;
+): ObjectAdditionalPropsModel {
+  return {
+    additionalProperties:
+      objectAdditionalPropsModelAdditionalPropertiesDeserializer(
+        item["additionalProperties"],
+      ),
+    propA: item["propA"],
+    propB: item["propB"],
+  };
+}
+
+export function objectAdditionalPropsModelAdditionalPropertiesDeserializer(
+  item: any,
+): ObjectAdditionalPropsModelAdditionalProperties {
+  return {};
 }
 ```

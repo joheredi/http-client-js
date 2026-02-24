@@ -43,39 +43,47 @@ under the `"Field"` item element name within the `"Schema"` wrapper element, pro
 the structure `{ "Schema": { "Field": [items...] } }` instead of `{ "Schema": [items...] }`.
 
 ```ts models interface ArrowField
-/** Represents an Apache Arrow field. */
 export interface ArrowField {
-  /** The arrow field type. */
+  /**
+   * The arrow field type.
+   */
   type: string;
-  /** The arrow field name. */
+  /**
+   * The arrow field name.
+   */
   name?: string;
-  /** The arrow field precision. */
+  /**
+   * The arrow field precision.
+   */
   precision?: number;
 }
 ```
 
 ```ts models interface ArrowConfiguration
-/**
- * This file contains only generated model types and their (de)serializers.
- * Disable the following rules for internal models with '_' prefix and deserializers which require 'any' for raw JSON input.
- */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/** Represents the Apache Arrow configuration. */
 export interface ArrowConfiguration {
-  /** The Apache Arrow schema */
+  /**
+   * The Apache Arrow schema
+   */
   schema: ArrowField[];
 }
 ```
 
 ```ts models function arrowFieldXmlObjectSerializer
-export function arrowFieldXmlObjectSerializer(item: ArrowField): XmlSerializedObject {
-  return { Type: item["type"], Name: item["name"], Precision: item["precision"] };
+export function arrowFieldXmlObjectSerializer(
+  item: ArrowField,
+): XmlSerializedObject {
+  return {
+    Type: item["type"],
+    Name: item["name"],
+    Precision: item["precision"],
+  };
 }
 ```
 
 ```ts models function arrowConfigurationXmlSerializer
-export function arrowConfigurationXmlSerializer(item: ArrowConfiguration): string {
+export function arrowConfigurationXmlSerializer(
+  item: ArrowConfiguration,
+): string {
   const properties: XmlPropertyMetadata[] = [
     {
       propertyName: "schema",
@@ -92,7 +100,11 @@ export function arrowConfigurationXmlSerializer(item: ArrowConfiguration): strin
 export function arrowConfigurationXmlObjectSerializer(
   item: ArrowConfiguration,
 ): XmlSerializedObject {
-  return { Schema: { Field: item["schema"]?.map((i: any) => arrowFieldXmlObjectSerializer(i)) } };
+  return {
+    Schema: {
+      Field: item["schema"]?.map((i: any) => arrowFieldXmlObjectSerializer(i)),
+    },
+  };
 }
 ```
 
@@ -137,25 +149,23 @@ The key validation is that `blobTagsXmlObjectSerializer` uses the `itemsName` ("
 as the key for the unwrapped array, producing `{ "TagSet": [items...] }`.
 
 ```ts models interface BlobTag
-/** A single tag */
 export interface BlobTag {
-  /** Tag key */
+  /**
+   * Tag key
+   */
   key: string;
-  /** Tag value */
+  /**
+   * Tag value
+   */
   value: string;
 }
 ```
 
 ```ts models interface BlobTags
-/**
- * This file contains only generated model types and their (de)serializers.
- * Disable the following rules for internal models with '_' prefix and deserializers which require 'any' for raw JSON input.
- */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/** Container for tags */
 export interface BlobTags {
-  /** The tag set */
+  /**
+   * The tag set
+   */
   blobTagSet: BlobTag[];
 }
 ```
@@ -181,7 +191,11 @@ export function blobTagsXmlSerializer(item: BlobTags): string {
 ```
 
 ```ts models function blobTagsXmlObjectSerializer
-export function blobTagsXmlObjectSerializer(item: BlobTags): XmlSerializedObject {
-  return { TagSet: item["blobTagSet"]?.map((i: any) => blobTagXmlObjectSerializer(i)) };
+export function blobTagsXmlObjectSerializer(
+  item: BlobTags,
+): XmlSerializedObject {
+  return {
+    TagSet: item["blobTagSet"]?.map((i: any) => blobTagXmlObjectSerializer(i)),
+  };
 }
 ```

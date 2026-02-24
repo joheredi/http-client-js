@@ -41,18 +41,25 @@ Model generated.
 
 ```ts models
 /**
- * This file contains only generated model types and their (de)serializers.
- * Disable the following rules for internal models with '_' prefix and deserializers which require 'any' for raw JSON input.
+ * Type of Foo
  */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/** Alias for Foo */
-export type Foo = "bar" | Baz | string;
+export type Foo = string;
 
-export function fooSerializer(item: Foo): any {
-  return item;
+/**
+ * Known values of {@link Foo} that the service accepts.
+ */
+export enum KnownFoo {
+  /**
+   * test
+   */
+  Test = "test",
+  /**
+   * foo
+   */
+  Foo = "foo",
+  /**
+   * bar
+   */
+  Bar = "bar",
 }
-
-/** Type of Baz */
-export type Baz = "test" | "foo";
 ```

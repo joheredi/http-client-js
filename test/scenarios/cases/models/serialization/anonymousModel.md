@@ -1,4 +1,5 @@
 # Should generate serializer for anonymous models
+
 Will prompt all operations into top-level.
 
 ## TypeSpec
@@ -27,47 +28,39 @@ interface D {
 Generated Models.
 
 ```ts models
-/**
- * This file contains only generated model types and their (de)serializers.
- * Disable the following rules for internal models with '_' prefix and deserializers which require 'any' for raw JSON input.
- */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/** model interface SimpleModel */
 export interface SimpleModel {
-  prop: {
-    propA: string;
-    propB: {
-      propAA: string;
-      propBB: boolean;
-    };
-  };
+  prop: SimpleModelProp;
+}
+
+export interface SimpleModelProp {
+  propA: string;
+  propB: SimpleModelPropPropB;
+}
+
+export interface SimpleModelPropPropB {
+  propAa: string;
+  propBb: boolean;
 }
 
 export function simpleModelSerializer(item: SimpleModel): any {
-  return { prop: _simpleModelPropSerializer(item["prop"]) };
-}
-
-/** model interface _SimpleModelProp */
-export interface _SimpleModelProp {
-  propA: string;
-  propB: {
-    propAA: string;
-    propBB: boolean;
+  return {
+    prop: simpleModelPropSerializer(item["prop"]),
   };
 }
 
-export function _simpleModelPropSerializer(item: _SimpleModelProp): any {
-  return { propA: item["propA"], propB: _simpleModelPropPropBSerializer(item["propB"]) };
+export function simpleModelPropSerializer(item: SimpleModelProp): any {
+  return {
+    propA: item["propA"],
+    propB: simpleModelPropPropBSerializer(item["propB"]),
+  };
 }
 
-/** model interface _SimpleModelPropPropB */
-export interface _SimpleModelPropPropB {
-  propAA: string;
-  propBB: boolean;
-}
-
-export function _simpleModelPropPropBSerializer(item: _SimpleModelPropPropB): any {
-  return { propAA: item["propAA"], propBB: item["propBB"] };
+export function simpleModelPropPropBSerializer(
+  item: SimpleModelPropPropB,
+): any {
+  return {
+    propAA: item["propAA"],
+    propBB: item["propBB"],
+  };
 }
 ```

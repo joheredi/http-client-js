@@ -93,110 +93,82 @@ Raw json files.
 Model generated.
 
 ```ts models
-import { areAllPropsUndefined } from "../static-helpers/serialization/check-prop-undefined.js";
-
 /**
- * This file contains only generated model types and their (de)serializers.
- * Disable the following rules for internal models with '_' prefix and deserializers which require 'any' for raw JSON input.
+ * This is a simple model.
  */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/** This is a simple model. */
 export interface BodyParameter {
   baz: string;
   bar?: A[];
-  bazPropertiesBaz: A[];
+  baz: A[];
   properties?: ChildFlattenModel;
   description?: string;
-  bazProperties2Baz?: number;
-  descriptionEmptyFlattenDescription?: string;
-  bazEmptyFlattenBaz?: number;
+  baz?: number;
+  description?: string;
+  baz?: number;
 }
 
-export function bodyParameterSerializer(item: BodyParameter): any {
-  return {
-    baz: item["baz"],
-    properties: _bodyParameterPropertiesSerializer(item),
-    properties2: areAllPropsUndefined(item, ["description", "baz"])
-      ? undefined
-      : _bodyParameterProperties2Serializer(item),
-    emptyFlatten: areAllPropsUndefined(item, ["description", "baz"])
-      ? undefined
-      : _bodyParameterEmptyFlattenSerializer(item),
-  };
-}
-
-/** model interface FooProperties */
 export interface FooProperties {
   bar?: A[];
   baz: A[];
   description?: string;
-  bazPropertiesBaz?: number;
+  baz?: number;
 }
 
-export function fooPropertiesSerializer(item: FooProperties): any {
-  return {
-    bar: !item["bar"] ? item["bar"] : aArraySerializer(item["bar"]),
-    baz: aArraySerializer(item["baz"]),
-    properties: areAllPropsUndefined(item, ["description", "baz"])
-      ? undefined
-      : _fooPropertiesPropertiesSerializer(item),
-  };
-}
-
-export function aArraySerializer(result: Array<A>): any[] {
-  return result.map((item) => {
-    return aSerializer(item);
-  });
-}
-
-/** model interface A */
 export interface A {
   x: string;
 }
 
-export function aSerializer(item: A): any {
-  return { x: item["x"] };
-}
-
-/** model interface ChildFlattenModel */
 export interface ChildFlattenModel {
   description: string;
   baz: number;
 }
 
-export function childFlattenModelSerializer(item: ChildFlattenModel): any {
-  return { description: item["description"], baz: item["baz"] };
-}
-
-/** Known values of {@link Versions} that the service accepts. */
-export enum KnownVersions {
-  /** 2022-05-15-preview */
-  V20220515Preview = "2022-05-15-preview",
-}
-
-export function _fooPropertiesPropertiesSerializer(item: FooProperties): any {
-  return { description: item["description"], baz: item["bazPropertiesBaz"] };
-}
-
-export function _bodyParameterPropertiesSerializer(item: BodyParameter): any {
+export function bodyParameterSerializer(item: BodyParameter): any {
   return {
-    bar: !item["bar"] ? item["bar"] : aArraySerializer(item["bar"]),
-    baz: aArraySerializer(item["bazPropertiesBaz"]),
+    baz: item["baz"],
+    bar: !item["bar"]
+      ? item["bar"]
+      : item["bar"].map((p: any) => {
+          return aSerializer(p);
+        }),
+    baz: item["baz"].map((p: any) => {
+      return aSerializer(p);
+    }),
     properties: !item["properties"]
       ? item["properties"]
       : childFlattenModelSerializer(item["properties"]),
+    description: item["description"],
+    baz: item["baz"],
+    description: item["description"],
+    baz: item["baz"],
   };
 }
 
-export function _bodyParameterProperties2Serializer(item: BodyParameter): any {
-  return { description: item["description"], baz: item["bazProperties2Baz"] };
+export function fooPropertiesSerializer(item: FooProperties): any {
+  return {
+    bar: !item["bar"]
+      ? item["bar"]
+      : item["bar"].map((p: any) => {
+          return aSerializer(p);
+        }),
+    baz: item["baz"].map((p: any) => {
+      return aSerializer(p);
+    }),
+    description: item["description"],
+    baz: item["baz"],
+  };
 }
 
-export function _bodyParameterEmptyFlattenSerializer(item: BodyParameter): any {
+export function aSerializer(item: A): any {
   return {
-    description: item["descriptionEmptyFlattenDescription"],
-    baz: item["bazEmptyFlattenBaz"],
+    x: item["x"],
+  };
+}
+
+export function childFlattenModelSerializer(item: ChildFlattenModel): any {
+  return {
+    description: item["description"],
+    baz: item["baz"],
   };
 }
 ```

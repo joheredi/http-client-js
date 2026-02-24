@@ -23,26 +23,19 @@ op getResultFile(
 
 ```ts operations function _getResultFileSend
 export function _getResultFileSend(
-  context: Client,
+  context: Client_1,
   operationId: string,
   path: string,
   options: GetResultFileOptionalParams = { requestOptions: {} },
-): StreamableMethod {
-  const path_1 = expandUrlTemplate(
+): StreamableMethod_1 {
+  const path = expandUrlTemplate_1(
     "/analyzerResults/{operationId}/files/{+path}",
-    {
-      operationId: operationId,
-      path: path,
-    },
-    {
-      allowReserved: options?.requestOptions?.skipUrlEncoding,
-    },
+    { operationId: operationId, path: path },
+    { allowReserved: options?.requestOptions?.skipUrlEncoding },
   );
-  return context
-    .path(path_1)
-    .get({
-      ...operationOptionsToRequestParameters(options),
-      headers: { accept: "text/plain", ...options.requestOptions?.headers },
-    });
+  return context.path(path).get({
+    ...operationOptionsToRequestParameters_1(options),
+    headers: { accept: "text/plain", ...options.requestOptions?.headers },
+  });
 }
 ```

@@ -40,13 +40,19 @@ Generate as normal enums.
 
 ```ts models
 /**
- * This file contains only generated model types and their (de)serializers.
- * Disable the following rules for internal models with '_' prefix and deserializers which require 'any' for raw JSON input.
+ * The available API versions.
  */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/** The available API versions. */
 export type Versions = "2021-10-01-preview";
+
+/**
+ * The available API versions.
+ */
+export enum KnownVersions {
+  /**
+   * 2021-10-01-preview version
+   */
+  V2021_10_01Preview = "2021-10-01-preview",
+}
 ```
 
 ## Operations
@@ -54,41 +60,46 @@ export type Versions = "2021-10-01-preview";
 Should normal operation with enum parameter:
 
 ```ts operations
-import { ContosoContext as Client } from "./index.js";
-import { FooOptionalParams } from "./options.js";
 import {
-  StreamableMethod,
-  PathUncheckedResponse,
-  createRestError,
-  operationOptionsToRequestParameters,
-} from "@azure-rest/core-client";
+  type Client as Client_1,
+  createRestError as createRestError_1,
+  type OperationOptions as OperationOptions_1,
+  operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
+  type PathUncheckedResponse as PathUncheckedResponse_1,
+  type StreamableMethod as StreamableMethod_1,
+} from "@typespec/ts-http-runtime";
+
+/**
+ * Optional parameters for the foo operation.
+ */
+export interface FooOptionalParams extends OperationOptions_1 {}
 
 export function _fooSend(
-  context: Client,
+  context: Client_1,
   options: FooOptionalParams = { requestOptions: {} },
-): StreamableMethod {
-  return context
-    .path("/")
-    .get({
-      ...operationOptionsToRequestParameters(options),
-      headers: {
-        "api-version": context.apiVersion ?? "2021-10-01-preview",
-        ...options.requestOptions?.headers,
-      },
-    });
+): StreamableMethod_1 {
+  return context.path("/").get({
+    ...operationOptionsToRequestParameters_1(options),
+    headers: {
+      "api-version": options?.apiVersion,
+      ...options.requestOptions?.headers,
+    },
+  });
 }
 
-export async function _fooDeserialize(result: PathUncheckedResponse): Promise<void> {
+export async function _fooDeserialize(
+  result: PathUncheckedResponse_1,
+): Promise<void> {
   const expectedStatuses = ["204"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError(result);
+    throw createRestError_1(result);
   }
 
   return;
 }
 
 export async function foo(
-  context: Client,
+  context: Client_1,
   options: FooOptionalParams = { requestOptions: {} },
 ): Promise<void> {
   const result = await _fooSend(context, options);

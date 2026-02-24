@@ -72,6 +72,86 @@ import { emitForScenario } from "./emit-for-scenario.js";
 const SCENARIOS_UPDATE =
   process.env["RECORD"] === "true" || process.env["SCENARIOS_UPDATE"] === "true";
 
+// ─── Import Normalization ───────────────────────────────────────────────
+
+/**
+ * Normalizes TypeScript import statements for stable comparison.
+ *
+ * Alloy generates imports in non-deterministic order based on refkey resolution
+ * order. This causes different import specifier orderings between runs.
+ * Prettier preserves specifier order, so differently-ordered imports produce
+ * different formatted output. Import ordering is an acceptable difference
+ * per the PRD.
+ *
+ * This function:
+ * 1. Finds all import statements (including multi-line)
+ * 2. Sorts import specifiers alphabetically within each statement
+ * 3. Sorts import statements by their module path
+ *
+ * @param code - The TypeScript code string to normalize
+ * @returns The code with normalized import ordering
+ */
+function normalizeImports(code: string): string {
+  // Match import statements including multi-line ones.
+  // Handles: import { A, B } from "x"; and import {\n  A,\n  B,\n} from "x";
+  const importRegex = /import\s+(type\s+)?\{([^}]*)\}\s+from\s+"([^"]+)";/gs;
+
+  // Collect all imports and their positions
+  const replacements: { start: number; end: number; module: string; normalized: string }[] = [];
+
+  let match;
+  while ((match = importRegex.exec(code)) !== null) {
+    const typePrefix = match[1] ? "type " : "";
+    const specifiersRaw = match[2];
+    const module = match[3];
+
+    // Parse specifiers (handle newlines, trailing commas, whitespace)
+    const specifiers = specifiersRaw
+      .split(",")
+      .map((s) => s.trim())
+      .filter((s) => s.length > 0)
+      .sort((a, b) => {
+        // Sort by the binding name (ignoring "type " prefix and " as X" suffix)
+        const nameA = a.replace(/^type\s+/, "").replace(/\s+as\s+.*/, "").trim();
+        const nameB = b.replace(/^type\s+/, "").replace(/\s+as\s+.*/, "").trim();
+        return nameA.localeCompare(nameB);
+      });
+
+    const normalized = `import ${typePrefix}{ ${specifiers.join(", ")} } from "${module}";`;
+    replacements.push({
+      start: match.index,
+      end: match.index + match[0].length,
+      module,
+      normalized,
+    });
+  }
+
+  if (replacements.length === 0) return code;
+
+  // Sort imports by module path
+  const sortedImports = [...replacements].sort((a, b) => a.module.localeCompare(b.module));
+
+  // Replace each import with its normalized version (maintaining original positions
+  // but with sorted specifiers and sorted import order)
+  let result = "";
+  let lastEnd = 0;
+
+  // Use original positions for non-import content, but replace imports with sorted versions
+  const firstImportStart = replacements[0].start;
+  const lastImportEnd = replacements[replacements.length - 1].end;
+
+  // Content before imports
+  result += code.substring(0, firstImportStart);
+
+  // Sorted imports
+  result += sortedImports.map((i) => i.normalized).join("\n");
+
+  // Content after imports
+  result += code.substring(lastImportEnd);
+
+  return result;
+}
+
 // ─── Types ──────────────────────────────────────────────────────────────
 
 interface ScenarioFileId {
@@ -657,24 +737,29 @@ export function executeScenarios(
         const isSkip = scenario.title.includes("skip:");
         const describeFn = isSkip ? describe.skip : isOnly ? describe.only : describe;
 
-        let outputFiles: Record<string, string>;
-
-        beforeAll(async () => {
-          outputFiles = await emitForScenario(
-            scenario.content.specBlock.content,
-            scenario.content.jsonExamples,
-            scenario.content.yamlConfig,
-          );
-        });
-
         describeFn(`Scenario: ${scenario.title}`, () => {
+          let outputFiles: Record<string, string>;
+
+          beforeAll(async () => {
+            outputFiles = await emitForScenario(
+              scenario.content.specBlock.content,
+              scenario.content.jsonExamples,
+              scenario.content.yamlConfig,
+            );
+          });
+
           for (const testBlock of scenario.content.testBlocks) {
             it(`Test: ${testBlock.heading}`, async () => {
               const result = getExcerptForQuery(extractor, testBlock.expectation, outputFiles);
 
               if (SCENARIOS_UPDATE) {
                 try {
-                  testBlock.content = await languageConfig.format(result);
+                  // Double-format to reach prettier's stable state. Prettier is not
+                  // fully idempotent for certain chain expressions — formatting raw
+                  // single-line code can produce different output than formatting
+                  // already-broken code. Double-formatting ensures consistent output.
+                  const firstPass = await languageConfig.format(normalizeImports(result));
+                  testBlock.content = await languageConfig.format(firstPass);
                 } catch {
                   testBlock.content = result;
                 }
@@ -682,12 +767,26 @@ export function executeScenarios(
                 let expected: string;
                 let actual: string;
                 try {
-                  expected = await languageConfig.format(testBlock.content);
-                  actual = await languageConfig.format(result);
+                  // Normalize import order in raw output BEFORE formatting.
+                  // Alloy generates imports in non-deterministic order. Different
+                  // import orderings cause different line lengths, which cascade
+                  // into different prettier line-breaking decisions throughout
+                  // the file. Import ordering is an acceptable difference per PRD.
+                  //
+                  // Double-format to reach prettier's stable state. Prettier is not
+                  // fully idempotent for certain chain expressions — formatting raw
+                  // single-line code can produce different output than formatting
+                  // already-broken code. Double-formatting ensures consistent output.
+                  const normalizedResult = normalizeImports(result);
+                  const normalizedExpected = normalizeImports(testBlock.content);
+                  const firstPassResult = await languageConfig.format(normalizedResult);
+                  actual = (await languageConfig.format(firstPassResult)).trim();
+                  const firstPassExpected = await languageConfig.format(normalizedExpected);
+                  expected = (await languageConfig.format(firstPassExpected)).trim();
                 } catch {
                   // If formatting fails (e.g., invalid TypeScript), compare raw strings
-                  expected = testBlock.content.trim();
-                  actual = result.trim();
+                  expected = normalizeImports(testBlock.content).trim();
+                  actual = normalizeImports(result).trim();
                 }
                 expect(actual).toBe(expected);
               }

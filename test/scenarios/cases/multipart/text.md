@@ -5,7 +5,7 @@
 ```tsp
 model RequestBody {
   firstName: HttpPart<string>;
-  lastName: HttpPart<string>; 
+  lastName: HttpPart<string>;
 }
 
 op doThing(@header contentType: "multipart/form-data", @multipartBody bodyParam: RequestBody): void;
@@ -14,13 +14,6 @@ op doThing(@header contentType: "multipart/form-data", @multipartBody bodyParam:
 ## Models
 
 ```ts models
-/**
- * This file contains only generated model types and their (de)serializers.
- * Disable the following rules for internal models with '_' prefix and deserializers which require 'any' for raw JSON input.
- */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/** model interface RequestBody */
 export interface RequestBody {
   firstName: string;
   lastName: string;
@@ -37,45 +30,55 @@ export function requestBodySerializer(item: RequestBody): any {
 ## Operations
 
 ```ts operations
-import { TestingContext as Client } from "./index.js";
-import { RequestBody, requestBodySerializer } from "../models/models.js";
-import { DoThingOptionalParams } from "./options.js";
 import {
-  StreamableMethod,
-  PathUncheckedResponse,
-  createRestError,
-  operationOptionsToRequestParameters,
-} from "@azure-rest/core-client";
+  type RequestBody as RequestBody_1,
+  requestBodySerializer as requestBodySerializer_1,
+} from "../models/models.js";
+import {
+  type Client as Client_1,
+  createRestError as createRestError_1,
+  type OperationOptions as OperationOptions_1,
+  operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
+  type PathUncheckedResponse as PathUncheckedResponse_1,
+  type StreamableMethod as StreamableMethod_1,
+} from "@typespec/ts-http-runtime";
+
+/**
+ * Optional parameters for the doThing operation.
+ */
+export interface DoThingOptionalParams extends OperationOptions_1 {}
 
 export function _doThingSend(
-  context: Client,
-  bodyParam: RequestBody,
+  context: Client_1,
+  contentType: "multipart/form-data",
+  bodyParam: RequestBody_1,
   options: DoThingOptionalParams = { requestOptions: {} },
-): StreamableMethod {
-  return context
-    .path("/")
-    .post({
-      ...operationOptionsToRequestParameters(options),
-      contentType: "multipart/form-data",
-      body: requestBodySerializer(bodyParam),
-    });
+): StreamableMethod_1 {
+  return context.path("/").post({
+    ...operationOptionsToRequestParameters_1(options),
+    contentType: "multipart/form-data",
+    body: requestBodySerializer_1(bodyParam),
+  });
 }
 
-export async function _doThingDeserialize(result: PathUncheckedResponse): Promise<void> {
+export async function _doThingDeserialize(
+  result: PathUncheckedResponse_1,
+): Promise<void> {
   const expectedStatuses = ["204"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError(result);
+    throw createRestError_1(result);
   }
 
   return;
 }
 
 export async function doThing(
-  context: Client,
-  bodyParam: RequestBody,
+  context: Client_1,
+  contentType: "multipart/form-data",
+  bodyParam: RequestBody_1,
   options: DoThingOptionalParams = { requestOptions: {} },
 ): Promise<void> {
-  const result = await _doThingSend(context, bodyParam, options);
+  const result = await _doThingSend(context, contentType, bodyParam, options);
   return _doThingDeserialize(result);
 }
 ```
@@ -84,7 +87,7 @@ export async function doThing(
 
 ```tsp
 model RequestBody {
-  lastName?: HttpPart<string>; 
+  lastName?: HttpPart<string>;
 }
 
 op doThing(@header contentType: "multipart/form-data", @multipartBody bodyParam: RequestBody): void;
@@ -95,20 +98,15 @@ op doThing(@header contentType: "multipart/form-data", @multipartBody bodyParam:
 If a part is optional, not specifying a value should cause no part to be sent in the request.
 
 ```ts models
-/**
- * This file contains only generated model types and their (de)serializers.
- * Disable the following rules for internal models with '_' prefix and deserializers which require 'any' for raw JSON input.
- */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/** model interface RequestBody */
 export interface RequestBody {
   lastName?: string;
 }
 
 export function requestBodySerializer(item: RequestBody): any {
   return [
-    ...(item["lastName"] === undefined ? [] : [{ name: "lastName", body: item["lastName"] }]),
+    ...(item["lastName"] === undefined
+      ? []
+      : [{ name: "lastName", body: item["lastName"] }]),
   ];
 }
 ```
@@ -128,24 +126,11 @@ op doThing(@header contentType: "multipart/form-data", @multipartBody bodyParam:
 ## Models
 
 ```ts models
-/**
- * This file contains only generated model types and their (de)serializers.
- * Disable the following rules for internal models with '_' prefix and deserializers which require 'any' for raw JSON input.
- */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/** model interface RequestBody */
 export interface RequestBody {
   names: string[];
 }
 
 export function requestBodySerializer(item: RequestBody): any {
-  return [
-    ...item["names"]
-      .map((p: any) => {
-        return p;
-      })
-      .map((x: unknown) => ({ name: "names", body: x })),
-  ];
+  return [...item["names"].map((x: unknown) => ({ name: "names", body: x }))];
 }
 ```

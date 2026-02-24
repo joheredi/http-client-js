@@ -53,44 +53,49 @@ export interface GetSecretOriginalOptionalParams extends OperationOptions {}
 ## Operations
 
 ```ts operations
-import { KeyVaultContext as Client } from "./index.js";
-import { expandUrlTemplate } from "../static-helpers/urlTemplate.js";
-import { GetSecretOriginalOptionalParams } from "./options.js";
 import {
-  StreamableMethod,
-  PathUncheckedResponse,
-  createRestError,
-  operationOptionsToRequestParameters,
-} from "@azure-rest/core-client";
+  type Client as Client_1,
+  createRestError as createRestError_1,
+  expandUrlTemplate as expandUrlTemplate_1,
+  type OperationOptions as OperationOptions_1,
+  operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
+  type PathUncheckedResponse as PathUncheckedResponse_1,
+  type StreamableMethod as StreamableMethod_1,
+} from "@typespec/ts-http-runtime";
+
+/**
+ * Optional parameters for the getSecretOriginal operation.
+ */
+export interface GetSecretOriginalOptionalParams extends OperationOptions_1 {}
 
 export function _getSecretOriginalSend(
-  context: Client,
+  context: Client_1,
   secretName: string,
   options: GetSecretOriginalOptionalParams = { requestOptions: {} },
-): StreamableMethod {
-  const path = expandUrlTemplate(
+): StreamableMethod_1 {
+  const path = expandUrlTemplate_1(
     "/secrets/{secretName}{?outContentType}",
-    {
-      secretName: secretName,
-    },
-    {
-      allowReserved: options?.requestOptions?.skipUrlEncoding,
-    },
+    { secretName: secretName, outContentType: "outContentType" },
+    { allowReserved: options?.requestOptions?.skipUrlEncoding },
   );
-  return context.path(path).get({ ...operationOptionsToRequestParameters(options) });
+  return context
+    .path(path)
+    .get({ ...operationOptionsToRequestParameters_1(options) });
 }
 
-export async function _getSecretOriginalDeserialize(result: PathUncheckedResponse): Promise<void> {
+export async function _getSecretOriginalDeserialize(
+  result: PathUncheckedResponse_1,
+): Promise<void> {
   const expectedStatuses = ["204"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError(result);
+    throw createRestError_1(result);
   }
 
   return;
 }
 
 export async function getSecretOriginal(
-  context: Client,
+  context: Client_1,
   secretName: string,
   options: GetSecretOriginalOptionalParams = { requestOptions: {} },
 ): Promise<void> {
@@ -291,55 +296,57 @@ export interface RemoveOptionalOriginalOptionalParams extends OperationOptions {
 ## Operations
 
 ```ts operations
-import { OverrideContext as Client } from "./index.js";
-import { expandUrlTemplate } from "../static-helpers/urlTemplate.js";
-import { RemoveOptionalOriginalOptionalParams } from "./options.js";
 import {
-  StreamableMethod,
-  PathUncheckedResponse,
-  createRestError,
-  operationOptionsToRequestParameters,
-} from "@azure-rest/core-client";
+  type Client as Client_1,
+  createRestError as createRestError_1,
+  expandUrlTemplate as expandUrlTemplate_1,
+  type OperationOptions as OperationOptions_1,
+  operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
+  type PathUncheckedResponse as PathUncheckedResponse_1,
+  type StreamableMethod as StreamableMethod_1,
+} from "@typespec/ts-http-runtime";
+
+/**
+ * Optional parameters for the removeOptionalOriginal operation.
+ */
+export interface RemoveOptionalOriginalOptionalParams extends OperationOptions_1 {
+  param2?: string;
+  param4?: string;
+}
 
 export function _removeOptionalOriginalSend(
-  context: Client,
+  context: Client_1,
   param1: string,
   options: RemoveOptionalOriginalOptionalParams = { requestOptions: {} },
-): StreamableMethod {
-  const path = expandUrlTemplate(
+): StreamableMethod_1 {
+  const path = expandUrlTemplate_1(
     "/remove-optional/{param1}{?param2,param3}",
-    {
-      param1: param1,
-      param2: options?.param2,
-    },
-    {
-      allowReserved: options?.requestOptions?.skipUrlEncoding,
-    },
+    { param1: param1, param2: options?.param2, param3: "param3" },
+    { allowReserved: options?.requestOptions?.skipUrlEncoding },
   );
-  return context
-    .path(path)
-    .get({
-      ...operationOptionsToRequestParameters(options),
-      headers: {
-        ...(options?.param4 !== undefined ? { param4: options?.param4 } : {}),
-        ...options.requestOptions?.headers,
-      },
-    });
+  return context.path(path).get({
+    ...operationOptionsToRequestParameters_1(options),
+    headers: {
+      param4: options?.param4,
+      param5: "param5",
+      ...options.requestOptions?.headers,
+    },
+  });
 }
 
 export async function _removeOptionalOriginalDeserialize(
-  result: PathUncheckedResponse,
+  result: PathUncheckedResponse_1,
 ): Promise<void> {
   const expectedStatuses = ["204"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError(result);
+    throw createRestError_1(result);
   }
 
   return;
 }
 
 export async function removeOptionalOriginal(
-  context: Client,
+  context: Client_1,
   param1: string,
   options: RemoveOptionalOriginalOptionalParams = { requestOptions: {} },
 ): Promise<void> {

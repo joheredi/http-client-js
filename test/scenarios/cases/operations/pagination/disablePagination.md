@@ -48,34 +48,22 @@ withRawContent: true
 ## models
 
 ```ts models
-/**
- * This file contains only generated model types and their (de)serializers.
- * Disable the following rules for internal models with '_' prefix and deserializers which require 'any' for raw JSON input.
- */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/** model interface ListTestResult */
 export interface ListTestResult {
   tests: Test[];
   next: string;
 }
 
-export function listTestResultDeserializer(item: any): ListTestResult {
-  return {
-    tests: testArrayDeserializer(item["tests"]),
-    next: item["next"],
-  };
-}
-
-export function testArrayDeserializer(result: Array<Test>): any[] {
-  return result.map((item) => {
-    return testDeserializer(item);
-  });
-}
-
-/** model interface Test */
 export interface Test {
   id: string;
+}
+
+export function listTestResultDeserializer(item: any): ListTestResult {
+  return {
+    tests: item["tests"].map((p: any) => {
+      return testDeserializer(p);
+    }),
+    next: item["next"],
+  };
 }
 
 export function testDeserializer(item: any): Test {
@@ -88,71 +76,90 @@ export function testDeserializer(item: any): Test {
 ## Operations
 
 ```ts operations
-import { testServiceContext as Client } from "./index.js";
-import { ListTestResult, listTestResultDeserializer } from "../models/models.js";
-import { FooOptionalParams, BarOptionalParams } from "./options.js";
 import {
-  StreamableMethod,
-  PathUncheckedResponse,
-  createRestError,
-  operationOptionsToRequestParameters,
-} from "@azure-rest/core-client";
+  type ListTestResult as ListTestResult_1,
+  listTestResultDeserializer as listTestResultDeserializer_1,
+} from "../models/models.js";
+import {
+  type Client as Client_1,
+  createRestError as createRestError_1,
+  type OperationOptions as OperationOptions_1,
+  operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
+  type PathUncheckedResponse as PathUncheckedResponse_1,
+  type StreamableMethod as StreamableMethod_1,
+} from "@typespec/ts-http-runtime";
 
-export function _fooSend(
-  context: Client,
-  options: FooOptionalParams = { requestOptions: {} },
-): StreamableMethod {
-  return context
-    .path("/list-post")
-    .post({
-      ...operationOptionsToRequestParameters(options),
-      headers: { accept: "application/json", ...options.requestOptions?.headers },
-    });
-}
-
-export async function _fooDeserialize(result: PathUncheckedResponse): Promise<ListTestResult> {
-  const expectedStatuses = ["200"];
-  if (!expectedStatuses.includes(result.status)) {
-    throw createRestError(result);
-  }
-
-  return listTestResultDeserializer(result.body);
-}
-
-export async function foo(
-  context: Client,
-  options: FooOptionalParams = { requestOptions: {} },
-): Promise<ListTestResult> {
-  const result = await _fooSend(context, options);
-  return _fooDeserialize(result);
-}
+/**
+ * Optional parameters for the bar operation.
+ */
+export interface BarOptionalParams extends OperationOptions_1 {}
 
 export function _barSend(
-  context: Client,
+  context: Client_1,
   options: BarOptionalParams = { requestOptions: {} },
-): StreamableMethod {
-  return context
-    .path("/list-get")
-    .post({
-      ...operationOptionsToRequestParameters(options),
-      headers: { accept: "application/json", ...options.requestOptions?.headers },
-    });
+): StreamableMethod_1 {
+  return context.path("/list-get").post({
+    ...operationOptionsToRequestParameters_1(options),
+    headers: {
+      accept: "application/json",
+      ...options.requestOptions?.headers,
+    },
+  });
 }
 
-export async function _barDeserialize(result: PathUncheckedResponse): Promise<ListTestResult> {
+export async function _barDeserialize(
+  result: PathUncheckedResponse_1,
+): Promise<ListTestResult_1> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError(result);
+    throw createRestError_1(result);
   }
 
-  return listTestResultDeserializer(result.body);
+  return listTestResultDeserializer_1(result.body);
 }
 
 export async function bar(
-  context: Client,
+  context: Client_1,
   options: BarOptionalParams = { requestOptions: {} },
-): Promise<ListTestResult> {
+): Promise<ListTestResult_1> {
   const result = await _barSend(context, options);
   return _barDeserialize(result);
+}
+
+/**
+ * Optional parameters for the foo operation.
+ */
+export interface FooOptionalParams extends OperationOptions_1 {}
+
+export function _fooSend(
+  context: Client_1,
+  options: FooOptionalParams = { requestOptions: {} },
+): StreamableMethod_1 {
+  return context.path("/list-post").post({
+    ...operationOptionsToRequestParameters_1(options),
+    headers: {
+      accept: "application/json",
+      ...options.requestOptions?.headers,
+    },
+  });
+}
+
+export async function _fooDeserialize(
+  result: PathUncheckedResponse_1,
+): Promise<ListTestResult_1> {
+  const expectedStatuses = ["200"];
+  if (!expectedStatuses.includes(result.status)) {
+    throw createRestError_1(result);
+  }
+
+  return listTestResultDeserializer_1(result.body);
+}
+
+export async function foo(
+  context: Client_1,
+  options: FooOptionalParams = { requestOptions: {} },
+): Promise<ListTestResult_1> {
+  const result = await _fooSend(context, options);
+  return _fooDeserialize(result);
 }
 ```

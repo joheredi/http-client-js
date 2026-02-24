@@ -12,48 +12,54 @@ op continue(): Test;
 ## Operations
 
 ```ts operations
-import { TestingContext as Client } from "./index.js";
-import { Test, testDeserializer } from "../models/models.js";
-import { ContinueOptionalParams } from "./options.js";
 import {
-  StreamableMethod,
-  PathUncheckedResponse,
-  createRestError,
-  operationOptionsToRequestParameters,
-} from "@azure-rest/core-client";
-
-export function _$continueSend(
-  context: Client,
-  options: ContinueOptionalParams = { requestOptions: {} },
-): StreamableMethod {
-  return context
-    .path("/")
-    .get({
-      ...operationOptionsToRequestParameters(options),
-      headers: { accept: "application/json", ...options.requestOptions?.headers },
-    });
-}
-
-export async function _$continueDeserialize(result: PathUncheckedResponse): Promise<Test> {
-  const expectedStatuses = ["200"];
-  if (!expectedStatuses.includes(result.status)) {
-    throw createRestError(result);
-  }
-
-  return testDeserializer(result.body);
-}
+  type Test as Test_1,
+  testDeserializer as testDeserializer_1,
+} from "../models/models.js";
+import {
+  type Client as Client_1,
+  createRestError as createRestError_1,
+  type OperationOptions as OperationOptions_1,
+  operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
+  type PathUncheckedResponse as PathUncheckedResponse_1,
+  type StreamableMethod as StreamableMethod_1,
+} from "@typespec/ts-http-runtime";
 
 /**
- *  @fixme continue is a reserved word that cannot be used as an operation name.
- *         Please add @clientName("clientName") or @clientName("<JS-Specific-Name>", "javascript")
- *         to the operation to override the generated name.
+ * Optional parameters for the continue operation.
  */
-export async function $continue(
-  context: Client,
+export interface ContinueOptionalParams extends OperationOptions_1 {}
+
+export function _continueSend(
+  context: Client_1,
   options: ContinueOptionalParams = { requestOptions: {} },
-): Promise<Test> {
-  const result = await _$continueSend(context, options);
-  return _$continueDeserialize(result);
+): StreamableMethod_1 {
+  return context.path("/").get({
+    ...operationOptionsToRequestParameters_1(options),
+    headers: {
+      accept: "application/json",
+      ...options.requestOptions?.headers,
+    },
+  });
+}
+
+export async function _continueDeserialize(
+  result: PathUncheckedResponse_1,
+): Promise<Test_1> {
+  const expectedStatuses = ["200"];
+  if (!expectedStatuses.includes(result.status)) {
+    throw createRestError_1(result);
+  }
+
+  return testDeserializer_1(result.body);
+}
+
+export async function continue_(
+  context: Client_1,
+  options: ContinueOptionalParams = { requestOptions: {} },
+): Promise<Test_1> {
+  const result = await _continueSend(context, options);
+  return _continueDeserialize(result);
 }
 ```
 
@@ -71,48 +77,54 @@ op `return`(): Test;
 ## Operations
 
 ```ts operations
-import { TestingContext as Client } from "./index.js";
-import { Test, testDeserializer } from "../models/models.js";
-import { ReturnOptionalParams } from "./options.js";
 import {
-  StreamableMethod,
-  PathUncheckedResponse,
-  createRestError,
-  operationOptionsToRequestParameters,
-} from "@azure-rest/core-client";
-
-export function _$returnSend(
-  context: Client,
-  options: ReturnOptionalParams = { requestOptions: {} },
-): StreamableMethod {
-  return context
-    .path("/")
-    .get({
-      ...operationOptionsToRequestParameters(options),
-      headers: { accept: "application/json", ...options.requestOptions?.headers },
-    });
-}
-
-export async function _$returnDeserialize(result: PathUncheckedResponse): Promise<Test> {
-  const expectedStatuses = ["200"];
-  if (!expectedStatuses.includes(result.status)) {
-    throw createRestError(result);
-  }
-
-  return testDeserializer(result.body);
-}
+  type Test as Test_1,
+  testDeserializer as testDeserializer_1,
+} from "../models/models.js";
+import {
+  type Client as Client_1,
+  createRestError as createRestError_1,
+  type OperationOptions as OperationOptions_1,
+  operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
+  type PathUncheckedResponse as PathUncheckedResponse_1,
+  type StreamableMethod as StreamableMethod_1,
+} from "@typespec/ts-http-runtime";
 
 /**
- *  @fixme return is a reserved word that cannot be used as an operation name.
- *         Please add @clientName("clientName") or @clientName("<JS-Specific-Name>", "javascript")
- *         to the operation to override the generated name.
+ * Optional parameters for the return operation.
  */
-export async function $return(
-  context: Client,
+export interface ReturnOptionalParams extends OperationOptions_1 {}
+
+export function _returnSend(
+  context: Client_1,
   options: ReturnOptionalParams = { requestOptions: {} },
-): Promise<Test> {
-  const result = await _$returnSend(context, options);
-  return _$returnDeserialize(result);
+): StreamableMethod_1 {
+  return context.path("/").get({
+    ...operationOptionsToRequestParameters_1(options),
+    headers: {
+      accept: "application/json",
+      ...options.requestOptions?.headers,
+    },
+  });
+}
+
+export async function _returnDeserialize(
+  result: PathUncheckedResponse_1,
+): Promise<Test_1> {
+  const expectedStatuses = ["200"];
+  if (!expectedStatuses.includes(result.status)) {
+    throw createRestError_1(result);
+  }
+
+  return testDeserializer_1(result.body);
+}
+
+export async function return_(
+  context: Client_1,
+  options: ReturnOptionalParams = { requestOptions: {} },
+): Promise<Test_1> {
+  const result = await _returnSend(context, options);
+  return _returnDeserialize(result);
 }
 ```
 
@@ -130,41 +142,52 @@ op global(): Test;
 ## Operations
 
 ```ts operations
-import { TestingContext as Client } from "./index.js";
-import { Test, testDeserializer } from "../models/models.js";
-import { GlobalOptionalParams } from "./options.js";
 import {
-  StreamableMethod,
-  PathUncheckedResponse,
-  createRestError,
-  operationOptionsToRequestParameters,
-} from "@azure-rest/core-client";
+  type Test as Test_1,
+  testDeserializer as testDeserializer_1,
+} from "../models/models.js";
+import {
+  type Client as Client_1,
+  createRestError as createRestError_1,
+  type OperationOptions as OperationOptions_1,
+  operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
+  type PathUncheckedResponse as PathUncheckedResponse_1,
+  type StreamableMethod as StreamableMethod_1,
+} from "@typespec/ts-http-runtime";
+
+/**
+ * Optional parameters for the global operation.
+ */
+export interface GlobalOptionalParams extends OperationOptions_1 {}
 
 export function _globalSend(
-  context: Client,
+  context: Client_1,
   options: GlobalOptionalParams = { requestOptions: {} },
-): StreamableMethod {
-  return context
-    .path("/")
-    .get({
-      ...operationOptionsToRequestParameters(options),
-      headers: { accept: "application/json", ...options.requestOptions?.headers },
-    });
+): StreamableMethod_1 {
+  return context.path("/").get({
+    ...operationOptionsToRequestParameters_1(options),
+    headers: {
+      accept: "application/json",
+      ...options.requestOptions?.headers,
+    },
+  });
 }
 
-export async function _globalDeserialize(result: PathUncheckedResponse): Promise<Test> {
+export async function _globalDeserialize(
+  result: PathUncheckedResponse_1,
+): Promise<Test_1> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError(result);
+    throw createRestError_1(result);
   }
 
-  return testDeserializer(result.body);
+  return testDeserializer_1(result.body);
 }
 
 export async function global(
-  context: Client,
+  context: Client_1,
   options: GlobalOptionalParams = { requestOptions: {} },
-): Promise<Test> {
+): Promise<Test_1> {
   const result = await _globalSend(context, options);
   return _globalDeserialize(result);
 }

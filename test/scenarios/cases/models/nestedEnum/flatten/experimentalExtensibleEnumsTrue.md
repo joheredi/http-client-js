@@ -23,7 +23,7 @@ namespace Microsoft.Contoso;
 
 /** The available API versions. */
 enum Versions {
-  /** 2021-10-01-preview version */ 
+  /** 2021-10-01-preview version */
   @armCommonTypesVersion(Azure.ResourceManager.CommonTypes.Versions.v5)
   v2021_10_01_preview: "2021-10-01-preview",
 }
@@ -66,57 +66,71 @@ experimental-extensible-enums: true
 Model generated.
 
 ```ts models
-/**
- * This file contains only generated model types and their (de)serializers.
- * Disable the following rules for internal models with '_' prefix and deserializers which require 'any' for raw JSON input.
- */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/** model interface _FooRequestBody */
-export interface _FooRequestBody {
+export interface FooRequestBody {
   status: ProvisioningState;
 }
 
-export function _fooRequestBodySerializer(item: _FooRequestBody): any {
-  return { status: item["status"] };
+export interface FooRequest {
+  body: FooRequestBody;
 }
 
-/** The resource provisioning state. */
+/**
+ * The resource provisioning state.
+ */
+export type ProvisioningState = string;
+
+/**
+ * The resource provisioning state.
+ */
 export enum KnownProvisioningState {
-  /** Resource has been created. */
+  /**
+   * Resource has been created.
+   */
   Succeeded = "Succeeded",
-  /** Resource creation failed. */
+  /**
+   * Resource creation failed.
+   */
   Failed = "Failed",
-  /** Resource creation was canceled. */
+  /**
+   * Resource creation was canceled.
+   */
   Canceled = "Canceled",
-  /** The resource is being provisioned */
+  /**
+   * The resource is being provisioned
+   */
   Provisioning = "Provisioning",
-  /** The resource is updating */
+  /**
+   * The resource is updating
+   */
   Updating = "Updating",
-  /** The resource is being deleted */
+  /**
+   * The resource is being deleted
+   */
   Deleting = "Deleting",
-  /** The resource create request has been accepted */
+  /**
+   * The resource create request has been accepted
+   */
   Accepted = "Accepted",
 }
 
 /**
- * The resource provisioning state. \
- * {@link KnownProvisioningState} can be used interchangeably with ProvisioningState,
- *  this enum contains the known values that the service supports.
- * ### Known values supported by the service
- * **Succeeded**: Resource has been created. \
- * **Failed**: Resource creation failed. \
- * **Canceled**: Resource creation was canceled. \
- * **Provisioning**: The resource is being provisioned \
- * **Updating**: The resource is updating \
- * **Deleting**: The resource is being deleted \
- * **Accepted**: The resource create request has been accepted
+ * The available API versions.
  */
-export type ProvisioningState = string;
+export type Versions = "2021-10-01-preview";
 
-/** The available API versions. */
+/**
+ * The available API versions.
+ */
 export enum KnownVersions {
-  /** 2021-10-01-preview version */
-  V20211001Preview = "2021-10-01-preview",
+  /**
+   * 2021-10-01-preview version
+   */
+  V2021_10_01Preview = "2021-10-01-preview",
+}
+
+export function fooRequestBodySerializer(item: FooRequestBody): any {
+  return {
+    status: item["status"],
+  };
 }
 ```

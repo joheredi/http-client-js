@@ -80,67 +80,77 @@ export interface ReadOptionalParams extends OperationOptions {}
 Should generate operations correctly:
 
 ```ts operations
-import { TestingContext as Client } from "./index.js";
 import {
-  BodyParameter,
-  bodyParameterSerializer,
-  _readResponseDeserializer,
+  BodyParameter as BodyParameter_1,
+  bodyParameterSerializer as bodyParameterSerializer_1,
+  type ReadResponse as ReadResponse_1,
+  readResponseDeserializer as readResponseDeserializer_1,
 } from "../models/models.js";
-import { expandUrlTemplate } from "../static-helpers/urlTemplate.js";
-import { ReadOptionalParams } from "./options.js";
 import {
-  StreamableMethod,
-  PathUncheckedResponse,
-  createRestError,
-  operationOptionsToRequestParameters,
-} from "@azure-rest/core-client";
+  Client as Client_1,
+  createRestError as createRestError_1,
+  expandUrlTemplate as expandUrlTemplate_1,
+  type OperationOptions as OperationOptions_1,
+  operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
+  type PathUncheckedResponse as PathUncheckedResponse_1,
+  type StreamableMethod as StreamableMethod_1,
+} from "@typespec/ts-http-runtime";
+
+/**
+ * Optional parameters for the read operation.
+ */
+export interface ReadOptionalParams extends OperationOptions_1 {}
 
 export function _readSend(
-  context: Client,
+  context: Client_1,
   name: string,
   requiredQuery: string,
-  widget: BodyParameter,
+  widget: BodyParameter_1,
   options: ReadOptionalParams = { requestOptions: {} },
-): StreamableMethod {
-  const path = expandUrlTemplate(
+): StreamableMethod_1 {
+  const path = expandUrlTemplate_1(
     "/{name}{?requiredQuery}",
-    {
-      name: name,
-      requiredQuery: requiredQuery,
-    },
-    {
-      allowReserved: options?.requestOptions?.skipUrlEncoding,
-    },
+    { name: name, requiredQuery: requiredQuery },
+    { allowReserved: options?.requestOptions?.skipUrlEncoding },
   );
-  return context
-    .path(path)
-    .post({
-      ...operationOptionsToRequestParameters(options),
-      contentType: "application/json",
-      headers: { accept: "application/json", ...options.requestOptions?.headers },
-      body: bodyParameterSerializer(widget),
-    });
+  return context.path(path).post({
+    ...operationOptionsToRequestParameters_1(options),
+    contentType: "application/json",
+    headers: {
+      accept: "application/json",
+      ...options.requestOptions?.headers,
+    },
+    body: bodyParameterSerializer_1(widget),
+  });
 }
 
 export async function _readDeserialize(
-  result: PathUncheckedResponse,
-): Promise<Record<string, any>> {
+  result: PathUncheckedResponse_1,
+): Promise<ReadResponse_1> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError(result);
+    throw createRestError_1(result);
   }
 
-  return _readResponseDeserializer(result.body);
+  return readResponseDeserializer_1(result.body);
 }
 
-/** show example demo */
+/**
+ * show example demo
+ *
+ * @param {Client_1} context
+ * @param {string} name
+ * @param {string} requiredQuery
+ * @param {BodyParameter_1} widget
+ * @param {ReadOptionalParams} options
+ */
 export async function read(
-  context: Client,
+  context: Client_1,
   name: string,
   requiredQuery: string,
-  widget: BodyParameter,
+  widget: BodyParameter_1,
   options: ReadOptionalParams = { requestOptions: {} },
-): Promise<Record<string, any>> {
+): Promise<ReadResponse_1> {
   const result = await _readSend(context, name, requiredQuery, widget, options);
   return _readDeserialize(result);
 }
@@ -163,7 +173,9 @@ import { TestingClient } from "@azure/internal-test";
 async function read(): Promise<void> {
   const endpoint = process.env.TESTING_ENDPOINT || "";
   const client = new TestingClient(endpoint);
-  const result = await client.read("required path param", "required query", { name: "body name" });
+  const result = await client.read("required path param", "required query", {
+    name: "body name",
+  });
   console.log(result);
 }
 

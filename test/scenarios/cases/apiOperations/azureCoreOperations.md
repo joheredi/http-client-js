@@ -83,12 +83,10 @@ export function _getWidgetOperationStatusSend(
       allowReserved: options?.requestOptions?.skipUrlEncoding,
     },
   );
-  return context
-    .path(path)
-    .get({
-      ...operationOptionsToRequestParameters(options),
-      headers: { accept: "application/json", ...options.requestOptions?.headers },
-    });
+  return context.path(path).get({
+    ...operationOptionsToRequestParameters(options),
+    headers: { accept: "application/json", ...options.requestOptions?.headers },
+  });
 }
 
 export async function _getWidgetOperationStatusDeserialize(
@@ -99,7 +97,9 @@ export async function _getWidgetOperationStatusDeserialize(
     throw createRestError(result);
   }
 
-  return resourceOperationStatusWidgetSuiteWidgetSuiteErrorDeserializer(result.body);
+  return resourceOperationStatusWidgetSuiteWidgetSuiteErrorDeserializer(
+    result.body,
+  );
 }
 
 /** Get the status of a long-running operation on widgets. */
@@ -124,24 +124,143 @@ export async function getWidgetOperationStatus(
 Generate the models
 
 ```ts models
-import { ErrorModel } from "@azure-rest/core-client";
+/**
+ * Provides status details for long running operations.
+ */
+export interface ResourceOperationStatusWidgetSuiteWidgetSuiteError {
+  /**
+   * The unique ID of the operation.
+   */
+  id: string;
+  /**
+   * The status of the operation
+   */
+  status: OperationState;
+  /**
+   * Error object that describes the error when status is "Failed".
+   */
+  error?: Error;
+  /**
+   * The result of the operation.
+   */
+  result?: WidgetSuite;
+}
 
 /**
- * This file contains only generated model types and their (de)serializers.
- * Disable the following rules for internal models with '_' prefix and deserializers which require 'any' for raw JSON input.
+ * The error object.
  */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/** Provides status details for long running operations. */
-export interface ResourceOperationStatusWidgetSuiteWidgetSuiteError {
-  /** The unique ID of the operation. */
-  id: string;
-  /** The status of the operation */
-  status: OperationState;
-  /** Error object that describes the error when status is "Failed". */
-  error?: ErrorModel;
-  /** The result of the operation. */
-  result?: WidgetSuite;
+export interface Error {
+  /**
+   * One of a server-defined set of error codes.
+   */
+  code: string;
+  /**
+   * A human-readable representation of the error.
+   */
+  message: string;
+  /**
+   * The target of the error.
+   */
+  target?: string;
+  /**
+   * An array of details about specific errors that led to this reported error.
+   */
+  details?: Error[];
+  /**
+   * An object containing more specific information than the current object about the error.
+   */
+  innererror?: InnerError;
+}
+
+/**
+ * An object containing more specific information about the error. As per Azure REST API guidelines - https://aka.ms/AzureRestApiGuidelines#handling-errors.
+ */
+export interface InnerError {
+  /**
+   * One of a server-defined set of error codes.
+   */
+  code?: string;
+  /**
+   * Inner error.
+   */
+  innererror?: InnerError;
+}
+
+/**
+ * A widget.
+ */
+export interface WidgetSuite {
+  /**
+   * The widget name.
+   */
+  name: string;
+  /**
+   * The ID of the widget's manufacturer.
+   */
+  manufacturerId: string;
+  /**
+   * The faked shared model.
+   */
+  sharedModel?: FakedSharedModel;
+}
+
+/**
+ * Faked shared model
+ */
+export interface FakedSharedModel {
+  /**
+   * The tag.
+   */
+  tag: string;
+  /**
+   * The created date.
+   */
+  createdAt: string;
+}
+
+/**
+ * A response containing error details.
+ */
+export interface ErrorResponse {
+  /**
+   * The error object.
+   */
+  error: Error;
+  /**
+   * String error code indicating what went wrong.
+   */
+  errorCode?: string;
+}
+
+/**
+ * Enum describing allowed operation states.
+ */
+export type OperationState = string;
+
+/**
+ * Enum describing allowed operation states.
+ */
+export enum KnownOperationState {
+  /**
+   * The operation has not started.
+   */
+  NotStarted = "NotStarted",
+  /**
+   * The operation is in progress.
+   */
+  Running = "Running",
+  /**
+   * The operation has completed successfully.
+   */
+  Succeeded = "Succeeded",
+  /**
+   * The operation has failed.
+   */
+  Failed = "Failed",
+  /**
+   * The operation has been canceled by the user.
+   */
+  Canceled = "Canceled",
 }
 
 export function resourceOperationStatusWidgetSuiteWidgetSuiteErrorDeserializer(
@@ -150,22 +269,36 @@ export function resourceOperationStatusWidgetSuiteWidgetSuiteErrorDeserializer(
   return {
     id: item["id"],
     status: item["status"],
-    error: !item["error"] ? item["error"] : item["error"],
-    result: !item["result"] ? item["result"] : widgetSuiteDeserializer(item["result"]),
+    error: !item["error"] ? item["error"] : errorDeserializer(item["error"]),
+    result: !item["result"]
+      ? item["result"]
+      : widgetSuiteDeserializer(item["result"]),
   };
 }
 
-/** Enum describing allowed operation states. */
-export type OperationState = "NotStarted" | "Running" | "Succeeded" | "Failed" | "Canceled";
+export function errorDeserializer(item: any): Error {
+  return {
+    code: item["code"],
+    message: item["message"],
+    target: item["target"],
+    details: !item["details"]
+      ? item["details"]
+      : item["details"].map((p: any) => {
+          return errorDeserializer(p);
+        }),
+    innererror: !item["innererror"]
+      ? item["innererror"]
+      : innerErrorDeserializer(item["innererror"]),
+  };
+}
 
-/** A widget. */
-export interface WidgetSuite {
-  /** The widget name. */
-  name: string;
-  /** The ID of the widget's manufacturer. */
-  manufacturerId: string;
-  /** The faked shared model. */
-  sharedModel?: FakedSharedModel;
+export function innerErrorDeserializer(item: any): InnerError {
+  return {
+    code: item["code"],
+    innererror: !item["innererror"]
+      ? item["innererror"]
+      : innerErrorDeserializer(item["innererror"]),
+  };
 }
 
 export function widgetSuiteDeserializer(item: any): WidgetSuite {
@@ -178,18 +311,17 @@ export function widgetSuiteDeserializer(item: any): WidgetSuite {
   };
 }
 
-/** Faked shared model */
-export interface FakedSharedModel {
-  /** The tag. */
-  tag: string;
-  /** The created date. */
-  createdAt: string;
-}
-
 export function fakedSharedModelDeserializer(item: any): FakedSharedModel {
   return {
     tag: item["tag"],
     createdAt: item["createdAt"],
+  };
+}
+
+export function errorResponseDeserializer(item: any): ErrorResponse {
+  return {
+    error: errorDeserializer(item["error"]),
+    errorCode: item["errorCode"],
   };
 }
 ```

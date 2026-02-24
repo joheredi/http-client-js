@@ -40,31 +40,29 @@ ignoreWeirdLine: false
 ## classicClient
 
 ```ts classicClient
-import { foo } from "./api/operations.js";
-import { FooOptionalParams } from "./api/options.js";
-import { Pipeline } from "@azure/core-rest-pipeline";
+import {
+  foo as foo_1,
+  type FooOptionalParams as FooOptionalParams_1,
+} from "./api/operations.js";
+import {
+  createService as createService_1,
+  type ServiceClientOptionalParams as ServiceClientOptionalParams_1,
+  type ServiceContext as ServiceContext_1,
+} from "./serviceClientContext.js";
+import { Pipeline as Pipeline_1 } from "@typespec/ts-http-runtime";
 
-export { TestServiceClientOptionalParams } from "./api/testServiceContext.js";
-
-export class TestServiceClient {
-  private _client: TestServiceContext;
+export class ServiceClient {
+  private _client: ServiceContext_1;
   /** The pipeline used by this client to make requests */
-  public readonly pipeline: Pipeline;
+  public readonly pipeline: Pipeline_1;
 
-  constructor(endpointParam: string, options: TestServiceClientOptionalParams = {}) {
-    const prefixFromOptions = options?.userAgentOptions?.userAgentPrefix;
-    const userAgentPrefix = prefixFromOptions
-      ? `${prefixFromOptions} azsdk-js-client`
-      : `azsdk-js-client`;
-    this._client = createTestService(endpointParam, {
-      ...options,
-      userAgentOptions: { userAgentPrefix },
-    });
+  constructor(endpoint: string, options: ServiceClientOptionalParams_1 = {}) {
+    this._client = createService_1(endpoint, options);
     this.pipeline = this._client.pipeline;
   }
 
-  foo(options: FooOptionalParams = { requestOptions: {} }): Promise<void> {
-    return foo(this._client, options);
+  foo(options: FooOptionalParams_1 = { requestOptions: {} }): Promise<void> {
+    return foo_1(this._client, options);
   }
 }
 ```

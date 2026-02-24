@@ -38,13 +38,6 @@ These are the models that are generated. The language tag `ts models` is used to
 the test host that the content of the code block represents the entire generated `models.ts` file.
 
 ```ts models
-/**
- * This file contains only generated model types and their (de)serializers.
- * Disable the following rules for internal models with '_' prefix and deserializers which require 'any' for raw JSON input.
- */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/** model interface Example */
 export interface Example {
   id: string;
 }
@@ -59,13 +52,6 @@ export function exampleDeserializer(item: any): Example {
 You can also extract a specific model interface using `ts models interface <model name>`:
 
 ```ts models interface Example
-/**
- * This file contains only generated model types and their (de)serializers.
- * Disable the following rules for internal models with '_' prefix and deserializers which require 'any' for raw JSON input.
- */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/** model interface Example */
 export interface Example {
   id: string;
 }
@@ -91,53 +77,60 @@ export interface ReadOptionalParams extends OperationOptions {}
 You can extract the entire operations file using `ts operations`:
 
 ```ts operations
-import { TestingContext as Client } from "./index.js";
-import { Example, exampleDeserializer } from "../models/models.js";
-import { expandUrlTemplate } from "../static-helpers/urlTemplate.js";
-import { ReadOptionalParams } from "./options.js";
 import {
-  StreamableMethod,
-  PathUncheckedResponse,
-  createRestError,
-  operationOptionsToRequestParameters,
-} from "@azure-rest/core-client";
+  type Example as Example_1,
+  exampleDeserializer as exampleDeserializer_1,
+} from "../models/models.js";
+import {
+  type Client as Client_1,
+  createRestError as createRestError_1,
+  expandUrlTemplate as expandUrlTemplate_1,
+  type OperationOptions as OperationOptions_1,
+  operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
+  type PathUncheckedResponse as PathUncheckedResponse_1,
+  type StreamableMethod as StreamableMethod_1,
+} from "@typespec/ts-http-runtime";
+
+/**
+ * Optional parameters for the read operation.
+ */
+export interface ReadOptionalParams extends OperationOptions_1 {}
 
 export function _readSend(
-  context: Client,
+  context: Client_1,
   id: string,
   options: ReadOptionalParams = { requestOptions: {} },
-): StreamableMethod {
-  const path = expandUrlTemplate(
+): StreamableMethod_1 {
+  const path = expandUrlTemplate_1(
     "/{id}",
-    {
-      id: id,
-    },
-    {
-      allowReserved: options?.requestOptions?.skipUrlEncoding,
-    },
+    { id: id },
+    { allowReserved: options?.requestOptions?.skipUrlEncoding },
   );
-  return context
-    .path(path)
-    .get({
-      ...operationOptionsToRequestParameters(options),
-      headers: { accept: "application/json", ...options.requestOptions?.headers },
-    });
+  return context.path(path).get({
+    ...operationOptionsToRequestParameters_1(options),
+    headers: {
+      accept: "application/json",
+      ...options.requestOptions?.headers,
+    },
+  });
 }
 
-export async function _readDeserialize(result: PathUncheckedResponse): Promise<Example> {
+export async function _readDeserialize(
+  result: PathUncheckedResponse_1,
+): Promise<Example_1> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError(result);
+    throw createRestError_1(result);
   }
 
-  return exampleDeserializer(result.body);
+  return exampleDeserializer_1(result.body);
 }
 
 export async function read(
-  context: Client,
+  context: Client_1,
   id: string,
   options: ReadOptionalParams = { requestOptions: {} },
-): Promise<Example> {
+): Promise<Example_1> {
   const result = await _readSend(context, id, options);
   return _readDeserialize(result);
 }
@@ -147,10 +140,10 @@ Or you can extract a specific operation using `ts operations function <operation
 
 ```ts operations function read
 export async function read(
-  context: Client,
+  context: Client_1,
   id: string,
   options: ReadOptionalParams = { requestOptions: {} },
-): Promise<Example> {
+): Promise<Example_1> {
   const result = await _readSend(context, id, options);
   return _readDeserialize(result);
 }

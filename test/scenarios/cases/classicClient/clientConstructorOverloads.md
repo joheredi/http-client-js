@@ -42,38 +42,35 @@ withRawContent: true
 ## classicClient
 
 ```ts classicClient
-import { list } from "./api/operations.js";
-import { ListOptionalParams } from "./api/options.js";
-import { Operation } from "./models/models.js";
-import { PagedAsyncIterableIterator } from "./static-helpers/pagingHelpers.js";
-import { TokenCredential } from "@azure/core-auth";
-import { Pipeline } from "@azure/core-rest-pipeline";
-
-export { GlobalServiceClientOptionalParams } from "./api/globalServiceContext.js";
+import {
+  _getOperationsOperations as _getOperationsOperations_1,
+  OperationsOperations as OperationsOperations_1,
+} from "./classic/operations/index.js";
+import {
+  createGlobalService as createGlobalService_1,
+  type GlobalServiceClientOptionalParams as GlobalServiceClientOptionalParams_1,
+  type GlobalServiceContext as GlobalServiceContext_1,
+} from "./globalServiceClientContext.js";
+import {
+  Pipeline as Pipeline_1,
+  type TokenCredential as TokenCredential_1,
+} from "@typespec/ts-http-runtime";
 
 export class GlobalServiceClient {
-  private _client: GlobalServiceContext;
+  private _client: GlobalServiceContext_1;
   /** The pipeline used by this client to make requests */
-  public readonly pipeline: Pipeline;
+  public readonly pipeline: Pipeline_1;
 
-  /** Client.GlobalService Resource Provider management API. */
-  constructor(credential: TokenCredential, options: GlobalServiceClientOptionalParams = {}) {
-    const prefixFromOptions = options?.userAgentOptions?.userAgentPrefix;
-    const userAgentPrefix = prefixFromOptions
-      ? `${prefixFromOptions} azsdk-js-client`
-      : `azsdk-js-client`;
-    this._client = createGlobalService(credential, {
-      ...options,
-      userAgentOptions: { userAgentPrefix },
-    });
+  /** The operation group for Operations */
+  public readonly operations: OperationsOperations_1;
+
+  constructor(
+    credential: TokenCredential_1,
+    options: GlobalServiceClientOptionalParams_1 = {},
+  ) {
+    this._client = createGlobalService_1(credential, options);
     this.pipeline = this._client.pipeline;
-  }
-
-  /** List the operations for the provider */
-  list(
-    options: ListOptionalParams = { requestOptions: {} },
-  ): PagedAsyncIterableIterator<Operation> {
-    return list(this._client, options);
+    this.operations = _getOperationsOperations_1(this._client);
   }
 }
 ```
@@ -165,67 +162,57 @@ withRawContent: true
 ## classicClient
 
 ```ts classicClient
-import { checkNameAvailability, get, list } from "./api/operations.js";
 import {
-  CheckNameAvailabilityOptionalParams,
-  GetOptionalParams,
-  ListOptionalParams,
-} from "./api/options.js";
+  checkNameAvailability as checkNameAvailability_1,
+  type CheckNameAvailabilityOptionalParams as CheckNameAvailabilityOptionalParams_1,
+} from "./api/operations.js";
 import {
-  CheckNameAvailabilityInput,
-  CheckNameAvailabilityOutput,
-  Operation,
-  StandardResource,
+  _getOperationsOperations as _getOperationsOperations_1,
+  OperationsOperations as OperationsOperations_1,
+} from "./classic/operations/index.js";
+import {
+  _getStandardResourcesOperations as _getStandardResourcesOperations_1,
+  StandardResourcesOperations as StandardResourcesOperations_1,
+} from "./classic/standardResources/index.js";
+import type {
+  CheckNameAvailabilityInput as CheckNameAvailabilityInput_1,
+  CheckNameAvailabilityOutput as CheckNameAvailabilityOutput_1,
 } from "./models/models.js";
-import { PagedAsyncIterableIterator } from "./static-helpers/pagingHelpers.js";
-import { TokenCredential } from "@azure/core-auth";
-import { Pipeline } from "@azure/core-rest-pipeline";
-
-export { StandardServiceClientOptionalParams } from "./api/standardServiceContext.js";
+import {
+  createStandardService as createStandardService_1,
+  type StandardServiceClientOptionalParams as StandardServiceClientOptionalParams_1,
+  type StandardServiceContext as StandardServiceContext_1,
+} from "./standardServiceClientContext.js";
+import {
+  Pipeline as Pipeline_1,
+  type TokenCredential as TokenCredential_1,
+} from "@typespec/ts-http-runtime";
 
 export class StandardServiceClient {
-  private _client: StandardServiceContext;
+  private _client: StandardServiceContext_1;
   /** The pipeline used by this client to make requests */
-  public readonly pipeline: Pipeline;
+  public readonly pipeline: Pipeline_1;
 
-  /** Client.StandardService Resource Provider management API. */
+  /** The operation group for Operations */
+  public readonly operations: OperationsOperations_1;
+  /** The operation group for StandardResources */
+  public readonly standardResources: StandardResourcesOperations_1;
+
   constructor(
-    credential: TokenCredential,
-    subscriptionId: string,
-    options: StandardServiceClientOptionalParams = {},
+    credential: TokenCredential_1,
+    options: StandardServiceClientOptionalParams_1 = {},
   ) {
-    const prefixFromOptions = options?.userAgentOptions?.userAgentPrefix;
-    const userAgentPrefix = prefixFromOptions
-      ? `${prefixFromOptions} azsdk-js-client`
-      : `azsdk-js-client`;
-    this._client = createStandardService(credential, subscriptionId, {
-      ...options,
-      userAgentOptions: { userAgentPrefix },
-    });
+    this._client = createStandardService_1(credential, options);
     this.pipeline = this._client.pipeline;
+    this.operations = _getOperationsOperations_1(this._client);
+    this.standardResources = _getStandardResourcesOperations_1(this._client);
   }
 
   checkNameAvailability(
-    body: CheckNameAvailabilityInput,
-    options: CheckNameAvailabilityOptionalParams = { requestOptions: {} },
-  ): Promise<CheckNameAvailabilityOutput> {
-    return checkNameAvailability(this._client, body, options);
-  }
-
-  /** Get a StandardResource */
-  get(
-    resourceGroupName: string,
-    standardResourceName: string,
-    options: GetOptionalParams = { requestOptions: {} },
-  ): Promise<StandardResource> {
-    return get(this._client, resourceGroupName, standardResourceName, options);
-  }
-
-  /** List the operations for the provider */
-  list(
-    options: ListOptionalParams = { requestOptions: {} },
-  ): PagedAsyncIterableIterator<Operation> {
-    return list(this._client, options);
+    body: CheckNameAvailabilityInput_1,
+    options: CheckNameAvailabilityOptionalParams_1 = { requestOptions: {} },
+  ): Promise<CheckNameAvailabilityOutput_1> {
+    return checkNameAvailability_1(this._client, body, options);
   }
 }
 ```
@@ -311,70 +298,53 @@ withRawContent: true
 ## classicClient
 
 ```ts classicClient
-import { listSkus, get, list } from "./api/operations.js";
-import { ListSkusOptionalParams, GetOptionalParams, ListOptionalParams } from "./api/options.js";
-import { SkuListResult, Operation, MixedResource } from "./models/models.js";
-import { PagedAsyncIterableIterator } from "./static-helpers/pagingHelpers.js";
-import { TokenCredential } from "@azure/core-auth";
-import { Pipeline } from "@azure/core-rest-pipeline";
-
-export { MixedServiceClientOptionalParams } from "./api/mixedServiceContext.js";
+import {
+  listSkus as listSkus_1,
+  type ListSkusOptionalParams as ListSkusOptionalParams_1,
+} from "./api/operations.js";
+import {
+  _getMixedResourcesOperations as _getMixedResourcesOperations_1,
+  MixedResourcesOperations as MixedResourcesOperations_1,
+} from "./classic/mixedResources/index.js";
+import {
+  _getOperationsOperations as _getOperationsOperations_1,
+  OperationsOperations as OperationsOperations_1,
+} from "./classic/operations/index.js";
+import {
+  createMixedService as createMixedService_1,
+  type MixedServiceClientOptionalParams as MixedServiceClientOptionalParams_1,
+  type MixedServiceContext as MixedServiceContext_1,
+} from "./mixedServiceClientContext.js";
+import type { SkuListResult as SkuListResult_1 } from "./models/models.js";
+import {
+  Pipeline as Pipeline_1,
+  type TokenCredential as TokenCredential_1,
+} from "@typespec/ts-http-runtime";
 
 export class MixedServiceClient {
-  private _client: MixedServiceContext;
+  private _client: MixedServiceContext_1;
   /** The pipeline used by this client to make requests */
-  public readonly pipeline: Pipeline;
+  public readonly pipeline: Pipeline_1;
 
-  constructor(credential: TokenCredential, options?: MixedServiceClientOptionalParams);
+  /** The operation group for Operations */
+  public readonly operations: OperationsOperations_1;
+  /** The operation group for MixedResources */
+  public readonly mixedResources: MixedResourcesOperations_1;
+
   constructor(
-    credential: TokenCredential,
-    subscriptionId: string,
-    options?: MixedServiceClientOptionalParams,
-  );
-  /** Client.MixedService Resource Provider management API. */
-  constructor(
-    credential: TokenCredential,
-    subscriptionIdOrOptions?: string | MixedServiceClientOptionalParams,
-    options?: MixedServiceClientOptionalParams,
+    credential: TokenCredential_1,
+    options: MixedServiceClientOptionalParams_1 = {},
   ) {
-    let subscriptionId: string | undefined;
-
-    if (typeof subscriptionIdOrOptions === "string") {
-      subscriptionId = subscriptionIdOrOptions;
-    } else if (typeof subscriptionIdOrOptions === "object") {
-      options = subscriptionIdOrOptions;
-    }
-
-    options = options ?? {};
-    const prefixFromOptions = options?.userAgentOptions?.userAgentPrefix;
-    const userAgentPrefix = prefixFromOptions
-      ? `${prefixFromOptions} azsdk-js-client`
-      : `azsdk-js-client`;
-    this._client = createMixedService(credential, subscriptionId ?? "", {
-      ...options,
-      userAgentOptions: { userAgentPrefix },
-    });
+    this._client = createMixedService_1(credential, options);
     this.pipeline = this._client.pipeline;
+    this.operations = _getOperationsOperations_1(this._client);
+    this.mixedResources = _getMixedResourcesOperations_1(this._client);
   }
 
-  listSkus(options: ListSkusOptionalParams = { requestOptions: {} }): Promise<SkuListResult> {
-    return listSkus(this._client, options);
-  }
-
-  /** Get a MixedResource */
-  get(
-    resourceGroupName: string,
-    mixedResourceName: string,
-    options: GetOptionalParams = { requestOptions: {} },
-  ): Promise<MixedResource> {
-    return get(this._client, resourceGroupName, mixedResourceName, options);
-  }
-
-  /** List the operations for the provider */
-  list(
-    options: ListOptionalParams = { requestOptions: {} },
-  ): PagedAsyncIterableIterator<Operation> {
-    return list(this._client, options);
+  listSkus(
+    options: ListSkusOptionalParams_1 = { requestOptions: {} },
+  ): Promise<SkuListResult_1> {
+    return listSkus_1(this._client, options);
   }
 }
 ```

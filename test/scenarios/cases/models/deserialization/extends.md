@@ -34,43 +34,24 @@ interface D {
 Generated Models.
 
 ```ts models
-/**
- * This file contains only generated model types and their (de)serializers.
- * Disable the following rules for internal models with '_' prefix and deserializers which require 'any' for raw JSON input.
- */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/** model interface AWidgetData */
 export interface AWidgetData {
   kind: string;
 }
 
-export function aWidgetDataDeserializer(item: any): AWidgetData {
-  return {
-    kind: item["kind"],
-  };
-}
-
-/** Alias for AWidgetDataUnion */
+/**
+ * Alias for `AWidgetData`
+ */
 export type AWidgetDataUnion = AoaiModelConfig | MaasModelConfig | AWidgetData;
 
-export function aWidgetDataUnionDeserializer(item: any): AWidgetDataUnion {
-  switch (item["kind"]) {
-    case "kind0":
-      return aoaiModelConfigDeserializer(item as AoaiModelConfig);
-
-    case "kind1":
-      return maasModelConfigDeserializer(item as MaasModelConfig);
-
-    default:
-      return aWidgetDataDeserializer(item);
-  }
-}
-
-/** model interface AoaiModelConfig */
 export interface AoaiModelConfig extends AWidgetData {
   kind: "kind0";
   fooProp: string;
+}
+
+export interface MaasModelConfig extends AWidgetData {
+  kind: "kind1";
+  start: Date;
+  end?: Date;
 }
 
 export function aoaiModelConfigDeserializer(item: any): AoaiModelConfig {
@@ -80,19 +61,23 @@ export function aoaiModelConfigDeserializer(item: any): AoaiModelConfig {
   };
 }
 
-/** model interface MaasModelConfig */
-export interface MaasModelConfig extends AWidgetData {
-  kind: "kind1";
-  start: Date;
-  end?: Date;
-}
-
 export function maasModelConfigDeserializer(item: any): MaasModelConfig {
   return {
     kind: item["kind"],
     start: new Date(item["start"]),
     end: !item["end"] ? item["end"] : new Date(item["end"]),
   };
+}
+
+export function aWidgetDataUnionDeserializer(item: any): AWidgetDataUnion {
+  switch (item["kind"]) {
+    case "kind0":
+      return aoaiModelConfigDeserializer(item as AoaiModelConfig);
+    case "kind1":
+      return maasModelConfigDeserializer(item as MaasModelConfig);
+    default:
+      return item;
+  }
 }
 ```
 
@@ -171,87 +156,31 @@ interface D {
 Generated Models.
 
 ```ts models
-/**
- * This file contains only generated model types and their (de)serializers.
- * Disable the following rules for internal models with '_' prefix and deserializers which require 'any' for raw JSON input.
- */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/** model interface DiscountTypeProperties */
 export interface DiscountTypeProperties {
   discountType: DiscountType;
   discountPercentage?: number;
 }
 
-export function discountTypePropertiesDeserializer(item: any): DiscountTypeProperties {
-  return {
-    discountType: item["discountType"],
-    discountPercentage: item["discountPercentage"],
-  };
-}
-
-/** Alias for DiscountTypePropertiesUnion */
+/**
+ * Alias for `DiscountTypeProperties`
+ */
 export type DiscountTypePropertiesUnion =
   | DiscountTypeProductFamily
   | DiscountTypeProduct
   | DiscountTypeProductSku
   | DiscountTypeProperties;
 
-export function discountTypePropertiesUnionDeserializer(item: any): DiscountTypePropertiesUnion {
-  switch (item["discountType"]) {
-    case "ProductFamily":
-      return discountTypeProductFamilyDeserializer(item as DiscountTypeProductFamily);
-
-    case "Product":
-      return discountTypeProductDeserializer(item as DiscountTypeProduct);
-
-    case "Sku":
-      return discountTypeProductSkuDeserializer(item as DiscountTypeProductSku);
-
-    default:
-      return discountTypePropertiesDeserializer(item);
-  }
-}
-
-/** Type of DiscountType */
-export type DiscountType =
-  | "ProductFamily"
-  | "Product"
-  | "Sku"
-  | "CustomPrice"
-  | "CustomPriceMultiCurrency";
-
-/** model interface DiscountTypeProductFamily */
 export interface DiscountTypeProductFamily extends DiscountTypeProperties {
   productFamilyName?: string;
   discountType: "ProductFamily";
 }
 
-export function discountTypeProductFamilyDeserializer(item: any): DiscountTypeProductFamily {
-  return {
-    discountType: item["discountType"],
-    discountPercentage: item["discountPercentage"],
-    productFamilyName: item["productFamilyName"],
-  };
-}
-
-/** model interface DiscountTypeProduct */
 export interface DiscountTypeProduct extends DiscountTypeProperties {
   productFamilyName?: string;
   productId?: string;
   discountType: "Product";
 }
 
-export function discountTypeProductDeserializer(item: any): DiscountTypeProduct {
-  return {
-    discountType: item["discountType"],
-    discountPercentage: item["discountPercentage"],
-    productFamilyName: item["productFamilyName"],
-    productId: item["productId"],
-  };
-}
-
-/** model interface DiscountTypeProductSku */
 export interface DiscountTypeProductSku extends DiscountTypeProperties {
   productFamilyName?: string;
   productId?: string;
@@ -259,14 +188,82 @@ export interface DiscountTypeProductSku extends DiscountTypeProperties {
   discountType: "Sku";
 }
 
-export function discountTypeProductSkuDeserializer(item: any): DiscountTypeProductSku {
+/**
+ * Type of DiscountType
+ */
+export type DiscountType = string;
+
+/**
+ * Known values of {@link DiscountType} that the service accepts.
+ */
+export enum KnownDiscountType {
+  /**
+   * ProductFamily
+   */
+  ProductFamily = "ProductFamily",
+  /**
+   * Product
+   */
+  Product = "Product",
+  /**
+   * Sku
+   */
+  Sku = "Sku",
+  /**
+   * CustomPrice
+   */
+  CustomPrice = "CustomPrice",
+  /**
+   * CustomPriceMultiCurrency
+   */
+  CustomPriceMultiCurrency = "CustomPriceMultiCurrency",
+}
+
+export function discountTypeProductFamilyDeserializer(
+  item: any,
+): DiscountTypeProductFamily {
   return {
+    productFamilyName: item["productFamilyName"],
     discountType: item["discountType"],
-    discountPercentage: item["discountPercentage"],
+  };
+}
+
+export function discountTypeProductDeserializer(
+  item: any,
+): DiscountTypeProduct {
+  return {
+    productFamilyName: item["productFamilyName"],
+    productId: item["productId"],
+    discountType: item["discountType"],
+  };
+}
+
+export function discountTypeProductSkuDeserializer(
+  item: any,
+): DiscountTypeProductSku {
+  return {
     productFamilyName: item["productFamilyName"],
     productId: item["productId"],
     skuId: item["skuId"],
+    discountType: item["discountType"],
   };
+}
+
+export function discountTypePropertiesUnionDeserializer(
+  item: any,
+): DiscountTypePropertiesUnion {
+  switch (item["discountType"]) {
+    case "ProductFamily":
+      return discountTypeProductFamilyDeserializer(
+        item as DiscountTypeProductFamily,
+      );
+    case "Product":
+      return discountTypeProductDeserializer(item as DiscountTypeProduct);
+    case "Sku":
+      return discountTypeProductSkuDeserializer(item as DiscountTypeProductSku);
+    default:
+      return item;
+  }
 }
 ```
 
@@ -326,173 +323,120 @@ mustEmptyDiagnostic: false
 Generated Models.
 
 ```ts models
-/**
- * This file contains only generated model types and their (de)serializers.
- * Disable the following rules for internal models with '_' prefix and deserializers which require 'any' for raw JSON input.
- */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/** model interface DocumentIngress */
 export interface DocumentIngress {
   documentType: DocumentType;
   documentStreamIds?: string[];
   properties?: string[];
 }
 
-export function documentIngressSerializer(item: DocumentIngress): any {
-  return {
-    DocumentType: item["documentType"],
-    DocumentStreamIds: !item["documentStreamIds"]
-      ? item["documentStreamIds"]
-      : item["documentStreamIds"].map((p: any) => {
-          return p;
-        }),
-    Properties: !item["properties"]
-      ? item["properties"]
-      : item["properties"].map((p: any) => {
-          return p;
-        }),
-  };
-}
-
-export function documentIngressDeserializer(item: any): DocumentIngress {
-  return {
-    documentType: item["DocumentType"],
-    documentStreamIds: !item["DocumentStreamIds"]
-      ? item["DocumentStreamIds"]
-      : item["DocumentStreamIds"].map((p: any) => {
-          return p;
-        }),
-    properties: !item["Properties"]
-      ? item["Properties"]
-      : item["Properties"].map((p: any) => {
-          return p;
-        }),
-  };
-}
-
-/** Alias for DocumentIngressUnion */
+/**
+ * Alias for `DocumentIngress`
+ */
 export type DocumentIngressUnion = Request | Exception | DocumentIngress;
 
-export function documentIngressUnionSerializer(item: DocumentIngressUnion): any {
-  switch (item.documentType) {
-    case "Request":
-      return requestSerializer(item as Request);
-
-    case "Exception":
-      return exceptionSerializer(item as Exception);
-
-    default:
-      return documentIngressSerializer(item);
-  }
-}
-
-export function documentIngressUnionDeserializer(item: any): DocumentIngressUnion {
-  switch (item["DocumentType"]) {
-    case "Request":
-      return requestDeserializer(item as Request);
-
-    case "Exception":
-      return exceptionDeserializer(item as Exception);
-
-    default:
-      return documentIngressDeserializer(item);
-  }
-}
-
-/** Document type */
-export type DocumentType =
-  | "Request"
-  | "RemoteDependency"
-  | "Exception"
-  | "Event"
-  | "Trace"
-  | "Unknown";
-
-/** model interface Request */
 export interface Request extends DocumentIngress {
   documentType: "Request";
   name?: string;
   url?: string;
 }
 
-export function requestSerializer(item: Request): any {
-  return {
-    DocumentType: item["documentType"],
-    DocumentStreamIds: !item["documentStreamIds"]
-      ? item["documentStreamIds"]
-      : item["documentStreamIds"].map((p: any) => {
-          return p;
-        }),
-    Properties: !item["properties"]
-      ? item["properties"]
-      : item["properties"].map((p: any) => {
-          return p;
-        }),
-    Name: item["name"],
-    Url: item["url"],
-  };
-}
-
-export function requestDeserializer(item: any): Request {
-  return {
-    documentType: item["DocumentType"],
-    documentStreamIds: !item["DocumentStreamIds"]
-      ? item["DocumentStreamIds"]
-      : item["DocumentStreamIds"].map((p: any) => {
-          return p;
-        }),
-    properties: !item["Properties"]
-      ? item["Properties"]
-      : item["Properties"].map((p: any) => {
-          return p;
-        }),
-    name: item["Name"],
-    url: item["Url"],
-  };
-}
-
-/** model interface Exception */
 export interface Exception extends DocumentIngress {
   documentType: "Exception";
   exceptionType?: string;
   exceptionMessage?: string;
 }
 
+/**
+ * Document type
+ */
+export type DocumentType = string;
+
+/**
+ * Document type
+ */
+export enum KnownDocumentType {
+  /**
+   * Request
+   */
+  Request = "Request",
+  /**
+   * RemoteDependency
+   */
+  RemoteDependency = "RemoteDependency",
+  /**
+   * Exception
+   */
+  Exception = "Exception",
+  /**
+   * Event
+   */
+  Event = "Event",
+  /**
+   * Trace
+   */
+  Trace = "Trace",
+  /**
+   * Unknown
+   */
+  Unknown = "Unknown",
+}
+
+export function requestSerializer(item: Request): any {
+  return {
+    DocumentType: item["DocumentType"],
+    Name: item["Name"],
+    Url: item["Url"],
+  };
+}
+
 export function exceptionSerializer(item: Exception): any {
   return {
-    DocumentType: item["documentType"],
-    DocumentStreamIds: !item["documentStreamIds"]
-      ? item["documentStreamIds"]
-      : item["documentStreamIds"].map((p: any) => {
-          return p;
-        }),
-    Properties: !item["properties"]
-      ? item["properties"]
-      : item["properties"].map((p: any) => {
-          return p;
-        }),
-    ExceptionType: item["exceptionType"],
-    ExceptionMessage: item["exceptionMessage"],
+    DocumentType: item["DocumentType"],
+    ExceptionType: item["ExceptionType"],
+    ExceptionMessage: item["ExceptionMessage"],
+  };
+}
+
+export function documentIngressUnionSerializer(
+  item: DocumentIngressUnion,
+): any {
+  switch (item["DocumentType"]) {
+    case "Request":
+      return requestSerializer(item as Request);
+    case "Exception":
+      return exceptionSerializer(item as Exception);
+    default:
+      return item;
+  }
+}
+
+export function requestDeserializer(item: any): Request {
+  return {
+    DocumentType: item["DocumentType"],
+    Name: item["Name"],
+    Url: item["Url"],
   };
 }
 
 export function exceptionDeserializer(item: any): Exception {
   return {
-    documentType: item["DocumentType"],
-    documentStreamIds: !item["DocumentStreamIds"]
-      ? item["DocumentStreamIds"]
-      : item["DocumentStreamIds"].map((p: any) => {
-          return p;
-        }),
-    properties: !item["Properties"]
-      ? item["Properties"]
-      : item["Properties"].map((p: any) => {
-          return p;
-        }),
-    exceptionType: item["ExceptionType"],
-    exceptionMessage: item["ExceptionMessage"],
+    DocumentType: item["DocumentType"],
+    ExceptionType: item["ExceptionType"],
+    ExceptionMessage: item["ExceptionMessage"],
   };
+}
+
+export function documentIngressUnionDeserializer(
+  item: any,
+): DocumentIngressUnion {
+  switch (item["DocumentType"]) {
+    case "Request":
+      return requestDeserializer(item as Request);
+    case "Exception":
+      return exceptionDeserializer(item as Exception);
+    default:
+      return item;
+  }
 }
 ```
 
@@ -575,86 +519,111 @@ mustEmptyDiagnostic: false
 Generated Models.
 
 ```ts models
-/**
- * This file contains only generated model types and their (de)serializers.
- * Disable the following rules for internal models with '_' prefix and deserializers which require 'any' for raw JSON input.
- */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/** model interface Animal */
 export interface Animal {
-  /** The kind of animal */
-  /** The discriminator possible values: pet, dog */
+  /**
+   * The kind of animal
+   */
   kind: string;
-  /** Name of the animal */
+  /**
+   * Name of the animal
+   */
   name: string;
 }
 
-export function animalSerializer(item: Animal): any {
-  return { kind: item["kind"], name: item["name"] };
+/**
+ * Alias for `Animal`
+ */
+export type AnimalUnion = Pet | Animal;
+
+export interface Pet extends Animal {
+  kind: "pet";
+  /**
+   * Whether the pet is trained
+   */
+  trained: boolean;
 }
 
-export function animalDeserializer(item: any): Animal {
+/**
+ * Alias for `Pet`
+ */
+export type PetUnion = Dog | Pet;
+
+export interface Dog extends Pet {
+  kind: "dog";
+  /**
+   * The breed of the dog
+   */
+  breed: string;
+}
+
+/**
+ * Type of Versions
+ */
+export type Versions =
+  | "2024-07-01-preview"
+  | "2024-07-01"
+  | "2024-08-01-preview";
+
+/**
+ * Known values of {@link Versions} that the service accepts.
+ */
+export enum KnownVersions {
+  /**
+   * 2024-07-01-preview
+   */
+  PreviewVersion = "2024-07-01-preview",
+  /**
+   * 2024-07-01
+   */
+  "2024_07_01" = "2024-07-01",
+  /**
+   * 2024-08-01-preview
+   */
+  "2024_08_01Preview" = "2024-08-01-preview",
+}
+
+export function dogSerializer(item: Dog): any {
   return {
     kind: item["kind"],
-    name: item["name"],
+    breed: item["breed"],
   };
 }
 
-/** Alias for AnimalUnion */
-export type AnimalUnion = PetUnion | Animal;
-
 export function animalUnionSerializer(item: AnimalUnion): any {
-  switch (item.kind) {
+  switch (item["kind"]) {
     case "pet":
+      return petUnionSerializer(item as Pet);
     case "dog":
-      return petUnionSerializer(item as PetUnion);
-
+      return dogSerializer(item as Dog);
     default:
-      return animalSerializer(item);
+      return item;
   }
+}
+
+export function petUnionSerializer(item: PetUnion): any {
+  switch (item["kind"]) {
+    case "dog":
+      return dogSerializer(item as Dog);
+    default:
+      return item;
+  }
+}
+
+export function dogDeserializer(item: any): Dog {
+  return {
+    kind: item["kind"],
+    breed: item["breed"],
+  };
 }
 
 export function animalUnionDeserializer(item: any): AnimalUnion {
   switch (item["kind"]) {
     case "pet":
+      return petUnionDeserializer(item as Pet);
     case "dog":
-      return petUnionDeserializer(item as PetUnion);
-
+      return dogDeserializer(item as Dog);
     default:
-      return animalDeserializer(item);
-  }
-}
-
-/** model interface Pet */
-export interface Pet extends Animal {
-  kind: "pet" | "dog";
-  /** Whether the pet is trained */
-  trained: boolean;
-}
-
-export function petSerializer(item: Pet): any {
-  return { kind: item["kind"], name: item["name"], trained: item["trained"] };
-}
-
-export function petDeserializer(item: any): Pet {
-  return {
-    kind: item["kind"],
-    name: item["name"],
-    trained: item["trained"],
-  };
-}
-
-/** Alias for PetUnion */
-export type PetUnion = Dog | Pet;
-
-export function petUnionSerializer(item: PetUnion): any {
-  switch (item.kind) {
-    case "dog":
-      return dogSerializer(item as Dog);
-
-    default:
-      return petSerializer(item);
+      return item;
   }
 }
 
@@ -662,39 +631,8 @@ export function petUnionDeserializer(item: any): PetUnion {
   switch (item["kind"]) {
     case "dog":
       return dogDeserializer(item as Dog);
-
     default:
-      return petDeserializer(item);
+      return item;
   }
-}
-
-/** model interface Dog */
-export interface Dog extends Pet {
-  kind: "dog";
-  /** The breed of the dog */
-  breed: string;
-}
-
-export function dogSerializer(item: Dog): any {
-  return { kind: item["kind"], trained: item["trained"], name: item["name"], breed: item["breed"] };
-}
-
-export function dogDeserializer(item: any): Dog {
-  return {
-    kind: item["kind"],
-    trained: item["trained"],
-    name: item["name"],
-    breed: item["breed"],
-  };
-}
-
-/** Known values of {@link Versions} that the service accepts. */
-export enum KnownVersions {
-  /** 2024-07-01-preview */
-  PreviewVersion = "2024-07-01-preview",
-  /** 2024-07-01 */
-  _20240701 = "2024-07-01",
-  /** 2024-08-01-preview */
-  _20240801Preview = "2024-08-01-preview",
 }
 ```

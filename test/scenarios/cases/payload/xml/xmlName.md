@@ -58,11 +58,14 @@ The key validation here is that:
 2. `retentionPolicyXmlObjectDeserializer` accesses properties using XML names ("Enabled", "Days") not JSON names
 
 ```ts models interface RetentionPolicy
-/** The retention policy settings */
 export interface RetentionPolicy {
-  /** Whether retention is enabled */
+  /**
+   * Whether retention is enabled
+   */
   enabled: boolean;
-  /** Number of days to retain */
+  /**
+   * Number of days to retain
+   */
   days?: number;
 }
 ```
@@ -70,7 +73,11 @@ export interface RetentionPolicy {
 ```ts models function retentionPolicyXmlSerializer
 export function retentionPolicyXmlSerializer(item: RetentionPolicy): string {
   const properties: XmlPropertyMetadata[] = [
-    { propertyName: "enabled", xmlOptions: { name: "Enabled" }, type: "primitive" },
+    {
+      propertyName: "enabled",
+      xmlOptions: { name: "Enabled" },
+      type: "primitive",
+    },
     { propertyName: "days", xmlOptions: { name: "Days" }, type: "primitive" },
   ];
   return serializeToXml(item, properties, "RetentionPolicy");
@@ -78,7 +85,9 @@ export function retentionPolicyXmlSerializer(item: RetentionPolicy): string {
 ```
 
 ```ts models function retentionPolicyXmlDeserializer
-export function retentionPolicyXmlDeserializer(xmlString: string): RetentionPolicy {
+export function retentionPolicyXmlDeserializer(
+  xmlString: string,
+): RetentionPolicy {
   const properties: XmlPropertyDeserializeMetadata[] = [
     {
       propertyName: "enabled",
@@ -93,7 +102,11 @@ export function retentionPolicyXmlDeserializer(xmlString: string): RetentionPoli
       primitiveSubtype: "number",
     },
   ];
-  return deserializeFromXml<RetentionPolicy>(xmlString, properties, "RetentionPolicy");
+  return deserializeFromXml<RetentionPolicy>(
+    xmlString,
+    properties,
+    "RetentionPolicy",
+  );
 }
 ```
 
@@ -120,23 +133,26 @@ export function retentionPolicyXmlObjectDeserializer(
 ```
 
 ```ts models interface Logging
-/**
- * This file contains only generated model types and their (de)serializers.
- * Disable the following rules for internal models with '_' prefix and deserializers which require 'any' for raw JSON input.
- */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/** Logging configuration */
 export interface Logging {
-  /** The version */
+  /**
+   * The version
+   */
   version: string;
-  /** Whether delete is logged */
+  /**
+   * Whether delete is logged
+   */
   deleteProperty: boolean;
-  /** Whether read is logged */
+  /**
+   * Whether read is logged
+   */
   read: boolean;
-  /** Whether write is logged */
+  /**
+   * Whether write is logged
+   */
   write: boolean;
-  /** The retention policy */
+  /**
+   * The retention policy
+   */
   retentionPolicy: RetentionPolicy;
 }
 ```
@@ -144,8 +160,16 @@ export interface Logging {
 ```ts models function loggingXmlSerializer
 export function loggingXmlSerializer(item: Logging): string {
   const properties: XmlPropertyMetadata[] = [
-    { propertyName: "version", xmlOptions: { name: "Version" }, type: "primitive" },
-    { propertyName: "deleteProperty", xmlOptions: { name: "Delete" }, type: "primitive" },
+    {
+      propertyName: "version",
+      xmlOptions: { name: "Version" },
+      type: "primitive",
+    },
+    {
+      propertyName: "deleteProperty",
+      xmlOptions: { name: "Delete" },
+      type: "primitive",
+    },
     { propertyName: "read", xmlOptions: { name: "Read" }, type: "primitive" },
     { propertyName: "write", xmlOptions: { name: "Write" }, type: "primitive" },
     {
@@ -198,7 +222,9 @@ export function loggingXmlDeserializer(xmlString: string): Logging {
 ```
 
 ```ts models function loggingXmlObjectDeserializer
-export function loggingXmlObjectDeserializer(xmlObject: Record<string, unknown>): Logging {
+export function loggingXmlObjectDeserializer(
+  xmlObject: Record<string, unknown>,
+): Logging {
   const properties: XmlPropertyDeserializeMetadata[] = [
     {
       propertyName: "version",
@@ -236,7 +262,9 @@ export function loggingXmlObjectDeserializer(xmlObject: Record<string, unknown>)
 ```
 
 ```ts models function retentionPolicyXmlObjectSerializer
-export function retentionPolicyXmlObjectSerializer(item: RetentionPolicy): XmlSerializedObject {
+export function retentionPolicyXmlObjectSerializer(
+  item: RetentionPolicy,
+): XmlSerializedObject {
   return { Enabled: item["enabled"], Days: item["days"] };
 }
 ```
@@ -278,11 +306,14 @@ interface TagOperations {
 ## Provide generated models with XML array deserializers
 
 ```ts models interface BlobTag
-/** A single tag */
 export interface BlobTag {
-  /** Tag key */
+  /**
+   * Tag key
+   */
   key: string;
-  /** Tag value */
+  /**
+   * Tag value
+   */
   value: string;
 }
 ```
@@ -308,7 +339,9 @@ export function blobTagXmlDeserializer(xmlString: string): BlobTag {
 ```
 
 ```ts models function blobTagXmlObjectDeserializer
-export function blobTagXmlObjectDeserializer(xmlObject: Record<string, unknown>): BlobTag {
+export function blobTagXmlObjectDeserializer(
+  xmlObject: Record<string, unknown>,
+): BlobTag {
   const properties: XmlPropertyDeserializeMetadata[] = [
     {
       propertyName: "key",
@@ -342,7 +375,9 @@ export function blobTagsXmlDeserializer(xmlString: string): BlobTags {
 ```
 
 ```ts models function blobTagsXmlObjectDeserializer
-export function blobTagsXmlObjectDeserializer(xmlObject: Record<string, unknown>): BlobTags {
+export function blobTagsXmlObjectDeserializer(
+  xmlObject: Record<string, unknown>,
+): BlobTags {
   const properties: XmlPropertyDeserializeMetadata[] = [
     {
       propertyName: "blobTagSet",

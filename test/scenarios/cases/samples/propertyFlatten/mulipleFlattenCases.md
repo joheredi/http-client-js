@@ -53,7 +53,7 @@ Raw json files.
       "name": "body name",
       "properties": {
         "bar": {
-            "x": "xx"
+          "x": "xx"
         }
       }
     }
@@ -69,61 +69,47 @@ Raw json files.
 Model generated.
 
 ```ts models
-import { areAllPropsUndefined } from "../static-helpers/serialization/check-prop-undefined.js";
-
 /**
- * This file contains only generated model types and their (de)serializers.
- * Disable the following rules for internal models with '_' prefix and deserializers which require 'any' for raw JSON input.
+ * This is a simple model.
  */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/** This is a simple model. */
 export interface BodyParameter {
   name: string;
   bar?: A;
   baz?: string;
 }
 
-export function bodyParameterSerializer(item: BodyParameter): any {
-  return { name: item["name"], properties: _bodyParameterPropertiesSerializer(item) };
-}
-
-/** model interface FooProperties */
 export interface FooProperties {
-  baz?: string;
   x?: string;
   y?: string;
+  baz?: string;
 }
 
-export function fooPropertiesSerializer(item: FooProperties): any {
-  return {
-    bar: areAllPropsUndefined(item, ["x", "y"]) ? undefined : _fooPropertiesBarSerializer(item),
-    baz: item["baz"],
-  };
-}
-
-/** model interface A */
 export interface A {
   x: string;
   y: string;
 }
 
+export function bodyParameterSerializer(item: BodyParameter): any {
+  return {
+    name: item["name"],
+    bar: !item["bar"] ? item["bar"] : aSerializer(item["bar"]),
+    baz: item["baz"],
+  };
+}
+
+export function fooPropertiesSerializer(item: FooProperties): any {
+  return {
+    x: item["x"],
+    y: item["y"],
+    baz: item["baz"],
+  };
+}
+
 export function aSerializer(item: A): any {
-  return { x: item["x"], y: item["y"] };
-}
-
-/** Known values of {@link Versions} that the service accepts. */
-export enum KnownVersions {
-  /** 2022-05-15-preview */
-  V20220515Preview = "2022-05-15-preview",
-}
-
-export function _fooPropertiesBarSerializer(item: FooProperties): any {
-  return { x: item["x"], y: item["y"] };
-}
-
-export function _bodyParameterPropertiesSerializer(item: BodyParameter): any {
-  return { bar: !item["bar"] ? item["bar"] : aSerializer(item["bar"]), baz: item["baz"] };
+  return {
+    x: item["x"],
+    y: item["y"],
+  };
 }
 ```
 

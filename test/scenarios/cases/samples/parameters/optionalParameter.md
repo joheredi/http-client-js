@@ -2,7 +2,7 @@
 
 ## TypeSpec
 
-```typespec
+```tsp
 import "@typespec/http";
 import "@typespec/rest";
 import "@azure-tools/typespec-azure-core";
@@ -79,7 +79,10 @@ import { SampleServiceClient } from "@azure/internal-test";
 async function listPersons(): Promise<void> {
   const storage = process.env.SAMPLE_SERVICE_STORAGE || "";
   const client = new SampleServiceClient(storage);
-  const result = await client.list({ start: "00000000-0000-0000-0000-000000000000", top: 20 });
+  const result = await client.list({
+    start: "00000000-0000-0000-0000-000000000000",
+    top: 20,
+  });
   console.log(result);
 }
 
