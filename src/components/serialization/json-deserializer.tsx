@@ -21,6 +21,27 @@ import { needsTransformation } from "./json-serializer.js";
 export interface JsonDeserializerProps {
   /** The TCGC model type to generate a deserializer function for. */
   model: SdkModelType;
+  /**
+   * Optional refkey override for the generated function declaration.
+   * When provided, the function is registered with this refkey instead of
+   * the default `deserializerRefkey(model)`. Used for base model deserializers
+   * in polymorphic hierarchies, where the polymorphic switch deserializer
+   * already claims `deserializerRefkey(model)`.
+   */
+  refkeyOverride?: import("@alloy-js/core").Refkey;
+  /**
+   * Optional name suffix override for the generated function.
+   * When provided, the function name uses this suffix instead of "Deserializer".
+   * Used for base model deserializers (e.g., "BaseModelDeserializer").
+   */
+  nameSuffix?: string;
+  /**
+   * Whether to include inherited properties from parent models.
+   * When true, walks the `baseModel` chain to collect all ancestor properties.
+   * Used for child types in discriminated hierarchies and base model deserializers.
+   * @default false
+   */
+  includeParentProperties?: boolean;
 }
 
 /**
@@ -49,13 +70,13 @@ export interface JsonDeserializerProps {
  * @returns An Alloy JSX tree representing the deserializer function declaration.
  */
 export function JsonDeserializer(props: JsonDeserializerProps) {
-  const { model } = props;
-  const properties = getDeserializableProperties(model);
+  const { model, refkeyOverride, nameSuffix, includeParentProperties } = props;
+  const properties = getDeserializableProperties(model, includeParentProperties);
 
   return (
     <FunctionDeclaration
-      name={getModelFunctionName(model, "Deserializer")}
-      refkey={deserializerRefkey(model)}
+      name={getModelFunctionName(model, nameSuffix ?? "Deserializer")}
+      refkey={refkeyOverride ?? deserializerRefkey(model)}
       export
       returnType={code`${typeRefkey(model)}`}
       parameters={[{ name: "item", type: "any" }]}
@@ -86,13 +107,26 @@ export function JsonDeserializer(props: JsonDeserializerProps) {
  * serializer's property expansion logic. See `getSerializableProperties()`
  * in json-serializer.tsx for details.
  *
+ * When `includeParent` is true, walks the `baseModel` chain to collect all
+ * inherited ancestor properties before the model's own properties. This is
+ * needed for child types in discriminated hierarchies, where the deserializer
+ * must map all wire properties (inherited + own) to their client-side names.
+ *
  * @param model - The TCGC model type.
+ * @param includeParent - Whether to include inherited parent properties.
  * @returns An array of properties to include in the deserializer.
  */
 function getDeserializableProperties(
   model: SdkModelType,
+  includeParent?: boolean,
 ): SdkModelPropertyType[] {
   const result: SdkModelPropertyType[] = [];
+
+  // Collect inherited properties from ancestor models first
+  if (includeParent) {
+    const ancestors = collectAncestorProperties(model);
+    result.push(...ancestors);
+  }
 
   for (const prop of model.properties) {
     if (prop.flatten && prop.type.kind === "model") {
@@ -108,6 +142,44 @@ function getDeserializableProperties(
   }
 
   return result;
+}
+
+/**
+ * Collects all properties inherited from ancestor models by walking
+ * up the `baseModel` chain.
+ *
+ * Properties from the most distant ancestor appear first, then closer
+ * ancestors, matching the natural inheritance order. Properties that are
+ * overridden by descendant models (same `name`) are excluded to avoid
+ * duplicate mappings in deserializers.
+ *
+ * @param model - The TCGC model type to start from.
+ * @returns An array of inherited properties (excluding those overridden by descendants).
+ */
+function collectAncestorProperties(
+  model: SdkModelType,
+): SdkModelPropertyType[] {
+  const ancestors: SdkModelType[] = [];
+  let current = model.baseModel;
+  while (current) {
+    ancestors.unshift(current);
+    current = current.baseModel;
+  }
+
+  const ownPropertyNames = new Set(model.properties.map((p) => p.name));
+  const inherited: SdkModelPropertyType[] = [];
+  const seenNames = new Set<string>();
+
+  for (const ancestor of ancestors) {
+    for (const prop of ancestor.properties) {
+      if (!ownPropertyNames.has(prop.name) && !seenNames.has(prop.name)) {
+        inherited.push(prop);
+        seenNames.add(prop.name);
+      }
+    }
+  }
+
+  return inherited;
 }
 
 /**

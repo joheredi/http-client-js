@@ -1548,8 +1548,18 @@ export type PetUnion = PsDog | Pet;
 
 export function psDogSerializer(item: PsDog): any {
   return {
+    name: item["name"],
+    weight: item["weight"],
     kind: item["kind"],
     bark: item["bark"],
+  };
+}
+
+export function petSerializer(item: Pet): any {
+  return {
+    kind: item["kind"],
+    name: item["name"],
+    weight: item["weight"],
   };
 }
 
@@ -1558,14 +1568,24 @@ export function petUnionSerializer(item: PetUnion): any {
     case "dog":
       return psDogSerializer(item as PsDog);
     default:
-      return item;
+      return petSerializer(item);
   }
 }
 
 export function psDogDeserializer(item: any): PsDog {
   return {
+    name: item["name"],
+    weight: item["weight"],
     kind: item["kind"],
     bark: item["bark"],
+  };
+}
+
+export function petDeserializer(item: any): Pet {
+  return {
+    kind: item["kind"],
+    name: item["name"],
+    weight: item["weight"],
   };
 }
 
@@ -1574,7 +1594,7 @@ export function petUnionDeserializer(item: any): PetUnion {
     case "dog":
       return psDogDeserializer(item as PsDog);
     default:
-      return item;
+      return petDeserializer(item);
   }
 }
 ```
@@ -1681,6 +1701,8 @@ export interface Dog extends Pet {
 
 export function catDeserializer(item: any): Cat {
   return {
+    name: item["name"],
+    weight: item["weight"],
     kind: item["kind"],
     meow: item["meow"],
   };
@@ -1688,8 +1710,18 @@ export function catDeserializer(item: any): Cat {
 
 export function dogDeserializer(item: any): Dog {
   return {
+    name: item["name"],
+    weight: item["weight"],
     kind: item["kind"],
     bark: item["bark"],
+  };
+}
+
+export function petDeserializer(item: any): Pet {
+  return {
+    kind: item["kind"],
+    name: item["name"],
+    weight: item["weight"],
   };
 }
 
@@ -1700,7 +1732,7 @@ export function petUnionDeserializer(item: any): PetUnion {
     case "dog":
       return dogDeserializer(item as Dog);
     default:
-      return item;
+      return petDeserializer(item);
   }
 }
 ```
@@ -1816,6 +1848,8 @@ export interface Gold extends Dog {
 
 export function catDeserializer(item: any): Cat {
   return {
+    name: item["name"],
+    weight: item["weight"],
     kind: item["kind"],
     meow: item["meow"],
   };
@@ -1823,10 +1857,22 @@ export function catDeserializer(item: any): Cat {
 
 export function goldDeserializer(item: any): Gold {
   return {
+    kind: item["kind"],
+    name: item["name"],
+    weight: item["weight"],
+    bark: item["bark"],
     type: item["type"],
     friends: item["friends"].map((p: any) => {
       return petUnionDeserializer(p);
     }),
+  };
+}
+
+export function petDeserializer(item: any): Pet {
+  return {
+    kind: item["kind"],
+    name: item["name"],
+    weight: item["weight"],
   };
 }
 
@@ -1837,8 +1883,16 @@ export function petUnionDeserializer(item: any): PetUnion {
     case "dog":
       return dogUnionDeserializer(item as Dog);
     default:
-      return item;
+      return petDeserializer(item);
   }
+}
+
+export function dogDeserializer(item: any): Dog {
+  return {
+    kind: item["kind"],
+    type: item["type"],
+    bark: item["bark"],
+  };
 }
 
 export function dogUnionDeserializer(item: any): DogUnion {
@@ -1846,7 +1900,7 @@ export function dogUnionDeserializer(item: any): DogUnion {
     case "gold":
       return goldDeserializer(item as Gold);
     default:
-      return item;
+      return dogDeserializer(item);
   }
 }
 ```
@@ -2605,8 +2659,18 @@ export function servicePlacementPolicyDescriptionSerializer(
   item: ServicePlacementPolicyDescription,
 ): any {
   return {
+    name: item["name"],
+    weight: item["weight"],
     kind: item["kind"],
     type: item["type"],
+  };
+}
+
+export function petSerializer(item: Pet): any {
+  return {
+    kind: item["kind"],
+    name: item["name"],
+    weight: item["weight"],
   };
 }
 
@@ -2617,7 +2681,7 @@ export function petUnionSerializer(item: PetUnion): any {
         item as ServicePlacementPolicyDescription,
       );
     default:
-      return item;
+      return petSerializer(item);
   }
 }
 
@@ -2637,8 +2701,18 @@ export function servicePlacementPolicyDescriptionDeserializer(
   item: any,
 ): ServicePlacementPolicyDescription {
   return {
+    name: item["name"],
+    weight: item["weight"],
     kind: item["kind"],
     type: item["type"],
+  };
+}
+
+export function petDeserializer(item: any): Pet {
+  return {
+    kind: item["kind"],
+    name: item["name"],
+    weight: item["weight"],
   };
 }
 
@@ -2649,7 +2723,7 @@ export function petUnionDeserializer(item: any): PetUnion {
         item as ServicePlacementPolicyDescription,
       );
     default:
-      return item;
+      return petDeserializer(item);
   }
 }
 ```

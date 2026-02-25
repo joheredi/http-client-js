@@ -22,6 +22,27 @@ import { getAdditionalPropertiesFieldName } from "../model-interface.js";
 export interface JsonSerializerProps {
   /** The TCGC model type to generate a serializer function for. */
   model: SdkModelType;
+  /**
+   * Optional refkey override for the generated function declaration.
+   * When provided, the function is registered with this refkey instead of
+   * the default `serializerRefkey(model)`. Used for base model serializers
+   * in polymorphic hierarchies, where the polymorphic switch serializer
+   * already claims `serializerRefkey(model)`.
+   */
+  refkeyOverride?: import("@alloy-js/core").Refkey;
+  /**
+   * Optional name suffix override for the generated function.
+   * When provided, the function name uses this suffix instead of "Serializer".
+   * Used for base model serializers (e.g., "BaseModelSerializer").
+   */
+  nameSuffix?: string;
+  /**
+   * Whether to include inherited properties from parent models.
+   * When true, walks the `baseModel` chain to collect all ancestor properties.
+   * Used for child types in discriminated hierarchies and base model serializers.
+   * @default false
+   */
+  includeParentProperties?: boolean;
 }
 
 /**
@@ -51,14 +72,14 @@ export interface JsonSerializerProps {
  * @returns An Alloy JSX tree representing the serializer function declaration.
  */
 export function JsonSerializer(props: JsonSerializerProps) {
-  const { model } = props;
-  const properties = getSerializableProperties(model);
+  const { model, refkeyOverride, nameSuffix, includeParentProperties } = props;
+  const properties = getSerializableProperties(model, includeParentProperties);
   const hasAdditional = hasAdditionalProperties(model);
 
   return (
     <FunctionDeclaration
-      name={getModelFunctionName(model, "Serializer")}
-      refkey={serializerRefkey(model)}
+      name={getModelFunctionName(model, nameSuffix ?? "Serializer")}
+      refkey={refkeyOverride ?? serializerRefkey(model)}
       export
       returnType="any"
       parameters={[{ name: "item", type: typeRefkey(model) }]}
@@ -92,13 +113,26 @@ export function JsonSerializer(props: JsonSerializerProps) {
  * has `flatten: true` and its type is a model, the nested model's properties
  * are included directly. Children inherit the wrapper's optionality.
  *
+ * When `includeParent` is true, walks the `baseModel` chain to collect all
+ * inherited ancestor properties before the model's own properties. This is
+ * needed for child types in discriminated hierarchies, where the serializer
+ * must map all properties (inherited + own) to their wire names.
+ *
  * @param model - The TCGC model type.
+ * @param includeParent - Whether to include inherited parent properties.
  * @returns An array of properties to include in the serializer.
  */
 function getSerializableProperties(
   model: SdkModelType,
+  includeParent?: boolean,
 ): SdkModelPropertyType[] {
   const result: SdkModelPropertyType[] = [];
+
+  // Collect inherited properties from ancestor models first
+  if (includeParent) {
+    const ancestors = collectAncestorProperties(model);
+    result.push(...ancestors);
+  }
 
   for (const prop of model.properties) {
     if (prop.flatten && prop.type.kind === "model") {
@@ -114,6 +148,45 @@ function getSerializableProperties(
   }
 
   return result;
+}
+
+/**
+ * Collects all properties inherited from ancestor models by walking
+ * up the `baseModel` chain.
+ *
+ * Properties from the most distant ancestor appear first, then closer
+ * ancestors, matching the natural inheritance order. Properties that are
+ * overridden by descendant models (same `name`) are excluded to avoid
+ * duplicate mappings in serializers.
+ *
+ * @param model - The TCGC model type to start from.
+ * @returns An array of inherited properties (excluding those overridden by descendants).
+ */
+function collectAncestorProperties(
+  model: SdkModelType,
+): SdkModelPropertyType[] {
+  const ancestors: SdkModelType[] = [];
+  let current = model.baseModel;
+  while (current) {
+    ancestors.unshift(current);
+    current = current.baseModel;
+  }
+
+  // Collect all ancestor properties, then remove any overridden by the model itself
+  const ownPropertyNames = new Set(model.properties.map((p) => p.name));
+  const inherited: SdkModelPropertyType[] = [];
+  const seenNames = new Set<string>();
+
+  for (const ancestor of ancestors) {
+    for (const prop of ancestor.properties) {
+      if (!ownPropertyNames.has(prop.name) && !seenNames.has(prop.name)) {
+        inherited.push(prop);
+        seenNames.add(prop.name);
+      }
+    }
+  }
+
+  return inherited;
 }
 
 /**

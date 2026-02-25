@@ -2479,7 +2479,7 @@
           "id": "RC18",
           "title": "Polymorphic serializers missing base model fallback",
           "priority": "P1",
-          "status": "not_started",
+          "status": "done",
           "root_cause": "json-polymorphic-serializer.tsx generates switch statements where the default case returns 'item' as-is. Legacy generates a base model serializer/deserializer and calls it in the default case. Also, child deserializers don't include inherited parent properties.",
           "file": "src/components/serialization/json-polymorphic-serializer.tsx, src/components/serialization/json-polymorphic-deserializer.tsx",
           "description": "Discriminated union switch default returns raw item instead of calling base model serializer. Child type deserializers omit inherited parent fields.",
@@ -2874,7 +2874,7 @@
         "priority": "P1",
         "description": "LEGACY generates base model serializers/deserializers and uses them as default case in switch statements. NEW returns item directly in default case without base model processing. LEGACY child deserializers include parent fields; NEW only includes child-specific fields.",
         "affected_scenarios": "models/deserialization/extends.md, models/serialization/propertyType.md",
-        "status": "tracked"
+        "status": "done"
       },
       {
         "id": "SA15",

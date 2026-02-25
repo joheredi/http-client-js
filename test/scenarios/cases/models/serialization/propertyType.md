@@ -360,6 +360,7 @@ export function azureCoreNfviDetailsSerializer(
   item: AzureCoreNfviDetails,
 ): any {
   return {
+    name: item["name"],
     location: item["location"],
     nfviType: item["nfviType"],
   };
@@ -369,7 +370,15 @@ export function azureArcK8sClusterNfviDetailsSerializer(
   item: AzureArcK8sClusterNfviDetails,
 ): any {
   return {
+    name: item["name"],
     customLocationId: item["customLocationId"],
+    nfviType: item["nfviType"],
+  };
+}
+
+export function nfvIsSerializer(item: NfvIs): any {
+  return {
+    name: item["name"],
     nfviType: item["nfviType"],
   };
 }
@@ -383,7 +392,7 @@ export function nfvIsUnionSerializer(item: NfvIsUnion): any {
         item as AzureArcK8sClusterNfviDetails,
       );
     default:
-      return item;
+      return nfvIsSerializer(item);
   }
 }
 ```

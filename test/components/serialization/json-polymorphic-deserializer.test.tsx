@@ -10,15 +10,18 @@
  * - Basic discriminated model produces switch with cases for each subtype.
  * - Switch uses wire property name (serializedName) for discriminator access.
  * - Each case calls the subtype deserializer via refkey with type narrowing cast.
- * - Default case returns item as-is for unknown discriminator values.
+ * - Default case calls the base model deserializer for unknown discriminator values.
  * - Return type is the polymorphic union type (not the base model type).
  * - Deserializer is referenceable via deserializerRefkey(model).
+ * - Child deserializers include inherited parent properties.
  *
  * Why this matters:
  * Polymorphic deserialization is the mechanism that enables correct typed SDK
  * objects from discriminated JSON responses. Without it, a Cat response would
  * be deserialized as a generic Pet, losing subtype-specific properties like
- * `meow`. This is a P0 requirement (FR6).
+ * `meow`. The base model fallback in the default case ensures unknown subtypes
+ * are still properly deserialized with their base properties mapped. This is a
+ * P0 requirement (FR6).
  */
 import "@alloy-js/core/testing";
 import { d } from "@alloy-js/core/testing";
@@ -29,7 +32,7 @@ import { JsonPolymorphicDeserializer } from "../../../src/components/serializati
 import { JsonDeserializer } from "../../../src/components/serialization/json-deserializer.js";
 import { ModelInterface } from "../../../src/components/model-interface.js";
 import { PolymorphicType } from "../../../src/components/polymorphic-type.js";
-import { deserializerRefkey } from "../../../src/utils/refkeys.js";
+import { deserializerRefkey, baseDeserializerRefkey } from "../../../src/utils/refkeys.js";
 import { SdkTestFile } from "../../utils.js";
 import { TesterWithService, createSdkContextForTest } from "../../test-host.js";
 
@@ -84,9 +87,11 @@ describe("JsonPolymorphicDeserializer", () => {
         {"\n\n"}
         <PolymorphicType model={petModel} />
         {"\n\n"}
-        <JsonDeserializer model={catModel} />
+        <JsonDeserializer model={catModel} includeParentProperties />
         {"\n\n"}
-        <JsonDeserializer model={dogModel} />
+        <JsonDeserializer model={dogModel} includeParentProperties />
+        {"\n\n"}
+        <JsonDeserializer model={petModel} refkeyOverride={baseDeserializerRefkey(petModel)} nameSuffix="Deserializer" />
         {"\n\n"}
         <JsonPolymorphicDeserializer model={petModel} />
       </SdkTestFile>
@@ -115,6 +120,7 @@ describe("JsonPolymorphicDeserializer", () => {
 
       export function catDeserializer(item: any): Cat {
         return {
+          name: item["name"],
           kind: item["kind"],
           meow: item["meow"],
         };
@@ -122,8 +128,16 @@ describe("JsonPolymorphicDeserializer", () => {
 
       export function dogDeserializer(item: any): Dog {
         return {
+          name: item["name"],
           kind: item["kind"],
           bark: item["bark"],
+        };
+      }
+
+      export function petDeserializer(item: any): Pet {
+        return {
+          kind: item["kind"],
+          name: item["name"],
         };
       }
 
@@ -134,7 +148,7 @@ describe("JsonPolymorphicDeserializer", () => {
           case "dog":
             return dogDeserializer(item as Dog);
           default:
-            return item;
+            return petDeserializer(item);
         }
       }
     `);
@@ -182,7 +196,9 @@ describe("JsonPolymorphicDeserializer", () => {
         {"\n\n"}
         <PolymorphicType model={shapeModel} />
         {"\n\n"}
-        <JsonDeserializer model={circleModel} />
+        <JsonDeserializer model={circleModel} includeParentProperties />
+        {"\n\n"}
+        <JsonDeserializer model={shapeModel} refkeyOverride={baseDeserializerRefkey(shapeModel)} nameSuffix="Deserializer" />
         {"\n\n"}
         <JsonPolymorphicDeserializer model={shapeModel} />
       </SdkTestFile>
@@ -211,12 +227,18 @@ describe("JsonPolymorphicDeserializer", () => {
         };
       }
 
+      export function shapeDeserializer(item: any): Shape {
+        return {
+          type: item["shape_type"],
+        };
+      }
+
       export function shapeUnionDeserializer(item: any): ShapeUnion {
         switch (item["shape_type"]) {
           case "circle":
             return circleDeserializer(item as Circle);
           default:
-            return item;
+            return shapeDeserializer(item);
         }
       }
     `);
@@ -262,7 +284,9 @@ describe("JsonPolymorphicDeserializer", () => {
         {"\n\n"}
         <PolymorphicType model={vehicleModel} />
         {"\n\n"}
-        <JsonDeserializer model={carModel} />
+        <JsonDeserializer model={carModel} includeParentProperties />
+        {"\n\n"}
+        <JsonDeserializer model={vehicleModel} refkeyOverride={baseDeserializerRefkey(vehicleModel)} nameSuffix="Deserializer" />
         {"\n\n"}
         <JsonPolymorphicDeserializer model={vehicleModel} />
       </SdkTestFile>
@@ -291,12 +315,18 @@ describe("JsonPolymorphicDeserializer", () => {
         };
       }
 
+      export function vehicleDeserializer(item: any): Vehicle {
+        return {
+          kind: item["kind"],
+        };
+      }
+
       export function vehicleUnionDeserializer(item: any): VehicleUnion {
         switch (item["kind"]) {
           case "car":
             return carDeserializer(item as Car);
           default:
-            return item;
+            return vehicleDeserializer(item);
         }
       }
     `);
@@ -342,7 +372,9 @@ describe("JsonPolymorphicDeserializer", () => {
         {"\n\n"}
         <PolymorphicType model={animalModel} />
         {"\n\n"}
-        <JsonDeserializer model={birdModel} />
+        <JsonDeserializer model={birdModel} includeParentProperties />
+        {"\n\n"}
+        <JsonDeserializer model={animalModel} refkeyOverride={baseDeserializerRefkey(animalModel)} nameSuffix="Deserializer" />
         {"\n\n"}
         <JsonPolymorphicDeserializer model={animalModel} />
         {"\n\n"}
@@ -373,12 +405,18 @@ describe("JsonPolymorphicDeserializer", () => {
         };
       }
 
+      export function animalDeserializer(item: any): Animal {
+        return {
+          kind: item["kind"],
+        };
+      }
+
       export function animalUnionDeserializer(item: any): AnimalUnion {
         switch (item["kind"]) {
           case "bird":
             return birdDeserializer(item as Bird);
           default:
-            return item;
+            return animalDeserializer(item);
         }
       }
 
@@ -387,12 +425,12 @@ describe("JsonPolymorphicDeserializer", () => {
   });
 
   /**
-   * Tests that the default case returns the item unchanged. This provides
-   * forward compatibility — when the service adds a new discriminated subtype,
-   * existing client code doesn't crash; it passes the unknown variant through
-   * without transformation. The raw JSON is still usable even if not typed.
+   * Tests that the default case calls the base model deserializer to properly
+   * map the base type's properties. When the service adds a new discriminated
+   * subtype, the base deserializer provides a safe fallback that still maps
+   * known base properties correctly.
    */
-  it("should have default case that returns item as-is", async () => {
+  it("should have default case that calls base model deserializer", async () => {
     const runner = await TesterWithService.createInstance();
     const { program } = await runner.compile(
       t.code`
@@ -426,7 +464,9 @@ describe("JsonPolymorphicDeserializer", () => {
         {"\n\n"}
         <PolymorphicType model={baseModel} />
         {"\n\n"}
-        <JsonDeserializer model={subModel} />
+        <JsonDeserializer model={subModel} includeParentProperties />
+        {"\n\n"}
+        <JsonDeserializer model={baseModel} refkeyOverride={baseDeserializerRefkey(baseModel)} nameSuffix="Deserializer" />
         {"\n\n"}
         <JsonPolymorphicDeserializer model={baseModel} />
       </SdkTestFile>
@@ -454,12 +494,18 @@ describe("JsonPolymorphicDeserializer", () => {
         };
       }
 
+      export function baseDeserializer(item: any): Base {
+        return {
+          kind: item["kind"],
+        };
+      }
+
       export function baseUnionDeserializer(item: any): BaseUnion {
         switch (item["kind"]) {
           case "sub":
             return subDeserializer(item as Sub);
           default:
-            return item;
+            return baseDeserializer(item);
         }
       }
     `);

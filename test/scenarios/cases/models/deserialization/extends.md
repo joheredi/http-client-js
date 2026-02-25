@@ -69,6 +69,12 @@ export function maasModelConfigDeserializer(item: any): MaasModelConfig {
   };
 }
 
+export function aWidgetDataDeserializer(item: any): AWidgetData {
+  return {
+    kind: item["kind"],
+  };
+}
+
 export function aWidgetDataUnionDeserializer(item: any): AWidgetDataUnion {
   switch (item["kind"]) {
     case "kind0":
@@ -76,7 +82,7 @@ export function aWidgetDataUnionDeserializer(item: any): AWidgetDataUnion {
     case "kind1":
       return maasModelConfigDeserializer(item as MaasModelConfig);
     default:
-      return item;
+      return aWidgetDataDeserializer(item);
   }
 }
 ```
@@ -202,6 +208,7 @@ export function discountTypeProductFamilyDeserializer(
   item: any,
 ): DiscountTypeProductFamily {
   return {
+    discountPercentage: item["discountPercentage"],
     productFamilyName: item["productFamilyName"],
     discountType: item["discountType"],
   };
@@ -211,6 +218,7 @@ export function discountTypeProductDeserializer(
   item: any,
 ): DiscountTypeProduct {
   return {
+    discountPercentage: item["discountPercentage"],
     productFamilyName: item["productFamilyName"],
     productId: item["productId"],
     discountType: item["discountType"],
@@ -221,10 +229,20 @@ export function discountTypeProductSkuDeserializer(
   item: any,
 ): DiscountTypeProductSku {
   return {
+    discountPercentage: item["discountPercentage"],
     productFamilyName: item["productFamilyName"],
     productId: item["productId"],
     skuId: item["skuId"],
     discountType: item["discountType"],
+  };
+}
+
+export function discountTypePropertiesDeserializer(
+  item: any,
+): DiscountTypeProperties {
+  return {
+    discountType: item["discountType"],
+    discountPercentage: item["discountPercentage"],
   };
 }
 
@@ -241,7 +259,7 @@ export function discountTypePropertiesUnionDeserializer(
     case "Sku":
       return discountTypeProductSkuDeserializer(item as DiscountTypeProductSku);
     default:
-      return item;
+      return discountTypePropertiesDeserializer(item);
   }
 }
 ```
@@ -338,6 +356,8 @@ export type DocumentType =
 
 export function requestSerializer(item: Request): any {
   return {
+    DocumentStreamIds: item["DocumentStreamIds"],
+    Properties: item["Properties"],
     DocumentType: item["DocumentType"],
     Name: item["Name"],
     Url: item["Url"],
@@ -346,9 +366,19 @@ export function requestSerializer(item: Request): any {
 
 export function exceptionSerializer(item: Exception): any {
   return {
+    DocumentStreamIds: item["DocumentStreamIds"],
+    Properties: item["Properties"],
     DocumentType: item["DocumentType"],
     ExceptionType: item["ExceptionType"],
     ExceptionMessage: item["ExceptionMessage"],
+  };
+}
+
+export function documentIngressSerializer(item: DocumentIngress): any {
+  return {
+    DocumentType: item["DocumentType"],
+    DocumentStreamIds: item["DocumentStreamIds"],
+    Properties: item["Properties"],
   };
 }
 
@@ -361,12 +391,14 @@ export function documentIngressUnionSerializer(
     case "Exception":
       return exceptionSerializer(item as Exception);
     default:
-      return item;
+      return documentIngressSerializer(item);
   }
 }
 
 export function requestDeserializer(item: any): Request {
   return {
+    DocumentStreamIds: item["DocumentStreamIds"],
+    Properties: item["Properties"],
     DocumentType: item["DocumentType"],
     Name: item["Name"],
     Url: item["Url"],
@@ -375,9 +407,19 @@ export function requestDeserializer(item: any): Request {
 
 export function exceptionDeserializer(item: any): Exception {
   return {
+    DocumentStreamIds: item["DocumentStreamIds"],
+    Properties: item["Properties"],
     DocumentType: item["DocumentType"],
     ExceptionType: item["ExceptionType"],
     ExceptionMessage: item["ExceptionMessage"],
+  };
+}
+
+export function documentIngressDeserializer(item: any): DocumentIngress {
+  return {
+    DocumentType: item["DocumentType"],
+    DocumentStreamIds: item["DocumentStreamIds"],
+    Properties: item["Properties"],
   };
 }
 
@@ -390,7 +432,7 @@ export function documentIngressUnionDeserializer(
     case "Exception":
       return exceptionDeserializer(item as Exception);
     default:
-      return item;
+      return documentIngressDeserializer(item);
   }
 }
 ```
@@ -531,8 +573,17 @@ export enum KnownVersions {
 
 export function dogSerializer(item: Dog): any {
   return {
+    name: item["name"],
+    trained: item["trained"],
     kind: item["kind"],
     breed: item["breed"],
+  };
+}
+
+export function animalSerializer(item: Animal): any {
+  return {
+    kind: item["kind"],
+    name: item["name"],
   };
 }
 
@@ -543,8 +594,15 @@ export function animalUnionSerializer(item: AnimalUnion): any {
     case "dog":
       return dogSerializer(item as Dog);
     default:
-      return item;
+      return animalSerializer(item);
   }
+}
+
+export function petSerializer(item: Pet): any {
+  return {
+    kind: item["kind"],
+    trained: item["trained"],
+  };
 }
 
 export function petUnionSerializer(item: PetUnion): any {
@@ -552,14 +610,23 @@ export function petUnionSerializer(item: PetUnion): any {
     case "dog":
       return dogSerializer(item as Dog);
     default:
-      return item;
+      return petSerializer(item);
   }
 }
 
 export function dogDeserializer(item: any): Dog {
   return {
+    name: item["name"],
+    trained: item["trained"],
     kind: item["kind"],
     breed: item["breed"],
+  };
+}
+
+export function animalDeserializer(item: any): Animal {
+  return {
+    kind: item["kind"],
+    name: item["name"],
   };
 }
 
@@ -570,8 +637,15 @@ export function animalUnionDeserializer(item: any): AnimalUnion {
     case "dog":
       return dogDeserializer(item as Dog);
     default:
-      return item;
+      return animalDeserializer(item);
   }
+}
+
+export function petDeserializer(item: any): Pet {
+  return {
+    kind: item["kind"],
+    trained: item["trained"],
+  };
 }
 
 export function petUnionDeserializer(item: any): PetUnion {
@@ -579,7 +653,7 @@ export function petUnionDeserializer(item: any): PetUnion {
     case "dog":
       return dogDeserializer(item as Dog);
     default:
-      return item;
+      return petDeserializer(item);
   }
 }
 ```

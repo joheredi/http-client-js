@@ -22,6 +22,8 @@ export {
   operationGroupInterfaceRefkey,
   operationGroupFactoryRefkey,
   loggerRefkey,
+  baseSerializerRefkey,
+  baseDeserializerRefkey,
 } from "./refkeys.js";
 
 export {

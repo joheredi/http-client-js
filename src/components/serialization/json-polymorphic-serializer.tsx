@@ -3,6 +3,7 @@ import { FunctionDeclaration } from "@alloy-js/typescript";
 import type { SdkModelType } from "@azure-tools/typespec-client-generator-core";
 import { getModelFunctionName } from "../../utils/model-name.js";
 import {
+  baseSerializerRefkey,
   polymorphicTypeRefkey,
   serializerRefkey,
   typeRefkey,
@@ -73,6 +74,7 @@ export function JsonPolymorphicSerializer(
         discriminatorProp.name,
         entries,
         serializerRefkey,
+        baseSerializerRefkey(model),
       )}
     </FunctionDeclaration>
   );
@@ -83,8 +85,9 @@ export function JsonPolymorphicSerializer(
  *
  * Generates a switch on the discriminator property that routes each known
  * discriminator value to the appropriate subtype serializer/deserializer. The
- * default case returns the item as-is for forward compatibility with unknown
- * discriminator values.
+ * default case calls the base model's serializer/deserializer to handle
+ * unknown discriminator values with proper property mapping, rather than
+ * returning the raw item as-is.
  *
  * This is a shared utility used by both {@link JsonPolymorphicSerializer} and
  * the polymorphic deserializer. The `refkeyFn` parameter determines which
@@ -94,12 +97,15 @@ export function JsonPolymorphicSerializer(
  * @param entries - Entries from `discriminatedSubtypes` as `[discriminatorValue, subtypeModel]` pairs.
  * @param refkeyFn - Function that returns the appropriate refkey for each subtype
  *                   (e.g., `serializerRefkey` or `deserializerRefkey`).
+ * @param baseRefkey - The refkey for the base model's serializer/deserializer
+ *                     function, used in the default case.
  * @returns Alloy Children representing the complete switch statement.
  */
 export function buildPolymorphicSwitchBody(
   discriminatorName: string,
   entries: [string, SdkModelType][],
   refkeyFn: (entity: unknown) => Refkey,
+  baseRefkey: Refkey,
 ): Children {
   return (
     <>
@@ -117,7 +123,7 @@ export function buildPolymorphicSwitchBody(
       {"\n"}
       {code`  default:`}
       {"\n"}
-      {code`    return item;`}
+      {code`    return ${baseRefkey}(item);`}
       {"\n"}
       {code`}`}
     </>

@@ -3308,3 +3308,98 @@ When `@@override` groups individual query/header parameters into a model paramet
 - RC18 (Polymorphic serializers missing base model fallback) affects serialization correctness.
 - The 3 remaining skipped tests are blocked on external issues (TCGC #3088, TypeSpec #6983, TCGC #1419)
 - The vitest worker timeout error is an infrastructure issue, not a test failure.
+
+## 2026-02-25 — RC18/SA14: Polymorphic Serializers Base Model Fallback
+
+### What was done
+- **Fixed polymorphic switch serializers/deserializers** to call a base model
+  serializer/deserializer in the default case instead of returning `item` as-is.
+  This ensures unknown discriminator values still get their base properties
+  properly mapped to/from wire format.
+
+- **Fixed child type serializers/deserializers** to include inherited parent
+  properties. Previously, child models like `DiscountTypeProductFamily extends
+  DiscountTypeProperties` would only serialize/deserialize their OWN properties,
+  missing inherited ones like `discountPercentage`.
+
+- **Added `baseSerializerRefkey` and `baseDeserializerRefkey`** in
+  `src/utils/refkeys.ts` — new refkey discriminators for the plain base model
+  serializer/deserializer functions, distinct from the polymorphic switch
+  serializer/deserializer (which uses `serializerRefkey`/`deserializerRefkey`).
+
+- **Modified `src/components/serialization/json-serializer.tsx`**:
+  - Added `refkeyOverride`, `nameSuffix`, `includeParentProperties` props
+  - Added `collectAncestorProperties()` function that walks the `baseModel` chain
+  - Updated `getSerializableProperties()` to accept `includeParent` parameter
+
+- **Modified `src/components/serialization/json-deserializer.tsx`**:
+  - Added same props and ancestor collection logic as serializer
+
+- **Modified `src/components/serialization/json-polymorphic-serializer.tsx`**:
+  - `buildPolymorphicSwitchBody()` now accepts a `baseRefkey` parameter
+  - Default case: `return ${baseRefkey}(item);` instead of `return item;`
+
+- **Modified `src/components/serialization/json-polymorphic-deserializer.tsx`**:
+  - Updated to pass `baseDeserializerRefkey(model)` to switch body builder
+
+- **Modified `src/components/model-files.tsx`**:
+  - Added `isDiscriminatedChild()` helper to detect child models in hierarchies
+  - `SerializerDeclarations`/`DeserializerDeclarations` pass `includeParentProperties`
+    for discriminated child models
+  - `PolymorphicSerializerDeclarations`/`PolymorphicDeserializerDeclarations` now
+    render BOTH a base model serializer/deserializer AND the polymorphic switch
+
+- **Updated 10 unit tests** in polymorphic serializer/deserializer test files:
+  - Tests now include base model serializer/deserializer in render tree
+  - Expected output updated for base model fallback in default case
+  - Expected output updated for inherited parent properties in child functions
+  - Test descriptions updated to reflect new behavior
+
+- **Updated 3 scenario test files** (auto-updated via SCENARIOS_UPDATE=true):
+  - `models/deserialization/extends.md` — all 4 scenarios updated
+  - `models/serialization/propertyType.md` — 1 scenario updated
+  - `modelsGenerator/modelsGenerator.md` — models with polymorphic types updated
+
+- **Updated PRD**: Marked RC18 and SA14 as done.
+
+### Test Results
+- Before: 851 passed, 3 skipped, 48 test files
+- After: 851 passed, 3 skipped, 48 test files (0 new tests, existing updated)
+- Zero regressions in existing tests
+
+### Architecture decisions
+- **Separate refkeys for base functions**: `baseSerializerRefkey(model)` and
+  `baseDeserializerRefkey(model)` use different discriminators ("baseSerializer",
+  "baseDeserializer") than the polymorphic switch ("serializer", "deserializer").
+  This prevents refkey collisions while allowing both to coexist for the same model.
+- **Props-based extension**: Rather than creating new components, we extended
+  `JsonSerializer` and `JsonDeserializer` with `refkeyOverride`, `nameSuffix`,
+  and `includeParentProperties` props. This reuses all existing serialization logic
+  without duplication.
+- **Ancestor property collection**: `collectAncestorProperties()` walks the
+  `baseModel` chain from the most distant ancestor to closest, collecting
+  non-overridden properties. This ensures proper property ordering (parent first).
+
+### Files Changed
+- `src/utils/refkeys.ts` — Added baseSerializerRefkey, baseDeserializerRefkey
+- `src/utils/index.ts` — Export new refkeys
+- `src/components/serialization/json-serializer.tsx` — Props, ancestor collection
+- `src/components/serialization/json-deserializer.tsx` — Props, ancestor collection
+- `src/components/serialization/json-polymorphic-serializer.tsx` — Base refkey in switch
+- `src/components/serialization/json-polymorphic-deserializer.tsx` — Base refkey in switch
+- `src/components/model-files.tsx` — isDiscriminatedChild, base model generation
+- `test/components/serialization/json-polymorphic-serializer.test.tsx` — Updated tests
+- `test/components/serialization/json-polymorphic-deserializer.test.tsx` — Updated tests
+- 3 scenario test files — Updated expectations
+- `prd.json` — RC18, SA14 marked done
+
+### Notes for next person
+- Completed: All Phases 0-10, Tasks 11.02, 11.04, 11.07, SA4, SA5, SA11, SA14, SA20,
+  SA3, RC01-RC09, RC13, RC15, RC17, RC18, RC19, RC20, RC29 (DONE).
+- **Remaining P1 tasks**: RC10, RC11, RC14, RC16, RC21-RC28, RC30
+- **Remaining P2 tasks**: RC12, RC31-RC34
+- RC16 (Enum member name normalization) and RC14 (URL template encoding) are
+  well-scoped follow-up tasks.
+- The 3 remaining skipped tests are blocked on external issues (TCGC #3088,
+  TypeSpec #6983, TCGC #1419)
+- The vitest worker timeout error is an infrastructure issue, not a test failure.

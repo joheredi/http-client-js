@@ -8,6 +8,7 @@ import type {
 } from "@azure-tools/typespec-client-generator-core";
 import { UsageFlags } from "@azure-tools/typespec-client-generator-core";
 import { useSdkContext } from "../context/sdk-context.js";
+import { baseSerializerRefkey, baseDeserializerRefkey } from "../utils/refkeys.js";
 import { EnumDeclaration } from "./enum-declaration.js";
 import { ModelInterface } from "./model-interface.js";
 import { getDirectSubtypes, PolymorphicType } from "./polymorphic-type.js";
@@ -347,11 +348,37 @@ interface SerializerDeclarationsProps {
 }
 
 /**
+ * Checks whether a model is a child type in a discriminated hierarchy.
+ *
+ * A model is considered a discriminated child if any ancestor in its
+ * `baseModel` chain has a `discriminatorProperty`. Such child models need
+ * their serializers/deserializers to include inherited parent properties
+ * so that all fields (own + inherited) are properly mapped.
+ *
+ * @param model - The TCGC model type to check.
+ * @returns True if the model is a child in a discriminated hierarchy.
+ */
+function isDiscriminatedChild(model: SdkModelType): boolean {
+  let current = model.baseModel;
+  while (current) {
+    if (current.discriminatorProperty !== undefined) {
+      return true;
+    }
+    current = current.baseModel;
+  }
+  return false;
+}
+
+/**
  * Renders all JSON serializer function declarations.
  *
  * Each model with `UsageFlags.Input` gets a serializer function that converts
  * typed SDK objects into wire-format JSON. Serializers are placed in the same
  * source file as type declarations to prevent self-import bugs.
+ *
+ * Child models in discriminated hierarchies receive `includeParentProperties`
+ * so their serializers include all inherited parent properties alongside
+ * their own, ensuring complete wire-format output.
  *
  * @param props - Component props containing the list of input models.
  * @returns Alloy JSX tree with serializer declarations, or undefined if empty.
@@ -361,7 +388,12 @@ function SerializerDeclarations(props: SerializerDeclarationsProps) {
 
   return (
     <For each={props.models} doubleHardline>
-      {(model) => <JsonSerializer model={model} />}
+      {(model) => (
+        <JsonSerializer
+          model={model}
+          includeParentProperties={isDiscriminatedChild(model)}
+        />
+      )}
     </For>
   );
 }
@@ -382,6 +414,10 @@ interface DeserializerDeclarationsProps {
  * Deserializers are placed in the same source file as type declarations to
  * prevent self-import bugs.
  *
+ * Child models in discriminated hierarchies receive `includeParentProperties`
+ * so their deserializers include all inherited parent properties alongside
+ * their own, ensuring complete deserialized output.
+ *
  * @param props - Component props containing the list of output/exception models.
  * @returns Alloy JSX tree with deserializer declarations, or undefined if empty.
  */
@@ -390,7 +426,12 @@ function DeserializerDeclarations(props: DeserializerDeclarationsProps) {
 
   return (
     <For each={props.models} doubleHardline>
-      {(model) => <JsonDeserializer model={model} />}
+      {(model) => (
+        <JsonDeserializer
+          model={model}
+          includeParentProperties={isDiscriminatedChild(model)}
+        />
+      )}
     </For>
   );
 }
@@ -406,10 +447,15 @@ interface PolymorphicSerializerDeclarationsProps {
 /**
  * Renders all polymorphic (switch-based) JSON serializer function declarations.
  *
- * Each discriminated model with `UsageFlags.Input` gets a polymorphic serializer
- * function that switches on the discriminator property and routes to the appropriate
- * subtype serializer. These are rendered separately from regular serializers because
- * they use `polymorphicTypeRefkey` as the parameter type instead of the base model type.
+ * Each discriminated model with `UsageFlags.Input` gets:
+ * 1. A base model serializer function that maps the base type's own properties
+ *    (registered with `baseSerializerRefkey`). This serves as the default
+ *    fallback in the switch statement.
+ * 2. A polymorphic switch serializer that routes to the appropriate subtype
+ *    serializer based on the discriminator value (registered with `serializerRefkey`).
+ *
+ * The base serializer is rendered first so it's available when the switch
+ * serializer references it in its default case.
  *
  * @param props - Component props containing the list of discriminated input models.
  * @returns Alloy JSX tree with polymorphic serializer declarations, or undefined if empty.
@@ -421,7 +467,17 @@ function PolymorphicSerializerDeclarations(
 
   return (
     <For each={props.models} doubleHardline>
-      {(model) => <JsonPolymorphicSerializer model={model} />}
+      {(model) => (
+        <>
+          <JsonSerializer
+            model={model}
+            refkeyOverride={baseSerializerRefkey(model)}
+            nameSuffix="Serializer"
+          />
+          {"\n\n"}
+          <JsonPolymorphicSerializer model={model} />
+        </>
+      )}
     </For>
   );
 }
@@ -437,10 +493,16 @@ interface PolymorphicDeserializerDeclarationsProps {
 /**
  * Renders all polymorphic (switch-based) JSON deserializer function declarations.
  *
- * Each discriminated model with `UsageFlags.Output` or `UsageFlags.Exception` gets a
- * polymorphic deserializer function that switches on the wire-format discriminator
- * property and routes to the appropriate subtype deserializer. The return type is
- * the polymorphic union type, ensuring callers receive properly typed results.
+ * Each discriminated model with `UsageFlags.Output` or `UsageFlags.Exception` gets:
+ * 1. A base model deserializer function that maps the base type's own properties
+ *    (registered with `baseDeserializerRefkey`). This serves as the default
+ *    fallback in the switch statement.
+ * 2. A polymorphic switch deserializer that routes to the appropriate subtype
+ *    deserializer based on the wire-format discriminator value (registered with
+ *    `deserializerRefkey`).
+ *
+ * The base deserializer is rendered first so it's available when the switch
+ * deserializer references it in its default case.
  *
  * @param props - Component props containing the list of discriminated output/exception models.
  * @returns Alloy JSX tree with polymorphic deserializer declarations, or undefined if empty.
@@ -452,7 +514,17 @@ function PolymorphicDeserializerDeclarations(
 
   return (
     <For each={props.models} doubleHardline>
-      {(model) => <JsonPolymorphicDeserializer model={model} />}
+      {(model) => (
+        <>
+          <JsonDeserializer
+            model={model}
+            refkeyOverride={baseDeserializerRefkey(model)}
+            nameSuffix="Deserializer"
+          />
+          {"\n\n"}
+          <JsonPolymorphicDeserializer model={model} />
+        </>
+      )}
     </For>
   );
 }

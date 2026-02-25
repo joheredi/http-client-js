@@ -3,6 +3,7 @@ import { FunctionDeclaration } from "@alloy-js/typescript";
 import type { SdkModelType } from "@azure-tools/typespec-client-generator-core";
 import { getModelFunctionName } from "../../utils/model-name.js";
 import {
+  baseDeserializerRefkey,
   deserializerRefkey,
   polymorphicTypeRefkey,
 } from "../../utils/refkeys.js";
@@ -42,8 +43,9 @@ export interface JsonPolymorphicDeserializerProps {
  * The return type is the polymorphic union type, ensuring callers receive a
  * properly typed result.
  *
- * The default case returns the item as-is for unknown discriminator values, providing
- * a safe fallback when new subtypes are added to the service.
+ * The default case calls the base model's deserializer to properly map
+ * the base type's properties for unknown discriminator values, rather than
+ * returning the raw item as-is.
  *
  * This deserializer uses `deserializerRefkey(model)`, so when other components
  * reference the deserializer for a discriminated model, they get the polymorphic
@@ -71,6 +73,7 @@ export function JsonPolymorphicDeserializer(
         discriminatorProp.serializedName,
         entries,
         deserializerRefkey,
+        baseDeserializerRefkey(model),
       )}
     </FunctionDeclaration>
   );

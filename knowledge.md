@@ -1422,3 +1422,23 @@ When a TCGC model has both `...Record<T>` (additionalProperties) and an explicit
 property named `additionalProperties`, the additional properties bag field is
 renamed to `additionalPropertiesBag`. This function is exported from
 `model-interface.tsx` and shared with the serializer.
+
+### Polymorphic Serializer/Deserializer Architecture (RC18)
+
+TCGC's `SdkModelType.properties` only contains the model's OWN properties, not
+inherited ones. For child types in discriminated hierarchies (e.g., `Cat extends Pet`),
+the `baseModel` chain must be walked to collect inherited properties. The
+`collectAncestorProperties()` utility handles this by walking from most-distant
+ancestor to closest, filtering out properties overridden by the child model.
+
+The polymorphic switch serializer/deserializer uses `serializerRefkey(model)` /
+`deserializerRefkey(model)`, while the plain base model functions use
+`baseSerializerRefkey(model)` / `baseDeserializerRefkey(model)`. Both refkey
+sets must be registered (by rendering both components) to avoid "Unresolved Symbol"
+errors in the output. Unit tests that render polymorphic serializers in isolation
+must ALSO render the base model serializer to resolve the default case refkey.
+
+When adding `includeParentProperties` to JsonSerializer/JsonDeserializer, the
+parameter propagates through `getSerializableProperties()` / `getDeserializableProperties()`
+and is only set `true` for models that are children in a discriminated hierarchy
+(detected by `isDiscriminatedChild()` which walks the `baseModel` chain).

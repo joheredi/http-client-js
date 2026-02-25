@@ -10,16 +10,18 @@
  * - Basic discriminated model produces switch with cases for each subtype.
  * - Switch uses client property name for discriminator access.
  * - Each case calls the subtype serializer via refkey with type narrowing cast.
- * - Default case returns item as-is for unknown discriminator values.
+ * - Default case calls the base model serializer for unknown discriminator values.
  * - Parameter type is the polymorphic union type (not the base model type).
  * - Serializer is referenceable via serializerRefkey(model).
- * - Single subtype renders one case correctly.
+ * - Child serializers include inherited parent properties.
  *
  * Why this matters:
  * Polymorphic serialization is the mechanism that enables correct JSON output
  * for discriminated models. Without it, attempting to serialize a Cat (subtype
  * of Pet) would call the base Pet serializer, losing subtype-specific properties.
- * This is a P0 requirement (FR6).
+ * The base model fallback in the default case ensures unknown subtypes are still
+ * properly serialized with their base properties mapped correctly. This is a P0
+ * requirement (FR6).
  */
 import "@alloy-js/core/testing";
 import { d } from "@alloy-js/core/testing";
@@ -30,7 +32,7 @@ import { JsonPolymorphicSerializer } from "../../../src/components/serialization
 import { JsonSerializer } from "../../../src/components/serialization/json-serializer.js";
 import { ModelInterface } from "../../../src/components/model-interface.js";
 import { PolymorphicType } from "../../../src/components/polymorphic-type.js";
-import { serializerRefkey } from "../../../src/utils/refkeys.js";
+import { serializerRefkey, baseSerializerRefkey } from "../../../src/utils/refkeys.js";
 import { SdkTestFile } from "../../utils.js";
 import { TesterWithService, createSdkContextForTest } from "../../test-host.js";
 
@@ -86,9 +88,11 @@ describe("JsonPolymorphicSerializer", () => {
         {"\n\n"}
         <PolymorphicType model={petModel} />
         {"\n\n"}
-        <JsonSerializer model={catModel} />
+        <JsonSerializer model={catModel} includeParentProperties />
         {"\n\n"}
-        <JsonSerializer model={dogModel} />
+        <JsonSerializer model={dogModel} includeParentProperties />
+        {"\n\n"}
+        <JsonSerializer model={petModel} refkeyOverride={baseSerializerRefkey(petModel)} nameSuffix="Serializer" />
         {"\n\n"}
         <JsonPolymorphicSerializer model={petModel} />
       </SdkTestFile>
@@ -117,6 +121,7 @@ describe("JsonPolymorphicSerializer", () => {
 
       export function catSerializer(item: Cat): any {
         return {
+          name: item["name"],
           kind: item["kind"],
           meow: item["meow"],
         };
@@ -124,8 +129,16 @@ describe("JsonPolymorphicSerializer", () => {
 
       export function dogSerializer(item: Dog): any {
         return {
+          name: item["name"],
           kind: item["kind"],
           bark: item["bark"],
+        };
+      }
+
+      export function petSerializer(item: Pet): any {
+        return {
+          kind: item["kind"],
+          name: item["name"],
         };
       }
 
@@ -136,7 +149,7 @@ describe("JsonPolymorphicSerializer", () => {
           case "dog":
             return dogSerializer(item as Dog);
           default:
-            return item;
+            return petSerializer(item);
         }
       }
     `);
@@ -184,7 +197,9 @@ describe("JsonPolymorphicSerializer", () => {
         {"\n\n"}
         <PolymorphicType model={shapeModel} />
         {"\n\n"}
-        <JsonSerializer model={circleModel} />
+        <JsonSerializer model={circleModel} includeParentProperties />
+        {"\n\n"}
+        <JsonSerializer model={shapeModel} refkeyOverride={baseSerializerRefkey(shapeModel)} nameSuffix="Serializer" />
         {"\n\n"}
         <JsonPolymorphicSerializer model={shapeModel} />
       </SdkTestFile>
@@ -214,12 +229,18 @@ describe("JsonPolymorphicSerializer", () => {
         };
       }
 
+      export function shapeSerializer(item: Shape): any {
+        return {
+          shape_type: item["type"],
+        };
+      }
+
       export function shapeUnionSerializer(item: ShapeUnion): any {
         switch (item["type"]) {
           case "circle":
             return circleSerializer(item as Circle);
           default:
-            return item;
+            return shapeSerializer(item);
         }
       }
     `);
@@ -266,7 +287,9 @@ describe("JsonPolymorphicSerializer", () => {
         {"\n\n"}
         <PolymorphicType model={vehicleModel} />
         {"\n\n"}
-        <JsonSerializer model={carModel} />
+        <JsonSerializer model={carModel} includeParentProperties />
+        {"\n\n"}
+        <JsonSerializer model={vehicleModel} refkeyOverride={baseSerializerRefkey(vehicleModel)} nameSuffix="Serializer" />
         {"\n\n"}
         <JsonPolymorphicSerializer model={vehicleModel} />
       </SdkTestFile>
@@ -295,12 +318,18 @@ describe("JsonPolymorphicSerializer", () => {
         };
       }
 
+      export function vehicleSerializer(item: Vehicle): any {
+        return {
+          kind: item["kind"],
+        };
+      }
+
       export function vehicleUnionSerializer(item: VehicleUnion): any {
         switch (item["kind"]) {
           case "car":
             return carSerializer(item as Car);
           default:
-            return item;
+            return vehicleSerializer(item);
         }
       }
     `);
@@ -346,7 +375,9 @@ describe("JsonPolymorphicSerializer", () => {
         {"\n\n"}
         <PolymorphicType model={animalModel} />
         {"\n\n"}
-        <JsonSerializer model={birdModel} />
+        <JsonSerializer model={birdModel} includeParentProperties />
+        {"\n\n"}
+        <JsonSerializer model={animalModel} refkeyOverride={baseSerializerRefkey(animalModel)} nameSuffix="Serializer" />
         {"\n\n"}
         <JsonPolymorphicSerializer model={animalModel} />
         {"\n\n"}
@@ -377,12 +408,18 @@ describe("JsonPolymorphicSerializer", () => {
         };
       }
 
+      export function animalSerializer(item: Animal): any {
+        return {
+          kind: item["kind"],
+        };
+      }
+
       export function animalUnionSerializer(item: AnimalUnion): any {
         switch (item["kind"]) {
           case "bird":
             return birdSerializer(item as Bird);
           default:
-            return item;
+            return animalSerializer(item);
         }
       }
 
@@ -391,12 +428,12 @@ describe("JsonPolymorphicSerializer", () => {
   });
 
   /**
-   * Tests that the default case returns the item unchanged. This provides
-   * forward compatibility — when the service adds a new discriminated subtype,
-   * existing client code doesn't crash, it just passes the unknown variant
-   * through without transformation.
+   * Tests that the default case calls the base model serializer to properly
+   * map the base type's properties. When the service adds a new discriminated
+   * subtype, the base serializer provides a safe fallback that still maps
+   * known base properties correctly.
    */
-  it("should have default case that returns item as-is", async () => {
+  it("should have default case that calls base model serializer", async () => {
     const runner = await TesterWithService.createInstance();
     const { program } = await runner.compile(
       t.code`
@@ -430,13 +467,15 @@ describe("JsonPolymorphicSerializer", () => {
         {"\n\n"}
         <PolymorphicType model={baseModel} />
         {"\n\n"}
-        <JsonSerializer model={subModel} />
+        <JsonSerializer model={subModel} includeParentProperties />
+        {"\n\n"}
+        <JsonSerializer model={baseModel} refkeyOverride={baseSerializerRefkey(baseModel)} nameSuffix="Serializer" />
         {"\n\n"}
         <JsonPolymorphicSerializer model={baseModel} />
       </SdkTestFile>
     );
 
-    // Verify "default: return item;" is present
+    // Verify "default: return baseSerializer(item);" is present
     expect(template).toRenderTo(d`
       export interface Base {
         kind: string;
@@ -459,12 +498,18 @@ describe("JsonPolymorphicSerializer", () => {
         };
       }
 
+      export function baseSerializer(item: Base): any {
+        return {
+          kind: item["kind"],
+        };
+      }
+
       export function baseUnionSerializer(item: BaseUnion): any {
         switch (item["kind"]) {
           case "sub":
             return subSerializer(item as Sub);
           default:
-            return item;
+            return baseSerializer(item);
         }
       }
     `);

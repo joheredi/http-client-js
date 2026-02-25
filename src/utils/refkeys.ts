@@ -58,6 +58,38 @@ export function polymorphicTypeRefkey(entity: unknown): Refkey {
 }
 
 /**
+ * Creates a refkey for a base model serializer function used as the default
+ * fallback in polymorphic switch serializers.
+ *
+ * When a discriminated model's switch statement encounters an unknown discriminator
+ * value, it falls back to serializing just the base model's properties. This refkey
+ * identifies that fallback serializer, distinct from the polymorphic switch serializer
+ * (which uses `serializerRefkey`).
+ *
+ * @param entity - The TCGC base model type with a discriminator property.
+ * @returns A stable refkey for the base model serializer function declaration.
+ */
+export function baseSerializerRefkey(entity: unknown): Refkey {
+  return refkey(entity, "baseSerializer");
+}
+
+/**
+ * Creates a refkey for a base model deserializer function used as the default
+ * fallback in polymorphic switch deserializers.
+ *
+ * When a discriminated model's switch statement encounters an unknown discriminator
+ * value, it falls back to deserializing just the base model's properties. This refkey
+ * identifies that fallback deserializer, distinct from the polymorphic switch deserializer
+ * (which uses `deserializerRefkey`).
+ *
+ * @param entity - The TCGC base model type with a discriminator property.
+ * @returns A stable refkey for the base model deserializer function declaration.
+ */
+export function baseDeserializerRefkey(entity: unknown): Refkey {
+  return refkey(entity, "baseDeserializer");
+}
+
+/**
  * Creates a refkey for a "known values" enum that stores the literal
  * values of an extensible enum type.
  *
