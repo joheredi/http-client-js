@@ -2501,7 +2501,7 @@
           "id": "RC20",
           "title": "Unix timestamp encoding uses milliseconds instead of seconds",
           "priority": "P1",
-          "status": "not_started",
+          "status": "done",
           "root_cause": "json-serializer.tsx uses .getTime() which returns milliseconds. Legacy uses (getTime() / 1000) | 0 for integer seconds. This is the unixTimestamp encode path.",
           "file": "src/components/serialization/json-serializer.tsx (~line 164)",
           "description": "Unix timestamp serialization produces milliseconds instead of integer seconds.",

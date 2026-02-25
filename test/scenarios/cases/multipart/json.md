@@ -34,7 +34,7 @@ export function personSerializer(item: Person): any {
   return {
     firstName: item["firstName"],
     lastName: item["lastName"],
-    dateOfBirth: item["dateOfBirth"].getTime(),
+    dateOfBirth: ((item["dateOfBirth"]).getTime() / 1000) | 0,
   };
 }
 
@@ -81,7 +81,7 @@ export function personSerializer(item: Person): any {
   return {
     firstName: item["firstName"],
     lastName: item["lastName"],
-    dateOfBirth: item["dateOfBirth"].getTime(),
+    dateOfBirth: ((item["dateOfBirth"]).getTime() / 1000) | 0,
   };
 }
 
@@ -128,7 +128,7 @@ export function personSerializer(item: Person): any {
   return {
     firstName: item["firstName"],
     lastName: item["lastName"],
-    dateOfBirth: item["dateOfBirth"].getTime(),
+    dateOfBirth: ((item["dateOfBirth"]).getTime() / 1000) | 0,
   };
 }
 

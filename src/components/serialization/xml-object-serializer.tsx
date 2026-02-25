@@ -117,7 +117,9 @@ function getXmlObjectSerializationExpression(
 
     case "utcDateTime":
       if (type.encode === "unixTimestamp") {
-        return code`(${accessor}).getTime()`;
+        // Unix timestamps are integer seconds, but Date.getTime() returns milliseconds.
+        // Divide by 1000 and use bitwise OR to truncate to integer (matches legacy emitter).
+        return code`((${accessor}).getTime() / 1000) | 0`;
       }
       return code`(${accessor}).toISOString()`;
 

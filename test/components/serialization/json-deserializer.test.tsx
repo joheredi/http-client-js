@@ -12,6 +12,7 @@
  * - Nested model properties call child deserializer via refkey.
  * - Array properties with model elements use .map() with child deserializer.
  * - Date properties deserialize via new Date().
+ * - utcDateTime with unixTimestamp encoding deserializes via new Date(value * 1000).
  * - Deserializer return type references the model interface via refkey.
  * - Deserializer refkey is correctly assigned for cross-referencing.
  *
@@ -521,6 +522,54 @@ describe("JsonDeserializer", () => {
         return {
           name: item["name"],
           eventDate: new Date(item["eventDate"]),
+        };
+      }
+    `);
+  });
+
+  /**
+   * Tests that utcDateTime with unixTimestamp encoding deserializes by multiplying
+   * the wire value (integer seconds) by 1000 before passing to the Date constructor.
+   * JavaScript's Date constructor expects milliseconds, so `new Date(seconds * 1000)`
+   * is required for correct conversion. This is the inverse of the serialization
+   * expression `(getTime() / 1000) | 0`.
+   */
+  it("should deserialize utcDateTime with unixTimestamp encoding using * 1000", async () => {
+    const runner = await TesterWithService.createInstance();
+    const { program } = await runner.compile(
+      t.code`
+        model ${t.model("Event")} {
+          name: string;
+          @encode("unixTimestamp", int32)
+          createdAt: utcDateTime;
+        }
+
+        op getEvent(): Event;
+      `,
+    );
+
+    const sdkContext = await createSdkContextForTest(program);
+    const model = sdkContext.sdkPackage.models[0];
+
+    const template = (
+      <SdkTestFile sdkContext={sdkContext}>
+        <ModelInterface model={model} />
+        {"\n\n"}
+        <JsonDeserializer model={model} />
+      </SdkTestFile>
+    );
+
+    // unixTimestamp deserialization must multiply by 1000 to convert seconds to ms
+    expect(template).toRenderTo(d`
+      export interface Event {
+        name: string;
+        createdAt: Date;
+      }
+
+      export function eventDeserializer(item: any): Event {
+        return {
+          name: item["name"],
+          createdAt: new Date(item["createdAt"] * 1000),
         };
       }
     `);

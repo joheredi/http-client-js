@@ -3043,3 +3043,63 @@ When `@@override` groups individual query/header parameters into a model paramet
 - **Remaining P2 tasks**: RC12, RC31-RC34
 - The 3 remaining skipped tests are blocked on external issues (TCGC #3088, TypeSpec #6983, TCGC #1419)
 - The vitest worker timeout error is an infrastructure issue, not a test failure.
+
+## 2026-02-25 — RC20: Unix Timestamp Encoding Uses Seconds Instead of Milliseconds
+
+### What was done
+- **Fixed unix timestamp serialization** to produce integer seconds instead of
+  milliseconds. Previously, both JSON and XML object serializers used `.getTime()`
+  which returns milliseconds. The wire format for unix timestamps is integer seconds.
+  Now uses `((accessor).getTime() / 1000) | 0` (divide by 1000, bitwise OR for integer
+  truncation — matches the legacy emitter pattern exactly).
+
+- **Modified `src/components/serialization/json-serializer.tsx`**:
+  - Changed unixTimestamp case from `.getTime()` to `((accessor).getTime() / 1000) | 0`
+  - Updated JSDoc to document the seconds conversion
+
+- **Modified `src/components/serialization/xml-object-serializer.tsx`**:
+  - Same fix: changed `.getTime()` to `((accessor).getTime() / 1000) | 0`
+
+- **Deserialization already correct**: `new Date(accessor * 1000)` was already in place
+  in json-deserializer.tsx. No changes needed.
+
+- **Added 3 unit tests**:
+  - json-serializer: utcDateTime with unixTimestamp encoding serializes as integer seconds
+  - json-serializer: optional utcDateTime with unixTimestamp encoding gets null-check + seconds
+  - json-deserializer: utcDateTime with unixTimestamp encoding deserializes with * 1000
+
+- **Updated 2 scenario test expectations**:
+  - multipart/json.md — 3 instances of `.getTime()` → `((…).getTime() / 1000) | 0`
+  - modelsGenerator/modelsGenerator.md — 1 instance of `.getTime()` → `((…).getTime() / 1000) | 0`
+
+- **Updated PRD**: Marked RC20 as done.
+
+### Test Results
+- Before: 838 passed, 3 skipped, 47 test files
+- After: 841 passed, 3 skipped, 47 test files (3 new tests)
+- Zero regressions in existing tests
+
+### Architecture decisions
+- **`(getTime() / 1000) | 0` pattern**: Matches the legacy emitter exactly. Bitwise OR
+  truncates to integer (equivalent to Math.floor for positive timestamps). This is the
+  standard pattern for unix timestamp conversion in JavaScript.
+- **Static XML helpers already correct**: `xml-helpers.tsx` already uses
+  `Math.floor(d.getTime() / 1000)` — only the generated code (json-serializer and
+  xml-object-serializer) had the bug.
+
+### Files Changed
+- `src/components/serialization/json-serializer.tsx` — Fixed unixTimestamp to seconds
+- `src/components/serialization/xml-object-serializer.tsx` — Fixed unixTimestamp to seconds
+- `test/components/serialization/json-serializer.test.tsx` — Added 2 new tests
+- `test/components/serialization/json-deserializer.test.tsx` — Added 1 new test
+- `test/scenarios/cases/multipart/json.md` — Updated 3 expectations
+- `test/scenarios/cases/modelsGenerator/modelsGenerator.md` — Updated 1 expectation
+- `prd.json` — RC20 marked done
+
+### Notes for next person
+- Completed: All Phases 0-10, Tasks 11.02, 11.04, 11.07, SA4, SA11, SA20, SA3,
+  RC01-RC09, RC13, RC19, RC20 (DONE).
+- **Remaining P1 tasks**: RC10, RC11, RC14-RC18, RC21-RC30
+- **Remaining P2 tasks**: RC12, RC31-RC34
+- The 3 remaining skipped tests are blocked on external issues (TCGC #3088, TypeSpec #6983, TCGC #1419)
+- The vitest worker timeout error is an infrastructure issue, not a test failure.

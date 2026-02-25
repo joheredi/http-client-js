@@ -13,6 +13,7 @@
  * - Array properties with model elements use .map() with child serializer.
  * - Date properties serialize via .toISOString().
  * - plainDate properties serialize via .toISOString().split("T")[0] for date-only format.
+ * - utcDateTime with unixTimestamp encoding serializes as integer seconds ((getTime() / 1000) | 0).
  * - Serializer is only generated for models with Input usage flag.
  * - Serializer refkey is correctly assigned for cross-referencing.
  *
@@ -671,6 +672,105 @@ describe("JsonSerializer", () => {
         return {
           title: item["title"],
           dueDate: !item["dueDate"] ? item["dueDate"] : (item["dueDate"]).toISOString().split("T")[0],
+        };
+      }
+    `);
+  });
+
+  /**
+   * Tests that utcDateTime with unixTimestamp encoding serializes to integer seconds,
+   * not milliseconds. JavaScript's Date.getTime() returns milliseconds since epoch,
+   * but the wire format for unix timestamps is integer seconds.
+   *
+   * The expression `(getTime() / 1000) | 0` divides by 1000 to convert ms→s, and
+   * uses bitwise OR to truncate to integer (equivalent to Math.floor for positive values).
+   * This matches the legacy emitter's pattern exactly.
+   *
+   * Without this fix, timestamps would be 1000x too large, causing API errors or
+   * incorrect date interpretation on the service side.
+   */
+  it("should serialize utcDateTime with unixTimestamp encoding as integer seconds", async () => {
+    const runner = await TesterWithService.createInstance();
+    const { program } = await runner.compile(
+      t.code`
+        model ${t.model("Event")} {
+          name: string;
+          @encode("unixTimestamp", int32)
+          createdAt: utcDateTime;
+        }
+
+        op createEvent(@body event: Event): void;
+      `,
+    );
+
+    const sdkContext = await createSdkContextForTest(program);
+    const model = sdkContext.sdkPackage.models[0];
+
+    const template = (
+      <SdkTestFile sdkContext={sdkContext}>
+        <ModelInterface model={model} />
+        {"\n\n"}
+        <JsonSerializer model={model} />
+      </SdkTestFile>
+    );
+
+    // unixTimestamp must divide by 1000 and truncate to integer seconds
+    expect(template).toRenderTo(d`
+      export interface Event {
+        name: string;
+        createdAt: Date;
+      }
+
+      export function eventSerializer(item: Event): any {
+        return {
+          name: item["name"],
+          createdAt: ((item["createdAt"]).getTime() / 1000) | 0,
+        };
+      }
+    `);
+  });
+
+  /**
+   * Tests that optional utcDateTime with unixTimestamp encoding gets the null-check
+   * guard AND the seconds-conversion expression. This ensures both the optionality
+   * handling and the encoding fix work together correctly.
+   */
+  it("should serialize optional utcDateTime with unixTimestamp encoding", async () => {
+    const runner = await TesterWithService.createInstance();
+    const { program } = await runner.compile(
+      t.code`
+        model ${t.model("Event")} {
+          name: string;
+          @encode("unixTimestamp", int32)
+          deletedAt?: utcDateTime;
+        }
+
+        op createEvent(@body event: Event): void;
+      `,
+    );
+
+    const sdkContext = await createSdkContextForTest(program);
+    const model = sdkContext.sdkPackage.models[0];
+
+    const template = (
+      <SdkTestFile sdkContext={sdkContext}>
+        <ModelInterface model={model} />
+        {"\n\n"}
+        <JsonSerializer model={model} />
+      </SdkTestFile>
+    );
+
+    // Optional unixTimestamp gets null check + seconds conversion
+    expect(template).toRenderTo(d`
+      export interface Event {
+        name: string;
+        deletedAt?: Date;
+      }
+
+      export function eventSerializer(item: Event): any {
+        return {
+          name: item["name"],
+          deletedAt: !item["deletedAt"] ? item["deletedAt"] : ((item["deletedAt"]).getTime() / 1000) | 0,
         };
       }
     `);

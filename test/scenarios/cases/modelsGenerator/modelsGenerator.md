@@ -722,7 +722,7 @@ export interface Foo {
 ```ts models function fooSerializer
 export function fooSerializer(item: Foo): any {
   return {
-    prop1: item["prop1"].getTime(),
+    prop1: ((item["prop1"]).getTime() / 1000) | 0,
   };
 }
 ```
