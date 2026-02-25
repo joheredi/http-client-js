@@ -37,15 +37,23 @@ compatibility-mode: true
 Generated Models.
 
 ```ts models
+import { serializeRecord } from "../helpers/serializationHelpers.js";
+
 export interface SimpleModel {
   propA: string;
   propB: string;
-  [key: string]: SimpleModelAdditionalProperty;
+  /**
+   * Additional properties
+   */
+  additionalProperties?: Record<string, SimpleModelAdditionalProperty>;
 }
 
 export interface ComplexModel {
   propA: SimpleModel;
-  [key: string]: SimpleModel;
+  /**
+   * Additional properties
+   */
+  additionalProperties?: Record<string, SimpleModel>;
 }
 
 /**
@@ -64,7 +72,9 @@ export function simpleModelSerializer(item: SimpleModel): any {
 export function complexModelSerializer(item: ComplexModel): any {
   return {
     propA: simpleModelSerializer(item["propA"]),
-    ...(item["additionalProperties"] ?? {}),
+    ...serializeRecord(item["additionalProperties"] ?? ({} as any), (v: any) =>
+      simpleModelSerializer(v),
+    ),
   };
 }
 ```
@@ -152,15 +162,23 @@ compatibility-mode: false
 Generated Models.
 
 ```ts models
+import { serializeRecord } from "../helpers/serializationHelpers.js";
+
 export interface SimpleModel {
   propA: string;
   propB: string;
-  [key: string]: string;
+  /**
+   * Additional properties
+   */
+  additionalProperties?: Record<string, string>;
 }
 
 export interface ComplexModel {
   propA: SimpleModel;
-  [key: string]: SimpleModel;
+  /**
+   * Additional properties
+   */
+  additionalProperties?: Record<string, SimpleModel>;
 }
 
 export function simpleModelSerializer(item: SimpleModel): any {
@@ -174,7 +192,9 @@ export function simpleModelSerializer(item: SimpleModel): any {
 export function complexModelSerializer(item: ComplexModel): any {
   return {
     propA: simpleModelSerializer(item["propA"]),
-    ...(item["additionalProperties"] ?? {}),
+    ...serializeRecord(item["additionalProperties"] ?? ({} as any), (v: any) =>
+      simpleModelSerializer(v),
+    ),
   };
 }
 ```
@@ -280,7 +300,10 @@ Generated Models.
 export interface SimpleModel {
   propA: string;
   propB: string;
-  [key: string]: SimpleModelAdditionalProperty;
+  /**
+   * Additional properties
+   */
+  additionalProperties?: Record<string, SimpleModelAdditionalProperty>;
 }
 
 /**
@@ -346,13 +369,19 @@ export interface SimpleModel {
   additionalProperties: Record<string, number>;
   propA: string;
   propB: string;
-  [key: string]: string;
+  /**
+   * Additional properties
+   */
+  additionalPropertiesBag?: Record<string, string>;
 }
 
 export interface FooModel extends BarModel {
   propA: string;
   propB: string;
-  [key: string]: string;
+  /**
+   * Additional properties
+   */
+  additionalProperties?: Record<string, string>;
 }
 
 export interface BarModel {
@@ -364,7 +393,7 @@ export function simpleModelSerializer(item: SimpleModel): any {
     additionalProperties: item["additionalProperties"],
     propA: item["propA"],
     propB: item["propB"],
-    ...(item["additionalProperties"] ?? {}),
+    ...(item["additionalPropertiesBag"] ?? {}),
   };
 }
 

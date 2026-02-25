@@ -2405,7 +2405,10 @@ compatibility-mode: true
 export interface Vegetables {
   carrots: number;
   beans: number;
-  [key: string]: VegetablesAdditionalProperty;
+  /**
+   * Additional properties
+   */
+  additionalProperties?: Record<string, VegetablesAdditionalProperty>;
 }
 ```
 
@@ -2446,7 +2449,10 @@ mustEmptyDiagnostic: true
 export interface Vegetables {
   carrots: number;
   beans: number;
-  [key: string]: VegetablesAdditionalProperty;
+  /**
+   * Additional properties
+   */
+  additionalProperties?: Record<string, VegetablesAdditionalProperty>;
 }
 
 /**
@@ -2496,7 +2502,10 @@ compatibility-mode: true
 ```ts models interface A
 export interface A extends Base {
   prop: number;
-  [key: string]: number;
+  /**
+   * Additional properties
+   */
+  additionalProperties?: Record<string, number>;
 }
 ```
 

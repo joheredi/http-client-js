@@ -14,6 +14,8 @@
  * - Date properties serialize via .toISOString().
  * - plainDate properties serialize via .toISOString().split("T")[0] for date-only format.
  * - utcDateTime with unixTimestamp encoding serializes as integer seconds ((getTime() / 1000) | 0).
+ * - Models with additionalProperties spread the explicit field into the serialized output.
+ * - Name conflict on additionalProperties uses additionalPropertiesBag in the serializer.
  * - Serializer is only generated for models with Input usage flag.
  * - Serializer refkey is correctly assigned for cross-referencing.
  *
@@ -774,5 +776,82 @@ describe("JsonSerializer", () => {
         };
       }
     `);
+  });
+
+  /**
+   * Tests that models with `...Record<T>` additional properties produce
+   * a serializer that spreads the `additionalProperties` field into the
+   * output. This verifies the explicit field approach works correctly with
+   * the serializer's spread pattern.
+   */
+  it("should spread additionalProperties field in serializer", async () => {
+    const runner = await TesterWithService.createInstance();
+    const { program } = await runner.compile(
+      t.code`
+        model ${t.model("Metadata")} {
+          name: string;
+          ...Record<string>;
+        }
+
+        @route("/test")
+        interface D {
+          op ${t.op("bar")}(@body body: Metadata): void;
+        }
+      `,
+    );
+
+    const sdkContext = await createSdkContextForTest(program);
+    const model = sdkContext.sdkPackage.models[0];
+
+    const template = (
+      <SerializerMultiFileWrapper sdkContext={sdkContext}>
+        <ModelInterface model={model} />
+        {"\n\n"}
+        <JsonSerializer model={model} />
+      </SerializerMultiFileWrapper>
+    );
+
+    const result = renderToString(template);
+    expect(result).toContain(`...(item["additionalProperties"] ?? {})`);
+    expect(result).toContain(`item: Metadata`);
+  });
+
+  /**
+   * Tests that models with a name conflict on `additionalProperties` use
+   * `additionalPropertiesBag` in the serializer spread. When the model has
+   * an explicit property named `additionalProperties`, the bag for extra
+   * properties must use a different name to avoid collision.
+   */
+  it("should use additionalPropertiesBag in serializer when name conflict exists", async () => {
+    const runner = await TesterWithService.createInstance();
+    const { program } = await runner.compile(
+      t.code`
+        model ${t.model("Metadata")} {
+          additionalProperties: Record<int32>;
+          name: string;
+          ...Record<string>;
+        }
+
+        @route("/test")
+        interface D {
+          op ${t.op("bar")}(@body body: Metadata): void;
+        }
+      `,
+    );
+
+    const sdkContext = await createSdkContextForTest(program);
+    const model = sdkContext.sdkPackage.models[0];
+
+    const template = (
+      <SerializerMultiFileWrapper sdkContext={sdkContext}>
+        <ModelInterface model={model} />
+        {"\n\n"}
+        <JsonSerializer model={model} />
+      </SerializerMultiFileWrapper>
+    );
+
+    const result = renderToString(template);
+    expect(result).toContain(`...(item["additionalPropertiesBag"] ?? {})`);
+    expect(result).toContain(`additionalProperties: item["additionalProperties"]`);
   });
 });

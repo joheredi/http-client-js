@@ -31,7 +31,10 @@ Generated Models.
 export interface SimpleModel {
   propA: string;
   propB: string;
-  [key: string]: string;
+  /**
+   * Additional properties
+   */
+  additionalProperties?: Record<string, string>;
 }
 
 export function simpleModelDeserializer(item: any): SimpleModel {
@@ -110,31 +113,46 @@ Generated Models.
 export interface SimpleModel {
   propA: string;
   propB: string;
-  [key: string]: string;
+  /**
+   * Additional properties
+   */
+  additionalProperties?: Record<string, string>;
 }
 
 export interface EmptyModel {
-  [key: string]: string;
+  /**
+   * Additional properties
+   */
+  additionalProperties?: Record<string, string>;
 }
 
 export interface UnionModel {
   propA: string;
   propB: string;
-  [key: string]: UnionModelAdditionalProperty;
+  /**
+   * Additional properties
+   */
+  additionalProperties?: Record<string, UnionModelAdditionalProperty>;
 }
 
 export interface NameConflictModel {
   additionalProperties: Record<string, number>;
   propA: string;
   propB: string;
-  [key: string]: string;
+  /**
+   * Additional properties
+   */
+  additionalPropertiesBag?: Record<string, string>;
 }
 
 export interface ObjectAdditionalPropsModel {
   additionalProperties: _ObjectAdditionalPropsModelAdditionalProperties;
   propA: string;
   propB: string;
-  [key: string]: string;
+  /**
+   * Additional properties
+   */
+  additionalPropertiesBag?: Record<string, string>;
 }
 
 export interface _ObjectAdditionalPropsModelAdditionalProperties {}

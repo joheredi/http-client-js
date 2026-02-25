@@ -14,6 +14,7 @@ import { UsageFlags } from "@azure-tools/typespec-client-generator-core";
 import { getModelFunctionName } from "../../utils/model-name.js";
 import { serializationHelperRefkey, serializerRefkey, typeRefkey } from "../../utils/refkeys.js";
 import { useRuntimeLib } from "../../context/flavor-context.js";
+import { getAdditionalPropertiesFieldName } from "../model-interface.js";
 
 /**
  * Props for the {@link JsonSerializer} component.
@@ -76,7 +77,7 @@ export function JsonSerializer(props: JsonSerializerProps) {
           }}
         </For>
         {hasAdditional ? (
-          <ObjectSpreadProperty value={code`(item["additionalProperties"] ?? {})`} />
+          <ObjectSpreadProperty value={getAdditionalPropertiesSpread(model)} />
         ) : undefined}
       </ObjectExpression>
       {code`;`}
@@ -263,6 +264,37 @@ function wrapWithNullCheck(
  */
 function hasAdditionalProperties(model: SdkModelType): boolean {
   return model.additionalProperties !== undefined;
+}
+
+/**
+ * Generates the spread expression for additional properties in a serializer.
+ *
+ * Accesses the explicit `additionalProperties` (or `additionalPropertiesBag`)
+ * field on the model instance and spreads its entries into the serialized output.
+ * For additional property types that need transformation (e.g., model-typed values),
+ * uses `serializeRecord` with a per-value serializer callback. For simple types,
+ * spreads directly.
+ *
+ * @param model - The TCGC model type with additional properties.
+ * @returns Alloy Children representing the spread expression.
+ */
+function getAdditionalPropertiesSpread(model: SdkModelType): Children {
+  const fieldName = getAdditionalPropertiesFieldName(model);
+  const accessor = `item["${fieldName}"]`;
+  const fallback = code`${accessor} ?? {}`;
+
+  if (
+    model.additionalProperties &&
+    needsTransformation(model.additionalProperties)
+  ) {
+    const valueExpr = getSerializationExpression(
+      model.additionalProperties,
+      "v",
+    );
+    return code`${serializationHelperRefkey("serializeRecord")}(${fallback} as any, (v: any) => ${valueExpr})`;
+  }
+
+  return code`(${fallback})`;
 }
 
 /**

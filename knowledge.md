@@ -1394,3 +1394,31 @@ so references via any of those refkeys resolve to the same symbol.
   export
 >
 ```
+
+## Alloy InterfaceMember doc prop renders as multiline JSDoc
+
+When using the `doc` prop on `<InterfaceMember>`, Alloy renders it as a multiline
+JSDoc block:
+```typescript
+/**
+ * Additional properties
+ */
+additionalProperties?: Record<string, string>
+```
+NOT as a single-line `/** Additional properties */`. Unit tests need to match
+the multiline format in their expectations.
+
+## SdkTestFile wrapper doesn't add newlines between sibling components
+
+When rendering multiple components (e.g., ModelInterface + JsonSerializer) inside
+`<SdkTestFile>`, there are no automatic newlines between them. The output will be
+`}export function ...` without spacing. For multi-component tests, use
+`SerializerMultiFileWrapper` with explicit `{"\n\n"}` separators and
+`renderToString` with `toContain` assertions.
+
+## getAdditionalPropertiesFieldName handles name conflicts
+
+When a TCGC model has both `...Record<T>` (additionalProperties) and an explicit
+property named `additionalProperties`, the additional properties bag field is
+renamed to `additionalPropertiesBag`. This function is exported from
+`model-interface.tsx` and shared with the serializer.

@@ -114,21 +114,63 @@ function ModelPropertyMember(props: ModelPropertyMemberProps) {
 }
 
 /**
- * Renders an index signature member for models with `additionalProperties`.
+ * Renders an explicit `additionalProperties` field for models with additional properties.
  *
  * When a TCGC model has `additionalProperties` set, it means the model
  * accepts extra key-value pairs beyond its declared properties. This is
- * rendered as a TypeScript index signature: `[key: string]: T`.
+ * rendered as an explicit optional property:
+ * ```typescript
+ * additionalProperties?: Record<string, T>
+ * ```
+ *
+ * This matches the legacy emitter's non-compatibility-mode output where
+ * additional properties are collected in an explicit bag rather than using
+ * a TypeScript index signature (`[key: string]: T`). The explicit field
+ * approach is preferred because:
+ * 1. It avoids type conflicts between index signatures and named properties
+ * 2. It clearly communicates the extra-properties concept to SDK consumers
+ * 3. It works correctly with the serializer's `item["additionalProperties"]` access
+ *
+ * If the model already has a property named `additionalProperties`, the field
+ * is renamed to `additionalPropertiesBag` to avoid conflicts.
  *
  * @param props - Component props containing the model with additionalProperties.
- * @returns An Alloy JSX `<InterfaceMember>` with an indexer, or undefined.
+ * @returns An Alloy JSX `<InterfaceMember>` for the explicit field, or undefined.
  */
 function AdditionalPropertiesMember(props: { model: SdkModelType }) {
   const { model } = props;
   if (!model.additionalProperties) return undefined;
 
   const valueType = getTypeExpression(model.additionalProperties);
-  return <InterfaceMember indexer="key: string" type={valueType} />;
+  const fieldName = getAdditionalPropertiesFieldName(model);
+
+  return (
+    <InterfaceMember
+      name={fieldName}
+      type={code`Record<string, ${valueType}>`}
+      optional
+      doc="Additional properties"
+    />
+  );
+}
+
+/**
+ * Determines the field name for the additional properties bag on a model.
+ *
+ * Returns `"additionalProperties"` by default. If the model already has an
+ * explicitly declared property named `"additionalProperties"`, returns
+ * `"additionalPropertiesBag"` to avoid name collisions.
+ *
+ * This mirrors the legacy emitter's `getAdditionalPropertiesName()` logic.
+ *
+ * @param model - The TCGC model type to check for name conflicts.
+ * @returns The field name to use for the additional properties bag.
+ */
+export function getAdditionalPropertiesFieldName(model: SdkModelType): string {
+  const hasConflict = model.properties.some(
+    (p) => p.name === "additionalProperties",
+  );
+  return hasConflict ? "additionalPropertiesBag" : "additionalProperties";
 }
 
 /**

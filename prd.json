@@ -2468,7 +2468,7 @@
           "id": "RC17",
           "title": "Additional properties modeled as index signature instead of explicit field",
           "priority": "P1",
-          "status": "not_started",
+          "status": "done",
           "root_cause": "model-interface.tsx generates [key: string]: T index signatures for models with additionalProperties. Legacy generates an explicit 'additionalProperties?: Record<string, T>' field. The serializer uses spread of item['additionalProperties'] which mismatches with the index signature approach.",
           "file": "src/components/model-interface.tsx, src/components/serialization/json-serializer.tsx",
           "description": "Interface shape difference: index signatures vs explicit additionalProperties field. Also affects serialization since serializeRecord() helper is not used.",

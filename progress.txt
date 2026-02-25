@@ -3233,3 +3233,78 @@ When `@@override` groups individual query/header parameters into a model paramet
   better normalization (legacy would produce proper PascalCase identifiers).
 - The 3 remaining skipped tests are blocked on external issues (TCGC #3088, TypeSpec #6983, TCGC #1419)
 - The vitest worker timeout error is an infrastructure issue, not a test failure.
+
+## 2026-02-25 — RC17: Additional Properties Uses Explicit Field Instead of Index Signature
+
+### What was done
+- **Changed model interface generation** from TypeScript index signatures
+  (`[key: string]: T`) to explicit `additionalProperties?: Record<string, T>` fields.
+  This matches the legacy emitter's non-compatibility-mode output and avoids type
+  conflicts between index signatures and named properties.
+
+- **Modified `src/components/model-interface.tsx`**:
+  - Replaced `AdditionalPropertiesMember` index signature rendering with explicit
+    optional `additionalProperties` field using `Record<string, T>` type
+  - Added `getAdditionalPropertiesFieldName()` exported function that detects name
+    conflicts (returns `"additionalPropertiesBag"` when model already has an explicit
+    `additionalProperties` property, else `"additionalProperties"`)
+  - Added JSDoc documentation explaining the explicit field approach
+
+- **Modified `src/components/serialization/json-serializer.tsx`**:
+  - Updated spread expression to use `getAdditionalPropertiesFieldName()` for correct
+    field name resolution (handles name conflicts)
+  - Added `getAdditionalPropertiesSpread()` function that generates `serializeRecord`
+    calls for complex additional property types (models, dates, etc.) and direct spread
+    for simple types
+  - Imported `getAdditionalPropertiesFieldName` from model-interface
+
+- **Added 3 unit tests**:
+  - model-interface: explicit additionalProperties field rendered correctly
+  - model-interface: additionalPropertiesBag used when name conflict exists
+  - json-serializer: additionalProperties spread in serializer output
+  - json-serializer: additionalPropertiesBag used in serializer when name conflict
+
+- **Updated 3 scenario test files** (auto-updated via SCENARIOS_UPDATE=true):
+  - models/serialization/additionalProperties.md — all 6 tests updated
+  - models/deserialization/additionalProperties.md — both tests updated
+  - modelsGenerator/modelsGenerator.md — 3 models updated
+
+- **Updated PRD**: Marked RC17 as done.
+
+### Test Results
+- Before: 848 passed, 3 skipped, 48 test files
+- After: 851 passed, 3 skipped, 48 test files (3 new tests)
+- Zero regressions in existing tests
+
+### Architecture decisions
+- **Explicit field over index signature**: Index signatures `[key: string]: T` cause
+  TypeScript type conflicts when named properties have different types than the index
+  signature. The explicit `additionalProperties?: Record<string, T>` field avoids this
+  and clearly communicates the extra-properties concept.
+- **Name conflict detection**: When a model has an explicit property named
+  `additionalProperties` AND also has `...Record<T>`, the bag is renamed to
+  `additionalPropertiesBag` (mirrors legacy emitter's `getAdditionalPropertiesName()`).
+- **`serializeRecord` for complex types**: When additional properties have model-typed
+  values (e.g., `...Record<SomeModel>`), the serializer uses `serializeRecord` with a
+  per-value serializer callback instead of raw spread, ensuring nested models are
+  properly serialized.
+
+### Files Changed
+- `src/components/model-interface.tsx` — Explicit field + name conflict handling
+- `src/components/serialization/json-serializer.tsx` — Dynamic field name + serializeRecord
+- `test/components/model-interface.test.tsx` — Updated + 1 new test
+- `test/components/serialization/json-serializer.test.tsx` — 2 new tests
+- `test/scenarios/cases/models/serialization/additionalProperties.md` — Updated expectations
+- `test/scenarios/cases/models/deserialization/additionalProperties.md` — Updated expectations
+- `test/scenarios/cases/modelsGenerator/modelsGenerator.md` — Updated expectations
+- `prd.json` — RC17 marked done
+
+### Notes for next person
+- Completed: All Phases 0-10, Tasks 11.02, 11.04, 11.07, SA4, SA5, SA11, SA20, SA3,
+  RC01-RC09, RC13, RC15, RC17, RC19, RC20, RC29 (DONE).
+- **Remaining P1 tasks**: RC10, RC11, RC14, RC16, RC18, RC21-RC28, RC30
+- **Remaining P2 tasks**: RC12, RC31-RC34
+- RC16 (Enum member name normalization) is a natural follow-up — same code area as RC15.
+- RC18 (Polymorphic serializers missing base model fallback) affects serialization correctness.
+- The 3 remaining skipped tests are blocked on external issues (TCGC #3088, TypeSpec #6983, TCGC #1419)
+- The vitest worker timeout error is an infrastructure issue, not a test failure.

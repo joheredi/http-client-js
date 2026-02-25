@@ -261,12 +261,12 @@ describe("Model Interface", () => {
   });
 
   /**
-   * Tests that models with additionalProperties render an index signature.
-   * Many REST APIs use `Record<string, T>` patterns for metadata or dynamic
-   * properties. The TCGC `additionalProperties` field maps to a TypeScript
-   * index signature: `[key: string]: T`.
+   * Tests that models with additionalProperties render an explicit
+   * `additionalProperties` field instead of an index signature.
+   * The explicit field approach matches the legacy emitter's output and avoids
+   * type conflicts between index signatures and named properties.
    */
-  it("should render index signature for additionalProperties", async () => {
+  it("should render explicit additionalProperties field for additionalProperties", async () => {
     const runner = await TesterWithService.createInstance();
     const { program } = await runner.compile(
       t.code`
@@ -291,7 +291,51 @@ describe("Model Interface", () => {
     expect(template).toRenderTo(`
       export interface Metadata {
         name: string;
-        [key: string]: string
+        /**
+         * Additional properties
+         */
+        additionalProperties?: Record<string, string>
+      }
+    `);
+  });
+
+  /**
+   * Tests that when a model has BOTH `...Record<T>` (additional properties)
+   * and an explicitly declared property named `additionalProperties`, the
+   * additional properties bag is renamed to `additionalPropertiesBag` to
+   * avoid a name collision. This matches the legacy emitter's behavior.
+   */
+  it("should use additionalPropertiesBag when name conflict exists", async () => {
+    const runner = await TesterWithService.createInstance();
+    const { program } = await runner.compile(
+      t.code`
+        model ${t.model("Metadata")} {
+          additionalProperties: Record<int32>;
+          name: string;
+          ...Record<string>;
+        }
+
+        op ${t.op("getMetadata")}(): Metadata;
+      `,
+    );
+
+    const sdkContext = await createSdkContextForTest(program);
+    const model = sdkContext.sdkPackage.models[0];
+
+    const template = (
+      <SdkTestFile sdkContext={sdkContext}>
+        <ModelInterface model={model} />
+      </SdkTestFile>
+    );
+
+    expect(template).toRenderTo(`
+      export interface Metadata {
+        additionalProperties: Record<string, number>;
+        name: string;
+        /**
+         * Additional properties
+         */
+        additionalPropertiesBag?: Record<string, string>
       }
     `);
   });
