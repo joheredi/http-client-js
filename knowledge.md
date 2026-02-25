@@ -1214,3 +1214,23 @@ When `@@override` groups individual query/header params into a model parameter:
 
 ### Failure Pattern
 Casting `correspondingMethodParams[0]` to `SdkMethodParameter` when it's actually `SdkModelPropertyType` causes `isRequiredSignatureParameter` to return incorrect results (model properties lack `onClient`, `isApiVersionParam` fields). Always check `.kind` before casting.
+
+## Unresolved Symbol Root Causes and Fixes (SA20)
+
+### 1. Nullable Enum Types in sdkPackage.unions
+**Symptom**: `<Unresolved Symbol: refkey[...]> | null` in model interface properties for nullable string literal unions.
+**Root cause**: TCGC stores nullable types in `sdkPackage.unions` as `SdkNullableType` wrappers. The inner type is `SdkEnumType` (not `SdkUnionType`). When `model-files.tsx` filters unions with `kind === "union"`, these nullable-wrapped enums are dropped. The inner enum is a DIFFERENT object from the non-nullable version in `sdkPackage.enums` (different name, different identity), so no `EnumDeclaration` renders for it.
+**Fix**: In `model-files.tsx`, extract `SdkEnumType` from nullable wrappers in the unions list and render `EnumDeclaration` for them.
+**Key insight**: `sdkPackage.unions` contains BOTH `SdkUnionType` and `SdkNullableType`. The inner type of a nullable wrapper may be an enum, union, or other type. Always inspect `u.type.kind` when processing nullable entries.
+
+### 2. XML-Classified Models Missing JSON Deserializers
+**Symptom**: `<Unresolved Symbol: refkey[...sdeserializer]>` in operation deserialize functions for models with XML content types.
+**Root cause**: When a response content type includes `application/xml`, TCGC adds `serializationOptions.xml` to ALL model properties. This causes `hasXmlSerialization()` to return `true`, classifying the model as XML. The `model-files.tsx` filter `!isXml(m)` excluded these models from `regularOutputModels`, so no JSON deserializer was generated. But `deserialize-operation.tsx` always uses `deserializerRefkey()` (JSON).
+**Fix**: In `model-files.tsx`, remove the `!isXml(m)` filter from `regularOutputModels` and `polymorphicOutputModels`. XML models get BOTH JSON and XML deserializers. The HTTP runtime parses response bodies into objects before deserialization, so JSON deserializers work for both formats.
+**Key insight**: TCGC's `serializationOptions.xml` propagates to all properties when the response content type includes XML, even if the model has no `@Xml.name` decorators.
+
+### 3. Output-Only Model Types in Serializer Expressions
+**Symptom**: `<Unresolved Symbol: refkey[...sserializer]>` for properties like `systemData` in ARM base type serializers.
+**Root cause**: Types like `SystemData` from Azure.ResourceManager only have `UsageFlags.Output`, not Input. No serializer is generated for them. But a parent model with Input usage (e.g., `Resource`) has all properties serialized, including read-only ones, causing `getSerializationExpression` to reference a non-existent serializer.
+**Fix**: In `json-serializer.tsx` `getSerializationExpression`, check `(type.usage & UsageFlags.Input) === 0` for model types and return the accessor as-is (passthrough). Similarly in `json-deserializer.tsx` for `(type.usage & UsageFlags.Output) === 0`.
+**Key insight**: TCGC's usage flag propagation is not transitive for read-only properties. A parent model can have Input usage while a child property's type only has Output usage. Always check usage flags before generating serializer/deserializer refkey references.

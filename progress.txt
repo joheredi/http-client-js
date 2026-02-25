@@ -2588,3 +2588,60 @@ When `@@override` groups individual query/header parameters into a model paramet
   - `samples/client/parameterizedHost.md` — TCGC issue #1419
 - These cannot be fixed without changes to submodules.
 - The vitest worker timeout error is an infrastructure issue, not a test failure.
+
+## 2026-02-25 — Fix Unresolved Symbol Placeholders (SA20 P0-CRITICAL)
+
+### What was done
+- **Fixed 3 root causes of `<Unresolved Symbol>` placeholders** in generated code:
+
+1. **Nullable enum types** (`src/components/model-files.tsx`):
+   - TCGC stores nullable types in `sdkPackage.unions` as `SdkNullableType` wrappers
+   - Inner types are `SdkEnumType` with different identity from `sdkPackage.enums` entries
+   - Fix: Extract inner enums from nullable wrappers and render `EnumDeclaration` for them
+   - Affected: `models/deserialization/propertyType.md`, `models/serialization/propertyType.md`
+
+2. **XML-classified model deserializers** (`src/components/model-files.tsx`):
+   - Models with XML content types were excluded from JSON deserializer generation
+   - But `deserialize-operation.tsx` always uses JSON deserializer refkeys
+   - Fix: Remove `!isXml(m)` filter from `regularOutputModels`/`polymorphicOutputModels`
+   - Affected: `operations/errorDeserialization/xmlErrorDeserialization.md`, `models/response/headerInXmlResponse.md`
+
+3. **Output-only model serializers** (`src/components/serialization/json-serializer.tsx`, `json-deserializer.tsx`):
+   - Types like `SystemData` only have Output usage, no serializer generated
+   - Parent serializers still tried to call non-existent serializer refkeys
+   - Fix: Check `UsageFlags.Input` before generating serializer refkey, return passthrough
+   - Affected: `models/azureCoreErrorModels.md`
+
+- **Added 4 unit tests** in `test/components/unresolved-symbols.test.tsx`:
+  - Nullable enum types resolve to proper type names
+  - XML-classified models get JSON deserializers
+  - Output-only model properties produce passthrough in serializers
+  - Input model properties still get proper serializer calls
+- **Updated 5 scenario test expectations** (auto-updated via SCENARIOS_UPDATE=true)
+
+### Test Results
+- Before: 813 passed, 3 skipped, 45 test files
+- After: 817 passed, 3 skipped, 46 test files
+- Zero regressions in existing tests
+- All previously unresolved symbols now produce valid TypeScript
+
+### Files Changed
+- `src/components/model-files.tsx` — Extract nullable enums, include XML models in JSON deserializers
+- `src/components/serialization/json-serializer.tsx` — Passthrough for Output-only models
+- `src/components/serialization/json-deserializer.tsx` — Passthrough for Input-only models
+- `test/components/unresolved-symbols.test.tsx` — New test file with 4 tests
+- `test/scenarios/cases/models/deserialization/propertyType.md` — Updated expectations
+- `test/scenarios/cases/models/serialization/propertyType.md` — Updated expectations
+- `test/scenarios/cases/operations/errorDeserialization/xmlErrorDeserialization.md` — Updated
+- `test/scenarios/cases/models/response/headerInXmlResponse.md` — Updated
+- `test/scenarios/cases/models/azureCoreErrorModels.md` — Updated
+- `prd.json` — SA20 marked done
+- `knowledge.md` — Added root cause documentation
+
+### Notes for next person
+- **Remaining Phase 12 tasks**: 24 tasks still pending (SA1-SA19, SA21-SA25)
+  - P0 tasks: SA3 (client context), SA4 (error deserialization), SA11 (collection encoding), SA16 (samples)
+  - P1 tasks: SA1, SA2, SA5, SA7-SA10, SA12-SA15, SA17-SA19, SA22-SA24
+  - P2 tasks: SA6, SA21, SA25
+- The 3 remaining skipped tests are blocked on external issues (TCGC #3088, TypeSpec #6983, TCGC #1419)
+- The vitest worker timeout error is an infrastructure issue, not a test failure

@@ -1,7 +1,9 @@
 import { For, SourceDirectory } from "@alloy-js/core";
 import { SourceFile } from "@alloy-js/typescript";
 import type {
+  SdkEnumType,
   SdkModelType,
+  SdkNullableType,
   SdkUnionType,
 } from "@azure-tools/typespec-client-generator-core";
 import { UsageFlags } from "@azure-tools/typespec-client-generator-core";
@@ -48,10 +50,25 @@ import { hasXmlSerialization } from "../utils/xml-detection.js";
 export function ModelFiles() {
   const { models, enums, unions } = useSdkContext();
 
-  // Filter unions to exclude SdkNullableType — only render named SdkUnionType
-  const namedUnions = unions.filter(
-    (u): u is SdkUnionType => u.kind === "union",
-  );
+  // Filter unions to include named SdkUnionType, including those wrapped in
+  // SdkNullableType. When a union like `"A" | "B" | null` is defined, TCGC wraps
+  // it as `{ kind: "nullable", type: { kind: "union", ... } }`. The inner union
+  // still needs a TypeDeclaration so its refkey resolves when referenced via
+  // `getTypeExpression()` in nullable contexts (e.g., `SomeUnion | null`).
+  const namedUnions = unions
+    .map((u) => (u.kind === "nullable" && u.type.kind === "union" ? u.type : u))
+    .filter((u): u is SdkUnionType => u.kind === "union");
+
+  // Extract enum types wrapped in nullable from the unions list. When TCGC
+  // processes `"A" | "B" | null`, it stores a `{ kind: "nullable", type: { kind: "enum" } }`
+  // in `sdkPackage.unions`. The inner enum is a DIFFERENT object from the non-nullable
+  // version in `sdkPackage.enums` (it has a different name, e.g., "FooNullable" vs "Foo").
+  // We must render an `EnumDeclaration` for these inner enums so their refkeys resolve
+  // when `getTypeExpression()` renders `SomeEnum | null`.
+  const nullableEnums = unions
+    .filter((u): u is SdkNullableType =>
+      u.kind === "nullable" && u.type.kind === "enum")
+    .map((u) => u.type as SdkEnumType);
 
   // Extract sub-enums from union-as-enum types. When TCGC flattens `enum LR | enum UD`
   // into a combined `TestColor` enum, the individual enums (LR, UD) are lost. We
@@ -102,11 +119,15 @@ export function ModelFiles() {
   // Split JSON input models into regular and polymorphic for serialization
   const regularInputModels = jsonInputModels.filter((m) => !isDiscriminated(m));
   const polymorphicInputModels = jsonInputModels.filter(isDiscriminated);
+  // Include XML output models in regular deserializers too — deserialize-operation.tsx
+  // always references JSON deserializer refkeys because the HTTP runtime parses both
+  // JSON and XML response bodies into plain objects before they reach the deserializer.
+  // Without JSON deserializers for XML models, their refkeys would be unresolved.
   const regularOutputModels = outputModels.filter(
-    (m) => !isDiscriminated(m) && !isXml(m),
+    (m) => !isDiscriminated(m),
   );
   const polymorphicOutputModels = outputModels.filter(
-    (m) => isDiscriminated(m) && !isXml(m),
+    (m) => isDiscriminated(m),
   );
 
   const hasSerializers =
@@ -119,7 +140,7 @@ export function ModelFiles() {
   const hasXmlDeserializers = xmlOutputModels.length > 0;
 
   // Skip rendering entirely if there are no type declarations to emit
-  if (models.length === 0 && enums.length === 0 && namedUnions.length === 0) {
+  if (models.length === 0 && enums.length === 0 && namedUnions.length === 0 && nullableEnums.length === 0) {
     return undefined;
   }
 
@@ -127,9 +148,11 @@ export function ModelFiles() {
     <SourceDirectory path="models">
       <SourceFile path="models.ts">
         <ModelDeclarations models={models} />
-        {models.length > 0 && enums.length > 0 ? "\n\n" : undefined}
+        {models.length > 0 && (enums.length > 0 || nullableEnums.length > 0) ? "\n\n" : undefined}
         <EnumDeclarations enums={enums} />
-        {enums.length > 0 && allSubEnums.length > 0 ? "\n\n" : undefined}
+        {enums.length > 0 && nullableEnums.length > 0 ? "\n\n" : undefined}
+        <EnumDeclarations enums={nullableEnums} />
+        {(enums.length > 0 || nullableEnums.length > 0) && allSubEnums.length > 0 ? "\n\n" : undefined}
         <AllSubEnumDeclarations groups={allSubEnums} />
         {(models.length > 0 || enums.length > 0 || allSubEnums.length > 0) && namedUnions.length > 0
           ? "\n\n"

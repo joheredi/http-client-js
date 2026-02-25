@@ -72,7 +72,7 @@ export interface OperationListResult {
   /**
    * The Operation items on this page
    */
-  value: (Operation)[];
+  value: Operation[];
   /**
    * The link to the next page of items
    */
@@ -156,11 +156,11 @@ export interface ErrorDetail {
   /**
    * The error details.
    */
-  readonly details?: (ErrorDetail)[];
+  readonly details?: ErrorDetail[];
   /**
    * The error additional info.
    */
-  readonly additionalInfo?: (ErrorAdditionalInfo)[];
+  readonly additionalInfo?: ErrorAdditionalInfo[];
 }
 
 /**
@@ -280,7 +280,9 @@ export type Versions = "2021-10-01-preview";
 
 export function avsSummarySerializer(item: AvsSummary): any {
   return {
-    properties: !item["properties"] ? item["properties"] : avsSummaryPropertiesSerializer(item["properties"]),
+    properties: !item["properties"]
+      ? item["properties"]
+      : avsSummaryPropertiesSerializer(item["properties"]),
     name: item["name"],
   };
 }
@@ -310,7 +312,7 @@ export function resourceSerializer(item: Resource): any {
     id: item["id"],
     name: item["name"],
     type: item["type"],
-    systemData: !item["systemData"] ? item["systemData"] : <Unresolved Symbol: refkey[o583⁣sserializer]>(item["systemData"]),
+    systemData: !item["systemData"] ? item["systemData"] : item["systemData"],
   };
 }
 
@@ -318,7 +320,9 @@ export function operationListResultDeserializer(
   item: any,
 ): OperationListResult {
   return {
-    value: item["value"].map((p: any) => { return operationDeserializer(p); }),
+    value: item["value"].map((p: any) => {
+      return operationDeserializer(p);
+    }),
     nextLink: item["nextLink"],
   };
 }
@@ -327,7 +331,9 @@ export function operationDeserializer(item: any): Operation {
   return {
     name: item["name"],
     isDataAction: item["isDataAction"],
-    display: !item["display"] ? item["display"] : operationDisplayDeserializer(item["display"]),
+    display: !item["display"]
+      ? item["display"]
+      : operationDisplayDeserializer(item["display"]),
     origin: item["origin"],
     actionType: item["actionType"],
   };
@@ -344,7 +350,9 @@ export function operationDisplayDeserializer(item: any): OperationDisplay {
 
 export function errorResponseDeserializer(item: any): ErrorResponse {
   return {
-    error: !item["error"] ? item["error"] : errorDetailDeserializer(item["error"]),
+    error: !item["error"]
+      ? item["error"]
+      : errorDetailDeserializer(item["error"]),
   };
 }
 
@@ -353,8 +361,16 @@ export function errorDetailDeserializer(item: any): ErrorDetail {
     code: item["code"],
     message: item["message"],
     target: item["target"],
-    details: !item["details"] ? item["details"] : item["details"].map((p: any) => { return errorDetailDeserializer(p); }),
-    additionalInfo: !item["additionalInfo"] ? item["additionalInfo"] : item["additionalInfo"].map((p: any) => { return errorAdditionalInfoDeserializer(p); }),
+    details: !item["details"]
+      ? item["details"]
+      : item["details"].map((p: any) => {
+          return errorDetailDeserializer(p);
+        }),
+    additionalInfo: !item["additionalInfo"]
+      ? item["additionalInfo"]
+      : item["additionalInfo"].map((p: any) => {
+          return errorAdditionalInfoDeserializer(p);
+        }),
   };
 }
 
@@ -369,7 +385,9 @@ export function errorAdditionalInfoDeserializer(
 
 export function avsSummaryDeserializer(item: any): AvsSummary {
   return {
-    properties: !item["properties"] ? item["properties"] : avsSummaryPropertiesDeserializer(item["properties"]),
+    properties: !item["properties"]
+      ? item["properties"]
+      : avsSummaryPropertiesDeserializer(item["properties"]),
     name: item["name"],
   };
 }
@@ -399,7 +417,9 @@ export function resourceDeserializer(item: any): Resource {
     id: item["id"],
     name: item["name"],
     type: item["type"],
-    systemData: !item["systemData"] ? item["systemData"] : systemDataDeserializer(item["systemData"]),
+    systemData: !item["systemData"]
+      ? item["systemData"]
+      : systemDataDeserializer(item["systemData"]),
   };
 }
 
@@ -407,13 +427,16 @@ export function systemDataDeserializer(item: any): SystemData {
   return {
     createdBy: item["createdBy"],
     createdByType: item["createdByType"],
-    createdAt: !item["createdAt"] ? item["createdAt"] : new Date(item["createdAt"]),
+    createdAt: !item["createdAt"]
+      ? item["createdAt"]
+      : new Date(item["createdAt"]),
     lastModifiedBy: item["lastModifiedBy"],
     lastModifiedByType: item["lastModifiedByType"],
-    lastModifiedAt: !item["lastModifiedAt"] ? item["lastModifiedAt"] : new Date(item["lastModifiedAt"]),
+    lastModifiedAt: !item["lastModifiedAt"]
+      ? item["lastModifiedAt"]
+      : new Date(item["lastModifiedAt"]),
   };
 }
-
 ```
 
 ## Operations

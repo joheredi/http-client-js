@@ -2282,209 +2282,385 @@
     },
     {
       "phase": 12,
-      "title": "Scenario Test Parity \u2014 Audit Findings",
-      "description": "Address all semantic differences identified by comparing 102 scenario test files between the new emitter and the legacy autorest.typescript emitter. These tasks ensure output parity with the legacy emitter.",
+      "title": "Scenario Test Parity \u2014 Root Cause Fixes",
+      "description": "Address all semantic differences identified by the scenario audit, recategorized by root cause. Each task maps to a specific code location and a single fix. 34 tasks total.",
       "status": "not_started",
       "tasks": [
         {
-          "id": "SA20",
-          "title": "Unresolved Symbol Placeholders",
-          "description": "NEW contains <Unresolved Symbol: refkey[...]> placeholders in generated code for certain union types and deserializers. These indicate refkey resolution failures in the Alloy framework rendering pipeline. This is a BUG in the new emitter that MUST be fixed immediately and prevented from recurring. No unresolved symbols should ever appear in generated output. A CI guard/assertion should be added to prevent regressions.",
-          "status": "not_started",
+          "id": "RC01",
+          "title": "Unresolved Symbol placeholders in generated output",
           "priority": "P0-CRITICAL",
-          "affected_scenarios": "models/deserialization/propertyType.md, models/serialization/propertyType.md, operations/errorDeserialization/xmlErrorDeserialization.md, models/response/headerInXmlResponse.md"
+          "status": "not_started",
+          "must_fix": true,
+          "prevent_regression": true,
+          "root_cause": "Refkeys are referenced in code templates but the corresponding declaration component is never rendered (missing serializer/deserializer declarations for certain type combinations).",
+          "file": "src/components/serialization/ (various), src/components/type-expression.tsx",
+          "description": "Generated code contains '<Unresolved Symbol: refkey[...]>' placeholders for certain union types and XML deserializers. These produce uncompilable TypeScript. Must fix all occurrences and add a CI assertion that no emitted file contains this string.",
+          "affected_scenarios": "models/deserialization/propertyType.md, models/serialization/propertyType.md, operations/errorDeserialization/xmlErrorDeserialization.md, models/response/headerInXmlResponse.md",
+          "replaces": "SA20"
         },
         {
-          "id": "SA3",
-          "title": "Client Context Creation Logic",
-          "description": "LEGACY createService/createTestService functions include: (1) user agent prefix computation, (2) logger integration, (3) apiVersion destructuring with defaults, (4) spreading clientParam into context. NEW has minimal logic: just getClient(endpointUrl, options). Missing user agent handling, logger setup, and apiVersion defaults.",
-          "status": "not_started",
+          "id": "RC02",
+          "title": "Error response body not deserialized before throwing",
           "priority": "P0",
-          "affected_scenarios": "clientContext/clientContext.md, clientContext/optionalApiVersion.md, classicClient/*.md, operations/headerParam/*.md, operations/queryParam/queryParamWithClientInitialization.md"
+          "status": "not_started",
+          "root_cause": "In deserialize-operation.tsx, error path just calls 'throw createRestError(result)' without parsing the error body. Legacy creates the error, deserializes the body via errorResponseDeserializer, attaches error.details, and optionally merges exception headers.",
+          "file": "src/components/deserialize-operation.tsx",
+          "description": "Operations throw raw errors without deserializing error response bodies or merging error headers. The error.details field is never populated.",
+          "affected_scenarios": "operations/armPatchWithUnionResponse.md, operations/overrideReservedkeywords.md, operations/errorDeserialization/*.md, operations/lroPaging.md, operations/headerParam/*.md, operations/queryParam/queryParamWithClientInitialization.md",
+          "replaces": "SA4"
         },
         {
-          "id": "SA4",
-          "title": "Error Deserialization in Operations",
-          "description": "LEGACY creates error objects, deserializes error response bodies (errorResponseDeserializer, storageErrorDeserializer, etc.), attaches error.details, and optionally merges exception headers before throwing. NEW simply throws createRestError(result) without any error body deserialization or header merging.",
-          "status": "not_started",
+          "id": "RC03",
+          "title": "Missing user agent prefix in client context",
           "priority": "P0",
-          "affected_scenarios": "operations/armPatchWithUnionResponse.md, operations/overrideReservedkeywords.md, operations/errorDeserialization/*.md, operations/lroPaging.md, operations/headerParam/*.md, operations/queryParam/queryParamWithClientInitialization.md, samples/parameters/bodyOptionalParameterName.md"
+          "status": "not_started",
+          "root_cause": "client-context.tsx does not generate user agent prefix computation logic. Legacy builds 'azsdk-js-{package}/{version}' prefix and merges with user-provided prefix from options.",
+          "file": "src/components/client-context.tsx",
+          "description": "Generated createService() functions lack user agent prefix construction. Azure SDK convention requires setting userAgentOptions.userAgentPrefix on the client options.",
+          "affected_scenarios": "clientContext/clientContext.md, classicClient/classicClient.md, classicClient/clientConstructorOverloads.md, classicClient/reservedWordOperations.md",
+          "replaces": "SA3 (partial)"
         },
         {
-          "id": "SA11",
-          "title": "Collection Encoding Helpers Missing",
-          "description": "LEGACY uses buildCsvCollection, buildSsvCollection, buildPipeCollection, parseCsvCollection, parsePipeCollection helper functions for array encoding in query/header parameters. NEW passes arrays directly without any collection encoding transformation, which will produce incorrect wire format.",
-          "status": "not_started",
+          "id": "RC04",
+          "title": "Missing logger integration in client context",
           "priority": "P0",
-          "affected_scenarios": "models/serialization/modelPropertyArrayEncoding.md, operations/queryParam/queryParamCollectionFormat.md"
+          "status": "not_started",
+          "root_cause": "client-context.tsx does not import or configure the generated logger in the client factory function. Legacy creates a logger, sets loggingOptions.logger, and uses logger.info.",
+          "file": "src/components/client-context.tsx, src/components/logger-file.tsx",
+          "description": "Generated createService() functions don't integrate the logger file into client options. The logger-file.tsx generates logger.ts but it's never wired into the client context.",
+          "affected_scenarios": "clientContext/clientContext.md, clientContext/optionalApiVersion.md",
+          "replaces": "SA3 (partial)"
         },
         {
-          "id": "SA16",
-          "title": "Sample Code Generation Defects",
-          "description": "NEW has multiple sample generation bugs: (1) wrong file paths (all samples get same path), (2) wrong function names (copy-paste of first function), (3) duplicate import statements, (4) empty body objects instead of populated test data, (5) wrong client class names, (6) wrong environment variable names, (7) missing credential imports (DefaultAzureCredential), (8) constructor parameter order reversed.",
-          "status": "not_started",
+          "id": "RC05",
+          "title": "Sample file paths all resolve to same filename",
           "priority": "P0",
-          "affected_scenarios": "samples/client/disableHierarchy/*.md, samples/client/enableHierarchy/*.md, samples/operations/armCurdOperations.md, samples/operations/disableHierarchyArmCurdOperations.md, samples/operations/dpgCurdOperations.md, samples/operations/multipleExamplesInOneFile.md, samples/parameters/*.md (many)"
+          "status": "not_started",
+          "root_cause": "buildSampleFileName() in sample-files.tsx doesn't properly collect operation group prefixes, causing multiple samples to get identical file paths (e.g., all named 'employeesCreateOrUpdateSample.ts').",
+          "file": "src/components/sample-files.tsx (buildSampleFileName ~line 739)",
+          "description": "When multiple operations exist, all sample files get the same path instead of operation-specific paths.",
+          "affected_scenarios": "samples/operations/armCurdOperations.md, samples/operations/disableHierarchyArmCurdOperations.md, samples/operations/dpgCurdOperations.md",
+          "replaces": "SA16 (partial)"
         },
         {
-          "id": "SA1",
-          "title": "Azure Flavor Import Source Detection",
-          "description": "The legacy emitter uses @azure-rest/core-client when the flavor option is 'Azure', and @typespec/ts-http-runtime otherwise. The NEW emitter always uses @typespec/ts-http-runtime regardless of flavor. The scenario tests are configured for Azure flavor, so the expected output should use @azure-rest/core-client. The NEW emitter needs to respect the flavor option and switch import sources accordingly.",
+          "id": "RC06",
+          "title": "Sample function bodies are duplicated from first operation",
+          "priority": "P0",
           "status": "not_started",
+          "root_cause": "normalizeFunctionName() in sample-files.tsx doesn't guarantee unique function names across examples. When names collide after normalization, subsequent functions repeat the first function's body.",
+          "file": "src/components/sample-files.tsx (normalizeFunctionName ~line 756, buildExampleFunction ~line 260)",
+          "description": "In multi-operation samples, the second and third sample functions contain the code from the first operation instead of their own.",
+          "affected_scenarios": "samples/operations/armCurdOperations.md, samples/operations/disableHierarchyArmCurdOperations.md, samples/client/enableHierarchy/*.md, samples/client/disableHierarchy/*.md",
+          "replaces": "SA16 (partial)"
+        },
+        {
+          "id": "RC07",
+          "title": "Sample body parameters rendered as empty objects",
+          "priority": "P0",
+          "status": "not_started",
+          "root_cause": "findExampleValue() fails to match parameter values for model types, and getDefaultPlaceholder() returns '{}' for models. Legacy populates sample bodies with actual property values from examples.",
+          "file": "src/components/sample-files.tsx (findExampleValue ~line 627, getDefaultPlaceholder ~line 718)",
+          "description": "Sample code passes empty objects {} as body arguments instead of populated example data with actual property values.",
+          "affected_scenarios": "samples/parameters/bodyRequiredCheck.md, samples/parameters/bodyOptionalCheck.md, samples/parameters/bodyReadonlyOptionalCheck.md, samples/parameters/paramaterSpreadCheck.md, samples/parameters/parameterTypesCheck.md, samples/propertyFlatten/*.md",
+          "replaces": "SA16 (partial)"
+        },
+        {
+          "id": "RC08",
+          "title": "Sample constructor parameter order reversed (credential vs subscriptionId)",
+          "priority": "P0",
+          "status": "not_started",
+          "root_cause": "buildClientConstructorParams() doesn't guarantee parameter ordering consistent with legacy convention (credential, subscriptionId). It may place subscriptionId before credential.",
+          "file": "src/components/sample-files.tsx (buildClientConstructorParams ~line 386, buildExampleFunction ~line 275)",
+          "description": "Generated sample code passes (subscriptionId, credential) to client constructors. Legacy convention is (credential, subscriptionId).",
+          "affected_scenarios": "samples/operations/armCurdOperations.md, samples/operations/disableHierarchyArmCurdOperations.md, samples/client/subscriptionIdHandling.md, samples/operations/multipleExamplesInOneFile.md",
+          "replaces": "SA16 (partial)"
+        },
+        {
+          "id": "RC09",
+          "title": "Duplicate import statements in sample files",
           "priority": "P1",
-          "affected_scenarios": "ALL (102/102)"
+          "status": "not_started",
+          "root_cause": "buildSampleImports() in sample-files.tsx is called per-example rather than per-file, causing the same import (client class, DefaultAzureCredential) to be emitted multiple times in a single file.",
+          "file": "src/components/sample-files.tsx (buildSampleImports ~line 319)",
+          "description": "Sample files contain 2-3 duplicate import statements for the same module.",
+          "affected_scenarios": "samples/operations/armCurdOperations.md, samples/operations/dpgCurdOperations.md, samples/client/disableHierarchy/*.md",
+          "replaces": "SA16 (partial)"
         },
         {
-          "id": "SA2",
-          "title": "Import Aliasing with _1 Suffix",
-          "description": "NEW generates aliased imports with _1 suffix (e.g., Client_1, StreamableMethod_1, fooDeserializer_1). LEGACY uses direct import names without aliases. This is a pervasive pattern difference in operations files that changes all type references throughout generated code.",
-          "status": "not_started",
+          "id": "RC10",
+          "title": "Missing DefaultAzureCredential import in Azure samples",
           "priority": "P1",
-          "affected_scenarios": "ALL operations files (~80+)"
+          "status": "not_started",
+          "root_cause": "hasOAuth2Auth() fails to detect OAuth2 credentials when the credential scheme is nested in a union type. The union variant check skips non-top-level schemes.",
+          "file": "src/components/sample-files.tsx (hasOAuth2Auth ~line 517)",
+          "description": "Azure-flavored samples should import DefaultAzureCredential from @azure/identity but the import is missing when the auth scheme is a union.",
+          "affected_scenarios": "samples/client/multipleClient.md",
+          "replaces": "SA16 (partial)"
         },
         {
-          "id": "SA5",
-          "title": "Versions Type vs KnownVersions Enum",
-          "description": "NEW generates 'export type Versions = \"2021-10-01-preview\"' (simple type alias). LEGACY generates 'export enum KnownVersions { V20211001Preview = \"2021-10-01-preview\" }' (full enum with PascalCase members). This is a public API surface difference.",
-          "status": "not_started",
+          "id": "RC11",
+          "title": "Sample environment variable names don't match legacy convention",
           "priority": "P1",
-          "affected_scenarios": "models/apiVersion/*.md, models/azureCoreErrorModels.md, models/missingErrorResponseModel.md, models/nestedEnum/flatten/*.md, models/propertyFlatten/mulipleLayers.md, operations/lroPaging.md"
+          "status": "not_started",
+          "root_cause": "getClientName() in sample-files.tsx returns a different base name than legacy. Environment variable is constructed as UPPER_SNAKE_CASE(clientName + '_ENDPOINT'). Different clientName \u2192 different env var.",
+          "file": "src/components/sample-files.tsx (getClientName ~line 403, buildClientConstructorParams ~line 416)",
+          "description": "Samples use TEST_SERVICE_ENDPOINT instead of TESTING_ENDPOINT. Derived from client name which differs from legacy.",
+          "affected_scenarios": "samples/parameters/bodyRequiredCheck.md, samples/parameters/bodyOptionalCheck.md, samples/parameters/paramaterSpreadCheck.md (and many more)",
+          "replaces": "SA16 (partial)"
         },
         {
-          "id": "SA7",
-          "title": "Client Naming Conventions",
-          "description": "NEW generates ServiceClient/ServiceContext/createService. LEGACY generates TestServiceClient/TestServiceContext/createTestService (applying the service title). The title configuration is not being applied in the NEW emitter for class/function/context naming.",
-          "status": "not_started",
-          "priority": "P1",
-          "affected_scenarios": "classicClient/classicClient.md, classicClient/reservedWordOperations.md, samples/client/renameClientName.md, samples/parameters/*.md (many)"
-        },
-        {
-          "id": "SA8",
-          "title": "Constructor Parameter Naming",
-          "description": "NEW uses 'endpoint' as constructor parameter name. LEGACY uses 'endpointParam'. When server has default values, LEGACY moves endpoint to options; NEW keeps it positional. This affects the public API of generated clients.",
-          "status": "not_started",
-          "priority": "P1",
-          "affected_scenarios": "clientContext/clientContext.md, classicClient/classicClient.md, classicClient/reservedWordOperations.md, operations/headerParam/*.md"
-        },
-        {
-          "id": "SA9",
-          "title": "Reserved Word Handling Strategy",
-          "description": "NEW uses trailing underscore suffix for reserved words (continue_, return_). LEGACY uses dollar sign prefix ($continue, $return). The public-facing method name differs: NEW exposes 'continue_' while LEGACY exposes 'continue' (calling $continue internally).",
-          "status": "not_started",
-          "priority": "P1",
-          "affected_scenarios": "apiOperations/reservedWordOperations.md, classicClient/reservedWordOperations.md, operations/overrideReservedkeywords.md"
-        },
-        {
-          "id": "SA10",
-          "title": "Additional Properties Handling",
-          "description": "NEW uses index signatures ([key: string]: T) for additional properties. LEGACY uses explicit additionalProperties?: Record<string, T> field with serializeRecord() helper. Different structural representation of the same TypeSpec concept, affects both interface shape and serialization logic.",
-          "status": "not_started",
-          "priority": "P1",
-          "affected_scenarios": "models/serialization/additionalProperties.md, models/deserialization/additionalProperties.md, modelsGenerator/modelsGenerator.md"
-        },
-        {
-          "id": "SA12",
-          "title": "URL Template Parameter Key Encoding",
-          "description": "NEW uses unencoded keys in URL template expansion (e.g., 'api-version'). LEGACY uses URL-encoded keys (e.g., 'api%2Dversion'). Similarly, '$expand' vs '%24expand'. This may affect URL template resolution behavior.",
-          "status": "not_started",
-          "priority": "P1",
-          "affected_scenarios": "operations/pathParam/pathParamUrlTemplate.md, operations/queryParam/queryParamUrlTemplate.md, operations/queryParam/queryParamWithClientInitialization.md, apiOperations/azureCoreOperations.md"
-        },
-        {
-          "id": "SA13",
-          "title": "Property Flatten Serialization Approach",
-          "description": "NEW uses helper functions (_testPropertiesSerializer, _fooPropertiesSerializer) with spread operators and areAllPropsUndefined checks. LEGACY uses inline direct property serialization. Different approach to name collision resolution: NEW renames with path prefix (barPropertiesBar), LEGACY duplicates property names.",
-          "status": "not_started",
-          "priority": "P1",
-          "affected_scenarios": "models/propertyFlatten/*.md, models/serialization/readonlyFlattenModel.md, samples/propertyFlatten/*.md"
-        },
-        {
-          "id": "SA14",
-          "title": "Discriminated Union Serialization",
-          "description": "LEGACY generates base model serializers/deserializers and uses them as default case in switch statements. NEW returns item directly in default case without base model processing. LEGACY child deserializers include parent fields; NEW only includes child-specific fields.",
-          "status": "not_started",
-          "priority": "P1",
-          "affected_scenarios": "models/deserialization/extends.md, models/serialization/propertyType.md"
-        },
-        {
-          "id": "SA15",
-          "title": "Nullable Type Preservation",
-          "description": "NEW preserves '| null' in optional nullable types (e.g., optionalNullableBoolean?: boolean | null). LEGACY strips the null from optional types (optionalNullableBoolean?: boolean). This is a type-level semantic difference.",
-          "status": "not_started",
-          "priority": "P1",
-          "affected_scenarios": "models/nullable/nullableOptional.md, models/nullable/nullableUnion.md"
-        },
-        {
-          "id": "SA17",
-          "title": "Multipart File Type Representation",
-          "description": "NEW uses structured File interfaces with inheritance (File, FileRequiredName extends File, PngFile extends File). LEGACY uses FileContents union types (FileContents | { contents: FileContents; contentType?: string; filename?: string }). NEW also adds contentType as explicit operation parameter; LEGACY omits it.",
-          "status": "not_started",
-          "priority": "P1",
-          "affected_scenarios": "multipart/file.md, multipart/text.md, multipart/renamewithWireNameAndClientName.md"
-        },
-        {
-          "id": "SA18",
-          "title": "API Version as Function Parameter vs Context Property",
-          "description": "NEW passes apiVersion as an explicit function parameter to _send functions. LEGACY reads apiVersion from context (context.apiVersion) with fallback defaults. This changes function signatures throughout operations code.",
-          "status": "not_started",
-          "priority": "P1",
-          "affected_scenarios": "operations/pathParam/pathParamUrlTemplate.md, operations/queryParam/explodeTrueWithAnnotation.md, samples/parameters/parameterOrdering.md, classicClient/clientConstructorOverloads.md"
-        },
-        {
-          "id": "SA19",
-          "title": "Date/Time Serialization Encoding",
-          "description": "NEW uses toISOString() for all date types including plainDate. LEGACY uses toISOString().split('T')[0] for plainDate (date-only) and toUTCString() for UTC datetime. This produces incorrect wire format for plainDate types.",
-          "status": "not_started",
-          "priority": "P1",
-          "affected_scenarios": "modelsGenerator/modelsGenerator.md, multipart/json.md (unix timestamp encoding difference)"
-        },
-        {
-          "id": "SA22",
-          "title": "Enum Key Normalization Differences",
-          "description": "Different PascalCase normalization rules for enum member names. Examples: PascalCase_5 vs PascalCase5, _PascalCase7 vs PascalCase7, MaxOfMld vs MAXOfMLD, numeric-prefix handling ('090' vs _090). Custom clientName handling also differs ($DoNotNormalizeItem_1_0 vs Item-1.0 as string).",
-          "status": "not_started",
-          "priority": "P1",
-          "affected_scenarios": "models/serialization/enumKeyNorm.md"
-        },
-        {
-          "id": "SA23",
-          "title": "Nested Enum Flattening Behavior",
-          "description": "When experimentalExtensibleEnums is false/undefined, NEW generates flattened string literal unions directly. LEGACY generates separate type aliases (ResourceProvisioningState, Baz) composed into unions with '| string' for extensibility, plus dedicated serializer functions.",
-          "status": "not_started",
-          "priority": "P1",
-          "affected_scenarios": "models/nestedEnum/notFlatten/experimentalExtensibleEnumsFalse.md, models/nestedEnum/notFlatten/experimentalExtensibleEnumsUndefined.md"
-        },
-        {
-          "id": "SA24",
-          "title": "Classic Client Constructor Overloads",
-          "description": "LEGACY generates constructor overloads for mixed tenant/subscription-level operations with polymorphic parameter handling. NEW generates single simple constructor without overloads, missing subscriptionId parameter handling, operation group properties, and delegating methods.",
-          "status": "not_started",
-          "priority": "P1",
-          "affected_scenarios": "classicClient/clientConstructorOverloads.md"
-        },
-        {
-          "id": "SA6",
-          "title": "ESLint Directives and JSDoc Comments",
-          "description": "LEGACY includes eslint-disable comments (naming-convention, explicit-module-boundary-types) and JSDoc comments (/** model interface Foo */) in model files. NEW omits these entirely. While not functionally impactful, this is an output parity difference.",
-          "status": "not_started",
+          "id": "RC12",
+          "title": "Sample x-ms-original-file paths missing API version prefix",
           "priority": "P2",
-          "affected_scenarios": "ALL model files (~40+)"
+          "status": "not_started",
+          "root_cause": "Sample JSDoc comments reference json files without the API version directory prefix. Legacy includes '2021-10-01-preview/' prefix in x-ms-original-file references.",
+          "file": "src/components/sample-files.tsx",
+          "description": "Sample JSDoc references 'json.json' instead of '2021-10-01-preview/json.json'.",
+          "affected_scenarios": "Most samples/parameters/*.md files",
+          "replaces": "SA16 (partial)"
         },
         {
-          "id": "SA21",
-          "title": "Response Type Composition Pattern",
-          "description": "NEW uses type intersection for response types (User & { requestId: string }). LEGACY expands all properties into inline object types ({ name: string; email: string; requestId: string }). Semantically equivalent but different generated code style.",
+          "id": "RC13",
+          "title": "Collection format encoding not applied to query/header arrays",
+          "priority": "P0",
           "status": "not_started",
-          "priority": "P2",
-          "affected_scenarios": "models/response/headerAndModelInResponse.md, models/response/headerAndModelSpread.md, models/response/headerInResponse.md, models/response/headerInXmlResponse.md"
+          "root_cause": "send-operation.tsx passes arrays directly to expandUrlTemplate without calling buildCsvCollection/buildSsvCollection/buildPipeCollection helpers first. The helpers exist in serialization-helpers.tsx but aren't invoked for query/header parameters with collection formats.",
+          "file": "src/components/send-operation.tsx",
+          "description": "Array parameters with CSV/SSV/Pipe collection format are passed raw to the URL template expander. They need to be pre-encoded using the appropriate build*Collection helper.",
+          "affected_scenarios": "models/serialization/modelPropertyArrayEncoding.md, operations/queryParam/queryParamCollectionFormat.md",
+          "replaces": "SA11"
         },
         {
-          "id": "SA25",
-          "title": "Constant Model Parameter Expansion",
-          "description": "For constant-only models, NEW explodes constant properties into function parameters with literal types. LEGACY keeps them as hardcoded values in the request body. Different approach to handling models where all properties have constant values.",
+          "id": "RC14",
+          "title": "URL template parameter keys not percent-encoded",
+          "priority": "P1",
           "status": "not_started",
+          "root_cause": "send-operation.tsx passes parameter keys like 'api-version' as plain strings to expandUrlTemplate. Legacy uses percent-encoded keys like 'api%2Dversion'. The RFC 6570 template expansion may handle this differently depending on the key format.",
+          "file": "src/components/send-operation.tsx",
+          "description": "Parameter keys containing special characters (hyphens, dollar signs) are not percent-encoded when passed to expandUrlTemplate. May produce different URL expansion results.",
+          "affected_scenarios": "operations/pathParam/pathParamUrlTemplate.md, operations/queryParam/queryParamUrlTemplate.md, operations/queryParam/queryParamWithClientInitialization.md, apiOperations/azureCoreOperations.md",
+          "replaces": "SA12"
+        },
+        {
+          "id": "RC15",
+          "title": "API version types emitted as union type alias instead of KnownVersions enum",
+          "priority": "P1",
+          "status": "not_started",
+          "root_cause": "enum-declaration.tsx generates KnownVersions enum only when experimentalExtensibleEnums is true AND the enum is not fixed. API version enums are typically fixed, so they get a simple type alias. Legacy always generates KnownVersions enum for versions.",
+          "file": "src/components/enum-declaration.tsx",
+          "description": "API version exports 'type Versions = \"2021-10-01-preview\"' instead of 'enum KnownVersions { V20211001Preview = \"...\" }'. This is a public API surface difference.",
+          "affected_scenarios": "models/apiVersion/*.md, models/azureCoreErrorModels.md, models/missingErrorResponseModel.md, models/nestedEnum/flatten/*.md, operations/lroPaging.md",
+          "replaces": "SA5"
+        },
+        {
+          "id": "RC16",
+          "title": "Enum member name normalization differs from legacy PascalCase rules",
+          "priority": "P1",
+          "status": "not_started",
+          "root_cause": "enum-declaration.tsx uses raw TCGC member.name for enum members. Legacy applies custom PascalCase normalization that handles numeric prefixes (prepend _), all-caps preservation, and special characters differently.",
+          "file": "src/components/enum-declaration.tsx, src/components/sub-enum-declaration.tsx",
+          "description": "Enum member names differ: PascalCase_5 vs PascalCase5, _PascalCase7 vs PascalCase7, MaxOfMld vs MAXOfMLD, '090' vs _090.",
+          "affected_scenarios": "models/serialization/enumKeyNorm.md",
+          "replaces": "SA22"
+        },
+        {
+          "id": "RC17",
+          "title": "Additional properties modeled as index signature instead of explicit field",
+          "priority": "P1",
+          "status": "not_started",
+          "root_cause": "model-interface.tsx generates [key: string]: T index signatures for models with additionalProperties. Legacy generates an explicit 'additionalProperties?: Record<string, T>' field. The serializer uses spread of item['additionalProperties'] which mismatches with the index signature approach.",
+          "file": "src/components/model-interface.tsx, src/components/serialization/json-serializer.tsx",
+          "description": "Interface shape difference: index signatures vs explicit additionalProperties field. Also affects serialization since serializeRecord() helper is not used.",
+          "affected_scenarios": "models/serialization/additionalProperties.md, models/deserialization/additionalProperties.md, modelsGenerator/modelsGenerator.md",
+          "replaces": "SA10"
+        },
+        {
+          "id": "RC18",
+          "title": "Polymorphic serializers missing base model fallback",
+          "priority": "P1",
+          "status": "not_started",
+          "root_cause": "json-polymorphic-serializer.tsx generates switch statements where the default case returns 'item' as-is. Legacy generates a base model serializer/deserializer and calls it in the default case. Also, child deserializers don't include inherited parent properties.",
+          "file": "src/components/serialization/json-polymorphic-serializer.tsx, src/components/serialization/json-polymorphic-deserializer.tsx",
+          "description": "Discriminated union switch default returns raw item instead of calling base model serializer. Child type deserializers omit inherited parent fields.",
+          "affected_scenarios": "models/deserialization/extends.md, models/serialization/propertyType.md",
+          "replaces": "SA14"
+        },
+        {
+          "id": "RC19",
+          "title": "plainDate serialization uses full ISO string instead of date-only",
+          "priority": "P1",
+          "status": "not_started",
+          "root_cause": "json-serializer.tsx uses .toISOString() for all date types. For plainDate, the wire format should be date-only (YYYY-MM-DD), requiring .toISOString().split('T')[0].",
+          "file": "src/components/serialization/json-serializer.tsx (~line 162)",
+          "description": "plainDate type serializes as full ISO datetime string instead of date-only format.",
+          "affected_scenarios": "modelsGenerator/modelsGenerator.md",
+          "replaces": "SA19 (partial)"
+        },
+        {
+          "id": "RC20",
+          "title": "Unix timestamp encoding uses milliseconds instead of seconds",
+          "priority": "P1",
+          "status": "not_started",
+          "root_cause": "json-serializer.tsx uses .getTime() which returns milliseconds. Legacy uses (getTime() / 1000) | 0 for integer seconds. This is the unixTimestamp encode path.",
+          "file": "src/components/serialization/json-serializer.tsx (~line 164)",
+          "description": "Unix timestamp serialization produces milliseconds instead of integer seconds.",
+          "affected_scenarios": "multipart/json.md",
+          "replaces": "SA19 (partial)"
+        },
+        {
+          "id": "RC21",
+          "title": "Nested enum types flattened to string literal union instead of composed types",
+          "priority": "P1",
+          "status": "not_started",
+          "root_cause": "sub-enum-declaration.tsx flattens all enum values into a single string literal union. Legacy generates separate type aliases (e.g., ResourceProvisioningState, Baz) composed into unions with '| string' for extensibility, plus dedicated serializer functions.",
+          "file": "src/components/sub-enum-declaration.tsx, src/components/union-declaration.tsx",
+          "description": "Extensible nested enums lose their individual type identities when flattened. Missing serializer functions for composed types.",
+          "affected_scenarios": "models/nestedEnum/notFlatten/experimentalExtensibleEnumsFalse.md, models/nestedEnum/notFlatten/experimentalExtensibleEnumsUndefined.md",
+          "replaces": "SA23"
+        },
+        {
+          "id": "RC22",
+          "title": "Classical client missing constructor overloads for subscription handling",
+          "priority": "P1",
+          "status": "not_started",
+          "root_cause": "classical-client.tsx generates a single constructor. Legacy generates overloaded constructors when a service has mixed tenant-level and subscription-level operations, with polymorphic subscriptionIdOrOptions parameter handling.",
+          "file": "src/components/classical-client.tsx (~line 140)",
+          "description": "No constructor overloads generated for mixed subscription/tenant operations. Missing subscriptionId parameter, operation group properties, and delegating methods.",
+          "affected_scenarios": "classicClient/clientConstructorOverloads.md",
+          "replaces": "SA24"
+        },
+        {
+          "id": "RC23",
+          "title": "Reserved word methods use trailing underscore instead of dollar prefix",
+          "priority": "P1",
+          "status": "not_started",
+          "root_cause": "classical-client.tsx uses method.name directly without reserved word escaping. The TCGC layer may be providing names with _ suffix. Legacy uses $ prefix ($continue, $return) internally while exposing the bare name publicly.",
+          "file": "src/components/classical-client.tsx, src/components/public-operation.tsx",
+          "description": "Public method names for reserved words differ: continue_ (NEW) vs continue (LEGACY). Internal function names also differ: _continueSend (NEW) vs _$continueSend (LEGACY).",
+          "affected_scenarios": "apiOperations/reservedWordOperations.md, classicClient/reservedWordOperations.md, operations/overrideReservedkeywords.md",
+          "replaces": "SA9"
+        },
+        {
+          "id": "RC24",
+          "title": "Nullable types preserve | null in optional properties",
+          "priority": "P1",
+          "status": "not_started",
+          "root_cause": "type-expression.tsx appends '| null' for nullable types. When combined with optional (?:), this produces 'prop?: T | null'. Legacy strips the null from optional nullable types, producing 'prop?: T'.",
+          "file": "src/components/type-expression.tsx (~line 107)",
+          "description": "Optional nullable properties keep the | null union. Legacy convention treats optional as implicitly nullable, so '| null' is redundant and stripped.",
+          "affected_scenarios": "models/nullable/nullableOptional.md, models/nullable/nullableUnion.md",
+          "replaces": "SA15"
+        },
+        {
+          "id": "RC25",
+          "title": "Multipart file types use File interface hierarchy instead of FileContents union",
+          "priority": "P1",
+          "status": "not_started",
+          "root_cause": "multipart-serializer.tsx generates structured File interfaces (File, FileRequiredName extends File, PngFile extends File) with dedicated serializers. Legacy generates FileContents union types (FileContents | { contents: FileContents; ... }).",
+          "file": "src/components/serialization/multipart-serializer.tsx",
+          "description": "Different type representation for file parameters in multipart operations. Also, contentType is added as an explicit operation parameter in NEW but not in LEGACY.",
+          "affected_scenarios": "multipart/file.md, multipart/text.md, multipart/renamewithWireNameAndClientName.md",
+          "replaces": "SA17"
+        },
+        {
+          "id": "RC26",
+          "title": "API version passed as explicit function parameter instead of context property",
+          "priority": "P1",
+          "status": "not_started",
+          "root_cause": "send-operation.tsx excludes apiVersion from function parameters (line 178: isApiVersionParam filter) and reads it from context.apiVersion. However, in some scenarios the NEW output shows apiVersion as a function parameter. Inconsistency between send-operation logic and test expectations.",
+          "file": "src/components/send-operation.tsx, src/components/public-operation.tsx",
+          "description": "Some operations pass apiVersion as function parameter while legacy always reads from context with fallback default.",
+          "affected_scenarios": "operations/pathParam/pathParamUrlTemplate.md, operations/queryParam/explodeTrueWithAnnotation.md, samples/parameters/parameterOrdering.md",
+          "replaces": "SA18"
+        },
+        {
+          "id": "RC27",
+          "title": "Client class and context naming ignores service title configuration",
+          "priority": "P1",
+          "status": "not_started",
+          "root_cause": "classical-client.tsx uses client.name from TCGC directly. When typespec-title-map or @clientName decorators rename the client, the generated sample code may not reflect the renamed class. Also affects context function naming (createService vs createTestService).",
+          "file": "src/components/classical-client.tsx, src/components/client-context.tsx, src/components/sample-files.tsx",
+          "description": "Client naming doesn't always apply title configuration. ServiceClient vs TestServiceClient, createService vs createTestService.",
+          "affected_scenarios": "classicClient/classicClient.md, classicClient/reservedWordOperations.md, samples/client/renameClientName.md",
+          "replaces": "SA7"
+        },
+        {
+          "id": "RC28",
+          "title": "Azure flavor not applied in scenario test expectations",
+          "priority": "P1",
+          "status": "not_started",
+          "root_cause": "The flavor context infrastructure exists and correctly switches import sources. However, the scenario test harness may not be configured to use Azure flavor, causing all tests to emit @typespec/ts-http-runtime imports instead of @azure-rest/core-client.",
+          "file": "test/scenarios/emit-for-scenario.tsx or test/scenarios/scenario-harness.ts",
+          "description": "Test infrastructure needs to set flavor='azure' for scenarios that expect Azure SDK imports. The emitter supports both flavors but tests may default to 'core'.",
+          "affected_scenarios": "ALL operations files (~80+)",
+          "replaces": "SA1"
+        },
+        {
+          "id": "RC29",
+          "title": "Import aliases with _1 suffix in generated operations code",
+          "priority": "P1",
+          "status": "not_started",
+          "root_cause": "Alloy's name conflict resolution generates _1 suffixed aliases when multiple declarations share the same name across files. Legacy uses direct imports without aliases. This may be caused by redundant refkey registrations or naming conflicts in the component tree.",
+          "file": "Alloy framework behavior / src/components/operation-files.tsx",
+          "description": "All imported types and functions get _1 suffixes (Client_1, StreamableMethod_1, fooDeserializer_1) in operations files, which doesn't match legacy output.",
+          "affected_scenarios": "ALL operations files (~80+)",
+          "replaces": "SA2"
+        },
+        {
+          "id": "RC30",
+          "title": "Property flatten uses helper functions instead of inline serialization",
+          "priority": "P1",
+          "status": "not_started",
+          "root_cause": "json-serializer.tsx flattens properties inline via getSerializableProperties(). But the generated output produces separate helper functions (_testPropertiesSerializer) with areAllPropsUndefined checks. Legacy inlines property serialization directly. Different approach to name collision resolution: NEW renames with path prefix (barPropertiesBar), LEGACY duplicates names.",
+          "file": "src/components/serialization/json-serializer.tsx, src/components/model-interface.tsx",
+          "description": "Flatten serialization approach differs: helper functions with spread vs inline direct property mapping. Name collision handling uses different strategies.",
+          "affected_scenarios": "models/propertyFlatten/*.md, models/serialization/readonlyFlattenModel.md, samples/propertyFlatten/*.md",
+          "replaces": "SA13"
+        },
+        {
+          "id": "RC31",
+          "title": "Missing ESLint disable directives in model output files",
           "priority": "P2",
-          "affected_scenarios": "models/models.md (generate only constant type model scenario)"
+          "status": "not_started",
+          "root_cause": "model-interface.tsx generates JSDoc via the doc prop but does not emit eslint-disable comments (naming-convention, explicit-module-boundary-types) at the top of model files. Legacy includes these as file-level comments.",
+          "file": "src/components/model-files.tsx, src/components/model-interface.tsx",
+          "description": "Model files lack eslint-disable directives that legacy includes for generated code compatibility.",
+          "affected_scenarios": "ALL model files (~40+)",
+          "replaces": "SA6"
+        },
+        {
+          "id": "RC32",
+          "title": "Response types use intersection instead of inline expanded object",
+          "priority": "P2",
+          "status": "not_started",
+          "root_cause": "deserialize-headers.tsx composes response types as 'ModelType & { header: type }' intersections. Legacy expands all properties into a single inline object type. Semantically equivalent but different code style.",
+          "file": "src/components/deserialize-headers.tsx",
+          "description": "Response types with headers use type intersection (User & { requestId: string }) instead of fully expanded inline objects.",
+          "affected_scenarios": "models/response/headerAndModelInResponse.md, models/response/headerAndModelSpread.md, models/response/headerInResponse.md, models/response/headerInXmlResponse.md",
+          "replaces": "SA21"
+        },
+        {
+          "id": "RC33",
+          "title": "Constant model properties expanded as function parameters",
+          "priority": "P2",
+          "status": "not_started",
+          "root_cause": "When all model properties are constants, send-operation.tsx explodes them into function parameters with literal types instead of hardcoding values in the request body.",
+          "file": "src/components/send-operation.tsx",
+          "description": "Constant-only models generate function parameters with literal types. Legacy hardcodes constant values directly in the request body.",
+          "affected_scenarios": "models/models.md (constant type model scenario)",
+          "replaces": "SA25"
+        },
+        {
+          "id": "RC34",
+          "title": "Constructor endpoint parameter named 'endpoint' instead of 'endpointParam'",
+          "priority": "P2",
+          "status": "not_started",
+          "root_cause": "client-context.tsx uses the TCGC template argument name directly for the parameter. Legacy appends 'Param' suffix to avoid potential conflicts with the options interface property.",
+          "file": "src/components/client-context.tsx",
+          "description": "Constructor parameter is named 'endpoint' instead of 'endpointParam'. Minor naming convention difference.",
+          "affected_scenarios": "clientContext/clientContext.md, classicClient/classicClient.md",
+          "replaces": "SA8"
         }
       ]
     }
@@ -2799,6 +2975,8 @@
         "affected_scenarios": "models/models.md (generate only constant type model scenario)",
         "status": "tracked"
       }
-    ]
+    ],
+    "tasks_recategorized": true,
+    "total_root_cause_tasks": 34
   }
 }

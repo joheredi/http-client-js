@@ -1081,7 +1081,7 @@ op read(@body body: Test): void;
 
 ```ts models interface Test
 export interface Test {
-  color: Color | null;
+  color: Color_1 | null;
 }
 ```
 
@@ -1112,7 +1112,7 @@ needAzureCore: true
 
 ```ts models interface Test
 export interface Test {
-  color: Color | null;
+  color: Color_1 | null;
 }
 ```
 

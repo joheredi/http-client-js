@@ -9,6 +9,7 @@ import type {
   SdkModelType,
   SdkType,
 } from "@azure-tools/typespec-client-generator-core";
+import { UsageFlags } from "@azure-tools/typespec-client-generator-core";
 import { getModelFunctionName } from "../../utils/model-name.js";
 import { deserializerRefkey, serializationHelperRefkey, typeRefkey } from "../../utils/refkeys.js";
 import { useRuntimeLib } from "../../context/flavor-context.js";
@@ -129,6 +130,12 @@ export function getDeserializationExpression(
 ): Children {
   switch (type.kind) {
     case "model":
+      // Models without Output/Exception usage don't have deserializer functions.
+      // This can happen for Input-only types referenced in response models.
+      // Pass through as-is.
+      if ((type.usage & UsageFlags.Output) === 0 && (type.usage & UsageFlags.Exception) === 0) {
+        return accessor;
+      }
       return code`${deserializerRefkey(type)}(${accessor})`;
 
     case "array": {

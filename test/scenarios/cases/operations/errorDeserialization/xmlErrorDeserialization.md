@@ -114,17 +114,37 @@ op getDocument(@path id: string): {
 ## Operations
 
 ```ts operations
-import { type Client as Client_1, createRestError as createRestError_1, expandUrlTemplate as expandUrlTemplate_1, operationOptionsToRequestParameters as operationOptionsToRequestParameters_1, type PathUncheckedResponse as PathUncheckedResponse_1, type StreamableMethod as StreamableMethod_1 } from "@typespec/ts-http-runtime";
+import {
+  type Document as Document_1,
+  documentDeserializer as documentDeserializer_1,
+} from "../models/models.js";
 import type { GetDocumentOptionalParams as GetDocumentOptionalParams_1 } from "./options.js";
-import type { Document as Document_1 } from "../models/models.js";
+import {
+  type Client as Client_1,
+  createRestError as createRestError_1,
+  expandUrlTemplate as expandUrlTemplate_1,
+  operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
+  type PathUncheckedResponse as PathUncheckedResponse_1,
+  type StreamableMethod as StreamableMethod_1,
+} from "@typespec/ts-http-runtime";
 
 export function _getDocumentSend(
   context: Client_1,
   id: string,
   options: GetDocumentOptionalParams_1 = { requestOptions: {} },
 ): StreamableMethod_1 {
-  const path = expandUrlTemplate_1("/documents/{id}", { "id": id }, { allowReserved: options?.requestOptions?.skipUrlEncoding });
-  return context.path(path).get({ ...operationOptionsToRequestParameters_1(options), headers: { accept: "application/json, application/xml", ...options.requestOptions?.headers } });
+  const path = expandUrlTemplate_1(
+    "/documents/{id}",
+    { id: id },
+    { allowReserved: options?.requestOptions?.skipUrlEncoding },
+  );
+  return context.path(path).get({
+    ...operationOptionsToRequestParameters_1(options),
+    headers: {
+      accept: "application/json, application/xml",
+      ...options.requestOptions?.headers,
+    },
+  });
 }
 
 export async function _getDocumentDeserialize(
@@ -135,7 +155,7 @@ export async function _getDocumentDeserialize(
     throw createRestError_1(result);
   }
 
-  return <Unresolved Symbol: refkey[o1186⁣sdeserializer]>(result.body);
+  return documentDeserializer_1(result.body);
 }
 
 export async function getDocument(
@@ -146,7 +166,6 @@ export async function getDocument(
   const result = await _getDocumentSend(context, id, options);
   return _getDocumentDeserialize(result);
 }
-
 ```
 
 # JSON-only error deserialization

@@ -78,7 +78,7 @@ export async function _getUserDeserialize(
     throw createRestError_1(result);
   }
 
-  return <Unresolved Symbol: refkey[o828⁣sdeserializer]>(result.body);
+  return userDeserializer_1(result.body);
 }
 ```
 

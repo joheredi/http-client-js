@@ -10,6 +10,7 @@ import type {
   SdkModelType,
   SdkType,
 } from "@azure-tools/typespec-client-generator-core";
+import { UsageFlags } from "@azure-tools/typespec-client-generator-core";
 import { getModelFunctionName } from "../../utils/model-name.js";
 import { serializationHelperRefkey, serializerRefkey, typeRefkey } from "../../utils/refkeys.js";
 import { useRuntimeLib } from "../../context/flavor-context.js";
@@ -134,6 +135,12 @@ export function getSerializationExpression(
 ): Children {
   switch (type.kind) {
     case "model":
+      // Models without Input usage don't have serializer functions generated.
+      // This happens for read-only types like Azure.ResourceManager.SystemData
+      // that only appear in responses (Output usage). Pass through as-is.
+      if ((type.usage & UsageFlags.Input) === 0) {
+        return accessor;
+      }
       return code`${serializerRefkey(type)}(${accessor})`;
 
     case "array": {
