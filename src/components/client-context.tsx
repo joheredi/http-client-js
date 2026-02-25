@@ -14,11 +14,12 @@ import type {
   SdkMethodParameter,
   SdkPathParameter,
 } from "@azure-tools/typespec-client-generator-core";
-import { useRuntimeLib } from "../context/flavor-context.js";
+import { useFlavorContext, useRuntimeLib } from "../context/flavor-context.js";
 import {
   clientContextRefkey,
   clientOptionsRefkey,
   createClientRefkey,
+  loggerRefkey,
 } from "../utils/refkeys.js";
 import { getTypeExpression } from "./type-expression.js";
 
@@ -724,21 +725,31 @@ function buildEndpointFromType(endpointType: {
 }
 
 /**
- * Builds the user agent prefix construction and options merging statements.
+ * Builds the user agent prefix construction, logging options (Azure only),
+ * and options merging statements.
  *
  * Generates code that:
  * 1. Extracts any user-provided prefix from `options.userAgentOptions.userAgentPrefix`
  * 2. Constructs a `userAgentPrefix` that prepends the user-provided prefix (if any)
  *    to the SDK identifier tag `azsdk-js-api`
- * 3. Creates `updatedOptions` by spreading the original options with the new
- *    `userAgentOptions.userAgentPrefix`
+ * 3. For Azure flavor, adds `loggingOptions` that wires the generated logger
+ *    into the client pipeline, falling back to `logger.info` when the consumer
+ *    hasn't provided a custom logger
+ * 4. Creates `updatedOptions` by spreading the original options with the new
+ *    `userAgentOptions.userAgentPrefix` and (for Azure) `loggingOptions`
  *
  * The `azsdk-js-api` tag identifies requests as originating from a modular
  * (API-layer) generated client, distinguishing them from classical (wrapper-layer)
  * clients that use `azsdk-js-client`. This telemetry tag is used by service teams
  * to track SDK adoption and diagnose issues.
  *
- * Generated output:
+ * The loggingOptions integration (Azure only) ensures that HTTP pipeline logging
+ * uses the package-scoped logger from `logger.ts` by default, while allowing
+ * consumers to override via `options.loggingOptions.logger`. This is required
+ * for Azure SDK compliance — without it, pipeline logs use the global logger
+ * instead of the package-specific one.
+ *
+ * Generated output (core flavor):
  * ```typescript
  * const prefixFromOptions = options?.userAgentOptions?.userAgentPrefix;
  * const userAgentPrefix = prefixFromOptions
@@ -750,9 +761,23 @@ function buildEndpointFromType(endpointType: {
  * };
  * ```
  *
+ * Generated output (azure flavor):
+ * ```typescript
+ * const prefixFromOptions = options?.userAgentOptions?.userAgentPrefix;
+ * const userAgentPrefix = prefixFromOptions
+ *   ? `${prefixFromOptions} azsdk-js-api`
+ *   : `azsdk-js-api`;
+ * const updatedOptions = {
+ *   ...options,
+ *   userAgentOptions: { userAgentPrefix },
+ *   loggingOptions: { logger: options.loggingOptions?.logger ?? logger.info },
+ * };
+ * ```
+ *
  * @returns Alloy Children for the user agent options construction statements.
  */
 export function buildUserAgentOptions(): Children {
+  const { flavor } = useFlavorContext();
   const parts: Children[] = [];
 
   parts.push(
@@ -761,10 +786,19 @@ export function buildUserAgentOptions(): Children {
   parts.push(
     code`const userAgentPrefix = prefixFromOptions ? \`\${prefixFromOptions} azsdk-js-api\` : \`azsdk-js-api\`;`,
   );
-  parts.push(code`const updatedOptions = {
+
+  if (flavor === "azure") {
+    parts.push(code`const updatedOptions = {
+  ...options,
+  userAgentOptions: { userAgentPrefix },
+  loggingOptions: { logger: options.loggingOptions?.logger ?? ${loggerRefkey()}.info },
+};`);
+  } else {
+    parts.push(code`const updatedOptions = {
   ...options,
   userAgentOptions: { userAgentPrefix },
 };`);
+  }
 
   return parts.map((p, i) => (i > 0 ? ["\n", p] : p));
 }

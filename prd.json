@@ -2290,7 +2290,7 @@
           "id": "RC01",
           "title": "Unresolved Symbol placeholders in generated output",
           "priority": "P0-CRITICAL",
-          "status": "not_started",
+          "status": "done",
           "must_fix": true,
           "prevent_regression": true,
           "root_cause": "Refkeys are referenced in code templates but the corresponding declaration component is never rendered (missing serializer/deserializer declarations for certain type combinations).",
@@ -2303,7 +2303,7 @@
           "id": "RC02",
           "title": "Error response body not deserialized before throwing",
           "priority": "P0",
-          "status": "not_started",
+          "status": "done",
           "root_cause": "In deserialize-operation.tsx, error path just calls 'throw createRestError(result)' without parsing the error body. Legacy creates the error, deserializes the body via errorResponseDeserializer, attaches error.details, and optionally merges exception headers.",
           "file": "src/components/deserialize-operation.tsx",
           "description": "Operations throw raw errors without deserializing error response bodies or merging error headers. The error.details field is never populated.",
@@ -2325,7 +2325,7 @@
           "id": "RC04",
           "title": "Missing logger integration in client context",
           "priority": "P0",
-          "status": "not_started",
+          "status": "done",
           "root_cause": "client-context.tsx does not import or configure the generated logger in the client factory function. Legacy creates a logger, sets loggingOptions.logger, and uses logger.info.",
           "file": "src/components/client-context.tsx, src/components/logger-file.tsx",
           "description": "Generated createService() functions don't integrate the logger file into client options. The logger-file.tsx generates logger.ts but it's never wired into the client context.",
@@ -2773,7 +2773,7 @@
         "priority": "P0",
         "description": "LEGACY createService/createTestService functions include: (1) user agent prefix computation, (2) logger integration, (3) apiVersion destructuring with defaults, (4) spreading clientParam into context. NEW has minimal logic: just getClient(endpointUrl, options). Missing user agent handling, logger setup, and apiVersion defaults.",
         "affected_scenarios": "clientContext/clientContext.md, clientContext/optionalApiVersion.md, classicClient/*.md, operations/headerParam/*.md, operations/queryParam/queryParamWithClientInitialization.md",
-        "status": "tracked"
+        "status": "done"
       },
       {
         "id": "SA4",
@@ -2928,7 +2928,7 @@
         "priority": "P0-CRITICAL",
         "description": "NEW contains <Unresolved Symbol: refkey[...]> placeholders in generated code for certain union types and deserializers. These indicate refkey resolution failures in the Alloy framework rendering pipeline. This is a BUG in the new emitter that MUST be fixed immediately and prevented from recurring. No unresolved symbols should ever appear in generated output. A CI guard/assertion should be added to prevent regressions.",
         "affected_scenarios": "models/deserialization/propertyType.md, models/serialization/propertyType.md, operations/errorDeserialization/xmlErrorDeserialization.md, models/response/headerInXmlResponse.md",
-        "status": "tracked",
+        "status": "done",
         "must_fix": true,
         "prevent_regression": true
       },

@@ -2847,3 +2847,62 @@ When `@@override` groups individual query/header parameters into a model paramet
   to wire the generated logger into `loggingOptions` (Azure flavor only).
 - The 3 remaining skipped tests are blocked on external issues (TCGC #3088, TypeSpec #6983, TCGC #1419)
 - The vitest worker timeout error is an infrastructure issue, not a test failure.
+
+## 2026-02-25 — RC04: Logger Integration in Client Context
+
+### What was done
+- **Implemented logger integration** in the client context factory function for Azure flavor.
+  Previously, `createXxx()` functions did not wire the generated `logger.ts` into the
+  HTTP pipeline's `loggingOptions`. Now, for Azure flavor, the factory includes
+  `loggingOptions: { logger: options.loggingOptions?.logger ?? logger.info }` in `updatedOptions`.
+
+- **Modified `src/components/client-context.tsx`**:
+  - Added import of `useFlavorContext` from flavor context
+  - Added import of `loggerRefkey` from refkeys
+  - Updated `buildUserAgentOptions()` to detect Azure flavor via `useFlavorContext()`
+  - When `flavor === "azure"`, the `updatedOptions` spread now includes
+    `loggingOptions: { logger: options.loggingOptions?.logger ?? logger.info }`
+  - The `loggerRefkey()` reference in the `code` template enables Alloy to auto-generate
+    the `import { logger } from "../logger.js"` import statement
+  - Core (non-Azure) flavor output is unchanged — no loggingOptions added
+  - Updated JSDoc to document both core and azure output patterns
+
+- **Added 2 unit tests** in `test/components/client-context.test.tsx`:
+  - Azure flavor factory includes loggingOptions with logger.info fallback
+  - Core flavor factory does NOT include loggingOptions
+  - Tests verify the correct rendering with both Azure and core flavors
+
+- **Updated PRD**: Marked RC04 as done; also marked RC01, RC02, SA20, SA3 as done
+  (these were previously completed but PRD was not updated).
+
+### Test Results
+- Before: 828 passed, 3 skipped, 46 test files
+- After: 830 passed, 3 skipped, 46 test files (2 new tests)
+- Zero regressions in existing tests
+- No scenario test changes needed (scenarios use core flavor)
+
+### Architecture decisions
+- **Flavor-conditional loggingOptions**: Only Azure flavor gets `loggingOptions` in
+  `updatedOptions`. The core/unbranded runtime has no package logger concept.
+- **Refkey-based logger reference**: Uses `loggerRefkey()` in `code` template so
+  Alloy auto-generates the import from `logger.ts`. No manual import strings.
+- **Consumer override pattern**: `options.loggingOptions?.logger ?? logger.info` allows
+  consumers to provide a custom logger while defaulting to the package-scoped logger.
+  This matches the legacy emitter's pattern exactly.
+- **No scenario test changes**: The scenario test harness uses `flavor="core"`, so the
+  clientContext scenarios are unaffected. Azure-specific behavior is covered by unit tests.
+
+### Files Changed
+- `src/components/client-context.tsx` — Added Azure loggingOptions to buildUserAgentOptions()
+- `test/components/client-context.test.tsx` — Added 2 new tests (azure + core flavor)
+- `prd.json` — RC04, RC01, RC02, SA20, SA3 marked done
+
+### Notes for next person
+- Completed: All Phases 0-10, Tasks 11.02, 11.04, 11.07, SA4, SA11, SA20, SA3, RC01-RC04 (DONE).
+- **Remaining P0 tasks**: RC05-RC08 (samples), RC13 (collection format encoding)
+  - RC05-RC08 are P0 sample generation tasks
+  - RC13 is P0 collection format encoding (query/header arrays)
+- **Remaining P1 tasks**: RC09-RC11, RC14-RC30
+- **Remaining P2 tasks**: RC12, RC31-RC34
+- The 3 remaining skipped tests are blocked on external issues (TCGC #3088, TypeSpec #6983, TCGC #1419)
+- The vitest worker timeout error is an infrastructure issue, not a test failure.

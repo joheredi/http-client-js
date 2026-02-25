@@ -47,10 +47,13 @@ import {
   clientOptionsRefkey,
   createClientRefkey,
 } from "../../src/utils/refkeys.js";
-import { httpRuntimeLib } from "../../src/utils/external-packages.js";
+import { httpRuntimeLib, azureCoreClientLib, azureCorePipelineLib, azureCoreAuthLib, azureCoreUtilLib, azureAbortControllerLib, azureLoggerLib } from "../../src/utils/external-packages.js";
 import { Tester, TesterWithService, createSdkContextForTest } from "../test-host.js";
 import { SdkTestFile } from "../utils.jsx";
 import { SdkContextProvider } from "../../src/context/sdk-context.js";
+import { FlavorProvider } from "../../src/context/flavor-context.js";
+import { LoggerFile } from "../../src/components/logger-file.js";
+import { SourceFile } from "@alloy-js/typescript";
 
 /**
  * Helper to extract the first client from an SDK context.
@@ -397,6 +400,92 @@ describe("ClientContext", () => {
     expect(template).toRenderTo({
       "testServiceClientContext.ts": expect.stringContaining("TestServiceContext"),
     });
+  });
+
+  /**
+   * Tests that when flavor is "azure", the factory function includes
+   * `loggingOptions` in `updatedOptions` that wires the generated logger
+   * into the HTTP pipeline.
+   *
+   * Azure SDK compliance requires that each package uses its own
+   * package-scoped logger (created via `createClientLogger`) for pipeline
+   * logging. The `loggingOptions.logger` property defaults to `logger.info`
+   * but allows consumer override via `options.loggingOptions?.logger`.
+   *
+   * Without this, the HTTP pipeline uses the global logger, making it
+   * impossible for consumers to filter logs per-package.
+   */
+  it("should include loggingOptions with logger.info for azure flavor", async () => {
+    const runner = await TesterWithService.createInstance();
+    const { program } = await runner.compile(
+      t.code`
+        @get op getItem(): string;
+      `,
+    );
+
+    const sdkContext = await createSdkContextForTest(program);
+    const client = getFirstClient(sdkContext);
+
+    const template = (
+      <Output
+        program={sdkContext.emitContext.program}
+        namePolicy={createTSNamePolicy()}
+        externals={[
+          azureCoreClientLib,
+          azureCorePipelineLib,
+          azureCoreAuthLib,
+          azureCoreUtilLib,
+          azureAbortControllerLib,
+          azureLoggerLib,
+        ]}
+      >
+        <SdkContextProvider sdkContext={sdkContext}>
+          <FlavorProvider flavor="azure">
+            <SourceFile path="test.ts">
+              <ClientContextFactory client={client} />
+            </SourceFile>
+            <LoggerFile packageName="test-service" />
+          </FlavorProvider>
+        </SdkContextProvider>
+      </Output>
+    );
+
+    const result = renderToString(template);
+    // Should include loggingOptions with logger reference
+    expect(result).toContain("loggingOptions");
+    expect(result).toContain("options.loggingOptions?.logger ?? logger.info");
+  });
+
+  /**
+   * Tests that when flavor is "core" (non-Azure), the factory function
+   * does NOT include `loggingOptions` in `updatedOptions`.
+   *
+   * The core/unbranded runtime does not have a package logger concept.
+   * Including loggingOptions would reference a non-existent logger module,
+   * breaking the generated code for non-Azure SDKs.
+   */
+  it("should NOT include loggingOptions for core flavor", async () => {
+    const runner = await TesterWithService.createInstance();
+    const { program } = await runner.compile(
+      t.code`
+        @get op getItem(): string;
+      `,
+    );
+
+    const sdkContext = await createSdkContextForTest(program);
+    const client = getFirstClient(sdkContext);
+
+    const template = (
+      <SdkTestFile sdkContext={sdkContext} externals={[httpRuntimeLib]}>
+        <ClientContextFactory client={client} />
+      </SdkTestFile>
+    );
+
+    const result = renderToString(template);
+    // Should NOT include loggingOptions for core flavor
+    expect(result).not.toContain("loggingOptions");
+    // But should still have user agent options
+    expect(result).toContain("userAgentOptions");
   });
 
   /**
