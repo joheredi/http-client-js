@@ -180,7 +180,7 @@ export function _getSend(
   const path = expandUrlTemplate(
     "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ThisWillBeReplaced/savingsPlanOrders/{savingsPlanOrderId}/savingsPlans/{savingsPlanId}{?api%2Dversion}",
     {
-      "api-version": apiVersion,
+      "api%2Dversion": apiVersion,
       subscriptionId: subscriptionId,
       resourceGroupName: resourceGroupName,
       savingsPlanOrderId: savingsPlanOrderId,
@@ -418,7 +418,7 @@ export function _getSend(
   const path = expandUrlTemplate(
     "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ThisWillBeReplaced/savingsPlanOrders/{savingsPlanOrderId}/savingsPlans/{savingsPlanId}{?api%2Dversion}",
     {
-      "api-version": apiVersion,
+      "api%2Dversion": apiVersion,
       subscriptionId: subscriptionId,
       resourceGroupName: resourceGroupName,
       savingsPlanOrderId: savingsPlanOrderId,

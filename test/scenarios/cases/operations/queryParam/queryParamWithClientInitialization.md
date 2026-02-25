@@ -180,12 +180,12 @@ export function _getSend(
   const path = expandUrlTemplate(
     "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ThisWillBeReplaced/savingsPlanOrders/{savingsPlanOrderId}/savingsPlans/{savingsPlanId}{?api%2Dversion,%24expand}",
     {
-      "api-version": apiVersion,
+      "api%2Dversion": apiVersion,
       subscriptionId: subscriptionId,
       resourceGroupName: resourceGroupName,
       savingsPlanOrderId: savingsPlanOrderId,
       savingsPlanId: savingsPlanId,
-      $expand: context["$expand"],
+      "%24expand": context["$expand"],
     },
     { allowReserved: options?.requestOptions?.skipUrlEncoding },
   );
@@ -418,12 +418,12 @@ export function _getSend(
   const path = expandUrlTemplate(
     "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ThisWillBeReplaced/savingsPlanOrders/{savingsPlanOrderId}/savingsPlans/{savingsPlanId}{?api%2Dversion,%24expand}",
     {
-      "api-version": apiVersion,
+      "api%2Dversion": apiVersion,
       subscriptionId: subscriptionId,
       resourceGroupName: resourceGroupName,
       savingsPlanOrderId: savingsPlanOrderId,
       savingsPlanId: savingsPlanId,
-      $expand: context["$expand"],
+      "%24expand": context["$expand"],
     },
     { allowReserved: options?.requestOptions?.skipUrlEncoding },
   );

@@ -52,7 +52,7 @@ export function _optionalSend(
 ): StreamableMethod {
   const path = expandUrlTemplate(
     "/annotation/optional{?select*,bar,api%2Dversion}",
-    { select: options?.select, bar: foo, "api-version": apiVersion },
+    { select: options?.select, bar: foo, "api%2Dversion": apiVersion },
     { allowReserved: options?.requestOptions?.skipUrlEncoding },
   );
   return context

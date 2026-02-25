@@ -3493,3 +3493,69 @@ When `@@override` groups individual query/header parameters into a model paramet
 - The 3 remaining skipped tests are blocked on external issues (TCGC #3088,
   TypeSpec #6983, TCGC #1419)
 - The vitest worker timeout error is an infrastructure issue, not a test failure.
+
+## 2026-02-25 — RC14/SA12: URL Template Parameter Keys Percent-Encoded
+
+### What was done
+- **Fixed query parameter key encoding** in the `expandUrlTemplate()` expansion
+  object. Previously, query parameter keys like `api-version` were passed as plain
+  strings, but the URI template from TCGC uses percent-encoded variable names
+  (e.g., `{?api%2Dversion}`). The legacy emitter encodes these keys to match.
+
+- **Added `escapeUriTemplateParamName()` function** in `src/components/send-operation.tsx`:
+  - Uses `encodeURIComponent()` for most special characters (`$` → `%24`)
+  - Adds explicit encoding for hyphens (`-` → `%2D`) and colons (`:` → `%3A`)
+    which `encodeURIComponent` does NOT encode
+  - Matches the legacy emitter's `escapeUriTemplateParamName` in `operationHelpers.ts`
+  - Includes JSDoc documenting the encoding logic and rationale
+
+- **Modified `getUrlTemplateParameters()`** to apply encoding:
+  - Query parameter keys are encoded via `escapeUriTemplateParamName()`
+  - Path parameter keys are NOT encoded (they match template vars directly)
+  - Added clear comments explaining why only query params are encoded
+
+- **Added 5 unit tests** in `test/components/send-operation.test.tsx`:
+  - `escapeUriTemplateParamName` encodes hyphens (`api-version` → `api%2Dversion`)
+  - `escapeUriTemplateParamName` encodes dollar signs (`$expand` → `%24expand`)
+  - `escapeUriTemplateParamName` encodes colons (`time:zone` → `time%3Azone`)
+  - `escapeUriTemplateParamName` leaves plain names unchanged (`subscriptionId`)
+  - `escapeUriTemplateParamName` encodes multiple hyphens
+
+- **Updated 13 scenario test files** (auto-updated via SCENARIOS_UPDATE=true):
+  - All `expandUrlTemplate` calls now have percent-encoded query parameter keys
+  - Path parameter keys remain unchanged
+
+- **Updated PRD**: Marked RC14 and SA12 as done.
+
+### Test Results
+- Before: 859 passed, 3 skipped, 62 test files
+- After: 864 passed, 3 skipped, 62 test files (5 new tests)
+- Zero regressions in existing tests
+
+### Architecture decisions
+- **Query-only encoding**: Only query parameter keys are encoded because TCGC
+  provides URI templates with encoded query variable names but plain path variable
+  names. Path params like `{key-name}` use the plain name in both the template and
+  the expansion object.
+- **encodeURIComponent + explicit hyphen/colon**: `encodeURIComponent` handles most
+  special characters but leaves hyphens and colons untouched (they are valid URI
+  characters). The legacy emitter explicitly encodes these two characters, so we do
+  the same for output parity.
+- **Exported function**: `escapeUriTemplateParamName` is exported for testability
+  and potential reuse.
+
+### Files Changed
+- `src/components/send-operation.tsx` — Added escapeUriTemplateParamName, applied to query keys
+- `test/components/send-operation.test.tsx` — Added 5 unit tests
+- 13 scenario test files — Updated expectations
+- `prd.json` — RC14, SA12 marked done
+
+### Notes for next person
+- Completed: All Phases 0-10, Tasks 11.02, 11.04, 11.07, SA4, SA5, SA11, SA12, SA14,
+  SA20, SA3, RC01-RC09, RC13, RC14, RC15, RC17, RC18, RC19, RC20, RC24, RC29 (DONE).
+- **Remaining P1 tasks**: RC10, RC11, RC16, RC21-RC23, RC25-RC28, RC30
+- **Remaining P2 tasks**: RC12, RC31-RC34
+- RC21 (Nested enum types) and RC23 (Reserved word methods) are good follow-up tasks.
+- The 3 remaining skipped tests are blocked on external issues (TCGC #3088,
+  TypeSpec #6983, TCGC #1419)
+- The vitest worker timeout error is an infrastructure issue, not a test failure.

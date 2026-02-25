@@ -2435,7 +2435,7 @@
           "id": "RC14",
           "title": "URL template parameter keys not percent-encoded",
           "priority": "P1",
-          "status": "not_started",
+          "status": "done",
           "root_cause": "send-operation.tsx passes parameter keys like 'api-version' as plain strings to expandUrlTemplate. Legacy uses percent-encoded keys like 'api%2Dversion'. The RFC 6570 template expansion may handle this differently depending on the key format.",
           "file": "src/components/send-operation.tsx",
           "description": "Parameter keys containing special characters (hyphens, dollar signs) are not percent-encoded when passed to expandUrlTemplate. May produce different URL expansion results.",
@@ -2856,7 +2856,7 @@
         "priority": "P1",
         "description": "NEW uses unencoded keys in URL template expansion (e.g., 'api-version'). LEGACY uses URL-encoded keys (e.g., 'api%2Dversion'). Similarly, '$expand' vs '%24expand'. This may affect URL template resolution behavior.",
         "affected_scenarios": "operations/pathParam/pathParamUrlTemplate.md, operations/queryParam/queryParamUrlTemplate.md, operations/queryParam/queryParamWithClientInitialization.md, apiOperations/azureCoreOperations.md",
-        "status": "tracked"
+        "status": "done"
       },
       {
         "id": "SA13",

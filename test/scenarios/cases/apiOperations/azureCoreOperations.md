@@ -75,7 +75,7 @@ export function _getWidgetOperationStatusSend(
 ): StreamableMethod {
   const path = expandUrlTemplate(
     "/widgets/{name}/operations/{operationId}{?api%2Dversion}",
-    { "api-version": apiVersion, name: name, operationId: operationId },
+    { "api%2Dversion": apiVersion, name: name, operationId: operationId },
     { allowReserved: options?.requestOptions?.skipUrlEncoding },
   );
   return context.path(path).get({

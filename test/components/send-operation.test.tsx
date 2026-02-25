@@ -18,6 +18,8 @@
  * - Spread body parameters produce inline object literals with per-property serialization.
  * - @@override parameter grouping names optionalParams bag correctly and accesses model properties.
  * - getOptionsParamName returns "optionalParams" when a method parameter is named "options".
+ * - escapeUriTemplateParamName encodes hyphens, colons, dollar signs, and other special chars.
+ * - Query parameter keys are percent-encoded to match URI template variable names.
  */
 import "@alloy-js/core/testing";
 import { Children, code } from "@alloy-js/core";
@@ -31,7 +33,7 @@ import type {
   SdkHttpOperation,
   SdkServiceMethod,
 } from "@azure-tools/typespec-client-generator-core";
-import { SendOperation } from "../../src/components/send-operation.js";
+import { SendOperation, escapeUriTemplateParamName } from "../../src/components/send-operation.js";
 import { getOptionsParamName } from "../../src/components/send-operation.js";
 import { OperationOptionsDeclaration } from "../../src/components/operation-options.js";
 import { ModelInterface } from "../../src/components/model-interface.js";
@@ -726,5 +728,63 @@ op groupCustomized(
 
     const result = renderToString(template);
     expect(result).toContain("buildCsvCollection(colors)");
+  });
+});
+
+/**
+ * Tests for the escapeUriTemplateParamName utility function.
+ *
+ * This function percent-encodes URI template parameter names so that the
+ * expansion object keys match the variable names in the RFC 6570 template
+ * string. TCGC provides templates with percent-encoded query variable names
+ * (e.g., `{?api%2Dversion,%24expand}`), so the keys in the expansion object
+ * must be encoded the same way.
+ *
+ * Why this is important:
+ * - The legacy emitter encodes query parameter keys, so output parity requires
+ *   the same encoding in the new emitter.
+ * - Without encoding, keys like "api-version" won't visually match template
+ *   variables like "api%2Dversion", making the generated code inconsistent.
+ * - The encoding must match `encodeURIComponent` plus explicit encoding of
+ *   hyphens and colons (which `encodeURIComponent` does NOT encode).
+ */
+describe("escapeUriTemplateParamName", () => {
+  /**
+   * Hyphens are NOT encoded by encodeURIComponent but must be encoded in URI
+   * template variable names. This is the most common case (e.g., "api-version").
+   */
+  it("should encode hyphens in parameter names", () => {
+    expect(escapeUriTemplateParamName("api-version")).toBe("api%2Dversion");
+  });
+
+  /**
+   * Dollar signs ARE encoded by encodeURIComponent to %24, so they are
+   * already handled. This covers OData-style parameters like "$expand".
+   */
+  it("should encode dollar signs in parameter names", () => {
+    expect(escapeUriTemplateParamName("$expand")).toBe("%24expand");
+  });
+
+  /**
+   * Colons are NOT encoded by encodeURIComponent but must be encoded in URI
+   * template variable names. Tests the explicit colon-to-%3A replacement.
+   */
+  it("should encode colons in parameter names", () => {
+    expect(escapeUriTemplateParamName("time:zone")).toBe("time%3Azone");
+  });
+
+  /**
+   * Plain alphanumeric parameter names (no special characters) should pass
+   * through unchanged. This ensures the function is a no-op for simple names.
+   */
+  it("should leave plain alphanumeric names unchanged", () => {
+    expect(escapeUriTemplateParamName("subscriptionId")).toBe("subscriptionId");
+  });
+
+  /**
+   * Multiple hyphens in a single name should all be encoded.
+   */
+  it("should encode multiple hyphens", () => {
+    expect(escapeUriTemplateParamName("key-name-version")).toBe("key%2Dname%2Dversion");
   });
 });

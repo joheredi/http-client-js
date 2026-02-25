@@ -172,7 +172,7 @@ export function _backupSend(
   const path = expandUrlTemplate(
     "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.HardwareSecurityModules/cloudHsmClusters/{cloudHsmClusterName}/backup{?api%2Dversion}",
     {
-      "api-version": context.apiVersion,
+      "api%2Dversion": context.apiVersion,
       subscriptionId: context["subscriptionId"],
       resourceGroupName: resourceGroupName,
       cloudHsmClusterName: cloudHsmClusterName,

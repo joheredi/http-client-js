@@ -90,7 +90,7 @@ export function _updateSend(
   const path = expandUrlTemplate(
     "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.TestArmPatch/partnerTopics/{partnerTopicName}{?api%2Dversion}",
     {
-      "api-version": apiVersion,
+      "api%2Dversion": apiVersion,
       subscriptionId: context["subscriptionId"],
       resourceGroupName: resourceGroupName,
       partnerTopicName: partnerTopicName,

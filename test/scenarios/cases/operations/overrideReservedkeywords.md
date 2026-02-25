@@ -79,7 +79,7 @@ export function _checkNameAvailabilitySend(
 ): StreamableMethod {
   const path = expandUrlTemplate(
     "/subscriptions/{subscriptionId}/providers/Microsoft.ThisWillBeReplaced/checknameavailability{?api%2Dversion}",
-    { "api-version": apiVersion, subscriptionId: context["subscriptionId"] },
+    { "api%2Dversion": apiVersion, subscriptionId: context["subscriptionId"] },
     { allowReserved: options?.requestOptions?.skipUrlEncoding },
   );
   return context.path(path).post({

@@ -223,8 +223,16 @@ function getUrlTemplateParameters(
         param.kind === "query"
           ? wrapWithCollectionFormat(valueExpr, param.collectionFormat)
           : valueExpr;
+      // Query parameter keys must be percent-encoded to match the URI template
+      // variable names that TCGC produces (e.g., `{?api%2Dversion}` needs key
+      // `"api%2Dversion"`). Path parameter keys are NOT encoded because their
+      // template variables use the plain name (e.g., `{key-name}`).
+      const key =
+        param.kind === "query"
+          ? escapeUriTemplateParamName(param.serializedName)
+          : param.serializedName;
       params.push({
-        serializedName: param.serializedName,
+        serializedName: key,
         valueExpression: wrappedExpr,
       });
     }
@@ -795,4 +803,28 @@ function getCollectionBuilderName(
     default:
       return undefined;
   }
+}
+
+/**
+ * Percent-encodes a URI template parameter name so that the expansion
+ * object key matches the variable name inside the RFC 6570 template.
+ *
+ * TCGC provides URI templates with percent-encoded query variable names
+ * (e.g., `{?api%2Dversion,%24expand}`), so the expansion object keys
+ * must be encoded the same way (`"api%2Dversion"`, `"%24expand"`).
+ *
+ * `encodeURIComponent` already encodes most special characters but leaves
+ * hyphens (`-`) and colons (`:`) untouched. The extra `.replace` encodes
+ * these two characters to match the template encoding.
+ *
+ * This matches the legacy emitter's `escapeUriTemplateParamName` function
+ * in `operationHelpers.ts`.
+ *
+ * @param name - The plain parameter serialized name (e.g., `"api-version"`).
+ * @returns The percent-encoded name (e.g., `"api%2Dversion"`).
+ */
+export function escapeUriTemplateParamName(name: string): string {
+  return encodeURIComponent(name).replace(/[:-]/g, (c) => {
+    return "%" + c.charCodeAt(0).toString(16).toUpperCase();
+  });
 }

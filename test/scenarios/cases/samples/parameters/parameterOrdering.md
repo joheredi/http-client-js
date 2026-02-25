@@ -91,7 +91,7 @@ export function _verifySend(
 ): StreamableMethod {
   const path = expandUrlTemplate(
     "/device-location/location:verify{?api%2Dversion}",
-    { "api-version": apiVersion },
+    { "api%2Dversion": apiVersion },
     { allowReserved: options?.requestOptions?.skipUrlEncoding },
   );
   return context.path(path).post({

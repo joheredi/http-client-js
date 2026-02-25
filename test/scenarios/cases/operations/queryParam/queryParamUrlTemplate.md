@@ -32,7 +32,11 @@ export function _readSend(
 ): StreamableMethod {
   const path = expandUrlTemplate(
     "/{pathParam}{?key%2Dname,key%2Dversion}",
-    { pathParam: pathParam, "key-name": keyName, "key-version": keyVersion },
+    {
+      pathParam: pathParam,
+      "key%2Dname": keyName,
+      "key%2Dversion": keyVersion,
+    },
     { allowReserved: options?.requestOptions?.skipUrlEncoding },
   );
   return context.path(path).post({
