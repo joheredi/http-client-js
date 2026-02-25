@@ -2314,7 +2314,7 @@
           "id": "RC03",
           "title": "Missing user agent prefix in client context",
           "priority": "P0",
-          "status": "not_started",
+          "status": "done",
           "root_cause": "client-context.tsx does not generate user agent prefix computation logic. Legacy builds 'azsdk-js-{package}/{version}' prefix and merges with user-provided prefix from options.",
           "file": "src/components/client-context.tsx",
           "description": "Generated createService() functions lack user agent prefix construction. Azure SDK convention requires setting userAgentOptions.userAgentPrefix on the client options.",

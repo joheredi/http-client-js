@@ -2777,3 +2777,73 @@ When `@@override` groups individual query/header parameters into a model paramet
   - P2: SA6, SA21, SA25
 - The 3 remaining skipped tests are blocked on external issues (TCGC #3088, TypeSpec #6983, TCGC #1419)
 - The vitest worker timeout error is an infrastructure issue, not a test failure.
+
+## 2026-02-25 — RC03: User Agent Prefix in Client Context
+
+### What was done
+- **Implemented user agent prefix construction** in the client context factory function.
+  Previously, `createXxx()` functions passed raw `options` directly to `getClient()`.
+  Now they construct a user agent prefix and merge it into options before calling getClient.
+
+- **Modified `src/components/client-context.tsx`**:
+  - Added `buildUserAgentOptions()` exported function that generates three statements:
+    1. `const prefixFromOptions = options?.userAgentOptions?.userAgentPrefix;`
+    2. `const userAgentPrefix = prefixFromOptions ? \`\${prefixFromOptions} azsdk-js-api\` : \`azsdk-js-api\`;`
+    3. `const updatedOptions = { ...options, userAgentOptions: { userAgentPrefix } };`
+  - Updated `buildFactoryBody()` to call `buildUserAgentOptions()` after endpoint URL construction
+  - Updated `buildGetClientCall()` to pass `updatedOptions` instead of raw `options`
+  - Added JSDoc for all new/modified functions
+
+- **Updated 6 scenario test expected outputs** (auto-updated via SCENARIOS_UPDATE=true):
+  - clientContext/clientContext.md — all 3 scenarios now include user agent prefix
+  - clientContext/optionalApiVersion.md — factory function uses updatedOptions
+  - apiOperations/apiOperations.md — 3 scenarios updated with user agent prefix
+  - client/client.md — factory function uses updatedOptions
+  - operations/headerParam/headerParamWithClientInitialization.md — 2 scenarios updated
+  - operations/queryParam/queryParamWithClientInitialization.md — 2 scenarios updated
+
+- **Added 3 unit tests** in `test/components/client-context.test.tsx`:
+  - Factory function generates user agent prefix with azsdk-js-api tag
+  - User-provided prefix is merged (prepended) with SDK prefix
+  - Credential parameter factory passes updatedOptions alongside credential
+
+- **Updated PRD**: Marked RC03 as done.
+
+### Test Results
+- Before: 825 passed, 3 skipped, 46 test files
+- After: 828 passed, 3 skipped, 46 test files (3 new tests)
+- Zero regressions in existing tests
+
+### Architecture decisions
+- **`azsdk-js-api` tag**: Uses the modular client SDK identifier tag, matching the legacy
+  emitter convention. The `api` suffix distinguishes modular (API-layer) clients from
+  classical (`azsdk-js-client`) wrapper clients.
+- **Flavor-agnostic**: User agent prefix is generated for all flavors (core + azure), not
+  just Azure. This enables service-side telemetry regardless of SDK flavor.
+- **No package name/version**: The current implementation uses only the `azsdk-js-api` tag
+  without package-specific info (e.g., `azsdk-js-arm-compute/1.0.0-beta.1`). Adding
+  package name/version requires emitter options configuration (future work).
+- **updatedOptions pattern**: Creates a new `updatedOptions` variable instead of mutating
+  `options`, following immutability best practices.
+
+### Files Changed
+- `src/components/client-context.tsx` — Added buildUserAgentOptions(), updated buildFactoryBody/buildGetClientCall
+- `test/components/client-context.test.tsx` — Added 3 new tests
+- `test/scenarios/cases/clientContext/clientContext.md` — Updated expectations (3 scenarios)
+- `test/scenarios/cases/clientContext/optionalApiVersion.md` — Updated expectations
+- `test/scenarios/cases/apiOperations/apiOperations.md` — Updated expectations (3 scenarios)
+- `test/scenarios/cases/client/client.md` — Updated expectations
+- `test/scenarios/cases/operations/headerParam/headerParamWithClientInitialization.md` — Updated expectations (2 scenarios)
+- `test/scenarios/cases/operations/queryParam/queryParamWithClientInitialization.md` — Updated expectations (2 scenarios)
+- `prd.json` — RC03 marked done
+
+### Notes for next person
+- Completed: All Phases 0-10, Tasks 11.02, 11.04, 11.07, SA4, SA11, SA20, RC03 (DONE).
+- **Remaining RC tasks**: RC01-RC02 (already done but PRD not updated), RC04-RC10, RC12-RC34
+  - P0: RC04 (logger integration), RC05-RC08 (samples)
+  - P1: RC09-RC11, RC14-RC30
+  - P2: RC12, RC31-RC34
+- RC04 (logger integration) is a natural follow-up — it also modifies client-context.tsx
+  to wire the generated logger into `loggingOptions` (Azure flavor only).
+- The 3 remaining skipped tests are blocked on external issues (TCGC #3088, TypeSpec #6983, TCGC #1419)
+- The vitest worker timeout error is an infrastructure issue, not a test failure.

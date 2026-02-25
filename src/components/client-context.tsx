@@ -592,13 +592,16 @@ function buildFactoryBody(client: SdkClientType<SdkHttpOperation>): Children {
     bodyParts.push(buildEndpointUrl(endpointParam));
   }
 
-  // 2. Call getClient with appropriate arguments
+  // 2. Build user agent prefix and merge into options
+  bodyParts.push(buildUserAgentOptions());
+
+  // 3. Call getClient with updated options
   const getClientCall = buildGetClientCall(
     endpointParam !== undefined,
     credentialParam !== undefined,
   );
 
-  // 3. Build return statement with optional context member spreading
+  // 4. Build return statement with optional context member spreading
   if (contextMembers.length > 0) {
     bodyParts.push(code`const clientContext = ${getClientCall}`);
     const spreadMembers = contextMembers
@@ -721,11 +724,61 @@ function buildEndpointFromType(endpointType: {
 }
 
 /**
+ * Builds the user agent prefix construction and options merging statements.
+ *
+ * Generates code that:
+ * 1. Extracts any user-provided prefix from `options.userAgentOptions.userAgentPrefix`
+ * 2. Constructs a `userAgentPrefix` that prepends the user-provided prefix (if any)
+ *    to the SDK identifier tag `azsdk-js-api`
+ * 3. Creates `updatedOptions` by spreading the original options with the new
+ *    `userAgentOptions.userAgentPrefix`
+ *
+ * The `azsdk-js-api` tag identifies requests as originating from a modular
+ * (API-layer) generated client, distinguishing them from classical (wrapper-layer)
+ * clients that use `azsdk-js-client`. This telemetry tag is used by service teams
+ * to track SDK adoption and diagnose issues.
+ *
+ * Generated output:
+ * ```typescript
+ * const prefixFromOptions = options?.userAgentOptions?.userAgentPrefix;
+ * const userAgentPrefix = prefixFromOptions
+ *   ? `${prefixFromOptions} azsdk-js-api`
+ *   : `azsdk-js-api`;
+ * const updatedOptions = {
+ *   ...options,
+ *   userAgentOptions: { userAgentPrefix },
+ * };
+ * ```
+ *
+ * @returns Alloy Children for the user agent options construction statements.
+ */
+export function buildUserAgentOptions(): Children {
+  const parts: Children[] = [];
+
+  parts.push(
+    code`const prefixFromOptions = options?.userAgentOptions?.userAgentPrefix;`,
+  );
+  parts.push(
+    code`const userAgentPrefix = prefixFromOptions ? \`\${prefixFromOptions} azsdk-js-api\` : \`azsdk-js-api\`;`,
+  );
+  parts.push(code`const updatedOptions = {
+  ...options,
+  userAgentOptions: { userAgentPrefix },
+};`);
+
+  return parts.map((p, i) => (i > 0 ? ["\n", p] : p));
+}
+
+/**
  * Builds the `getClient(...)` call expression.
  *
  * The call signature varies based on whether credentials are present:
- * - With credentials: `getClient(endpointUrl, credential, options)`
- * - Without credentials: `getClient(endpointUrl, options)`
+ * - With credentials: `getClient(endpointUrl, credential, updatedOptions)`
+ * - Without credentials: `getClient(endpointUrl, updatedOptions)`
+ *
+ * Uses `updatedOptions` (which includes the merged user agent prefix)
+ * rather than the raw `options` parameter, so the constructed user agent
+ * string is forwarded to the HTTP runtime.
  *
  * @param hasEndpoint - Whether the client has an endpoint parameter.
  * @param hasCredential - Whether the client has a credential parameter.
@@ -739,9 +792,9 @@ function buildGetClientCall(
   const endpointArg = hasEndpoint ? "endpointUrl" : '""';
 
   if (hasCredential) {
-    return code`${runtimeLib.getClient}(${endpointArg}, credential, options);`;
+    return code`${runtimeLib.getClient}(${endpointArg}, credential, updatedOptions);`;
   }
-  return code`${runtimeLib.getClient}(${endpointArg}, options);`;
+  return code`${runtimeLib.getClient}(${endpointArg}, updatedOptions);`;
 }
 
 /**

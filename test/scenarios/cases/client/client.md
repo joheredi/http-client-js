@@ -22,7 +22,13 @@ export function createTestService(
   options: TestServiceClientOptionalParams = {},
 ): TestServiceContext {
   const endpointUrl = options.endpoint ?? endpoint;
-  return getClient_1(endpointUrl, options); as TestServiceContext;
+  const prefixFromOptions = options?.userAgentOptions?.userAgentPrefix;
+  const userAgentPrefix = prefixFromOptions ? `${prefixFromOptions} azsdk-js-api` : `azsdk-js-api`;
+  const updatedOptions = {
+  ...options,
+  userAgentOptions: { userAgentPrefix },
+  };
+  return getClient_1(endpointUrl, updatedOptions); as TestServiceContext;
 }
 ```
 

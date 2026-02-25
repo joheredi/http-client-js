@@ -134,7 +134,15 @@ export function createBillingBenefits(
   options: BillingBenefitsClientOptionalParams = {},
 ): BillingBenefitsContext {
   const endpointUrl = options.endpoint ?? endpoint;
-  const clientContext = getClient_1(endpointUrl, options);
+  const prefixFromOptions = options?.userAgentOptions?.userAgentPrefix;
+  const userAgentPrefix = prefixFromOptions
+    ? `${prefixFromOptions} azsdk-js-api`
+    : `azsdk-js-api`;
+  const updatedOptions = {
+    ...options,
+    userAgentOptions: { userAgentPrefix },
+  };
+  const clientContext = getClient_1(endpointUrl, updatedOptions);
   return {
     ...clientContext,
     $expand: options.$expand,
@@ -367,7 +375,15 @@ export function createBillingBenefits(
   options: BillingBenefitsClientOptionalParams = {},
 ): BillingBenefitsContext {
   const endpointUrl = options.endpoint ?? endpoint;
-  const clientContext = getClient_1(endpointUrl, options);
+  const prefixFromOptions = options?.userAgentOptions?.userAgentPrefix;
+  const userAgentPrefix = prefixFromOptions
+    ? `${prefixFromOptions} azsdk-js-api`
+    : `azsdk-js-api`;
+  const updatedOptions = {
+    ...options,
+    userAgentOptions: { userAgentPrefix },
+  };
+  const clientContext = getClient_1(endpointUrl, updatedOptions);
   return { ...clientContext, $expand } as BillingBenefitsContext;
 }
 ```

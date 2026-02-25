@@ -77,7 +77,13 @@ export function createService(
 ): ServiceContext {
   const client = options.client ?? "default";
   const endpointUrl = options.endpoint ?? `${endpoint}/client/structure/${client}`;
-  return getClient_1(endpointUrl, options); as ServiceContext;
+  const prefixFromOptions = options?.userAgentOptions?.userAgentPrefix;
+  const userAgentPrefix = prefixFromOptions ? `${prefixFromOptions} azsdk-js-api` : `azsdk-js-api`;
+  const updatedOptions = {
+  ...options,
+  userAgentOptions: { userAgentPrefix },
+  };
+  return getClient_1(endpointUrl, updatedOptions); as ServiceContext;
 }
 
 ```
@@ -165,7 +171,13 @@ export function createService(
   const endpoint = options.endpoint ?? "http://localhost:3000";
   const client = options.client ?? "default";
   const endpointUrl = options.endpoint ?? `${endpoint}/client/structure/${client}`;
-  return getClient_1(endpointUrl, options); as ServiceContext;
+  const prefixFromOptions = options?.userAgentOptions?.userAgentPrefix;
+  const userAgentPrefix = prefixFromOptions ? `${prefixFromOptions} azsdk-js-api` : `azsdk-js-api`;
+  const updatedOptions = {
+  ...options,
+  userAgentOptions: { userAgentPrefix },
+  };
+  return getClient_1(endpointUrl, updatedOptions); as ServiceContext;
 }
 
 ```
@@ -251,7 +263,13 @@ export function createService(
 ): ServiceContext {
   const client = options.client ?? "default";
   const endpointUrl = options.endpoint ?? `${endpoint}/client/structure/${client}`;
-  return getClient_1(endpointUrl, options); as ServiceContext;
+  const prefixFromOptions = options?.userAgentOptions?.userAgentPrefix;
+  const userAgentPrefix = prefixFromOptions ? `${prefixFromOptions} azsdk-js-api` : `azsdk-js-api`;
+  const updatedOptions = {
+  ...options,
+  userAgentOptions: { userAgentPrefix },
+  };
+  return getClient_1(endpointUrl, updatedOptions); as ServiceContext;
 }
 
 ```

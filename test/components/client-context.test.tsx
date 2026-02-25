@@ -260,6 +260,117 @@ describe("ClientContext", () => {
   });
 
   /**
+   * Tests that the factory function constructs a user agent prefix and
+   * merges it into the options before calling getClient.
+   *
+   * The user agent prefix identifies the SDK to service teams for telemetry.
+   * The generated code should:
+   * 1. Extract any user-provided prefix from options
+   * 2. Build a prefix with the `azsdk-js-api` tag
+   * 3. Create `updatedOptions` with the merged user agent
+   * 4. Pass `updatedOptions` to getClient instead of raw `options`
+   *
+   * This is critical for Azure SDK compliance — without the user agent
+   * prefix, service teams cannot identify which SDK version is calling.
+   */
+  it("should generate user agent prefix in factory function", async () => {
+    const runner = await TesterWithService.createInstance();
+    const { program } = await runner.compile(
+      t.code`
+        @get op getItem(): string;
+      `,
+    );
+
+    const sdkContext = await createSdkContextForTest(program);
+    const client = getFirstClient(sdkContext);
+
+    const template = (
+      <SdkTestFile sdkContext={sdkContext} externals={[httpRuntimeLib]}>
+        <ClientContextFactory client={client} />
+      </SdkTestFile>
+    );
+
+    const result = renderToString(template);
+    // Should extract prefix from options
+    expect(result).toContain("prefixFromOptions");
+    expect(result).toContain("options?.userAgentOptions?.userAgentPrefix");
+    // Should construct the SDK user agent tag
+    expect(result).toContain("azsdk-js-api");
+    // Should merge into updatedOptions
+    expect(result).toContain("updatedOptions");
+    expect(result).toContain("userAgentOptions: { userAgentPrefix }");
+    // Should pass updatedOptions to getClient (not raw options)
+    expect(result).toContain("getClient(endpointUrl, updatedOptions)");
+  });
+
+  /**
+   * Tests that the user agent prefix merges with a user-provided prefix
+   * when present. The generated ternary should prepend the user's prefix
+   * to the SDK identifier tag.
+   *
+   * This matters because consumers may set their own userAgentPrefix
+   * (e.g., for tracking specific applications). The SDK prefix must be
+   * appended, not replace the user's prefix.
+   */
+  it("should merge user-provided prefix with SDK prefix", async () => {
+    const runner = await TesterWithService.createInstance();
+    const { program } = await runner.compile(
+      t.code`
+        @get op getItem(): string;
+      `,
+    );
+
+    const sdkContext = await createSdkContextForTest(program);
+    const client = getFirstClient(sdkContext);
+
+    const template = (
+      <SdkTestFile sdkContext={sdkContext} externals={[httpRuntimeLib]}>
+        <ClientContextFactory client={client} />
+      </SdkTestFile>
+    );
+
+    const result = renderToString(template);
+    // The ternary should combine user prefix with SDK prefix
+    expect(result).toContain("${prefixFromOptions} azsdk-js-api");
+  });
+
+  /**
+   * Tests that when credential authentication is configured, the factory
+   * function passes updatedOptions (with user agent) alongside the credential
+   * to getClient. The credential must appear between endpoint and options.
+   *
+   * This verifies that the user agent prefix works correctly in combination
+   * with credential parameters (a common real-world configuration).
+   */
+  it("should pass updatedOptions with credential to getClient", async () => {
+    const runner = await Tester.createInstance();
+    const { program } = await runner.compile(
+      t.code`
+        @useAuth(ApiKeyAuth<ApiKeyLocation.header, "x-api-key">)
+        @service(#{title: "Auth Service"})
+        namespace AuthService;
+
+        @get op getItem(): string;
+      `,
+    );
+
+    const sdkContext = await createSdkContextForTest(program);
+    const client = getFirstClient(sdkContext);
+
+    const template = (
+      <SdkTestFile sdkContext={sdkContext} externals={[httpRuntimeLib]}>
+        <ClientContextFactory client={client} />
+      </SdkTestFile>
+    );
+
+    const result = renderToString(template);
+    // With credentials, getClient takes three args with updatedOptions last
+    expect(result).toContain("credential, updatedOptions");
+    // Should still have user agent prefix construction
+    expect(result).toContain("azsdk-js-api");
+  });
+
+  /**
    * Tests the full ClientContextFile orchestrator rendering all three
    * declarations into a single source file. This validates that the
    * orchestrator correctly composes the interface, options, and factory
