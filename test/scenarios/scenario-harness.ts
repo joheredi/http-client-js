@@ -816,16 +816,20 @@ export function executeScenarios(
                   // into different prettier line-breaking decisions throughout
                   // the file. Import ordering is an acceptable difference per PRD.
                   //
-                  // Double-format to reach prettier's stable state. Prettier is not
-                  // fully idempotent for certain chain expressions — formatting raw
-                  // single-line code can produce different output than formatting
-                  // already-broken code. Double-formatting ensures consistent output.
+                  // Double-format actual output to reach prettier's stable state.
+                  // Prettier is not fully idempotent for certain chain expressions —
+                  // formatting raw single-line code can produce different output than
+                  // formatting already-broken code.
+                  //
+                  // Expected content is only single-formatted here because it was
+                  // already double-formatted during SCENARIOS_UPDATE (snapshot
+                  // recording). It's already at prettier's stable state — we only
+                  // need to normalize imports and re-format for consistent comparison.
                   const normalizedResult = normalizeImports(result);
                   const normalizedExpected = normalizeImports(testBlock.content);
                   const firstPassResult = await languageConfig.format(normalizedResult);
                   actual = (await languageConfig.format(firstPassResult)).trim();
-                  const firstPassExpected = await languageConfig.format(normalizedExpected);
-                  expected = (await languageConfig.format(firstPassExpected)).trim();
+                  expected = (await languageConfig.format(normalizedExpected)).trim();
                 } catch {
                   // If formatting fails (e.g., invalid TypeScript), compare raw strings
                   expected = normalizeImports(testBlock.content).trim();
