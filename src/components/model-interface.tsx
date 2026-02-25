@@ -10,7 +10,8 @@ import type {
 import { Visibility } from "@typespec/http";
 import { getModelName } from "../utils/model-name.js";
 import { typeRefkey } from "../utils/refkeys.js";
-import { getTypeExpression } from "./type-expression.js";
+import { getOptionalAwareTypeExpression, getTypeExpression } from "./type-expression.js";
+import { useEmitterOptions } from "../context/emitter-options-context.js";
 
 /**
  * Props for the {@link ModelInterface} component.
@@ -260,7 +261,8 @@ function getPropertyTypeExpression(
     return `"${model.discriminatorValue}"`;
   }
 
-  return getTypeExpression(property.type);
+  const { ignoreNullableOnOptional } = useEmitterOptions();
+  return getOptionalAwareTypeExpression(property.type, property.optional, ignoreNullableOnOptional);
 }
 
 /**

@@ -108,7 +108,7 @@ export interface SimpleModel {
   propStringUnionAsExtensible: SimpleModelPropStringUnionAsExtensible;
   propStringUnionAsExtensibleOptional?: SimpleModelPropStringUnionAsExtensibleOptional;
   propStringUnionAsExtensibleNullable: SimpleModelPropStringUnionAsExtensibleNullable | null;
-  propStringUnionAsExtensibleOptionalAndNullable?: SimpleModelPropStringUnionAsExtensibleOptionalAndNullable | null;
+  propStringUnionAsExtensibleOptionalAndNullable?: SimpleModelPropStringUnionAsExtensibleOptionalAndNullable;
   propMixedTypeLiteral: SimpleModelPropMixedTypeLiteral;
   propStringArray: string[];
   propBooleanArray: boolean[];

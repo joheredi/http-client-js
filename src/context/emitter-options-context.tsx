@@ -33,6 +33,19 @@ export interface EmitterOptionsValue {
    * In the legacy emitter, this also controls TCGC's `flattenUnionAsEnum`.
    */
   experimentalExtensibleEnums: boolean;
+
+  /**
+   * When true, optional properties/parameters that are also nullable have
+   * their `| null` union stripped, producing `prop?: T` instead of
+   * `prop?: T | null`. This follows the Azure SDK convention where optional
+   * implicitly means nullable, making the explicit `| null` redundant.
+   *
+   * Defaults to `true`, matching the legacy emitter's behavior for Azure
+   * services. Set to `false` to preserve `| null` on optional nullable types.
+   *
+   * Corresponds to the `ignore-nullable-on-optional` YAML config option.
+   */
+  ignoreNullableOnOptional: boolean;
 }
 
 /**
@@ -44,6 +57,7 @@ export interface EmitterOptionsValue {
 const defaultOptions: EmitterOptionsValue = {
   includeHeadersInResponse: false,
   experimentalExtensibleEnums: false,
+  ignoreNullableOnOptional: true,
 };
 
 /**

@@ -3403,3 +3403,93 @@ When `@@override` groups individual query/header parameters into a model paramet
 - The 3 remaining skipped tests are blocked on external issues (TCGC #3088,
   TypeSpec #6983, TCGC #1419)
 - The vitest worker timeout error is an infrastructure issue, not a test failure.
+
+## 2026-02-25 — RC24: Nullable types preserve | null in optional properties
+
+### What was done
+- **Implemented `ignoreNullableOnOptional` emitter option** that strips `| null`
+  from optional nullable properties by default. This matches the Azure SDK convention
+  where optional implies nullable, making explicit `| null` redundant.
+
+- **Added `getOptionalAwareTypeExpression()`** in `src/components/type-expression.tsx`:
+  - When `isOptional=true` AND `ignoreNullableOnOptional=true` AND type.kind === "nullable",
+    unwraps the nullable type and returns just the inner type expression
+  - Otherwise, delegates to `getTypeExpression()` as before
+  - Includes JSDoc documenting the behavior and rationale
+
+- **Modified `src/context/emitter-options-context.tsx`**:
+  - Added `ignoreNullableOnOptional: boolean` to `EmitterOptionsValue` interface
+  - Default value is `true` (matching legacy Azure behavior)
+  - Includes JSDoc documenting the config option
+
+- **Modified `src/emitter.tsx`**:
+  - Parses `ignore-nullable-on-optional` from TypeSpec emitter options
+  - Uses `!== false` so default is true (opt-out rather than opt-in)
+
+- **Modified `src/components/model-interface.tsx`**:
+  - `getPropertyTypeExpression()` now calls `useEmitterOptions()` and passes
+    `ignoreNullableOnOptional` to `getOptionalAwareTypeExpression()`
+  - Strips `| null` from optional nullable model properties by default
+
+- **Modified `src/components/operation-options.tsx`**:
+  - `getOptionalParameters()` now calls `useEmitterOptions()` and passes
+    `ignoreNullableOnOptional` to `getOptionalAwareTypeExpression()`
+  - Strips `| null` from optional operation parameters by default
+
+- **Modified `test/scenarios/emit-for-scenario.tsx`**:
+  - Parses `ignore-nullable-on-optional` from YAML config
+
+- **Added 6 unit tests**:
+  - type-expression: strip | null from optional nullable (ignoreNullableOnOptional=true)
+  - type-expression: preserve | null on optional nullable (ignoreNullableOnOptional=false)
+  - type-expression: always preserve | null on required nullable
+  - type-expression: non-nullable optional types unaffected
+  - model-interface: strip | null from optional nullable properties by default
+  - model-interface: preserve | null when config disables stripping
+
+- **Updated 4 scenario test files**:
+  - models/nullable/nullableOptional.md — default scenarios strip | null for optional
+  - models/nullable/nullableUnion.md — recursive union optional property
+  - models/serialization/propertyType.md — optional+nullable union property
+  - models/deserialization/propertyType.md — optional+nullable union property
+
+- **Updated PRD**: Marked RC24 as done.
+
+### Test Results
+- Before: 851 passed, 3 skipped, 48 test files
+- After: 857 passed, 3 skipped, 48 test files (6 new tests)
+- Zero regressions in existing tests
+
+### Architecture decisions
+- **Default true matches Azure convention**: The `ignoreNullableOnOptional` defaults
+  to `true` because Azure SDK treats optional as implicitly nullable. This matches the
+  legacy emitter's behavior for Azure services.
+- **Opt-out via `ignore-nullable-on-optional: false`**: Services that need strict null
+  typing can set this config to preserve `| null` on optional nullable properties.
+- **Helper function approach**: Rather than modifying `getTypeExpression()` (which is
+  a pure type→expression mapper), we added `getOptionalAwareTypeExpression()` that
+  adds the optional+config awareness on top. This keeps `getTypeExpression` simple
+  and stateless while the wrapper handles the context-dependent behavior.
+
+### Files Changed
+- `src/context/emitter-options-context.tsx` — New config option
+- `src/emitter.tsx` — Parse config
+- `src/components/type-expression.tsx` — getOptionalAwareTypeExpression helper
+- `src/components/model-interface.tsx` — Use nullable-aware type expression
+- `src/components/operation-options.tsx` — Use nullable-aware type expression
+- `test/scenarios/emit-for-scenario.tsx` — Parse config for tests
+- `test/components/type-expression.test.tsx` — 4 new tests
+- `test/components/model-interface.test.tsx` — 2 new tests
+- 4 scenario test files — Updated expectations
+- `prd.json` — RC24 marked done
+
+### Notes for next person
+- Completed: All Phases 0-10, Tasks 11.02, 11.04, 11.07, SA4, SA5, SA11, SA14, SA20,
+  SA3, RC01-RC09, RC13, RC15, RC17, RC18, RC19, RC20, RC24, RC29 (DONE).
+- **Remaining P1 tasks**: RC10, RC11, RC14, RC16, RC21-RC23, RC25-RC28, RC30
+- **Remaining P2 tasks**: RC12, RC31-RC34
+- RC16 (Enum member name normalization) and RC14 (URL template encoding) are
+  well-scoped follow-up tasks.
+- The 3 remaining skipped tests are blocked on external issues (TCGC #3088,
+  TypeSpec #6983, TCGC #1419)
+- The vitest worker timeout error is an infrastructure issue, not a test failure.

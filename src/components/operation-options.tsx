@@ -9,8 +9,9 @@ import type {
   SdkServiceMethod,
 } from "@azure-tools/typespec-client-generator-core";
 import { useRuntimeLib } from "../context/flavor-context.js";
+import { useEmitterOptions } from "../context/emitter-options-context.js";
 import { operationOptionsRefkey } from "../utils/refkeys.js";
-import { getTypeExpression } from "./type-expression.js";
+import { getOptionalAwareTypeExpression } from "./type-expression.js";
 
 /**
  * Props for the {@link OperationOptionsDeclaration} component.
@@ -122,11 +123,12 @@ function getOptionsInterfaceName(
 function getOptionalParameters(
   method: SdkServiceMethod<SdkHttpOperation>,
 ): OptionsMember[] {
+  const { ignoreNullableOnOptional } = useEmitterOptions();
   return method.parameters
     .filter((p) => isOptionalParameter(p))
     .map((p) => ({
       name: p.name,
-      type: getTypeExpression(p.type) as string,
+      type: getOptionalAwareTypeExpression(p.type, true, ignoreNullableOnOptional) as string,
       doc: p.doc ?? p.summary,
     }));
 }

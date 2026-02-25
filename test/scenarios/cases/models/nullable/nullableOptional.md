@@ -16,7 +16,7 @@ op test(): { @body body: TestModel };
 
 ```ts models
 export interface TestModel {
-  optionalNullableBoolean?: boolean | null;
+  optionalNullableBoolean?: boolean;
   requiredNullableBoolean: boolean | null;
   optionalBoolean?: boolean;
   requiredBoolean: boolean;
@@ -101,9 +101,9 @@ import type { OperationOptions } from "@typespec/ts-http-runtime";
  * Optional parameters for the create operation.
  */
 export interface CreateOptionalParams extends OperationOptions {
-  optionalNullableQuery?: string | null;
-  optionalNullableHeader?: string | null;
-  optionalNullableBody?: Widget | null;
+  optionalNullableQuery?: string;
+  optionalNullableHeader?: string;
+  optionalNullableBody?: Widget;
 }
 ```
 

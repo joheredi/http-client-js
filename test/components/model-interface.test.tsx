@@ -513,4 +513,79 @@ describe("Model Interface", () => {
     const result = renderToString(template);
     expect(result).toContain("export interface _");
   });
+
+  /**
+   * Tests that optional+nullable model properties have `| null` stripped
+   * by default (ignoreNullableOnOptional defaults to true). This is the
+   * Azure SDK convention where optional implies nullable.
+   *
+   * Required nullable properties must keep `| null` because they cannot
+   * be omitted and need explicit null indication.
+   */
+  it("should strip | null from optional nullable properties by default", async () => {
+    const runner = await TesterWithService.createInstance();
+    const { program } = await runner.compile(
+      t.code`
+        model ${t.model("TestModel")} {
+          optNullable?: string | null;
+          reqNullable: string | null;
+          optPlain?: string;
+        }
+
+        op ${t.op("getModel")}(): TestModel;
+      `,
+    );
+
+    const sdkContext = await createSdkContextForTest(program);
+    const model = sdkContext.sdkPackage.models[0];
+
+    const template = (
+      <SdkTestFile sdkContext={sdkContext}>
+        <ModelInterface model={model} />
+      </SdkTestFile>
+    );
+
+    expect(template).toRenderTo(`
+      export interface TestModel {
+        optNullable?: string;
+        reqNullable: string | null;
+        optPlain?: string;
+      }
+    `);
+  });
+
+  /**
+   * Tests that optional+nullable model properties preserve `| null` when
+   * ignoreNullableOnOptional is explicitly set to false. This is the
+   * opt-out behavior for services that need strict null typing.
+   */
+  it("should preserve | null on optional nullable properties when config disables stripping", async () => {
+    const runner = await TesterWithService.createInstance();
+    const { program } = await runner.compile(
+      t.code`
+        model ${t.model("TestModel")} {
+          optNullable?: string | null;
+          reqNullable: string | null;
+        }
+
+        op ${t.op("getModel")}(): TestModel;
+      `,
+    );
+
+    const sdkContext = await createSdkContextForTest(program);
+    const model = sdkContext.sdkPackage.models[0];
+
+    const template = (
+      <SdkTestFile sdkContext={sdkContext} emitterOptions={{ ignoreNullableOnOptional: false }}>
+        <ModelInterface model={model} />
+      </SdkTestFile>
+    );
+
+    expect(template).toRenderTo(`
+      export interface TestModel {
+        optNullable?: string | null;
+        reqNullable: string | null;
+      }
+    `);
+  });
 });

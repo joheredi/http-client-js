@@ -3,6 +3,35 @@ import type { SdkType } from "@azure-tools/typespec-client-generator-core";
 import { typeRefkey } from "../utils/refkeys.js";
 
 /**
+ * Returns the TypeScript type expression for a property, stripping `| null`
+ * when the property is optional and the `ignoreNullableOnOptional` config
+ * is active.
+ *
+ * This implements the Azure SDK convention where optional properties are
+ * implicitly nullable, so the explicit `| null` union is redundant and
+ * stripped from the output. For example, `prop?: boolean | null` becomes
+ * `prop?: boolean`.
+ *
+ * Required nullable properties always retain `| null` regardless of config,
+ * because non-optional properties need the explicit null indication.
+ *
+ * @param type - The TCGC SdkType to convert to a TypeScript type expression.
+ * @param isOptional - Whether the property/parameter is optional.
+ * @param ignoreNullableOnOptional - Whether to strip `| null` from optional nullable types.
+ * @returns Alloy Children representing the TypeScript type expression.
+ */
+export function getOptionalAwareTypeExpression(
+  type: SdkType,
+  isOptional: boolean,
+  ignoreNullableOnOptional: boolean,
+): Children {
+  if (type.kind === "nullable" && isOptional && ignoreNullableOnOptional) {
+    return getTypeExpression(type.type);
+  }
+  return getTypeExpression(type);
+}
+
+/**
  * Maps a TCGC SdkType to a TypeScript type expression.
  *
  * This is the foundational type-mapping function used throughout the emitter.

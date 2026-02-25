@@ -2545,7 +2545,7 @@
           "id": "RC24",
           "title": "Nullable types preserve | null in optional properties",
           "priority": "P1",
-          "status": "not_started",
+          "status": "done",
           "root_cause": "type-expression.tsx appends '| null' for nullable types. When combined with optional (?:), this produces 'prop?: T | null'. Legacy strips the null from optional nullable types, producing 'prop?: T'.",
           "file": "src/components/type-expression.tsx (~line 107)",
           "description": "Optional nullable properties keep the | null union. Legacy convention treats optional as implicitly nullable, so '| null' is redundant and stripped.",
