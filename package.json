@@ -28,7 +28,7 @@
     "prettier": "^3.8.1",
     "tree-sitter-typescript": "^0.23.2",
     "typescript": "^5.8.3",
-    "vitest": "^3.2.4",
+    "vitest": "^4.0.18",
     "web-tree-sitter": "^0.26.5"
   },
   "scripts": {
