@@ -4,6 +4,7 @@ IMPORTANT: Only complete ONE task, after completion you have to exit the copilot
 This should be the one YOU decide has the highest prority - not necessarily the first item
 2. Upon analysis if the task selected should be split in multiple tasks, do it and update the prd.json. Once the prd.json is updated your task is complete and you should exit.
 3. NEVER assume something is not implemented, study the codebase before implementing to see if something already exists or can be reused.
+    3.1. If you find a task that is already done, mark it as so in the PRD. 
 4. Before implementing study how the functionality you are about to implement is implemented in the legacy emitter @submodules/autorest.typescript/packages/typespec-ts you can spawn up to 500 agents in parallel to study
 5. Every component must have a unit test
 6. Every function needs to have JSDoc explaining what it does and why
