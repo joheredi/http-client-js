@@ -2845,7 +2845,8 @@
         "priority": "P0",
         "description": "LEGACY uses buildCsvCollection, buildSsvCollection, buildPipeCollection, parseCsvCollection, parsePipeCollection helper functions for array encoding in query/header parameters. NEW passes arrays directly without any collection encoding transformation, which will produce incorrect wire format.",
         "affected_scenarios": "models/serialization/modelPropertyArrayEncoding.md, operations/queryParam/queryParamCollectionFormat.md",
-        "status": "tracked"
+        "status": "done",
+        "resolution": "Implemented collection format encoding for query params (pipes, ssv, csv via collectionFormat), header params (csv via collectionFormat), and model body properties (commaDelimited, pipeDelimited, spaceDelimited, newlineDelimited via encode). Uses refkeys to buildCsvCollection, buildPipeCollection, buildSsvCollection, buildNewlineCollection for serialization, and parseCsvCollection, parsePipeCollection, parseSsvCollection, parseNewlineCollection for deserialization."
       },
       {
         "id": "SA12",

@@ -14,6 +14,7 @@ import { useRuntimeLib } from "../context/flavor-context.js";
 import {
   operationOptionsRefkey,
   sendOperationRefkey,
+  serializationHelperRefkey,
 } from "../utils/refkeys.js";
 import { getTypeExpression } from "./type-expression.js";
 import { getSerializationExpression, needsTransformation } from "./serialization/index.js";
@@ -217,9 +218,13 @@ function getUrlTemplateParameters(
   for (const param of operation.parameters) {
     if (param.kind === "path" || param.kind === "query") {
       const valueExpr = getParameterAccessor(param, method);
+      const wrappedExpr =
+        param.kind === "query"
+          ? wrapWithCollectionFormat(valueExpr, param.collectionFormat)
+          : valueExpr;
       params.push({
         serializedName: param.serializedName,
-        valueExpression: valueExpr,
+        valueExpression: wrappedExpr,
       });
     }
   }
@@ -233,8 +238,8 @@ function getUrlTemplateParameters(
 interface UrlTemplateParam {
   /** The wire name of the parameter as used in the URI template. */
   serializedName: string;
-  /** The JavaScript expression that provides the parameter value. */
-  valueExpression: string;
+  /** The JavaScript expression that provides the parameter value. May be a code template with refkeys when collection format encoding is applied. */
+  valueExpression: string | Children;
 }
 
 /**
@@ -349,9 +354,12 @@ function buildUrlTemplateExpansion(
   const uriTemplate = operation.uriTemplate;
   const urlParams = getUrlTemplateParameters(method);
 
-  const paramEntries = urlParams
-    .map((p) => `"${p.serializedName}": ${p.valueExpression}`)
-    .join(", ");
+  // Build param entries as Children array to support both plain strings and
+  // code templates with refkeys (needed when collection format helpers are used).
+  const paramEntries: Children[] = urlParams.map((p, i) => {
+    const sep = i > 0 ? ", " : "";
+    return code`${sep}"${p.serializedName}": ${p.valueExpression}`;
+  });
 
   return code`const path = ${useRuntimeLib().expandUrlTemplate}("${uriTemplate}", { ${paramEntries} }, { allowReserved: ${getOptionsParamName(method)}?.requestOptions?.skipUrlEncoding });`;
 }
@@ -465,30 +473,26 @@ function buildReturnStatement(
   acceptHeader: string | undefined,
   method: SdkServiceMethod<SdkHttpOperation>,
 ): Children {
-  // Collect all option lines as strings
-  const optionLines: string[] = [];
+  // Collect all option parts as Children (some may contain refkeys)
+  const optionParts: Children[] = [];
 
   if (contentType) {
-    optionLines.push(`contentType: "${contentType}"`);
+    optionParts.push(`, contentType: "${contentType}"`);
   }
 
-  const headerStr = buildHeaderEntries(headerParams, acceptHeader, method);
-  if (headerStr) {
-    optionLines.push(`headers: ${headerStr}`);
+  const headerExpr = buildHeaderEntries(headerParams, acceptHeader, method);
+  if (headerExpr) {
+    optionParts.push(code`, headers: ${headerExpr}`);
   }
 
   // Build body expression (may contain refkeys via code template)
-  let bodyExpr: Children | undefined;
   if (bodyParam) {
-    bodyExpr = buildBodyExpression(bodyParam, method);
+    const bodyExpr = buildBodyExpression(bodyParam, method);
+    optionParts.push(code`, body: ${bodyExpr}`);
   }
 
-  // Assemble into comma-separated option entries on a single line
-  const stringParts = optionLines.map((l) => `, ${l}`).join("");
-  const bodyPart = bodyExpr !== undefined ? code`, body: ${bodyExpr}` : "";
-
   const optionsName = getOptionsParamName(method);
-  return code`return context.path(${pathExpr}).${verb}({ ...${useRuntimeLib().operationOptionsToRequestParameters}(${optionsName})${stringParts}${bodyPart} });`;
+  return code`return context.path(${pathExpr}).${verb}({ ...${useRuntimeLib().operationOptionsToRequestParameters}(${optionsName})${optionParts} });`;
 }
 
 /**
@@ -496,18 +500,20 @@ function buildReturnStatement(
  *
  * Combines explicit headers (accept, custom headers) with the spread of
  * `options.requestOptions?.headers` to allow consumer header overrides.
+ * When a header parameter has a `collectionFormat` (e.g., CSV for array
+ * headers), wraps the value with the appropriate collection builder helper.
  *
  * @param headerParams - Custom header parameters.
  * @param acceptHeader - The Accept header value.
  * @param method - The TCGC service method.
- * @returns The headers object expression string, or undefined.
+ * @returns The headers expression as Children (to support refkey interpolation), or undefined.
  */
 function buildHeaderEntries(
   headerParams: SdkHeaderParameter[],
   acceptHeader: string | undefined,
   method: SdkServiceMethod<SdkHttpOperation>,
-): string | undefined {
-  const entries: string[] = [];
+): Children | undefined {
+  const entries: Children[] = [];
 
   if (acceptHeader) {
     entries.push(`accept: "${acceptHeader}"`);
@@ -515,13 +521,14 @@ function buildHeaderEntries(
 
   for (const header of headerParams) {
     const accessor = getHeaderAccessor(header, method);
-    entries.push(`"${header.serializedName}": ${accessor}`);
+    const wrappedAccessor = wrapWithCollectionFormat(accessor, header.collectionFormat);
+    entries.push(code`"${header.serializedName}": ${wrappedAccessor}`);
   }
 
   if (entries.length === 0) return undefined;
 
   const optionsName = getOptionsParamName(method);
-  return `{ ${entries.join(", ")}, ...${optionsName}.requestOptions?.headers }`;
+  return code`{ ${entries.map((e, i) => (i > 0 ? code`, ${e}` : e))}, ...${optionsName}.requestOptions?.headers }`;
 }
 
 /**
@@ -727,4 +734,64 @@ function getBodyAccessor(
   }
 
   return corresponding.name;
+}
+
+/**
+ * Wraps a parameter accessor expression with a collection format builder
+ * helper when the parameter specifies a non-default collection format.
+ *
+ * Query parameters with `collectionFormat` of "pipes", "ssv", or "tsv"
+ * need pre-encoding because `expandUrlTemplate` (RFC 6570) only supports
+ * comma-separated arrays natively. Header parameters with `collectionFormat`
+ * "csv" need `buildCsvCollection` because HTTP headers are strings, not arrays.
+ *
+ * The "multi" format is handled by RFC 6570's explode modifier (`{?param*}`)
+ * and the default "csv" for query params is already comma-joined by RFC 6570,
+ * so neither needs wrapping.
+ *
+ * @param accessor - The JavaScript expression that accesses the parameter value.
+ * @param collectionFormat - The TCGC collection format, or undefined.
+ * @returns The original accessor if no wrapping is needed, or a `code` template
+ *   containing a refkey to the appropriate collection builder helper.
+ */
+export function wrapWithCollectionFormat(
+  accessor: string,
+  collectionFormat: string | undefined,
+): string | Children {
+  if (!collectionFormat) return accessor;
+
+  const helperName = getCollectionBuilderName(collectionFormat);
+  if (!helperName) return accessor;
+
+  return code`${serializationHelperRefkey(helperName)}(${accessor})`;
+}
+
+/**
+ * Maps a TCGC `CollectionFormat` value to the corresponding serialization
+ * helper function name.
+ *
+ * Returns `undefined` for formats that don't need explicit builder calls:
+ * - "multi" is handled by RFC 6570 explode (`{?param*}`)
+ * - "csv" for query params is the default RFC 6570 behavior (comma-joining)
+ *   but IS needed for headers (caller decides when to call)
+ * - "form" and "simple" are not standard collection builders
+ *
+ * @param collectionFormat - The TCGC collection format string.
+ * @returns The helper function name, or undefined if no wrapping is needed.
+ */
+function getCollectionBuilderName(
+  collectionFormat: string,
+): string | undefined {
+  switch (collectionFormat) {
+    case "csv":
+      return "buildCsvCollection";
+    case "pipes":
+      return "buildPipeCollection";
+    case "ssv":
+      return "buildSsvCollection";
+    case "tsv":
+      return "buildTsvCollection";
+    default:
+      return undefined;
+  }
 }

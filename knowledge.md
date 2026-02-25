@@ -1234,3 +1234,23 @@ Casting `correspondingMethodParams[0]` to `SdkMethodParameter` when it's actuall
 **Root cause**: Types like `SystemData` from Azure.ResourceManager only have `UsageFlags.Output`, not Input. No serializer is generated for them. But a parent model with Input usage (e.g., `Resource`) has all properties serialized, including read-only ones, causing `getSerializationExpression` to reference a non-existent serializer.
 **Fix**: In `json-serializer.tsx` `getSerializationExpression`, check `(type.usage & UsageFlags.Input) === 0` for model types and return the accessor as-is (passthrough). Similarly in `json-deserializer.tsx` for `(type.usage & UsageFlags.Output) === 0`.
 **Key insight**: TCGC's usage flag propagation is not transitive for read-only properties. A parent model can have Input usage while a child property's type only has Output usage. Always check usage flags before generating serializer/deserializer refkey references.
+
+## Collection Format Encoding (SA11)
+
+### Root Cause
+The `expandUrlTemplate` runtime function only supports RFC 6570 comma-joining for arrays. When TCGC reports `collectionFormat` on query/header parameters (e.g., "pipes", "ssv", "csv"), the array values must be pre-encoded with the appropriate collection builder helper before passing to the URL template or header object.
+
+Similarly, model properties with `@encode(ArrayEncoding.xxx)` need collection encoding in serializers (arrays → delimited strings) and collection parsing in deserializers (delimited strings → arrays).
+
+### Fix
+1. **Query params**: `send-operation.tsx` checks `param.collectionFormat` on `SdkQueryParameter` and wraps with `buildPipeCollection`/`buildSsvCollection`/`buildCsvCollection` via refkey
+2. **Header params**: `send-operation.tsx` checks `header.collectionFormat` on `SdkHeaderParameter` and wraps similarly
+3. **Model properties**: `json-serializer.tsx` checks `prop.encode` (ArrayKnownEncoding) and wraps with `buildCsvCollection`/`buildPipeCollection`/etc. via refkey; `json-deserializer.tsx` wraps with `parseCsvCollection`/`parsePipeCollection`/etc.
+
+### Key TCGC Types
+- `SdkQueryParameter.collectionFormat?: CollectionFormat` — "multi" | "csv" | "ssv" | "tsv" | "pipes" | "simple" | "form"
+- `SdkHeaderParameter.collectionFormat?: CollectionFormat` — same union
+- `SdkModelPropertyType.encode?: ArrayKnownEncoding` — "commaDelimited" | "pipeDelimited" | "spaceDelimited" | "newlineDelimited"
+
+### Unit Test Pattern
+When testing components that reference `serializationHelperRefkey` (e.g., `buildCsvCollection`), you must render `SerializationHelpersFile` as a sibling `<SourceFile>` at the `<Output>` level — NOT as a child of `SdkTestFile` (which creates nested SourceFiles, causing "Module not exported from package" errors). Create a `MultiFileTestWrapper` component that places helpers and test file as siblings.

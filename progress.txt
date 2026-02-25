@@ -2645,3 +2645,69 @@ When `@@override` groups individual query/header parameters into a model paramet
   - P2 tasks: SA6, SA21, SA25
 - The 3 remaining skipped tests are blocked on external issues (TCGC #3088, TypeSpec #6983, TCGC #1419)
 - The vitest worker timeout error is an infrastructure issue, not a test failure
+
+## 2026-02-25 — SA11: Collection Encoding Helpers
+
+### What was done
+- **Fixed collection format encoding** for query parameters, header parameters, and model
+  body properties. Previously, arrays were passed directly without encoding, producing
+  incorrect wire format (e.g., comma-joining instead of pipe-joining for pipe-delimited params).
+
+- **Modified `src/components/send-operation.tsx`**:
+  - Added `wrapWithCollectionFormat()` exported function that wraps parameter accessors
+    with collection builder refkeys when `collectionFormat` is set (pipes→buildPipeCollection,
+    ssv→buildSsvCollection, csv→buildCsvCollection, tsv→buildTsvCollection).
+  - Updated `getUrlTemplateParameters()` to apply wrapping for query params.
+  - Changed `UrlTemplateParam.valueExpression` from `string` to `string | Children` to
+    support code templates with refkeys.
+  - Rewrote `buildUrlTemplateExpansion()` to use Children array for param entries.
+  - Updated `buildHeaderEntries()` to return `Children | undefined` and wrap header
+    values with collection format helpers.
+  - Updated `buildReturnStatement()` to compose option parts as Children array.
+
+- **Modified `src/components/serialization/json-serializer.tsx`**:
+  - Added `wrapWithArrayEncoding()` and `getArrayEncodingBuilderName()` functions.
+  - Properties with `encode` (ArrayKnownEncoding) are now wrapped with the appropriate
+    collection builder (e.g., `buildCsvCollection(item["csvColors"])`).
+
+- **Modified `src/components/serialization/json-deserializer.tsx`**:
+  - Added `wrapWithArrayDecoding()` and `getArrayEncodingParserName()` functions.
+  - Properties with `encode` are now wrapped with the appropriate collection parser
+    (e.g., `parseCsvCollection(item["csvColors"])`).
+
+- **Updated 3 scenario test expected outputs** (auto-updated via SCENARIOS_UPDATE=true):
+  - `models/serialization/modelPropertyArrayEncoding.md` — serializers/deserializers
+    now use collection helpers for encoded properties
+  - `operations/queryParam/queryParamCollectionFormat.md` — query params now wrapped
+    with buildPipeCollection/buildSsvCollection/buildCsvCollection
+  - `operations/operations.md` — header CSV array params now use buildCsvCollection
+
+- **Added 5 unit tests**:
+  - `send-operation.test.tsx`: pipe query param, ssv query param, csv header param
+  - `json-serializer.test.tsx`: array properties with collection builders
+  - `json-deserializer.test.tsx`: array properties with collection parsers
+
+- **Updated PRD**: Marked SA11 as done.
+
+### Test Results
+- Before: 817 passed, 3 skipped, 46 test files
+- After: 822 passed, 3 skipped, 46 test files (5 new tests)
+- Zero regressions in existing tests
+
+### Architecture decisions
+- **Refkey-based wrapping**: Collection helpers are referenced via `serializationHelperRefkey`
+  in `code` templates, letting Alloy auto-generate import statements.
+- **Children type for param entries**: Changed from string-only to `string | Children` to
+  support code templates with refkeys in URL template expansion and header entries.
+- **Separate encode/collectionFormat handling**: Query/header params use `collectionFormat`
+  from TCGC's HTTP parameter types. Model properties use `encode` (ArrayKnownEncoding).
+  Different TCGC fields, same collection helper functions.
+
+### Notes for next person
+- Completed: All Phases 0-10, Tasks 11.02, 11.04, 11.07, SA11, SA20 (DONE).
+- **Remaining SA tasks**: SA1-SA10, SA12-SA19, SA21-SA25 (23 pending)
+  - P0: SA3 (client context), SA4 (error deserialization), SA16 (samples)
+  - P1: SA1, SA2, SA5, SA7-SA10, SA12-SA15, SA17-SA19, SA22-SA24
+  - P2: SA6, SA21, SA25
+- The 3 remaining skipped tests are blocked on external issues (TCGC #3088, TypeSpec #6983, TCGC #1419)
+- The vitest worker timeout error is an infrastructure issue, not a test failure.

@@ -134,6 +134,7 @@ mustEmptyDiagnostic: false
 ## Operations
 
 ```ts operations
+import { buildCsvCollection as buildCsvCollection_1 } from "../helpers/serializationHelpers.js";
 import type { ReadOptionalParams as ReadOptionalParams_1 } from "./options.js";
 import {
   type Client as Client_1,
@@ -163,8 +164,10 @@ export function _readSend(
       "nullable-optional-header": options?.nullableOptionalHeader,
       "bytes-header": bytesHeader,
       value: value,
-      "csv-array-header": csvArrayHeader,
-      "optional-csv-array-header": options?.optionalCsvArrayHeader,
+      "csv-array-header": buildCsvCollection_1(csvArrayHeader),
+      "optional-csv-array-header": buildCsvCollection_1(
+        options?.optionalCsvArrayHeader,
+      ),
       "utc-date-header": utcDateHeader,
       "optional-date-header": options?.optionalDateHeader,
       "nullable-date-header": options?.nullableDateHeader,

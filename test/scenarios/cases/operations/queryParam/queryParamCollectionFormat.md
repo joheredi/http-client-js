@@ -36,6 +36,11 @@ interface QueryOperations {
 ## Operations
 
 ```ts operations
+import {
+  buildCsvCollection as buildCsvCollection_1,
+  buildPipeCollection as buildPipeCollection_1,
+  buildSsvCollection as buildSsvCollection_1,
+} from "../helpers/serializationHelpers.js";
 import type {
   CreateOptionalParams as CreateOptionalParams_1,
   ReadOptionalParams as ReadOptionalParams_1,
@@ -57,8 +62,8 @@ export function _readSend(
   const path = expandUrlTemplate_1(
     "/query{?simpleArray,simpleOptionalArray}",
     {
-      simpleArray: simpleArray,
-      simpleOptionalArray: options?.simpleOptionalArray,
+      simpleArray: buildCsvCollection_1(simpleArray),
+      simpleOptionalArray: buildCsvCollection_1(options?.simpleOptionalArray),
     },
     { allowReserved: options?.requestOptions?.skipUrlEncoding },
   );
@@ -96,9 +101,9 @@ export function _createSend(
   const path = expandUrlTemplate_1(
     "/query{?ssvArray,ssvOptionalArray,pipeArray}",
     {
-      ssvArray: ssvArray,
-      ssvOptionalArray: options?.ssvOptionalArray,
-      pipeArray: pipeArray,
+      ssvArray: buildSsvCollection_1(ssvArray),
+      ssvOptionalArray: buildSsvCollection_1(options?.ssvOptionalArray),
+      pipeArray: buildPipeCollection_1(pipeArray),
     },
     { allowReserved: options?.requestOptions?.skipUrlEncoding },
   );

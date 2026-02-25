@@ -31,6 +31,17 @@ interface WidgetOperations {
 ## Models
 
 ```ts models
+import {
+  buildCsvCollection as buildCsvCollection_1,
+  buildNewlineCollection as buildNewlineCollection_1,
+  buildPipeCollection as buildPipeCollection_1,
+  buildSsvCollection as buildSsvCollection_1,
+  parseCsvCollection as parseCsvCollection_1,
+  parseNewlineCollection as parseNewlineCollection_1,
+  parsePipeCollection as parsePipeCollection_1,
+  parseSsvCollection as parseSsvCollection_1,
+} from "../helpers/serializationHelpers.js";
+
 export interface Widget {
   colors: string[];
   optionalColors?: string[];
@@ -44,10 +55,12 @@ export function widgetSerializer(item: Widget): any {
   return {
     colors: item["colors"],
     optionalColors: item["optionalColors"],
-    requiredCsvColors: item["requiredCsvColors"],
-    requiredPipeColors: item["requiredPipeColors"],
-    optionalSsvColors: item["optionalSsvColors"],
-    optionalNewlineColors: item["optionalNewlineColors"],
+    requiredCsvColors: buildCsvCollection_1(item["requiredCsvColors"]),
+    requiredPipeColors: buildPipeCollection_1(item["requiredPipeColors"]),
+    optionalSsvColors: buildSsvCollection_1(item["optionalSsvColors"]),
+    optionalNewlineColors: buildNewlineCollection_1(
+      item["optionalNewlineColors"],
+    ),
   };
 }
 
@@ -55,10 +68,12 @@ export function widgetDeserializer(item: any): Widget {
   return {
     colors: item["colors"],
     optionalColors: item["optionalColors"],
-    requiredCsvColors: item["requiredCsvColors"],
-    requiredPipeColors: item["requiredPipeColors"],
-    optionalSsvColors: item["optionalSsvColors"],
-    optionalNewlineColors: item["optionalNewlineColors"],
+    requiredCsvColors: parseCsvCollection_1(item["requiredCsvColors"]),
+    requiredPipeColors: parsePipeCollection_1(item["requiredPipeColors"]),
+    optionalSsvColors: parseSsvCollection_1(item["optionalSsvColors"]),
+    optionalNewlineColors: parseNewlineCollection_1(
+      item["optionalNewlineColors"],
+    ),
   };
 }
 ```
@@ -92,6 +107,13 @@ interface ContainerOperations {
 ## Models
 
 ```ts models
+import {
+  buildCsvCollection as buildCsvCollection_1,
+  buildPipeCollection as buildPipeCollection_1,
+  parseCsvCollection as parseCsvCollection_1,
+  parsePipeCollection as parsePipeCollection_1,
+} from "../helpers/serializationHelpers.js";
+
 export interface ContainerWidget {
   name: string;
   nested: NestedWidget;
@@ -115,8 +137,8 @@ export function containerWidgetSerializer(item: ContainerWidget): any {
 
 export function nestedWidgetSerializer(item: NestedWidget): any {
   return {
-    tags: item["tags"],
-    categories: item["categories"],
+    tags: buildCsvCollection_1(item["tags"]),
+    categories: buildPipeCollection_1(item["categories"]),
   };
 }
 
@@ -132,8 +154,8 @@ export function containerWidgetDeserializer(item: any): ContainerWidget {
 
 export function nestedWidgetDeserializer(item: any): NestedWidget {
   return {
-    tags: item["tags"],
-    categories: item["categories"],
+    tags: parseCsvCollection_1(item["tags"]),
+    categories: parsePipeCollection_1(item["categories"]),
   };
 }
 ```
@@ -188,6 +210,17 @@ experimental-extensible-enums: true
 ## Models
 
 ```ts models
+import {
+  buildCsvCollection as buildCsvCollection_1,
+  buildNewlineCollection as buildNewlineCollection_1,
+  buildPipeCollection as buildPipeCollection_1,
+  buildSsvCollection as buildSsvCollection_1,
+  parseCsvCollection as parseCsvCollection_1,
+  parseNewlineCollection as parseNewlineCollection_1,
+  parsePipeCollection as parsePipeCollection_1,
+  parseSsvCollection as parseSsvCollection_1,
+} from "../helpers/serializationHelpers.js";
+
 export interface Widget {
   requiredCsvColors: Color[];
   optionalPipeColors?: ColorsUnion[];
@@ -235,19 +268,19 @@ export type WidgetOptionalSpaceType = "x" | "y" | "z";
 
 export function widgetSerializer(item: Widget): any {
   return {
-    requiredCsvColors: item["requiredCsvColors"],
-    optionalPipeColors: item["optionalPipeColors"],
-    requiredSpaceTypes: item["requiredSpaceTypes"],
-    optionalSpaceTypes: item["optionalSpaceTypes"],
+    requiredCsvColors: buildCsvCollection_1(item["requiredCsvColors"]),
+    optionalPipeColors: buildPipeCollection_1(item["optionalPipeColors"]),
+    requiredSpaceTypes: buildSsvCollection_1(item["requiredSpaceTypes"]),
+    optionalSpaceTypes: buildNewlineCollection_1(item["optionalSpaceTypes"]),
   };
 }
 
 export function widgetDeserializer(item: any): Widget {
   return {
-    requiredCsvColors: item["requiredCsvColors"],
-    optionalPipeColors: item["optionalPipeColors"],
-    requiredSpaceTypes: item["requiredSpaceTypes"],
-    optionalSpaceTypes: item["optionalSpaceTypes"],
+    requiredCsvColors: parseCsvCollection_1(item["requiredCsvColors"]),
+    optionalPipeColors: parsePipeCollection_1(item["optionalPipeColors"]),
+    requiredSpaceTypes: parseSsvCollection_1(item["requiredSpaceTypes"]),
+    optionalSpaceTypes: parseNewlineCollection_1(item["optionalSpaceTypes"]),
   };
 }
 ```

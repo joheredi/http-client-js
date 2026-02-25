@@ -21,17 +21,42 @@
  * causing 400 errors or data corruption. This is a P0 requirement (FR5).
  */
 import "@alloy-js/core/testing";
-import { d } from "@alloy-js/core/testing";
-import { code, refkey } from "@alloy-js/core";
+import { d, renderToString } from "@alloy-js/core/testing";
+import { Children, code, refkey } from "@alloy-js/core";
+import { createTSNamePolicy, SourceFile } from "@alloy-js/typescript";
+import { Output } from "@typespec/emitter-framework";
 import { t } from "@typespec/compiler/testing";
 import { describe, expect, it } from "vitest";
-import type { SdkModelType } from "@azure-tools/typespec-client-generator-core";
+import type { SdkContext, SdkHttpOperation, SdkModelType } from "@azure-tools/typespec-client-generator-core";
 import { UsageFlags } from "@azure-tools/typespec-client-generator-core";
 import { JsonSerializer } from "../../../src/components/serialization/json-serializer.js";
 import { ModelInterface } from "../../../src/components/model-interface.js";
+import { SerializationHelpersFile } from "../../../src/components/static-helpers/serialization-helpers.js";
 import { serializerRefkey, typeRefkey } from "../../../src/utils/refkeys.js";
+import { SdkContextProvider } from "../../../src/context/sdk-context.js";
 import { SdkTestFile } from "../../utils.js";
 import { TesterWithService, createSdkContextForTest } from "../../test-host.js";
+
+/**
+ * Multi-file test wrapper for serializer tests that need collection helper
+ * declarations available for refkey resolution.
+ */
+function SerializerMultiFileWrapper(props: {
+  sdkContext: SdkContext<Record<string, any>, SdkHttpOperation>;
+  children: Children;
+}) {
+  return (
+    <Output
+      program={props.sdkContext.emitContext.program}
+      namePolicy={createTSNamePolicy()}
+    >
+      <SdkContextProvider sdkContext={props.sdkContext}>
+        <SerializationHelpersFile />
+        <SourceFile path="test.ts">{props.children}</SourceFile>
+      </SdkContextProvider>
+    </Output>
+  );
+}
 
 describe("JsonSerializer", () => {
   /**
@@ -459,5 +484,47 @@ describe("JsonSerializer", () => {
         };
       }
     `);
+  });
+
+  /**
+   * Tests that model properties with @encode(ArrayEncoding.commaDelimited) are
+   * wrapped with buildCsvCollection() in the serializer. This converts arrays
+   * to comma-delimited strings for the wire format (e.g., ["a","b"] → "a,b").
+   * Without this, the property would be sent as a JSON array instead of a string.
+   */
+  it("should wrap array properties with collection builders when encode is set", async () => {
+    const runner = await TesterWithService.createInstance();
+    const { program } = await runner.compile(
+      t.code`
+        model ${t.model("Widget")} {
+          @encode(ArrayEncoding.commaDelimited)
+          csvColors: string[];
+          @encode(ArrayEncoding.pipeDelimited)
+          pipeColors: string[];
+          normalColors: string[];
+        }
+        @route("/widgets") @post op create(@body widget: Widget): Widget;
+      `,
+    );
+
+    const sdkContext = await createSdkContextForTest(program);
+    const model = sdkContext.sdkPackage.models[0];
+
+    const template = (
+      <SerializerMultiFileWrapper sdkContext={sdkContext}>
+        <ModelInterface model={model} />
+        {"\n\n"}
+        <JsonSerializer model={model} />
+      </SerializerMultiFileWrapper>
+    );
+
+    const result = renderToString(template);
+    // CSV-encoded property should use buildCsvCollection
+    expect(result).toContain("buildCsvCollection(item[\"csvColors\"])");
+    // Pipe-encoded property should use buildPipeCollection
+    expect(result).toContain("buildPipeCollection(item[\"pipeColors\"])");
+    // Non-encoded array property should pass through as-is
+    expect(result).toContain("normalColors: item[\"normalColors\"]");
+    expect(result).not.toContain("buildCsvCollection(item[\"normalColors\"])");
   });
 });

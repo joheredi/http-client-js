@@ -20,11 +20,14 @@
  * - getOptionsParamName returns "optionalParams" when a method parameter is named "options".
  */
 import "@alloy-js/core/testing";
-import { code } from "@alloy-js/core";
+import { Children, code } from "@alloy-js/core";
 import { d } from "@alloy-js/core/testing";
+import { createTSNamePolicy, SourceFile } from "@alloy-js/typescript";
+import { Output } from "@typespec/emitter-framework";
 import { t } from "@typespec/compiler/testing";
 import { describe, expect, it } from "vitest";
 import type {
+  SdkContext,
   SdkHttpOperation,
   SdkServiceMethod,
 } from "@azure-tools/typespec-client-generator-core";
@@ -33,11 +36,43 @@ import { getOptionsParamName } from "../../src/components/send-operation.js";
 import { OperationOptionsDeclaration } from "../../src/components/operation-options.js";
 import { ModelInterface } from "../../src/components/model-interface.js";
 import { JsonSerializer } from "../../src/components/serialization/json-serializer.js";
+import { SerializationHelpersFile } from "../../src/components/static-helpers/serialization-helpers.js";
 import { sendOperationRefkey } from "../../src/utils/refkeys.js";
 import { httpRuntimeLib } from "../../src/utils/external-packages.js";
+import { SdkContextProvider } from "../../src/context/sdk-context.js";
+import { FlavorProvider } from "../../src/context/flavor-context.js";
+import { EmitterOptionsProvider } from "../../src/context/emitter-options-context.js";
 import { TesterWithService, RawTester, createSdkContextForTest } from "../test-host.js";
 import { SdkTestFile } from "../utils.jsx";
 import { renderToString } from "@alloy-js/core/testing";
+
+/**
+ * Multi-file test wrapper that renders SerializationHelpersFile and a test
+ * SourceFile as siblings under the same Output. This is needed when testing
+ * components that reference serialization helper refkeys, since Alloy requires
+ * the helper declarations to exist for import resolution.
+ */
+function MultiFileTestWrapper(props: {
+  sdkContext: SdkContext<Record<string, any>, SdkHttpOperation>;
+  children: Children;
+}) {
+  return (
+    <Output
+      program={props.sdkContext.emitContext.program}
+      namePolicy={createTSNamePolicy()}
+      externals={[httpRuntimeLib]}
+    >
+      <FlavorProvider flavor="core">
+        <EmitterOptionsProvider options={{}}>
+          <SdkContextProvider sdkContext={props.sdkContext}>
+            <SerializationHelpersFile />
+            <SourceFile path="test.ts">{props.children}</SourceFile>
+          </SdkContextProvider>
+        </EmitterOptionsProvider>
+      </FlavorProvider>
+    </Output>
+  );
+}
 
 /**
  * Helper to extract the first method from the first client in an SDK context.
@@ -622,5 +657,101 @@ op groupCustomized(
     const sdkContext2 = await createSdkContextForTest(program2);
     const method2 = getFirstMethod(sdkContext2);
     expect(getOptionsParamName(method2)).toBe("optionalParams");
+  });
+
+  /**
+   * Tests that query parameters with pipe-delimited collection format are
+   * wrapped with buildPipeCollection() in the URL template expansion.
+   * Without this wrapping, expandUrlTemplate would comma-join the array
+   * (RFC 6570 default), producing incorrect wire format (a,b,c instead of a|b|c).
+   */
+  it("should wrap pipe-delimited query params with buildPipeCollection", async () => {
+    const runner = await TesterWithService.createInstance();
+    const { program } = await runner.compile(
+      t.code`
+        @get op ${t.op("listItems")}(
+          @query
+          @encode(ArrayEncoding.pipeDelimited)
+          pipeArray: string[];
+        ): void;
+      `,
+    );
+
+    const sdkContext = await createSdkContextForTest(program);
+    const method = getFirstMethod(sdkContext);
+
+    const template = (
+      <MultiFileTestWrapper sdkContext={sdkContext}>
+        <OperationOptionsDeclaration method={method} />
+        {"\n\n"}
+        <SendOperation method={method} />
+      </MultiFileTestWrapper>
+    );
+
+    const result = renderToString(template);
+    expect(result).toContain("buildPipeCollection(pipeArray)");
+  });
+
+  /**
+   * Tests that query parameters with space-delimited (SSV) collection format
+   * are wrapped with buildSsvCollection(). This ensures arrays in query
+   * strings use space-separation rather than the default comma-separation.
+   */
+  it("should wrap ssv query params with buildSsvCollection", async () => {
+    const runner = await TesterWithService.createInstance();
+    const { program } = await runner.compile(
+      t.code`
+        @get op ${t.op("listItems")}(
+          @query
+          @encode(ArrayEncoding.spaceDelimited)
+          ssvArray: int32[];
+        ): void;
+      `,
+    );
+
+    const sdkContext = await createSdkContextForTest(program);
+    const method = getFirstMethod(sdkContext);
+
+    const template = (
+      <MultiFileTestWrapper sdkContext={sdkContext}>
+        <OperationOptionsDeclaration method={method} />
+        {"\n\n"}
+        <SendOperation method={method} />
+      </MultiFileTestWrapper>
+    );
+
+    const result = renderToString(template);
+    expect(result).toContain("buildSsvCollection(ssvArray)");
+  });
+
+  /**
+   * Tests that header parameters with CSV collection format are wrapped
+   * with buildCsvCollection(). HTTP headers are strings, not arrays, so
+   * array values must be joined with commas before being set as a header.
+   */
+  it("should wrap csv header params with buildCsvCollection", async () => {
+    const runner = await TesterWithService.createInstance();
+    const { program } = await runner.compile(
+      t.code`
+        @get op ${t.op("getResource")}(
+          @header(#{name: "x-colors"})
+          colors: string[],
+        ): void;
+      `,
+    );
+
+    const sdkContext = await createSdkContextForTest(program);
+    const method = getFirstMethod(sdkContext);
+
+    const template = (
+      <MultiFileTestWrapper sdkContext={sdkContext}>
+        <OperationOptionsDeclaration method={method} />
+        {"\n\n"}
+        <SendOperation method={method} />
+      </MultiFileTestWrapper>
+    );
+
+    const result = renderToString(template);
+    expect(result).toContain("buildCsvCollection(colors)");
   });
 });

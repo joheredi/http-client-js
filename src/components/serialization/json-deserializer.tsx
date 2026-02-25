@@ -65,7 +65,10 @@ export function JsonDeserializer(props: JsonDeserializerProps) {
         <For each={properties} comma softline enderPunctuation>
           {(prop) => {
             const accessor = `item["${prop.serializedName}"]`;
-            const valueExpr = getDeserializationExpression(prop.type, accessor);
+            let valueExpr = getDeserializationExpression(prop.type, accessor);
+            // Apply array decoding if the property has @encode(ArrayEncoding.xxx).
+            // This parses delimited strings back into arrays (e.g., "a,b" → ["a","b"]).
+            valueExpr = wrapWithArrayDecoding(valueExpr, accessor, prop);
             const wrapped = wrapWithNullCheck(valueExpr, accessor, prop);
             return <ObjectProperty name={prop.name} value={wrapped} />;
           }}
@@ -209,4 +212,56 @@ function wrapWithNullCheck(
   }
 
   return expression;
+}
+
+/**
+ * Wraps a deserialization expression with a collection parser helper when the
+ * property has an `@encode(ArrayEncoding.xxx)` annotation.
+ *
+ * This parses delimited strings from the wire format back into arrays:
+ * - `commaDelimited`: `parseCsvCollection(value)` → `["a","b","c"]`
+ * - `pipeDelimited`: `parsePipeCollection(value)` → `["a","b","c"]`
+ * - `spaceDelimited`: `parseSsvCollection(value)` → `["a","b","c"]`
+ * - `newlineDelimited`: `parseNewlineCollection(value)` → `["a","b","c"]`
+ *
+ * @param expression - The current deserialization expression for the property.
+ * @param accessor - The raw accessor expression for the property value.
+ * @param prop - The TCGC model property with potential `encode` field.
+ * @returns The expression wrapped with a collection parser, or unchanged.
+ */
+function wrapWithArrayDecoding(
+  expression: Children,
+  accessor: string,
+  prop: SdkModelPropertyType,
+): Children {
+  if (!prop.encode) return expression;
+
+  const helperName = getArrayEncodingParserName(prop.encode);
+  if (!helperName) return expression;
+
+  return code`${serializationHelperRefkey(helperName)}(${accessor})`;
+}
+
+/**
+ * Maps an `ArrayKnownEncoding` value to the corresponding collection parser
+ * helper function name.
+ *
+ * @param encode - The TCGC array encoding string.
+ * @returns The helper function name, or undefined if no decoding is needed.
+ */
+function getArrayEncodingParserName(
+  encode: string,
+): string | undefined {
+  switch (encode) {
+    case "commaDelimited":
+      return "parseCsvCollection";
+    case "pipeDelimited":
+      return "parsePipeCollection";
+    case "spaceDelimited":
+      return "parseSsvCollection";
+    case "newlineDelimited":
+      return "parseNewlineCollection";
+    default:
+      return undefined;
+  }
 }

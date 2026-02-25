@@ -67,7 +67,10 @@ export function JsonSerializer(props: JsonSerializerProps) {
         <For each={properties} comma softline enderPunctuation>
           {(prop) => {
             const accessor = `item["${prop.name}"]`;
-            const valueExpr = getSerializationExpression(prop.type, accessor);
+            let valueExpr = getSerializationExpression(prop.type, accessor);
+            // Apply array encoding if the property has @encode(ArrayEncoding.xxx).
+            // This converts arrays to delimited strings on the wire (e.g., ["a","b"] → "a,b").
+            valueExpr = wrapWithArrayEncoding(valueExpr, accessor, prop);
             const wrapped = wrapWithNullCheck(valueExpr, accessor, prop);
             return <ObjectProperty name={prop.serializedName} value={wrapped} />;
           }}
@@ -255,4 +258,67 @@ function wrapWithNullCheck(
  */
 function hasAdditionalProperties(model: SdkModelType): boolean {
   return model.additionalProperties !== undefined;
+}
+
+/**
+ * Wraps a serialization expression with a collection builder helper when the
+ * property has an `@encode(ArrayEncoding.xxx)` annotation.
+ *
+ * This transforms arrays into delimited strings for the wire format:
+ * - `commaDelimited`: `buildCsvCollection(value)` → `"a,b,c"`
+ * - `pipeDelimited`: `buildPipeCollection(value)` → `"a|b|c"`
+ * - `spaceDelimited`: `buildSsvCollection(value)` → `"a b c"`
+ * - `newlineDelimited`: `buildNewlineCollection(value)` → `"a\nb\nc"`
+ *
+ * When the array elements also need transformation (e.g., date arrays),
+ * the inner transformation is applied first via `.map()`, then the
+ * collection builder wraps the result.
+ *
+ * @param expression - The current serialization expression for the property.
+ * @param accessor - The raw accessor expression for the property value.
+ * @param prop - The TCGC model property with potential `encode` field.
+ * @returns The expression wrapped with a collection builder, or unchanged.
+ */
+function wrapWithArrayEncoding(
+  expression: Children,
+  accessor: string,
+  prop: SdkModelPropertyType,
+): Children {
+  if (!prop.encode) return expression;
+
+  const helperName = getArrayEncodingBuilderName(prop.encode);
+  if (!helperName) return expression;
+
+  // If the inner array elements need transformation (e.g., dates), the
+  // expression is already a .map() call. Wrap that with the collection builder.
+  // If no transformation is needed, the expression is the raw accessor.
+  if (needsTransformation(prop.type)) {
+    return code`${serializationHelperRefkey(helperName)}(${expression})`;
+  }
+
+  return code`${serializationHelperRefkey(helperName)}(${accessor})`;
+}
+
+/**
+ * Maps an `ArrayKnownEncoding` value to the corresponding collection builder
+ * helper function name.
+ *
+ * @param encode - The TCGC array encoding string.
+ * @returns The helper function name, or undefined if no encoding is needed.
+ */
+function getArrayEncodingBuilderName(
+  encode: string,
+): string | undefined {
+  switch (encode) {
+    case "commaDelimited":
+      return "buildCsvCollection";
+    case "pipeDelimited":
+      return "buildPipeCollection";
+    case "spaceDelimited":
+      return "buildSsvCollection";
+    case "newlineDelimited":
+      return "buildNewlineCollection";
+    default:
+      return undefined;
+  }
 }

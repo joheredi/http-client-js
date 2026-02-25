@@ -21,15 +21,41 @@
  * when accessing response properties. This is a P0 requirement (FR5).
  */
 import "@alloy-js/core/testing";
-import { d } from "@alloy-js/core/testing";
-import { code } from "@alloy-js/core";
+import { d, renderToString } from "@alloy-js/core/testing";
+import { Children, code } from "@alloy-js/core";
+import { createTSNamePolicy, SourceFile } from "@alloy-js/typescript";
+import { Output } from "@typespec/emitter-framework";
 import { t } from "@typespec/compiler/testing";
 import { describe, expect, it } from "vitest";
+import type { SdkContext, SdkHttpOperation } from "@azure-tools/typespec-client-generator-core";
 import { JsonDeserializer } from "../../../src/components/serialization/json-deserializer.js";
 import { ModelInterface } from "../../../src/components/model-interface.js";
+import { SerializationHelpersFile } from "../../../src/components/static-helpers/serialization-helpers.js";
 import { deserializerRefkey } from "../../../src/utils/refkeys.js";
+import { SdkContextProvider } from "../../../src/context/sdk-context.js";
 import { SdkTestFile } from "../../utils.js";
 import { TesterWithService, createSdkContextForTest } from "../../test-host.js";
+
+/**
+ * Multi-file test wrapper for deserializer tests that need collection parser
+ * declarations available for refkey resolution.
+ */
+function DeserializerMultiFileWrapper(props: {
+  sdkContext: SdkContext<Record<string, any>, SdkHttpOperation>;
+  children: Children;
+}) {
+  return (
+    <Output
+      program={props.sdkContext.emitContext.program}
+      namePolicy={createTSNamePolicy()}
+    >
+      <SdkContextProvider sdkContext={props.sdkContext}>
+        <SerializationHelpersFile />
+        <SourceFile path="test.ts">{props.children}</SourceFile>
+      </SdkContextProvider>
+    </Output>
+  );
+}
 
 describe("JsonDeserializer", () => {
   /**
@@ -404,5 +430,47 @@ describe("JsonDeserializer", () => {
         };
       }
     `);
+  });
+
+  /**
+   * Tests that model properties with @encode(ArrayEncoding.commaDelimited) are
+   * wrapped with parseCsvCollection() in the deserializer. This parses
+   * comma-delimited strings from the wire back into arrays (e.g., "a,b" → ["a","b"]).
+   * Without this, the property would contain a raw string instead of an array.
+   */
+  it("should wrap array properties with collection parsers when encode is set", async () => {
+    const runner = await TesterWithService.createInstance();
+    const { program } = await runner.compile(
+      t.code`
+        model ${t.model("Widget")} {
+          @encode(ArrayEncoding.commaDelimited)
+          csvColors: string[];
+          @encode(ArrayEncoding.pipeDelimited)
+          pipeColors: string[];
+          normalColors: string[];
+        }
+        @route("/widgets") @post op create(@body widget: Widget): Widget;
+      `,
+    );
+
+    const sdkContext = await createSdkContextForTest(program);
+    const model = sdkContext.sdkPackage.models[0];
+
+    const template = (
+      <DeserializerMultiFileWrapper sdkContext={sdkContext}>
+        <ModelInterface model={model} />
+        {"\n\n"}
+        <JsonDeserializer model={model} />
+      </DeserializerMultiFileWrapper>
+    );
+
+    const result = renderToString(template);
+    // CSV-encoded property should use parseCsvCollection
+    expect(result).toContain("parseCsvCollection(item[\"csvColors\"])");
+    // Pipe-encoded property should use parsePipeCollection
+    expect(result).toContain("parsePipeCollection(item[\"pipeColors\"])");
+    // Non-encoded array property should pass through as-is
+    expect(result).toContain("normalColors: item[\"normalColors\"]");
+    expect(result).not.toContain("parseCsvCollection(item[\"normalColors\"])");
   });
 });
