@@ -54,7 +54,10 @@ export class ServiceClient {
   /** The pipeline used by this client to make requests */
   public readonly pipeline: Pipeline;
 
-  constructor(endpoint: string, options: ServiceClientOptionalParams = {}) {
+  constructor(
+    endpointParam: string,
+    options: ServiceClientOptionalParams = {},
+  ) {
     this._client = createService(endpoint, options);
     this.pipeline = this._client.pipeline;
   }

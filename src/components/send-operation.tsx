@@ -1,4 +1,4 @@
-import { Children, code } from "@alloy-js/core";
+import { Children, code, namekey } from "@alloy-js/core";
 import { FunctionDeclaration, type ParameterDescriptor } from "@alloy-js/typescript";
 import type {
   SdkBodyParameter,
@@ -18,6 +18,7 @@ import {
 } from "../utils/refkeys.js";
 import { getTypeExpression } from "./type-expression.js";
 import { getSerializationExpression, needsTransformation } from "./serialization/index.js";
+import { getEscapedOperationName, getEscapedParameterName } from "../utils/name-policy.js";
 
 /**
  * Props for the {@link SendOperation} component.
@@ -61,7 +62,7 @@ export function SendOperation(props: SendOperationProps) {
   const runtimeLib = useRuntimeLib();
   const { method } = props;
   const operation = method.operation;
-  const functionName = `_${method.name}Send`;
+  const functionName = namekey(`_${getEscapedOperationName(method.name)}Send`, { ignoreNamePolicy: true });
   const parameters = buildFunctionParameters(method);
   const verb = operation.verb;
 
@@ -286,7 +287,7 @@ function getParameterAccessor(
   // Required params are direct function arguments
   const isRequired = isRequiredSignatureParameter(correspondingParam as SdkMethodParameter);
   if (isRequired) {
-    return correspondingParam.name;
+    return getEscapedParameterName(correspondingParam.name);
   }
 
   // Optional params come from the options bag
@@ -558,7 +559,7 @@ function getHeaderAccessor(
   if (corresponding.kind === "method") {
     const isRequired = isRequiredSignatureParameter(corresponding);
     const optionsName = getOptionsParamName(method);
-    return isRequired ? corresponding.name : `${optionsName}?.${corresponding.name}`;
+    return isRequired ? getEscapedParameterName(corresponding.name) : `${optionsName}?.${corresponding.name}`;
   }
 
   // Exhaustive - correspondingMethodParams only contains "method" or "property" kinds
@@ -704,7 +705,7 @@ function getSpreadPropertyAccessor(
 ): string {
   const methodParam = method.parameters.find((p) => p.name === prop.name);
   if (methodParam && isRequiredSignatureParameter(methodParam)) {
-    return prop.name;
+    return getEscapedParameterName(prop.name);
   }
   const optionsName = getOptionsParamName(method);
   return `${optionsName}?.${prop.name}`;
@@ -730,10 +731,10 @@ function getBodyAccessor(
   if (corresponding.kind === "method") {
     const isRequired = isRequiredSignatureParameter(corresponding);
     const optionsName = getOptionsParamName(method);
-    return isRequired ? corresponding.name : `${optionsName}?.${corresponding.name}`;
+    return isRequired ? getEscapedParameterName(corresponding.name) : `${optionsName}?.${corresponding.name}`;
   }
 
-  return corresponding.name;
+  return getEscapedParameterName(corresponding.name);
 }
 
 /**

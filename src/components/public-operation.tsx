@@ -28,6 +28,21 @@ import {
 } from "../utils/refkeys.js";
 import { getOptionsParamName, isRequiredSignatureParameter } from "./send-operation.js";
 import { getTypeExpression } from "./type-expression.js";
+import { isReservedOperationName, getEscapedParameterName } from "../utils/name-policy.js";
+
+/**
+ * Builds the JSDoc string for a public operation function, adding a @fixme
+ * warning when the operation name is a reserved word.
+ */
+function getOperationDoc(method: SdkServiceMethod<SdkHttpOperation>): string | undefined {
+  const fixmeNote = isReservedOperationName(method.name)
+    ? ` @fixme ${method.name} is a reserved word that cannot be used as an operation name.\n        Please add @clientName("clientName") or @clientName("<JS-Specific-Name>", "javascript")\n        to the operation to override the generated name.`
+    : undefined;
+
+  if (method.doc && fixmeNote) return `${method.doc}\n${fixmeNote}`;
+  if (fixmeNote) return fixmeNote;
+  return method.doc;
+}
 
 /**
  * Props for the {@link PublicOperation} component.
@@ -178,7 +193,7 @@ function BasicOperation(props: { method: SdkServiceMethod<SdkHttpOperation> }) {
       async
       returnType={returnType}
       parameters={parameters}
-      doc={method.doc}
+      doc={getOperationDoc(method)}
     >
       {body}
     </FunctionDeclaration>
@@ -235,7 +250,7 @@ function LroOperation(props: {
       export
       returnType={returnType}
       parameters={parameters}
-      doc={method.doc}
+      doc={getOperationDoc(method)}
     >
       {code`return ${pollingHelperRefkey("getLongRunningPoller")}(context, ${deserializeOperationRefkey(method)}, ${expectedStatuses}, { updateIntervalInMs: ${getOptionsParamName(method)}?.updateIntervalInMs, abortSignal: ${getOptionsParamName(method)}?.abortSignal, getInitialResponse: () => ${sendOperationRefkey(method)}(${callArgs})${resourceConfigPart} }) as ${castExpr};`}
     </FunctionDeclaration>
@@ -287,7 +302,7 @@ function PagingOperation(props: {
       export
       returnType={returnType}
       parameters={parameters}
-      doc={method.doc}
+      doc={getOperationDoc(method)}
     >
       {code`return ${pagingHelperRefkey("buildPagedAsyncIterator")}(context, () => ${sendOperationRefkey(method)}(${callArgs}), ${deserializeOperationRefkey(method)}, ${expectedStatuses}${pagingOptions});`}
     </FunctionDeclaration>
@@ -345,7 +360,7 @@ function LroPagingOperation(props: {
       export
       returnType={returnType}
       parameters={parameters}
-      doc={method.doc}
+      doc={getOperationDoc(method)}
     >
       {code`const initialPagingPoller = ${pollingHelperRefkey("getLongRunningPoller")}(context, async (result: ${useRuntimeLib().PathUncheckedResponse}) => result, ${expectedStatuses}, { updateIntervalInMs: ${getOptionsParamName(method)}?.updateIntervalInMs, abortSignal: ${getOptionsParamName(method)}?.abortSignal, getInitialResponse: () => ${sendOperationRefkey(method)}(${callArgs})${resourceConfigPart} }) as ${pollerCast};`}
       {"\n\n"}
@@ -416,7 +431,7 @@ function buildCallArguments(
 
   for (const param of method.parameters) {
     if (isRequiredSignatureParameter(param)) {
-      args.push(param.name);
+      args.push(getEscapedParameterName(param.name));
     }
   }
 

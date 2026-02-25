@@ -77,7 +77,7 @@ export interface DataMapServiceClientOptionalParams extends ClientOptions {
 }
 
 export function createDataMapService(
-  endpoint: string,
+  endpointParam: string,
   options: DataMapServiceClientOptionalParams = {},
 ): DataMapServiceContext {
   const endpointUrl = options.endpoint ?? endpoint;

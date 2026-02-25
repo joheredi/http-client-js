@@ -12,7 +12,7 @@
  * @module
  */
 import { For, SourceDirectory, renderAsync, type OutputDirectory } from "@alloy-js/core";
-import { createTSNamePolicy } from "@alloy-js/typescript";
+import { createEmitterNamePolicy } from "../../src/utils/name-policy.js";
 import { nameConflictResolver } from "../../src/utils/name-conflict-resolver.js";
 import { Output } from "@typespec/emitter-framework";
 import { SdkContextProvider } from "../../src/context/sdk-context.js";
@@ -199,7 +199,7 @@ ${x}
   const output = (
     <Output
       program={program}
-      namePolicy={createTSNamePolicy()}
+      namePolicy={createEmitterNamePolicy()}
       nameConflictResolver={nameConflictResolver}
       externals={[httpRuntimeLib, azureCoreLroLib]}
     >

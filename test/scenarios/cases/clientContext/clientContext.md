@@ -72,7 +72,7 @@ export interface ServiceClientOptionalParams extends ClientOptions {
 }
 
 export function createService(
-  endpoint: string,
+  endpointParam: string,
   options: ServiceClientOptionalParams = {},
 ): ServiceContext {
   const client = options.client ?? "default";
@@ -258,7 +258,7 @@ export interface ServiceClientOptionalParams extends ClientOptions {
 }
 
 export function createService(
-  endpoint: string,
+  endpointParam: string,
   options: ServiceClientOptionalParams = {},
 ): ServiceContext {
   const client = options.client ?? "default";

@@ -52,7 +52,7 @@ export function _optionalSend(
 ): StreamableMethod {
   const path = expandUrlTemplate(
     "/annotation/optional{?select*,bar,api%2Dversion}",
-    { select: options?.select, bar: foo, "api-version": api - version },
+    { select: options?.select, bar: foo, "api-version": apiVersion },
     { allowReserved: options?.requestOptions?.skipUrlEncoding },
   );
   return context
@@ -77,7 +77,7 @@ export async function optional(
   apiVersion: string,
   options: OptionalOptionalParams = { requestOptions: {} },
 ): Promise<void> {
-  const result = await _optionalSend(context, foo, api - version, options);
+  const result = await _optionalSend(context, foo, apiVersion, options);
   return _optionalDeserialize(result);
 }
 

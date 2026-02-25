@@ -147,7 +147,7 @@ export interface ResourceOperationStatusWidgetSuiteWidgetSuiteError {
   /**
    * Error object that describes the error when status is "Failed".
    */
-  error?: Error;
+  error?: ErrorModel;
   /**
    * The result of the operation.
    */
@@ -157,7 +157,7 @@ export interface ResourceOperationStatusWidgetSuiteWidgetSuiteError {
 /**
  * The error object.
  */
-export interface Error {
+export interface ErrorModel {
   /**
    * One of a server-defined set of error codes.
    */
@@ -173,7 +173,7 @@ export interface Error {
   /**
    * An array of details about specific errors that led to this reported error.
    */
-  details?: Error[];
+  details?: ErrorModel[];
   /**
    * An object containing more specific information than the current object about the error.
    */
@@ -233,7 +233,7 @@ export interface ErrorResponse {
   /**
    * The error object.
    */
-  error: Error;
+  error: ErrorModel;
   /**
    * String error code indicating what went wrong.
    */
@@ -263,7 +263,7 @@ export function resourceOperationStatusWidgetSuiteWidgetSuiteErrorDeserializer(
   };
 }
 
-export function errorDeserializer(item: any): Error {
+export function errorDeserializer(item: any): ErrorModel {
   return {
     code: item["code"],
     message: item["message"],

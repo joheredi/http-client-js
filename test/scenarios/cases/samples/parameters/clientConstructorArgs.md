@@ -76,7 +76,7 @@ export class MachineLearningServicesClient {
   public readonly indexes: IndexesOperations;
 
   constructor(
-    endpoint: string,
+    endpointParam: string,
     subscriptionId: string,
     resourceGroupName: string,
     workspaceName: string,

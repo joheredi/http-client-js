@@ -273,13 +273,13 @@ import {
 
 export function _publishSend(
   context: Client,
-  endpoint: DocumentBase,
+  endpointParam: DocumentBase,
   options: PublishOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
   return context.path("/documents").post({
     ...operationOptionsToRequestParameters(options),
     contentType: "application/json",
-    body: documentBaseSerializer(endpoint),
+    body: documentBaseSerializer(endpointParam),
   });
 }
 
@@ -296,10 +296,10 @@ export async function _publishDeserialize(
 
 export async function publish(
   context: Client,
-  endpoint: DocumentBase,
+  endpointParam: DocumentBase,
   options: PublishOptionalParams = { requestOptions: {} },
 ): Promise<void> {
-  const result = await _publishSend(context, endpoint, options);
+  const result = await _publishSend(context, endpointParam, options);
   return _publishDeserialize(result);
 }
 ```

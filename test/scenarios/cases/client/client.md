@@ -18,7 +18,7 @@ export interface TestServiceContext extends Client {}
 
 ```ts src/testServiceClientContext.ts function createTestService
 export function createTestService(
-  endpoint: string,
+  endpointParam: string,
   options: TestServiceClientOptionalParams = {},
 ): TestServiceContext {
   const endpointUrl = options.endpoint ?? endpoint;
@@ -50,7 +50,10 @@ export class TestServiceClient {
   /** The pipeline used by this client to make requests */
   public readonly pipeline: Pipeline;
 
-  constructor(endpoint: string, options: TestServiceClientOptionalParams = {}) {
+  constructor(
+    endpointParam: string,
+    options: TestServiceClientOptionalParams = {},
+  ) {
     this._client = createTestService(endpoint, options);
     this.pipeline = this._client.pipeline;
   }

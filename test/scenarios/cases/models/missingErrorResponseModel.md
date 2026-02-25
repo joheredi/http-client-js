@@ -81,7 +81,7 @@ export interface ErrorResponse {
   /**
    * The error object.
    */
-  error: Error;
+  error: ErrorModel;
   /**
    * String error code indicating what went wrong.
    */
@@ -91,7 +91,7 @@ export interface ErrorResponse {
 /**
  * The error object.
  */
-export interface Error {
+export interface ErrorModel {
   /**
    * One of a server-defined set of error codes.
    */
@@ -107,7 +107,7 @@ export interface Error {
   /**
    * An array of details about specific errors that led to this reported error.
    */
-  details?: Error[];
+  details?: ErrorModel[];
   /**
    * An object containing more specific information than the current object about the error.
    */
@@ -157,7 +157,7 @@ export function errorResponseDeserializer(item: any): ErrorResponse {
   };
 }
 
-export function errorDeserializer(item: any): Error {
+export function errorDeserializer(item: any): ErrorModel {
   return {
     code: item["code"],
     message: item["message"],

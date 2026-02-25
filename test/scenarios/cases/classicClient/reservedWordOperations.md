@@ -9,7 +9,7 @@ op continue(): void;
 ## classicClient
 
 ```ts classicClient
-import { continue_ } from "./api/operations.js";
+import { $continue } from "./api/operations.js";
 import type { ContinueOptionalParams } from "./api/options.js";
 import {
   createTestService,
@@ -23,15 +23,18 @@ export class TestServiceClient {
   /** The pipeline used by this client to make requests */
   public readonly pipeline: Pipeline;
 
-  constructor(endpoint: string, options: TestServiceClientOptionalParams = {}) {
+  constructor(
+    endpointParam: string,
+    options: TestServiceClientOptionalParams = {},
+  ) {
     this._client = createTestService(endpoint, options);
     this.pipeline = this._client.pipeline;
   }
 
-  continue_(
+  continue(
     options: ContinueOptionalParams = { requestOptions: {} },
   ): Promise<void> {
-    return continue_(this._client, options);
+    return $continue(this._client, options);
   }
 }
 ```

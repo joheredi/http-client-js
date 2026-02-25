@@ -175,7 +175,7 @@ export enum KnownExtensibleString {
   /**
    * -2.0
    */
-  $DoNotNormalizeItem_1_0 = "-2.0",
+  "Item-1.0" = "-2.0",
 }
 
 /**

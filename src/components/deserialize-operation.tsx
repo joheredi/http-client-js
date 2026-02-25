@@ -1,4 +1,4 @@
-import { Children, code } from "@alloy-js/core";
+import { Children, code, namekey } from "@alloy-js/core";
 import { FunctionDeclaration } from "@alloy-js/typescript";
 import type {
   SdkHttpErrorResponse,
@@ -20,6 +20,7 @@ import {
   getDeserializationExpression,
   needsTransformation,
 } from "./serialization/index.js";
+import { getEscapedOperationName } from "../utils/name-policy.js";
 
 /**
  * Props for the {@link DeserializeOperation} component.
@@ -62,7 +63,7 @@ export interface DeserializeOperationProps {
 export function DeserializeOperation(props: DeserializeOperationProps) {
   const runtimeLib = useRuntimeLib();
   const { method } = props;
-  const functionName = `_${method.name}Deserialize`;
+  const functionName = namekey(`_${getEscapedOperationName(method.name)}Deserialize`, { ignoreNamePolicy: true });
   const returnTypeExpr = getReturnType(method);
   const expectedStatuses = getExpectedStatuses(method);
   const bodyExpression = getResponseBodyExpression(method);

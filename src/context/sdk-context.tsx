@@ -27,6 +27,9 @@ export interface SdkContextValue {
   /** The full TCGC SDK package containing all type and client information. */
   sdkPackage: SdkPackage<SdkHttpOperation>;
 
+  /** The raw TCGC SDK context, needed for decorator inspection (e.g., @clientName). */
+  tcgcContext: TcgcSdkContext;
+
   /** Top-level clients defined in the service. */
   clients: SdkClientType<SdkHttpOperation>[];
 
@@ -82,6 +85,7 @@ export function SdkContextProvider(props: SdkContextProviderProps) {
 
   const value: SdkContextValue = {
     sdkPackage,
+    tcgcContext: props.sdkContext,
     clients: sdkPackage.clients,
     models: sdkPackage.models,
     enums: sdkPackage.enums,

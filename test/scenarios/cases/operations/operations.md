@@ -1070,7 +1070,7 @@ import {
 export function _createOrUpdateEndpointSend(
   context: Client,
   endpointName: string,
-  endpoint: Endpoint,
+  endpointParam: Endpoint,
   options: CreateOrUpdateEndpointOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
   const path = expandUrlTemplate(
@@ -1085,7 +1085,7 @@ export function _createOrUpdateEndpointSend(
       accept: "application/json",
       ...options.requestOptions?.headers,
     },
-    body: endpointSerializer(endpoint),
+    body: endpointSerializer(endpointParam),
   });
 }
 
@@ -1103,13 +1103,13 @@ export async function _createOrUpdateEndpointDeserialize(
 export async function createOrUpdateEndpoint(
   context: Client,
   endpointName: string,
-  endpoint: Endpoint,
+  endpointParam: Endpoint,
   options: CreateOrUpdateEndpointOptionalParams = { requestOptions: {} },
 ): Promise<Endpoint> {
   const result = await _createOrUpdateEndpointSend(
     context,
     endpointName,
-    endpoint,
+    endpointParam,
     options,
   );
   return _createOrUpdateEndpointDeserialize(result);

@@ -74,7 +74,7 @@ export function _checkNameAvailabilitySend(
   context: Client,
   apiVersion: string,
   name: string,
-  type: string,
+  typeParam: string,
   options: CheckNameAvailabilityOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
   const path = expandUrlTemplate(
@@ -85,7 +85,7 @@ export function _checkNameAvailabilitySend(
   return context.path(path).post({
     ...operationOptionsToRequestParameters(options),
     contentType: "application/json",
-    body: { name: name, type: type },
+    body: { name: name, type: typeParam },
   });
 }
 
@@ -106,14 +106,14 @@ export async function checkNameAvailability(
   context: Client,
   apiVersion: string,
   name: string,
-  type: string,
+  typeParam: string,
   options: CheckNameAvailabilityOptionalParams = { requestOptions: {} },
 ): Promise<void> {
   const result = await _checkNameAvailabilitySend(
     context,
     apiVersion,
     name,
-    type,
+    typeParam,
     options,
   );
   return _checkNameAvailabilityDeserialize(result);

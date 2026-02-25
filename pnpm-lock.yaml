@@ -44,6 +44,9 @@ importers:
       '@typespec/xml':
         specifier: ^0.79.0
         version: 0.79.0(@typespec/compiler@1.9.0(@types/node@24.10.13))
+      change-case:
+        specifier: ^5.4.4
+        version: 5.4.4
     devDependencies:
       '@alloy-js/cli':
         specifier: 0.22.0

@@ -13,16 +13,16 @@ op continue(): Test;
 
 ```ts operations
 import { type Test, testDeserializer } from "../models/models.js";
-import type { ContinueOptionalParams } from "./options.js";
+import { ContinueOptionalParams } from "./options.js";
 import {
-  type Client,
+  Client,
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
 
-export function _continueSend(
+export function _$continueSend(
   context: Client,
   options: ContinueOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
@@ -35,7 +35,7 @@ export function _continueSend(
   });
 }
 
-export async function _continueDeserialize(
+export async function _$continueDeserialize(
   result: PathUncheckedResponse,
 ): Promise<Test> {
   const expectedStatuses = ["200"];
@@ -46,12 +46,20 @@ export async function _continueDeserialize(
   return testDeserializer(result.body);
 }
 
-export async function continue_(
+/**
+ * @fixme continue is a reserved word that cannot be used as an operation name.
+ * Please add @clientName("clientName") or @clientName("<JS-Specific-Name>",
+ * "javascript") to the operation to override the generated name.
+ *
+ * @param {Client} context
+ * @param {ContinueOptionalParams} options
+ */
+export async function $continue(
   context: Client,
   options: ContinueOptionalParams = { requestOptions: {} },
 ): Promise<Test> {
-  const result = await _continueSend(context, options);
-  return _continueDeserialize(result);
+  const result = await _$continueSend(context, options);
+  return _$continueDeserialize(result);
 }
 ```
 
@@ -70,16 +78,16 @@ op `return`(): Test;
 
 ```ts operations
 import { type Test, testDeserializer } from "../models/models.js";
-import type { ReturnOptionalParams } from "./options.js";
+import { ReturnOptionalParams } from "./options.js";
 import {
-  type Client,
+  Client,
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
 
-export function _returnSend(
+export function _$returnSend(
   context: Client,
   options: ReturnOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
@@ -92,7 +100,7 @@ export function _returnSend(
   });
 }
 
-export async function _returnDeserialize(
+export async function _$returnDeserialize(
   result: PathUncheckedResponse,
 ): Promise<Test> {
   const expectedStatuses = ["200"];
@@ -103,12 +111,20 @@ export async function _returnDeserialize(
   return testDeserializer(result.body);
 }
 
-export async function return_(
+/**
+ * @fixme return is a reserved word that cannot be used as an operation name.
+ * Please add @clientName("clientName") or @clientName("<JS-Specific-Name>",
+ * "javascript") to the operation to override the generated name.
+ *
+ * @param {Client} context
+ * @param {ReturnOptionalParams} options
+ */
+export async function $return(
   context: Client,
   options: ReturnOptionalParams = { requestOptions: {} },
 ): Promise<Test> {
-  const result = await _returnSend(context, options);
-  return _returnDeserialize(result);
+  const result = await _$returnSend(context, options);
+  return _$returnDeserialize(result);
 }
 ```
 

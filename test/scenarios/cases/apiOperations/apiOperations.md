@@ -523,7 +523,7 @@ export function _testSend(
 ): StreamableMethod {
   const path = expandUrlTemplate(
     "/{?api%2Dversion}",
-    { "api-version": api - version },
+    { "api-version": apiVersion },
     { allowReserved: options?.requestOptions?.skipUrlEncoding },
   );
   return context.path(path).get({
@@ -548,7 +548,7 @@ export async function test(
   apiVersion: string,
   options: TestOptionalParams = { requestOptions: {} },
 ): Promise<string> {
-  const result = await _testSend(context, api - version, options);
+  const result = await _testSend(context, apiVersion, options);
   return _testDeserialize(result);
 }
 ```
@@ -563,7 +563,7 @@ export interface TestServiceContext extends Client {}
 export interface TestServiceClientOptionalParams extends ClientOptions {}
 
 export function createTestService(
-  endpoint: string,
+  endpointParam: string,
   options: TestServiceClientOptionalParams = {},
 ): TestServiceContext {
   const endpointUrl = options.endpoint ?? endpoint;
@@ -595,7 +595,10 @@ export class TestServiceClient {
   /** The pipeline used by this client to make requests */
   public readonly pipeline: Pipeline;
 
-  constructor(endpoint: string, options: TestServiceClientOptionalParams = {}) {
+  constructor(
+    endpointParam: string,
+    options: TestServiceClientOptionalParams = {},
+  ) {
     this._client = createTestService(endpoint, options);
     this.pipeline = this._client.pipeline;
   }
@@ -650,7 +653,7 @@ export function _testSend(
 ): StreamableMethod {
   const path = expandUrlTemplate(
     "/{?api%2Dversion}",
-    { "api-version": api - version },
+    { "api-version": apiVersion },
     { allowReserved: options?.requestOptions?.skipUrlEncoding },
   );
   return context.path(path).get({
@@ -675,7 +678,7 @@ export async function test(
   apiVersion: string,
   options: TestOptionalParams = { requestOptions: {} },
 ): Promise<string> {
-  const result = await _testSend(context, api - version, options);
+  const result = await _testSend(context, apiVersion, options);
   return _testDeserialize(result);
 }
 ```
@@ -690,7 +693,7 @@ export interface TestServiceContext extends Client {}
 export interface TestServiceClientOptionalParams extends ClientOptions {}
 
 export function createTestService(
-  endpoint: string,
+  endpointParam: string,
   options: TestServiceClientOptionalParams = {},
 ): TestServiceContext {
   const endpointUrl = options.endpoint ?? endpoint;
@@ -722,7 +725,10 @@ export class TestServiceClient {
   /** The pipeline used by this client to make requests */
   public readonly pipeline: Pipeline;
 
-  constructor(endpoint: string, options: TestServiceClientOptionalParams = {}) {
+  constructor(
+    endpointParam: string,
+    options: TestServiceClientOptionalParams = {},
+  ) {
     this._client = createTestService(endpoint, options);
     this.pipeline = this._client.pipeline;
   }
@@ -771,7 +777,7 @@ export function _testSend(
 ): StreamableMethod {
   const path = expandUrlTemplate(
     "/test{?api%2Dversion}",
-    { "api-version": api - version },
+    { "api-version": apiVersion },
     { allowReserved: options?.requestOptions?.skipUrlEncoding },
   );
   return context.path(path).get({
@@ -796,7 +802,7 @@ export async function test(
   apiVersion: string,
   options: TestOptionalParams = { requestOptions: {} },
 ): Promise<string> {
-  const result = await _testSend(context, api - version, options);
+  const result = await _testSend(context, apiVersion, options);
   return _testDeserialize(result);
 }
 
@@ -840,7 +846,7 @@ export interface TestServiceContext extends Client {}
 export interface TestServiceClientOptionalParams extends ClientOptions {}
 
 export function createTestService(
-  endpoint: string,
+  endpointParam: string,
   options: TestServiceClientOptionalParams = {},
 ): TestServiceContext {
   const endpointUrl = options.endpoint ?? endpoint;
@@ -872,7 +878,10 @@ export class TestServiceClient {
   /** The pipeline used by this client to make requests */
   public readonly pipeline: Pipeline;
 
-  constructor(endpoint: string, options: TestServiceClientOptionalParams = {}) {
+  constructor(
+    endpointParam: string,
+    options: TestServiceClientOptionalParams = {},
+  ) {
     this._client = createTestService(endpoint, options);
     this.pipeline = this._client.pipeline;
   }

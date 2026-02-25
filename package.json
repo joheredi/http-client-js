@@ -17,7 +17,8 @@
     "@typespec/openapi": "^1.9.0",
     "@typespec/rest": "^0.79.0",
     "@typespec/versioning": "^0.79.0",
-    "@typespec/xml": "^0.79.0"
+    "@typespec/xml": "^0.79.0",
+    "change-case": "^5.4.4"
   },
   "devDependencies": {
     "@alloy-js/cli": "0.22.0",

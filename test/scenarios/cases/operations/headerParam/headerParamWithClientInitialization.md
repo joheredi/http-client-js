@@ -130,7 +130,7 @@ export interface BillingBenefitsClientOptionalParams extends ClientOptions {
 }
 
 export function createBillingBenefits(
-  endpoint: string,
+  endpointParam: string,
   options: BillingBenefitsClientOptionalParams = {},
 ): BillingBenefitsContext {
   const endpointUrl = options.endpoint ?? endpoint;
@@ -371,7 +371,7 @@ export interface BillingBenefitsContext extends Client {
 export interface BillingBenefitsClientOptionalParams extends ClientOptions {}
 
 export function createBillingBenefits(
-  endpoint: string,
+  endpointParam: string,
   options: BillingBenefitsClientOptionalParams = {},
 ): BillingBenefitsContext {
   const endpointUrl = options.endpoint ?? endpoint;
