@@ -75,6 +75,11 @@ const SCENARIOS_UPDATE =
 // ─── Import Normalization ───────────────────────────────────────────────
 
 /**
+ * @internal Exported for testing only.
+ */
+export { normalizeImports as _normalizeImports };
+
+/**
  * Normalizes TypeScript import statements for stable comparison.
  *
  * Alloy generates imports in non-deterministic order based on refkey resolution
@@ -83,15 +88,41 @@ const SCENARIOS_UPDATE =
  * different formatted output. Import ordering is an acceptable difference
  * per the PRD.
  *
+ * For concatenated multi-file output (e.g., sample files joined with
+ * `/** This file path is ...` comments), imports are normalized per-section
+ * to preserve the multi-file structure. Without per-section handling, the
+ * function would collapse all imports from all files into one block,
+ * destroying content between files.
+ *
  * This function:
- * 1. Finds all import statements (including multi-line)
- * 2. Sorts import specifiers alphabetically within each statement
- * 3. Sorts import statements by their module path
+ * 1. Splits concatenated output into sections by file path comments
+ * 2. For each section, finds all import statements (including multi-line)
+ * 3. Sorts import specifiers alphabetically within each statement
+ * 4. Sorts import statements by their module path
+ * 5. Rejoins sections preserving the multi-file structure
  *
  * @param code - The TypeScript code string to normalize
  * @returns The code with normalized import ordering
  */
 function normalizeImports(code: string): string {
+  // Split by file path comments to handle concatenated multi-file output.
+  // Each section is an independent file with its own import block.
+  const sections = code.split(/(?=\/\*\*\s*This file path is\s)/);
+
+  return sections.map((section) => normalizeImportsInSection(section)).join("");
+}
+
+/**
+ * Normalizes import ordering within a single file section.
+ *
+ * Finds all import statements, sorts specifiers within each statement,
+ * and sorts statements by module path. Replaces only the contiguous
+ * import block, preserving all other content.
+ *
+ * @param code - A single file's TypeScript code
+ * @returns The code with normalized imports
+ */
+function normalizeImportsInSection(code: string): string {
   // Match import statements including multi-line ones.
   // Handles: import { A, B } from "x"; and import {\n  A,\n  B,\n} from "x";
   const importRegex = /import\s+(type\s+)?\{([^}]*)\}\s+from\s+"([^"]+)";/gs;
@@ -134,7 +165,6 @@ function normalizeImports(code: string): string {
   // Replace each import with its normalized version (maintaining original positions
   // but with sorted specifiers and sorted import order)
   let result = "";
-  let lastEnd = 0;
 
   // Use original positions for non-import content, but replace imports with sorted versions
   const firstImportStart = replacements[0].start;

@@ -1283,3 +1283,9 @@ The `DeserializeOperation` component was not checking for error model types in `
 - `method.operation.exceptions` contains `SdkHttpErrorResponse[]` with error model types
 - Error models with `@header` properties still include those properties in both the interface and deserializer
 - The default ("*") exception is preferred; otherwise falls back to first exception with a body type
+
+### Test Harness: normalizeImports Multi-File Bug (Fixed 2026-02-25)
+- **Bug**: `normalizeImports()` in `test/scenarios/scenario-harness.ts` destroyed multi-file concatenated sample output. When sample tests concatenate multiple files with `/** This file path is ... */` comments, the function treated ALL imports across files as one block, replacing everything between the first and last import with sorted imports. This destroyed content between files (function bodies, file path comments for files 2+).
+- **Symptom**: Sample scenario tests (e.g., `armCurdOperations.md`) had stale expectations showing duplicate imports (3x) and wrong function bodies. Tests passed because the normalizeImports bug produced the same broken output from correct emitter output.
+- **Fix**: Split input by `/** This file path is` comments before normalizing imports per-section. Each file section is an independent unit with its own import block.
+- **Impact**: RC05-RC09 were all "already working" in the emitter. Only the test expectations were stale due to this harness bug. After the fix, SCENARIOS_UPDATE correctly regenerates multi-file sample expectations.

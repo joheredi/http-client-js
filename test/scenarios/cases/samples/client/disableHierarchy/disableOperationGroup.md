@@ -58,6 +58,27 @@ Generated samples.
 ```ts samples
 /** This file path is /samples-dev/bcFooSample.ts */
 import { TestServiceClient } from "@azure/internal-test";
+
+/**
+ * This sample demonstrates how to foo
+ *
+ * @summary foo
+ * x-ms-original-file: json_for_foo.json
+ */
+async function foo(): Promise<void> {
+  const endpoint = process.env.TEST_SERVICE_ENDPOINT || "";
+  const client = new TestServiceClient(endpoint);
+  const result = await client.b.c.foo({});
+  console.log(result);
+}
+
+async function main(): Promise<void> {
+  await foo();
+}
+
+main().catch(console.error);
+
+/** This file path is /samples-dev/dBarSample.ts */
 import { TestServiceClient } from "@azure/internal-test";
 
 /**
@@ -102,6 +123,27 @@ Generated samples.
 ```ts samples
 /** This file path is /samples-dev/bcFooSample.ts */
 import { TestServiceClient } from "@azure/internal-test";
+
+/**
+ * This sample demonstrates how to foo
+ *
+ * @summary foo
+ * x-ms-original-file: json_for_foo.json
+ */
+async function foo(): Promise<void> {
+  const endpoint = process.env.TEST_SERVICE_ENDPOINT || "";
+  const client = new TestServiceClient(endpoint);
+  const result = await client.b.c.foo({});
+  console.log(result);
+}
+
+async function main(): Promise<void> {
+  await foo();
+}
+
+main().catch(console.error);
+
+/** This file path is /samples-dev/dBarSample.ts */
 import { TestServiceClient } from "@azure/internal-test";
 
 /**

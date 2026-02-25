@@ -109,8 +109,38 @@ Generated sample should add subscriptionId as a client parameter:
 ```ts samples
 /** This file path is /samples-dev/employeesCreateOrUpdateSample.ts */
 import { DefaultAzureCredential } from "@azure/identity";
-import { DefaultAzureCredential } from "@azure/identity";
 import { ContosoClient } from "@azure/internal-test";
+
+/**
+ * This sample demonstrates how to create a Employee
+ *
+ * @summary create a Employee
+ * x-ms-original-file: 2021-10-01-preview/json_for_Employees_CreateOrUpdate.json
+ */
+async function employeesCreateOrUpdate(): Promise<void> {
+  const subscriptionId = process.env.CONTOSO_SUBSCRIPTION_ID || "";
+  const credential = new DefaultAzureCredential();
+  const client = new ContosoClient(subscriptionId, credential);
+  const result = await client.employees.createOrUpdate(
+    "rgopenapi",
+    "9KF-f-8b",
+    { tags: { key2913: "urperxmkkhhkp" }, location: "itajgxyqozseoygnl" },
+    {
+      subscriptionId: "11809CA1-E126-4017-945E-AA795CD5C5A9",
+      apiVersion: "2021-10-01-preview",
+    },
+  );
+  console.log(result);
+}
+
+async function main(): Promise<void> {
+  await employeesCreateOrUpdate();
+}
+
+main().catch(console.error);
+
+/** This file path is /samples-dev/operationsListSample.ts */
+import { DefaultAzureCredential } from "@azure/identity";
 import { ContosoClient } from "@azure/internal-test";
 
 /**
@@ -164,8 +194,38 @@ Generated sample should create a client with subscriptionId:
 ```ts samples
 /** This file path is /samples-dev/employeesCreateOrUpdateSample.ts */
 import { DefaultAzureCredential } from "@azure/identity";
-import { DefaultAzureCredential } from "@azure/identity";
 import { ContosoClient } from "@azure/internal-test";
+
+/**
+ * This sample demonstrates how to create a Employee
+ *
+ * @summary create a Employee
+ * x-ms-original-file: 2021-10-01-preview/json_for_Employees_CreateOrUpdate.json
+ */
+async function employeesCreateOrUpdate(): Promise<void> {
+  const subscriptionId = process.env.CONTOSO_SUBSCRIPTION_ID || "";
+  const credential = new DefaultAzureCredential();
+  const client = new ContosoClient(subscriptionId, credential);
+  const result = await client.employees.createOrUpdate(
+    "rgopenapi",
+    "9KF-f-8b",
+    { tags: { key2913: "urperxmkkhhkp" }, location: "itajgxyqozseoygnl" },
+    {
+      subscriptionId: "11809CA1-E126-4017-945E-AA795CD5C5A9",
+      apiVersion: "2021-10-01-preview",
+    },
+  );
+  console.log(result);
+}
+
+async function main(): Promise<void> {
+  await employeesCreateOrUpdate();
+}
+
+main().catch(console.error);
+
+/** This file path is /samples-dev/operationsListSample.ts */
+import { DefaultAzureCredential } from "@azure/identity";
 import { ContosoClient } from "@azure/internal-test";
 
 /**
@@ -315,8 +375,35 @@ Generated sample should add subscriptionId as a method-level parameter:
 ```ts samples
 /** This file path is /samples-dev/employeesCreateOrUpdateSample.ts */
 import { DefaultAzureCredential } from "@azure/identity";
-import { DefaultAzureCredential } from "@azure/identity";
 import { ContosoClient } from "@azure/internal-test";
+
+/**
+ * This sample demonstrates how to create a Employee
+ *
+ * @summary create a Employee
+ * x-ms-original-file: 2021-10-01-preview/json_for_Employees_CreateOrUpdate.json
+ */
+async function employeesCreateOrUpdate(): Promise<void> {
+  const credential = new DefaultAzureCredential();
+  const client = new ContosoClient(credential);
+  const result = await client.employees.createOrUpdate(
+    "11809CA1-E126-4017-945E-AA795CD5C5A9",
+    "rgopenapi",
+    "9KF-f-8b",
+    { tags: { key2913: "urperxmkkhhkp" }, location: "itajgxyqozseoygnl" },
+    { apiVersion: "2021-10-01-preview" },
+  );
+  console.log(result);
+}
+
+async function main(): Promise<void> {
+  await employeesCreateOrUpdate();
+}
+
+main().catch(console.error);
+
+/** This file path is /samples-dev/operationsListSample.ts */
+import { DefaultAzureCredential } from "@azure/identity";
 import { ContosoClient } from "@azure/internal-test";
 
 /**
@@ -369,8 +456,35 @@ Generated sample should create a client without subscriptionId:
 ```ts samples
 /** This file path is /samples-dev/employeesCreateOrUpdateSample.ts */
 import { DefaultAzureCredential } from "@azure/identity";
-import { DefaultAzureCredential } from "@azure/identity";
 import { ContosoClient } from "@azure/internal-test";
+
+/**
+ * This sample demonstrates how to create a Employee
+ *
+ * @summary create a Employee
+ * x-ms-original-file: 2021-10-01-preview/json_for_Employees_CreateOrUpdate.json
+ */
+async function employeesCreateOrUpdate(): Promise<void> {
+  const credential = new DefaultAzureCredential();
+  const client = new ContosoClient(credential);
+  const result = await client.employees.createOrUpdate(
+    "11809CA1-E126-4017-945E-AA795CD5C5A9",
+    "rgopenapi",
+    "9KF-f-8b",
+    { tags: { key2913: "urperxmkkhhkp" }, location: "itajgxyqozseoygnl" },
+    { apiVersion: "2021-10-01-preview" },
+  );
+  console.log(result);
+}
+
+async function main(): Promise<void> {
+  await employeesCreateOrUpdate();
+}
+
+main().catch(console.error);
+
+/** This file path is /samples-dev/operationsListSample.ts */
+import { DefaultAzureCredential } from "@azure/identity";
 import { ContosoClient } from "@azure/internal-test";
 
 /**
@@ -529,12 +643,93 @@ Generated sample should create a client with subscriptionId:
 ```ts samples
 /** This file path is /samples-dev/employeesCreateOrUpdateSample.ts */
 import { DefaultAzureCredential } from "@azure/identity";
-import { DefaultAzureCredential } from "@azure/identity";
-import { DefaultAzureCredential } from "@azure/identity";
+import { ContosoClient } from "@azure/internal-test";
+
+/**
+ * This sample demonstrates how to create a Employee
+ *
+ * @summary create a Employee
+ * x-ms-original-file: 2021-10-01-preview/json_for_Employees_CreateOrUpdate.json
+ */
+async function employeesCreateOrUpdate(): Promise<void> {
+  const subscriptionId = process.env.CONTOSO_SUBSCRIPTION_ID || "";
+  const credential = new DefaultAzureCredential();
+  const client = new ContosoClient(subscriptionId, credential);
+  const result = await client.employees.createOrUpdate(
+    "11809CA1-E126-4017-945E-AA795CD5C5A9",
+    "rgopenapi",
+    "9KF-f-8b",
+    { tags: { key2913: "urperxmkkhhkp" }, location: "itajgxyqozseoygnl" },
+    { apiVersion: "2021-10-01-preview" },
+  );
+  console.log(result);
+}
+
+async function main(): Promise<void> {
+  await employeesCreateOrUpdate();
+}
+
+main().catch(console.error);
+
+/** This file path is /samples-dev/employeesGetSample.ts */
 import { DefaultAzureCredential } from "@azure/identity";
 import { ContosoClient } from "@azure/internal-test";
+
+/**
+ * This sample demonstrates how to get a Employee
+ *
+ * @summary get a Employee
+ * x-ms-original-file: 2021-10-01-preview/json_for_Employees_Get.json
+ */
+async function employeesGet(): Promise<void> {
+  const subscriptionId = process.env.CONTOSO_SUBSCRIPTION_ID || "";
+  const credential = new DefaultAzureCredential();
+  const client = new ContosoClient(subscriptionId, credential);
+  const result = await client.employees.get("rgopenapi", "9KF-f-8b", {
+    apiVersion: "2021-10-01-preview",
+    subscriptionId: "11809CA1-E126-4017-945E-AA795CD5C5A9",
+  });
+  console.log(result);
+}
+
+async function main(): Promise<void> {
+  await employeesGet();
+}
+
+main().catch(console.error);
+
+/** This file path is /samples-dev/operationsListSample.ts */
+import { DefaultAzureCredential } from "@azure/identity";
 import { ContosoClient } from "@azure/internal-test";
-import { ContosoClient } from "@azure/internal-test";
+
+/**
+ * This sample demonstrates how to list the operations for the provider
+ *
+ * @summary list the operations for the provider
+ * x-ms-original-file: 2021-10-01-preview/json_for_Operations_List.json
+ */
+async function operationsList(): Promise<void> {
+  const subscriptionId = process.env.CONTOSO_SUBSCRIPTION_ID || "";
+  const credential = new DefaultAzureCredential();
+  const client = new ContosoClient(subscriptionId, credential);
+  const resArray = new Array();
+  for await (const item of client.operations.list({
+    apiVersion: "2021-10-01-preview",
+  })) {
+    resArray.push(item);
+  }
+
+  console.log(resArray);
+}
+
+async function main(): Promise<void> {
+  await operationsList();
+}
+
+main().catch(console.error);
+
+/** This file path is /samples-dev/skusOperationsListSkusSample.ts */
+import { DefaultAzureCredential } from "@azure/identity";
 import { ContosoClient } from "@azure/internal-test";
 
 /**
@@ -590,12 +785,93 @@ Generated sample should use subscriptionId as a method parameter:
 ```ts samples
 /** This file path is /samples-dev/employeesCreateOrUpdateSample.ts */
 import { DefaultAzureCredential } from "@azure/identity";
-import { DefaultAzureCredential } from "@azure/identity";
-import { DefaultAzureCredential } from "@azure/identity";
+import { ContosoClient } from "@azure/internal-test";
+
+/**
+ * This sample demonstrates how to create a Employee
+ *
+ * @summary create a Employee
+ * x-ms-original-file: 2021-10-01-preview/json_for_Employees_CreateOrUpdate.json
+ */
+async function employeesCreateOrUpdate(): Promise<void> {
+  const subscriptionId = process.env.CONTOSO_SUBSCRIPTION_ID || "";
+  const credential = new DefaultAzureCredential();
+  const client = new ContosoClient(subscriptionId, credential);
+  const result = await client.employees.createOrUpdate(
+    "11809CA1-E126-4017-945E-AA795CD5C5A9",
+    "rgopenapi",
+    "9KF-f-8b",
+    { tags: { key2913: "urperxmkkhhkp" }, location: "itajgxyqozseoygnl" },
+    { apiVersion: "2021-10-01-preview" },
+  );
+  console.log(result);
+}
+
+async function main(): Promise<void> {
+  await employeesCreateOrUpdate();
+}
+
+main().catch(console.error);
+
+/** This file path is /samples-dev/employeesGetSample.ts */
 import { DefaultAzureCredential } from "@azure/identity";
 import { ContosoClient } from "@azure/internal-test";
+
+/**
+ * This sample demonstrates how to get a Employee
+ *
+ * @summary get a Employee
+ * x-ms-original-file: 2021-10-01-preview/json_for_Employees_Get.json
+ */
+async function employeesGet(): Promise<void> {
+  const subscriptionId = process.env.CONTOSO_SUBSCRIPTION_ID || "";
+  const credential = new DefaultAzureCredential();
+  const client = new ContosoClient(subscriptionId, credential);
+  const result = await client.employees.get("rgopenapi", "9KF-f-8b", {
+    apiVersion: "2021-10-01-preview",
+    subscriptionId: "11809CA1-E126-4017-945E-AA795CD5C5A9",
+  });
+  console.log(result);
+}
+
+async function main(): Promise<void> {
+  await employeesGet();
+}
+
+main().catch(console.error);
+
+/** This file path is /samples-dev/operationsListSample.ts */
+import { DefaultAzureCredential } from "@azure/identity";
 import { ContosoClient } from "@azure/internal-test";
-import { ContosoClient } from "@azure/internal-test";
+
+/**
+ * This sample demonstrates how to list the operations for the provider
+ *
+ * @summary list the operations for the provider
+ * x-ms-original-file: 2021-10-01-preview/json_for_Operations_List.json
+ */
+async function operationsList(): Promise<void> {
+  const subscriptionId = process.env.CONTOSO_SUBSCRIPTION_ID || "";
+  const credential = new DefaultAzureCredential();
+  const client = new ContosoClient(subscriptionId, credential);
+  const resArray = new Array();
+  for await (const item of client.operations.list({
+    apiVersion: "2021-10-01-preview",
+  })) {
+    resArray.push(item);
+  }
+
+  console.log(resArray);
+}
+
+async function main(): Promise<void> {
+  await operationsList();
+}
+
+main().catch(console.error);
+
+/** This file path is /samples-dev/skusOperationsListSkusSample.ts */
+import { DefaultAzureCredential } from "@azure/identity";
 import { ContosoClient } from "@azure/internal-test";
 
 /**
@@ -649,12 +925,93 @@ Generate sample should create a client without subscriptionId:
 ```ts samples
 /** This file path is /samples-dev/employeesCreateOrUpdateSample.ts */
 import { DefaultAzureCredential } from "@azure/identity";
-import { DefaultAzureCredential } from "@azure/identity";
-import { DefaultAzureCredential } from "@azure/identity";
+import { ContosoClient } from "@azure/internal-test";
+
+/**
+ * This sample demonstrates how to create a Employee
+ *
+ * @summary create a Employee
+ * x-ms-original-file: 2021-10-01-preview/json_for_Employees_CreateOrUpdate.json
+ */
+async function employeesCreateOrUpdate(): Promise<void> {
+  const subscriptionId = process.env.CONTOSO_SUBSCRIPTION_ID || "";
+  const credential = new DefaultAzureCredential();
+  const client = new ContosoClient(subscriptionId, credential);
+  const result = await client.employees.createOrUpdate(
+    "11809CA1-E126-4017-945E-AA795CD5C5A9",
+    "rgopenapi",
+    "9KF-f-8b",
+    { tags: { key2913: "urperxmkkhhkp" }, location: "itajgxyqozseoygnl" },
+    { apiVersion: "2021-10-01-preview" },
+  );
+  console.log(result);
+}
+
+async function main(): Promise<void> {
+  await employeesCreateOrUpdate();
+}
+
+main().catch(console.error);
+
+/** This file path is /samples-dev/employeesGetSample.ts */
 import { DefaultAzureCredential } from "@azure/identity";
 import { ContosoClient } from "@azure/internal-test";
+
+/**
+ * This sample demonstrates how to get a Employee
+ *
+ * @summary get a Employee
+ * x-ms-original-file: 2021-10-01-preview/json_for_Employees_Get.json
+ */
+async function employeesGet(): Promise<void> {
+  const subscriptionId = process.env.CONTOSO_SUBSCRIPTION_ID || "";
+  const credential = new DefaultAzureCredential();
+  const client = new ContosoClient(subscriptionId, credential);
+  const result = await client.employees.get("rgopenapi", "9KF-f-8b", {
+    apiVersion: "2021-10-01-preview",
+    subscriptionId: "11809CA1-E126-4017-945E-AA795CD5C5A9",
+  });
+  console.log(result);
+}
+
+async function main(): Promise<void> {
+  await employeesGet();
+}
+
+main().catch(console.error);
+
+/** This file path is /samples-dev/operationsListSample.ts */
+import { DefaultAzureCredential } from "@azure/identity";
 import { ContosoClient } from "@azure/internal-test";
-import { ContosoClient } from "@azure/internal-test";
+
+/**
+ * This sample demonstrates how to list the operations for the provider
+ *
+ * @summary list the operations for the provider
+ * x-ms-original-file: 2021-10-01-preview/json_for_Operations_List.json
+ */
+async function operationsList(): Promise<void> {
+  const subscriptionId = process.env.CONTOSO_SUBSCRIPTION_ID || "";
+  const credential = new DefaultAzureCredential();
+  const client = new ContosoClient(subscriptionId, credential);
+  const resArray = new Array();
+  for await (const item of client.operations.list({
+    apiVersion: "2021-10-01-preview",
+  })) {
+    resArray.push(item);
+  }
+
+  console.log(resArray);
+}
+
+async function main(): Promise<void> {
+  await operationsList();
+}
+
+main().catch(console.error);
+
+/** This file path is /samples-dev/skusOperationsListSkusSample.ts */
+import { DefaultAzureCredential } from "@azure/identity";
 import { ContosoClient } from "@azure/internal-test";
 
 /**
@@ -702,12 +1059,93 @@ Generated sample should create a client with subscriptionId:
 ```ts samples
 /** This file path is /samples-dev/employeesCreateOrUpdateSample.ts */
 import { DefaultAzureCredential } from "@azure/identity";
-import { DefaultAzureCredential } from "@azure/identity";
-import { DefaultAzureCredential } from "@azure/identity";
+import { ContosoClient } from "@azure/internal-test";
+
+/**
+ * This sample demonstrates how to create a Employee
+ *
+ * @summary create a Employee
+ * x-ms-original-file: 2021-10-01-preview/json_for_Employees_CreateOrUpdate.json
+ */
+async function employeesCreateOrUpdate(): Promise<void> {
+  const subscriptionId = process.env.CONTOSO_SUBSCRIPTION_ID || "";
+  const credential = new DefaultAzureCredential();
+  const client = new ContosoClient(subscriptionId, credential);
+  const result = await client.employees.createOrUpdate(
+    "11809CA1-E126-4017-945E-AA795CD5C5A9",
+    "rgopenapi",
+    "9KF-f-8b",
+    { tags: { key2913: "urperxmkkhhkp" }, location: "itajgxyqozseoygnl" },
+    { apiVersion: "2021-10-01-preview" },
+  );
+  console.log(result);
+}
+
+async function main(): Promise<void> {
+  await employeesCreateOrUpdate();
+}
+
+main().catch(console.error);
+
+/** This file path is /samples-dev/employeesGetSample.ts */
 import { DefaultAzureCredential } from "@azure/identity";
 import { ContosoClient } from "@azure/internal-test";
+
+/**
+ * This sample demonstrates how to get a Employee
+ *
+ * @summary get a Employee
+ * x-ms-original-file: 2021-10-01-preview/json_for_Employees_Get.json
+ */
+async function employeesGet(): Promise<void> {
+  const subscriptionId = process.env.CONTOSO_SUBSCRIPTION_ID || "";
+  const credential = new DefaultAzureCredential();
+  const client = new ContosoClient(subscriptionId, credential);
+  const result = await client.employees.get("rgopenapi", "9KF-f-8b", {
+    apiVersion: "2021-10-01-preview",
+    subscriptionId: "11809CA1-E126-4017-945E-AA795CD5C5A9",
+  });
+  console.log(result);
+}
+
+async function main(): Promise<void> {
+  await employeesGet();
+}
+
+main().catch(console.error);
+
+/** This file path is /samples-dev/operationsListSample.ts */
+import { DefaultAzureCredential } from "@azure/identity";
 import { ContosoClient } from "@azure/internal-test";
-import { ContosoClient } from "@azure/internal-test";
+
+/**
+ * This sample demonstrates how to list the operations for the provider
+ *
+ * @summary list the operations for the provider
+ * x-ms-original-file: 2021-10-01-preview/json_for_Operations_List.json
+ */
+async function operationsList(): Promise<void> {
+  const subscriptionId = process.env.CONTOSO_SUBSCRIPTION_ID || "";
+  const credential = new DefaultAzureCredential();
+  const client = new ContosoClient(subscriptionId, credential);
+  const resArray = new Array();
+  for await (const item of client.operations.list({
+    apiVersion: "2021-10-01-preview",
+  })) {
+    resArray.push(item);
+  }
+
+  console.log(resArray);
+}
+
+async function main(): Promise<void> {
+  await operationsList();
+}
+
+main().catch(console.error);
+
+/** This file path is /samples-dev/skusOperationsListSkusSample.ts */
+import { DefaultAzureCredential } from "@azure/identity";
 import { ContosoClient } from "@azure/internal-test";
 
 /**

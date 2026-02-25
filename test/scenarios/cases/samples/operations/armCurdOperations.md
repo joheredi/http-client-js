@@ -117,10 +117,69 @@ Generate samples for arm cases:
 ```ts samples
 /** This file path is /samples-dev/employeesCreateOrUpdateSample.ts */
 import { DefaultAzureCredential } from "@azure/identity";
-import { DefaultAzureCredential } from "@azure/identity";
+import { ContosoClient } from "@azure/internal-test";
+
+/**
+ * This sample demonstrates how to create a Employee
+ *
+ * @summary create a Employee
+ * x-ms-original-file: 2021-10-01-preview/json_for_Employees_CreateOrUpdate.json
+ */
+async function employeesCreateOrUpdate(): Promise<void> {
+  const subscriptionId = process.env.CONTOSO_SUBSCRIPTION_ID || "";
+  const credential = new DefaultAzureCredential();
+  const client = new ContosoClient(subscriptionId, credential);
+  const result = await client.employees.createOrUpdate(
+    "rgopenapi",
+    "9KF-f-8b",
+    { tags: { key2913: "urperxmkkhhkp" }, location: "itajgxyqozseoygnl" },
+    {
+      apiVersion: "2021-10-01-preview",
+      subscriptionId: "11809CA1-E126-4017-945E-AA795CD5C5A9",
+    },
+  );
+  console.log(result);
+}
+
+async function main(): Promise<void> {
+  await employeesCreateOrUpdate();
+}
+
+main().catch(console.error);
+
+/** This file path is /samples-dev/employeesDeleteSample.ts */
 import { DefaultAzureCredential } from "@azure/identity";
 import { ContosoClient } from "@azure/internal-test";
-import { ContosoClient } from "@azure/internal-test";
+
+/**
+ * This sample demonstrates how to delete a Employee
+ *
+ * @summary delete a Employee
+ * x-ms-original-file: 2021-10-01-preview/json_for_Employees_Delete.json
+ */
+async function employeesDelete(): Promise<void> {
+  const subscriptionId = process.env.CONTOSO_SUBSCRIPTION_ID || "";
+  const credential = new DefaultAzureCredential();
+  const client = new ContosoClient(subscriptionId, credential);
+  const result = await client.employees.delete(
+    "rgopenapi",
+    "5vX--BxSu3ux48rI4O9OQ569",
+    {
+      apiVersion: "2021-10-01-preview",
+      subscriptionId: "11809CA1-E126-4017-945E-AA795CD5C5A9",
+    },
+  );
+  console.log(result);
+}
+
+async function main(): Promise<void> {
+  await employeesDelete();
+}
+
+main().catch(console.error);
+
+/** This file path is /samples-dev/operationsListSample.ts */
+import { DefaultAzureCredential } from "@azure/identity";
 import { ContosoClient } from "@azure/internal-test";
 
 /**
@@ -184,10 +243,69 @@ Generate samples for arm cases:
 ```ts samples
 /** This file path is /samples-dev/employeesCreateOrUpdateSample.ts */
 import { DefaultAzureCredential } from "@azure/identity";
-import { DefaultAzureCredential } from "@azure/identity";
+import { ContosoClient } from "@azure/internal-test";
+
+/**
+ * This sample demonstrates how to create a Employee
+ *
+ * @summary create a Employee
+ * x-ms-original-file: 2021-10-01-preview/json_for_Employees_CreateOrUpdate.json
+ */
+async function employeesCreateOrUpdate(): Promise<void> {
+  const subscriptionId = process.env.CONTOSO_SUBSCRIPTION_ID || "";
+  const credential = new DefaultAzureCredential();
+  const client = new ContosoClient(subscriptionId, credential);
+  const result = await client.employees.createOrUpdate(
+    "rgopenapi",
+    "9KF-f-8b",
+    { tags: { key2913: "urperxmkkhhkp" }, location: "itajgxyqozseoygnl" },
+    {
+      apiVersion: "2021-10-01-preview",
+      subscriptionId: "11809CA1-E126-4017-945E-AA795CD5C5A9",
+    },
+  );
+  console.log(result);
+}
+
+async function main(): Promise<void> {
+  await employeesCreateOrUpdate();
+}
+
+main().catch(console.error);
+
+/** This file path is /samples-dev/employeesDeleteSample.ts */
 import { DefaultAzureCredential } from "@azure/identity";
 import { ContosoClient } from "@azure/internal-test";
-import { ContosoClient } from "@azure/internal-test";
+
+/**
+ * This sample demonstrates how to delete a Employee
+ *
+ * @summary delete a Employee
+ * x-ms-original-file: 2021-10-01-preview/json_for_Employees_Delete.json
+ */
+async function employeesDelete(): Promise<void> {
+  const subscriptionId = process.env.CONTOSO_SUBSCRIPTION_ID || "";
+  const credential = new DefaultAzureCredential();
+  const client = new ContosoClient(subscriptionId, credential);
+  const result = await client.employees.delete(
+    "rgopenapi",
+    "5vX--BxSu3ux48rI4O9OQ569",
+    {
+      apiVersion: "2021-10-01-preview",
+      subscriptionId: "11809CA1-E126-4017-945E-AA795CD5C5A9",
+    },
+  );
+  console.log(result);
+}
+
+async function main(): Promise<void> {
+  await employeesDelete();
+}
+
+main().catch(console.error);
+
+/** This file path is /samples-dev/operationsListSample.ts */
+import { DefaultAzureCredential } from "@azure/identity";
 import { ContosoClient } from "@azure/internal-test";
 
 /**
@@ -240,10 +358,69 @@ Generate samples for arm cases:
 ```ts samples
 /** This file path is /samples-dev/employeesCreateOrUpdateSample.ts */
 import { DefaultAzureCredential } from "@azure/identity";
-import { DefaultAzureCredential } from "@azure/identity";
+import { ContosoClient } from "@azure/internal-test";
+
+/**
+ * This sample demonstrates how to create a Employee
+ *
+ * @summary create a Employee
+ * x-ms-original-file: 2021-10-01-preview/json_for_Employees_CreateOrUpdate.json
+ */
+async function employeesCreateOrUpdate(): Promise<void> {
+  const subscriptionId = process.env.CONTOSO_SUBSCRIPTION_ID || "";
+  const credential = new DefaultAzureCredential();
+  const client = new ContosoClient(subscriptionId, credential);
+  const result = await client.employees.createOrUpdate(
+    "rgopenapi",
+    "9KF-f-8b",
+    { tags: { key2913: "urperxmkkhhkp" }, location: "itajgxyqozseoygnl" },
+    {
+      apiVersion: "2021-10-01-preview",
+      subscriptionId: "11809CA1-E126-4017-945E-AA795CD5C5A9",
+    },
+  );
+  console.log(result);
+}
+
+async function main(): Promise<void> {
+  await employeesCreateOrUpdate();
+}
+
+main().catch(console.error);
+
+/** This file path is /samples-dev/employeesDeleteSample.ts */
 import { DefaultAzureCredential } from "@azure/identity";
 import { ContosoClient } from "@azure/internal-test";
-import { ContosoClient } from "@azure/internal-test";
+
+/**
+ * This sample demonstrates how to delete a Employee
+ *
+ * @summary delete a Employee
+ * x-ms-original-file: 2021-10-01-preview/json_for_Employees_Delete.json
+ */
+async function employeesDelete(): Promise<void> {
+  const subscriptionId = process.env.CONTOSO_SUBSCRIPTION_ID || "";
+  const credential = new DefaultAzureCredential();
+  const client = new ContosoClient(subscriptionId, credential);
+  const result = await client.employees.delete(
+    "rgopenapi",
+    "5vX--BxSu3ux48rI4O9OQ569",
+    {
+      apiVersion: "2021-10-01-preview",
+      subscriptionId: "11809CA1-E126-4017-945E-AA795CD5C5A9",
+    },
+  );
+  console.log(result);
+}
+
+async function main(): Promise<void> {
+  await employeesDelete();
+}
+
+main().catch(console.error);
+
+/** This file path is /samples-dev/operationsListSample.ts */
+import { DefaultAzureCredential } from "@azure/identity";
 import { ContosoClient } from "@azure/internal-test";
 
 /**

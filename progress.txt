@@ -2906,3 +2906,75 @@ When `@@override` groups individual query/header parameters into a model paramet
 - **Remaining P2 tasks**: RC12, RC31-RC34
 - The 3 remaining skipped tests are blocked on external issues (TCGC #3088, TypeSpec #6983, TCGC #1419)
 - The vitest worker timeout error is an infrastructure issue, not a test failure.
+
+## 2026-02-25 — RC05-RC09, RC13: Test Harness Fix + Scenario Update
+
+### What was done
+- **Fixed critical bug in `normalizeImports()`** in `test/scenarios/scenario-harness.ts`.
+  The function collapsed imports from multiple concatenated sample files into one block,
+  destroying content between files. This caused sample scenario tests to pass with
+  incorrect (stale) expectations that showed duplicate imports and wrong function bodies.
+
+- **Root cause**: When `getSamplesConcatenated()` joins multiple sample files with
+  `/** This file path is /path */` comments, `normalizeImports` treated ALL imports
+  across all files as one group. It replaced everything between the first import (file 1)
+  and last import (file N) with sorted imports, deleting function bodies and file path
+  comments for intermediate files.
+
+- **Fix**: Split input by `/** This file path is` regex before normalizing imports
+  per-section. Each file section's imports are normalized independently.
+
+- **Verified RC05-RC09 and RC13 are all working correctly**:
+  - RC05: Sample file paths are unique per operation (e.g., `operationsListSample.ts`,
+    `employeesCreateOrUpdateSample.ts`, `employeesDeleteSample.ts`)
+  - RC06: Each sample function has its own correct operation body
+  - RC07: Body parameters have actual example values (not empty `{}`)
+  - RC08: Constructor parameter order matches client constructor signature
+  - RC09: No duplicate imports in sample files
+  - RC13: Collection format encoding already implemented and tested
+
+- **Updated 8 scenario test expectations** via `SCENARIOS_UPDATE=true` to reflect
+  correct multi-file sample output:
+  - samples/operations/armCurdOperations.md
+  - samples/operations/disableHierarchyArmCurdOperations.md
+  - samples/operations/dpgCurdOperations.md
+  - samples/client/subscriptionIdHandling.md
+  - samples/client/disableHierarchy/disableOperationGroup.md
+  - samples/client/disableHierarchy/enableOperationGroup.md
+  - samples/client/enableHierarchy/disableOperationGroup.md
+  - samples/client/enableHierarchy/enableOperationGroup.md
+
+- **Added 4 unit tests** for `normalizeImports` in
+  `test/scenarios/normalize-imports.test.ts`
+
+- **Updated PRD**: Marked RC05, RC06, RC07, RC08, RC09, RC13 as done.
+
+### Test Results
+- Before: 830 passed, 3 skipped, 46 test files
+- After: 834 passed, 3 skipped, 47 test files (4 new tests, 1 new test file)
+- Zero regressions in existing tests
+
+### Architecture decisions
+- **Per-section normalization**: The fix uses regex split on `/** This file path is`
+  to identify file boundaries in concatenated output. This is specific to the sample
+  concatenation format but robust — non-sample files don't contain these comments.
+- **Export for testing**: `normalizeImports` is exported as `_normalizeImports` (prefixed
+  with underscore to indicate internal/test-only) for direct unit testing.
+
+### Files Changed
+- `test/scenarios/scenario-harness.ts` — Fixed normalizeImports, added export
+- `test/scenarios/normalize-imports.test.ts` — New test file (4 tests)
+- `test/scenarios/cases/samples/` — 8 scenario files updated with correct expectations
+- `prd.json` — RC05, RC06, RC07, RC08, RC09, RC13 marked done
+- `knowledge.md` — Documented the normalizeImports bug and fix
+
+### Notes for next person
+- Completed: All Phases 0-10, Tasks 11.02, 11.04, 11.07, SA4, SA11, SA20, SA3,
+  RC01-RC09, RC13 (DONE).
+- **Remaining P1 tasks**: RC10 (DefaultAzureCredential import), RC11 (env var names),
+  RC14-RC30
+- **Remaining P2 tasks**: RC12, RC31-RC34
+- RC10 (Missing DefaultAzureCredential import in Azure samples) is a natural next target
+  — check if this is also already working now that multi-file output is correct.
+- The 3 remaining skipped tests are blocked on external issues (TCGC #3088, TypeSpec #6983, TCGC #1419)
+- The vitest worker timeout error is an infrastructure issue, not a test failure.
