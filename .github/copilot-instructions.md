@@ -334,6 +334,34 @@ import { refkey } from "../../framework/refkey.js";
 import { refkey } from "@alloy-js/core";
 ```
 
+### ❌ 9. Unresolved Symbol References in Output
+
+Generated code must **NEVER** contain `<Unresolved Symbol: refkey[...]>` placeholders. These indicate a refkey that was referenced but never declared (i.e., no component registered ownership of that refkey via a `refkey` prop). This is a **critical bug** — the output is broken TypeScript that cannot compile.
+
+**Common causes:**
+- A refkey is created for an entity but the corresponding declaration component is never rendered (e.g., a serializer refkey exists but no `<ts.FunctionDeclaration refkey={serializerRefkey}>` is emitted)
+- A refkey discriminator mismatch (e.g., `refkey(type, "serializer")` vs `refkey(type, "serialize")`)
+- A component conditionally skips rendering but the refkey is still referenced elsewhere
+- Using a refkey from a different render pass or context that isn't connected
+
+**How to prevent:**
+- When adding a new refkey reference, always verify the corresponding declaration component exists and will be rendered
+- After making changes, run scenario tests and grep output for `Unresolved Symbol` — if any appear, the change is broken
+- In CI, assert that no emitted file contains the string `<Unresolved Symbol`
+
+```tsx
+// ❌ BUG — referencing a refkey that no declaration owns
+const mySerializerKey = refkey(sdkType, "serializer");
+code`return ${mySerializerKey}(input);`  // renders as <Unresolved Symbol: refkey[...]>
+
+// ✅ CORRECT — ensure the declaration exists
+<ts.FunctionDeclaration name="mySerializer" refkey={mySerializerKey} export>
+  {/* implementation */}
+</ts.FunctionDeclaration>
+// Now the refkey resolves correctly
+code`return ${mySerializerKey}(input);`  // renders as mySerializer(input)
+```
+
 ---
 
 ## Gotchas

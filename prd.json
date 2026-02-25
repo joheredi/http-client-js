@@ -2279,6 +2279,214 @@
         }
       ],
       "status": "done"
+    },
+    {
+      "phase": 12,
+      "title": "Scenario Test Parity \u2014 Audit Findings",
+      "description": "Address all semantic differences identified by comparing 102 scenario test files between the new emitter and the legacy autorest.typescript emitter. These tasks ensure output parity with the legacy emitter.",
+      "status": "not_started",
+      "tasks": [
+        {
+          "id": "SA20",
+          "title": "Unresolved Symbol Placeholders",
+          "description": "NEW contains <Unresolved Symbol: refkey[...]> placeholders in generated code for certain union types and deserializers. These indicate refkey resolution failures in the Alloy framework rendering pipeline. This is a BUG in the new emitter that MUST be fixed immediately and prevented from recurring. No unresolved symbols should ever appear in generated output. A CI guard/assertion should be added to prevent regressions.",
+          "status": "not_started",
+          "priority": "P0-CRITICAL",
+          "affected_scenarios": "models/deserialization/propertyType.md, models/serialization/propertyType.md, operations/errorDeserialization/xmlErrorDeserialization.md, models/response/headerInXmlResponse.md"
+        },
+        {
+          "id": "SA3",
+          "title": "Client Context Creation Logic",
+          "description": "LEGACY createService/createTestService functions include: (1) user agent prefix computation, (2) logger integration, (3) apiVersion destructuring with defaults, (4) spreading clientParam into context. NEW has minimal logic: just getClient(endpointUrl, options). Missing user agent handling, logger setup, and apiVersion defaults.",
+          "status": "not_started",
+          "priority": "P0",
+          "affected_scenarios": "clientContext/clientContext.md, clientContext/optionalApiVersion.md, classicClient/*.md, operations/headerParam/*.md, operations/queryParam/queryParamWithClientInitialization.md"
+        },
+        {
+          "id": "SA4",
+          "title": "Error Deserialization in Operations",
+          "description": "LEGACY creates error objects, deserializes error response bodies (errorResponseDeserializer, storageErrorDeserializer, etc.), attaches error.details, and optionally merges exception headers before throwing. NEW simply throws createRestError(result) without any error body deserialization or header merging.",
+          "status": "not_started",
+          "priority": "P0",
+          "affected_scenarios": "operations/armPatchWithUnionResponse.md, operations/overrideReservedkeywords.md, operations/errorDeserialization/*.md, operations/lroPaging.md, operations/headerParam/*.md, operations/queryParam/queryParamWithClientInitialization.md, samples/parameters/bodyOptionalParameterName.md"
+        },
+        {
+          "id": "SA11",
+          "title": "Collection Encoding Helpers Missing",
+          "description": "LEGACY uses buildCsvCollection, buildSsvCollection, buildPipeCollection, parseCsvCollection, parsePipeCollection helper functions for array encoding in query/header parameters. NEW passes arrays directly without any collection encoding transformation, which will produce incorrect wire format.",
+          "status": "not_started",
+          "priority": "P0",
+          "affected_scenarios": "models/serialization/modelPropertyArrayEncoding.md, operations/queryParam/queryParamCollectionFormat.md"
+        },
+        {
+          "id": "SA16",
+          "title": "Sample Code Generation Defects",
+          "description": "NEW has multiple sample generation bugs: (1) wrong file paths (all samples get same path), (2) wrong function names (copy-paste of first function), (3) duplicate import statements, (4) empty body objects instead of populated test data, (5) wrong client class names, (6) wrong environment variable names, (7) missing credential imports (DefaultAzureCredential), (8) constructor parameter order reversed.",
+          "status": "not_started",
+          "priority": "P0",
+          "affected_scenarios": "samples/client/disableHierarchy/*.md, samples/client/enableHierarchy/*.md, samples/operations/armCurdOperations.md, samples/operations/disableHierarchyArmCurdOperations.md, samples/operations/dpgCurdOperations.md, samples/operations/multipleExamplesInOneFile.md, samples/parameters/*.md (many)"
+        },
+        {
+          "id": "SA1",
+          "title": "Azure Flavor Import Source Detection",
+          "description": "The legacy emitter uses @azure-rest/core-client when the flavor option is 'Azure', and @typespec/ts-http-runtime otherwise. The NEW emitter always uses @typespec/ts-http-runtime regardless of flavor. The scenario tests are configured for Azure flavor, so the expected output should use @azure-rest/core-client. The NEW emitter needs to respect the flavor option and switch import sources accordingly.",
+          "status": "not_started",
+          "priority": "P1",
+          "affected_scenarios": "ALL (102/102)"
+        },
+        {
+          "id": "SA2",
+          "title": "Import Aliasing with _1 Suffix",
+          "description": "NEW generates aliased imports with _1 suffix (e.g., Client_1, StreamableMethod_1, fooDeserializer_1). LEGACY uses direct import names without aliases. This is a pervasive pattern difference in operations files that changes all type references throughout generated code.",
+          "status": "not_started",
+          "priority": "P1",
+          "affected_scenarios": "ALL operations files (~80+)"
+        },
+        {
+          "id": "SA5",
+          "title": "Versions Type vs KnownVersions Enum",
+          "description": "NEW generates 'export type Versions = \"2021-10-01-preview\"' (simple type alias). LEGACY generates 'export enum KnownVersions { V20211001Preview = \"2021-10-01-preview\" }' (full enum with PascalCase members). This is a public API surface difference.",
+          "status": "not_started",
+          "priority": "P1",
+          "affected_scenarios": "models/apiVersion/*.md, models/azureCoreErrorModels.md, models/missingErrorResponseModel.md, models/nestedEnum/flatten/*.md, models/propertyFlatten/mulipleLayers.md, operations/lroPaging.md"
+        },
+        {
+          "id": "SA7",
+          "title": "Client Naming Conventions",
+          "description": "NEW generates ServiceClient/ServiceContext/createService. LEGACY generates TestServiceClient/TestServiceContext/createTestService (applying the service title). The title configuration is not being applied in the NEW emitter for class/function/context naming.",
+          "status": "not_started",
+          "priority": "P1",
+          "affected_scenarios": "classicClient/classicClient.md, classicClient/reservedWordOperations.md, samples/client/renameClientName.md, samples/parameters/*.md (many)"
+        },
+        {
+          "id": "SA8",
+          "title": "Constructor Parameter Naming",
+          "description": "NEW uses 'endpoint' as constructor parameter name. LEGACY uses 'endpointParam'. When server has default values, LEGACY moves endpoint to options; NEW keeps it positional. This affects the public API of generated clients.",
+          "status": "not_started",
+          "priority": "P1",
+          "affected_scenarios": "clientContext/clientContext.md, classicClient/classicClient.md, classicClient/reservedWordOperations.md, operations/headerParam/*.md"
+        },
+        {
+          "id": "SA9",
+          "title": "Reserved Word Handling Strategy",
+          "description": "NEW uses trailing underscore suffix for reserved words (continue_, return_). LEGACY uses dollar sign prefix ($continue, $return). The public-facing method name differs: NEW exposes 'continue_' while LEGACY exposes 'continue' (calling $continue internally).",
+          "status": "not_started",
+          "priority": "P1",
+          "affected_scenarios": "apiOperations/reservedWordOperations.md, classicClient/reservedWordOperations.md, operations/overrideReservedkeywords.md"
+        },
+        {
+          "id": "SA10",
+          "title": "Additional Properties Handling",
+          "description": "NEW uses index signatures ([key: string]: T) for additional properties. LEGACY uses explicit additionalProperties?: Record<string, T> field with serializeRecord() helper. Different structural representation of the same TypeSpec concept, affects both interface shape and serialization logic.",
+          "status": "not_started",
+          "priority": "P1",
+          "affected_scenarios": "models/serialization/additionalProperties.md, models/deserialization/additionalProperties.md, modelsGenerator/modelsGenerator.md"
+        },
+        {
+          "id": "SA12",
+          "title": "URL Template Parameter Key Encoding",
+          "description": "NEW uses unencoded keys in URL template expansion (e.g., 'api-version'). LEGACY uses URL-encoded keys (e.g., 'api%2Dversion'). Similarly, '$expand' vs '%24expand'. This may affect URL template resolution behavior.",
+          "status": "not_started",
+          "priority": "P1",
+          "affected_scenarios": "operations/pathParam/pathParamUrlTemplate.md, operations/queryParam/queryParamUrlTemplate.md, operations/queryParam/queryParamWithClientInitialization.md, apiOperations/azureCoreOperations.md"
+        },
+        {
+          "id": "SA13",
+          "title": "Property Flatten Serialization Approach",
+          "description": "NEW uses helper functions (_testPropertiesSerializer, _fooPropertiesSerializer) with spread operators and areAllPropsUndefined checks. LEGACY uses inline direct property serialization. Different approach to name collision resolution: NEW renames with path prefix (barPropertiesBar), LEGACY duplicates property names.",
+          "status": "not_started",
+          "priority": "P1",
+          "affected_scenarios": "models/propertyFlatten/*.md, models/serialization/readonlyFlattenModel.md, samples/propertyFlatten/*.md"
+        },
+        {
+          "id": "SA14",
+          "title": "Discriminated Union Serialization",
+          "description": "LEGACY generates base model serializers/deserializers and uses them as default case in switch statements. NEW returns item directly in default case without base model processing. LEGACY child deserializers include parent fields; NEW only includes child-specific fields.",
+          "status": "not_started",
+          "priority": "P1",
+          "affected_scenarios": "models/deserialization/extends.md, models/serialization/propertyType.md"
+        },
+        {
+          "id": "SA15",
+          "title": "Nullable Type Preservation",
+          "description": "NEW preserves '| null' in optional nullable types (e.g., optionalNullableBoolean?: boolean | null). LEGACY strips the null from optional types (optionalNullableBoolean?: boolean). This is a type-level semantic difference.",
+          "status": "not_started",
+          "priority": "P1",
+          "affected_scenarios": "models/nullable/nullableOptional.md, models/nullable/nullableUnion.md"
+        },
+        {
+          "id": "SA17",
+          "title": "Multipart File Type Representation",
+          "description": "NEW uses structured File interfaces with inheritance (File, FileRequiredName extends File, PngFile extends File). LEGACY uses FileContents union types (FileContents | { contents: FileContents; contentType?: string; filename?: string }). NEW also adds contentType as explicit operation parameter; LEGACY omits it.",
+          "status": "not_started",
+          "priority": "P1",
+          "affected_scenarios": "multipart/file.md, multipart/text.md, multipart/renamewithWireNameAndClientName.md"
+        },
+        {
+          "id": "SA18",
+          "title": "API Version as Function Parameter vs Context Property",
+          "description": "NEW passes apiVersion as an explicit function parameter to _send functions. LEGACY reads apiVersion from context (context.apiVersion) with fallback defaults. This changes function signatures throughout operations code.",
+          "status": "not_started",
+          "priority": "P1",
+          "affected_scenarios": "operations/pathParam/pathParamUrlTemplate.md, operations/queryParam/explodeTrueWithAnnotation.md, samples/parameters/parameterOrdering.md, classicClient/clientConstructorOverloads.md"
+        },
+        {
+          "id": "SA19",
+          "title": "Date/Time Serialization Encoding",
+          "description": "NEW uses toISOString() for all date types including plainDate. LEGACY uses toISOString().split('T')[0] for plainDate (date-only) and toUTCString() for UTC datetime. This produces incorrect wire format for plainDate types.",
+          "status": "not_started",
+          "priority": "P1",
+          "affected_scenarios": "modelsGenerator/modelsGenerator.md, multipart/json.md (unix timestamp encoding difference)"
+        },
+        {
+          "id": "SA22",
+          "title": "Enum Key Normalization Differences",
+          "description": "Different PascalCase normalization rules for enum member names. Examples: PascalCase_5 vs PascalCase5, _PascalCase7 vs PascalCase7, MaxOfMld vs MAXOfMLD, numeric-prefix handling ('090' vs _090). Custom clientName handling also differs ($DoNotNormalizeItem_1_0 vs Item-1.0 as string).",
+          "status": "not_started",
+          "priority": "P1",
+          "affected_scenarios": "models/serialization/enumKeyNorm.md"
+        },
+        {
+          "id": "SA23",
+          "title": "Nested Enum Flattening Behavior",
+          "description": "When experimentalExtensibleEnums is false/undefined, NEW generates flattened string literal unions directly. LEGACY generates separate type aliases (ResourceProvisioningState, Baz) composed into unions with '| string' for extensibility, plus dedicated serializer functions.",
+          "status": "not_started",
+          "priority": "P1",
+          "affected_scenarios": "models/nestedEnum/notFlatten/experimentalExtensibleEnumsFalse.md, models/nestedEnum/notFlatten/experimentalExtensibleEnumsUndefined.md"
+        },
+        {
+          "id": "SA24",
+          "title": "Classic Client Constructor Overloads",
+          "description": "LEGACY generates constructor overloads for mixed tenant/subscription-level operations with polymorphic parameter handling. NEW generates single simple constructor without overloads, missing subscriptionId parameter handling, operation group properties, and delegating methods.",
+          "status": "not_started",
+          "priority": "P1",
+          "affected_scenarios": "classicClient/clientConstructorOverloads.md"
+        },
+        {
+          "id": "SA6",
+          "title": "ESLint Directives and JSDoc Comments",
+          "description": "LEGACY includes eslint-disable comments (naming-convention, explicit-module-boundary-types) and JSDoc comments (/** model interface Foo */) in model files. NEW omits these entirely. While not functionally impactful, this is an output parity difference.",
+          "status": "not_started",
+          "priority": "P2",
+          "affected_scenarios": "ALL model files (~40+)"
+        },
+        {
+          "id": "SA21",
+          "title": "Response Type Composition Pattern",
+          "description": "NEW uses type intersection for response types (User & { requestId: string }). LEGACY expands all properties into inline object types ({ name: string; email: string; requestId: string }). Semantically equivalent but different generated code style.",
+          "status": "not_started",
+          "priority": "P2",
+          "affected_scenarios": "models/response/headerAndModelInResponse.md, models/response/headerAndModelSpread.md, models/response/headerInResponse.md, models/response/headerInXmlResponse.md"
+        },
+        {
+          "id": "SA25",
+          "title": "Constant Model Parameter Expansion",
+          "description": "For constant-only models, NEW explodes constant properties into function parameters with literal types. LEGACY keeps them as hardcoded values in the request body. Different approach to handling models where all properties have constant values.",
+          "status": "not_started",
+          "priority": "P2",
+          "affected_scenarios": "models/models.md (generate only constant type model scenario)"
+        }
+      ]
     }
   ],
   "risks": [
@@ -2342,5 +2550,255 @@
     "reference_emitter_priority2": "submodules/typespec/packages/http-client-js",
     "legacy_emitter": "submodules/autorest.typescript/packages/typespec-ts",
     "tcgc_python_usage": "submodules/typespec/packages/http-client-python"
+  },
+  "scenario_audit": {
+    "description": "Categorized semantic differences between NEW (http-client-js) and LEGACY (autorest.typescript) scenario test expectations, identified through automated comparison of 102 matched .md files.",
+    "summary": {
+      "total_matched_files": 102,
+      "files_only_in_new": 4,
+      "files_only_in_legacy": 0,
+      "files_with_no_diff": 2,
+      "files_with_differences": 100,
+      "total_categories": 25
+    },
+    "identical_files": [
+      "samples/client/apiKeyCredentialClient.md",
+      "samples/client/parameterizedHost.md"
+    ],
+    "new_only_files": [
+      "client/client.md",
+      "models/basic.md",
+      "models/types.md",
+      "operations/basic.md"
+    ],
+    "tasks": [
+      {
+        "id": "SA1",
+        "title": "Azure Flavor Import Source Detection",
+        "category": "Infrastructure",
+        "priority": "P1",
+        "description": "The legacy emitter uses @azure-rest/core-client when the flavor option is 'Azure', and @typespec/ts-http-runtime otherwise. The NEW emitter always uses @typespec/ts-http-runtime regardless of flavor. The scenario tests are configured for Azure flavor, so the expected output should use @azure-rest/core-client. The NEW emitter needs to respect the flavor option and switch import sources accordingly.",
+        "affected_scenarios": "ALL (102/102)",
+        "status": "tracked"
+      },
+      {
+        "id": "SA2",
+        "title": "Import Aliasing with _1 Suffix",
+        "category": "Code Generation Style",
+        "priority": "P1",
+        "description": "NEW generates aliased imports with _1 suffix (e.g., Client_1, StreamableMethod_1, fooDeserializer_1). LEGACY uses direct import names without aliases. This is a pervasive pattern difference in operations files that changes all type references throughout generated code.",
+        "affected_scenarios": "ALL operations files (~80+)",
+        "status": "tracked"
+      },
+      {
+        "id": "SA3",
+        "title": "Client Context Creation Logic",
+        "category": "Client Infrastructure",
+        "priority": "P0",
+        "description": "LEGACY createService/createTestService functions include: (1) user agent prefix computation, (2) logger integration, (3) apiVersion destructuring with defaults, (4) spreading clientParam into context. NEW has minimal logic: just getClient(endpointUrl, options). Missing user agent handling, logger setup, and apiVersion defaults.",
+        "affected_scenarios": "clientContext/clientContext.md, clientContext/optionalApiVersion.md, classicClient/*.md, operations/headerParam/*.md, operations/queryParam/queryParamWithClientInitialization.md",
+        "status": "tracked"
+      },
+      {
+        "id": "SA4",
+        "title": "Error Deserialization in Operations",
+        "category": "Error Handling",
+        "priority": "P0",
+        "description": "LEGACY creates error objects, deserializes error response bodies (errorResponseDeserializer, storageErrorDeserializer, etc.), attaches error.details, and optionally merges exception headers before throwing. NEW simply throws createRestError(result) without any error body deserialization or header merging.",
+        "affected_scenarios": "operations/armPatchWithUnionResponse.md, operations/overrideReservedkeywords.md, operations/errorDeserialization/*.md, operations/lroPaging.md, operations/headerParam/*.md, operations/queryParam/queryParamWithClientInitialization.md, samples/parameters/bodyOptionalParameterName.md",
+        "status": "tracked"
+      },
+      {
+        "id": "SA5",
+        "title": "Versions Type vs KnownVersions Enum",
+        "category": "Model Generation",
+        "priority": "P1",
+        "description": "NEW generates 'export type Versions = \"2021-10-01-preview\"' (simple type alias). LEGACY generates 'export enum KnownVersions { V20211001Preview = \"2021-10-01-preview\" }' (full enum with PascalCase members). This is a public API surface difference.",
+        "affected_scenarios": "models/apiVersion/*.md, models/azureCoreErrorModels.md, models/missingErrorResponseModel.md, models/nestedEnum/flatten/*.md, models/propertyFlatten/mulipleLayers.md, operations/lroPaging.md",
+        "status": "tracked"
+      },
+      {
+        "id": "SA6",
+        "title": "ESLint Directives and JSDoc Comments",
+        "category": "Code Generation Style",
+        "priority": "P2",
+        "description": "LEGACY includes eslint-disable comments (naming-convention, explicit-module-boundary-types) and JSDoc comments (/** model interface Foo */) in model files. NEW omits these entirely. While not functionally impactful, this is an output parity difference.",
+        "affected_scenarios": "ALL model files (~40+)",
+        "status": "tracked"
+      },
+      {
+        "id": "SA7",
+        "title": "Client Naming Conventions",
+        "category": "Client Infrastructure",
+        "priority": "P1",
+        "description": "NEW generates ServiceClient/ServiceContext/createService. LEGACY generates TestServiceClient/TestServiceContext/createTestService (applying the service title). The title configuration is not being applied in the NEW emitter for class/function/context naming.",
+        "affected_scenarios": "classicClient/classicClient.md, classicClient/reservedWordOperations.md, samples/client/renameClientName.md, samples/parameters/*.md (many)",
+        "status": "tracked"
+      },
+      {
+        "id": "SA8",
+        "title": "Constructor Parameter Naming",
+        "category": "Client Infrastructure",
+        "priority": "P1",
+        "description": "NEW uses 'endpoint' as constructor parameter name. LEGACY uses 'endpointParam'. When server has default values, LEGACY moves endpoint to options; NEW keeps it positional. This affects the public API of generated clients.",
+        "affected_scenarios": "clientContext/clientContext.md, classicClient/classicClient.md, classicClient/reservedWordOperations.md, operations/headerParam/*.md",
+        "status": "tracked"
+      },
+      {
+        "id": "SA9",
+        "title": "Reserved Word Handling Strategy",
+        "category": "Code Generation Style",
+        "priority": "P1",
+        "description": "NEW uses trailing underscore suffix for reserved words (continue_, return_). LEGACY uses dollar sign prefix ($continue, $return). The public-facing method name differs: NEW exposes 'continue_' while LEGACY exposes 'continue' (calling $continue internally).",
+        "affected_scenarios": "apiOperations/reservedWordOperations.md, classicClient/reservedWordOperations.md, operations/overrideReservedkeywords.md",
+        "status": "tracked"
+      },
+      {
+        "id": "SA10",
+        "title": "Additional Properties Handling",
+        "category": "Model Generation",
+        "priority": "P1",
+        "description": "NEW uses index signatures ([key: string]: T) for additional properties. LEGACY uses explicit additionalProperties?: Record<string, T> field with serializeRecord() helper. Different structural representation of the same TypeSpec concept, affects both interface shape and serialization logic.",
+        "affected_scenarios": "models/serialization/additionalProperties.md, models/deserialization/additionalProperties.md, modelsGenerator/modelsGenerator.md",
+        "status": "tracked"
+      },
+      {
+        "id": "SA11",
+        "title": "Collection Encoding Helpers Missing",
+        "category": "Serialization",
+        "priority": "P0",
+        "description": "LEGACY uses buildCsvCollection, buildSsvCollection, buildPipeCollection, parseCsvCollection, parsePipeCollection helper functions for array encoding in query/header parameters. NEW passes arrays directly without any collection encoding transformation, which will produce incorrect wire format.",
+        "affected_scenarios": "models/serialization/modelPropertyArrayEncoding.md, operations/queryParam/queryParamCollectionFormat.md",
+        "status": "tracked"
+      },
+      {
+        "id": "SA12",
+        "title": "URL Template Parameter Key Encoding",
+        "category": "Operations",
+        "priority": "P1",
+        "description": "NEW uses unencoded keys in URL template expansion (e.g., 'api-version'). LEGACY uses URL-encoded keys (e.g., 'api%2Dversion'). Similarly, '$expand' vs '%24expand'. This may affect URL template resolution behavior.",
+        "affected_scenarios": "operations/pathParam/pathParamUrlTemplate.md, operations/queryParam/queryParamUrlTemplate.md, operations/queryParam/queryParamWithClientInitialization.md, apiOperations/azureCoreOperations.md",
+        "status": "tracked"
+      },
+      {
+        "id": "SA13",
+        "title": "Property Flatten Serialization Approach",
+        "category": "Serialization",
+        "priority": "P1",
+        "description": "NEW uses helper functions (_testPropertiesSerializer, _fooPropertiesSerializer) with spread operators and areAllPropsUndefined checks. LEGACY uses inline direct property serialization. Different approach to name collision resolution: NEW renames with path prefix (barPropertiesBar), LEGACY duplicates property names.",
+        "affected_scenarios": "models/propertyFlatten/*.md, models/serialization/readonlyFlattenModel.md, samples/propertyFlatten/*.md",
+        "status": "tracked"
+      },
+      {
+        "id": "SA14",
+        "title": "Discriminated Union Serialization",
+        "category": "Serialization",
+        "priority": "P1",
+        "description": "LEGACY generates base model serializers/deserializers and uses them as default case in switch statements. NEW returns item directly in default case without base model processing. LEGACY child deserializers include parent fields; NEW only includes child-specific fields.",
+        "affected_scenarios": "models/deserialization/extends.md, models/serialization/propertyType.md",
+        "status": "tracked"
+      },
+      {
+        "id": "SA15",
+        "title": "Nullable Type Preservation",
+        "category": "Model Generation",
+        "priority": "P1",
+        "description": "NEW preserves '| null' in optional nullable types (e.g., optionalNullableBoolean?: boolean | null). LEGACY strips the null from optional types (optionalNullableBoolean?: boolean). This is a type-level semantic difference.",
+        "affected_scenarios": "models/nullable/nullableOptional.md, models/nullable/nullableUnion.md",
+        "status": "tracked"
+      },
+      {
+        "id": "SA16",
+        "title": "Sample Code Generation Defects",
+        "category": "Samples",
+        "priority": "P0",
+        "description": "NEW has multiple sample generation bugs: (1) wrong file paths (all samples get same path), (2) wrong function names (copy-paste of first function), (3) duplicate import statements, (4) empty body objects instead of populated test data, (5) wrong client class names, (6) wrong environment variable names, (7) missing credential imports (DefaultAzureCredential), (8) constructor parameter order reversed.",
+        "affected_scenarios": "samples/client/disableHierarchy/*.md, samples/client/enableHierarchy/*.md, samples/operations/armCurdOperations.md, samples/operations/disableHierarchyArmCurdOperations.md, samples/operations/dpgCurdOperations.md, samples/operations/multipleExamplesInOneFile.md, samples/parameters/*.md (many)",
+        "status": "tracked"
+      },
+      {
+        "id": "SA17",
+        "title": "Multipart File Type Representation",
+        "category": "Multipart",
+        "priority": "P1",
+        "description": "NEW uses structured File interfaces with inheritance (File, FileRequiredName extends File, PngFile extends File). LEGACY uses FileContents union types (FileContents | { contents: FileContents; contentType?: string; filename?: string }). NEW also adds contentType as explicit operation parameter; LEGACY omits it.",
+        "affected_scenarios": "multipart/file.md, multipart/text.md, multipart/renamewithWireNameAndClientName.md",
+        "status": "tracked"
+      },
+      {
+        "id": "SA18",
+        "title": "API Version as Function Parameter vs Context Property",
+        "category": "Operations",
+        "priority": "P1",
+        "description": "NEW passes apiVersion as an explicit function parameter to _send functions. LEGACY reads apiVersion from context (context.apiVersion) with fallback defaults. This changes function signatures throughout operations code.",
+        "affected_scenarios": "operations/pathParam/pathParamUrlTemplate.md, operations/queryParam/explodeTrueWithAnnotation.md, samples/parameters/parameterOrdering.md, classicClient/clientConstructorOverloads.md",
+        "status": "tracked"
+      },
+      {
+        "id": "SA19",
+        "title": "Date/Time Serialization Encoding",
+        "category": "Serialization",
+        "priority": "P1",
+        "description": "NEW uses toISOString() for all date types including plainDate. LEGACY uses toISOString().split('T')[0] for plainDate (date-only) and toUTCString() for UTC datetime. This produces incorrect wire format for plainDate types.",
+        "affected_scenarios": "modelsGenerator/modelsGenerator.md, multipart/json.md (unix timestamp encoding difference)",
+        "status": "tracked"
+      },
+      {
+        "id": "SA20",
+        "title": "Unresolved Symbol Placeholders",
+        "category": "Code Generation Bugs",
+        "priority": "P0-CRITICAL",
+        "description": "NEW contains <Unresolved Symbol: refkey[...]> placeholders in generated code for certain union types and deserializers. These indicate refkey resolution failures in the Alloy framework rendering pipeline. This is a BUG in the new emitter that MUST be fixed immediately and prevented from recurring. No unresolved symbols should ever appear in generated output. A CI guard/assertion should be added to prevent regressions.",
+        "affected_scenarios": "models/deserialization/propertyType.md, models/serialization/propertyType.md, operations/errorDeserialization/xmlErrorDeserialization.md, models/response/headerInXmlResponse.md",
+        "status": "tracked",
+        "must_fix": true,
+        "prevent_regression": true
+      },
+      {
+        "id": "SA21",
+        "title": "Response Type Composition Pattern",
+        "category": "Model Generation",
+        "priority": "P2",
+        "description": "NEW uses type intersection for response types (User & { requestId: string }). LEGACY expands all properties into inline object types ({ name: string; email: string; requestId: string }). Semantically equivalent but different generated code style.",
+        "affected_scenarios": "models/response/headerAndModelInResponse.md, models/response/headerAndModelSpread.md, models/response/headerInResponse.md, models/response/headerInXmlResponse.md",
+        "status": "tracked"
+      },
+      {
+        "id": "SA22",
+        "title": "Enum Key Normalization Differences",
+        "category": "Model Generation",
+        "priority": "P1",
+        "description": "Different PascalCase normalization rules for enum member names. Examples: PascalCase_5 vs PascalCase5, _PascalCase7 vs PascalCase7, MaxOfMld vs MAXOfMLD, numeric-prefix handling ('090' vs _090). Custom clientName handling also differs ($DoNotNormalizeItem_1_0 vs Item-1.0 as string).",
+        "affected_scenarios": "models/serialization/enumKeyNorm.md",
+        "status": "tracked"
+      },
+      {
+        "id": "SA23",
+        "title": "Nested Enum Flattening Behavior",
+        "category": "Model Generation",
+        "priority": "P1",
+        "description": "When experimentalExtensibleEnums is false/undefined, NEW generates flattened string literal unions directly. LEGACY generates separate type aliases (ResourceProvisioningState, Baz) composed into unions with '| string' for extensibility, plus dedicated serializer functions.",
+        "affected_scenarios": "models/nestedEnum/notFlatten/experimentalExtensibleEnumsFalse.md, models/nestedEnum/notFlatten/experimentalExtensibleEnumsUndefined.md",
+        "status": "tracked"
+      },
+      {
+        "id": "SA24",
+        "title": "Classic Client Constructor Overloads",
+        "category": "Client Infrastructure",
+        "priority": "P1",
+        "description": "LEGACY generates constructor overloads for mixed tenant/subscription-level operations with polymorphic parameter handling. NEW generates single simple constructor without overloads, missing subscriptionId parameter handling, operation group properties, and delegating methods.",
+        "affected_scenarios": "classicClient/clientConstructorOverloads.md",
+        "status": "tracked"
+      },
+      {
+        "id": "SA25",
+        "title": "Constant Model Parameter Expansion",
+        "category": "Operations",
+        "priority": "P2",
+        "description": "For constant-only models, NEW explodes constant properties into function parameters with literal types. LEGACY keeps them as hardcoded values in the request body. Different approach to handling models where all properties have constant values.",
+        "affected_scenarios": "models/models.md (generate only constant type model scenario)",
+        "status": "tracked"
+      }
+    ]
   }
 }
