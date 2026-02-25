@@ -123,7 +123,8 @@ function getSerializableProperties(
  * - Models: calls the child serializer function via refkey
  * - Arrays: uses `.map()` with recursive element serialization
  * - Dictionaries: iterates entries with child serializer
- * - Dates: calls `.toISOString()`
+ * - utcDateTime: calls `.toISOString()` (or `.getTime()` for unixTimestamp encoding)
+ * - plainDate: calls `.toISOString().split("T")[0]` for date-only (YYYY-MM-DD) format
  * - Bytes: calls `uint8ArrayToString()` from the runtime library
  * - Nullable: unwraps and serializes the inner type
  * - Simple types: returns the accessor unchanged (passthrough)
@@ -163,11 +164,13 @@ export function getSerializationExpression(
     }
 
     case "utcDateTime":
-    case "plainDate":
       if (type.encode === "unixTimestamp") {
         return code`(${accessor}).getTime()`;
       }
       return code`(${accessor}).toISOString()`;
+
+    case "plainDate":
+      return code`(${accessor}).toISOString().split("T")[0]`;
 
     case "duration":
       return accessor;

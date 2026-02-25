@@ -473,4 +473,56 @@ describe("JsonDeserializer", () => {
     expect(result).toContain("normalColors: item[\"normalColors\"]");
     expect(result).not.toContain("parseCsvCollection(item[\"normalColors\"])");
   });
+
+  /**
+   * Tests that plainDate properties deserialize from wire strings using `new Date()`.
+   *
+   * The wire format for plainDate is a YYYY-MM-DD string. JavaScript's Date
+   * constructor correctly parses this format, so `new Date("2024-01-15")`
+   * produces a valid Date object. This matches the legacy emitter pattern.
+   *
+   * This test ensures plainDate deserialization wasn't accidentally broken
+   * when fixing RC19 (plainDate serialization). Deserialization uses
+   * `new Date()` for both utcDateTime and plainDate — only serialization
+   * differs (`.toISOString()` vs `.toISOString().split("T")[0]`).
+   */
+  it("should deserialize plainDate with new Date()", async () => {
+    const runner = await TesterWithService.createInstance();
+    const { program } = await runner.compile(
+      t.code`
+        model ${t.model("Event")} {
+          name: string;
+          eventDate: plainDate;
+        }
+
+        op getEvent(): Event;
+      `,
+    );
+
+    const sdkContext = await createSdkContextForTest(program);
+    const model = sdkContext.sdkPackage.models[0];
+
+    const template = (
+      <SdkTestFile sdkContext={sdkContext}>
+        <ModelInterface model={model} />
+        {"\n\n"}
+        <JsonDeserializer model={model} />
+      </SdkTestFile>
+    );
+
+    // plainDate deserializes with new Date() — same as utcDateTime
+    expect(template).toRenderTo(d`
+      export interface Event {
+        name: string;
+        eventDate: Date;
+      }
+
+      export function eventDeserializer(item: any): Event {
+        return {
+          name: item["name"],
+          eventDate: new Date(item["eventDate"]),
+        };
+      }
+    `);
+  });
 });

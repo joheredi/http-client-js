@@ -2978,3 +2978,68 @@ When `@@override` groups individual query/header parameters into a model paramet
   — check if this is also already working now that multi-file output is correct.
 - The 3 remaining skipped tests are blocked on external issues (TCGC #3088, TypeSpec #6983, TCGC #1419)
 - The vitest worker timeout error is an infrastructure issue, not a test failure.
+
+## 2026-02-25 — RC19: plainDate Serialization Uses Date-Only Format
+
+### What was done
+- **Fixed plainDate serialization** to produce date-only format (YYYY-MM-DD) instead of
+  full ISO datetime string. Previously, both `utcDateTime` and `plainDate` used
+  `.toISOString()`, but `plainDate` should use `.toISOString().split("T")[0]`.
+
+- **Modified `src/components/serialization/json-serializer.tsx`**:
+  - Split the `case "utcDateTime": case "plainDate":` into separate cases
+  - `utcDateTime` retains `.toISOString()` and `.getTime()` for unixTimestamp
+  - `plainDate` now uses `.toISOString().split("T")[0]` for date-only output
+  - Updated JSDoc to document both date type serialization patterns
+
+- **Modified `src/components/serialization/xml-object-serializer.tsx`**:
+  - Same fix: split `utcDateTime` and `plainDate` cases
+  - `plainDate` now uses `.toISOString().split("T")[0]`
+
+- **Added 3 unit tests** in `test/components/serialization/json-serializer.test.tsx`:
+  - plainDate serializes as date-only YYYY-MM-DD format
+  - utcDateTime still serializes as full ISO string (regression guard)
+  - Optional plainDate gets null check + date-only format
+
+- **Added 1 unit test** in `test/components/serialization/json-deserializer.test.tsx`:
+  - plainDate deserializes with `new Date()` (confirms correct behavior)
+
+- **Updated 1 scenario test expectation**:
+  - modelsGenerator/modelsGenerator.md — plainDate serializer uses `.toISOString().split("T")[0]`
+
+- **Updated PRD**: Marked RC19 as done.
+
+### Test Results
+- Before: 834 passed, 3 skipped, 47 test files
+- After: 838 passed, 3 skipped, 47 test files (4 new tests)
+- Zero regressions in existing tests
+
+### Architecture decisions
+- **`.toISOString().split("T")[0]` pattern**: Matches the legacy emitter exactly.
+  This is the simplest reliable way to extract the date-only portion from a
+  JavaScript Date object. The `T` separator is guaranteed by ISO 8601.
+- **Deserialization unchanged**: `new Date(accessor)` works for both YYYY-MM-DD
+  strings (plainDate) and full ISO datetime strings (utcDateTime). No change needed.
+- **XML object serializer also fixed**: The same bug existed in the XML
+  serialization path. Both JSON and XML now correctly handle plainDate.
+- **Header deserialization unaffected**: `deserialize-headers.tsx` uses
+  `new Date()` for both date types, which is correct for deserialization.
+
+### Files Changed
+- `src/components/serialization/json-serializer.tsx` — Split plainDate/utcDateTime cases
+- `src/components/serialization/xml-object-serializer.tsx` — Split plainDate/utcDateTime cases
+- `test/components/serialization/json-serializer.test.tsx` — Added 3 new tests
+- `test/components/serialization/json-deserializer.test.tsx` — Added 1 new test
+- `test/scenarios/cases/modelsGenerator/modelsGenerator.md` — Updated expectation
+- `prd.json` — RC19 marked done
+
+### Notes for next person
+- Completed: All Phases 0-10, Tasks 11.02, 11.04, 11.07, SA4, SA11, SA20, SA3,
+  RC01-RC09, RC13, RC19 (DONE).
+- **RC20 (Unix timestamp encoding)** is a natural follow-up — same file, same code area.
+  Fix: change `(accessor).getTime()` to `((accessor).getTime() / 1000) | 0` for seconds.
+  Also fix XML object serializer's identical bug.
+- **Remaining P1 tasks**: RC10, RC11, RC14-RC18, RC20-RC30
+- **Remaining P2 tasks**: RC12, RC31-RC34
+- The 3 remaining skipped tests are blocked on external issues (TCGC #3088, TypeSpec #6983, TCGC #1419)
+- The vitest worker timeout error is an infrastructure issue, not a test failure.

@@ -12,6 +12,7 @@
  * - Nested model properties call child serializer via refkey.
  * - Array properties with model elements use .map() with child serializer.
  * - Date properties serialize via .toISOString().
+ * - plainDate properties serialize via .toISOString().split("T")[0] for date-only format.
  * - Serializer is only generated for models with Input usage flag.
  * - Serializer refkey is correctly assigned for cross-referencing.
  *
@@ -526,5 +527,152 @@ describe("JsonSerializer", () => {
     // Non-encoded array property should pass through as-is
     expect(result).toContain("normalColors: item[\"normalColors\"]");
     expect(result).not.toContain("buildCsvCollection(item[\"normalColors\"])");
+  });
+
+  /**
+   * Tests that plainDate properties serialize to date-only format (YYYY-MM-DD)
+   * using `.toISOString().split("T")[0]` instead of the full ISO datetime string.
+   *
+   * This is critical because APIs using TypeSpec's `plainDate` scalar expect
+   * wire values like "2024-01-15", not "2024-01-15T00:00:00.000Z". Sending a
+   * full ISO datetime string causes 400 errors or data misinterpretation on
+   * services that validate date-only format.
+   *
+   * The legacy emitter uses the same `.toISOString().split("T")[0]` pattern.
+   */
+  it("should serialize plainDate as date-only YYYY-MM-DD format", async () => {
+    const runner = await TesterWithService.createInstance();
+    const { program } = await runner.compile(
+      t.code`
+        model ${t.model("Event")} {
+          name: string;
+          eventDate: plainDate;
+        }
+
+        op createEvent(@body event: Event): void;
+      `,
+    );
+
+    const sdkContext = await createSdkContextForTest(program);
+    const model = sdkContext.sdkPackage.models[0];
+
+    const template = (
+      <SdkTestFile sdkContext={sdkContext}>
+        <ModelInterface model={model} />
+        {"\n\n"}
+        <JsonSerializer model={model} />
+      </SdkTestFile>
+    );
+
+    // plainDate must use .toISOString().split("T")[0] for YYYY-MM-DD format
+    expect(template).toRenderTo(d`
+      export interface Event {
+        name: string;
+        eventDate: Date;
+      }
+
+      export function eventSerializer(item: Event): any {
+        return {
+          name: item["name"],
+          eventDate: (item["eventDate"]).toISOString().split("T")[0],
+        };
+      }
+    `);
+  });
+
+  /**
+   * Tests that utcDateTime properties still serialize with full `.toISOString()`
+   * after the plainDate fix, ensuring the two date types are correctly distinguished.
+   *
+   * utcDateTime values must produce full ISO 8601 datetime strings (RFC 3339),
+   * e.g., "2024-01-15T12:30:00.000Z". Using date-only format would lose time
+   * information, breaking APIs that need precise timestamps.
+   */
+  it("should serialize utcDateTime as full ISO string", async () => {
+    const runner = await TesterWithService.createInstance();
+    const { program } = await runner.compile(
+      t.code`
+        model ${t.model("Log")} {
+          message: string;
+          timestamp: utcDateTime;
+        }
+
+        op createLog(@body log: Log): void;
+      `,
+    );
+
+    const sdkContext = await createSdkContextForTest(program);
+    const model = sdkContext.sdkPackage.models[0];
+
+    const template = (
+      <SdkTestFile sdkContext={sdkContext}>
+        <ModelInterface model={model} />
+        {"\n\n"}
+        <JsonSerializer model={model} />
+      </SdkTestFile>
+    );
+
+    // utcDateTime must use full .toISOString() (not truncated)
+    expect(template).toRenderTo(d`
+      export interface Log {
+        message: string;
+        timestamp: Date;
+      }
+
+      export function logSerializer(item: Log): any {
+        return {
+          message: item["message"],
+          timestamp: (item["timestamp"]).toISOString(),
+        };
+      }
+    `);
+  });
+
+  /**
+   * Tests that an optional plainDate property gets both the null-check guard
+   * AND the date-only serialization format. This validates that wrapWithNullCheck
+   * correctly wraps the plainDate-specific expression.
+   *
+   * Optional date properties that need transformation require:
+   * `!item["prop"] ? item["prop"] : (item["prop"]).toISOString().split("T")[0]`
+   */
+  it("should serialize optional plainDate with null check and date-only format", async () => {
+    const runner = await TesterWithService.createInstance();
+    const { program } = await runner.compile(
+      t.code`
+        model ${t.model("Task")} {
+          title: string;
+          dueDate?: plainDate;
+        }
+
+        op createTask(@body task: Task): void;
+      `,
+    );
+
+    const sdkContext = await createSdkContextForTest(program);
+    const model = sdkContext.sdkPackage.models[0];
+
+    const template = (
+      <SdkTestFile sdkContext={sdkContext}>
+        <ModelInterface model={model} />
+        {"\n\n"}
+        <JsonSerializer model={model} />
+      </SdkTestFile>
+    );
+
+    // Optional plainDate gets null check + date-only format
+    expect(template).toRenderTo(d`
+      export interface Task {
+        title: string;
+        dueDate?: Date;
+      }
+
+      export function taskSerializer(item: Task): any {
+        return {
+          title: item["title"],
+          dueDate: !item["dueDate"] ? item["dueDate"] : (item["dueDate"]).toISOString().split("T")[0],
+        };
+      }
+    `);
   });
 });

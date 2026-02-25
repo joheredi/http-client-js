@@ -116,11 +116,13 @@ function getXmlObjectSerializationExpression(
     }
 
     case "utcDateTime":
-    case "plainDate":
       if (type.encode === "unixTimestamp") {
         return code`(${accessor}).getTime()`;
       }
       return code`(${accessor}).toISOString()`;
+
+    case "plainDate":
+      return code`(${accessor}).toISOString().split("T")[0]`;
 
     case "bytes":
       return code`${useRuntimeLib().uint8ArrayToString}(${accessor}, "base64")`;

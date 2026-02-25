@@ -1289,3 +1289,20 @@ The `DeserializeOperation` component was not checking for error model types in `
 - **Symptom**: Sample scenario tests (e.g., `armCurdOperations.md`) had stale expectations showing duplicate imports (3x) and wrong function bodies. Tests passed because the normalizeImports bug produced the same broken output from correct emitter output.
 - **Fix**: Split input by `/** This file path is` comments before normalizing imports per-section. Each file section is an independent unit with its own import block.
 - **Impact**: RC05-RC09 were all "already working" in the emitter. Only the test expectations were stale due to this harness bug. After the fix, SCENARIOS_UPDATE correctly regenerates multi-file sample expectations.
+
+## plainDate Serialization Must Use Date-Only Format (RC19)
+
+**Bug**: `json-serializer.tsx` and `xml-object-serializer.tsx` used `.toISOString()` for
+both `utcDateTime` and `plainDate` types. The `plainDate` type should produce YYYY-MM-DD
+format (e.g., "2024-01-15"), not full ISO datetime (e.g., "2024-01-15T00:00:00.000Z").
+
+**Fix**: Split the `case "utcDateTime": case "plainDate":` into separate switch cases.
+`plainDate` now uses `(accessor).toISOString().split("T")[0]` to extract only the date
+portion. This matches the legacy emitter pattern in
+`submodules/autorest.typescript/packages/typespec-ts/src/modular/helpers/operationHelpers.ts`.
+
+**Deserialization is correct**: Both `utcDateTime` and `plainDate` use `new Date(accessor)`
+for deserialization, which correctly parses both formats.
+
+**Note**: The related RC20 bug (unixTimestamp uses milliseconds instead of seconds) is in
+the same code area. Fix: `((accessor).getTime() / 1000) | 0` for integer seconds.

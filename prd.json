@@ -2490,7 +2490,7 @@
           "id": "RC19",
           "title": "plainDate serialization uses full ISO string instead of date-only",
           "priority": "P1",
-          "status": "not_started",
+          "status": "done",
           "root_cause": "json-serializer.tsx uses .toISOString() for all date types. For plainDate, the wire format should be date-only (YYYY-MM-DD), requiring .toISOString().split('T')[0].",
           "file": "src/components/serialization/json-serializer.tsx (~line 162)",
           "description": "plainDate type serializes as full ISO datetime string instead of date-only format.",
