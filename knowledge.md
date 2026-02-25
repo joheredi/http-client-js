@@ -1035,7 +1035,13 @@ like `api/widgets/options.ts`. The regex must account for subdirectories:
 
 ## Alloy Name Policy and All-Caps Names (Task 10.6)
 
-**Problem**: Alloy's TypeScript name policy uses `change-case`'s `pascalCase` which converts
+> **SUPERSEDED**: This workaround is no longer needed. The custom naming policy
+> (`createEmitterNamePolicy` in `src/utils/name-policy.ts`) now handles enum member
+> normalization with ALL-CAPS preservation via its own `deconstruct()` logic. Regular
+> enum members flow through the naming policy automatically; only special cases
+> (e.g., API version enums) still need `namekey(..., { ignoreNamePolicy: true })`.
+
+**Original problem**: Alloy's TypeScript name policy uses `change-case`'s `pascalCase` which converts
 all-caps abbreviations incorrectly: `pascalCase("LR")` → "Lr", `pascalCase("UD")` → "Ud".
 The legacy emitter's `normalizeName` just capitalizes the first letter, preserving "LR" → "LR".
 
@@ -1348,7 +1354,12 @@ catch this because they didn't pass `nameConflictResolver` to `Output`.
 
 ## Alloy Name Policy Preserves Underscores Between Numbers
 
-**Problem**: Alloy's TypeScript name policy uses `change-case` `pascalCase()` with
+> **SUPERSEDED**: This workaround is no longer needed for regular enum members.
+> The custom naming policy (`createEmitterNamePolicy`) handles API version-style names
+> and numeric segments via legacy `deconstruct()` logic. Only API version enums still
+> use `normalizeVersionMemberName()` + `namekey(..., { ignoreNamePolicy: true })`.
+
+**Original problem**: Alloy's TypeScript name policy uses `change-case` `pascalCase()` with
 `{ prefixCharacters: "$_", suffixCharacters: "$_" }`. This means underscores between
 numeric segments are preserved: `v2023_12_01` → `V2023_12_01` (not `V20231201`).
 
@@ -1430,6 +1441,44 @@ inherited ones. For child types in discriminated hierarchies (e.g., `Cat extends
 the `baseModel` chain must be walked to collect inherited properties. The
 `collectAncestorProperties()` utility handles this by walking from most-distant
 ancestor to closest, filtering out properties overridden by the child model.
+
+## Custom Naming Policy — `createEmitterNamePolicy()`
+
+**Location**: `src/utils/name-policy.ts`
+
+This emitter replaces Alloy's default `createTSNamePolicy()` with a custom naming policy
+that matches legacy autorest.typescript conventions. The policy is set on the `<Output>`
+component in `src/emitter.tsx`, `src/azure-emitter.tsx`, and `test/scenarios/emit-for-scenario.tsx`.
+
+**Reserved word escaping** (context-specific, matching legacy `guardReservedNames`):
+- Functions/variables: `$` prefix (`continue` → `$continue`)
+- Parameters: `Param` suffix (`type` → `typeParam`, `endpoint` → `endpointParam`)
+- Class/interface members: bare names (reserved words are valid in JS property context)
+- Types: `Model` suffix (for future use)
+
+**Enum member normalization** (ported from legacy `deconstruct` + `toCasing` + `fixLeadingNumber`):
+- Preserves ALL-CAPS segments ≤3 chars: `MAX_of_MLD` → `MAXOfMLD`
+- Strips all leading underscores: `___pascal____case6666` → `PascalCase6666`
+- Prefixes `_` for leading digits: `090` → `_090`
+- Splits on camelCase boundaries, underscores, and number transitions
+
+**`$DO_NOT_NORMALIZE$` marker**: If a name starts with this prefix (set via `@clientName`
+in TypeSpec), the marker is stripped and the remaining name is returned as-is with no
+case conversion or reserved word escaping.
+
+**`@clientName` detection**: `src/utils/client-name-utils.ts` provides
+`hasExplicitClientName(tcgcContext, entity)` which checks `getClientNameOverride` from TCGC.
+When detected, components should pass `namekey(name, { ignoreNamePolicy: true })` to
+honor the user's explicit name.
+
+**Helpers** exported for use in components:
+- `isReservedOperationName(name)` — for @fixme JSDoc warnings
+- `getEscapedOperationName(name)` — for composing `_$continueSend`-style names
+- `getEscapedParameterName(name)` — for body/URL accessor references
+
+**Key detail**: The `apiVersion` entry in the reserved words list is stored as `"apiVersion"`
+(mixed case) to match a legacy case-sensitivity quirk — `guardReservedNames` compares
+`r.name === name.toLowerCase()`, so mixed-case entries won't match and stay unescaped.
 
 The polymorphic switch serializer/deserializer uses `serializerRefkey(model)` /
 `deserializerRefkey(model)`, while the plain base model functions use

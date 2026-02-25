@@ -2457,7 +2457,7 @@
           "id": "RC16",
           "title": "Enum member name normalization differs from legacy PascalCase rules",
           "priority": "P1",
-          "status": "not_started",
+          "status": "done",
           "root_cause": "enum-declaration.tsx uses raw TCGC member.name for enum members. Legacy applies custom PascalCase normalization that handles numeric prefixes (prepend _), all-caps preservation, and special characters differently.",
           "file": "src/components/enum-declaration.tsx, src/components/sub-enum-declaration.tsx",
           "description": "Enum member names differ: PascalCase_5 vs PascalCase5, _PascalCase7 vs PascalCase7, MaxOfMld vs MAXOfMLD, '090' vs _090.",

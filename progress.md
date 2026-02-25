@@ -34,11 +34,6 @@ RC23 (Reserved word naming) was resolved in commit `0fe932b`.
 - **Scenarios**: `operations/pathParam/pathParamUrlTemplate.md`, `operations/queryParam/queryParamUrlTemplate.md`, `operations/queryParam/queryParamWithClientInitialization.md`, `apiOperations/azureCoreOperations.md`
 - **Root cause**: Parameter keys like `api-version` are passed as plain strings. Legacy uses `api%2Dversion`. RFC 6570 expansion may differ.
 
-### RC16 — Enum member name normalization differs from legacy PascalCase rules
-- **File**: `src/components/enum-declaration.tsx`, `src/components/sub-enum-declaration.tsx`
-- **Scenarios**: `models/serialization/enumKeyNorm.md`
-- **Root cause**: Enum member names differ (e.g., `PascalCase_5` vs `PascalCase5`, `_PascalCase7` vs `PascalCase7`, `MaxOfMld` vs `MAXOfMLD`). Legacy applies custom normalization for numeric prefixes, all-caps, and special characters.
-
 ### RC21 — Nested enum types flattened to string literal union instead of composed types
 - **File**: `src/components/sub-enum-declaration.tsx`, `src/components/union-declaration.tsx`
 - **Scenarios**: `models/nestedEnum/notFlatten/experimentalExtensibleEnumsFalse.md`, `models/nestedEnum/notFlatten/experimentalExtensibleEnumsUndefined.md`

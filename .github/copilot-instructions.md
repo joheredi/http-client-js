@@ -165,7 +165,7 @@ Structure components hierarchically: **Top (orchestrators) → Middle (files) �
 // Top — full output
 function MyEmitter() {
   return (
-    <Output namePolicy={createTSNamePolicy()} nameConflictResolver={tsNameConflictResolver}>
+    <Output namePolicy={createEmitterNamePolicy()} nameConflictResolver={nameConflictResolver}>
       <SourceDirectory path="src">
         <ModelsFile />
         <OperationsFile />
@@ -223,13 +223,26 @@ parameters={[
 
 #### 8. Name Policies
 
+This emitter uses a **custom naming policy** (`createEmitterNamePolicy()` in `src/utils/name-policy.ts`) instead of Alloy's default `createTSNamePolicy()`. The custom policy matches legacy autorest.typescript conventions:
+
+- **Functions/variables**: Reserved words get `$` prefix (`$continue`, `$return`)
+- **Parameters**: Reserved words get `Param` suffix (`typeParam`, `endpointParam`)
+- **Class/interface members**: Reserved words stay bare (valid in JS property context)
+- **Enum members**: Custom PascalCase normalization preserving ≤3-char ALL-CAPS segments (`MAX`, `MLD`) and prefixing `_` for leading digits
+- **`$DO_NOT_NORMALIZE$` marker**: Strips prefix, skips all normalization
+
 ```tsx
 import { namekey } from "@alloy-js/core";
 
-// Alloy auto-transforms names (camelCase for functions, PascalCase for types)
-// To preserve exact names:
+// The naming policy applies automatically via Alloy declaration components.
+// To preserve exact names (e.g., from @clientName), bypass the policy:
 namekey("LROPoller", { ignoreNamePolicy: true })
 ```
+
+Helpers exported from `src/utils/name-policy.ts`:
+- `isReservedOperationName(name)` — check if a name would be escaped as a function
+- `getEscapedOperationName(name)` — get the `$`-prefixed name for composing send/deserialize names
+- `getEscapedParameterName(name)` — get the `Param`-suffixed name for body accessors
 
 ---
 
