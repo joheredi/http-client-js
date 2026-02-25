@@ -83,10 +83,10 @@ Should generate operations correctly:
 
 ```ts operations
 import {
+  type _ReadResponse as _ReadResponse_1,
+  _readResponseDeserializer as _readResponseDeserializer_1,
   BodyParameter as BodyParameter_1,
   bodyParameterSerializer as bodyParameterSerializer_1,
-  type ReadResponse as ReadResponse_1,
-  readResponseDeserializer as readResponseDeserializer_1,
 } from "../models/models.js";
 import { ReadOptionalParams as ReadOptionalParams_1 } from "./options.js";
 import {
@@ -123,13 +123,13 @@ export function _readSend(
 
 export async function _readDeserialize(
   result: PathUncheckedResponse_1,
-): Promise<ReadResponse_1> {
+): Promise<_ReadResponse_1> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
     throw createRestError_1(result);
   }
 
-  return readResponseDeserializer_1(result.body);
+  return _readResponseDeserializer_1(result.body);
 }
 
 /**
@@ -147,7 +147,7 @@ export async function read(
   requiredQuery: string,
   widget: BodyParameter_1,
   options: ReadOptionalParams_1 = { requestOptions: {} },
-): Promise<ReadResponse_1> {
+): Promise<_ReadResponse_1> {
   const result = await _readSend(context, name, requiredQuery, widget, options);
   return _readDeserialize(result);
 }

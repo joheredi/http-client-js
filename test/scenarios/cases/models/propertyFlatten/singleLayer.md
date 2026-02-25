@@ -53,7 +53,7 @@ export interface A {
   x: string;
 }
 
-export interface FooRequest {
+export interface _FooRequest {
   body: Test;
 }
 
@@ -179,7 +179,7 @@ export interface A {
   x: string;
 }
 
-export interface FooRequest {
+export interface _FooRequest {
   body: Test;
 }
 
@@ -309,7 +309,7 @@ export interface FooProperties {
   baz: string;
 }
 
-export interface FooRequest {
+export interface _FooRequest {
   body: Test;
 }
 
@@ -395,7 +395,7 @@ export interface Baz {
   baz: string;
 }
 
-export interface FooRequest {
+export interface _FooRequest {
   body: Test;
 }
 
@@ -519,7 +519,7 @@ export interface TestIdentifiers {
   location?: string;
 }
 
-export interface FooRequest {
+export interface _FooRequest {
   body: Test;
 }
 
@@ -640,7 +640,7 @@ export interface FooProperties {
   prop2: string;
 }
 
-export interface FooRequest {
+export interface _FooRequest {
   body: Test;
 }
 

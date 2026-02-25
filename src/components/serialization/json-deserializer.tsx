@@ -9,6 +9,7 @@ import type {
   SdkModelType,
   SdkType,
 } from "@azure-tools/typespec-client-generator-core";
+import { getModelFunctionName } from "../../utils/model-name.js";
 import { deserializerRefkey, serializationHelperRefkey, typeRefkey } from "../../utils/refkeys.js";
 import { useRuntimeLib } from "../../context/flavor-context.js";
 import { needsTransformation } from "./json-serializer.js";
@@ -52,7 +53,7 @@ export function JsonDeserializer(props: JsonDeserializerProps) {
 
   return (
     <FunctionDeclaration
-      name={`${model.name}Deserializer`}
+      name={getModelFunctionName(model, "Deserializer")}
       refkey={deserializerRefkey(model)}
       export
       returnType={code`${typeRefkey(model)}`}

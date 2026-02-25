@@ -29,35 +29,35 @@ Generated Models.
 
 ```ts models
 export interface SimpleModel {
-  prop: SimpleModelProp;
+  prop: _SimpleModelProp;
 }
 
-export interface SimpleModelProp {
+export interface _SimpleModelProp {
   propA: string;
-  propB: SimpleModelPropPropB;
+  propB: _SimpleModelPropPropB;
 }
 
-export interface SimpleModelPropPropB {
+export interface _SimpleModelPropPropB {
   propAa: string;
   propBb: boolean;
 }
 
 export function simpleModelDeserializer(item: any): SimpleModel {
   return {
-    prop: simpleModelPropDeserializer(item["prop"]),
+    prop: _simpleModelPropDeserializer(item["prop"]),
   };
 }
 
-export function simpleModelPropDeserializer(item: any): SimpleModelProp {
+export function _simpleModelPropDeserializer(item: any): _SimpleModelProp {
   return {
     propA: item["propA"],
-    propB: simpleModelPropPropBDeserializer(item["propB"]),
+    propB: _simpleModelPropPropBDeserializer(item["propB"]),
   };
 }
 
-export function simpleModelPropPropBDeserializer(
+export function _simpleModelPropPropBDeserializer(
   item: any,
-): SimpleModelPropPropB {
+): _SimpleModelPropPropB {
   return {
     propAA: item["propAA"],
     propBB: item["propBB"],

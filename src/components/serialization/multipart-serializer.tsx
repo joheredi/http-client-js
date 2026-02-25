@@ -6,6 +6,7 @@ import type {
   SdkModelPropertyType,
   SdkModelType,
 } from "@azure-tools/typespec-client-generator-core";
+import { getModelName, getModelFunctionName } from "../../utils/model-name.js";
 import { serializerRefkey, typeRefkey, multipartHelperRefkey } from "../../utils/refkeys.js";
 
 /**
@@ -54,7 +55,7 @@ export function MultipartSerializer(props: MultipartSerializerProps) {
 
   return (
     <FunctionDeclaration
-      name={`${model.name}Serializer`}
+      name={getModelFunctionName(model, "Serializer")}
       refkey={serializerRefkey(model)}
       export
       returnType="any"

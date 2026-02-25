@@ -1,6 +1,7 @@
 import { Children, code, For, type Refkey } from "@alloy-js/core";
 import { FunctionDeclaration } from "@alloy-js/typescript";
 import type { SdkModelType } from "@azure-tools/typespec-client-generator-core";
+import { getModelFunctionName } from "../../utils/model-name.js";
 import {
   polymorphicTypeRefkey,
   serializerRefkey,
@@ -60,7 +61,7 @@ export function JsonPolymorphicSerializer(
 
   return (
     <FunctionDeclaration
-      name={`${model.name}UnionSerializer`}
+      name={getModelFunctionName(model, "UnionSerializer")}
       refkey={serializerRefkey(model)}
       export
       returnType="any"

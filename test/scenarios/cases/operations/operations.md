@@ -411,8 +411,8 @@ op read(): { a: Bar}[] | null;
 
 ```ts operations
 import {
-  type ReadResponse as ReadResponse_1,
-  readResponseDeserializer as readResponseDeserializer_1,
+  type _ReadResponse as _ReadResponse_1,
+  _readResponseDeserializer as _readResponseDeserializer_1,
 } from "../models/models.js";
 import type { ReadOptionalParams as ReadOptionalParams_1 } from "./options.js";
 import {
@@ -438,21 +438,21 @@ export function _readSend(
 
 export async function _readDeserialize(
   result: PathUncheckedResponse_1,
-): Promise<ReadResponse_1[]> {
+): Promise<_ReadResponse_1[]> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
     throw createRestError_1(result);
   }
 
   return result.body.map((p: any) => {
-    return readResponseDeserializer_1(p);
+    return _readResponseDeserializer_1(p);
   });
 }
 
 export async function read(
   context: Client_1,
   options: ReadOptionalParams_1 = { requestOptions: {} },
-): Promise<ReadResponse_1[]> {
+): Promise<_ReadResponse_1[]> {
   const result = await _readSend(context, options);
   return _readDeserialize(result);
 }

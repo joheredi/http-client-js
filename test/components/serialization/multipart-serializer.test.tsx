@@ -261,4 +261,32 @@ describe("MultipartSerializer", () => {
     expect(result).toContain("export function uploadRequestSerializer(");
     expect(result).toContain("): any");
   });
+
+  /**
+   * Tests that multipart serializer functions for anonymous (generated name)
+   * models get the underscore prefix. When the multipart body is an anonymous
+   * inline type like `{ name: HttpPart<string>; file: HttpPart<bytes>; }`,
+   * TCGC generates a name (e.g., `UploadFileRequest`) with `isGeneratedName: true`.
+   * The serializer function name should be `_uploadFileRequestSerializer` to
+   * match the legacy emitter's convention for internal types.
+   */
+  it("should prefix underscore for serializer of anonymous multipart body", async () => {
+    const result = await renderMultipartSerializer(
+      t.code`
+        @post op uploadFile(
+          @header contentType: "multipart/form-data",
+          @multipartBody body: {
+            name: HttpPart<string>;
+            file: HttpPart<bytes>;
+          },
+        ): void;
+      `,
+    );
+
+    // Serializer function name should start with underscore
+    expect(result).toContain("export function _");
+    expect(result).toContain("Serializer(");
+    // Interface name should also start with underscore
+    expect(result).toContain("export interface _");
+  });
 });

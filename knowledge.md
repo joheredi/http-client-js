@@ -1121,3 +1121,23 @@ a helpful assertion failure.
 **Fix**: Modified `getExcerptForQuery()` to return `// (file was not generated)` sentinel when a
 legacy category file doesn't exist, allowing tests to explicitly assert file absence. Tests that
 expect an empty or missing file should use this sentinel in their expected output.
+
+## Underscore Prefix Stripped by change-case (namekey Fix)
+
+**Problem**: When adding `_` prefix to model names for generated/anonymous types, the Alloy
+TypeScript name policy (which uses `change-case`) strips the underscore entirely:
+- `pascalCase("_UploadFileRequest")` → `"UploadFileRequest"` (underscore lost)
+- `camelCase("_uploadFileRequestSerializer")` → `"uploadFileRequestSerializer"` (underscore lost)
+
+**Fix**: Use `namekey(name, { ignoreNamePolicy: true })` from `@alloy-js/core` to bypass the
+name policy. For function names (which need camelCase), manually lowercase the first character
+since `ignoreNamePolicy` prevents all name transformations.
+
+**Key code in `src/utils/model-name.ts`**:
+```typescript
+// For interfaces (PascalCase): namekey preserves exact name
+return namekey(`_${model.name}`, { ignoreNamePolicy: true });
+// For functions (camelCase): manually lowercase + namekey
+const camelName = model.name.charAt(0).toLowerCase() + model.name.slice(1);
+return namekey(`_${camelName}${suffix}`, { ignoreNamePolicy: true });
+```

@@ -66,12 +66,12 @@ experimental-extensible-enums: false
 Model generated.
 
 ```ts models
-export interface FooRequestBody {
+export interface _FooRequestBody {
   status: ProvisioningState;
 }
 
-export interface FooRequest {
-  body: FooRequestBody;
+export interface _FooRequest {
+  body: _FooRequestBody;
 }
 
 /**
@@ -128,7 +128,7 @@ export enum KnownVersions {
   V2021_10_01Preview = "2021-10-01-preview",
 }
 
-export function fooRequestBodySerializer(item: FooRequestBody): any {
+export function _fooRequestBodySerializer(item: _FooRequestBody): any {
   return {
     status: item["status"],
   };

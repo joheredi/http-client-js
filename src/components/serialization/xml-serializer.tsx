@@ -5,6 +5,7 @@ import type {
   SdkModelType,
   SdkType,
 } from "@azure-tools/typespec-client-generator-core";
+import { getModelFunctionName } from "../../utils/model-name.js";
 import {
   serializationHelperRefkey,
   typeRefkey,
@@ -53,7 +54,7 @@ export function XmlSerializer(props: XmlSerializerProps) {
 
   return (
     <FunctionDeclaration
-      name={`${model.name}XmlSerializer`}
+      name={getModelFunctionName(model, "XmlSerializer")}
       refkey={xmlSerializerRefkey(model)}
       export
       returnType="string"

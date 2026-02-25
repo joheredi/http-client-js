@@ -1401,7 +1401,7 @@
             "No missing or extra exports compared to legacy",
             "Documented list of any intentional differences with justification"
           ],
-          "status": "in_progress"
+          "status": "done"
         }
       ],
       "dependencies": [
@@ -1557,7 +1557,7 @@
         {
           "id": "10.8",
           "title": "Fix multipart request type underscore prefix (2 failures)",
-          "status": "not_started",
+          "status": "done",
           "description": "2 tests fail because the multipart request type `_UploadFileRequest` and its serializer `_uploadFileRequestSerializer` are generated without the underscore prefix. The test expects internal/anonymous types to have an underscore prefix (e.g., `_UploadFileRequest` instead of `UploadFileRequest`). The multipart model interface is generated in model-files.tsx and serialized via multipart-serializer.tsx. Need to detect when a model is an internal/anonymous request type and prefix its name with underscore.",
           "failure_count": 2,
           "affected_scenarios": [

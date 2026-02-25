@@ -48,7 +48,7 @@ export interface FooProperties {
   baz: string;
 }
 
-export interface FooRequest {
+export interface _FooRequest {
   body: Test;
 }
 
@@ -151,7 +151,7 @@ export interface XProperties {
   x: string;
 }
 
-export interface FooRequest {
+export interface _FooRequest {
   body: Test;
 }
 
@@ -278,7 +278,7 @@ export interface XProperties {
   result: string;
 }
 
-export interface FooRequest {
+export interface _FooRequest {
   body: Test;
 }
 
@@ -395,7 +395,7 @@ export interface FooProperties {
   prop2: string;
 }
 
-export interface FooRequest {
+export interface _FooRequest {
   body: Test;
 }
 

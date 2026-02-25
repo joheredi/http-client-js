@@ -1,0 +1,59 @@
+import { namekey, type Namekey, type NamekeyOptions } from "@alloy-js/core";
+import type { SdkModelType } from "@azure-tools/typespec-client-generator-core";
+
+/**
+ * Returns the display name for a model, adding an underscore prefix for
+ * internally-generated (anonymous) models.
+ *
+ * The legacy emitter prefixes `_` to model names when `isGeneratedName` is
+ * `true`. This signals that the type is an internal/anonymous model — for
+ * example, a multipart request body wrapper like `_UploadFileRequest` — that
+ * is not part of the public API surface. The underscore prefix follows Azure
+ * SDK naming conventions for generated types.
+ *
+ * Uses Alloy's `namekey` with `ignoreNamePolicy: true` to prevent the
+ * TypeScript name policy (which applies `pascalCase` via change-case) from
+ * stripping the underscore prefix (e.g., `_UploadFileRequest` → `UploadFileRequest`).
+ *
+ * @param model - The TCGC model type to compute the name for.
+ * @returns The model name (plain string or namekey), suitable for use as the
+ *          `name` prop on Alloy declaration components.
+ */
+export function getModelName(model: SdkModelType): string | Namekey<NamekeyOptions> {
+  if (model.isGeneratedName) {
+    const prefixedName = `_${model.name}`;
+    return namekey(prefixedName, { ignoreNamePolicy: true });
+  }
+  return model.name;
+}
+
+/**
+ * Returns a declaration name for a function derived from a model, adding
+ * an underscore prefix for internally-generated (anonymous) models.
+ *
+ * This is used for serializer/deserializer function names that incorporate
+ * the model name as a prefix (e.g., `_uploadFileRequestSerializer`). When
+ * the model has `isGeneratedName`, the full function name gets a `namekey`
+ * with `ignoreNamePolicy: true` to preserve the underscore prefix.
+ *
+ * The function name is manually lowercased at the first character because
+ * Alloy's name policy (which uses change-case's camelCase) would strip the
+ * underscore prefix entirely. By using `ignoreNamePolicy`, we must apply
+ * camelCase manually: underscore + lowercase first char + rest.
+ *
+ * @param model - The TCGC model type.
+ * @param suffix - The suffix to append (e.g., `"Serializer"`, `"Deserializer"`).
+ * @returns The function name (plain string or namekey) for the `name` prop.
+ */
+export function getModelFunctionName(
+  model: SdkModelType,
+  suffix: string,
+): string | Namekey<NamekeyOptions> {
+  if (model.isGeneratedName) {
+    // Manually apply camelCase: lowercase first char of model name + rest + suffix
+    const camelName = model.name.charAt(0).toLowerCase() + model.name.slice(1);
+    const prefixedName = `_${camelName}${suffix}`;
+    return namekey(prefixedName, { ignoreNamePolicy: true });
+  }
+  return `${model.name}${suffix}`;
+}

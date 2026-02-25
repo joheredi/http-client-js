@@ -8,6 +8,7 @@ import type {
   SdkModelType,
 } from "@azure-tools/typespec-client-generator-core";
 import { Visibility } from "@typespec/http";
+import { getModelName } from "../utils/model-name.js";
 import { typeRefkey } from "../utils/refkeys.js";
 import { getTypeExpression } from "./type-expression.js";
 
@@ -53,7 +54,7 @@ export function ModelInterface(props: ModelInterfaceProps) {
 
   return (
     <InterfaceDeclaration
-      name={model.name}
+      name={getModelName(model)}
       refkey={typeRefkey(model)}
       export
       extends={extendsClause}

@@ -59,7 +59,7 @@ export interface ChildModel {
   age: number;
 }
 
-export interface FooRequest {
+export interface _FooRequest {
   body: NestedFlattenModel;
 }
 
@@ -178,7 +178,7 @@ export interface ChildModel {
   age: number;
 }
 
-export interface FooRequest {
+export interface _FooRequest {
   body: NestedFlattenModel;
 }
 

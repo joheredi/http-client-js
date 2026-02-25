@@ -131,13 +131,13 @@ export interface NameConflictModel {
 }
 
 export interface ObjectAdditionalPropsModel {
-  additionalProperties: ObjectAdditionalPropsModelAdditionalProperties;
+  additionalProperties: _ObjectAdditionalPropsModelAdditionalProperties;
   propA: string;
   propB: string;
   [key: string]: string;
 }
 
-export interface ObjectAdditionalPropsModelAdditionalProperties {}
+export interface _ObjectAdditionalPropsModelAdditionalProperties {}
 
 /**
  * Alias for UnionModelAdditionalProperty
@@ -175,7 +175,7 @@ export function objectAdditionalPropsModelDeserializer(
 ): ObjectAdditionalPropsModel {
   return {
     additionalProperties:
-      objectAdditionalPropsModelAdditionalPropertiesDeserializer(
+      _objectAdditionalPropsModelAdditionalPropertiesDeserializer(
         item["additionalProperties"],
       ),
     propA: item["propA"],
@@ -183,9 +183,9 @@ export function objectAdditionalPropsModelDeserializer(
   };
 }
 
-export function objectAdditionalPropsModelAdditionalPropertiesDeserializer(
+export function _objectAdditionalPropsModelAdditionalPropertiesDeserializer(
   item: any,
-): ObjectAdditionalPropsModelAdditionalProperties {
+): _ObjectAdditionalPropsModelAdditionalProperties {
   return {};
 }
 ```

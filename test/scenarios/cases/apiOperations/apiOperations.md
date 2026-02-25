@@ -150,18 +150,9 @@ op uploadFile(
 ## Models \_UploadFileRequest
 
 ```ts models interface _UploadFileRequest
-/**
- * This file contains only generated model types and their (de)serializers.
- * Disable the following rules for internal models with '_' prefix and deserializers which require 'any' for raw JSON input.
- */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/** model interface _UploadFileRequest */
 export interface _UploadFileRequest {
   name: string;
-  file:
-    | FileContents
-    | { contents: FileContents; contentType?: string; filename?: string };
+  file: Uint8Array;
 }
 ```
 
@@ -171,7 +162,11 @@ export interface _UploadFileRequest {
 export function _uploadFileRequestSerializer(item: _UploadFileRequest): any {
   return [
     { name: "name", body: item["name"] },
-    createFilePartDescriptor("file", item["file"], "application/octet-stream"),
+    createFilePartDescriptor_1(
+      "file",
+      item["file"],
+      "application/octet-stream",
+    ),
   ];
 }
 ```
@@ -180,8 +175,8 @@ export function _uploadFileRequestSerializer(item: _UploadFileRequest): any {
 
 ```ts operations
 import {
-  type UploadFileRequest as UploadFileRequest_1,
-  uploadFileRequestSerializer as uploadFileRequestSerializer_1,
+  type _UploadFileRequest as _UploadFileRequest_1,
+  _uploadFileRequestSerializer as _uploadFileRequestSerializer_1,
 } from "../models/models.js";
 import type { UploadFileOptionalParams as UploadFileOptionalParams_1 } from "./options.js";
 import {
@@ -195,13 +190,13 @@ import {
 export function _uploadFileSend(
   context: Client_1,
   contentType: "multipart/form-data",
-  body: UploadFileRequest_1,
+  body: _UploadFileRequest_1,
   options: UploadFileOptionalParams_1 = { requestOptions: {} },
 ): StreamableMethod_1 {
   return context.path("/uploadFile").post({
     ...operationOptionsToRequestParameters_1(options),
     contentType: "multipart/form-data",
-    body: uploadFileRequestSerializer_1(body),
+    body: _uploadFileRequestSerializer_1(body),
   });
 }
 
@@ -219,7 +214,7 @@ export async function _uploadFileDeserialize(
 export async function uploadFile(
   context: Client_1,
   contentType: "multipart/form-data",
-  body: UploadFileRequest_1,
+  body: _UploadFileRequest_1,
   options: UploadFileOptionalParams_1 = { requestOptions: {} },
 ): Promise<void> {
   const result = await _uploadFileSend(context, contentType, body, options);
@@ -249,11 +244,11 @@ op uploadFiles(
 ```ts models
 import { createFilePartDescriptor as createFilePartDescriptor_1 } from "../helpers/multipartHelpers.js";
 
-export interface UploadFilesRequest {
+export interface _UploadFilesRequest {
   files: Uint8Array[];
 }
 
-export function uploadFilesRequestSerializer(item: UploadFilesRequest): any {
+export function _uploadFilesRequestSerializer(item: _UploadFilesRequest): any {
   return [
     ...item["files"].map((x: unknown) =>
       createFilePartDescriptor_1("files", x, "application/octet-stream"),
@@ -266,8 +261,8 @@ export function uploadFilesRequestSerializer(item: UploadFilesRequest): any {
 
 ```ts operations
 import {
-  type UploadFilesRequest as UploadFilesRequest_1,
-  uploadFilesRequestSerializer as uploadFilesRequestSerializer_1,
+  type _UploadFilesRequest as _UploadFilesRequest_1,
+  _uploadFilesRequestSerializer as _uploadFilesRequestSerializer_1,
 } from "../models/models.js";
 import type { UploadFilesOptionalParams as UploadFilesOptionalParams_1 } from "./options.js";
 import {
@@ -281,13 +276,13 @@ import {
 export function _uploadFilesSend(
   context: Client_1,
   contentType: "multipart/form-data",
-  body: UploadFilesRequest_1,
+  body: _UploadFilesRequest_1,
   options: UploadFilesOptionalParams_1 = { requestOptions: {} },
 ): StreamableMethod_1 {
   return context.path("/uploadFiles").post({
     ...operationOptionsToRequestParameters_1(options),
     contentType: "multipart/form-data",
-    body: uploadFilesRequestSerializer_1(body),
+    body: _uploadFilesRequestSerializer_1(body),
   });
 }
 
@@ -305,7 +300,7 @@ export async function _uploadFilesDeserialize(
 export async function uploadFiles(
   context: Client_1,
   contentType: "multipart/form-data",
-  body: UploadFilesRequest_1,
+  body: _UploadFilesRequest_1,
   options: UploadFilesOptionalParams_1 = { requestOptions: {} },
 ): Promise<void> {
   const result = await _uploadFilesSend(context, contentType, body, options);

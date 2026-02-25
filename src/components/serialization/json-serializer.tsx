@@ -10,6 +10,7 @@ import type {
   SdkModelType,
   SdkType,
 } from "@azure-tools/typespec-client-generator-core";
+import { getModelFunctionName } from "../../utils/model-name.js";
 import { serializationHelperRefkey, serializerRefkey, typeRefkey } from "../../utils/refkeys.js";
 import { useRuntimeLib } from "../../context/flavor-context.js";
 
@@ -54,7 +55,7 @@ export function JsonSerializer(props: JsonSerializerProps) {
 
   return (
     <FunctionDeclaration
-      name={`${model.name}Serializer`}
+      name={getModelFunctionName(model, "Serializer")}
       refkey={serializerRefkey(model)}
       export
       returnType="any"

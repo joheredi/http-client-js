@@ -20,6 +20,7 @@
  * - Flattened properties are expanded inline from the nested model.
  */
 import "@alloy-js/core/testing";
+import { renderToString } from "@alloy-js/core/testing";
 import { code, refkey } from "@alloy-js/core";
 import { InterfaceDeclaration } from "@alloy-js/typescript";
 import { t } from "@typespec/compiler/testing";
@@ -428,5 +429,44 @@ describe("Model Interface", () => {
         address: Address;
       }
     `);
+  });
+
+  /**
+   * Tests that models with `isGeneratedName: true` (anonymous/internal types)
+   * get an underscore prefix in their interface name. This is critical for
+   * multipart request body wrappers and other TCGC-generated types that
+   * are not part of the public API surface. The legacy emitter uses the
+   * underscore prefix to signal internal types.
+   */
+  it("should prefix underscore for models with isGeneratedName", async () => {
+    const runner = await TesterWithService.createInstance();
+    const { program } = await runner.compile(
+      t.code`
+        @post op uploadFile(
+          @header contentType: "multipart/form-data",
+          @multipartBody body: {
+            name: HttpPart<string>;
+            file: HttpPart<bytes>;
+          },
+        ): void;
+      `,
+    );
+
+    const sdkContext = await createSdkContextForTest(program);
+    // The anonymous body type should have isGeneratedName = true
+    const model = sdkContext.sdkPackage.models.find(
+      (m) => m.isGeneratedName,
+    );
+    expect(model).toBeDefined();
+
+    const template = (
+      <SdkTestFile sdkContext={sdkContext}>
+        <ModelInterface model={model!} />
+      </SdkTestFile>
+    );
+
+    // Render to string and verify the interface name starts with underscore
+    const result = renderToString(template);
+    expect(result).toContain("export interface _");
   });
 });

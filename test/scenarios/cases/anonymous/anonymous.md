@@ -518,9 +518,9 @@ op read(@path pathParam: string, @query queryParam: string, @body body: {}): OkR
 ## Models
 
 ```ts models
-export interface ReadRequest {}
+export interface _ReadRequest {}
 
-export function readRequestSerializer(item: ReadRequest): any {
+export function _readRequestSerializer(item: _ReadRequest): any {
   return {};
 }
 ```
@@ -529,8 +529,8 @@ export function readRequestSerializer(item: ReadRequest): any {
 
 ```ts operations
 import {
-  type ReadRequest as ReadRequest_1,
-  readRequestSerializer as readRequestSerializer_1,
+  type _ReadRequest as _ReadRequest_1,
+  _readRequestSerializer as _readRequestSerializer_1,
 } from "../models/models.js";
 import type { ReadOptionalParams as ReadOptionalParams_1 } from "./options.js";
 import {
@@ -546,7 +546,7 @@ export function _readSend(
   context: Client_1,
   pathParam: string,
   queryParam: string,
-  body: ReadRequest_1,
+  body: _ReadRequest_1,
   options: ReadOptionalParams_1 = { requestOptions: {} },
 ): StreamableMethod_1 {
   const path = expandUrlTemplate_1(
@@ -557,7 +557,7 @@ export function _readSend(
   return context.path(path).post({
     ...operationOptionsToRequestParameters_1(options),
     contentType: "application/json",
-    body: readRequestSerializer_1(body),
+    body: _readRequestSerializer_1(body),
   });
 }
 
@@ -576,7 +576,7 @@ export async function read(
   context: Client_1,
   pathParam: string,
   queryParam: string,
-  body: ReadRequest_1,
+  body: _ReadRequest_1,
   options: ReadOptionalParams_1 = { requestOptions: {} },
 ): Promise<void> {
   const result = await _readSend(context, pathParam, queryParam, body, options);
@@ -623,8 +623,8 @@ export function barSerializer(item: Bar): any {
 
 ```ts operations
 import {
-  type ReadRequest as ReadRequest_1,
-  readRequestSerializer as readRequestSerializer_1,
+  type _ReadRequest as _ReadRequest_1,
+  _readRequestSerializer as _readRequestSerializer_1,
 } from "../models/models.js";
 import type { ReadOptionalParams as ReadOptionalParams_1 } from "./options.js";
 import {
@@ -640,7 +640,7 @@ export function _readSend(
   context: Client_1,
   pathParam: string,
   queryParam: string,
-  test: ReadRequest_1,
+  test: _ReadRequest_1,
   options: ReadOptionalParams_1 = { requestOptions: {} },
 ): StreamableMethod_1 {
   const path = expandUrlTemplate_1(
@@ -651,7 +651,7 @@ export function _readSend(
   return context.path(path).post({
     ...operationOptionsToRequestParameters_1(options),
     contentType: "application/json",
-    body: readRequestSerializer_1(test),
+    body: _readRequestSerializer_1(test),
   });
 }
 
@@ -670,7 +670,7 @@ export async function read(
   context: Client_1,
   pathParam: string,
   queryParam: string,
-  test: ReadRequest_1,
+  test: _ReadRequest_1,
   options: ReadOptionalParams_1 = { requestOptions: {} },
 ): Promise<void> {
   const result = await _readSend(context, pathParam, queryParam, test, options);
@@ -693,7 +693,7 @@ op read(@body body: Test): void;
 
 ```ts models interface Test
 export interface Test {
-  color: TestColor;
+  color: _TestColor;
 }
 ```
 
@@ -702,7 +702,7 @@ export interface Test {
 ```ts models function testSerializer
 export function testSerializer(item: Test): any {
   return {
-    color: testColorSerializer(item["color"]),
+    color: _testColorSerializer(item["color"]),
   };
 }
 ```
@@ -773,7 +773,7 @@ op read(@bodyRoot body: Test): void;
 
 ```ts models interface Test
 export interface Test {
-  color: TestColor;
+  color: _TestColor;
 }
 ```
 
@@ -782,7 +782,7 @@ export interface Test {
 ```ts models function testSerializer
 export function testSerializer(item: Test): any {
   return {
-    color: testColorSerializer(item["color"]),
+    color: _testColorSerializer(item["color"]),
   };
 }
 ```
@@ -847,9 +847,9 @@ op read(): { @body _: {}; };
 ## Models
 
 ```ts models
-export interface ReadResponse {}
+export interface _ReadResponse {}
 
-export function readResponseDeserializer(item: any): ReadResponse {
+export function _readResponseDeserializer(item: any): _ReadResponse {
   return {};
 }
 ```
@@ -858,8 +858,8 @@ export function readResponseDeserializer(item: any): ReadResponse {
 
 ```ts operations
 import {
-  type ReadResponse as ReadResponse_1,
-  readResponseDeserializer as readResponseDeserializer_1,
+  type _ReadResponse as _ReadResponse_1,
+  _readResponseDeserializer as _readResponseDeserializer_1,
 } from "../models/models.js";
 import type { ReadOptionalParams as ReadOptionalParams_1 } from "./options.js";
 import {
@@ -885,19 +885,19 @@ export function _readSend(
 
 export async function _readDeserialize(
   result: PathUncheckedResponse_1,
-): Promise<ReadResponse_1> {
+): Promise<_ReadResponse_1> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
     throw createRestError_1(result);
   }
 
-  return readResponseDeserializer_1(result.body);
+  return _readResponseDeserializer_1(result.body);
 }
 
 export async function read(
   context: Client_1,
   options: ReadOptionalParams_1 = { requestOptions: {} },
-): Promise<ReadResponse_1> {
+): Promise<_ReadResponse_1> {
   const result = await _readSend(context, options);
   return _readDeserialize(result);
 }
@@ -985,21 +985,21 @@ op read(): { foo?: {bar: string | null}};
 ## Models
 
 ```ts models
-export interface ReadResponse {
-  foo?: ReadResponseFoo;
+export interface _ReadResponse {
+  foo?: _ReadResponseFoo;
 }
 
-export interface ReadResponseFoo {
+export interface _ReadResponseFoo {
   bar: string | null;
 }
 
-export function readResponseDeserializer(item: any): ReadResponse {
+export function _readResponseDeserializer(item: any): _ReadResponse {
   return {
-    foo: !item["foo"] ? item["foo"] : readResponseFooDeserializer(item["foo"]),
+    foo: !item["foo"] ? item["foo"] : _readResponseFooDeserializer(item["foo"]),
   };
 }
 
-export function readResponseFooDeserializer(item: any): ReadResponseFoo {
+export function _readResponseFooDeserializer(item: any): _ReadResponseFoo {
   return {
     bar: item["bar"],
   };
@@ -1010,8 +1010,8 @@ export function readResponseFooDeserializer(item: any): ReadResponseFoo {
 
 ```ts operations
 import {
-  type ReadResponse as ReadResponse_1,
-  readResponseDeserializer as readResponseDeserializer_1,
+  type _ReadResponse as _ReadResponse_1,
+  _readResponseDeserializer as _readResponseDeserializer_1,
 } from "../models/models.js";
 import type { ReadOptionalParams as ReadOptionalParams_1 } from "./options.js";
 import {
@@ -1037,19 +1037,19 @@ export function _readSend(
 
 export async function _readDeserialize(
   result: PathUncheckedResponse_1,
-): Promise<ReadResponse_1> {
+): Promise<_ReadResponse_1> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
     throw createRestError_1(result);
   }
 
-  return readResponseDeserializer_1(result.body);
+  return _readResponseDeserializer_1(result.body);
 }
 
 export async function read(
   context: Client_1,
   options: ReadOptionalParams_1 = { requestOptions: {} },
-): Promise<ReadResponse_1> {
+): Promise<_ReadResponse_1> {
   const result = await _readSend(context, options);
   return _readDeserialize(result);
 }
@@ -1079,31 +1079,31 @@ op read(): ReturnBody;
 import { deserializeRecord as deserializeRecord_1 } from "../helpers/serializationHelpers.js";
 
 export interface ReturnBody {
-  emptyAnomyous: ReturnBodyEmptyAnomyous;
-  emptyAnomyousArray: ReturnBodyEmptyAnomyousArray[];
-  emptyAnomyousDict: Record<string, ReturnBodyEmptyAnomyousDict>;
+  emptyAnomyous: _ReturnBodyEmptyAnomyous;
+  emptyAnomyousArray: _ReturnBodyEmptyAnomyousArray[];
+  emptyAnomyousDict: Record<string, _ReturnBodyEmptyAnomyousDict>;
   emptyModel: EmptyModel;
   emptyModelArray: EmptyModel[];
   emptyModelDict: Record<string, EmptyModel>;
 }
 
-export interface ReturnBodyEmptyAnomyous {}
+export interface _ReturnBodyEmptyAnomyous {}
 
-export interface ReturnBodyEmptyAnomyousArray {}
+export interface _ReturnBodyEmptyAnomyousArray {}
 
-export interface ReturnBodyEmptyAnomyousDict {}
+export interface _ReturnBodyEmptyAnomyousDict {}
 
 export interface EmptyModel {}
 
 export function returnBodyDeserializer(item: any): ReturnBody {
   return {
-    emptyAnomyous: returnBodyEmptyAnomyousDeserializer(item["emptyAnomyous"]),
+    emptyAnomyous: _returnBodyEmptyAnomyousDeserializer(item["emptyAnomyous"]),
     emptyAnomyousArray: item["emptyAnomyousArray"].map((p: any) => {
-      return returnBodyEmptyAnomyousArrayDeserializer(p);
+      return _returnBodyEmptyAnomyousArrayDeserializer(p);
     }),
     emptyAnomyousDict: deserializeRecord_1(
       item["emptyAnomyousDict"] as any,
-      (v: any) => returnBodyEmptyAnomyousDictDeserializer(v),
+      (v: any) => _returnBodyEmptyAnomyousDictDeserializer(v),
     ),
     emptyModel: emptyModelDeserializer(item["emptyModel"]),
     emptyModelArray: item["emptyModelArray"].map((p: any) => {
@@ -1116,21 +1116,21 @@ export function returnBodyDeserializer(item: any): ReturnBody {
   };
 }
 
-export function returnBodyEmptyAnomyousDeserializer(
+export function _returnBodyEmptyAnomyousDeserializer(
   item: any,
-): ReturnBodyEmptyAnomyous {
+): _ReturnBodyEmptyAnomyous {
   return {};
 }
 
-export function returnBodyEmptyAnomyousArrayDeserializer(
+export function _returnBodyEmptyAnomyousArrayDeserializer(
   item: any,
-): ReturnBodyEmptyAnomyousArray {
+): _ReturnBodyEmptyAnomyousArray {
   return {};
 }
 
-export function returnBodyEmptyAnomyousDictDeserializer(
+export function _returnBodyEmptyAnomyousDictDeserializer(
   item: any,
-): ReturnBodyEmptyAnomyousDict {
+): _ReturnBodyEmptyAnomyousDict {
   return {};
 }
 
@@ -1216,41 +1216,41 @@ op read(): Foz;
 import { deserializeRecord as deserializeRecord_1 } from "../helpers/serializationHelpers.js";
 
 export interface Foz {
-  baz: FozBaz;
+  baz: _FozBaz;
 }
 
-export interface FozBaz {
+export interface _FozBaz {
   foo: number[];
   bas: string;
   bar?: SimpleModel[];
-  nonemptyAnomyous: FozBazNonemptyAnomyous;
-  nonemptyAnomyousArray: FozBazNonemptyAnomyousArray[];
-  nonemptyAnomyousDict: Record<string, FozBazNonemptyAnomyousDict>;
+  nonemptyAnomyous: _FozBazNonemptyAnomyous;
+  nonemptyAnomyousArray: _FozBazNonemptyAnomyousArray[];
+  nonemptyAnomyousDict: Record<string, _FozBazNonemptyAnomyousDict>;
 }
 
 export interface SimpleModel {
   test: string;
 }
 
-export interface FozBazNonemptyAnomyous {
+export interface _FozBazNonemptyAnomyous {
   a: string;
 }
 
-export interface FozBazNonemptyAnomyousArray {
+export interface _FozBazNonemptyAnomyousArray {
   b?: Record<string, string>;
 }
 
-export interface FozBazNonemptyAnomyousDict {
+export interface _FozBazNonemptyAnomyousDict {
   c: number[];
 }
 
 export function fozDeserializer(item: any): Foz {
   return {
-    baz: fozBazDeserializer(item["baz"]),
+    baz: _fozBazDeserializer(item["baz"]),
   };
 }
 
-export function fozBazDeserializer(item: any): FozBaz {
+export function _fozBazDeserializer(item: any): _FozBaz {
   return {
     foo: item["foo"],
     bas: item["bas"],
@@ -1259,15 +1259,15 @@ export function fozBazDeserializer(item: any): FozBaz {
       : item["test"].map((p: any) => {
           return simpleModelDeserializer(p);
         }),
-    nonemptyAnomyous: fozBazNonemptyAnomyousDeserializer(
+    nonemptyAnomyous: _fozBazNonemptyAnomyousDeserializer(
       item["nonemptyAnomyous"],
     ),
     nonemptyAnomyousArray: item["nonemptyAnomyousArray"].map((p: any) => {
-      return fozBazNonemptyAnomyousArrayDeserializer(p);
+      return _fozBazNonemptyAnomyousArrayDeserializer(p);
     }),
     nonemptyAnomyousDict: deserializeRecord_1(
       item["nonemptyAnomyousDict"] as any,
-      (v: any) => fozBazNonemptyAnomyousDictDeserializer(v),
+      (v: any) => _fozBazNonemptyAnomyousDictDeserializer(v),
     ),
   };
 }
@@ -1278,25 +1278,25 @@ export function simpleModelDeserializer(item: any): SimpleModel {
   };
 }
 
-export function fozBazNonemptyAnomyousDeserializer(
+export function _fozBazNonemptyAnomyousDeserializer(
   item: any,
-): FozBazNonemptyAnomyous {
+): _FozBazNonemptyAnomyous {
   return {
     a: item["a"],
   };
 }
 
-export function fozBazNonemptyAnomyousArrayDeserializer(
+export function _fozBazNonemptyAnomyousArrayDeserializer(
   item: any,
-): FozBazNonemptyAnomyousArray {
+): _FozBazNonemptyAnomyousArray {
   return {
     b: item["b"],
   };
 }
 
-export function fozBazNonemptyAnomyousDictDeserializer(
+export function _fozBazNonemptyAnomyousDictDeserializer(
   item: any,
-): FozBazNonemptyAnomyousDict {
+): _FozBazNonemptyAnomyousDict {
   return {
     c: item["c"],
   };
