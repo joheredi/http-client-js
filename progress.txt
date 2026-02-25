@@ -2382,3 +2382,62 @@ are anonymous inline models — TCGC generates a name for them (e.g., `UploadFil
 - Test results: 803 passed, 0 failed, 6 skipped, 45 test files (44 passing, 1 vitest timeout error)
 - The vitest worker timeout error is an infrastructure issue, not a test failure.
 - All scenario tests pass (475 scenarios + 6 skipped).
+
+## 2026-02-25 — Conditional KnownXxx Enum Generation (Task 11.04)
+
+### What was done
+- **Modified `src/components/enum-declaration.tsx`**: `EnumDeclaration` now conditionally generates
+  the `KnownXxx` enum based on `experimentalExtensibleEnums` emitter option and `type.isFixed`.
+  - Only generates KnownXxx when `!type.isFixed && experimentalExtensibleEnums === true`
+  - For all other enums, generates only the type alias with literal union values
+  - Imports and calls `useEmitterOptions()` to access the flag
+- **Modified `src/context/emitter-options-context.tsx`**: Added `experimentalExtensibleEnums: boolean`
+  to `EmitterOptionsValue` interface with default `false`.
+- **Modified `src/emitter.tsx`**: Added `EmitterOptionsProvider` to the component tree, reading
+  `experimental-extensible-enums` from `context.options`.
+- **Modified `test/scenarios/emit-for-scenario.tsx`**: Reads `experimental-extensible-enums` from
+  YAML config and passes it to `EmitterOptionsProvider`.
+- **Updated unit tests**:
+  - `test/components/enum-declaration.test.tsx`: 8 tests (was 7). Fixed enums no longer expect
+    KnownXxx. Added separate test for extensible enum with flag (base type + KnownXxx) and
+    without flag (literal union only).
+  - `test/components/emitter.test.tsx`: Updated enum test to expect no KnownColor for fixed enums
+  - `test/components/model-files.test.tsx`: Removed KnownXxx from expected output for fixed enums
+- **Updated 17 scenario test expected outputs** via `SCENARIOS_UPDATE=true`:
+  - Affected scenarios: apiOperations, enumUnion, apiVersion, azureCoreErrorModels,
+    deserialization/extends, deserialization/propertyType, missingErrorResponseModel,
+    nestedEnum (3 scenarios), serialization (3 files), modelsGenerator, lroPaging, models/types
+- **Updated PRD**: Marked task 11.04 as done.
+
+### Test Results
+- Before: 803 passed, 0 failed, 6 skipped, 45 test files
+- After: 804 passed, 0 failed, 6 skipped, 45 test files (1 new test added)
+- Zero regressions in existing tests
+
+### Root Cause Analysis
+The `EnumDeclaration` component unconditionally generated both a type alias and KnownXxx enum
+for every `SdkEnumType`. The legacy emitter only generates KnownXxx when
+`!type.isFixed && experimentalExtensibleEnums === true`. The emitter also lacked the plumbing
+to pass the `experimental-extensible-enums` option through to components.
+
+### Architecture decisions
+- **Rendering-only change**: Only changed how enums are rendered, not the TCGC type model.
+  TCGC still defaults to `flattenUnionAsEnum: true`. Full legacy parity for union type
+  representation (e.g., `ResourceProvisioningState | "Provisioning" | string`) may require
+  also changing `flattenUnionAsEnum`, which is a deeper TCGC-level change.
+- **Option propagation via context**: The `experimentalExtensibleEnums` flag is stored in
+  `EmitterOptionsContext` and accessed via `useEmitterOptions()`, matching the existing pattern
+  for `includeHeadersInResponse`.
+
+### Notes for next person
+- Completed: All Phases 0-10, Tasks 11.04 (DONE).
+- **Remaining Phase 11 tasks** (all pending):
+  - P0: 11.02 (reserved words), 11.07 (response headers), 11.22 (sample quality), 11.24 (LRO/paging)
+  - P1: 11.03, 11.05-11.06, 11.08-11.13, 11.16-11.21, 11.23, 11.25-11.26
+  - P2: 11.01, 11.14-11.15
+- For full extensible enum parity, the `flattenUnionAsEnum` TCGC option may need to be
+  propagated (matching legacy's `isArm()` default logic). This would change the TCGC type
+  model and affect how unions vs enums are classified.
+- The `SnippetExtractor.getTypeAlias()` does NOT include JSDoc comments in its extraction,
+  so scenario `type` queries should use bare declarations without JSDoc.
+

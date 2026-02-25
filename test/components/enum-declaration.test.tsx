@@ -1,23 +1,23 @@
 /**
  * Test suite for the EnumDeclaration component.
  *
- * EnumDeclaration generates TypeScript type aliases and Known-values enums from
- * TCGC `SdkEnumType`. Every enum in the generated SDK flows through this component,
- * producing two declarations:
+ * EnumDeclaration generates TypeScript type aliases from TCGC `SdkEnumType`.
+ * The output depends on the enum's `isFixed` flag and the
+ * `experimentalExtensibleEnums` emitter option:
  *
- * 1. A type alias (`type Name = "val1" | "val2"`) that other components reference
- *    via `typeRefkey(enum)` — this is the primary type used in model properties,
- *    operation parameters, and return types.
- *
- * 2. A `KnownName` TypeScript enum documenting all values the service currently
- *    accepts, referenced via `knownValuesRefkey(enum)`.
+ * - Fixed enums always produce only a type alias (`type Name = "val1" | "val2"`).
+ * - Extensible enums without the flag also produce only a type alias with
+ *   all known literal values.
+ * - Extensible enums with `experimentalExtensibleEnums: true` produce both a
+ *   type alias (`type Name = string`) and a `KnownName` TypeScript enum.
  *
  * What is tested:
- * - Fixed string enums produce union type alias + Known enum with string values.
- * - Fixed numeric enums produce union type alias + Known enum with numeric values.
- * - Extensible enums (isFixed=false) produce base-type alias + Known enum.
- * - JSDoc documentation from enum.doc appears on both type alias and Known enum.
- * - JSDoc documentation from member.doc appears on enum members.
+ * - Fixed string enums produce union type alias only (no Known enum).
+ * - Fixed numeric enums produce union type alias only.
+ * - Extensible enums without flag produce literal union type alias only.
+ * - Extensible enums with flag produce base-type alias + Known enum.
+ * - JSDoc documentation from enum.doc appears on the type alias.
+ * - JSDoc documentation from member.doc appears on Known enum members.
  * - Members without doc get their literal value as documentation.
  * - Enum types can be referenced from model properties via refkey.
  * - Single-value enums render correctly without pipe separator.
@@ -35,12 +35,12 @@ import { SdkTestFile } from "../utils.jsx";
 
 describe("Enum Declaration", () => {
   /**
-   * Tests the most fundamental case: a fixed string enum renders a type alias
-   * as a union of string literals and a KnownXXX enum with string member values.
-   * This is the baseline enum test — most service enums are fixed string enums,
-   * so correctness here is critical.
+   * Tests the default case: a fixed string enum renders only a type alias
+   * as a union of string literals, without a KnownXXX enum. Fixed enums
+   * don't produce Known enums because they represent a closed set of values.
+   * This is the most common case — most service enums are fixed string enums.
    */
-  it("should render fixed string enum with type alias and Known enum", async () => {
+  it("should render fixed string enum as type alias only (no Known enum)", async () => {
     const runner = await TesterWithService.createInstance();
     const { program } = await runner.compile(
       t.code`
@@ -68,33 +68,16 @@ describe("Enum Declaration", () => {
        * Type of Color
        */
       export type Color = "red" | "green" | "blue";
-
-      /**
-       * Known values of {@link Color} that the service accepts.
-       */
-      export enum KnownColor {
-        /**
-         * red
-         */
-        Red = "red",
-        /**
-         * green
-         */
-        Green = "green",
-        /**
-         * blue
-         */
-        Blue = "blue",
-      }
     `);
   });
 
   /**
    * Tests that fixed numeric enums render correctly with number literal values
-   * in the type alias and numeric values in the Known enum. Numeric enums are
-   * less common but used in APIs like priority levels or status codes.
+   * in the type alias only. Numeric enums are less common but used in APIs
+   * like priority levels or status codes. No Known enum is generated for
+   * fixed enums.
    */
-  it("should render fixed numeric enum", async () => {
+  it("should render fixed numeric enum as type alias only", async () => {
     const runner = await TesterWithService.createInstance();
     const { program } = await runner.compile(
       t.code`
@@ -122,38 +105,16 @@ describe("Enum Declaration", () => {
        * Type of Priority
        */
       export type Priority = 1 | 2 | 3;
-
-      /**
-       * Known values of {@link Priority} that the service accepts.
-       */
-      export enum KnownPriority {
-        /**
-         * 1
-         */
-        Low = 1,
-        /**
-         * 2
-         */
-        Medium = 2,
-        /**
-         * 3
-         */
-        High = 3,
-      }
     `);
   });
 
   /**
-   * Tests that extensible enums (isFixed=false) render the base type as the
-   * type alias body instead of literal values. This is critical for forward
-   * compatibility — when a service adds new enum values, existing client code
-   * continues to work because the type allows any string.
-   *
-   * Since native TypeSpec enums are always `isFixed: true`, this test creates
-   * a normal enum and modifies its `isFixed` flag to simulate the extensible
-   * case that occurs with Azure-specific union-as-enum patterns.
+   * Tests that extensible enums (isFixed=false) WITHOUT the
+   * `experimentalExtensibleEnums` flag produce only a literal union type alias.
+   * This matches the legacy emitter's default behavior where extensible enums
+   * are treated like fixed enums unless the flag is explicitly enabled.
    */
-  it("should render extensible enum with base type alias", async () => {
+  it("should render extensible enum without flag as literal union only", async () => {
     const runner = await TesterWithService.createInstance();
     const { program } = await runner.compile(
       t.code`
@@ -167,13 +128,48 @@ describe("Enum Declaration", () => {
     );
 
     const sdkContext = await createSdkContextForTest(program);
-    // Simulate an extensible enum by overriding isFixed.
-    // In production, TCGC sets isFixed=false for union-as-enum patterns
-    // from Azure-specific libraries.
     const enumType = { ...sdkContext.sdkPackage.enums[0], isFixed: false } as typeof sdkContext.sdkPackage.enums[0];
 
     const template = (
       <SdkTestFile sdkContext={sdkContext}>
+        <EnumDeclaration type={enumType} />
+      </SdkTestFile>
+    );
+
+    expect(template).toRenderTo(`
+      /**
+       * Type of Status
+       */
+      export type Status = "active" | "inactive";
+    `);
+  });
+
+  /**
+   * Tests that extensible enums (isFixed=false) WITH the
+   * `experimentalExtensibleEnums` flag produce the KnownXxx pattern:
+   * a base type alias (`type Name = string`) plus a Known enum.
+   * This is critical for forward compatibility — when a service adds new
+   * enum values, existing client code continues to work because the type
+   * allows any string.
+   */
+  it("should render extensible enum with flag as base type + Known enum", async () => {
+    const runner = await TesterWithService.createInstance();
+    const { program } = await runner.compile(
+      t.code`
+        enum ${t.enum("Status")} {
+          Active: "active",
+          Inactive: "inactive",
+        }
+
+        op ${t.op("getStatus")}(): Status;
+      `,
+    );
+
+    const sdkContext = await createSdkContextForTest(program);
+    const enumType = { ...sdkContext.sdkPackage.enums[0], isFixed: false } as typeof sdkContext.sdkPackage.enums[0];
+
+    const template = (
+      <SdkTestFile sdkContext={sdkContext} emitterOptions={{ experimentalExtensibleEnums: true }}>
         <EnumDeclaration type={enumType} />
       </SdkTestFile>
     );
@@ -202,10 +198,10 @@ describe("Enum Declaration", () => {
 
   /**
    * Tests that JSDoc documentation from the TypeSpec `@doc` decorator on the
-   * enum propagates to both the type alias and the Known enum. Documentation
-   * is critical for SDK usability — consumers rely on IntelliSense tooltips.
+   * enum propagates to the type alias. Documentation is critical for SDK
+   * usability — consumers rely on IntelliSense tooltips.
    */
-  it("should render JSDoc from enum doc on both declarations", async () => {
+  it("should render JSDoc from enum doc on type alias", async () => {
     const runner = await TesterWithService.createInstance();
     const { program } = await runner.compile(
       t.code`
@@ -233,30 +229,16 @@ describe("Enum Declaration", () => {
        * The color of the widget surface.
        */
       export type Color = "red" | "green";
-
-      /**
-       * The color of the widget surface.
-       */
-      export enum KnownColor {
-        /**
-         * red
-         */
-        Red = "red",
-        /**
-         * green
-         */
-        Green = "green",
-      }
     `);
   });
 
   /**
    * Tests that JSDoc documentation from member-level `@doc` decorators
-   * appears on enum members. When a member has no doc, the literal value
-   * is used as fallback documentation. This ensures every member has some
-   * description in IntelliSense.
+   * appears on Known enum members when `experimentalExtensibleEnums` is
+   * enabled. When a member has no doc, the literal value is used as
+   * fallback documentation.
    */
-  it("should render member-level JSDoc from member doc", async () => {
+  it("should render member-level JSDoc on Known enum when flag enabled", async () => {
     const runner = await TesterWithService.createInstance();
     const { program } = await runner.compile(
       t.code`
@@ -271,10 +253,10 @@ describe("Enum Declaration", () => {
     );
 
     const sdkContext = await createSdkContextForTest(program);
-    const enumType = sdkContext.sdkPackage.enums[0];
+    const enumType = { ...sdkContext.sdkPackage.enums[0], isFixed: false } as typeof sdkContext.sdkPackage.enums[0];
 
     const template = (
-      <SdkTestFile sdkContext={sdkContext}>
+      <SdkTestFile sdkContext={sdkContext} emitterOptions={{ experimentalExtensibleEnums: true }}>
         <EnumDeclaration type={enumType} />
       </SdkTestFile>
     );
@@ -283,7 +265,7 @@ describe("Enum Declaration", () => {
       /**
        * Type of Direction
        */
-      export type Direction = "north" | "south";
+      export type Direction = string;
 
       /**
        * Known values of {@link Direction} that the service accepts.
@@ -343,20 +325,6 @@ describe("Enum Declaration", () => {
        */
       export type Color = "red" | "green";
 
-      /**
-       * Known values of {@link Color} that the service accepts.
-       */
-      export enum KnownColor {
-        /**
-         * red
-         */
-        Red = "red",
-        /**
-         * green
-         */
-        Green = "green",
-      }
-
       type Test = Color
     `);
   });
@@ -392,16 +360,6 @@ describe("Enum Declaration", () => {
        * Type of Singleton
        */
       export type Singleton = "only";
-
-      /**
-       * Known values of {@link Singleton} that the service accepts.
-       */
-      export enum KnownSingleton {
-        /**
-         * only
-         */
-        Only = "only",
-      }
     `);
   });
 });

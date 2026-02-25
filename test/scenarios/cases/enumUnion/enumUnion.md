@@ -46,28 +46,6 @@ export type SchemaContentTypeValues =
   | "application/json; serialization=json"
   | "text/plain; charset=utf-8"
   | "text/vnd.ms.protobuf";
-
-/**
- * Known values of {@link SchemaContentTypeValues} that the service accepts.
- */
-export enum KnownSchemaContentTypeValues {
-  /**
-   * application/json; serialization=Avro
-   */
-  Avro = "application/json; serialization=Avro",
-  /**
-   * application/json; serialization=json
-   */
-  Json = "application/json; serialization=json",
-  /**
-   * text/plain; charset=utf-8
-   */
-  Custom = "text/plain; charset=utf-8",
-  /**
-   * text/vnd.ms.protobuf
-   */
-  Protobuf = "text/vnd.ms.protobuf",
-}
 ```
 
 ## paramOutput
@@ -164,28 +142,6 @@ export type SchemaContentTypeValues =
   | "application/json; serialization=json"
   | "text/plain; charset=utf-8"
   | "text/vnd.ms.protobuf";
-
-/**
- * Known values of {@link SchemaContentTypeValues} that the service accepts.
- */
-export enum KnownSchemaContentTypeValues {
-  /**
-   * application/json; serialization=Avro
-   */
-  Avro = "application/json; serialization=Avro",
-  /**
-   * application/json; serialization=json
-   */
-  Json = "application/json; serialization=json",
-  /**
-   * text/plain; charset=utf-8
-   */
-  Custom = "text/plain; charset=utf-8",
-  /**
-   * text/vnd.ms.protobuf
-   */
-  Protobuf = "text/vnd.ms.protobuf",
-}
 ```
 
 # union with string as extensible enum is exhaustive
@@ -228,21 +184,9 @@ withRawContent: true
 /**
  * Type of SchemaContentTypeValues
  */
-export type SchemaContentTypeValues = string;
-
-/**
- * Known values of {@link SchemaContentTypeValues} that the service accepts.
- */
-export enum KnownSchemaContentTypeValues {
-  /**
-   * text/plain; charset=utf-8
-   */
-  Custom = "text/plain; charset=utf-8",
-  /**
-   * text/vnd.ms.protobuf
-   */
-  Protobuf = "text/vnd.ms.protobuf",
-}
+export type SchemaContentTypeValues =
+  | "text/plain; charset=utf-8"
+  | "text/vnd.ms.protobuf";
 ```
 
 # union contains union with string element
@@ -291,29 +235,11 @@ withRawContent: true
 /**
  * Type of SchemaContentTypeValues
  */
-export type SchemaContentTypeValues = string;
-
-/**
- * Known values of {@link SchemaContentTypeValues} that the service accepts.
- */
-export enum KnownSchemaContentTypeValues {
-  /**
-   * application/json; serialization=Avro
-   */
-  Avro = "application/json; serialization=Avro",
-  /**
-   * application/json; serialization=json
-   */
-  Json = "application/json; serialization=json",
-  /**
-   * text/plain; charset=utf-8
-   */
-  Custom = "text/plain; charset=utf-8",
-  /**
-   * text/vnd.ms.protobuf
-   */
-  Protobuf = "text/vnd.ms.protobuf",
-}
+export type SchemaContentTypeValues =
+  | "application/json; serialization=Avro"
+  | "application/json; serialization=json"
+  | "text/plain; charset=utf-8"
+  | "text/vnd.ms.protobuf";
 ```
 
 # union contains enum with string element
@@ -362,29 +288,11 @@ withRawContent: true
 /**
  * Type of SchemaContentTypeValues
  */
-export type SchemaContentTypeValues = string;
-
-/**
- * Known values of {@link SchemaContentTypeValues} that the service accepts.
- */
-export enum KnownSchemaContentTypeValues {
-  /**
-   * application/json; serialization=Avro
-   */
-  Avro = "application/json; serialization=Avro",
-  /**
-   * application/json; serialization=json
-   */
-  Json = "application/json; serialization=json",
-  /**
-   * text/plain; charset=utf-8
-   */
-  Custom = "text/plain; charset=utf-8",
-  /**
-   * text/vnd.ms.protobuf
-   */
-  Protobuf = "text/vnd.ms.protobuf",
-}
+export type SchemaContentTypeValues =
+  | "application/json; serialization=Avro"
+  | "application/json; serialization=json"
+  | "text/plain; charset=utf-8"
+  | "text/vnd.ms.protobuf";
 ```
 
 # union with string as extensible enum
@@ -427,21 +335,9 @@ withRawContent: true
 /**
  * Type of SchemaContentTypeValues
  */
-export type SchemaContentTypeValues = string;
-
-/**
- * Known values of {@link SchemaContentTypeValues} that the service accepts.
- */
-export enum KnownSchemaContentTypeValues {
-  /**
-   * text/plain; charset=utf-8
-   */
-  Custom = "text/plain; charset=utf-8",
-  /**
-   * text/vnd.ms.protobuf
-   */
-  Protobuf = "text/vnd.ms.protobuf",
-}
+export type SchemaContentTypeValues =
+  | "text/plain; charset=utf-8"
+  | "text/vnd.ms.protobuf";
 ```
 
 # union contains union with string element
@@ -490,29 +386,11 @@ withRawContent: true
 /**
  * Type of SchemaContentTypeValues
  */
-export type SchemaContentTypeValues = string;
-
-/**
- * Known values of {@link SchemaContentTypeValues} that the service accepts.
- */
-export enum KnownSchemaContentTypeValues {
-  /**
-   * application/json; serialization=Avro
-   */
-  Avro = "application/json; serialization=Avro",
-  /**
-   * application/json; serialization=json
-   */
-  Json = "application/json; serialization=json",
-  /**
-   * text/plain; charset=utf-8
-   */
-  Custom = "text/plain; charset=utf-8",
-  /**
-   * text/vnd.ms.protobuf
-   */
-  Protobuf = "text/vnd.ms.protobuf",
-}
+export type SchemaContentTypeValues =
+  | "application/json; serialization=Avro"
+  | "application/json; serialization=json"
+  | "text/plain; charset=utf-8"
+  | "text/vnd.ms.protobuf";
 ```
 
 # union contains enum with string element
@@ -561,29 +439,11 @@ withRawContent: true
 /**
  * Type of SchemaContentTypeValues
  */
-export type SchemaContentTypeValues = string;
-
-/**
- * Known values of {@link SchemaContentTypeValues} that the service accepts.
- */
-export enum KnownSchemaContentTypeValues {
-  /**
-   * application/json; serialization=Avro
-   */
-  Avro = "application/json; serialization=Avro",
-  /**
-   * application/json; serialization=json
-   */
-  Json = "application/json; serialization=json",
-  /**
-   * text/plain; charset=utf-8
-   */
-  Custom = "text/plain; charset=utf-8",
-  /**
-   * text/vnd.ms.protobuf
-   */
-  Protobuf = "text/vnd.ms.protobuf",
-}
+export type SchemaContentTypeValues =
+  | "application/json; serialization=Avro"
+  | "application/json; serialization=json"
+  | "text/plain; charset=utf-8"
+  | "text/vnd.ms.protobuf";
 ```
 
 # anonymous union with "|" fixed in regular headers
@@ -626,37 +486,9 @@ needOptions: false
 export type GetRequestTestHeader = "A" | "B";
 
 /**
- * Known values of {@link GetRequestTestHeader} that the service accepts.
- */
-export enum KnownGetRequestTestHeader {
-  /**
-   * A
-   */
-  A = "A",
-  /**
-   * B
-   */
-  B = "B",
-}
-
-/**
  * Type of GetResponseTestHeader
  */
 export type GetResponseTestHeader = "A" | "B";
-
-/**
- * Known values of {@link GetResponseTestHeader} that the service accepts.
- */
-export enum KnownGetResponseTestHeader {
-  /**
-   * A
-   */
-  A = "A",
-  /**
-   * B
-   */
-  B = "B",
-}
 ```
 
 ## Operations
@@ -886,28 +718,6 @@ export type SchemaContentTypeValues =
   | "application/json; serialization=json"
   | "text/plain; charset=utf-8"
   | "text/vnd.ms.protobuf";
-
-/**
- * Known values of {@link SchemaContentTypeValues} that the service accepts.
- */
-export enum KnownSchemaContentTypeValues {
-  /**
-   * application/json; serialization=Avro
-   */
-  Avro = "application/json; serialization=Avro",
-  /**
-   * application/json; serialization=json
-   */
-  Json = "application/json; serialization=json",
-  /**
-   * text/plain; charset=utf-8
-   */
-  Custom = "text/plain; charset=utf-8",
-  /**
-   * text/vnd.ms.protobuf
-   */
-  Protobuf = "text/vnd.ms.protobuf",
-}
 ```
 
 # should be taken as fixed enum without @fixed
@@ -959,28 +769,6 @@ export type SchemaContentTypeValues =
   | "application/json; serialization=json"
   | "text/plain; charset=utf-8"
   | "text/vnd.ms.protobuf";
-
-/**
- * Known values of {@link SchemaContentTypeValues} that the service accepts.
- */
-export enum KnownSchemaContentTypeValues {
-  /**
-   * application/json; serialization=Avro
-   */
-  Avro = "application/json; serialization=Avro",
-  /**
-   * application/json; serialization=json
-   */
-  Json = "application/json; serialization=json",
-  /**
-   * text/plain; charset=utf-8
-   */
-  Custom = "text/plain; charset=utf-8",
-  /**
-   * text/vnd.ms.protobuf
-   */
-  Protobuf = "text/vnd.ms.protobuf",
-}
 ```
 
 # number extensible enum should be generated correctly
@@ -1028,29 +816,7 @@ withRawContent: true
 /**
  * Type of EnumTest
  */
-export type EnumTest = number;
-
-/**
- * Known values of {@link EnumTest} that the service accepts.
- */
-export enum KnownEnumTest {
-  /**
-   * 1
-   */
-  One = 1,
-  /**
-   * 2
-   */
-  Two = 2,
-  /**
-   * 3
-   */
-  Three = 3,
-  /**
-   * 4
-   */
-  Four = 4,
-}
+export type EnumTest = 1 | 2 | 3 | 4;
 ```
 
 # mixed union types should be generated correctly
@@ -1111,28 +877,6 @@ export interface Foo {}
  * Type of EnumTest
  */
 export type EnumTest = 1 | 2 | 3 | 4;
-
-/**
- * Known values of {@link EnumTest} that the service accepts.
- */
-export enum KnownEnumTest {
-  /**
-   * 1
-   */
-  One = 1,
-  /**
-   * 2
-   */
-  Two = 2,
-  /**
-   * 3
-   */
-  Three = 3,
-  /**
-   * 4
-   */
-  Four = 4,
-}
 
 /**
  * Alias for MixedTypes

@@ -8,6 +8,7 @@ import type {
   SdkEnumType,
   SdkEnumValueType,
 } from "@azure-tools/typespec-client-generator-core";
+import { useEmitterOptions } from "../context/emitter-options-context.js";
 import { knownValuesRefkey, typeRefkey } from "../utils/refkeys.js";
 import { getTypeExpression } from "./type-expression.js";
 
@@ -22,28 +23,49 @@ export interface EnumDeclarationProps {
 /**
  * Renders TypeScript declarations for a TCGC `SdkEnumType`.
  *
- * Every enum produces **two** declarations following the legacy emitter pattern:
+ * The output depends on whether the enum is extensible and the
+ * `experimentalExtensibleEnums` emitter option:
  *
- * 1. **Type alias** (`type Name = "val1" | "val2" | ...`) — the primary type that
- *    other components reference via `typeRefkey(enum)`. For fixed enums, this is a
- *    union of literal values. For extensible enums (`isFixed === false`), this is the
- *    base type (e.g., `string`) to allow arbitrary values at runtime.
+ * - **Fixed enums** (`isFixed === true`): Always produce only a type alias
+ *   with a union of literal values (`type Name = "val1" | "val2"`).
  *
- * 2. **Known-values enum** (`enum KnownName { Val1 = "val1", ... }`) — a TypeScript
- *    enum documenting all values the service currently accepts. Identified by
- *    `knownValuesRefkey(enum)`.
+ * - **Extensible enums** (`isFixed === false`) **with** `experimentalExtensibleEnums`:
+ *   Produce two declarations following the KnownXxx pattern:
+ *   1. `type Name = string` — allows arbitrary runtime values
+ *   2. `enum KnownName { Val1 = "val1", ... }` — documents known values
  *
- * This dual-declaration pattern ensures type safety for known values while allowing
- * extensibility when the service may add new values in the future.
+ * - **Extensible enums without the flag**: Produce only a type alias with
+ *   a union of all known literal values, matching the legacy emitter's
+ *   default behavior.
+ *
+ * The KnownXxx enum is only generated when the extensible enum pattern is
+ * explicitly enabled, matching the legacy emitter's `isExtensibleEnum()`
+ * guard (`!type.isFixed && experimentalExtensibleEnums === true`).
  *
  * @param props - The component props containing the TCGC enum type.
- * @returns An Alloy JSX tree containing both the type alias and Known enum.
+ * @returns An Alloy JSX tree containing the type alias and optionally the Known enum.
  */
 export function EnumDeclaration(props: EnumDeclarationProps) {
   const { type } = props;
+  const { experimentalExtensibleEnums } = useEmitterOptions();
+  const shouldEmitKnownEnum = !type.isFixed && experimentalExtensibleEnums;
 
-  const typeBody = getTypeAliasBody(type);
+  const typeBody = getTypeAliasBody(type, shouldEmitKnownEnum);
   const typeDoc = getTypeAliasDoc(type);
+
+  if (!shouldEmitKnownEnum) {
+    return (
+      <TypeDeclaration
+        name={type.name}
+        refkey={typeRefkey(type)}
+        export
+        doc={typeDoc}
+      >
+        {typeBody}
+      </TypeDeclaration>
+    );
+  }
+
   const enumDoc = getKnownEnumDoc(type);
 
   return (
@@ -83,19 +105,21 @@ export function EnumDeclaration(props: EnumDeclarationProps) {
 /**
  * Builds the body of the type alias declaration for an enum.
  *
- * For fixed enums (closed set of values), this produces a union of all literal
- * values: `"Red" | "Green" | "Blue"`. For extensible enums (open set), this
- * produces the base type (e.g., `string` or `number`) so consumers can pass
- * values not yet known to the SDK.
+ * For extensible enums with `experimentalExtensibleEnums` enabled, this
+ * produces the base type (e.g., `string` or `number`) so consumers can
+ * pass values not yet known to the SDK. For all other cases (fixed enums,
+ * or extensible without the flag), this produces a union of all literal
+ * values: `"Red" | "Green" | "Blue"`.
  *
  * @param type - The TCGC enum type.
+ * @param isExtensible - Whether the extensible enum pattern is active.
  * @returns The type alias body as Alloy Children.
  */
-function getTypeAliasBody(type: SdkEnumType): Children {
-  if (type.isFixed) {
-    return type.values.map((v) => getEnumValueLiteral(v)).join(" | ");
+function getTypeAliasBody(type: SdkEnumType, isExtensible: boolean): Children {
+  if (isExtensible) {
+    return getTypeExpression(type.valueType);
   }
-  return getTypeExpression(type.valueType);
+  return type.values.map((v) => getEnumValueLiteral(v)).join(" | ");
 }
 
 /**

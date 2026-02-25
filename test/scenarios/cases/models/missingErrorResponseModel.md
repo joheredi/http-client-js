@@ -133,16 +133,6 @@ export interface InnerError {
  */
 export type Versions = "2023-03-01-preview";
 
-/**
- * Known values of {@link Versions} that the service accepts.
- */
-export enum KnownVersions {
-  /**
-   * Version 2023-03-01-preview
-   */
-  V2023_03_01Preview = "2023-03-01-preview",
-}
-
 export function assetChainSummaryResultDeserializer(
   item: any,
 ): AssetChainSummaryResult {

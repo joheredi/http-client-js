@@ -123,37 +123,9 @@ export interface SimpleModel {
 export type SimpleModelPropStringUnion = "A" | "B";
 
 /**
- * Known values of {@link SimpleModelPropStringUnion} that the service accepts.
- */
-export enum KnownSimpleModelPropStringUnion {
-  /**
-   * A
-   */
-  A = "A",
-  /**
-   * B
-   */
-  B = "B",
-}
-
-/**
  * Type of SimpleModelPropStringUnionOptional
  */
 export type SimpleModelPropStringUnionOptional = "A" | "B";
-
-/**
- * Known values of {@link SimpleModelPropStringUnionOptional} that the service accepts.
- */
-export enum KnownSimpleModelPropStringUnionOptional {
-  /**
-   * A
-   */
-  A = "A",
-  /**
-   * B
-   */
-  B = "B",
-}
 
 /**
  * Type of SimpleModelPropStringUnionAsExtensible

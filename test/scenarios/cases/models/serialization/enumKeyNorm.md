@@ -213,24 +213,6 @@ export type Versions =
   | "2024-07-01"
   | "2024-08-01-preview";
 
-/**
- * Known values of {@link Versions} that the service accepts.
- */
-export enum KnownVersions {
-  /**
-   * 2024-07-01-preview
-   */
-  PreviewVersion = "2024-07-01-preview",
-  /**
-   * 2024-07-01
-   */
-  StableVersion = "2024-07-01",
-  /**
-   * 2024-08-01-preview
-   */
-  "2024_08_01Preview" = "2024-08-01-preview",
-}
-
 export function fooSerializer(item: Foo): any {
   return {
     extensibleString: item["extensibleString"],

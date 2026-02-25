@@ -191,6 +191,7 @@ ${x}
   // Extract emitter options from YAML config
   const emitterOptions = {
     includeHeadersInResponse: yamlConfig["include-headers-in-response"] === true,
+    experimentalExtensibleEnums: yamlConfig["experimental-extensible-enums"] === true,
   };
 
   const output = (

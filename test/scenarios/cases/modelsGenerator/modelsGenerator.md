@@ -290,20 +290,6 @@ export interface InputOutputModel {
  */
 export type TranslationLanguageValues = "English" | "Chinese";
 
-/**
- * Translation Language Values
- */
-export enum KnownTranslationLanguageValues {
-  /**
-   * English descriptions
-   */
-  English = "English",
-  /**
-   * Chinese descriptions
-   */
-  Chinese = "Chinese",
-}
-
 export function inputOutputModelSerializer(item: InputOutputModel): any {
   return {
     prop: item["prop"],
@@ -2104,28 +2090,6 @@ export type SchemaContentTypeValues =
   | "application/json; serialization=json"
   | "text/plain; charset=utf-8"
   | "text/vnd.ms.protobuf";
-
-/**
- * Known values of {@link SchemaContentTypeValues} that the service accepts.
- */
-export enum KnownSchemaContentTypeValues {
-  /**
-   * application/json; serialization=Avro
-   */
-  Avro = "application/json; serialization=Avro",
-  /**
-   * application/json; serialization=json
-   */
-  Json = "application/json; serialization=json",
-  /**
-   * text/plain; charset=utf-8
-   */
-  Custom = "text/plain; charset=utf-8",
-  /**
-   * text/vnd.ms.protobuf
-   */
-  Protobuf = "text/vnd.ms.protobuf",
-}
 ```
 
 ## Operations
@@ -2223,28 +2187,6 @@ export type SchemaContentTypeValues =
   | "application/json; serialization=json"
   | "text/plain; charset=utf-8"
   | "text/vnd.ms.protobuf";
-
-/**
- * Known values of {@link SchemaContentTypeValues} that the service accepts.
- */
-export enum KnownSchemaContentTypeValues {
-  /**
-   * application/json; serialization=Avro
-   */
-  Avro = "application/json; serialization=Avro",
-  /**
-   * application/json; serialization=json
-   */
-  Json = "application/json; serialization=json",
-  /**
-   * text/plain; charset=utf-8
-   */
-  Custom = "text/plain; charset=utf-8",
-  /**
-   * text/vnd.ms.protobuf
-   */
-  Protobuf = "text/vnd.ms.protobuf",
-}
 ```
 
 # anonymous union with string literals being used in regular headers
@@ -2288,37 +2230,9 @@ needAzureCore: false
 export type GetRequestTestHeader = "A" | "B";
 
 /**
- * Known values of {@link GetRequestTestHeader} that the service accepts.
- */
-export enum KnownGetRequestTestHeader {
-  /**
-   * A
-   */
-  A = "A",
-  /**
-   * B
-   */
-  B = "B",
-}
-
-/**
  * Type of GetResponseTestHeader
  */
 export type GetResponseTestHeader = "A" | "B";
-
-/**
- * Known values of {@link GetResponseTestHeader} that the service accepts.
- */
-export enum KnownGetResponseTestHeader {
-  /**
-   * A
-   */
-  A = "A",
-  /**
-   * B
-   */
-  B = "B",
-}
 ```
 
 ## Operations

@@ -5,6 +5,7 @@ import { createSdkContext } from "@azure-tools/typespec-client-generator-core";
 import { Output, writeOutput } from "@typespec/emitter-framework";
 import { SdkContextProvider } from "./context/sdk-context.js";
 import { FlavorProvider } from "./context/flavor-context.js";
+import { EmitterOptionsProvider } from "./context/emitter-options-context.js";
 import { ModelFiles } from "./components/model-files.js";
 import { OperationFiles } from "./components/operation-files.js";
 import { OperationOptionsFiles } from "./components/operation-options-files.js";
@@ -46,6 +47,11 @@ import { SampleFiles } from "./components/sample-files.js";
 export async function $onEmit(context: EmitContext) {
   const sdkContext = await createSdkContext(context);
 
+  const emitterOptions = {
+    includeHeadersInResponse: context.options?.["include-headers-in-response"] === true,
+    experimentalExtensibleEnums: context.options?.["experimental-extensible-enums"] === true,
+  };
+
   const output = (
     <Output
       program={context.program}
@@ -54,26 +60,28 @@ export async function $onEmit(context: EmitContext) {
       externals={[httpRuntimeLib, azureCoreLroLib]}
     >
       <FlavorProvider flavor="core">
-        <SdkContextProvider sdkContext={sdkContext}>
-          <SourceDirectory path="src">
-            <ModelFiles />
-            <OperationFiles />
-            <OperationOptionsFiles />
-            <For each={sdkContext.sdkPackage.clients}>
-              {(client) => (
-                <>
-                  <ClientContextFile client={client} />
-                  <ClassicalClientFile client={client} />
-                  <ClassicalOperationGroupFiles client={client} />
-                  <RestorePollerFile client={client} />
-                </>
-              )}
-            </For>
-            <IndexFiles />
-            <StaticHelpers />
-          </SourceDirectory>
-          <SampleFiles />
-        </SdkContextProvider>
+        <EmitterOptionsProvider options={emitterOptions}>
+          <SdkContextProvider sdkContext={sdkContext}>
+            <SourceDirectory path="src">
+              <ModelFiles />
+              <OperationFiles />
+              <OperationOptionsFiles />
+              <For each={sdkContext.sdkPackage.clients}>
+                {(client) => (
+                  <>
+                    <ClientContextFile client={client} />
+                    <ClassicalClientFile client={client} />
+                    <ClassicalOperationGroupFiles client={client} />
+                    <RestorePollerFile client={client} />
+                  </>
+                )}
+              </For>
+              <IndexFiles />
+              <StaticHelpers />
+            </SourceDirectory>
+            <SampleFiles />
+          </SdkContextProvider>
+        </EmitterOptionsProvider>
       </FlavorProvider>
     </Output>
   );

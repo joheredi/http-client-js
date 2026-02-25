@@ -248,67 +248,17 @@ export interface ArmOperationStatusResourceProvisioningState {
 /**
  * The kind of entity that created the resource.
  */
-export type CreatedByType = string;
-
-/**
- * The kind of entity that created the resource.
- */
-export enum KnowncreatedByType {
-  /**
-   * The entity was created by a user.
-   */
-  User = "User",
-  /**
-   * The entity was created by an application.
-   */
-  Application = "Application",
-  /**
-   * The entity was created by a managed identity.
-   */
-  ManagedIdentity = "ManagedIdentity",
-  /**
-   * The entity was created by a key.
-   */
-  Key = "Key",
-}
+export type CreatedByType = "User" | "Application" | "ManagedIdentity" | "Key";
 
 /**
  * The provisioning state of a resource type.
  */
-export type ResourceProvisioningState = string;
-
-/**
- * The provisioning state of a resource type.
- */
-export enum KnownResourceProvisioningState {
-  /**
-   * Resource has been created.
-   */
-  Succeeded = "Succeeded",
-  /**
-   * Resource creation failed.
-   */
-  Failed = "Failed",
-  /**
-   * Resource creation was canceled.
-   */
-  Canceled = "Canceled",
-}
+export type ResourceProvisioningState = "Succeeded" | "Failed" | "Canceled";
 
 /**
  * Type of Versions
  */
 export type Versions = "2023-12-01";
-
-/**
- * Known values of {@link Versions} that the service accepts.
- */
-export enum KnownVersions {
-  /**
-   * 2023-12-01
-   */
-  V2023_12_01 = "2023-12-01",
-}
 
 export function webAppCollectionDeserializer(item: any): WebAppCollection {
   return {

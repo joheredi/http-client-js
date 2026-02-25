@@ -1701,7 +1701,7 @@
         {
           "id": "11.04",
           "title": "[P0] Extensible Enum to Literal Union Conversion",
-          "status": "pending",
+          "status": "done",
           "severity": "high",
           "description": "Legacy emitter generates KnownXxx enums with a string type alias for extensible enums. New emitter generates literal union types instead, removing the KnownXxx enum pattern entirely. This is a public API surface change.",
           "affected_file_count": 7,

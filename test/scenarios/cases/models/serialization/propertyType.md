@@ -171,75 +171,19 @@ export interface AzureArcK8sClusterNfviDetails extends NfvIs {
 export type SimpleModelPropStringUnion = "A" | "B";
 
 /**
- * Known values of {@link SimpleModelPropStringUnion} that the service accepts.
- */
-export enum KnownSimpleModelPropStringUnion {
-  /**
-   * A
-   */
-  A = "A",
-  /**
-   * B
-   */
-  B = "B",
-}
-
-/**
  * Type of SimpleModelPropStringUnionOptioanl
  */
 export type SimpleModelPropStringUnionOptioanl = "A" | "B";
 
 /**
- * Known values of {@link SimpleModelPropStringUnionOptioanl} that the service accepts.
- */
-export enum KnownSimpleModelPropStringUnionOptioanl {
-  /**
-   * A
-   */
-  A = "A",
-  /**
-   * B
-   */
-  B = "B",
-}
-
-/**
  * Type of SimpleModelPropStringUnionAsExtensible
  */
-export type SimpleModelPropStringUnionAsExtensible = string;
-
-/**
- * Known values of {@link SimpleModelPropStringUnionAsExtensible} that the service accepts.
- */
-export enum KnownSimpleModelPropStringUnionAsExtensible {
-  /**
-   * A
-   */
-  A = "A",
-  /**
-   * B
-   */
-  B = "B",
-}
+export type SimpleModelPropStringUnionAsExtensible = "A" | "B";
 
 /**
  * Type of SimpleModelPropStringUnionAsExtensibleOptional
  */
-export type SimpleModelPropStringUnionAsExtensibleOptional = string;
-
-/**
- * Known values of {@link SimpleModelPropStringUnionAsExtensibleOptional} that the service accepts.
- */
-export enum KnownSimpleModelPropStringUnionAsExtensibleOptional {
-  /**
-   * A
-   */
-  A = "A",
-  /**
-   * B
-   */
-  B = "B",
-}
+export type SimpleModelPropStringUnionAsExtensibleOptional = "A" | "B";
 
 /**
  * Alias for SimpleModelPropSimpleUnion

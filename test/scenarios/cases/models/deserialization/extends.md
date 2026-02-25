@@ -191,33 +191,12 @@ export interface DiscountTypeProductSku extends DiscountTypeProperties {
 /**
  * Type of DiscountType
  */
-export type DiscountType = string;
-
-/**
- * Known values of {@link DiscountType} that the service accepts.
- */
-export enum KnownDiscountType {
-  /**
-   * ProductFamily
-   */
-  ProductFamily = "ProductFamily",
-  /**
-   * Product
-   */
-  Product = "Product",
-  /**
-   * Sku
-   */
-  Sku = "Sku",
-  /**
-   * CustomPrice
-   */
-  CustomPrice = "CustomPrice",
-  /**
-   * CustomPriceMultiCurrency
-   */
-  CustomPriceMultiCurrency = "CustomPriceMultiCurrency",
-}
+export type DiscountType =
+  | "ProductFamily"
+  | "Product"
+  | "Sku"
+  | "CustomPrice"
+  | "CustomPriceMultiCurrency";
 
 export function discountTypeProductFamilyDeserializer(
   item: any,
@@ -349,37 +328,13 @@ export interface Exception extends DocumentIngress {
 /**
  * Document type
  */
-export type DocumentType = string;
-
-/**
- * Document type
- */
-export enum KnownDocumentType {
-  /**
-   * Request
-   */
-  Request = "Request",
-  /**
-   * RemoteDependency
-   */
-  RemoteDependency = "RemoteDependency",
-  /**
-   * Exception
-   */
-  Exception = "Exception",
-  /**
-   * Event
-   */
-  Event = "Event",
-  /**
-   * Trace
-   */
-  Trace = "Trace",
-  /**
-   * Unknown
-   */
-  Unknown = "Unknown",
-}
+export type DocumentType =
+  | "Request"
+  | "RemoteDependency"
+  | "Exception"
+  | "Event"
+  | "Trace"
+  | "Unknown";
 
 export function requestSerializer(item: Request): any {
   return {
@@ -563,24 +518,6 @@ export type Versions =
   | "2024-07-01-preview"
   | "2024-07-01"
   | "2024-08-01-preview";
-
-/**
- * Known values of {@link Versions} that the service accepts.
- */
-export enum KnownVersions {
-  /**
-   * 2024-07-01-preview
-   */
-  PreviewVersion = "2024-07-01-preview",
-  /**
-   * 2024-07-01
-   */
-  "2024_07_01" = "2024-07-01",
-  /**
-   * 2024-08-01-preview
-   */
-  "2024_08_01Preview" = "2024-08-01-preview",
-}
 
 export function dogSerializer(item: Dog): any {
   return {

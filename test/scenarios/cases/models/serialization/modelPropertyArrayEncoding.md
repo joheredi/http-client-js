@@ -201,24 +201,6 @@ export interface Widget {
 export type Color = "red" | "blue" | "green";
 
 /**
- * Known values of {@link Color} that the service accepts.
- */
-export enum KnownColor {
-  /**
-   * red
-   */
-  Red = "red",
-  /**
-   * blue
-   */
-  Blue = "blue",
-  /**
-   * green
-   */
-  Green = "green",
-}
-
-/**
  * Type of ColorsUnion
  */
 export type ColorsUnion = string;
@@ -247,41 +229,9 @@ export enum KnownColorsUnion {
 export type WidgetRequiredSpaceType = "a" | "b";
 
 /**
- * Known values of {@link WidgetRequiredSpaceType} that the service accepts.
- */
-export enum KnownWidgetRequiredSpaceType {
-  /**
-   * a
-   */
-  A = "a",
-  /**
-   * b
-   */
-  B = "b",
-}
-
-/**
  * Type of WidgetOptionalSpaceType
  */
 export type WidgetOptionalSpaceType = "x" | "y" | "z";
-
-/**
- * Known values of {@link WidgetOptionalSpaceType} that the service accepts.
- */
-export enum KnownWidgetOptionalSpaceType {
-  /**
-   * x
-   */
-  X = "x",
-  /**
-   * y
-   */
-  Y = "y",
-  /**
-   * z
-   */
-  Z = "z",
-}
 
 export function widgetSerializer(item: Widget): any {
   return {

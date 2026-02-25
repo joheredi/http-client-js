@@ -223,9 +223,9 @@ describe("$onEmit", () => {
 
   /**
    * Tests that enum types flow through the emitter correctly, appearing
-   * in the models file as both a type alias and a KnownXxx enum. This
-   * validates that the ModelFiles component correctly renders enum
-   * declarations within the full emitter tree.
+   * in the models file as a type alias. Without `experimentalExtensibleEnums`,
+   * fixed enums produce only a type alias (no KnownXxx enum). This validates
+   * that the ModelFiles component correctly renders enum declarations.
    */
   it("should include enum declarations in model output", async () => {
     const runner = await TesterWithService.createInstance();
@@ -243,9 +243,10 @@ describe("$onEmit", () => {
 
     const result = renderToString(template);
 
-    // Enum declarations should be present
-    expect(result).toContain("KnownColor");
+    // Fixed enum type alias should be present
     expect(result).toContain("Color");
+    // No KnownColor enum without experimentalExtensibleEnums flag
+    expect(result).not.toContain("KnownColor");
   });
 
   /**

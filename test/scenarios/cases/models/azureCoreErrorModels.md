@@ -261,82 +261,22 @@ export interface SystemData {
 /**
  * The intended executor of the operation; as in Resource Based Access Control (RBAC) and audit logs UX. Default value is "user,system"
  */
-export type Origin = string;
-
-/**
- * The intended executor of the operation; as in Resource Based Access Control (RBAC) and audit logs UX. Default value is "user,system"
- */
-export enum KnownOrigin {
-  /**
-   * Indicates the operation is initiated by a user.
-   */
-  User = "user",
-  /**
-   * Indicates the operation is initiated by a system.
-   */
-  System = "system",
-  /**
-   * Indicates the operation is initiated by a user or system.
-   */
-  UserSystem = "user,system",
-}
+export type Origin = "user" | "system" | "user,system";
 
 /**
  * Extensible enum. Indicates the action type. "Internal" refers to actions that are for internal only APIs.
  */
-export type ActionType = string;
-
-/**
- * Extensible enum. Indicates the action type. "Internal" refers to actions that are for internal only APIs.
- */
-export enum KnownActionType {
-  /**
-   * Actions are for internal-only APIs.
-   */
-  Internal = "Internal",
-}
+export type ActionType = "Internal";
 
 /**
  * The kind of entity that created the resource.
  */
-export type CreatedByType = string;
-
-/**
- * The kind of entity that created the resource.
- */
-export enum KnowncreatedByType {
-  /**
-   * The entity was created by a user.
-   */
-  User = "User",
-  /**
-   * The entity was created by an application.
-   */
-  Application = "Application",
-  /**
-   * The entity was created by a managed identity.
-   */
-  ManagedIdentity = "ManagedIdentity",
-  /**
-   * The entity was created by a key.
-   */
-  Key = "Key",
-}
+export type CreatedByType = "User" | "Application" | "ManagedIdentity" | "Key";
 
 /**
  * The available API versions.
  */
 export type Versions = "2021-10-01-preview";
-
-/**
- * The available API versions.
- */
-export enum KnownVersions {
-  /**
-   * 2021-10-01-preview version
-   */
-  V2021_10_01Preview = "2021-10-01-preview",
-}
 
 export function avsSummarySerializer(item: AvsSummary): any {
   return {

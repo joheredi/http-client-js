@@ -240,33 +240,12 @@ export interface ErrorResponse {
 /**
  * Enum describing allowed operation states.
  */
-export type OperationState = string;
-
-/**
- * Enum describing allowed operation states.
- */
-export enum KnownOperationState {
-  /**
-   * The operation has not started.
-   */
-  NotStarted = "NotStarted",
-  /**
-   * The operation is in progress.
-   */
-  Running = "Running",
-  /**
-   * The operation has completed successfully.
-   */
-  Succeeded = "Succeeded",
-  /**
-   * The operation has failed.
-   */
-  Failed = "Failed",
-  /**
-   * The operation has been canceled by the user.
-   */
-  Canceled = "Canceled",
-}
+export type OperationState =
+  | "NotStarted"
+  | "Running"
+  | "Succeeded"
+  | "Failed"
+  | "Canceled";
 
 export function resourceOperationStatusWidgetSuiteWidgetSuiteErrorDeserializer(
   item: any,

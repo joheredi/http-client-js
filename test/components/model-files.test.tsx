@@ -136,24 +136,6 @@ describe("ModelFiles", () => {
          * Type of Color
          */
         export type Color = "Red" | "Green" | "Blue";
-
-        /**
-         * Known values of {@link Color} that the service accepts.
-         */
-        export enum KnownColor {
-          /**
-           * Red
-           */
-          Red = "Red",
-          /**
-           * Green
-           */
-          Green = "Green",
-          /**
-           * Blue
-           */
-          Blue = "Blue",
-        }
       `,
     });
   });
@@ -200,20 +182,6 @@ describe("ModelFiles", () => {
          * Type of Status
          */
         export type Status = "Active" | "Inactive";
-
-        /**
-         * Known values of {@link Status} that the service accepts.
-         */
-        export enum KnownStatus {
-          /**
-           * Active
-           */
-          Active = "Active",
-          /**
-           * Inactive
-           */
-          Inactive = "Inactive",
-        }
 
         export function widgetDeserializer(item: any): Widget {
           return {

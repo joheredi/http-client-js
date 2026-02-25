@@ -43,23 +43,5 @@ Model generated.
 /**
  * Type of Foo
  */
-export type Foo = string;
-
-/**
- * Known values of {@link Foo} that the service accepts.
- */
-export enum KnownFoo {
-  /**
-   * test
-   */
-  Test = "test",
-  /**
-   * foo
-   */
-  Foo = "foo",
-  /**
-   * bar
-   */
-  Bar = "bar",
-}
+export type Foo = "test" | "foo" | "bar";
 ```

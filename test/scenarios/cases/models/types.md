@@ -17,7 +17,7 @@ op getWidget(): Widget;
 
 ## TypeScript
 
-Should generate both the enum and the model interface.
+Should generate the type alias and the model interface.
 
 ```ts src/models/models.ts interface Widget
 export interface Widget {
@@ -26,21 +26,8 @@ export interface Widget {
 }
 ```
 
-```ts src/models/models.ts enum KnownColor
-export enum KnownColor {
-  /**
-   * red
-   */
-  Red = "red",
-  /**
-   * blue
-   */
-  Blue = "blue",
-  /**
-   * green
-   */
-  Green = "green",
-}
+```ts src/models/models.ts type Color
+export type Color = "red" | "blue" | "green";
 ```
 
 # Should generate model with array property

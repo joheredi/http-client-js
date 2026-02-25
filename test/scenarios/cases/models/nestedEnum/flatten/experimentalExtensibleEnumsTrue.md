@@ -118,16 +118,6 @@ export enum KnownProvisioningState {
  */
 export type Versions = "2021-10-01-preview";
 
-/**
- * The available API versions.
- */
-export enum KnownVersions {
-  /**
-   * 2021-10-01-preview version
-   */
-  V2021_10_01Preview = "2021-10-01-preview",
-}
-
 export function _fooRequestBodySerializer(item: _FooRequestBody): any {
   return {
     status: item["status"],

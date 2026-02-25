@@ -43,16 +43,6 @@ Generate as normal enums.
  * The available API versions.
  */
 export type Versions = "2021-10-01-preview";
-
-/**
- * The available API versions.
- */
-export enum KnownVersions {
-  /**
-   * 2021-10-01-preview version
-   */
-  V2021_10_01Preview = "2021-10-01-preview",
-}
 ```
 
 ## Operations

@@ -1141,3 +1141,41 @@ return namekey(`_${model.name}`, { ignoreNamePolicy: true });
 const camelName = model.name.charAt(0).toLowerCase() + model.name.slice(1);
 return namekey(`_${camelName}${suffix}`, { ignoreNamePolicy: true });
 ```
+
+## Extensible Enum KnownXxx Conditional Generation
+
+### Problem
+The `EnumDeclaration` component was always generating both a type alias and a `KnownXxx` enum
+for every `SdkEnumType`. The legacy emitter only generates the KnownXxx enum when
+`!type.isFixed && experimentalExtensibleEnums === true`. For fixed enums and extensible enums
+without the flag, only a type alias with literal union values should be generated.
+
+### Root Cause
+The `EnumDeclaration` component didn't have access to the `experimentalExtensibleEnums` option
+and unconditionally generated both declarations. The emitter entry point also didn't read or
+propagate this option from the TypeSpec emitter context.
+
+### Fix
+1. Added `experimentalExtensibleEnums` to `EmitterOptionsValue` interface
+2. Updated `EnumDeclaration` to call `useEmitterOptions()` and conditionally render the KnownXxx
+   enum only when `!type.isFixed && experimentalExtensibleEnums === true`
+3. Updated the type alias body: uses base type (string) only when extensible pattern is active;
+   otherwise uses literal union of all values
+4. Updated `emitter.tsx` to read `experimental-extensible-enums` from emitter context options
+5. Updated `emit-for-scenario.tsx` to read the option from YAML config
+
+### Key Insight
+- TCGC defaults `flattenUnionAsEnum: true`, so unions with string variants become `SdkEnumType`
+  with `isFixed: false`
+- The legacy emitter checks BOTH `flattenUnionAsEnum` (for TCGC behavior) and
+  `experimentalExtensibleEnums` (for rendering). We only changed the rendering side.
+- Full legacy parity for union types may require also changing `flattenUnionAsEnum` option
+  in the TCGC createSdkContext call, which is a deeper change for future work.
+
+### Testing Notes
+- Fixed enums: produce only `type Name = "val1" | "val2"` (no KnownXxx)
+- Extensible without flag: produce only `type Name = "val1" | "val2"` (literal union)
+- Extensible with flag: produce `type Name = string; enum KnownName { ... }`
+- The SnippetExtractor's `getTypeAlias()` does NOT include JSDoc comments, so scenario
+  test expected outputs for `type` queries should not include JSDoc
+

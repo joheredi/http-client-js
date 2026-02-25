@@ -22,6 +22,17 @@ export interface EmitterOptionsValue {
    * from the legacy emitter.
    */
   includeHeadersInResponse: boolean;
+
+  /**
+   * When true, extensible enums (isFixed=false) are rendered with the
+   * KnownXxx enum pattern: `type Name = string; enum KnownName { ... }`.
+   * When false or undefined, extensible enums are rendered as literal
+   * union type aliases only, matching the default legacy emitter behavior.
+   *
+   * Corresponds to the `experimental-extensible-enums` YAML config option.
+   * In the legacy emitter, this also controls TCGC's `flattenUnionAsEnum`.
+   */
+  experimentalExtensibleEnums: boolean;
 }
 
 /**
@@ -32,6 +43,7 @@ export interface EmitterOptionsValue {
  */
 const defaultOptions: EmitterOptionsValue = {
   includeHeadersInResponse: false,
+  experimentalExtensibleEnums: false,
 };
 
 /**
