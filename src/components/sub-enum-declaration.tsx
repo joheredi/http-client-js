@@ -25,14 +25,16 @@ export interface SubEnumInfo {
 /**
  * Extracts original sub-enum groups from a flattened union-as-enum type.
  *
- * TCGC flattens `enum LR | enum UD` into a single `SdkEnumType` called "TestColor"
- * with `isUnionAsEnum: true` and `isGeneratedName: true`. The individual enums
- * (LR, UD) are not in `sdkPackage.enums`. However, each value's `__raw` property
- * still references the original TypeSpec enum/union it came from.
+ * TCGC flattens union-of-enum types into a single `SdkEnumType` with
+ * `isUnionAsEnum: true`. The individual enums are not in `sdkPackage.enums`.
+ * However, each value's `__raw` property still references the original TypeSpec
+ * enum/union it came from.
  *
  * This function groups the flattened values back into their original enum/union
  * containers by inspecting `__raw.enum.name` (for TypeSpec enums) and
- * `__raw.union.name` (for TypeSpec unions).
+ * `__raw.union.name` (for TypeSpec unions). This applies to both TCGC-generated
+ * names (e.g., inline `enum LR | enum UD` → `TestColor`) and user-defined names
+ * (e.g., `union ProvisioningState { ResourceProvisioningState, ... }`).
  *
  * @param enumType - A flattened SdkEnumType with `isUnionAsEnum === true`.
  * @returns An array of sub-enum groups, one per original TypeSpec enum/union.
@@ -40,7 +42,7 @@ export interface SubEnumInfo {
  *          reconstructable sub-enums.
  */
 export function extractSubEnums(enumType: SdkEnumType): SubEnumInfo[] {
-  if (!enumType.isUnionAsEnum || !enumType.isGeneratedName) {
+  if (!enumType.isUnionAsEnum) {
     return [];
   }
 
@@ -68,10 +70,16 @@ export function extractSubEnums(enumType: SdkEnumType): SubEnumInfo[] {
     }
   }
 
-  return Array.from(groups.entries()).map(([name, values]) => ({
-    name,
-    values,
-  }));
+  // Filter out groups whose name matches the parent enum — these are
+  // "self-reference" groups where the values trace back to the parent union
+  // itself, not to a distinct nested enum. Including them would create
+  // circular type alias references (e.g., `type Foo = Foo | string`).
+  return Array.from(groups.entries())
+    .filter(([name]) => name !== enumType.name)
+    .map(([name, values]) => ({
+      name,
+      values,
+    }));
 }
 
 /**

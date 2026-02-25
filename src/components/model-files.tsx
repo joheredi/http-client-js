@@ -8,6 +8,7 @@ import type {
 } from "@azure-tools/typespec-client-generator-core";
 import { UsageFlags } from "@azure-tools/typespec-client-generator-core";
 import { useSdkContext } from "../context/sdk-context.js";
+import { useEmitterOptions } from "../context/emitter-options-context.js";
 import { baseSerializerRefkey, baseDeserializerRefkey } from "../utils/refkeys.js";
 import { EnumDeclaration } from "./enum-declaration.js";
 import { ModelInterface } from "./model-interface.js";
@@ -71,10 +72,16 @@ export function ModelFiles() {
       u.kind === "nullable" && u.type.kind === "enum")
     .map((u) => u.type as SdkEnumType);
 
-  // Extract sub-enums from union-as-enum types. When TCGC flattens `enum LR | enum UD`
-  // into a combined `TestColor` enum, the individual enums (LR, UD) are lost. We
-  // reconstruct them from __raw references so they appear as separate type aliases.
+  // Extract sub-enums from union-as-enum types. When TCGC flattens union-of-enum
+  // types into a combined enum, the individual enums are lost. We reconstruct them
+  // from __raw references so they appear as separate type aliases. Sub-enums are
+  // only needed when the composed pattern is used (not the KnownXxx extensible
+  // pattern), because the extensible pattern's type alias is just `string` and
+  // doesn't reference sub-enum types.
+  const { experimentalExtensibleEnums } = useEmitterOptions();
   const allSubEnums = enums.flatMap((e) => {
+    const shouldEmitKnownEnum = !e.isFixed && experimentalExtensibleEnums;
+    if (shouldEmitKnownEnum) return [];
     const subs = extractSubEnums(e);
     return subs.length > 0 ? [{ parentEnum: e, subEnums: subs }] : [];
   });

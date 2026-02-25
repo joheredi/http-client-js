@@ -12,6 +12,7 @@ import { UsageFlags } from "@azure-tools/typespec-client-generator-core";
 import { useEmitterOptions } from "../context/emitter-options-context.js";
 import { knownValuesRefkey, typeRefkey } from "../utils/refkeys.js";
 import { getTypeExpression } from "./type-expression.js";
+import { extractSubEnums, subEnumRefkey } from "./sub-enum-declaration.js";
 
 /**
  * Props for the {@link EnumDeclaration} component.
@@ -190,6 +191,11 @@ export function isApiVersionEnumOnly(type: SdkEnumType): boolean {
  * or extensible without the flag), this produces a union of all literal
  * values: `"Red" | "Green" | "Blue"`.
  *
+ * For union-as-enum types (where TCGC flattened multiple enums into one),
+ * the body composes sub-enum type references instead of flattening all
+ * values. This preserves the individual enum identities (e.g.,
+ * `ResourceProvisioningState | "Provisioning" | string`).
+ *
  * @param type - The TCGC enum type.
  * @param isExtensible - Whether the extensible enum pattern is active.
  * @returns The type alias body as Alloy Children.
@@ -198,7 +204,89 @@ function getTypeAliasBody(type: SdkEnumType, isExtensible: boolean): Children {
   if (isExtensible) {
     return getTypeExpression(type.valueType);
   }
+
+  // For union-as-enum types, compose sub-enum references with remaining literals.
+  // This matches the legacy emitter which preserves nested enum identities.
+  if (type.isUnionAsEnum) {
+    return buildComposedUnionBody(type);
+  }
+
   return type.values.map((v) => getEnumValueLiteral(v)).join(" | ");
+}
+
+/**
+ * Represents a part of a composed union type body.
+ *
+ * Used by {@link buildComposedUnionBody} to construct a type alias body
+ * that mixes sub-enum refkey references with literal string values.
+ */
+type ComposedPart =
+  | { kind: "ref"; subName: string }
+  | { kind: "lit"; text: string };
+
+/**
+ * Builds a composed type alias body for a union-as-enum type.
+ *
+ * Instead of flattening all values into a single string literal union,
+ * this preserves nested enum identities by referencing sub-enum type
+ * aliases. Values that don't belong to any sub-enum are emitted as
+ * inline literals. If the enum is extensible (`!isFixed`), `| string`
+ * is appended to allow arbitrary values.
+ *
+ * Example: For `union ProvisioningState { ResourceProvisioningState, "Provisioning", string }`:
+ * ```typescript
+ * export type ProvisioningState = ResourceProvisioningState | "Provisioning" | string;
+ * ```
+ *
+ * Falls back to a flat literal union if no sub-enums can be extracted
+ * (e.g., when `__raw` references are unavailable).
+ *
+ * @param type - The TCGC enum type with `isUnionAsEnum === true`.
+ * @returns Alloy Children representing the composed type body.
+ */
+function buildComposedUnionBody(type: SdkEnumType): Children {
+  const subEnums = extractSubEnums(type);
+  if (subEnums.length === 0) {
+    // No external sub-enums — fall back to flat literal union matching
+    // the current behavior (without | string extensibility).
+    return type.values.map((v) => getEnumValueLiteral(v)).join(" | ");
+  }
+
+  // Collect sub-enum values to exclude them from the ungrouped literals
+  const subEnumValues = new Set<string>();
+  for (const sub of subEnums) {
+    for (const v of sub.values) {
+      subEnumValues.add(String(v.value));
+    }
+  }
+
+  // Build ordered parts: sub-enum references, then ungrouped literals, then string
+  const parts: ComposedPart[] = [];
+
+  for (const sub of subEnums) {
+    parts.push({ kind: "ref", subName: sub.name });
+  }
+
+  for (const v of type.values) {
+    if (!subEnumValues.has(String(v.value))) {
+      parts.push({ kind: "lit", text: getEnumValueLiteral(v) });
+    }
+  }
+
+  if (!type.isFixed) {
+    parts.push({ kind: "lit", text: "string" });
+  }
+
+  return (
+    <For each={parts} joiner=" | ">
+      {(part) => {
+        if (part.kind === "ref") {
+          return subEnumRefkey(type, part.subName) as Children;
+        }
+        return part.text;
+      }}
+    </For>
+  );
 }
 
 /**

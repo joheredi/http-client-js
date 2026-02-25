@@ -1510,3 +1510,15 @@ libraries per worker.
 **Result:** 504s → 168s (67% faster), 22 timeout failures → 0.
 
 **Date:** 2026-02-25
+
+---
+
+### Sub-enum Self-Reference in `extractSubEnums`
+
+**Problem:** When `extractSubEnums` no longer checks `isGeneratedName` (to support named union-as-enum types like `union Foo { Baz, "bar" }`), enums whose values all trace back to the parent union itself create self-referencing type aliases (e.g., `type CreatedByType = CreatedByType | string`).
+
+**Root Cause:** TCGC represents `union CreatedByType { "User", "Application", string }` as an `SdkEnumType` with `isUnionAsEnum: true`. Each value's `__raw.union.name` points back to `"CreatedByType"`, causing `extractSubEnums` to create a group matching the parent name.
+
+**Fix:** Filter out groups in `extractSubEnums` whose name matches `enumType.name`. These are "self-reference" groups representing the parent union itself, not a distinct nested enum.
+
+**Date:** 2026-02-25

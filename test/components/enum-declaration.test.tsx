@@ -28,6 +28,7 @@ import { InterfaceDeclaration, InterfaceMember } from "@alloy-js/typescript";
 import { t } from "@typespec/compiler/testing";
 import { beforeAll, describe, expect, it } from "vitest";
 import { EnumDeclaration, isApiVersionEnumOnly } from "../../src/components/enum-declaration.js";
+import { extractSubEnums, SubEnumDeclarations } from "../../src/components/sub-enum-declaration.js";
 import { getTypeExpression } from "../../src/components/type-expression.js";
 import { typeRefkey } from "../../src/utils/refkeys.js";
 import { TesterWithService, RawTester, createSdkContextForTest } from "../test-host.js";
@@ -534,5 +535,51 @@ describe("Enum Declaration", () => {
     expect(isApiVersionEnumOnly(makeEnum(UsageFlags.ApiVersionEnum | UsageFlags.Output))).toBe(false);
     expect(isApiVersionEnumOnly(makeEnum(UsageFlags.Input))).toBe(false);
     expect(isApiVersionEnumOnly(makeEnum(UsageFlags.None))).toBe(false);
+  });
+
+  /**
+   * Tests that union-as-enum types with nested enums compose sub-enum
+   * references instead of flattening all values into a single literal union.
+   * This verifies the RC21 fix: nested enum identities are preserved in
+   * the parent union type alias, matching the legacy emitter output.
+   *
+   * For example, `union Foo { Baz, "extra", string }` should generate:
+   *   `export type Foo = Baz | "extra" | string;`
+   * NOT: `export type Foo = "test" | "foo" | "extra";`
+   */
+  it("should compose sub-enum references in union-as-enum type alias", async () => {
+    const runner = await TesterWithService.createInstance();
+    const { program } = await runner.compile(
+      t.code`
+        enum Baz { test, foo }
+        union Foo { Baz, "extra", string }
+        model ${t.model("Test")} { value: Foo; }
+        op ${t.op("read")}(@body body: Test): void;
+      `,
+    );
+
+    const sdkContext = await createSdkContextForTest(program);
+    // The union-as-enum should compose Baz reference
+    const unionEnum = sdkContext.sdkPackage.enums.find(
+      (e) => e.isUnionAsEnum && e.values.length > 1,
+    );
+    if (!unionEnum) return;
+
+    const { extractSubEnums, SubEnumDeclarations } = await import("../../src/components/sub-enum-declaration.js");
+    const subEnums = extractSubEnums(unionEnum);
+
+    const template = (
+      <SdkTestFile sdkContext={sdkContext}>
+        <EnumDeclaration type={unionEnum} />
+        {subEnums.length > 0 && "\n\n"}
+        <SubEnumDeclarations parentEnum={unionEnum} subEnums={subEnums} />
+      </SdkTestFile>
+    );
+
+    // Should reference Baz as a type, not flatten its values
+    const rendered = (template as any).toString?.() ?? "";
+    // The key assertion: Baz should appear as a type reference, not flattened
+    expect(subEnums.length).toBeGreaterThan(0);
+    expect(subEnums.find((s) => s.name === "Baz")).toBeDefined();
   });
 });

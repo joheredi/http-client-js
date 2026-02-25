@@ -3559,3 +3559,26 @@ When `@@override` groups individual query/header parameters into a model paramet
 - The 3 remaining skipped tests are blocked on external issues (TCGC #3088,
   TypeSpec #6983, TCGC #1419)
 - The vitest worker timeout error is an infrastructure issue, not a test failure.
+
+---
+
+## Session: 2026-02-25 — RC21: Preserve nested enum type identities in composed unions
+
+### What was done:
+- **RC21 (P1)**: Fixed nested enum types being flattened to string literal unions instead of composed types
+  - Modified `extractSubEnums()` in `sub-enum-declaration.tsx` to work for all `isUnionAsEnum` types (removed `isGeneratedName` check)
+  - Added self-reference filtering: groups whose name matches the parent enum are excluded to prevent circular type aliases
+  - Added `buildComposedUnionBody()` in `enum-declaration.tsx` to compose sub-enum refkeys with remaining literal values
+  - Modified `model-files.tsx` to skip sub-enum extraction when `experimentalExtensibleEnums` is enabled (KnownXxx pattern)
+  - Updated 3 scenario test expectations (2 nestedEnum, 1 enumUnion with 4 sub-scenarios)
+  - Added 3 new unit tests for self-reference filtering, named union support, and composed type verification
+
+- **RC23 (P1)**: Marked as done — already fixed by the custom naming policy (commit 0fe932b)
+- **RC34 (P2)**: Marked as done — already fixed by the custom naming policy's `endpointParam` suffix
+
+### Key decisions:
+- `| string` extensibility is ONLY added in the composed type body when there are external sub-enums. This prevents adding `| string` to all extensible enums (which would break many existing tests).
+- The composed type pattern matches legacy: `ResourceProvisioningState | "Provisioning" | ... | string`
+
+### Test results: 867 passed, 3 skipped (all green)
+

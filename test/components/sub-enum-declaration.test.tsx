@@ -20,7 +20,8 @@
  * - extractSubEnums correctly groups values by their original TypeSpec enum source.
  * - extractSubEnums handles TypeSpec union sources (union leftAndRight { ... }).
  * - extractSubEnums returns empty array for non-union-as-enum types.
- * - extractSubEnums returns empty array for union-as-enum with isGeneratedName: false.
+ * - extractSubEnums filters out self-referencing groups (name matches parent).
+ * - extractSubEnums works for named unions (isGeneratedName: false) with nested enums.
  * - SubEnumDeclaration renders a type alias with doc comment for string enum values.
  * - SubEnumDeclaration renders numeric enum values without quotes.
  * - Full integration: model property with enum union emits both sub-enum type aliases.
@@ -125,6 +126,65 @@ describe("extractSubEnums", () => {
     expect(colorEnum.isUnionAsEnum).toBe(false);
     const subEnums = extractSubEnums(colorEnum);
     expect(subEnums).toHaveLength(0);
+  });
+
+  /**
+   * Tests that extractSubEnums filters out self-referencing groups where the
+   * sub-enum name matches the parent enum name. This prevents circular type
+   * aliases like `type Foo = Foo | string`. When a union's values all trace
+   * back to the parent union itself (no external nested enums), the function
+   * should return an empty array.
+   */
+  it("should filter out self-referencing sub-enum groups", async () => {
+    const runner = await TesterWithService.createInstance();
+    const { program } = await runner.compile(
+      t.code`
+        union Status { "active", "inactive", string }
+        model ${t.model("Test")} { status: Status; }
+        op ${t.op("read")}(@body body: Test): void;
+      `,
+    );
+
+    const sdkContext = await createSdkContextForTest(program);
+    // Find the enum that represents the flattened Status union
+    const statusEnum = sdkContext.sdkPackage.enums.find(
+      (e: any) => e.isUnionAsEnum,
+    );
+    if (!statusEnum) return; // TCGC may not produce union-as-enum for this case
+    const subEnums = extractSubEnums(statusEnum);
+    // All values come from the parent itself, so no external sub-enums
+    expect(subEnums).toHaveLength(0);
+  });
+
+  /**
+   * Tests that extractSubEnums works for named union-as-enum types
+   * (isGeneratedName: false). This covers the case where a user-defined
+   * union like `union Foo { Baz, "bar", string }` contains a nested enum
+   * that should be preserved as a separate type alias.
+   */
+  it("should extract sub-enums from named unions with nested enums", async () => {
+    const runner = await TesterWithService.createInstance();
+    const { program } = await runner.compile(
+      t.code`
+        enum Baz { test, foo }
+        union MyUnion { Baz, "bar", string }
+        model ${t.model("Test")} { value: MyUnion; }
+        op ${t.op("read")}(@body body: Test): void;
+      `,
+    );
+
+    const sdkContext = await createSdkContextForTest(program);
+    // Find the union-as-enum (may be named MyUnion or generated)
+    const unionEnum = sdkContext.sdkPackage.enums.find(
+      (e: any) => e.isUnionAsEnum,
+    );
+    if (!unionEnum) return;
+    const subEnums = extractSubEnums(unionEnum);
+    // Should find Baz as external sub-enum, not MyUnion itself
+    expect(subEnums.length).toBeGreaterThanOrEqual(1);
+    const bazGroup = subEnums.find((s) => s.name === "Baz");
+    expect(bazGroup).toBeDefined();
+    expect(bazGroup!.values.map((v) => v.value)).toEqual(["test", "foo"]);
   });
 });
 

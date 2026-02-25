@@ -43,5 +43,10 @@ Model generated.
 /**
  * Type of Foo
  */
-export type Foo = "test" | "foo" | "bar";
+export type Foo = Baz | "bar" | string;
+
+/**
+ * Type of Baz
+ */
+export type Baz = "test" | "foo";
 ```

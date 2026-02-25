@@ -236,10 +236,17 @@ withRawContent: true
  * Type of SchemaContentTypeValues
  */
 export type SchemaContentTypeValues =
-  | "application/json; serialization=Avro"
-  | "application/json; serialization=json"
+  | JsonContentType
   | "text/plain; charset=utf-8"
-  | "text/vnd.ms.protobuf";
+  | "text/vnd.ms.protobuf"
+  | string;
+
+/**
+ * Type of JsonContentType
+ */
+export type JsonContentType =
+  | "application/json; serialization=Avro"
+  | "application/json; serialization=json";
 ```
 
 # union contains enum with string element
@@ -289,10 +296,17 @@ withRawContent: true
  * Type of SchemaContentTypeValues
  */
 export type SchemaContentTypeValues =
-  | "application/json; serialization=Avro"
-  | "application/json; serialization=json"
+  | JsonContentType
   | "text/plain; charset=utf-8"
-  | "text/vnd.ms.protobuf";
+  | "text/vnd.ms.protobuf"
+  | string;
+
+/**
+ * Type of JsonContentType
+ */
+export type JsonContentType =
+  | "application/json; serialization=Avro"
+  | "application/json; serialization=json";
 ```
 
 # union with string as extensible enum
@@ -387,10 +401,17 @@ withRawContent: true
  * Type of SchemaContentTypeValues
  */
 export type SchemaContentTypeValues =
-  | "application/json; serialization=Avro"
-  | "application/json; serialization=json"
+  | JsonContentType
   | "text/plain; charset=utf-8"
-  | "text/vnd.ms.protobuf";
+  | "text/vnd.ms.protobuf"
+  | string;
+
+/**
+ * Type of JsonContentType
+ */
+export type JsonContentType =
+  | "application/json; serialization=Avro"
+  | "application/json; serialization=json";
 ```
 
 # union contains enum with string element
@@ -440,10 +461,17 @@ withRawContent: true
  * Type of SchemaContentTypeValues
  */
 export type SchemaContentTypeValues =
-  | "application/json; serialization=Avro"
-  | "application/json; serialization=json"
+  | JsonContentType
   | "text/plain; charset=utf-8"
-  | "text/vnd.ms.protobuf";
+  | "text/vnd.ms.protobuf"
+  | string;
+
+/**
+ * Type of JsonContentType
+ */
+export type JsonContentType =
+  | "application/json; serialization=Avro"
+  | "application/json; serialization=json";
 ```
 
 # anonymous union with "|" fixed in regular headers

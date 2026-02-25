@@ -78,13 +78,12 @@ export interface _FooRequest {
  * The resource provisioning state.
  */
 export type ProvisioningState =
-  | "Succeeded"
-  | "Failed"
-  | "Canceled"
+  | ResourceProvisioningState
   | "Provisioning"
   | "Updating"
   | "Deleting"
-  | "Accepted";
+  | "Accepted"
+  | string;
 
 /**
  * The available API versions.
@@ -95,6 +94,11 @@ export enum KnownVersions {
    */
   V20211001Preview = "2021-10-01-preview",
 }
+
+/**
+ * Type of ResourceProvisioningState
+ */
+export type ResourceProvisioningState = "Succeeded" | "Failed" | "Canceled";
 
 export function _fooRequestBodySerializer(item: _FooRequestBody): any {
   return {
