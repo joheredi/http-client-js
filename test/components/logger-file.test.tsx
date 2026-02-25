@@ -27,7 +27,7 @@ import {
   SourceFile,
 } from "@alloy-js/typescript";
 import { Output } from "@typespec/emitter-framework";
-import { describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 import { t } from "@typespec/compiler/testing";
 import { LoggerFile } from "../../src/components/logger-file.js";
 import { loggerRefkey } from "../../src/utils/refkeys.js";
@@ -35,15 +35,20 @@ import { azureLoggerLib } from "../../src/utils/external-packages.js";
 import { TesterWithService } from "../test-host.js";
 
 describe("LoggerFile", () => {
+  let program: any;
+
+  beforeAll(async () => {
+    const runner = await TesterWithService.createInstance();
+    const result = await runner.compile(t.code`op test(): void;`);
+    program = result.program;
+  });
+
   /**
    * Tests that the logger file imports `createClientLogger` from `@azure/logger`.
    * This import is essential because it provides the factory function that creates
    * a namespaced logger integrated with Azure's logging system.
    */
   it("should import createClientLogger from @azure/logger", async () => {
-    const runner = await TesterWithService.createInstance();
-    const { program } = await runner.compile(t.code`op test(): void;`);
-
     const template = (
       <Output program={program} namePolicy={createTSNamePolicy()} externals={[azureLoggerLib]}>
         <LoggerFile packageName="confidential-ledger" />
@@ -60,9 +65,6 @@ describe("LoggerFile", () => {
    * can import and use it for logging operations.
    */
   it("should export the logger constant", async () => {
-    const runner = await TesterWithService.createInstance();
-    const { program } = await runner.compile(t.code`op test(): void;`);
-
     const template = (
       <Output program={program} namePolicy={createTSNamePolicy()} externals={[azureLoggerLib]}>
         <LoggerFile packageName="confidential-ledger" />
@@ -79,9 +81,6 @@ describe("LoggerFile", () => {
    * package generated a particular log entry.
    */
   it("should use the provided package name", async () => {
-    const runner = await TesterWithService.createInstance();
-    const { program } = await runner.compile(t.code`op test(): void;`);
-
     const template = (
       <Output program={program} namePolicy={createTSNamePolicy()} externals={[azureLoggerLib]}>
         <LoggerFile packageName="confidential-ledger" />
@@ -98,9 +97,6 @@ describe("LoggerFile", () => {
    * being hardcoded.
    */
   it("should work with different package names", async () => {
-    const runner = await TesterWithService.createInstance();
-    const { program } = await runner.compile(t.code`op test(): void;`);
-
     const template = (
       <Output program={program} namePolicy={createTSNamePolicy()} externals={[azureLoggerLib]}>
         <LoggerFile packageName="keyvault-secrets" />
@@ -118,9 +114,6 @@ describe("LoggerFile", () => {
    * declaration kind.
    */
   it("should declare logger as const", async () => {
-    const runner = await TesterWithService.createInstance();
-    const { program } = await runner.compile(t.code`op test(): void;`);
-
     const template = (
       <Output program={program} namePolicy={createTSNamePolicy()} externals={[azureLoggerLib]}>
         <LoggerFile packageName="my-service" />
@@ -137,9 +130,6 @@ describe("LoggerFile", () => {
    * when another component references the logger via `loggerRefkey()`.
    */
   it("should be referenceable via loggerRefkey", async () => {
-    const runner = await TesterWithService.createInstance();
-    const { program } = await runner.compile(t.code`op test(): void;`);
-
     const template = (
       <Output program={program} namePolicy={createTSNamePolicy()} externals={[azureLoggerLib]}>
         <LoggerFile packageName="my-service" />
@@ -166,9 +156,6 @@ describe("LoggerFile", () => {
    * This test ensures output parity with the legacy emitter.
    */
   it("should produce output matching legacy emitter format", async () => {
-    const runner = await TesterWithService.createInstance();
-    const { program } = await runner.compile(t.code`op test(): void;`);
-
     const template = (
       <Output program={program} namePolicy={createTSNamePolicy()} externals={[azureLoggerLib]}>
         <LoggerFile packageName="confidential-ledger" />

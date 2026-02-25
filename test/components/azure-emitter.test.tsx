@@ -32,7 +32,7 @@ import type {
   SdkContext,
   SdkHttpOperation,
 } from "@azure-tools/typespec-client-generator-core";
-import { describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 import { SdkContextProvider } from "../../src/context/sdk-context.js";
 import { FlavorProvider } from "../../src/context/flavor-context.js";
 import { AzureCoreEmitter } from "../../src/azure-emitter.js";
@@ -134,123 +134,124 @@ async function compileForTest(tspCode: Parameters<Awaited<ReturnType<typeof Test
 
 describe("Azure Extension", () => {
   /**
-   * Tests that the Azure emitter generates imports from
-   * `@azure-rest/core-client` instead of `@typespec/ts-http-runtime`
-   * for core client types (Client, getClient, etc.).
-   *
-   * This validates that the FlavorProvider correctly swaps package
-   * references via the RuntimeLib abstraction.
+   * Tests that share the same TypeSpec input: a service with a Widget
+   * model and a getWidget operation.
    */
-  it("should use @azure-rest/core-client instead of @typespec/ts-http-runtime for core types", async () => {
-    const sdkContext = await compileForTest(
-      t.code`
-        model Widget { name: string; }
-        @get op getWidget(): Widget;
-      `,
-    );
+  describe("with Widget model and getWidget operation", () => {
+    let sdkContext: Awaited<ReturnType<typeof compileForTest>>;
 
-    const result = renderToString(<AzureEmitterTestWrapper sdkContext={sdkContext} />);
+    beforeAll(async () => {
+      sdkContext = await compileForTest(
+        t.code`
+          model Widget { name: string; }
+          @get op getWidget(): Widget;
+        `,
+      );
+    });
 
-    // Azure SDK should import from @azure-rest/core-client
-    expect(result).toContain("@azure-rest/core-client");
+    /**
+     * Tests that the Azure emitter generates imports from
+     * `@azure-rest/core-client` instead of `@typespec/ts-http-runtime`
+     * for core client types (Client, getClient, etc.).
+     *
+     * This validates that the FlavorProvider correctly swaps package
+     * references via the RuntimeLib abstraction.
+     */
+    it("should use @azure-rest/core-client instead of @typespec/ts-http-runtime for core types", () => {
+      const result = renderToString(<AzureEmitterTestWrapper sdkContext={sdkContext} />);
 
-    // Should NOT import Client/getClient from @typespec/ts-http-runtime
-    // (expandUrlTemplate is OK to come from there)
-    const lines = result.split("\n");
-    const httpRuntimeImports = lines.filter(
-      (l) => l.includes("@typespec/ts-http-runtime") && !l.includes("expandUrlTemplate"),
-    );
-    // All runtime imports except expandUrlTemplate should be from Azure packages
-    expect(httpRuntimeImports.length).toBe(0);
+      // Azure SDK should import from @azure-rest/core-client
+      expect(result).toContain("@azure-rest/core-client");
+
+      // Should NOT import Client/getClient from @typespec/ts-http-runtime
+      // (expandUrlTemplate is OK to come from there)
+      const lines = result.split("\n");
+      const httpRuntimeImports = lines.filter(
+        (l) => l.includes("@typespec/ts-http-runtime") && !l.includes("expandUrlTemplate"),
+      );
+      // All runtime imports except expandUrlTemplate should be from Azure packages
+      expect(httpRuntimeImports.length).toBe(0);
+    });
+
+    /**
+     * Tests that the core emitter uses `@typespec/ts-http-runtime`
+     * for all runtime imports.
+     *
+     * This validates the core flavor's RuntimeLib mapping where
+     * all symbols come from a single package.
+     */
+    it("should use @typespec/ts-http-runtime in core flavor", () => {
+      const result = renderToString(<CoreEmitterTestWrapper sdkContext={sdkContext} />);
+
+      // Core should use the unified runtime package
+      expect(result).toContain("@typespec/ts-http-runtime");
+
+      // Should NOT import from Azure packages
+      expect(result).not.toContain("@azure-rest/core-client");
+      expect(result).not.toContain("@azure/core-rest-pipeline");
+      expect(result).not.toContain("@azure/core-auth");
+    });
   });
 
   /**
-   * Tests that the Azure emitter generates a `logger.ts` file
-   * with the `createClientLogger` import from `@azure/logger`.
-   *
-   * The logger file is Azure-specific — it should NOT appear in
-   * core flavor output.
+   * Tests that share the same TypeSpec input: a simple service with a
+   * single @get ping operation returning void.
    */
-  it("should generate logger.ts file with @azure/logger", async () => {
-    const sdkContext = await compileForTest(
-      t.code`
-        @get op ping(): void;
-      `,
-    );
+  describe("with simple ping operation", () => {
+    let sdkContext: Awaited<ReturnType<typeof compileForTest>>;
 
-    const result = renderToString(<AzureEmitterTestWrapper sdkContext={sdkContext} />);
+    beforeAll(async () => {
+      sdkContext = await compileForTest(
+        t.code`
+          @get op ping(): void;
+        `,
+      );
+    });
 
-    // Logger file should be present
-    expect(result).toContain("createClientLogger");
-    expect(result).toContain("@azure/logger");
-  });
+    /**
+     * Tests that the Azure emitter generates a `logger.ts` file
+     * with the `createClientLogger` import from `@azure/logger`.
+     *
+     * The logger file is Azure-specific — it should NOT appear in
+     * core flavor output.
+     */
+    it("should generate logger.ts file with @azure/logger", () => {
+      const result = renderToString(<AzureEmitterTestWrapper sdkContext={sdkContext} />);
 
-  /**
-   * Tests that the core (non-Azure) emitter does NOT generate
-   * a logger file or import from `@azure/logger`.
-   *
-   * This proves the composition pattern works: Azure additions
-   * are only present when the Azure wrapper is used.
-   */
-  it("should NOT generate logger in core flavor", async () => {
-    const sdkContext = await compileForTest(
-      t.code`
-        @get op ping(): void;
-      `,
-    );
+      // Logger file should be present
+      expect(result).toContain("createClientLogger");
+      expect(result).toContain("@azure/logger");
+    });
 
-    const result = renderToString(<CoreEmitterTestWrapper sdkContext={sdkContext} />);
+    /**
+     * Tests that the core (non-Azure) emitter does NOT generate
+     * a logger file or import from `@azure/logger`.
+     *
+     * This proves the composition pattern works: Azure additions
+     * are only present when the Azure wrapper is used.
+     */
+    it("should NOT generate logger in core flavor", () => {
+      const result = renderToString(<CoreEmitterTestWrapper sdkContext={sdkContext} />);
 
-    // Core output should not have Azure logger
-    expect(result).not.toContain("createClientLogger");
-    expect(result).not.toContain("@azure/logger");
-  });
+      // Core output should not have Azure logger
+      expect(result).not.toContain("createClientLogger");
+      expect(result).not.toContain("@azure/logger");
+    });
 
-  /**
-   * Tests that the core emitter uses `@typespec/ts-http-runtime`
-   * for all runtime imports.
-   *
-   * This validates the core flavor's RuntimeLib mapping where
-   * all symbols come from a single package.
-   */
-  it("should use @typespec/ts-http-runtime in core flavor", async () => {
-    const sdkContext = await compileForTest(
-      t.code`
-        model Widget { name: string; }
-        @get op getWidget(): Widget;
-      `,
-    );
+    /**
+     * Tests that the Azure emitter imports Pipeline from
+     * `@azure/core-rest-pipeline` (not `@typespec/ts-http-runtime`).
+     *
+     * In Azure SDKs, the Pipeline type comes from a separate package,
+     * demonstrating that individual symbols are correctly mapped to
+     * their Azure equivalents.
+     */
+    it("should use @azure/core-rest-pipeline for Pipeline type", () => {
+      const result = renderToString(<AzureEmitterTestWrapper sdkContext={sdkContext} />);
 
-    const result = renderToString(<CoreEmitterTestWrapper sdkContext={sdkContext} />);
-
-    // Core should use the unified runtime package
-    expect(result).toContain("@typespec/ts-http-runtime");
-
-    // Should NOT import from Azure packages
-    expect(result).not.toContain("@azure-rest/core-client");
-    expect(result).not.toContain("@azure/core-rest-pipeline");
-    expect(result).not.toContain("@azure/core-auth");
-  });
-
-  /**
-   * Tests that the Azure emitter imports Pipeline from
-   * `@azure/core-rest-pipeline` (not `@typespec/ts-http-runtime`).
-   *
-   * In Azure SDKs, the Pipeline type comes from a separate package,
-   * demonstrating that individual symbols are correctly mapped to
-   * their Azure equivalents.
-   */
-  it("should use @azure/core-rest-pipeline for Pipeline type", async () => {
-    const sdkContext = await compileForTest(
-      t.code`
-        @get op ping(): void;
-      `,
-    );
-
-    const result = renderToString(<AzureEmitterTestWrapper sdkContext={sdkContext} />);
-
-    // Classical client has a `pipeline` property
-    expect(result).toContain("@azure/core-rest-pipeline");
+      // Classical client has a `pipeline` property
+      expect(result).toContain("@azure/core-rest-pipeline");
+    });
   });
 
   /**
@@ -333,44 +334,47 @@ describe("Azure Extension", () => {
 
 describe("FlavorProvider", () => {
   /**
-   * Tests that FlavorProvider with "core" flavor uses
-   * `@typespec/ts-http-runtime` references.
-   *
-   * This validates that the FlavorProvider correctly creates
-   * and injects the core RuntimeLib.
+   * Tests that share the same TypeSpec input: a service with a Foo
+   * model and a getFoo operation.
    */
-  it("should provide core runtime lib references with core flavor", async () => {
-    const sdkContext = await compileForTest(
-      t.code`
-        model Foo { x: string; }
-        @get op getFoo(): Foo;
-      `,
-    );
+  describe("with Foo model and getFoo operation", () => {
+    let sdkContext: Awaited<ReturnType<typeof compileForTest>>;
 
-    const result = renderToString(<CoreEmitterTestWrapper sdkContext={sdkContext} />);
+    beforeAll(async () => {
+      sdkContext = await compileForTest(
+        t.code`
+          model Foo { x: string; }
+          @get op getFoo(): Foo;
+        `,
+      );
+    });
 
-    expect(result).toContain("@typespec/ts-http-runtime");
-    expect(result).not.toContain("@azure-rest/core-client");
-  });
+    /**
+     * Tests that FlavorProvider with "core" flavor uses
+     * `@typespec/ts-http-runtime` references.
+     *
+     * This validates that the FlavorProvider correctly creates
+     * and injects the core RuntimeLib.
+     */
+    it("should provide core runtime lib references with core flavor", () => {
+      const result = renderToString(<CoreEmitterTestWrapper sdkContext={sdkContext} />);
 
-  /**
-   * Tests that FlavorProvider with "azure" flavor uses
-   * Azure package references for client types.
-   *
-   * This validates that the FlavorProvider correctly creates
-   * and injects the Azure RuntimeLib.
-   */
-  it("should provide azure runtime lib references with azure flavor", async () => {
-    const sdkContext = await compileForTest(
-      t.code`
-        model Foo { x: string; }
-        @get op getFoo(): Foo;
-      `,
-    );
+      expect(result).toContain("@typespec/ts-http-runtime");
+      expect(result).not.toContain("@azure-rest/core-client");
+    });
 
-    const result = renderToString(<AzureEmitterTestWrapper sdkContext={sdkContext} />);
+    /**
+     * Tests that FlavorProvider with "azure" flavor uses
+     * Azure package references for client types.
+     *
+     * This validates that the FlavorProvider correctly creates
+     * and injects the Azure RuntimeLib.
+     */
+    it("should provide azure runtime lib references with azure flavor", () => {
+      const result = renderToString(<AzureEmitterTestWrapper sdkContext={sdkContext} />);
 
-    expect(result).toContain("@azure-rest/core-client");
+      expect(result).toContain("@azure-rest/core-client");
+    });
   });
 
   /**

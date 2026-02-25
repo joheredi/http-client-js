@@ -24,7 +24,7 @@ import "@alloy-js/core/testing";
 import { code } from "@alloy-js/core";
 import { d } from "@alloy-js/core/testing";
 import { t } from "@typespec/compiler/testing";
-import { describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 import type {
   SdkHttpOperation,
   SdkServiceMethod,
@@ -674,108 +674,189 @@ describe("PublicOperation", () => {
     `);
   });
 
-  /**
-   * Tests that when `include-headers-in-response` is enabled and the operation
-   * has both a model body and response headers, the public function:
-   * 1. Returns an intersection type of the model and header types.
-   * 2. Calls both `_xxxDeserializeHeaders` and `_xxxDeserialize`.
-   * 3. Spreads the results to merge headers into the response object.
-   *
-   * This matches the legacy emitter's behavior where consumers receive
-   * a single object containing both body and header properties.
-   */
-  it("should merge response headers into return type when include-headers-in-response is enabled", async () => {
-    const runner = await TesterWithService.createInstance();
-    const { program } = await runner.compile(
-      t.code`
-        model User {
+  describe("User model with response headers", () => {
+    let sdkContext: Awaited<ReturnType<typeof createSdkContextForTest>>;
+    let method: SdkServiceMethod<SdkHttpOperation>;
+    let userModel: (typeof sdkContext.sdkPackage.models)[number];
+
+    beforeAll(async () => {
+      const runner = await TesterWithService.createInstance();
+      const { program } = await runner.compile(
+        t.code`
+          model User {
+            name: string;
+          }
+
+          @get op ${t.op("getUser")}(): User & {@header requestId: string};
+        `,
+      );
+
+      sdkContext = await createSdkContextForTest(program);
+      method = getFirstMethod(sdkContext);
+      userModel = sdkContext.sdkPackage.models.find(
+        (m) => m.name === "User",
+      )!;
+    });
+
+    /**
+     * Tests that when `include-headers-in-response` is enabled and the operation
+     * has both a model body and response headers, the public function:
+     * 1. Returns an intersection type of the model and header types.
+     * 2. Calls both `_xxxDeserializeHeaders` and `_xxxDeserialize`.
+     * 3. Spreads the results to merge headers into the response object.
+     *
+     * This matches the legacy emitter's behavior where consumers receive
+     * a single object containing both body and header properties.
+     */
+    it("should merge response headers into return type when include-headers-in-response is enabled", async () => {
+      const template = (
+        <SdkTestFile
+          sdkContext={sdkContext}
+          externals={[httpRuntimeLib]}
+          emitterOptions={{ includeHeadersInResponse: true }}
+        >
+          <ModelInterface model={userModel} />
+          {"\n\n"}
+          <JsonDeserializer model={userModel} />
+          {"\n\n"}
+          <OperationOptionsDeclaration method={method} />
+          {"\n\n"}
+          <SendOperation method={method} />
+          {"\n\n"}
+          <DeserializeHeaders method={method} />
+          {"\n\n"}
+          <DeserializeOperation method={method} />
+          {"\n\n"}
+          <PublicOperation method={method} />
+        </SdkTestFile>
+      );
+
+      expect(template).toRenderTo(d`
+        import { type Client, createRestError, type OperationOptions, operationOptionsToRequestParameters, type PathUncheckedResponse, type StreamableMethod } from "@typespec/ts-http-runtime";
+
+        export interface User {
           name: string;
         }
 
-        @get op ${t.op("getUser")}(): User & {@header requestId: string};
-      `,
-    );
-
-    const sdkContext = await createSdkContextForTest(program);
-    const method = getFirstMethod(sdkContext);
-    const userModel = sdkContext.sdkPackage.models.find(
-      (m) => m.name === "User",
-    )!;
-
-    const template = (
-      <SdkTestFile
-        sdkContext={sdkContext}
-        externals={[httpRuntimeLib]}
-        emitterOptions={{ includeHeadersInResponse: true }}
-      >
-        <ModelInterface model={userModel} />
-        {"\n\n"}
-        <JsonDeserializer model={userModel} />
-        {"\n\n"}
-        <OperationOptionsDeclaration method={method} />
-        {"\n\n"}
-        <SendOperation method={method} />
-        {"\n\n"}
-        <DeserializeHeaders method={method} />
-        {"\n\n"}
-        <DeserializeOperation method={method} />
-        {"\n\n"}
-        <PublicOperation method={method} />
-      </SdkTestFile>
-    );
-
-    expect(template).toRenderTo(d`
-      import { type Client, createRestError, type OperationOptions, operationOptionsToRequestParameters, type PathUncheckedResponse, type StreamableMethod } from "@typespec/ts-http-runtime";
-
-      export interface User {
-        name: string;
-      }
-
-      export function userDeserializer(item: any): User {
-        return {
-          name: item["name"],
-        };
-      }
-
-      /**
-       * Optional parameters for the getUser operation.
-       */
-      export interface GetUserOptionalParams extends OperationOptions {}
-
-      export function _getUserSend(
-        context: Client,
-        options: GetUserOptionalParams = { requestOptions: {} },
-      ): StreamableMethod {
-        return context.path("/").get({ ...operationOptionsToRequestParameters(options), headers: { accept: "application/json", ...options.requestOptions?.headers } });
-      }
-
-      export function _getUserDeserializeHeaders(
-        result: PathUncheckedResponse,
-      ): { requestId: string } {
-        return { requestId: result.headers["request-id"] };
-      }
-
-      export async function _getUserDeserialize(
-        result: PathUncheckedResponse,
-      ): Promise<User> {
-        const expectedStatuses = ["200"];
-        if (!expectedStatuses.includes(result.status)) {
-          throw createRestError(result);
+        export function userDeserializer(item: any): User {
+          return {
+            name: item["name"],
+          };
         }
 
-        return userDeserializer(result.body);
-      }
+        /**
+         * Optional parameters for the getUser operation.
+         */
+        export interface GetUserOptionalParams extends OperationOptions {}
 
-      export async function getUser(
-        context: Client,
-        options: GetUserOptionalParams = { requestOptions: {} },
-      ): Promise<User & { requestId: string }> {
-        const result = await _getUserSend(context, options);
-        const headers = _getUserDeserializeHeaders(result);
-        const payload = await _getUserDeserialize(result);
-        return { ...payload, ...headers };
-      }
-    `);
+        export function _getUserSend(
+          context: Client,
+          options: GetUserOptionalParams = { requestOptions: {} },
+        ): StreamableMethod {
+          return context.path("/").get({ ...operationOptionsToRequestParameters(options), headers: { accept: "application/json", ...options.requestOptions?.headers } });
+        }
+
+        export function _getUserDeserializeHeaders(
+          result: PathUncheckedResponse,
+        ): { requestId: string } {
+          return { requestId: result.headers["request-id"] };
+        }
+
+        export async function _getUserDeserialize(
+          result: PathUncheckedResponse,
+        ): Promise<User> {
+          const expectedStatuses = ["200"];
+          if (!expectedStatuses.includes(result.status)) {
+            throw createRestError(result);
+          }
+
+          return userDeserializer(result.body);
+        }
+
+        export async function getUser(
+          context: Client,
+          options: GetUserOptionalParams = { requestOptions: {} },
+        ): Promise<User & { requestId: string }> {
+          const result = await _getUserSend(context, options);
+          const headers = _getUserDeserializeHeaders(result);
+          const payload = await _getUserDeserialize(result);
+          return { ...payload, ...headers };
+        }
+      `);
+    });
+
+    /**
+     * Tests that without `include-headers-in-response` enabled, response headers
+     * do NOT affect the public operation function, even when headers exist in
+     * the TypeSpec definition. This verifies the feature flag works correctly
+     * and the default behavior is preserved (no header merging).
+     */
+    it("should NOT merge headers when include-headers-in-response is disabled", async () => {
+      const template = (
+        <SdkTestFile
+          sdkContext={sdkContext}
+          externals={[httpRuntimeLib]}
+          emitterOptions={{ includeHeadersInResponse: false }}
+        >
+          <ModelInterface model={userModel} />
+          {"\n\n"}
+          <JsonDeserializer model={userModel} />
+          {"\n\n"}
+          <OperationOptionsDeclaration method={method} />
+          {"\n\n"}
+          <SendOperation method={method} />
+          {"\n\n"}
+          <DeserializeOperation method={method} />
+          {"\n\n"}
+          <PublicOperation method={method} />
+        </SdkTestFile>
+      );
+
+      expect(template).toRenderTo(d`
+        import { type Client, createRestError, type OperationOptions, operationOptionsToRequestParameters, type PathUncheckedResponse, type StreamableMethod } from "@typespec/ts-http-runtime";
+
+        export interface User {
+          name: string;
+        }
+
+        export function userDeserializer(item: any): User {
+          return {
+            name: item["name"],
+          };
+        }
+
+        /**
+         * Optional parameters for the getUser operation.
+         */
+        export interface GetUserOptionalParams extends OperationOptions {}
+
+        export function _getUserSend(
+          context: Client,
+          options: GetUserOptionalParams = { requestOptions: {} },
+        ): StreamableMethod {
+          return context.path("/").get({ ...operationOptionsToRequestParameters(options), headers: { accept: "application/json", ...options.requestOptions?.headers } });
+        }
+
+        export async function _getUserDeserialize(
+          result: PathUncheckedResponse,
+        ): Promise<User> {
+          const expectedStatuses = ["200"];
+          if (!expectedStatuses.includes(result.status)) {
+            throw createRestError(result);
+          }
+
+          return userDeserializer(result.body);
+        }
+
+        export async function getUser(
+          context: Client,
+          options: GetUserOptionalParams = { requestOptions: {} },
+        ): Promise<User> {
+          const result = await _getUserSend(context, options);
+          return _getUserDeserialize(result);
+        }
+      `);
+    });
   });
 
   /**
@@ -858,96 +939,6 @@ describe("PublicOperation", () => {
         const result = await _deleteUserSend(context, options);
         await _deleteUserDeserialize(result);
         return { ..._deleteUserDeserializeHeaders(result) };
-      }
-    `);
-  });
-
-  /**
-   * Tests that without `include-headers-in-response` enabled, response headers
-   * do NOT affect the public operation function, even when headers exist in
-   * the TypeSpec definition. This verifies the feature flag works correctly
-   * and the default behavior is preserved (no header merging).
-   */
-  it("should NOT merge headers when include-headers-in-response is disabled", async () => {
-    const runner = await TesterWithService.createInstance();
-    const { program } = await runner.compile(
-      t.code`
-        model User {
-          name: string;
-        }
-
-        @get op ${t.op("getUser")}(): User & {@header requestId: string};
-      `,
-    );
-
-    const sdkContext = await createSdkContextForTest(program);
-    const method = getFirstMethod(sdkContext);
-    const userModel = sdkContext.sdkPackage.models.find(
-      (m) => m.name === "User",
-    )!;
-
-    const template = (
-      <SdkTestFile
-        sdkContext={sdkContext}
-        externals={[httpRuntimeLib]}
-        emitterOptions={{ includeHeadersInResponse: false }}
-      >
-        <ModelInterface model={userModel} />
-        {"\n\n"}
-        <JsonDeserializer model={userModel} />
-        {"\n\n"}
-        <OperationOptionsDeclaration method={method} />
-        {"\n\n"}
-        <SendOperation method={method} />
-        {"\n\n"}
-        <DeserializeOperation method={method} />
-        {"\n\n"}
-        <PublicOperation method={method} />
-      </SdkTestFile>
-    );
-
-    expect(template).toRenderTo(d`
-      import { type Client, createRestError, type OperationOptions, operationOptionsToRequestParameters, type PathUncheckedResponse, type StreamableMethod } from "@typespec/ts-http-runtime";
-
-      export interface User {
-        name: string;
-      }
-
-      export function userDeserializer(item: any): User {
-        return {
-          name: item["name"],
-        };
-      }
-
-      /**
-       * Optional parameters for the getUser operation.
-       */
-      export interface GetUserOptionalParams extends OperationOptions {}
-
-      export function _getUserSend(
-        context: Client,
-        options: GetUserOptionalParams = { requestOptions: {} },
-      ): StreamableMethod {
-        return context.path("/").get({ ...operationOptionsToRequestParameters(options), headers: { accept: "application/json", ...options.requestOptions?.headers } });
-      }
-
-      export async function _getUserDeserialize(
-        result: PathUncheckedResponse,
-      ): Promise<User> {
-        const expectedStatuses = ["200"];
-        if (!expectedStatuses.includes(result.status)) {
-          throw createRestError(result);
-        }
-
-        return userDeserializer(result.body);
-      }
-
-      export async function getUser(
-        context: Client,
-        options: GetUserOptionalParams = { requestOptions: {} },
-      ): Promise<User> {
-        const result = await _getUserSend(context, options);
-        return _getUserDeserialize(result);
       }
     `);
   });

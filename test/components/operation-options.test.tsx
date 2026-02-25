@@ -22,7 +22,7 @@ import "@alloy-js/core/testing";
 import { code } from "@alloy-js/core";
 import { d } from "@alloy-js/core/testing";
 import { t } from "@typespec/compiler/testing";
-import { describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 import type {
   SdkHttpOperation,
   SdkServiceMethod,
@@ -47,6 +47,12 @@ function getFirstMethod(
 }
 
 describe("OperationOptions", () => {
+  let runner: Awaited<ReturnType<typeof TesterWithService.createInstance>>;
+
+  beforeAll(async () => {
+    runner = await TesterWithService.createInstance();
+  });
+
   /**
    * Tests the most fundamental case: an operation with optional query/header
    * parameters generates an interface containing those parameters as optional
@@ -54,7 +60,6 @@ describe("OperationOptions", () => {
    * one optional parameter, so this must work correctly.
    */
   it("should render interface with optional parameters", async () => {
-    const runner = await TesterWithService.createInstance();
     const { program } = await runner.compile(
       t.code`
         model User {
@@ -95,7 +100,6 @@ describe("OperationOptions", () => {
    * auto-generates the import statement.
    */
   it("should extend OperationOptions from runtime package", async () => {
-    const runner = await TesterWithService.createInstance();
     const { program } = await runner.compile(
       t.code`
         @get op ${t.op("listItems")}(): string[];
@@ -128,7 +132,6 @@ describe("OperationOptions", () => {
    * operation functions would have no way to reference their options interface.
    */
   it("should be referenceable via operationOptionsRefkey", async () => {
-    const runner = await TesterWithService.createInstance();
     const { program } = await runner.compile(
       t.code`
         @get op ${t.op("getItem")}(@query filter?: string): string;
@@ -167,7 +170,6 @@ describe("OperationOptions", () => {
    * each option does.
    */
   it("should include JSDoc from parameter descriptions", async () => {
-    const runner = await TesterWithService.createInstance();
     const { program } = await runner.compile(
       t.code`
         @get op ${t.op("search")}(
@@ -212,7 +214,6 @@ describe("OperationOptions", () => {
    * versus optional.
    */
   it("should exclude required parameters", async () => {
-    const runner = await TesterWithService.createInstance();
     const { program } = await runner.compile(
       t.code`
         @get op ${t.op("getUser")}(@path userId: string, @query expand?: string): string;
@@ -246,7 +247,6 @@ describe("OperationOptions", () => {
    * consumers can pass requestOptions or abortSignal via the base OperationOptions.
    */
   it("should handle operations with no optional parameters", async () => {
-    const runner = await TesterWithService.createInstance();
     const { program } = await runner.compile(
       t.code`
         @get @route("items/{id}") op ${t.op("getItem")}(@path id: string): string;
@@ -278,7 +278,6 @@ describe("OperationOptions", () => {
    * If-Match, If-None-Match, custom tracking headers).
    */
   it("should include optional header parameters", async () => {
-    const runner = await TesterWithService.createInstance();
     const { program } = await runner.compile(
       t.code`
         @get op ${t.op("getResource")}(
@@ -316,7 +315,6 @@ describe("OperationOptions", () => {
    * where no fields need updating). These need to appear in the options bag.
    */
   it("should include optional body parameter", async () => {
-    const runner = await TesterWithService.createInstance();
     const { program } = await runner.compile(
       t.code`
         model PatchData {

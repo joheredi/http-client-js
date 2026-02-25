@@ -25,7 +25,7 @@ import { d } from "@alloy-js/core/testing";
 import { createTSNamePolicy, SourceFile } from "@alloy-js/typescript";
 import { Output } from "@typespec/emitter-framework";
 import { t } from "@typespec/compiler/testing";
-import { describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 import type {
   SdkContext,
   SdkHttpOperation,
@@ -88,46 +88,60 @@ function getFirstMethod(
 }
 
 describe("SendOperation", () => {
-  /**
-   * Tests the simplest case: a GET operation with no path parameters and no
-   * query parameters. The generated function should use the URI template
-   * directly in context.path() without calling expandUrlTemplate. Verifies
-   * that the accept header is set based on the response content type.
-   */
-  it("should render a basic GET send function", async () => {
-    const runner = await TesterWithService.createInstance();
-    const { program } = await runner.compile(
-      t.code`
-        @get op ${t.op("listItems")}(): string[];
-      `,
-    );
+  describe("basic GET with no parameters", () => {
+    let sdkContext: SdkContext<Record<string, any>, SdkHttpOperation>;
+    let method: SdkServiceMethod<SdkHttpOperation>;
 
-    const sdkContext = await createSdkContextForTest(program);
-    const method = getFirstMethod(sdkContext);
+    beforeAll(async () => {
+      const runner = await TesterWithService.createInstance();
+      const { program } = await runner.compile(
+        t.code`
+          @get op ${t.op("listItems")}(): string[];
+        `,
+      );
+      sdkContext = await createSdkContextForTest(program);
+      method = getFirstMethod(sdkContext);
+    });
 
-    const template = (
-      <SdkTestFile sdkContext={sdkContext} externals={[httpRuntimeLib]}>
-        <OperationOptionsDeclaration method={method} />
-        {"\n\n"}
-        <SendOperation method={method} />
-      </SdkTestFile>
-    );
+    /**
+     * Tests the simplest case: a GET operation with no path parameters and no
+     * query parameters. The generated function should use the URI template
+     * directly in context.path() without calling expandUrlTemplate. Verifies
+     * that the accept header is set based on the response content type.
+     */
+    it("should render a basic GET send function", async () => {
+      const template = (
+        <SdkTestFile sdkContext={sdkContext} externals={[httpRuntimeLib]}>
+          <OperationOptionsDeclaration method={method} />
+          {"\n\n"}
+          <SendOperation method={method} />
+        </SdkTestFile>
+      );
 
-    expect(template).toRenderTo(d`
-      import { type Client, type OperationOptions, operationOptionsToRequestParameters, type StreamableMethod } from "@typespec/ts-http-runtime";
+      expect(template).toRenderTo(d`
+        import { type Client, type OperationOptions, operationOptionsToRequestParameters, type StreamableMethod } from "@typespec/ts-http-runtime";
 
-      /**
-       * Optional parameters for the listItems operation.
-       */
-      export interface ListItemsOptionalParams extends OperationOptions {}
+        /**
+         * Optional parameters for the listItems operation.
+         */
+        export interface ListItemsOptionalParams extends OperationOptions {}
 
-      export function _listItemsSend(
-        context: Client,
-        options: ListItemsOptionalParams = { requestOptions: {} },
-      ): StreamableMethod {
-        return context.path("/").get({ ...operationOptionsToRequestParameters(options), headers: { accept: "application/json", ...options.requestOptions?.headers } });
-      }
-    `);
+        export function _listItemsSend(
+          context: Client,
+          options: ListItemsOptionalParams = { requestOptions: {} },
+        ): StreamableMethod {
+          return context.path("/").get({ ...operationOptionsToRequestParameters(options), headers: { accept: "application/json", ...options.requestOptions?.headers } });
+        }
+      `);
+    });
+
+    /**
+     * Tests the getOptionsParamName utility function for the standard case.
+     * When no method parameter is named "options", returns "options".
+     */
+    it("should return 'options' when no parameter conflicts", () => {
+      expect(getOptionsParamName(method)).toBe("options");
+    });
   });
 
   /**
@@ -539,19 +553,13 @@ describe("SendOperation", () => {
     `);
   });
 
-  /**
-   * Tests that when @@override groups individual query parameters into a model
-   * parameter named "options", the emitter correctly:
-   * 1. Renames the optional params bag to "optionalParams" to avoid name conflict
-   * 2. Accesses query params through the model parameter (e.g., options.param1)
-   * 3. Uses optionalParams for requestOptions access
-   *
-   * This is critical for Azure SDK @@override patterns where parameters are
-   * grouped into option models for better API ergonomics.
-   */
-  it("should handle @@override parameter grouping with correct naming", async () => {
-    const runner = await RawTester.createInstance();
-    const { program } = await runner.compile(`
+  describe("@@override parameter grouping", () => {
+    let sdkContext: SdkContext<Record<string, any>, SdkHttpOperation>;
+    let method: SdkServiceMethod<SdkHttpOperation>;
+
+    beforeAll(async () => {
+      const runner = await RawTester.createInstance();
+      const { program } = await runner.compile(`
 import "@typespec/http";
 import "@azure-tools/typespec-client-generator-core";
 using TypeSpec.Http;
@@ -579,84 +587,49 @@ op groupCustomized(
 ): void;
 
 @@override(Override.groupOriginal, Override.groupCustomized);
-    `);
+      `);
+      sdkContext = await createSdkContextForTest(program);
+      method = getFirstMethod(sdkContext);
+    });
 
-    const sdkContext = await createSdkContextForTest(program);
-    const method = getFirstMethod(sdkContext);
+    /**
+     * Tests that when @@override groups individual query parameters into a model
+     * parameter named "options", the emitter correctly:
+     * 1. Renames the optional params bag to "optionalParams" to avoid name conflict
+     * 2. Accesses query params through the model parameter (e.g., options.param1)
+     * 3. Uses optionalParams for requestOptions access
+     *
+     * This is critical for Azure SDK @@override patterns where parameters are
+     * grouped into option models for better API ergonomics.
+     */
+    it("should handle @@override parameter grouping with correct naming", async () => {
+      const template = (
+        <SdkTestFile sdkContext={sdkContext} externals={[httpRuntimeLib]}>
+          <OperationOptionsDeclaration method={method} />
+          {"\n\n"}
+          <SendOperation method={method} />
+        </SdkTestFile>
+      );
 
-    const template = (
-      <SdkTestFile sdkContext={sdkContext} externals={[httpRuntimeLib]}>
-        <OperationOptionsDeclaration method={method} />
-        {"\n\n"}
-        <SendOperation method={method} />
-      </SdkTestFile>
-    );
+      const rendered = renderToString(template);
+      // Verify optionalParams is used instead of second "options"
+      expect(rendered).toContain("optionalParams");
+      // Verify model property access through the options parameter
+      expect(rendered).toContain("options.param1");
+      expect(rendered).toContain("options.param2");
+      // Verify optionalParams is used for requestOptions
+      expect(rendered).toContain("optionalParams?.requestOptions?.skipUrlEncoding");
+      expect(rendered).toContain("operationOptionsToRequestParameters(optionalParams)");
+    });
 
-    const rendered = renderToString(template);
-    // Verify optionalParams is used instead of second "options"
-    expect(rendered).toContain("optionalParams");
-    // Verify model property access through the options parameter
-    expect(rendered).toContain("options.param1");
-    expect(rendered).toContain("options.param2");
-    // Verify optionalParams is used for requestOptions
-    expect(rendered).toContain("optionalParams?.requestOptions?.skipUrlEncoding");
-    expect(rendered).toContain("operationOptionsToRequestParameters(optionalParams)");
-  });
-
-  /**
-   * Tests the getOptionsParamName utility function directly.
-   * When no method parameter is named "options", returns "options".
-   * When a required method parameter IS named "options" (e.g., from @@override
-   * parameter grouping), returns "optionalParams" to avoid name conflicts.
-   */
-  it("should return correct options param name based on conflicts", async () => {
-    // Standard case - no conflict
-    const runner = await TesterWithService.createInstance();
-    const { program } = await runner.compile(
-      t.code`
-        @get op ${t.op("listItems")}(): string[];
-      `,
-    );
-
-    const sdkContext = await createSdkContextForTest(program);
-    const method = getFirstMethod(sdkContext);
-    expect(getOptionsParamName(method)).toBe("options");
-
-    // Override case - conflict with "options" parameter
-    const runner2 = await RawTester.createInstance();
-    const { program: program2 } = await runner2.compile(`
-import "@typespec/http";
-import "@azure-tools/typespec-client-generator-core";
-using TypeSpec.Http;
-using Azure.ClientGenerator.Core;
-
-@service(#{
-  title: "Override Service"
-})
-namespace Override;
-
-@route("/group")
-@get
-op groupOriginal(
-  @query param1: string,
-  @query param2: string,
-): void;
-
-model GroupParametersOptions {
-  @query param1: string;
-  @query param2: string;
-}
-
-op groupCustomized(
-  options: GroupParametersOptions,
-): void;
-
-@@override(Override.groupOriginal, Override.groupCustomized);
-    `);
-
-    const sdkContext2 = await createSdkContextForTest(program2);
-    const method2 = getFirstMethod(sdkContext2);
-    expect(getOptionsParamName(method2)).toBe("optionalParams");
+    /**
+     * Tests the getOptionsParamName utility function for the override case.
+     * When a required method parameter IS named "options" (e.g., from @@override
+     * parameter grouping), returns "optionalParams" to avoid name conflicts.
+     */
+    it("should return 'optionalParams' when @@override creates conflict", () => {
+      expect(getOptionsParamName(method)).toBe("optionalParams");
+    });
   });
 
   /**

@@ -32,7 +32,7 @@ import type {
   SdkEnumValueType,
 } from "@azure-tools/typespec-client-generator-core";
 import { t } from "@typespec/compiler/testing";
-import { describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 import {
   extractSubEnums,
   SubEnumDeclaration,
@@ -129,76 +129,70 @@ describe("extractSubEnums", () => {
 });
 
 describe("SubEnumDeclaration", () => {
-  /**
-   * Tests that SubEnumDeclaration renders a type alias with the correct doc
-   * comment format: "Type of {Name}". This matches the legacy emitter's
-   * behavior for sub-enum type aliases.
-   */
-  it("should render type alias with doc for string enum values", async () => {
-    const runner = await TesterWithService.createInstance();
-    const { program } = await runner.compile(
-      t.code`
-        enum LR { left, right }
-        enum UD { up, down }
-        model ${t.model("Test")} { color: LR | UD; }
-        op ${t.op("read")}(@body body: Test): void;
-      `,
-    );
+  describe("with LR | UD union", () => {
+    let sdkContext: any;
+    let combined: any;
+    let subEnums: any[];
 
-    const sdkContext = await createSdkContextForTest(program);
-    const combined = sdkContext.sdkPackage.enums[0];
-    const subEnums = extractSubEnums(combined);
+    beforeAll(async () => {
+      const runner = await TesterWithService.createInstance();
+      const { program } = await runner.compile(
+        t.code`
+          enum LR { left, right }
+          enum UD { up, down }
+          model ${t.model("Test")} { color: LR | UD; }
+          op ${t.op("read")}(@body body: Test): void;
+        `,
+      );
 
-    const template = (
-      <SdkTestFile sdkContext={sdkContext}>
-        <SubEnumDeclaration parentEnum={combined} subEnum={subEnums[0]} />
-      </SdkTestFile>
-    );
+      sdkContext = await createSdkContextForTest(program);
+      combined = sdkContext.sdkPackage.enums[0];
+      subEnums = extractSubEnums(combined);
+    });
 
-    expect(template).toRenderTo(`
-      /**
-       * Type of LR
-       */
-      export type LR = "left" | "right";
-    `);
-  });
+    /**
+     * Tests that SubEnumDeclaration renders a type alias with the correct doc
+     * comment format: "Type of {Name}". This matches the legacy emitter's
+     * behavior for sub-enum type aliases.
+     */
+    it("should render type alias with doc for string enum values", async () => {
+      const template = (
+        <SdkTestFile sdkContext={sdkContext}>
+          <SubEnumDeclaration parentEnum={combined} subEnum={subEnums[0]} />
+        </SdkTestFile>
+      );
 
-  /**
-   * Tests that SubEnumDeclarations renders multiple sub-enums separated by
-   * blank lines. This verifies the <For> iteration with doubleHardline joiner.
-   */
-  it("should render multiple sub-enums with spacing", async () => {
-    const runner = await TesterWithService.createInstance();
-    const { program } = await runner.compile(
-      t.code`
-        enum LR { left, right }
-        enum UD { up, down }
-        model ${t.model("Test")} { color: LR | UD; }
-        op ${t.op("read")}(@body body: Test): void;
-      `,
-    );
+      expect(template).toRenderTo(`
+        /**
+         * Type of LR
+         */
+        export type LR = "left" | "right";
+      `);
+    });
 
-    const sdkContext = await createSdkContextForTest(program);
-    const combined = sdkContext.sdkPackage.enums[0];
-    const subEnums = extractSubEnums(combined);
+    /**
+     * Tests that SubEnumDeclarations renders multiple sub-enums separated by
+     * blank lines. This verifies the <For> iteration with doubleHardline joiner.
+     */
+    it("should render multiple sub-enums with spacing", async () => {
+      const template = (
+        <SdkTestFile sdkContext={sdkContext}>
+          <SubEnumDeclarations parentEnum={combined} subEnums={subEnums} />
+        </SdkTestFile>
+      );
 
-    const template = (
-      <SdkTestFile sdkContext={sdkContext}>
-        <SubEnumDeclarations parentEnum={combined} subEnums={subEnums} />
-      </SdkTestFile>
-    );
+      expect(template).toRenderTo(`
+        /**
+         * Type of LR
+         */
+        export type LR = "left" | "right";
 
-    expect(template).toRenderTo(`
-      /**
-       * Type of LR
-       */
-      export type LR = "left" | "right";
-
-      /**
-       * Type of UD
-       */
-      export type UD = "up" | "down";
-    `);
+        /**
+         * Type of UD
+         */
+        export type UD = "up" | "down";
+      `);
+    });
   });
 
   /**

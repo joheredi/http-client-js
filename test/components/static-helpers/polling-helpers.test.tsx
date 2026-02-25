@@ -26,23 +26,28 @@ import {
   SourceFile,
 } from "@alloy-js/typescript";
 import { Output } from "@typespec/emitter-framework";
-import { describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 import { t } from "@typespec/compiler/testing";
 import { PollingHelpersFile } from "../../../src/components/static-helpers/polling-helpers.js";
 import { pollingHelperRefkey } from "../../../src/utils/refkeys.js";
 import { TesterWithService } from "../../test-host.js";
 import { httpRuntimeLib } from "../../../src/utils/external-packages.js";
+import type { Program } from "@typespec/compiler";
 
 describe("PollingHelpersFile", () => {
+  let program: Program;
+
+  beforeAll(async () => {
+    const runner = await TesterWithService.createInstance();
+    ({ program } = await runner.compile(t.code`op test(): void;`));
+  });
+
   /**
    * Tests that the OperationState interface is rendered with the
    * correct type parameter and members. This interface tracks the
    * status, result, and error of a long-running operation.
    */
   it("should render OperationState interface", async () => {
-    const runner = await TesterWithService.createInstance();
-    const { program } = await runner.compile(t.code`op test(): void;`);
-
     const template = (
       <Output program={program} namePolicy={createTSNamePolicy()} externals={[httpRuntimeLib]}>
         <PollingHelpersFile />
@@ -62,9 +67,6 @@ describe("PollingHelpersFile", () => {
    * for interacting with long-running operations.
    */
   it("should render PollerLike interface", async () => {
-    const runner = await TesterWithService.createInstance();
-    const { program } = await runner.compile(t.code`op test(): void;`);
-
     const template = (
       <Output program={program} namePolicy={createTSNamePolicy()} externals={[httpRuntimeLib]}>
         <PollingHelpersFile />
@@ -85,9 +87,6 @@ describe("PollingHelpersFile", () => {
    * resourceLocationConfig members.
    */
   it("should render GetLongRunningPollerOptions interface", async () => {
-    const runner = await TesterWithService.createInstance();
-    const { program } = await runner.compile(t.code`op test(): void;`);
-
     const template = (
       <Output program={program} namePolicy={createTSNamePolicy()} externals={[httpRuntimeLib]}>
         <PollingHelpersFile />
@@ -107,9 +106,6 @@ describe("PollingHelpersFile", () => {
    * exported function with the correct parameters and return type.
    */
   it("should render getLongRunningPoller function", async () => {
-    const runner = await TesterWithService.createInstance();
-    const { program } = await runner.compile(t.code`op test(): void;`);
-
     const template = (
       <Output program={program} namePolicy={createTSNamePolicy()} externals={[httpRuntimeLib]}>
         <PollingHelpersFile />
@@ -129,9 +125,6 @@ describe("PollingHelpersFile", () => {
    * generate an import from the helpers file.
    */
   it("should enable cross-file import via getLongRunningPoller refkey", async () => {
-    const runner = await TesterWithService.createInstance();
-    const { program } = await runner.compile(t.code`op test(): void;`);
-
     const template = (
       <Output program={program} namePolicy={createTSNamePolicy()} externals={[httpRuntimeLib]}>
         <SourceFile path="consumer.ts">
@@ -152,9 +145,6 @@ describe("PollingHelpersFile", () => {
    * cross-file imports when used as type annotations.
    */
   it("should enable cross-file import via PollerLike and OperationState refkeys", async () => {
-    const runner = await TesterWithService.createInstance();
-    const { program } = await runner.compile(t.code`op test(): void;`);
-
     const template = (
       <Output program={program} namePolicy={createTSNamePolicy()} externals={[httpRuntimeLib]}>
         <SourceFile path="consumer.ts">

@@ -20,7 +20,7 @@ import "@alloy-js/core/testing";
 import { code, refkey } from "@alloy-js/core";
 import { InterfaceDeclaration, TypeDeclaration } from "@alloy-js/typescript";
 import { t } from "@typespec/compiler/testing";
-import { describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 import type {
   SdkModelType,
   SdkType,
@@ -518,64 +518,56 @@ describe("Type Expression", () => {
   });
 
   describe("getOptionalAwareTypeExpression", () => {
-    /**
-     * Tests that optional+nullable properties have `| null` stripped when
-     * ignoreNullableOnOptional is true. This implements the Azure SDK convention
-     * where optional implies nullable, making explicit `| null` redundant.
-     * Without this, generated interfaces would have `prop?: T | null` which
-     * differs from the legacy emitter output.
-     */
-    it("should strip | null from optional nullable types when ignoreNullableOnOptional is true", async () => {
-      const runner = await TesterWithService.createInstance();
-      const { program } = await runner.compile(
-        t.code`
-          model ${t.model("NullableModel")} {
-            optNullable?: string | null;
-          }
+    describe("optional nullable properties", () => {
+      let sdkContext: Awaited<ReturnType<typeof createSdkContextForTest>>;
+      let propType: SdkType;
 
-          op ${t.op("getModel")}(): NullableModel;
-        `,
-      );
+      beforeAll(async () => {
+        const runner = await TesterWithService.createInstance();
+        const { program } = await runner.compile(
+          t.code`
+            model ${t.model("NullableModel")} {
+              optNullable?: string | null;
+            }
 
-      const sdkContext = await createSdkContextForTest(program);
-      const model = sdkContext.sdkPackage.models[0];
-      const propType = getPropertyType(model, "optNullable");
+            op ${t.op("getModel")}(): NullableModel;
+          `,
+        );
 
-      const template = (
-        <SdkTestFile sdkContext={sdkContext}>
-          {getOptionalAwareTypeExpression(propType, true, true)}
-        </SdkTestFile>
-      );
-      expect(template).toRenderTo("string");
-    });
+        sdkContext = await createSdkContextForTest(program);
+        const model = sdkContext.sdkPackage.models[0];
+        propType = getPropertyType(model, "optNullable");
+      });
 
-    /**
-     * Tests that optional+nullable properties preserve `| null` when
-     * ignoreNullableOnOptional is false. This is the opt-out behavior
-     * for services that need explicit null indication on optional properties.
-     */
-    it("should preserve | null on optional nullable types when ignoreNullableOnOptional is false", async () => {
-      const runner = await TesterWithService.createInstance();
-      const { program } = await runner.compile(
-        t.code`
-          model ${t.model("NullableModel")} {
-            optNullable?: string | null;
-          }
+      /**
+       * Tests that optional+nullable properties have `| null` stripped when
+       * ignoreNullableOnOptional is true. This implements the Azure SDK convention
+       * where optional implies nullable, making explicit `| null` redundant.
+       * Without this, generated interfaces would have `prop?: T | null` which
+       * differs from the legacy emitter output.
+       */
+      it("should strip | null from optional nullable types when ignoreNullableOnOptional is true", () => {
+        const template = (
+          <SdkTestFile sdkContext={sdkContext}>
+            {getOptionalAwareTypeExpression(propType, true, true)}
+          </SdkTestFile>
+        );
+        expect(template).toRenderTo("string");
+      });
 
-          op ${t.op("getModel")}(): NullableModel;
-        `,
-      );
-
-      const sdkContext = await createSdkContextForTest(program);
-      const model = sdkContext.sdkPackage.models[0];
-      const propType = getPropertyType(model, "optNullable");
-
-      const template = (
-        <SdkTestFile sdkContext={sdkContext}>
-          {getOptionalAwareTypeExpression(propType, true, false)}
-        </SdkTestFile>
-      );
-      expect(template).toRenderTo("string | null");
+      /**
+       * Tests that optional+nullable properties preserve `| null` when
+       * ignoreNullableOnOptional is false. This is the opt-out behavior
+       * for services that need explicit null indication on optional properties.
+       */
+      it("should preserve | null on optional nullable types when ignoreNullableOnOptional is false", () => {
+        const template = (
+          <SdkTestFile sdkContext={sdkContext}>
+            {getOptionalAwareTypeExpression(propType, true, false)}
+          </SdkTestFile>
+        );
+        expect(template).toRenderTo("string | null");
+      });
     });
 
     /**

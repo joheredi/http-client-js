@@ -24,7 +24,7 @@ import { renderToString } from "@alloy-js/core/testing";
 import { createTSNamePolicy, SourceFile } from "@alloy-js/typescript";
 import { Output } from "@typespec/emitter-framework";
 import { t } from "@typespec/compiler/testing";
-import { describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 import { TesterWithService } from "../../test-host.js";
 import type { SdkModelType } from "@azure-tools/typespec-client-generator-core";
 import { UsageFlags } from "@azure-tools/typespec-client-generator-core";
@@ -78,6 +78,13 @@ function createMockXmlOutputModel(
 }
 
 describe("XmlDeserializer", () => {
+  let program: any;
+
+  beforeAll(async () => {
+    const runner = await TesterWithService.createInstance();
+    ({ program } = await runner.compile(t.code`op test(): void;`));
+  });
+
   /**
    * Tests that a basic model with string and number properties produces
    * metadata entries with correct primitiveSubtype values. The subtype
@@ -99,9 +106,6 @@ describe("XmlDeserializer", () => {
         type: { kind: "boolean" },
       },
     ]);
-
-    const runner = await TesterWithService.createInstance();
-    const { program } = await runner.compile(t.code`op test(): void;`);
 
     const template = (
       <Output program={program} namePolicy={createTSNamePolicy()}>
@@ -146,9 +150,6 @@ describe("XmlDeserializer", () => {
       },
     ]);
 
-    const runner = await TesterWithService.createInstance();
-    const { program } = await runner.compile(t.code`op test(): void;`);
-
     const template = (
       <Output program={program} namePolicy={createTSNamePolicy()}>
         <XmlHelpersFile />
@@ -187,9 +188,6 @@ describe("XmlDeserializer", () => {
       "BlockList",
     );
 
-    const runner = await TesterWithService.createInstance();
-    const { program } = await runner.compile(t.code`op test(): void;`);
-
     const template = (
       <Output program={program} namePolicy={createTSNamePolicy()}>
         <XmlHelpersFile />
@@ -220,9 +218,6 @@ describe("XmlDeserializer", () => {
         attribute: true,
       },
     ]);
-
-    const runner = await TesterWithService.createInstance();
-    const { program } = await runner.compile(t.code`op test(): void;`);
 
     const template = (
       <Output program={program} namePolicy={createTSNamePolicy()}>

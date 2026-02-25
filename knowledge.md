@@ -1491,3 +1491,22 @@ When adding `includeParentProperties` to JsonSerializer/JsonDeserializer, the
 parameter propagates through `getSerializableProperties()` / `getDeserializableProperties()`
 and is only set `true` for models that are children in a discriminated hierarchy
 (detected by `isDiscriminatedChild()` which walks the `baseModel` chain).
+
+## Test Performance: beforeAll Compilation Sharing
+
+**Problem:** Tests were taking 3.5–8.5 minutes (222–504s) because every `it()`
+block created its own `TesterWithService.createInstance()` + `compile()` +
+`createSdkContextForTest()` cycle. With ~283 unit tests, that was ~283 redundant
+TypeSpec compilations at ~1.5s each. The vitest collection phase also took ~200s
+because the default `threads` pool re-imported the entire TypeSpec compiler + 8
+libraries per worker.
+
+**Fix:**
+1. Vitest config: `pool: "forks"` + `isolate: false` reduces collection from
+   ~200s to ~50s by sharing modules across test files in the same worker.
+2. Group tests with identical TypeSpec input into sub-`describe` blocks with
+   `beforeAll` to compile once and share `sdkContext`/`client` across tests.
+
+**Result:** 504s → 168s (67% faster), 22 timeout failures → 0.
+
+**Date:** 2026-02-25

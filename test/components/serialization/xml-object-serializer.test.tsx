@@ -22,7 +22,7 @@ import { renderToString } from "@alloy-js/core/testing";
 import { createTSNamePolicy, SourceFile } from "@alloy-js/typescript";
 import { Output } from "@typespec/emitter-framework";
 import { t } from "@typespec/compiler/testing";
-import { describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 import { TesterWithService } from "../../test-host.js";
 import type { SdkModelType } from "@azure-tools/typespec-client-generator-core";
 import { UsageFlags } from "@azure-tools/typespec-client-generator-core";
@@ -70,6 +70,13 @@ function createMockXmlModel(
 }
 
 describe("XmlObjectSerializer", () => {
+  let program: any;
+
+  beforeAll(async () => {
+    const runner = await TesterWithService.createInstance();
+    ({ program } = await runner.compile(t.code`op test(): void;`));
+  });
+
   /**
    * Tests that a basic model produces an object serializer that maps
    * client property names to XML element names in the returned object.
@@ -91,9 +98,6 @@ describe("XmlObjectSerializer", () => {
         type: { kind: "int32" },
       },
     ]);
-
-    const runner = await TesterWithService.createInstance();
-    const { program } = await runner.compile(t.code`op test(): void;`);
 
     const template = (
       <Output program={program} namePolicy={createTSNamePolicy()}>
@@ -140,9 +144,6 @@ describe("XmlObjectSerializer", () => {
       },
     ]);
 
-    const runner = await TesterWithService.createInstance();
-    const { program } = await runner.compile(t.code`op test(): void;`);
-
     const template = (
       <Output program={program} namePolicy={createTSNamePolicy()}>
         <XmlHelpersFile />
@@ -176,9 +177,6 @@ describe("XmlObjectSerializer", () => {
         type: { kind: "string" },
       },
     ]);
-
-    const runner = await TesterWithService.createInstance();
-    const { program } = await runner.compile(t.code`op test(): void;`);
 
     const template = (
       <Output program={program} namePolicy={createTSNamePolicy()}>

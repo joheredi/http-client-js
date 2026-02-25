@@ -44,7 +44,7 @@ import type {
   SdkHttpOperation,
   SdkHttpOperationExample,
 } from "@azure-tools/typespec-client-generator-core";
-import { describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 import { SampleFiles } from "../../src/components/sample-files.js";
 import { ClassicalClientDeclaration } from "../../src/components/classical-client.js";
 import {
@@ -147,118 +147,132 @@ function addMockExample(
 
 describe("SampleFiles", () => {
   /**
-   * Tests that SampleFiles returns nothing when no operations have examples.
-   * This is important because most TypeSpec definitions don't include examples,
-   * and the emitter should not generate an empty samples-dev/ directory.
+   * Tests using the basic `@get op getItem(): string;` TypeSpec input
+   * with TesterWithService. Compilation is shared across all tests in
+   * this group via beforeAll.
    */
-  it("should render nothing when no operations have examples", async () => {
-    const runner = await TesterWithService.createInstance();
-    const { program } = await runner.compile(
-      t.code`
-        @get op getItem(): string;
-      `,
-    );
+  describe("with getItem operation", () => {
+    let program: any;
 
-    const sdkContext = await createSdkContextForTest(program);
-
-    const template = (
-      <SampleTestWrapper sdkContext={sdkContext}>
-        <SampleFiles />
-      </SampleTestWrapper>
-    );
-
-    const result = renderToString(template);
-    // samples-dev directory should not appear in output
-    expect(result).not.toContain("samples-dev");
-    expect(result).not.toContain("Sample.ts");
-  });
-
-  /**
-   * Tests that SampleFiles generates a sample file when an operation
-   * has a TCGC example. The file should be in samples-dev/ with the
-   * correct naming convention ({operationName}Sample.ts).
-   */
-  it("should generate sample file for operation with example", async () => {
-    const runner = await TesterWithService.createInstance();
-    const { program } = await runner.compile(
-      t.code`
-        @get op getItem(): string;
-      `,
-    );
-
-    const sdkContext = await createSdkContextForTest(program);
-    addMockExample(sdkContext);
-
-    const template = (
-      <SampleTestWrapper sdkContext={sdkContext}>
-        <SampleFiles />
-      </SampleTestWrapper>
-    );
-
-    // Check that the sample file appears in the rendered output
-    expect(template).toRenderTo({
-      "samples-dev/getItemSample.ts": expect.stringContaining("async function"),
-      "src/api/testServiceClientContext.ts": expect.any(String),
-      "src/api/operations.ts": expect.any(String),
-      "src/testServiceClient.ts": expect.any(String),
+    beforeAll(async () => {
+      const runner = await TesterWithService.createInstance();
+      ({ program } = await runner.compile(
+        t.code`
+          @get op getItem(): string;
+        `,
+      ));
     });
-  });
 
-  /**
-   * Tests that the sample file imports the classical client class
-   * from the package name. This import is how consumers would use
-   * the generated SDK in their own code.
-   */
-  it("should include client import in sample file", async () => {
-    const runner = await TesterWithService.createInstance();
-    const { program } = await runner.compile(
-      t.code`
-        @get op getItem(): string;
-      `,
-    );
+    /**
+     * Tests that SampleFiles returns nothing when no operations have examples.
+     * This is important because most TypeSpec definitions don't include examples,
+     * and the emitter should not generate an empty samples-dev/ directory.
+     */
+    it("should render nothing when no operations have examples", async () => {
+      const sdkContext = await createSdkContextForTest(program);
 
-    const sdkContext = await createSdkContextForTest(program);
-    addMockExample(sdkContext);
+      const template = (
+        <SampleTestWrapper sdkContext={sdkContext}>
+          <SampleFiles />
+        </SampleTestWrapper>
+      );
 
-    const template = (
-      <SampleTestWrapper sdkContext={sdkContext}>
-        <SampleFiles />
-      </SampleTestWrapper>
-    );
+      const result = renderToString(template);
+      // samples-dev directory should not appear in output
+      expect(result).not.toContain("samples-dev");
+      expect(result).not.toContain("Sample.ts");
+    });
 
-    const result = renderToString(template);
-    const sampleContent = extractSampleContent(result, "getItemSample.ts");
+    /**
+     * Tests using the basic getItem operation with a mock TCGC example
+     * attached. The sdkContext, rendered template, and extracted sample
+     * content are shared across all tests in this sub-group.
+     */
+    describe("with mock example", () => {
+      let sdkContext: SdkContext<Record<string, any>, SdkHttpOperation>;
+      let template: Children;
+      let result: string;
+      let sampleContent: string;
 
-    expect(sampleContent).toContain('import { TestServiceClient }');
-  });
+      beforeAll(async () => {
+        sdkContext = await createSdkContextForTest(program);
+        addMockExample(sdkContext);
 
-  /**
-   * Tests that client constructor parameters are initialized from
-   * environment variables. This is the recommended pattern for
-   * sample code — secrets and endpoints should come from env vars.
-   */
-  it("should setup endpoint from environment variable", async () => {
-    const runner = await TesterWithService.createInstance();
-    const { program } = await runner.compile(
-      t.code`
-        @get op getItem(): string;
-      `,
-    );
+        template = (
+          <SampleTestWrapper sdkContext={sdkContext}>
+            <SampleFiles />
+          </SampleTestWrapper>
+        );
 
-    const sdkContext = await createSdkContextForTest(program);
-    addMockExample(sdkContext);
+        result = renderToString(template);
+        sampleContent = extractSampleContent(result, "getItemSample.ts");
+      });
 
-    const template = (
-      <SampleTestWrapper sdkContext={sdkContext}>
-        <SampleFiles />
-      </SampleTestWrapper>
-    );
+      /**
+       * Tests that SampleFiles generates a sample file when an operation
+       * has a TCGC example. The file should be in samples-dev/ with the
+       * correct naming convention ({operationName}Sample.ts).
+       */
+      it("should generate sample file for operation with example", () => {
+        // Check that the sample file appears in the rendered output
+        expect(template).toRenderTo({
+          "samples-dev/getItemSample.ts": expect.stringContaining("async function"),
+          "src/api/testServiceClientContext.ts": expect.any(String),
+          "src/api/operations.ts": expect.any(String),
+          "src/testServiceClient.ts": expect.any(String),
+        });
+      });
 
-    const result = renderToString(template);
-    const sampleContent = extractSampleContent(result, "getItemSample.ts");
+      /**
+       * Tests that the sample file imports the classical client class
+       * from the package name. This import is how consumers would use
+       * the generated SDK in their own code.
+       */
+      it("should include client import in sample file", () => {
+        expect(sampleContent).toContain('import { TestServiceClient }');
+      });
 
-    expect(sampleContent).toContain("process.env.");
-    expect(sampleContent).toContain("TEST_SERVICE_ENDPOINT");
+      /**
+       * Tests that client constructor parameters are initialized from
+       * environment variables. This is the recommended pattern for
+       * sample code — secrets and endpoints should come from env vars.
+       */
+      it("should setup endpoint from environment variable", () => {
+        expect(sampleContent).toContain("process.env.");
+        expect(sampleContent).toContain("TEST_SERVICE_ENDPOINT");
+      });
+
+      /**
+       * Tests that the sample constructs the client with the correct
+       * arguments (endpoint, credential, etc.) and calls the operation
+       * method on the client instance.
+       */
+      it("should construct client and call operation", () => {
+        expect(sampleContent).toContain("new TestServiceClient(");
+        expect(sampleContent).toContain("client.getItem(");
+        expect(sampleContent).toContain("console.log(result)");
+      });
+
+      /**
+       * Tests that the sample file includes main() and main().catch()
+       * which is the standard entry point pattern for sample files.
+       */
+      it("should include main function and error handling", () => {
+        expect(sampleContent).toContain("async function main()");
+        expect(sampleContent).toContain("main().catch(console.error)");
+      });
+
+      /**
+       * Tests that the sample file does NOT include an inline file path comment.
+       * The file path comment is added by the test harness (getSamplesConcatenated)
+       * during scenario testing, not by the component itself. This avoids duplication
+       * when the harness concatenates sample files with their own path comments.
+       */
+      it("should not include inline file path comment (harness adds it)", () => {
+        // The file path comment should NOT be in the content — the harness adds it
+        expect(sampleContent).not.toContain("/** This file path is");
+      });
+    });
   });
 
   /**
@@ -292,64 +306,6 @@ describe("SampleFiles", () => {
 
     expect(sampleContent).toContain('{ key: "INPUT_YOUR_KEY_HERE" }');
     expect(sampleContent).not.toContain("DefaultAzureCredential");
-  });
-
-  /**
-   * Tests that the sample constructs the client with the correct
-   * arguments (endpoint, credential, etc.) and calls the operation
-   * method on the client instance.
-   */
-  it("should construct client and call operation", async () => {
-    const runner = await TesterWithService.createInstance();
-    const { program } = await runner.compile(
-      t.code`
-        @get op getItem(): string;
-      `,
-    );
-
-    const sdkContext = await createSdkContextForTest(program);
-    addMockExample(sdkContext);
-
-    const template = (
-      <SampleTestWrapper sdkContext={sdkContext}>
-        <SampleFiles />
-      </SampleTestWrapper>
-    );
-
-    const result = renderToString(template);
-    const sampleContent = extractSampleContent(result, "getItemSample.ts");
-
-    expect(sampleContent).toContain("new TestServiceClient(");
-    expect(sampleContent).toContain("client.getItem(");
-    expect(sampleContent).toContain("console.log(result)");
-  });
-
-  /**
-   * Tests that the sample file includes main() and main().catch()
-   * which is the standard entry point pattern for sample files.
-   */
-  it("should include main function and error handling", async () => {
-    const runner = await TesterWithService.createInstance();
-    const { program } = await runner.compile(
-      t.code`
-        @get op getItem(): string;
-      `,
-    );
-
-    const sdkContext = await createSdkContextForTest(program);
-    addMockExample(sdkContext);
-
-    const template = (
-      <SampleTestWrapper sdkContext={sdkContext}>
-        <SampleFiles />
-      </SampleTestWrapper>
-    );
-
-    const result = renderToString(template);
-    const sampleContent = extractSampleContent(result, "getItemSample.ts");
-
-    expect(sampleContent).toContain("async function main()");
-    expect(sampleContent).toContain("main().catch(console.error)");
   });
 
   /**
@@ -477,36 +433,6 @@ describe("SampleFiles", () => {
 
     expect(sampleContent).toContain('"item-123"');
     expect(sampleContent).toContain("client.getItem(");
-  });
-
-  /**
-   * Tests that the sample file does NOT include an inline file path comment.
-   * The file path comment is added by the test harness (getSamplesConcatenated)
-   * during scenario testing, not by the component itself. This avoids duplication
-   * when the harness concatenates sample files with their own path comments.
-   */
-  it("should not include inline file path comment (harness adds it)", async () => {
-    const runner = await TesterWithService.createInstance();
-    const { program } = await runner.compile(
-      t.code`
-        @get op getItem(): string;
-      `,
-    );
-
-    const sdkContext = await createSdkContextForTest(program);
-    addMockExample(sdkContext);
-
-    const template = (
-      <SampleTestWrapper sdkContext={sdkContext}>
-        <SampleFiles />
-      </SampleTestWrapper>
-    );
-
-    const result = renderToString(template);
-    const sampleContent = extractSampleContent(result, "getItemSample.ts");
-
-    // The file path comment should NOT be in the content — the harness adds it
-    expect(sampleContent).not.toContain("/** This file path is");
   });
 });
 

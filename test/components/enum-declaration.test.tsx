@@ -26,7 +26,7 @@ import "@alloy-js/core/testing";
 import { code } from "@alloy-js/core";
 import { InterfaceDeclaration, InterfaceMember } from "@alloy-js/typescript";
 import { t } from "@typespec/compiler/testing";
-import { describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 import { EnumDeclaration, isApiVersionEnumOnly } from "../../src/components/enum-declaration.js";
 import { getTypeExpression } from "../../src/components/type-expression.js";
 import { typeRefkey } from "../../src/utils/refkeys.js";
@@ -109,92 +109,84 @@ describe("Enum Declaration", () => {
     `);
   });
 
-  /**
-   * Tests that extensible enums (isFixed=false) WITHOUT the
-   * `experimentalExtensibleEnums` flag produce only a literal union type alias.
-   * This matches the legacy emitter's default behavior where extensible enums
-   * are treated like fixed enums unless the flag is explicitly enabled.
-   */
-  it("should render extensible enum without flag as literal union only", async () => {
-    const runner = await TesterWithService.createInstance();
-    const { program } = await runner.compile(
-      t.code`
-        enum ${t.enum("Status")} {
-          Active: "active",
-          Inactive: "inactive",
-        }
+  describe("extensible Status enum", () => {
+    let sdkContext: Awaited<ReturnType<typeof createSdkContextForTest>>;
+    let enumType: (typeof sdkContext.sdkPackage.enums)[0];
 
-        op ${t.op("getStatus")}(): Status;
-      `,
-    );
+    beforeAll(async () => {
+      const runner = await TesterWithService.createInstance();
+      const { program } = await runner.compile(
+        t.code`
+          enum ${t.enum("Status")} {
+            Active: "active",
+            Inactive: "inactive",
+          }
 
-    const sdkContext = await createSdkContextForTest(program);
-    const enumType = { ...sdkContext.sdkPackage.enums[0], isFixed: false } as typeof sdkContext.sdkPackage.enums[0];
+          op ${t.op("getStatus")}(): Status;
+        `,
+      );
 
-    const template = (
-      <SdkTestFile sdkContext={sdkContext}>
-        <EnumDeclaration type={enumType} />
-      </SdkTestFile>
-    );
+      sdkContext = await createSdkContextForTest(program);
+      enumType = { ...sdkContext.sdkPackage.enums[0], isFixed: false } as typeof sdkContext.sdkPackage.enums[0];
+    });
 
-    expect(template).toRenderTo(`
-      /**
-       * Type of Status
-       */
-      export type Status = "active" | "inactive";
-    `);
-  });
+    /**
+     * Tests that extensible enums (isFixed=false) WITHOUT the
+     * `experimentalExtensibleEnums` flag produce only a literal union type alias.
+     * This matches the legacy emitter's default behavior where extensible enums
+     * are treated like fixed enums unless the flag is explicitly enabled.
+     */
+    it("should render extensible enum without flag as literal union only", async () => {
+      const template = (
+        <SdkTestFile sdkContext={sdkContext}>
+          <EnumDeclaration type={enumType} />
+        </SdkTestFile>
+      );
 
-  /**
-   * Tests that extensible enums (isFixed=false) WITH the
-   * `experimentalExtensibleEnums` flag produce the KnownXxx pattern:
-   * a base type alias (`type Name = string`) plus a Known enum.
-   * This is critical for forward compatibility — when a service adds new
-   * enum values, existing client code continues to work because the type
-   * allows any string.
-   */
-  it("should render extensible enum with flag as base type + Known enum", async () => {
-    const runner = await TesterWithService.createInstance();
-    const { program } = await runner.compile(
-      t.code`
-        enum ${t.enum("Status")} {
-          Active: "active",
-          Inactive: "inactive",
-        }
-
-        op ${t.op("getStatus")}(): Status;
-      `,
-    );
-
-    const sdkContext = await createSdkContextForTest(program);
-    const enumType = { ...sdkContext.sdkPackage.enums[0], isFixed: false } as typeof sdkContext.sdkPackage.enums[0];
-
-    const template = (
-      <SdkTestFile sdkContext={sdkContext} emitterOptions={{ experimentalExtensibleEnums: true }}>
-        <EnumDeclaration type={enumType} />
-      </SdkTestFile>
-    );
-
-    expect(template).toRenderTo(`
-      /**
-       * Type of Status
-       */
-      export type Status = string;
-
-      /**
-       * Known values of {@link Status} that the service accepts.
-       */
-      export enum KnownStatus {
+      expect(template).toRenderTo(`
         /**
-         * active
+         * Type of Status
          */
-        Active = "active",
+        export type Status = "active" | "inactive";
+      `);
+    });
+
+    /**
+     * Tests that extensible enums (isFixed=false) WITH the
+     * `experimentalExtensibleEnums` flag produce the KnownXxx pattern:
+     * a base type alias (`type Name = string`) plus a Known enum.
+     * This is critical for forward compatibility — when a service adds new
+     * enum values, existing client code continues to work because the type
+     * allows any string.
+     */
+    it("should render extensible enum with flag as base type + Known enum", async () => {
+      const template = (
+        <SdkTestFile sdkContext={sdkContext} emitterOptions={{ experimentalExtensibleEnums: true }}>
+          <EnumDeclaration type={enumType} />
+        </SdkTestFile>
+      );
+
+      expect(template).toRenderTo(`
         /**
-         * inactive
+         * Type of Status
          */
-        Inactive = "inactive",
-      }
-    `);
+        export type Status = string;
+
+        /**
+         * Known values of {@link Status} that the service accepts.
+         */
+        export enum KnownStatus {
+          /**
+           * active
+           */
+          Active = "active",
+          /**
+           * inactive
+           */
+          Inactive = "inactive",
+        }
+      `);
+    });
   });
 
   /**

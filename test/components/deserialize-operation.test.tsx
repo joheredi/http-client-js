@@ -22,8 +22,9 @@ import "@alloy-js/core/testing";
 import { code } from "@alloy-js/core";
 import { d } from "@alloy-js/core/testing";
 import { t } from "@typespec/compiler/testing";
-import { describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 import type {
+  SdkContext,
   SdkHttpOperation,
   SdkServiceMethod,
 } from "@azure-tools/typespec-client-generator-core";
@@ -151,42 +152,85 @@ describe("DeserializeOperation", () => {
   });
 
   /**
-   * Tests that a GET operation returning a primitive type (string) directly
-   * returns result.body without calling any deserializer. Primitive types
-   * don't need transformation — the HTTP runtime already parses the JSON
-   * response into the correct JavaScript type.
+   * Tests for GET operations returning a primitive string type.
+   * Validates both the correct deserialization behavior (returning result.body
+   * directly) and refkey resolution for this simple return type.
    */
-  it("should return result.body for primitive response types", async () => {
-    const runner = await TesterWithService.createInstance();
-    const { program } = await runner.compile(
-      t.code`
-        @get op ${t.op("getName")}(): string;
-      `,
-    );
+  describe("GET returning primitive string", () => {
+    let sdkContext: SdkContext<Record<string, any>, SdkHttpOperation>;
+    let method: SdkServiceMethod<SdkHttpOperation>;
 
-    const sdkContext = await createSdkContextForTest(program);
-    const method = getFirstMethod(sdkContext);
+    beforeAll(async () => {
+      const runner = await TesterWithService.createInstance();
+      const { program } = await runner.compile(
+        t.code`
+          @get op ${t.op("getName")}(): string;
+        `,
+      );
+      sdkContext = await createSdkContextForTest(program);
+      method = getFirstMethod(sdkContext);
+    });
 
-    const template = (
-      <SdkTestFile sdkContext={sdkContext} externals={[httpRuntimeLib]}>
-        <DeserializeOperation method={method} />
-      </SdkTestFile>
-    );
+    /**
+     * Tests that a GET operation returning a primitive type (string) directly
+     * returns result.body without calling any deserializer. Primitive types
+     * don't need transformation — the HTTP runtime already parses the JSON
+     * response into the correct JavaScript type.
+     */
+    it("should return result.body for primitive response types", async () => {
+      const template = (
+        <SdkTestFile sdkContext={sdkContext} externals={[httpRuntimeLib]}>
+          <DeserializeOperation method={method} />
+        </SdkTestFile>
+      );
 
-    expect(template).toRenderTo(d`
-      import { createRestError, type PathUncheckedResponse } from "@typespec/ts-http-runtime";
+      expect(template).toRenderTo(d`
+        import { createRestError, type PathUncheckedResponse } from "@typespec/ts-http-runtime";
 
-      export async function _getNameDeserialize(
-        result: PathUncheckedResponse,
-      ): Promise<string> {
-        const expectedStatuses = ["200"];
-        if (!expectedStatuses.includes(result.status)) {
-          throw createRestError(result);
+        export async function _getNameDeserialize(
+          result: PathUncheckedResponse,
+        ): Promise<string> {
+          const expectedStatuses = ["200"];
+          if (!expectedStatuses.includes(result.status)) {
+            throw createRestError(result);
+          }
+
+          return result.body;
+        }
+      `);
+    });
+
+    /**
+     * Tests that the deserialize function is referenceable via deserializeOperationRefkey.
+     * This is essential because the public operation function (task 3.4)
+     * needs to call the deserialize function from other components/files.
+     */
+    it("should be referenceable via deserializeOperationRefkey", async () => {
+      const template = (
+        <SdkTestFile sdkContext={sdkContext} externals={[httpRuntimeLib]}>
+          <DeserializeOperation method={method} />
+          {"\n\n"}
+          {code`type TestRef = typeof ${deserializeOperationRefkey(method)}`}
+        </SdkTestFile>
+      );
+
+      expect(template).toRenderTo(d`
+        import { createRestError, type PathUncheckedResponse } from "@typespec/ts-http-runtime";
+
+        export async function _getNameDeserialize(
+          result: PathUncheckedResponse,
+        ): Promise<string> {
+          const expectedStatuses = ["200"];
+          if (!expectedStatuses.includes(result.status)) {
+            throw createRestError(result);
+          }
+
+          return result.body;
         }
 
-        return result.body;
-      }
-    `);
+        type TestRef = typeof _getNameDeserialize
+      `);
+    });
   });
 
   /**
@@ -250,48 +294,6 @@ describe("DeserializeOperation", () => {
 
         return itemDeserializer(result.body);
       }
-    `);
-  });
-
-  /**
-   * Tests that the deserialize function is referenceable via deserializeOperationRefkey.
-   * This is essential because the public operation function (task 3.4)
-   * needs to call the deserialize function from other components/files.
-   */
-  it("should be referenceable via deserializeOperationRefkey", async () => {
-    const runner = await TesterWithService.createInstance();
-    const { program } = await runner.compile(
-      t.code`
-        @get op ${t.op("getItem")}(): string;
-      `,
-    );
-
-    const sdkContext = await createSdkContextForTest(program);
-    const method = getFirstMethod(sdkContext);
-
-    const template = (
-      <SdkTestFile sdkContext={sdkContext} externals={[httpRuntimeLib]}>
-        <DeserializeOperation method={method} />
-        {"\n\n"}
-        {code`type TestRef = typeof ${deserializeOperationRefkey(method)}`}
-      </SdkTestFile>
-    );
-
-    expect(template).toRenderTo(d`
-      import { createRestError, type PathUncheckedResponse } from "@typespec/ts-http-runtime";
-
-      export async function _getItemDeserialize(
-        result: PathUncheckedResponse,
-      ): Promise<string> {
-        const expectedStatuses = ["200"];
-        if (!expectedStatuses.includes(result.status)) {
-          throw createRestError(result);
-        }
-
-        return result.body;
-      }
-
-      type TestRef = typeof _getItemDeserialize
     `);
   });
 

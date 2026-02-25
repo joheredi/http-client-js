@@ -34,7 +34,7 @@ import type {
   SdkContext,
   SdkHttpOperation,
 } from "@azure-tools/typespec-client-generator-core";
-import { describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 import {
   ClassicalClientDeclaration,
   ClassicalClientFile,
@@ -148,103 +148,132 @@ function FullTestWrapper(props: {
 
 describe("ClassicalClient", () => {
   /**
-   * Tests the basic class structure: private _client field, public readonly
-   * pipeline property, and constructor that calls the factory function.
-   * This is the fundamental structural test — every generated client must
-   * have these elements for the SDK to function.
+   * Tests that share the same TypeSpec input: a simple service with a
+   * single @get operation returning a string.
    */
-  it("should render class with _client field, pipeline, and constructor", async () => {
-    const runner = await TesterWithService.createInstance();
-    const { program } = await runner.compile(
-      t.code`
-        @get op getItem(): string;
-      `,
-    );
+  describe("with simple getItem operation", () => {
+    let sdkContext: SdkContext<Record<string, any>, SdkHttpOperation>;
+    let client: ReturnType<typeof getFirstClient>;
 
-    const sdkContext = await createSdkContextForTest(program);
-    const client = getFirstClient(sdkContext);
-
-    const template = (
-      <ClassicalClientTestWrapper sdkContext={sdkContext}>
-        <SourceFile path="testServiceClient.ts">
-          <ClassicalClientDeclaration client={client} />
-        </SourceFile>
-      </ClassicalClientTestWrapper>
-    );
-
-    const result = renderToString(template);
-
-    // Check for the file containing the client class
-    expect(result).toContain("export class TestServiceClient");
-    expect(result).toContain("private _client");
-    expect(result).toContain("public readonly pipeline");
-    expect(result).toContain("this._client = createTestService");
-    expect(result).toContain("this.pipeline = this._client.pipeline");
-  });
-
-  /**
-   * Tests that the constructor calls the factory function via refkey,
-   * which enables Alloy to auto-generate cross-file imports. This is
-   * critical because the factory function lives in a separate file
-   * (api/testServiceClientContext.ts), and the import must be generated
-   * automatically by Alloy's refkey system.
-   */
-  it("should generate import for factory function via refkey", async () => {
-    const runner = await TesterWithService.createInstance();
-    const { program } = await runner.compile(
-      t.code`
-        @get op getItem(): string;
-      `,
-    );
-
-    const sdkContext = await createSdkContextForTest(program);
-    const client = getFirstClient(sdkContext);
-
-    const template = (
-      <ClassicalClientTestWrapper sdkContext={sdkContext}>
-        <SourceFile path="testServiceClient.ts">
-          <ClassicalClientDeclaration client={client} />
-        </SourceFile>
-      </ClassicalClientTestWrapper>
-    );
-
-    // Check that the output file imports createTestService from the context file
-    expect(template).toRenderTo({
-      "testServiceClient.ts": expect.stringContaining("createTestService"),
-      "api/testServiceClientContext.ts": expect.stringContaining("createTestService"),
+    beforeAll(async () => {
+      const runner = await TesterWithService.createInstance();
+      const { program } = await runner.compile(
+        t.code`
+          @get op getItem(): string;
+        `,
+      );
+      sdkContext = await createSdkContextForTest(program);
+      client = getFirstClient(sdkContext);
     });
-  });
 
-  /**
-   * Tests that an operation method is generated that delegates to the
-   * public API function. The class method should NOT be async — it
-   * simply returns the promise from the API function. The first argument
-   * to the API function is `this._client` (the context).
-   */
-  it("should render operation method delegating to public API function", async () => {
-    const runner = await TesterWithService.createInstance();
-    const { program } = await runner.compile(
-      t.code`
-        @get op getItem(): string;
-      `,
-    );
+    /**
+     * Tests the basic class structure: private _client field, public readonly
+     * pipeline property, and constructor that calls the factory function.
+     * This is the fundamental structural test — every generated client must
+     * have these elements for the SDK to function.
+     */
+    it("should render class with _client field, pipeline, and constructor", () => {
+      const template = (
+        <ClassicalClientTestWrapper sdkContext={sdkContext}>
+          <SourceFile path="testServiceClient.ts">
+            <ClassicalClientDeclaration client={client} />
+          </SourceFile>
+        </ClassicalClientTestWrapper>
+      );
 
-    const sdkContext = await createSdkContextForTest(program);
-    const client = getFirstClient(sdkContext);
+      const result = renderToString(template);
 
-    const template = (
-      <FullTestWrapper sdkContext={sdkContext}>
-        <SourceFile path="testServiceClient.ts">
+      // Check for the file containing the client class
+      expect(result).toContain("export class TestServiceClient");
+      expect(result).toContain("private _client");
+      expect(result).toContain("public readonly pipeline");
+      expect(result).toContain("this._client = createTestService");
+      expect(result).toContain("this.pipeline = this._client.pipeline");
+    });
+
+    /**
+     * Tests that the constructor calls the factory function via refkey,
+     * which enables Alloy to auto-generate cross-file imports. This is
+     * critical because the factory function lives in a separate file
+     * (api/testServiceClientContext.ts), and the import must be generated
+     * automatically by Alloy's refkey system.
+     */
+    it("should generate import for factory function via refkey", () => {
+      const template = (
+        <ClassicalClientTestWrapper sdkContext={sdkContext}>
+          <SourceFile path="testServiceClient.ts">
+            <ClassicalClientDeclaration client={client} />
+          </SourceFile>
+        </ClassicalClientTestWrapper>
+      );
+
+      // Check that the output file imports createTestService from the context file
+      expect(template).toRenderTo({
+        "testServiceClient.ts": expect.stringContaining("createTestService"),
+        "api/testServiceClientContext.ts": expect.stringContaining("createTestService"),
+      });
+    });
+
+    /**
+     * Tests that an operation method is generated that delegates to the
+     * public API function. The class method should NOT be async — it
+     * simply returns the promise from the API function. The first argument
+     * to the API function is `this._client` (the context).
+     */
+    it("should render operation method delegating to public API function", () => {
+      const template = (
+        <FullTestWrapper sdkContext={sdkContext}>
+          <SourceFile path="testServiceClient.ts">
+            <ClassicalClientDeclaration client={client} />
+          </SourceFile>
+        </FullTestWrapper>
+      );
+
+      const result = renderToString(template);
+
+      // Should have a method that delegates to the public API function
+      expect(result).toContain("getItem(");
+      expect(result).toContain("return getItem(this._client,");
+    });
+
+    /**
+     * Tests that the classical client class is referenceable via
+     * classicalClientRefkey. This enables other components (like index
+     * files or operation group files) to reference the client class and
+     * have Alloy auto-generate imports.
+     */
+    it("should be referenceable via classicalClientRefkey", () => {
+      const template = (
+        <SdkTestFile sdkContext={sdkContext} externals={[httpRuntimeLib]}>
           <ClassicalClientDeclaration client={client} />
-        </SourceFile>
-      </FullTestWrapper>
-    );
+          {code`const ref = new ${classicalClientRefkey(client)}();`}
+        </SdkTestFile>
+      );
 
-    const result = renderToString(template);
+      const result = renderToString(template);
+      // The refkey reference should resolve to the class name
+      expect(result).toContain("new TestServiceClient()");
+    });
 
-    // Should have a method that delegates to the public API function
-    expect(result).toContain("getItem(");
-    expect(result).toContain("return getItem(this._client,");
+    /**
+     * Tests the ClassicalClientFile orchestrator that wraps the class
+     * declaration in a source file. Verifies the output file path
+     * matches the expected naming convention.
+     */
+    it("should render ClassicalClientFile with correct filename", () => {
+      const template = (
+        <FullTestWrapper sdkContext={sdkContext}>
+          <ClassicalClientFile client={client} />
+        </FullTestWrapper>
+      );
+
+      // The file should be rendered with the camelCase client name
+      expect(template).toRenderTo({
+        "testServiceClient.ts": expect.stringContaining("export class TestServiceClient"),
+        "api/testServiceClientContext.ts": expect.stringContaining("TestServiceContext"),
+        "api/operations.ts": expect.stringContaining("getItem"),
+      });
+    });
   });
 
   /**
@@ -312,35 +341,6 @@ describe("ClassicalClient", () => {
   });
 
   /**
-   * Tests that the classical client class is referenceable via
-   * classicalClientRefkey. This enables other components (like index
-   * files or operation group files) to reference the client class and
-   * have Alloy auto-generate imports.
-   */
-  it("should be referenceable via classicalClientRefkey", async () => {
-    const runner = await TesterWithService.createInstance();
-    const { program } = await runner.compile(
-      t.code`
-        @get op getItem(): string;
-      `,
-    );
-
-    const sdkContext = await createSdkContextForTest(program);
-    const client = getFirstClient(sdkContext);
-
-    const template = (
-      <SdkTestFile sdkContext={sdkContext} externals={[httpRuntimeLib]}>
-        <ClassicalClientDeclaration client={client} />
-        {code`const ref = new ${classicalClientRefkey(client)}();`}
-      </SdkTestFile>
-    );
-
-    const result = renderToString(template);
-    // The refkey reference should resolve to the class name
-    expect(result).toContain("new TestServiceClient()");
-  });
-
-  /**
    * Tests that operations with path parameters include those parameters
    * as required arguments in the class method signature, and that they
    * are forwarded correctly to the public API function.
@@ -370,35 +370,5 @@ describe("ClassicalClient", () => {
     expect(result).toContain("getItem(");
     expect(result).toContain("id: string");
     expect(result).toContain("return getItem(this._client, id, options)");
-  });
-
-  /**
-   * Tests the ClassicalClientFile orchestrator that wraps the class
-   * declaration in a source file. Verifies the output file path
-   * matches the expected naming convention.
-   */
-  it("should render ClassicalClientFile with correct filename", async () => {
-    const runner = await TesterWithService.createInstance();
-    const { program } = await runner.compile(
-      t.code`
-        @get op getItem(): string;
-      `,
-    );
-
-    const sdkContext = await createSdkContextForTest(program);
-    const client = getFirstClient(sdkContext);
-
-    const template = (
-      <FullTestWrapper sdkContext={sdkContext}>
-        <ClassicalClientFile client={client} />
-      </FullTestWrapper>
-    );
-
-    // The file should be rendered with the camelCase client name
-    expect(template).toRenderTo({
-      "testServiceClient.ts": expect.stringContaining("export class TestServiceClient"),
-      "api/testServiceClientContext.ts": expect.stringContaining("TestServiceContext"),
-      "api/operations.ts": expect.stringContaining("getItem"),
-    });
   });
 });

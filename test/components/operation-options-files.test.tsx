@@ -28,7 +28,7 @@ import { Children } from "@alloy-js/core";
 import { createTSNamePolicy } from "@alloy-js/typescript";
 import { t } from "@typespec/compiler/testing";
 import { Output } from "@typespec/emitter-framework";
-import { describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 import type {
   SdkContext,
   SdkHttpOperation,
@@ -68,56 +68,73 @@ function OptionsFilesTestWrapper(props: {
 }
 
 describe("OperationOptionsFiles", () => {
-  /**
-   * Tests that a single GET operation produces an options.ts file with the
-   * corresponding OptionalParams interface. This is the baseline test for
-   * the component — if this fails, no options files are being generated.
-   */
-  it("should render options.ts with OptionalParams for a root-level operation", async () => {
-    const runner = await TesterWithService.createInstance();
-    const { program } = await runner.compile(
-      t.code`
-        @get op ${t.op("ping")}(): string;
-      `,
-    );
+  describe("single ping operation", () => {
+    let sdkContext: SdkContext<Record<string, any>, SdkHttpOperation>;
 
-    const sdkContext = await createSdkContextForTest(program);
-
-    const template = (
-      <OptionsFilesTestWrapper sdkContext={sdkContext}>
-        <OperationOptionsFiles />
-      </OptionsFilesTestWrapper>
-    );
-
-    // Should produce api/options.ts with the PingOptionalParams interface
-    expect(template).toRenderTo({
-      "api/options.ts": expect.stringContaining("PingOptionalParams"),
+    beforeAll(async () => {
+      const runner = await TesterWithService.createInstance();
+      const { program } = await runner.compile(
+        t.code`
+          @get op ${t.op("ping")}(): string;
+        `,
+      );
+      sdkContext = await createSdkContextForTest(program);
     });
-  });
 
-  /**
-   * Tests that the options interface extends OperationOptions from the
-   * runtime library. This is essential because all options interfaces must
-   * inherit base request configuration (e.g., abort signals, tracing).
-   */
-  it("should extend OperationOptions from the runtime library", async () => {
-    const runner = await TesterWithService.createInstance();
-    const { program } = await runner.compile(
-      t.code`
-        @get op ${t.op("ping")}(): string;
-      `,
-    );
+    /**
+     * Tests that a single GET operation produces an options.ts file with the
+     * corresponding OptionalParams interface. This is the baseline test for
+     * the component — if this fails, no options files are being generated.
+     */
+    it("should render options.ts with OptionalParams for a root-level operation", async () => {
+      const template = (
+        <OptionsFilesTestWrapper sdkContext={sdkContext}>
+          <OperationOptionsFiles />
+        </OptionsFilesTestWrapper>
+      );
 
-    const sdkContext = await createSdkContextForTest(program);
+      // Should produce api/options.ts with the PingOptionalParams interface
+      expect(template).toRenderTo({
+        "api/options.ts": expect.stringContaining("PingOptionalParams"),
+      });
+    });
 
-    const template = (
-      <OptionsFilesTestWrapper sdkContext={sdkContext}>
-        <OperationOptionsFiles />
-      </OptionsFilesTestWrapper>
-    );
+    /**
+     * Tests that the options interface extends OperationOptions from the
+     * runtime library. This is essential because all options interfaces must
+     * inherit base request configuration (e.g., abort signals, tracing).
+     */
+    it("should extend OperationOptions from the runtime library", async () => {
+      const template = (
+        <OptionsFilesTestWrapper sdkContext={sdkContext}>
+          <OperationOptionsFiles />
+        </OptionsFilesTestWrapper>
+      );
 
-    expect(template).toRenderTo({
-      "api/options.ts": expect.stringContaining("extends OperationOptions"),
+      expect(template).toRenderTo({
+        "api/options.ts": expect.stringContaining("extends OperationOptions"),
+      });
+    });
+
+    /**
+     * Tests that operations.ts correctly imports from options.ts via refkeys.
+     * When both OperationFiles and OperationOptionsFiles are rendered, the
+     * options interface should be declared in options.ts and imported by
+     * operations.ts. This validates the cross-file refkey resolution.
+     */
+    it("should enable operations.ts to import from options.ts via refkeys", async () => {
+      const template = (
+        <OptionsFilesTestWrapper sdkContext={sdkContext}>
+          <OperationOptionsFiles />
+          <OperationFiles />
+        </OptionsFilesTestWrapper>
+      );
+
+      // Both files should exist: options.ts with the declaration, operations.ts importing it
+      expect(template).toRenderTo({
+        "api/options.ts": expect.stringContaining("PingOptionalParams"),
+        "api/operations.ts": expect.stringContaining('./options.js'),
+      });
     });
   });
 
@@ -242,36 +259,6 @@ describe("OperationOptionsFiles", () => {
     });
     expect(template).toRenderTo({
       "api/options.ts": expect.stringContaining("query"),
-    });
-  });
-
-  /**
-   * Tests that operations.ts correctly imports from options.ts via refkeys.
-   * When both OperationFiles and OperationOptionsFiles are rendered, the
-   * options interface should be declared in options.ts and imported by
-   * operations.ts. This validates the cross-file refkey resolution.
-   */
-  it("should enable operations.ts to import from options.ts via refkeys", async () => {
-    const runner = await TesterWithService.createInstance();
-    const { program } = await runner.compile(
-      t.code`
-        @get op ${t.op("ping")}(): string;
-      `,
-    );
-
-    const sdkContext = await createSdkContextForTest(program);
-
-    const template = (
-      <OptionsFilesTestWrapper sdkContext={sdkContext}>
-        <OperationOptionsFiles />
-        <OperationFiles />
-      </OptionsFilesTestWrapper>
-    );
-
-    // Both files should exist: options.ts with the declaration, operations.ts importing it
-    expect(template).toRenderTo({
-      "api/options.ts": expect.stringContaining("PingOptionalParams"),
-      "api/operations.ts": expect.stringContaining('./options.js'),
     });
   });
 });

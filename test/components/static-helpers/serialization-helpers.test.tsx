@@ -29,7 +29,7 @@ import {
   SourceFile,
 } from "@alloy-js/typescript";
 import { Output } from "@typespec/emitter-framework";
-import { describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 import { t } from "@typespec/compiler/testing";
 import { SerializationHelpersFile } from "../../../src/components/static-helpers/serialization-helpers.js";
 import { serializationHelperRefkey } from "../../../src/utils/refkeys.js";
@@ -37,162 +37,150 @@ import { TesterWithService, createSdkContextForTest } from "../../test-host.js";
 import { SdkTestFile } from "../../utils.js";
 
 describe("SerializationHelpersFile", () => {
-  /**
-   * Tests that the serializeRecord function is rendered with the correct
-   * export signature. This function is critical because it's called by
-   * json-serializer.tsx for dict-typed properties.
-   */
-  it("should render serializeRecord function", async () => {
-    const runner = await TesterWithService.createInstance();
-    const { program } = await runner.compile(t.code`op test(): void;`);
+  describe("with simple void operation", () => {
+    let program: any;
 
-    const template = (
-      <Output program={program} namePolicy={createTSNamePolicy()}>
-        <SerializationHelpersFile />
-      </Output>
-    );
+    beforeAll(async () => {
+      const runner = await TesterWithService.createInstance();
+      ({ program } = await runner.compile(t.code`op test(): void;`));
+    });
 
-    const result = renderToString(template);
-    expect(result).toContain("export function serializeRecord");
-    expect(result).toContain("item: any");
-    expect(result).toContain("Record<string, any>");
-  });
+    /**
+     * Tests that the serializeRecord function is rendered with the correct
+     * export signature. This function is critical because it's called by
+     * json-serializer.tsx for dict-typed properties.
+     */
+    it("should render serializeRecord function", async () => {
+      const template = (
+        <Output program={program} namePolicy={createTSNamePolicy()}>
+          <SerializationHelpersFile />
+        </Output>
+      );
 
-  /**
-   * Tests that the deserializeRecord function is rendered with the correct
-   * export signature. This function is the inverse of serializeRecord and
-   * is called by json-deserializer.tsx for dict-typed properties.
-   */
-  it("should render deserializeRecord function", async () => {
-    const runner = await TesterWithService.createInstance();
-    const { program } = await runner.compile(t.code`op test(): void;`);
+      const result = renderToString(template);
+      expect(result).toContain("export function serializeRecord");
+      expect(result).toContain("item: any");
+      expect(result).toContain("Record<string, any>");
+    });
 
-    const template = (
-      <Output program={program} namePolicy={createTSNamePolicy()}>
-        <SerializationHelpersFile />
-      </Output>
-    );
+    /**
+     * Tests that the deserializeRecord function is rendered with the correct
+     * export signature. This function is the inverse of serializeRecord and
+     * is called by json-deserializer.tsx for dict-typed properties.
+     */
+    it("should render deserializeRecord function", async () => {
+      const template = (
+        <Output program={program} namePolicy={createTSNamePolicy()}>
+          <SerializationHelpersFile />
+        </Output>
+      );
 
-    const result = renderToString(template);
-    expect(result).toContain("export function deserializeRecord");
-    expect(result).toContain("deserializer");
-  });
+      const result = renderToString(template);
+      expect(result).toContain("export function deserializeRecord");
+      expect(result).toContain("deserializer");
+    });
 
-  /**
-   * Tests that all 6 collection builder functions are rendered.
-   * These are used by send functions to format array values into
-   * delimited strings for query parameters (CSV, pipe, SSV, TSV,
-   * newline, and multi formats).
-   */
-  it("should render all collection builder functions", async () => {
-    const runner = await TesterWithService.createInstance();
-    const { program } = await runner.compile(t.code`op test(): void;`);
+    /**
+     * Tests that all 6 collection builder functions are rendered.
+     * These are used by send functions to format array values into
+     * delimited strings for query parameters (CSV, pipe, SSV, TSV,
+     * newline, and multi formats).
+     */
+    it("should render all collection builder functions", async () => {
+      const template = (
+        <Output program={program} namePolicy={createTSNamePolicy()}>
+          <SerializationHelpersFile />
+        </Output>
+      );
 
-    const template = (
-      <Output program={program} namePolicy={createTSNamePolicy()}>
-        <SerializationHelpersFile />
-      </Output>
-    );
+      const result = renderToString(template);
+      expect(result).toContain("export function buildCsvCollection");
+      expect(result).toContain("export function buildMultiCollection");
+      expect(result).toContain("export function buildPipeCollection");
+      expect(result).toContain("export function buildSsvCollection");
+      expect(result).toContain("export function buildTsvCollection");
+      expect(result).toContain("export function buildNewlineCollection");
+    });
 
-    const result = renderToString(template);
-    expect(result).toContain("export function buildCsvCollection");
-    expect(result).toContain("export function buildMultiCollection");
-    expect(result).toContain("export function buildPipeCollection");
-    expect(result).toContain("export function buildSsvCollection");
-    expect(result).toContain("export function buildTsvCollection");
-    expect(result).toContain("export function buildNewlineCollection");
-  });
+    /**
+     * Tests that all 4 collection parser functions are rendered.
+     * These are used by deserializers to parse delimited response
+     * values back into arrays.
+     */
+    it("should render all collection parser functions", async () => {
+      const template = (
+        <Output program={program} namePolicy={createTSNamePolicy()}>
+          <SerializationHelpersFile />
+        </Output>
+      );
 
-  /**
-   * Tests that all 4 collection parser functions are rendered.
-   * These are used by deserializers to parse delimited response
-   * values back into arrays.
-   */
-  it("should render all collection parser functions", async () => {
-    const runner = await TesterWithService.createInstance();
-    const { program } = await runner.compile(t.code`op test(): void;`);
+      const result = renderToString(template);
+      expect(result).toContain("export function parseCsvCollection");
+      expect(result).toContain("export function parsePipeCollection");
+      expect(result).toContain("export function parseSsvCollection");
+      expect(result).toContain("export function parseNewlineCollection");
+    });
 
-    const template = (
-      <Output program={program} namePolicy={createTSNamePolicy()}>
-        <SerializationHelpersFile />
-      </Output>
-    );
+    /**
+     * Tests that the areAllPropsUndefined function is rendered.
+     * This utility checks whether all specified properties on an object
+     * are undefined, used to skip optional object groups in serializers.
+     */
+    it("should render areAllPropsUndefined function", async () => {
+      const template = (
+        <Output program={program} namePolicy={createTSNamePolicy()}>
+          <SerializationHelpersFile />
+        </Output>
+      );
 
-    const result = renderToString(template);
-    expect(result).toContain("export function parseCsvCollection");
-    expect(result).toContain("export function parsePipeCollection");
-    expect(result).toContain("export function parseSsvCollection");
-    expect(result).toContain("export function parseNewlineCollection");
-  });
+      const result = renderToString(template);
+      expect(result).toContain("export function areAllPropsUndefined");
+      expect(result).toContain("Record<string, any>");
+      expect(result).toContain("properties: string[]");
+    });
 
-  /**
-   * Tests that the areAllPropsUndefined function is rendered.
-   * This utility checks whether all specified properties on an object
-   * are undefined, used to skip optional object groups in serializers.
-   */
-  it("should render areAllPropsUndefined function", async () => {
-    const runner = await TesterWithService.createInstance();
-    const { program } = await runner.compile(t.code`op test(): void;`);
+    /**
+     * Tests that serializeRecord has a working refkey that enables Alloy's
+     * auto-import resolution. When a component in a different file references
+     * serializationHelperRefkey("serializeRecord"), Alloy should generate
+     * an import from the helpers file.
+     */
+    it("should enable cross-file import via serializeRecord refkey", async () => {
+      const template = (
+        <Output program={program} namePolicy={createTSNamePolicy()}>
+          <SourceFile path="consumer.ts">
+            <FunctionDeclaration name="useHelper" export>
+              {code`return ${serializationHelperRefkey("serializeRecord")}({});`}
+            </FunctionDeclaration>
+          </SourceFile>
+          <SerializationHelpersFile />
+        </Output>
+      );
 
-    const template = (
-      <Output program={program} namePolicy={createTSNamePolicy()}>
-        <SerializationHelpersFile />
-      </Output>
-    );
+      const result = renderToString(template);
+      // The consumer file should have an import from the helpers file
+      expect(result).toContain('import { serializeRecord } from');
+    });
 
-    const result = renderToString(template);
-    expect(result).toContain("export function areAllPropsUndefined");
-    expect(result).toContain("Record<string, any>");
-    expect(result).toContain("properties: string[]");
-  });
+    /**
+     * Tests that deserializeRecord has a working refkey that enables Alloy's
+     * auto-import resolution from a different file.
+     */
+    it("should enable cross-file import via deserializeRecord refkey", async () => {
+      const template = (
+        <Output program={program} namePolicy={createTSNamePolicy()}>
+          <SourceFile path="consumer.ts">
+            <FunctionDeclaration name="useHelper" export>
+              {code`return ${serializationHelperRefkey("deserializeRecord")}({});`}
+            </FunctionDeclaration>
+          </SourceFile>
+          <SerializationHelpersFile />
+        </Output>
+      );
 
-  /**
-   * Tests that serializeRecord has a working refkey that enables Alloy's
-   * auto-import resolution. When a component in a different file references
-   * serializationHelperRefkey("serializeRecord"), Alloy should generate
-   * an import from the helpers file.
-   */
-  it("should enable cross-file import via serializeRecord refkey", async () => {
-    const runner = await TesterWithService.createInstance();
-    const { program } = await runner.compile(t.code`op test(): void;`);
-
-    const template = (
-      <Output program={program} namePolicy={createTSNamePolicy()}>
-        <SourceFile path="consumer.ts">
-          <FunctionDeclaration name="useHelper" export>
-            {code`return ${serializationHelperRefkey("serializeRecord")}({});`}
-          </FunctionDeclaration>
-        </SourceFile>
-        <SerializationHelpersFile />
-      </Output>
-    );
-
-    const result = renderToString(template);
-    // The consumer file should have an import from the helpers file
-    expect(result).toContain('import { serializeRecord } from');
-  });
-
-  /**
-   * Tests that deserializeRecord has a working refkey that enables Alloy's
-   * auto-import resolution from a different file.
-   */
-  it("should enable cross-file import via deserializeRecord refkey", async () => {
-    const runner = await TesterWithService.createInstance();
-    const { program } = await runner.compile(t.code`op test(): void;`);
-
-    const template = (
-      <Output program={program} namePolicy={createTSNamePolicy()}>
-        <SourceFile path="consumer.ts">
-          <FunctionDeclaration name="useHelper" export>
-            {code`return ${serializationHelperRefkey("deserializeRecord")}({});`}
-          </FunctionDeclaration>
-        </SourceFile>
-        <SerializationHelpersFile />
-      </Output>
-    );
-
-    const result = renderToString(template);
-    expect(result).toContain('import { deserializeRecord } from');
+      const result = renderToString(template);
+      expect(result).toContain('import { deserializeRecord } from');
+    });
   });
 
   /**

@@ -27,23 +27,28 @@ import {
   SourceFile,
 } from "@alloy-js/typescript";
 import { Output } from "@typespec/emitter-framework";
-import { describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 import { t } from "@typespec/compiler/testing";
 import { PagingHelpersFile } from "../../../src/components/static-helpers/paging-helpers.js";
 import { pagingHelperRefkey } from "../../../src/utils/refkeys.js";
 import { TesterWithService } from "../../test-host.js";
 import { httpRuntimeLib } from "../../../src/utils/external-packages.js";
+import type { Program } from "@typespec/compiler";
 
 describe("PagingHelpersFile", () => {
+  let program: Program;
+
+  beforeAll(async () => {
+    const runner = await TesterWithService.createInstance();
+    ({ program } = await runner.compile(t.code`op test(): void;`));
+  });
+
   /**
    * Tests that the PageSettings interface is rendered with the
    * continuationToken member. This interface is used as a parameter
    * in the byPage() method for resuming pagination.
    */
   it("should render PageSettings interface", async () => {
-    const runner = await TesterWithService.createInstance();
-    const { program } = await runner.compile(t.code`op test(): void;`);
-
     const template = (
       <Output program={program} namePolicy={createTSNamePolicy()} externals={[httpRuntimeLib]}>
         <PagingHelpersFile />
@@ -61,9 +66,6 @@ describe("PagingHelpersFile", () => {
    * next(), [Symbol.asyncIterator](), and byPage().
    */
   it("should render PagedAsyncIterableIterator interface", async () => {
-    const runner = await TesterWithService.createInstance();
-    const { program } = await runner.compile(t.code`op test(): void;`);
-
     const template = (
       <Output program={program} namePolicy={createTSNamePolicy()} externals={[httpRuntimeLib]}>
         <PagingHelpersFile />
@@ -82,9 +84,6 @@ describe("PagingHelpersFile", () => {
    * find the items array and continuation token in the response body.
    */
   it("should render BuildPagedAsyncIteratorOptions interface", async () => {
-    const runner = await TesterWithService.createInstance();
-    const { program } = await runner.compile(t.code`op test(): void;`);
-
     const template = (
       <Output program={program} namePolicy={createTSNamePolicy()} externals={[httpRuntimeLib]}>
         <PagingHelpersFile />
@@ -103,9 +102,6 @@ describe("PagingHelpersFile", () => {
    * factory function called by paging operation wrappers.
    */
   it("should render buildPagedAsyncIterator function", async () => {
-    const runner = await TesterWithService.createInstance();
-    const { program } = await runner.compile(t.code`op test(): void;`);
-
     const template = (
       <Output program={program} namePolicy={createTSNamePolicy()} externals={[httpRuntimeLib]}>
         <PagingHelpersFile />
@@ -124,9 +120,6 @@ describe("PagingHelpersFile", () => {
    * Alloy should generate an import from the helpers file.
    */
   it("should enable cross-file import via PagedAsyncIterableIterator refkey", async () => {
-    const runner = await TesterWithService.createInstance();
-    const { program } = await runner.compile(t.code`op test(): void;`);
-
     const template = (
       <Output program={program} namePolicy={createTSNamePolicy()} externals={[httpRuntimeLib]}>
         <SourceFile path="operations.ts">
@@ -154,9 +147,6 @@ describe("PagingHelpersFile", () => {
    * also importing the type.
    */
   it("should enable cross-file import via buildPagedAsyncIterator refkey", async () => {
-    const runner = await TesterWithService.createInstance();
-    const { program } = await runner.compile(t.code`op test(): void;`);
-
     const template = (
       <Output program={program} namePolicy={createTSNamePolicy()} externals={[httpRuntimeLib]}>
         <SourceFile path="consumer.ts">

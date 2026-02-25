@@ -27,7 +27,7 @@ import { t } from "@typespec/compiler/testing";
 import { SourceFile } from "@alloy-js/typescript";
 import { createTSNamePolicy } from "@alloy-js/typescript";
 import { Output } from "@typespec/emitter-framework";
-import { describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 import { MultipartSerializer } from "../../../src/components/serialization/multipart-serializer.js";
 import { MultipartHelpersFile } from "../../../src/components/static-helpers/multipart-helpers.js";
 import { ModelInterface } from "../../../src/components/model-interface.js";
@@ -97,27 +97,43 @@ describe("MultipartSerializer", () => {
     expect(result).toContain('body: item["description"]');
   });
 
-  /**
-   * Tests that file parts include the default content type from TCGC
-   * metadata when it's not a wildcard. The content type helps the HTTP
-   * runtime set the correct Content-Type header for each part.
-   */
-  it("should pass content type to createFilePartDescriptor for file parts", async () => {
-    const result = await renderMultipartSerializer(
-      t.code`
-        model UploadRequest {
-          file: HttpPart<bytes>;
-        }
+  describe("single file part model", () => {
+    let result: string;
 
-        @post op upload(
-          @header contentType: "multipart/form-data",
-          @multipartBody body: UploadRequest,
-        ): void;
-      `,
-    );
+    beforeAll(async () => {
+      result = await renderMultipartSerializer(
+        t.code`
+          model UploadRequest {
+            file: HttpPart<bytes>;
+          }
 
-    // File part should include the default content type
-    expect(result).toContain('"application/octet-stream"');
+          @post op upload(
+            @header contentType: "multipart/form-data",
+            @multipartBody body: UploadRequest,
+          ): void;
+        `,
+      );
+    });
+
+    /**
+     * Tests that file parts include the default content type from TCGC
+     * metadata when it's not a wildcard. The content type helps the HTTP
+     * runtime set the correct Content-Type header for each part.
+     */
+    it("should pass content type to createFilePartDescriptor for file parts", () => {
+      // File part should include the default content type
+      expect(result).toContain('"application/octet-stream"');
+    });
+
+    /**
+     * Tests that the multipart serializer function returns 'any' as return type,
+     * matching the legacy emitter convention for serializer functions.
+     */
+    it("should have correct function signature", () => {
+      // Check function signature
+      expect(result).toContain("export function uploadRequestSerializer(");
+      expect(result).toContain("): any");
+    });
   });
 
   /**
@@ -237,29 +253,6 @@ describe("MultipartSerializer", () => {
     expect(result).toContain('{ name: "title", body: item["title"] }');
     expect(result).toContain('item["description"] === undefined ? []');
     expect(result).toContain('name: "description"');
-  });
-
-  /**
-   * Tests that the multipart serializer function returns 'any' as return type,
-   * matching the legacy emitter convention for serializer functions.
-   */
-  it("should have correct function signature", async () => {
-    const result = await renderMultipartSerializer(
-      t.code`
-        model UploadRequest {
-          file: HttpPart<bytes>;
-        }
-
-        @post op upload(
-          @header contentType: "multipart/form-data",
-          @multipartBody body: UploadRequest,
-        ): void;
-      `,
-    );
-
-    // Check function signature
-    expect(result).toContain("export function uploadRequestSerializer(");
-    expect(result).toContain("): any");
   });
 
   /**

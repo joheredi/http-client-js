@@ -34,7 +34,7 @@ import type {
   SdkContext,
   SdkHttpOperation,
 } from "@azure-tools/typespec-client-generator-core";
-import { describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 import {
   ClassicalOperationGroupFiles,
   OperationGroupInterface,
@@ -201,262 +201,288 @@ const multiGroupSpec = t.code`
 `;
 
 describe("ClassicalOperationGroups", () => {
-  /**
-   * Tests that the OperationGroupInterface renders method signatures
-   * for all operations in a child client. Each method should have the
-   * form: `name: (params..., options?) => Promise<ReturnType>`.
-   *
-   * This is critical because the interface defines the contract for
-   * operation group objects returned by the factory function.
-   */
-  it("should render interface with method signatures", async () => {
-    const runner = await TesterWithService.createInstance();
-    const { program } = await runner.compile(singleGroupSpec);
+  describe("single group (Widgets)", () => {
+    let sdkContext: SdkContext<Record<string, any>, SdkHttpOperation>;
+    let root: SdkClientType<SdkHttpOperation>;
+    let child: SdkClientType<SdkHttpOperation>;
+    let group: ReturnType<typeof buildGroupInfo>;
 
-    const sdkContext = await createSdkContextForTest(program);
-    const root = getFirstClient(sdkContext);
-    const child = getFirstChildClient(sdkContext);
-    const group = buildGroupInfo(child, root);
+    beforeAll(async () => {
+      const runner = await TesterWithService.createInstance();
+      const { program } = await runner.compile(singleGroupSpec);
+      sdkContext = await createSdkContextForTest(program);
+      root = getFirstClient(sdkContext);
+      child = getFirstChildClient(sdkContext);
+      group = buildGroupInfo(child, root);
+    });
 
-    const template = (
-      <OperationGroupTestWrapper sdkContext={sdkContext}>
-        <SourceFile path="classic/widgets/index.ts">
-          <OperationGroupInterface group={group} />
-        </SourceFile>
-      </OperationGroupTestWrapper>
-    );
+    /**
+     * Tests that the OperationGroupInterface renders method signatures
+     * for all operations in a child client. Each method should have the
+     * form: `name: (params..., options?) => Promise<ReturnType>`.
+     *
+     * This is critical because the interface defines the contract for
+     * operation group objects returned by the factory function.
+     */
+    it("should render interface with method signatures", async () => {
+      const template = (
+        <OperationGroupTestWrapper sdkContext={sdkContext}>
+          <SourceFile path="classic/widgets/index.ts">
+            <OperationGroupInterface group={group} />
+          </SourceFile>
+        </OperationGroupTestWrapper>
+      );
 
-    const result = renderToString(template);
+      const result = renderToString(template);
 
-    // Interface should be named WidgetsOperations and exported
-    expect(result).toContain("export interface WidgetsOperations");
-    // Should have method signatures
-    expect(result).toContain("getWidget:");
-    expect(result).toContain("listWidgets:");
-    // Method params should include required params
-    expect(result).toContain("id: string");
-    // Should have Promise return type
-    expect(result).toContain("Promise<string>");
-  });
+      // Interface should be named WidgetsOperations and exported
+      expect(result).toContain("export interface WidgetsOperations");
+      // Should have method signatures
+      expect(result).toContain("getWidget:");
+      expect(result).toContain("listWidgets:");
+      // Method params should include required params
+      expect(result).toContain("id: string");
+      // Should have Promise return type
+      expect(result).toContain("Promise<string>");
+    });
 
-  /**
-   * Tests that the OperationGroupFactory renders a function that returns
-   * an object with method delegates. Each method should delegate to the
-   * corresponding public API function with `context` bound.
-   *
-   * This is critical because the factory creates the operation group
-   * object that users interact with via the classical client.
-   */
-  it("should render factory function with method delegates", async () => {
-    const runner = await TesterWithService.createInstance();
-    const { program } = await runner.compile(singleGroupSpec);
+    /**
+     * Tests that the OperationGroupFactory renders a function that returns
+     * an object with method delegates. Each method should delegate to the
+     * corresponding public API function with `context` bound.
+     *
+     * This is critical because the factory creates the operation group
+     * object that users interact with via the classical client.
+     */
+    it("should render factory function with method delegates", async () => {
+      const template = (
+        <OperationGroupTestWrapper sdkContext={sdkContext}>
+          <SourceFile path="classic/widgets/index.ts">
+            <OperationGroupFactory group={group} />
+          </SourceFile>
+        </OperationGroupTestWrapper>
+      );
 
-    const sdkContext = await createSdkContextForTest(program);
-    const root = getFirstClient(sdkContext);
-    const child = getFirstChildClient(sdkContext);
-    const group = buildGroupInfo(child, root);
+      const result = renderToString(template);
 
-    const template = (
-      <OperationGroupTestWrapper sdkContext={sdkContext}>
-        <SourceFile path="classic/widgets/index.ts">
-          <OperationGroupFactory group={group} />
-        </SourceFile>
-      </OperationGroupTestWrapper>
-    );
+      // Factory function should be named _getWidgetsOperations
+      expect(result).toContain("_getWidgetsOperations");
+      // Should take context as parameter
+      expect(result).toContain("context:");
+      // Should return the interface type
+      expect(result).toContain("WidgetsOperations");
+      // Should delegate to public API functions
+      expect(result).toContain("getWidget:");
+      expect(result).toContain("listWidgets:");
+      // Should pass context to delegates
+      expect(result).toContain("context,");
+    });
 
-    const result = renderToString(template);
+    /**
+     * Tests that the classical client class includes readonly properties
+     * for each operation group, initialized in the constructor via factory
+     * function calls.
+     *
+     * This is the primary user-facing integration: `client.widgets.getWidget()`.
+     */
+    it("should add operation group properties to classical client", async () => {
+      const template = (
+        <OperationGroupTestWrapper sdkContext={sdkContext}>
+          {/* Render operation group declarations so refkeys resolve */}
+          <SourceFile path="classic/widgets/index.ts">
+            <OperationGroupInterface group={buildGroupInfo(child, root)} />
+            <OperationGroupFactory group={buildGroupInfo(child, root)} />
+          </SourceFile>
+          <SourceFile path="testServiceClient.ts">
+            <ClassicalClientDeclaration client={root} />
+          </SourceFile>
+        </OperationGroupTestWrapper>
+      );
 
-    // Factory function should be named _getWidgetsOperations
-    expect(result).toContain("_getWidgetsOperations");
-    // Should take context as parameter
-    expect(result).toContain("context:");
-    // Should return the interface type
-    expect(result).toContain("WidgetsOperations");
-    // Should delegate to public API functions
-    expect(result).toContain("getWidget:");
-    expect(result).toContain("listWidgets:");
-    // Should pass context to delegates
-    expect(result).toContain("context,");
-  });
+      const result = renderToString(template);
 
-  /**
-   * Tests that nested operation groups produce interface members referencing
-   * child interfaces. For example, WidgetsOperations should have a `parts`
-   * property of type PartsOperations.
-   *
-   * This is critical for hierarchical services where users access nested
-   * groups via `client.widgets.parts.getPart(...)`.
-   */
-  it("should render nested group reference in interface", async () => {
-    const runner = await TesterWithService.createInstance();
-    const { program } = await runner.compile(nestedGroupSpec);
+      // Client class should have readonly widgets property
+      expect(result).toContain("public readonly widgets");
+      expect(result).toContain("WidgetsOperations");
+      // Constructor should initialize via factory
+      expect(result).toContain("this.widgets = _getWidgetsOperations(this._client)");
+    });
 
-    const sdkContext = await createSdkContextForTest(program);
-    const root = getFirstClient(sdkContext);
-    const widgetsChild = getFirstChildClient(sdkContext);
-    const group = buildGroupInfo(widgetsChild, root);
+    /**
+     * Tests the ClassicalOperationGroupFiles orchestrator generates correct
+     * file paths for each operation group. A single group `Widgets` should
+     * produce `classic/widgets/index.ts`.
+     *
+     * This verifies the file structure matches the legacy emitter convention.
+     */
+    it("should generate files under classic/ directory", async () => {
+      const template = (
+        <OperationGroupTestWrapper sdkContext={sdkContext}>
+          <ClassicalOperationGroupFiles client={root} />
+        </OperationGroupTestWrapper>
+      );
 
-    const template = (
-      <OperationGroupTestWrapper sdkContext={sdkContext}>
-        {/* Render child group declarations so refkeys resolve */}
-        {widgetsChild.children?.map((grandchild) => {
-          const childGroup = buildGroupInfo(grandchild, root, ["widgets", "parts"]);
-          return (
-            <SourceFile path="classic/widgets/parts/index.ts">
-              <OperationGroupInterface group={childGroup} />
-              <OperationGroupFactory group={childGroup} />
-            </SourceFile>
-          );
-        })}
-        <SourceFile path="classic/widgets/index.ts">
-          <OperationGroupInterface group={group} />
-        </SourceFile>
-      </OperationGroupTestWrapper>
-    );
+      // The output should contain a file at classic/widgets/index.ts
+      expect(template).toRenderTo({
+        "classic/widgets/index.ts": expect.stringContaining("WidgetsOperations"),
+        "api/testServiceContext.ts": expect.stringContaining("TestService"),
+        "api/operations.ts": expect.stringContaining("getWidget"),
+      });
+    });
 
-    const result = renderToString(template);
+    /**
+     * Tests that operations with required parameters (e.g., path params)
+     * include those parameters in the interface method signatures.
+     *
+     * This ensures users can call grouped operations with the correct
+     * argument signatures.
+     */
+    it("should include required parameters in method signatures", async () => {
+      const template = (
+        <OperationGroupTestWrapper sdkContext={sdkContext}>
+          <SourceFile path="classic/widgets/index.ts">
+            <OperationGroupInterface group={group} />
+          </SourceFile>
+        </OperationGroupTestWrapper>
+      );
 
-    // WidgetsOperations should reference PartsOperations
-    expect(result).toContain("WidgetsOperations");
-    expect(result).toContain("parts:");
-    expect(result).toContain("PartsOperations");
-  });
+      const result = renderToString(template);
 
-  /**
-   * Tests that nested factories compose child factory calls. The parent
-   * factory should call `_getPartsOperations(context)` for nested groups.
-   *
-   * This ensures the factory function correctly wires nested groups
-   * when constructing the operation group object.
-   */
-  it("should compose child factory in nested factory", async () => {
-    const runner = await TesterWithService.createInstance();
-    const { program } = await runner.compile(nestedGroupSpec);
+      // getWidget should have id parameter
+      expect(result).toContain("id: string");
+      // listWidgets should only have options (no required params)
+      expect(result).toContain("listWidgets:");
+    });
 
-    const sdkContext = await createSdkContextForTest(program);
-    const root = getFirstClient(sdkContext);
-    const widgetsChild = getFirstChildClient(sdkContext);
-    const group = buildGroupInfo(widgetsChild, root);
+    /**
+     * Tests that the operation group interface is referenceable via
+     * operationGroupInterfaceRefkey. This enables the classical client
+     * and other components to reference the interface across files.
+     */
+    it("should be referenceable via operationGroupInterfaceRefkey", async () => {
+      const template = (
+        <OperationGroupTestWrapper sdkContext={sdkContext}>
+          <SourceFile path="classic/widgets/index.ts">
+            <OperationGroupInterface group={group} />
+          </SourceFile>
+          <SourceFile path="ref.ts">
+            {code`const ref: ${operationGroupInterfaceRefkey(child)} = {} as any;`}
+          </SourceFile>
+        </OperationGroupTestWrapper>
+      );
 
-    const template = (
-      <OperationGroupTestWrapper sdkContext={sdkContext}>
-        {/* Render child group declarations so refkeys resolve */}
-        {widgetsChild.children?.map((grandchild) => {
-          const childGroup = buildGroupInfo(grandchild, root, ["widgets", "parts"]);
-          return (
-            <SourceFile path="classic/widgets/parts/index.ts">
-              <OperationGroupInterface group={childGroup} />
-              <OperationGroupFactory group={childGroup} />
-            </SourceFile>
-          );
-        })}
-        <SourceFile path="classic/widgets/index.ts">
-          <OperationGroupFactory group={group} />
-        </SourceFile>
-      </OperationGroupTestWrapper>
-    );
+      const result = renderToString(template);
 
-    const result = renderToString(template);
+      // The refkey reference should resolve to the interface name
+      expect(result).toContain("WidgetsOperations");
+    });
 
-    // Should compose child factory
-    expect(result).toContain("_getPartsOperations(context)");
-  });
+    /**
+     * Tests that the factory function is referenceable via
+     * operationGroupFactoryRefkey. This enables the classical client
+     * constructor to call the factory function across files.
+     */
+    it("should be referenceable via operationGroupFactoryRefkey", async () => {
+      const template = (
+        <OperationGroupTestWrapper sdkContext={sdkContext}>
+          <SourceFile path="classic/widgets/index.ts">
+            <OperationGroupFactory group={group} />
+            <OperationGroupInterface group={group} />
+          </SourceFile>
+          <SourceFile path="ref.ts">
+            {code`const ref = ${operationGroupFactoryRefkey(child)}({} as any);`}
+          </SourceFile>
+        </OperationGroupTestWrapper>
+      );
 
-  /**
-   * Tests that the classical client class includes readonly properties
-   * for each operation group, initialized in the constructor via factory
-   * function calls.
-   *
-   * This is the primary user-facing integration: `client.widgets.getWidget()`.
-   */
-  it("should add operation group properties to classical client", async () => {
-    const runner = await TesterWithService.createInstance();
-    const { program } = await runner.compile(singleGroupSpec);
+      const result = renderToString(template);
 
-    const sdkContext = await createSdkContextForTest(program);
-    const root = getFirstClient(sdkContext);
-    const child = getFirstChildClient(sdkContext);
-
-    const template = (
-      <OperationGroupTestWrapper sdkContext={sdkContext}>
-        {/* Render operation group declarations so refkeys resolve */}
-        <SourceFile path="classic/widgets/index.ts">
-          <OperationGroupInterface group={buildGroupInfo(child, root)} />
-          <OperationGroupFactory group={buildGroupInfo(child, root)} />
-        </SourceFile>
-        <SourceFile path="testServiceClient.ts">
-          <ClassicalClientDeclaration client={root} />
-        </SourceFile>
-      </OperationGroupTestWrapper>
-    );
-
-    const result = renderToString(template);
-
-    // Client class should have readonly widgets property
-    expect(result).toContain("public readonly widgets");
-    expect(result).toContain("WidgetsOperations");
-    // Constructor should initialize via factory
-    expect(result).toContain("this.widgets = _getWidgetsOperations(this._client)");
-  });
-
-  /**
-   * Tests the ClassicalOperationGroupFiles orchestrator generates correct
-   * file paths for each operation group. A single group `Widgets` should
-   * produce `classic/widgets/index.ts`.
-   *
-   * This verifies the file structure matches the legacy emitter convention.
-   */
-  it("should generate files under classic/ directory", async () => {
-    const runner = await TesterWithService.createInstance();
-    const { program } = await runner.compile(singleGroupSpec);
-
-    const sdkContext = await createSdkContextForTest(program);
-    const root = getFirstClient(sdkContext);
-
-    const template = (
-      <OperationGroupTestWrapper sdkContext={sdkContext}>
-        <ClassicalOperationGroupFiles client={root} />
-      </OperationGroupTestWrapper>
-    );
-
-    // The output should contain a file at classic/widgets/index.ts
-    expect(template).toRenderTo({
-      "classic/widgets/index.ts": expect.stringContaining("WidgetsOperations"),
-      "api/testServiceContext.ts": expect.stringContaining("TestService"),
-      "api/operations.ts": expect.stringContaining("getWidget"),
+      // The refkey reference should resolve to the factory function name
+      expect(result).toContain("_getWidgetsOperations");
     });
   });
 
-  /**
-   * Tests that operations with required parameters (e.g., path params)
-   * include those parameters in the interface method signatures.
-   *
-   * This ensures users can call grouped operations with the correct
-   * argument signatures.
-   */
-  it("should include required parameters in method signatures", async () => {
-    const runner = await TesterWithService.createInstance();
-    const { program } = await runner.compile(singleGroupSpec);
+  describe("nested groups (Widgets → Parts)", () => {
+    let sdkContext: SdkContext<Record<string, any>, SdkHttpOperation>;
+    let root: SdkClientType<SdkHttpOperation>;
+    let widgetsChild: SdkClientType<SdkHttpOperation>;
+    let group: ReturnType<typeof buildGroupInfo>;
 
-    const sdkContext = await createSdkContextForTest(program);
-    const root = getFirstClient(sdkContext);
-    const child = getFirstChildClient(sdkContext);
-    const group = buildGroupInfo(child, root);
+    beforeAll(async () => {
+      const runner = await TesterWithService.createInstance();
+      const { program } = await runner.compile(nestedGroupSpec);
+      sdkContext = await createSdkContextForTest(program);
+      root = getFirstClient(sdkContext);
+      widgetsChild = getFirstChildClient(sdkContext);
+      group = buildGroupInfo(widgetsChild, root);
+    });
 
-    const template = (
-      <OperationGroupTestWrapper sdkContext={sdkContext}>
-        <SourceFile path="classic/widgets/index.ts">
-          <OperationGroupInterface group={group} />
-        </SourceFile>
-      </OperationGroupTestWrapper>
-    );
+    /**
+     * Tests that nested operation groups produce interface members referencing
+     * child interfaces. For example, WidgetsOperations should have a `parts`
+     * property of type PartsOperations.
+     *
+     * This is critical for hierarchical services where users access nested
+     * groups via `client.widgets.parts.getPart(...)`.
+     */
+    it("should render nested group reference in interface", async () => {
+      const template = (
+        <OperationGroupTestWrapper sdkContext={sdkContext}>
+          {/* Render child group declarations so refkeys resolve */}
+          {widgetsChild.children?.map((grandchild) => {
+            const childGroup = buildGroupInfo(grandchild, root, ["widgets", "parts"]);
+            return (
+              <SourceFile path="classic/widgets/parts/index.ts">
+                <OperationGroupInterface group={childGroup} />
+                <OperationGroupFactory group={childGroup} />
+              </SourceFile>
+            );
+          })}
+          <SourceFile path="classic/widgets/index.ts">
+            <OperationGroupInterface group={group} />
+          </SourceFile>
+        </OperationGroupTestWrapper>
+      );
 
-    const result = renderToString(template);
+      const result = renderToString(template);
 
-    // getWidget should have id parameter
-    expect(result).toContain("id: string");
-    // listWidgets should only have options (no required params)
-    expect(result).toContain("listWidgets:");
+      // WidgetsOperations should reference PartsOperations
+      expect(result).toContain("WidgetsOperations");
+      expect(result).toContain("parts:");
+      expect(result).toContain("PartsOperations");
+    });
+
+    /**
+     * Tests that nested factories compose child factory calls. The parent
+     * factory should call `_getPartsOperations(context)` for nested groups.
+     *
+     * This ensures the factory function correctly wires nested groups
+     * when constructing the operation group object.
+     */
+    it("should compose child factory in nested factory", async () => {
+      const template = (
+        <OperationGroupTestWrapper sdkContext={sdkContext}>
+          {/* Render child group declarations so refkeys resolve */}
+          {widgetsChild.children?.map((grandchild) => {
+            const childGroup = buildGroupInfo(grandchild, root, ["widgets", "parts"]);
+            return (
+              <SourceFile path="classic/widgets/parts/index.ts">
+                <OperationGroupInterface group={childGroup} />
+                <OperationGroupFactory group={childGroup} />
+              </SourceFile>
+            );
+          })}
+          <SourceFile path="classic/widgets/index.ts">
+            <OperationGroupFactory group={group} />
+          </SourceFile>
+        </OperationGroupTestWrapper>
+      );
+
+      const result = renderToString(template);
+
+      // Should compose child factory
+      expect(result).toContain("_getPartsOperations(context)");
+    });
   });
 
   /**
@@ -486,69 +512,6 @@ describe("ClassicalOperationGroups", () => {
       "api/testServiceContext.ts": expect.stringContaining("TestService"),
       "api/operations.ts": expect.stringContaining("getWidget"),
     });
-  });
-
-  /**
-   * Tests that the operation group interface is referenceable via
-   * operationGroupInterfaceRefkey. This enables the classical client
-   * and other components to reference the interface across files.
-   */
-  it("should be referenceable via operationGroupInterfaceRefkey", async () => {
-    const runner = await TesterWithService.createInstance();
-    const { program } = await runner.compile(singleGroupSpec);
-
-    const sdkContext = await createSdkContextForTest(program);
-    const root = getFirstClient(sdkContext);
-    const child = getFirstChildClient(sdkContext);
-    const group = buildGroupInfo(child, root);
-
-    const template = (
-      <OperationGroupTestWrapper sdkContext={sdkContext}>
-        <SourceFile path="classic/widgets/index.ts">
-          <OperationGroupInterface group={group} />
-        </SourceFile>
-        <SourceFile path="ref.ts">
-          {code`const ref: ${operationGroupInterfaceRefkey(child)} = {} as any;`}
-        </SourceFile>
-      </OperationGroupTestWrapper>
-    );
-
-    const result = renderToString(template);
-
-    // The refkey reference should resolve to the interface name
-    expect(result).toContain("WidgetsOperations");
-  });
-
-  /**
-   * Tests that the factory function is referenceable via
-   * operationGroupFactoryRefkey. This enables the classical client
-   * constructor to call the factory function across files.
-   */
-  it("should be referenceable via operationGroupFactoryRefkey", async () => {
-    const runner = await TesterWithService.createInstance();
-    const { program } = await runner.compile(singleGroupSpec);
-
-    const sdkContext = await createSdkContextForTest(program);
-    const root = getFirstClient(sdkContext);
-    const child = getFirstChildClient(sdkContext);
-    const group = buildGroupInfo(child, root);
-
-    const template = (
-      <OperationGroupTestWrapper sdkContext={sdkContext}>
-        <SourceFile path="classic/widgets/index.ts">
-          <OperationGroupFactory group={group} />
-          <OperationGroupInterface group={group} />
-        </SourceFile>
-        <SourceFile path="ref.ts">
-          {code`const ref = ${operationGroupFactoryRefkey(child)}({} as any);`}
-        </SourceFile>
-      </OperationGroupTestWrapper>
-    );
-
-    const result = renderToString(template);
-
-    // The refkey reference should resolve to the factory function name
-    expect(result).toContain("_getWidgetsOperations");
   });
 
   /**

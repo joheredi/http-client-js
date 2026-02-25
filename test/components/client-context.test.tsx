@@ -35,7 +35,7 @@ import type {
   SdkContext,
   SdkHttpOperation,
 } from "@azure-tools/typespec-client-generator-core";
-import { describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 import {
   ClientContextDeclaration,
   ClientContextOptionsDeclaration,
@@ -92,249 +92,270 @@ function ClientContextTestWrapper(props: {
 }
 
 describe("ClientContext", () => {
-  /**
-   * Tests that the context interface extends Client from the HTTP runtime.
-   * This is the most fundamental requirement — the context type must be
-   * compatible with the Client interface that all operations expect.
-   */
-  it("should render context interface extending Client", async () => {
-    const runner = await TesterWithService.createInstance();
-    const { program } = await runner.compile(
-      t.code`
-        @get op getItem(): string;
-      `,
-    );
+  describe("with simple service", () => {
+    let sdkContext: SdkContext;
+    let client: any;
 
-    const sdkContext = await createSdkContextForTest(program);
-    const client = getFirstClient(sdkContext);
+    beforeAll(async () => {
+      const runner = await TesterWithService.createInstance();
+      const { program } = await runner.compile(
+        t.code`
+          @get op getItem(): string;
+        `,
+      );
+      sdkContext = await createSdkContextForTest(program);
+      client = getFirstClient(sdkContext);
+    });
 
-    const template = (
-      <SdkTestFile sdkContext={sdkContext} externals={[httpRuntimeLib]}>
-        <ClientContextDeclaration client={client} />
-      </SdkTestFile>
-    );
+    /**
+     * Tests that the context interface extends Client from the HTTP runtime.
+     * This is the most fundamental requirement — the context type must be
+     * compatible with the Client interface that all operations expect.
+     */
+    it("should render context interface extending Client", () => {
+      const template = (
+        <SdkTestFile sdkContext={sdkContext} externals={[httpRuntimeLib]}>
+          <ClientContextDeclaration client={client} />
+        </SdkTestFile>
+      );
 
-    expect(template).toRenderTo(d`
-      import type { Client } from "@typespec/ts-http-runtime";
+      expect(template).toRenderTo(d`
+        import type { Client } from "@typespec/ts-http-runtime";
 
-      export interface TestServiceContext extends Client {}
-    `);
-  });
+        export interface TestServiceContext extends Client {}
+      `);
+    });
 
-  /**
-   * Tests that the options interface extends ClientOptions from the HTTP runtime.
-   * Consumers pass this options object when creating the client to configure
-   * things like endpoint overrides, API version, and custom parameters.
-   */
-  it("should render options interface extending ClientOptions", async () => {
-    const runner = await TesterWithService.createInstance();
-    const { program } = await runner.compile(
-      t.code`
-        @get op getItem(): string;
-      `,
-    );
+    /**
+     * Tests that the options interface extends ClientOptions from the HTTP runtime.
+     * Consumers pass this options object when creating the client to configure
+     * things like endpoint overrides, API version, and custom parameters.
+     */
+    it("should render options interface extending ClientOptions", () => {
+      const template = (
+        <SdkTestFile sdkContext={sdkContext} externals={[httpRuntimeLib]}>
+          <ClientContextOptionsDeclaration client={client} />
+        </SdkTestFile>
+      );
 
-    const sdkContext = await createSdkContextForTest(program);
-    const client = getFirstClient(sdkContext);
+      expect(template).toRenderTo(d`
+        import type { ClientOptions } from "@typespec/ts-http-runtime";
 
-    const template = (
-      <SdkTestFile sdkContext={sdkContext} externals={[httpRuntimeLib]}>
-        <ClientContextOptionsDeclaration client={client} />
-      </SdkTestFile>
-    );
+        export interface TestServiceClientOptionalParams extends ClientOptions {}
+      `);
+    });
 
-    expect(template).toRenderTo(d`
-      import type { ClientOptions } from "@typespec/ts-http-runtime";
+    /**
+     * Tests the factory function for a simple service with just an endpoint.
+     * The factory must call getClient() with the endpoint URL and return
+     * the result typed as the context interface. This verifies the basic
+     * plumbing that all more complex scenarios build upon.
+     */
+    it("should render factory function calling getClient", () => {
+      const template = (
+        <SdkTestFile sdkContext={sdkContext} externals={[httpRuntimeLib]}>
+          <ClientContextFactory client={client} />
+        </SdkTestFile>
+      );
 
-      export interface TestServiceClientOptionalParams extends ClientOptions {}
-    `);
-  });
+      const result = renderToString(template);
+      expect(result).toContain("getClient");
+      expect(result).toContain("createTestService");
+      expect(result).toContain("endpointUrl");
+    });
 
-  /**
-   * Tests the factory function for a simple service with just an endpoint.
-   * The factory must call getClient() with the endpoint URL and return
-   * the result typed as the context interface. This verifies the basic
-   * plumbing that all more complex scenarios build upon.
-   */
-  it("should render factory function calling getClient", async () => {
-    const runner = await TesterWithService.createInstance();
-    const { program } = await runner.compile(
-      t.code`
-        @get op getItem(): string;
-      `,
-    );
+    /**
+     * Tests that the factory function is referenceable via createClientRefkey.
+     * This is critical because the classical client constructor uses
+     * createClientRefkey to call the factory function, enabling Alloy to
+     * auto-generate cross-file imports.
+     */
+    it("should register refkey via createClientRefkey", () => {
+      const template = (
+        <SdkTestFile sdkContext={sdkContext} externals={[httpRuntimeLib]}>
+          <ClientContextFactory client={client} />
+          {code`const ref = ${createClientRefkey(client)}("endpoint");`}
+        </SdkTestFile>
+      );
 
-    const sdkContext = await createSdkContextForTest(program);
-    const client = getFirstClient(sdkContext);
+      // The refkey reference should resolve to the factory function name
+      const result = renderToString(template);
+      expect(result).toContain("createTestService");
+    });
 
-    const template = (
-      <SdkTestFile sdkContext={sdkContext} externals={[httpRuntimeLib]}>
-        <ClientContextFactory client={client} />
-      </SdkTestFile>
-    );
+    /**
+     * Tests that the context interface refkey is referenceable.
+     * Other components (like the classical client) use clientContextRefkey
+     * to reference the context type for type annotations.
+     */
+    it("should register context interface refkey via clientContextRefkey", () => {
+      const template = (
+        <SdkTestFile sdkContext={sdkContext} externals={[httpRuntimeLib]}>
+          <ClientContextDeclaration client={client} />
+          {code`const ctx: ${clientContextRefkey(client)} = {} as any;`}
+        </SdkTestFile>
+      );
 
-    const result = renderToString(template);
-    expect(result).toContain("getClient");
-    expect(result).toContain("createTestService");
-    expect(result).toContain("endpointUrl");
-  });
+      const result = renderToString(template);
+      expect(result).toContain("TestServiceContext");
+    });
 
-  /**
-   * Tests that the factory function is referenceable via createClientRefkey.
-   * This is critical because the classical client constructor uses
-   * createClientRefkey to call the factory function, enabling Alloy to
-   * auto-generate cross-file imports.
-   */
-  it("should register refkey via createClientRefkey", async () => {
-    const runner = await TesterWithService.createInstance();
-    const { program } = await runner.compile(
-      t.code`
-        @get op getItem(): string;
-      `,
-    );
+    /**
+     * Tests that the options interface refkey is referenceable.
+     * The factory function and classical client use clientOptionsRefkey
+     * to reference the options type in their parameter lists.
+     */
+    it("should register options interface refkey via clientOptionsRefkey", () => {
+      const template = (
+        <SdkTestFile sdkContext={sdkContext} externals={[httpRuntimeLib]}>
+          <ClientContextOptionsDeclaration client={client} />
+          {code`const opts: ${clientOptionsRefkey(client)} = {};`}
+        </SdkTestFile>
+      );
 
-    const sdkContext = await createSdkContextForTest(program);
-    const client = getFirstClient(sdkContext);
+      const result = renderToString(template);
+      expect(result).toContain("TestServiceClientOptionalParams");
+    });
 
-    const template = (
-      <SdkTestFile sdkContext={sdkContext} externals={[httpRuntimeLib]}>
-        <ClientContextFactory client={client} />
-        {code`const ref = ${createClientRefkey(client)}("endpoint");`}
-      </SdkTestFile>
-    );
+    /**
+     * Tests that the factory function constructs a user agent prefix and
+     * merges it into the options before calling getClient.
+     *
+     * The user agent prefix identifies the SDK to service teams for telemetry.
+     * The generated code should:
+     * 1. Extract any user-provided prefix from options
+     * 2. Build a prefix with the `azsdk-js-api` tag
+     * 3. Create `updatedOptions` with the merged user agent
+     * 4. Pass `updatedOptions` to getClient instead of raw `options`
+     *
+     * This is critical for Azure SDK compliance — without the user agent
+     * prefix, service teams cannot identify which SDK version is calling.
+     */
+    it("should generate user agent prefix in factory function", () => {
+      const template = (
+        <SdkTestFile sdkContext={sdkContext} externals={[httpRuntimeLib]}>
+          <ClientContextFactory client={client} />
+        </SdkTestFile>
+      );
 
-    // The refkey reference should resolve to the factory function name
-    const result = renderToString(template);
-    expect(result).toContain("createTestService");
-  });
+      const result = renderToString(template);
+      // Should extract prefix from options
+      expect(result).toContain("prefixFromOptions");
+      expect(result).toContain("options?.userAgentOptions?.userAgentPrefix");
+      // Should construct the SDK user agent tag
+      expect(result).toContain("azsdk-js-api");
+      // Should merge into updatedOptions
+      expect(result).toContain("updatedOptions");
+      expect(result).toContain("userAgentOptions: { userAgentPrefix }");
+      // Should pass updatedOptions to getClient (not raw options)
+      expect(result).toContain("getClient(endpointUrl, updatedOptions)");
+    });
 
-  /**
-   * Tests that the context interface refkey is referenceable.
-   * Other components (like the classical client) use clientContextRefkey
-   * to reference the context type for type annotations.
-   */
-  it("should register context interface refkey via clientContextRefkey", async () => {
-    const runner = await TesterWithService.createInstance();
-    const { program } = await runner.compile(
-      t.code`
-        @get op getItem(): string;
-      `,
-    );
+    /**
+     * Tests that the user agent prefix merges with a user-provided prefix
+     * when present. The generated ternary should prepend the user's prefix
+     * to the SDK identifier tag.
+     *
+     * This matters because consumers may set their own userAgentPrefix
+     * (e.g., for tracking specific applications). The SDK prefix must be
+     * appended, not replace the user's prefix.
+     */
+    it("should merge user-provided prefix with SDK prefix", () => {
+      const template = (
+        <SdkTestFile sdkContext={sdkContext} externals={[httpRuntimeLib]}>
+          <ClientContextFactory client={client} />
+        </SdkTestFile>
+      );
 
-    const sdkContext = await createSdkContextForTest(program);
-    const client = getFirstClient(sdkContext);
+      const result = renderToString(template);
+      // The ternary should combine user prefix with SDK prefix
+      expect(result).toContain("${prefixFromOptions} azsdk-js-api");
+    });
 
-    const template = (
-      <SdkTestFile sdkContext={sdkContext} externals={[httpRuntimeLib]}>
-        <ClientContextDeclaration client={client} />
-        {code`const ctx: ${clientContextRefkey(client)} = {} as any;`}
-      </SdkTestFile>
-    );
+    /**
+     * Tests the full ClientContextFile orchestrator rendering all three
+     * declarations into a single source file. This validates that the
+     * orchestrator correctly composes the interface, options, and factory
+     * components together.
+     */
+    it("should render complete context file with all declarations", () => {
+      const template = (
+        <ClientContextTestWrapper sdkContext={sdkContext}>
+          <ClientContextFile client={client} />
+        </ClientContextTestWrapper>
+      );
 
-    const result = renderToString(template);
-    expect(result).toContain("TestServiceContext");
-  });
+      // Should contain all three declarations
+      expect(template).toRenderTo({
+        "testServiceClientContext.ts": expect.stringContaining("TestServiceContext"),
+      });
+    });
 
-  /**
-   * Tests that the options interface refkey is referenceable.
-   * The factory function and classical client use clientOptionsRefkey
-   * to reference the options type in their parameter lists.
-   */
-  it("should register options interface refkey via clientOptionsRefkey", async () => {
-    const runner = await TesterWithService.createInstance();
-    const { program } = await runner.compile(
-      t.code`
-        @get op getItem(): string;
-      `,
-    );
+    /**
+     * Tests that when flavor is "azure", the factory function includes
+     * `loggingOptions` in `updatedOptions` that wires the generated logger
+     * into the HTTP pipeline.
+     *
+     * Azure SDK compliance requires that each package uses its own
+     * package-scoped logger (created via `createClientLogger`) for pipeline
+     * logging. The `loggingOptions.logger` property defaults to `logger.info`
+     * but allows consumer override via `options.loggingOptions?.logger`.
+     *
+     * Without this, the HTTP pipeline uses the global logger, making it
+     * impossible for consumers to filter logs per-package.
+     */
+    it("should include loggingOptions with logger.info for azure flavor", () => {
+      const template = (
+        <Output
+          program={sdkContext.emitContext.program}
+          namePolicy={createTSNamePolicy()}
+          externals={[
+            azureCoreClientLib,
+            azureCorePipelineLib,
+            azureCoreAuthLib,
+            azureCoreUtilLib,
+            azureAbortControllerLib,
+            azureLoggerLib,
+          ]}
+        >
+          <SdkContextProvider sdkContext={sdkContext}>
+            <FlavorProvider flavor="azure">
+              <SourceFile path="test.ts">
+                <ClientContextFactory client={client} />
+              </SourceFile>
+              <LoggerFile packageName="test-service" />
+            </FlavorProvider>
+          </SdkContextProvider>
+        </Output>
+      );
 
-    const sdkContext = await createSdkContextForTest(program);
-    const client = getFirstClient(sdkContext);
+      const result = renderToString(template);
+      // Should include loggingOptions with logger reference
+      expect(result).toContain("loggingOptions");
+      expect(result).toContain("options.loggingOptions?.logger ?? logger.info");
+    });
 
-    const template = (
-      <SdkTestFile sdkContext={sdkContext} externals={[httpRuntimeLib]}>
-        <ClientContextOptionsDeclaration client={client} />
-        {code`const opts: ${clientOptionsRefkey(client)} = {};`}
-      </SdkTestFile>
-    );
+    /**
+     * Tests that when flavor is "core" (non-Azure), the factory function
+     * does NOT include `loggingOptions` in `updatedOptions`.
+     *
+     * The core/unbranded runtime does not have a package logger concept.
+     * Including loggingOptions would reference a non-existent logger module,
+     * breaking the generated code for non-Azure SDKs.
+     */
+    it("should NOT include loggingOptions for core flavor", () => {
+      const template = (
+        <SdkTestFile sdkContext={sdkContext} externals={[httpRuntimeLib]}>
+          <ClientContextFactory client={client} />
+        </SdkTestFile>
+      );
 
-    const result = renderToString(template);
-    expect(result).toContain("TestServiceClientOptionalParams");
-  });
-
-  /**
-   * Tests that the factory function constructs a user agent prefix and
-   * merges it into the options before calling getClient.
-   *
-   * The user agent prefix identifies the SDK to service teams for telemetry.
-   * The generated code should:
-   * 1. Extract any user-provided prefix from options
-   * 2. Build a prefix with the `azsdk-js-api` tag
-   * 3. Create `updatedOptions` with the merged user agent
-   * 4. Pass `updatedOptions` to getClient instead of raw `options`
-   *
-   * This is critical for Azure SDK compliance — without the user agent
-   * prefix, service teams cannot identify which SDK version is calling.
-   */
-  it("should generate user agent prefix in factory function", async () => {
-    const runner = await TesterWithService.createInstance();
-    const { program } = await runner.compile(
-      t.code`
-        @get op getItem(): string;
-      `,
-    );
-
-    const sdkContext = await createSdkContextForTest(program);
-    const client = getFirstClient(sdkContext);
-
-    const template = (
-      <SdkTestFile sdkContext={sdkContext} externals={[httpRuntimeLib]}>
-        <ClientContextFactory client={client} />
-      </SdkTestFile>
-    );
-
-    const result = renderToString(template);
-    // Should extract prefix from options
-    expect(result).toContain("prefixFromOptions");
-    expect(result).toContain("options?.userAgentOptions?.userAgentPrefix");
-    // Should construct the SDK user agent tag
-    expect(result).toContain("azsdk-js-api");
-    // Should merge into updatedOptions
-    expect(result).toContain("updatedOptions");
-    expect(result).toContain("userAgentOptions: { userAgentPrefix }");
-    // Should pass updatedOptions to getClient (not raw options)
-    expect(result).toContain("getClient(endpointUrl, updatedOptions)");
-  });
-
-  /**
-   * Tests that the user agent prefix merges with a user-provided prefix
-   * when present. The generated ternary should prepend the user's prefix
-   * to the SDK identifier tag.
-   *
-   * This matters because consumers may set their own userAgentPrefix
-   * (e.g., for tracking specific applications). The SDK prefix must be
-   * appended, not replace the user's prefix.
-   */
-  it("should merge user-provided prefix with SDK prefix", async () => {
-    const runner = await TesterWithService.createInstance();
-    const { program } = await runner.compile(
-      t.code`
-        @get op getItem(): string;
-      `,
-    );
-
-    const sdkContext = await createSdkContextForTest(program);
-    const client = getFirstClient(sdkContext);
-
-    const template = (
-      <SdkTestFile sdkContext={sdkContext} externals={[httpRuntimeLib]}>
-        <ClientContextFactory client={client} />
-      </SdkTestFile>
-    );
-
-    const result = renderToString(template);
-    // The ternary should combine user prefix with SDK prefix
-    expect(result).toContain("${prefixFromOptions} azsdk-js-api");
+      const result = renderToString(template);
+      // Should NOT include loggingOptions for core flavor
+      expect(result).not.toContain("loggingOptions");
+      // But should still have user agent options
+      expect(result).toContain("userAgentOptions");
+    });
   });
 
   /**
@@ -371,121 +392,6 @@ describe("ClientContext", () => {
     expect(result).toContain("credential, updatedOptions");
     // Should still have user agent prefix construction
     expect(result).toContain("azsdk-js-api");
-  });
-
-  /**
-   * Tests the full ClientContextFile orchestrator rendering all three
-   * declarations into a single source file. This validates that the
-   * orchestrator correctly composes the interface, options, and factory
-   * components together.
-   */
-  it("should render complete context file with all declarations", async () => {
-    const runner = await TesterWithService.createInstance();
-    const { program } = await runner.compile(
-      t.code`
-        @get op getItem(): string;
-      `,
-    );
-
-    const sdkContext = await createSdkContextForTest(program);
-    const client = getFirstClient(sdkContext);
-
-    const template = (
-      <ClientContextTestWrapper sdkContext={sdkContext}>
-        <ClientContextFile client={client} />
-      </ClientContextTestWrapper>
-    );
-
-    // Should contain all three declarations
-    expect(template).toRenderTo({
-      "testServiceClientContext.ts": expect.stringContaining("TestServiceContext"),
-    });
-  });
-
-  /**
-   * Tests that when flavor is "azure", the factory function includes
-   * `loggingOptions` in `updatedOptions` that wires the generated logger
-   * into the HTTP pipeline.
-   *
-   * Azure SDK compliance requires that each package uses its own
-   * package-scoped logger (created via `createClientLogger`) for pipeline
-   * logging. The `loggingOptions.logger` property defaults to `logger.info`
-   * but allows consumer override via `options.loggingOptions?.logger`.
-   *
-   * Without this, the HTTP pipeline uses the global logger, making it
-   * impossible for consumers to filter logs per-package.
-   */
-  it("should include loggingOptions with logger.info for azure flavor", async () => {
-    const runner = await TesterWithService.createInstance();
-    const { program } = await runner.compile(
-      t.code`
-        @get op getItem(): string;
-      `,
-    );
-
-    const sdkContext = await createSdkContextForTest(program);
-    const client = getFirstClient(sdkContext);
-
-    const template = (
-      <Output
-        program={sdkContext.emitContext.program}
-        namePolicy={createTSNamePolicy()}
-        externals={[
-          azureCoreClientLib,
-          azureCorePipelineLib,
-          azureCoreAuthLib,
-          azureCoreUtilLib,
-          azureAbortControllerLib,
-          azureLoggerLib,
-        ]}
-      >
-        <SdkContextProvider sdkContext={sdkContext}>
-          <FlavorProvider flavor="azure">
-            <SourceFile path="test.ts">
-              <ClientContextFactory client={client} />
-            </SourceFile>
-            <LoggerFile packageName="test-service" />
-          </FlavorProvider>
-        </SdkContextProvider>
-      </Output>
-    );
-
-    const result = renderToString(template);
-    // Should include loggingOptions with logger reference
-    expect(result).toContain("loggingOptions");
-    expect(result).toContain("options.loggingOptions?.logger ?? logger.info");
-  });
-
-  /**
-   * Tests that when flavor is "core" (non-Azure), the factory function
-   * does NOT include `loggingOptions` in `updatedOptions`.
-   *
-   * The core/unbranded runtime does not have a package logger concept.
-   * Including loggingOptions would reference a non-existent logger module,
-   * breaking the generated code for non-Azure SDKs.
-   */
-  it("should NOT include loggingOptions for core flavor", async () => {
-    const runner = await TesterWithService.createInstance();
-    const { program } = await runner.compile(
-      t.code`
-        @get op getItem(): string;
-      `,
-    );
-
-    const sdkContext = await createSdkContextForTest(program);
-    const client = getFirstClient(sdkContext);
-
-    const template = (
-      <SdkTestFile sdkContext={sdkContext} externals={[httpRuntimeLib]}>
-        <ClientContextFactory client={client} />
-      </SdkTestFile>
-    );
-
-    const result = renderToString(template);
-    // Should NOT include loggingOptions for core flavor
-    expect(result).not.toContain("loggingOptions");
-    // But should still have user agent options
-    expect(result).toContain("userAgentOptions");
   });
 
   /**

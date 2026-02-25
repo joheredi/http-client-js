@@ -39,7 +39,7 @@ import type {
   SdkContext,
   SdkHttpOperation,
 } from "@azure-tools/typespec-client-generator-core";
-import { describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 import { SdkContextProvider } from "../../src/context/sdk-context.js";
 import {
   RootIndexFile,
@@ -120,33 +120,74 @@ function MinimalIndexWrapper(props: {
 }
 
 describe("RootIndexFile", () => {
-  /**
-   * Tests that the root index file exports model interface names from
-   * the models index path. This is the most fundamental requirement —
-   * consumers need to import model types from the package root.
-   */
-  it("should export model types from models/index.js", async () => {
-    const runner = await TesterWithService.createInstance();
-    const { program } = await runner.compile(
-      t.code`
-        model Widget {
-          name: string;
-        }
+  describe("with Widget model and getWidget operation", () => {
+    let sdkContext: SdkContext<Record<string, any>, SdkHttpOperation>;
 
-        @get op getWidget(): Widget;
-      `,
-    );
+    beforeAll(async () => {
+      const runner = await TesterWithService.createInstance();
+      const { program } = await runner.compile(
+        t.code`
+          model Widget {
+            name: string;
+          }
 
-    const sdkContext = await createSdkContextForTest(program);
-    const template = (
-      <IndexTestWrapper sdkContext={sdkContext}>
-        <RootIndexFile />
-      </IndexTestWrapper>
-    );
+          @get op getWidget(): Widget;
+        `,
+      );
+      sdkContext = await createSdkContextForTest(program);
+    });
 
-    const result = renderToString(template);
+    /**
+     * Tests that the root index file exports model interface names from
+     * the models index path. This is the most fundamental requirement —
+     * consumers need to import model types from the package root.
+     */
+    it("should export model types from models/index.js", async () => {
+      const template = (
+        <IndexTestWrapper sdkContext={sdkContext}>
+          <RootIndexFile />
+        </IndexTestWrapper>
+      );
 
-    expect(result).toContain('export { Widget } from "./models/index.js"');
+      const result = renderToString(template);
+
+      expect(result).toContain('export { Widget } from "./models/index.js"');
+    });
+
+    /**
+     * Tests that the root index generates model exports even when there
+     * are no clients (model-only package). The legacy emitter supports
+     * model-only packages where models with @usage annotations are exported
+     * through the root index.ts without any client or operation layer.
+     *
+     * This is important because some TypeSpec packages define only models
+     * (shared types) that other packages depend on. These still need a
+     * proper root index.ts to be importable.
+     */
+    it("should export models in root index for model-only packages (no clients)", async () => {
+      // Simulate model-only: keep models but remove clients
+      const mockContext = {
+        ...sdkContext,
+        sdkPackage: {
+          ...sdkContext.sdkPackage,
+          clients: [],
+        },
+      } as typeof sdkContext;
+
+      const template = (
+        <MinimalIndexWrapper sdkContext={mockContext}>
+          <RootIndexFile />
+        </MinimalIndexWrapper>
+      );
+
+      const result = renderToString(template);
+
+      expect(result).toContain('export { Widget } from "./models/index.js"');
+      // Should not contain any client-related exports
+      expect(result).not.toContain("Context");
+      expect(result).not.toContain("OptionalParams");
+      expect(result).not.toContain("create");
+    });
   });
 
   /**
@@ -179,148 +220,131 @@ describe("RootIndexFile", () => {
     expect(result).toContain('./models/index.js"');
   });
 
-  /**
-   * Tests that the root index exports the classical client class from
-   * its individual source file. The client class is the main entry
-   * point for OOP-style SDK consumers.
-   */
-  it("should export classical client class", async () => {
-    const runner = await TesterWithService.createInstance();
-    const { program } = await runner.compile(
-      t.code`
-        @get op ping(): string;
-      `,
-    );
+  describe("with ping operation", () => {
+    let sdkContext: SdkContext<Record<string, any>, SdkHttpOperation>;
 
-    const sdkContext = await createSdkContextForTest(program);
-    const template = (
-      <IndexTestWrapper sdkContext={sdkContext}>
-        <RootIndexFile />
-      </IndexTestWrapper>
-    );
+    beforeAll(async () => {
+      const runner = await TesterWithService.createInstance();
+      const { program } = await runner.compile(
+        t.code`
+          @get op ping(): string;
+        `,
+      );
+      sdkContext = await createSdkContextForTest(program);
+    });
 
-    const result = renderToString(template);
+    /**
+     * Tests that the root index exports the classical client class from
+     * its individual source file. The client class is the main entry
+     * point for OOP-style SDK consumers.
+     */
+    it("should export classical client class", async () => {
+      const template = (
+        <IndexTestWrapper sdkContext={sdkContext}>
+          <RootIndexFile />
+        </IndexTestWrapper>
+      );
 
-    expect(result).toContain(
-      'export { TestServiceClient } from "./testServiceClient.js"',
-    );
+      const result = renderToString(template);
+
+      expect(result).toContain(
+        'export { TestServiceClient } from "./testServiceClient.js"',
+      );
+    });
+
+    /**
+     * Tests that the root index exports client context symbols (interface,
+     * options, factory) from the context file. These are needed by consumers
+     * who use the modular (function-based) API style.
+     */
+    it("should export client context, options, and factory", async () => {
+      const template = (
+        <IndexTestWrapper sdkContext={sdkContext}>
+          <RootIndexFile />
+        </IndexTestWrapper>
+      );
+
+      const result = renderToString(template);
+
+      expect(result).toContain("TestServiceContext");
+      expect(result).toContain("TestServiceClientOptionalParams");
+      expect(result).toContain("createTestService");
+      expect(result).toContain("testServiceClientContext.js");
+    });
+
+    /**
+     * Tests that _prefixed internal symbols (send, deserialize functions)
+     * are NOT exported from the root index. These private functions are
+     * implementation details of the operation layer.
+     */
+    it("should not export _prefixed internal symbols", async () => {
+      const template = (
+        <MinimalIndexWrapper sdkContext={sdkContext}>
+          <RootIndexFile />
+        </MinimalIndexWrapper>
+      );
+
+      const result = renderToString(template);
+
+      expect(result).not.toContain("_pingSend");
+      expect(result).not.toContain("_pingDeserialize");
+    });
   });
 
-  /**
-   * Tests that the root index exports client context symbols (interface,
-   * options, factory) from the context file. These are needed by consumers
-   * who use the modular (function-based) API style.
-   */
-  it("should export client context, options, and factory", async () => {
-    const runner = await TesterWithService.createInstance();
-    const { program } = await runner.compile(
-      t.code`
-        @get op ping(): string;
-      `,
-    );
+  describe("with Widget model and multiple operations", () => {
+    let sdkContext: SdkContext<Record<string, any>, SdkHttpOperation>;
 
-    const sdkContext = await createSdkContextForTest(program);
-    const template = (
-      <IndexTestWrapper sdkContext={sdkContext}>
-        <RootIndexFile />
-      </IndexTestWrapper>
-    );
+    beforeAll(async () => {
+      const runner = await TesterWithService.createInstance();
+      const { program } = await runner.compile(
+        t.code`
+          model Widget { name: string; }
 
-    const result = renderToString(template);
+          @get op getWidget(): Widget;
+          @post op createWidget(@body body: Widget): Widget;
+        `,
+      );
+      sdkContext = await createSdkContextForTest(program);
+    });
 
-    expect(result).toContain("TestServiceContext");
-    expect(result).toContain("TestServiceClientOptionalParams");
-    expect(result).toContain("createTestService");
-    expect(result).toContain("testServiceClientContext.js");
-  });
+    /**
+     * Tests that operation options interfaces are exported from the root index.
+     * Each operation has an OptionalParams interface that consumers need
+     * to pass options when calling operations.
+     */
+    it("should export operation options interfaces", async () => {
+      const template = (
+        <IndexTestWrapper sdkContext={sdkContext}>
+          <RootIndexFile />
+        </IndexTestWrapper>
+      );
 
-  /**
-   * Tests that operation options interfaces are exported from the root index.
-   * Each operation has an OptionalParams interface that consumers need
-   * to pass options when calling operations.
-   */
-  it("should export operation options interfaces", async () => {
-    const runner = await TesterWithService.createInstance();
-    const { program } = await runner.compile(
-      t.code`
-        model Widget { name: string; }
+      const result = renderToString(template);
 
-        @get op getWidget(): Widget;
-        @post op createWidget(@body body: Widget): Widget;
-      `,
-    );
+      expect(result).toContain("GetWidgetOptionalParams");
+      expect(result).toContain("CreateWidgetOptionalParams");
+      expect(result).toContain("getWidget");
+      expect(result).toContain("createWidget");
+    });
 
-    const sdkContext = await createSdkContextForTest(program);
-    const template = (
-      <IndexTestWrapper sdkContext={sdkContext}>
-        <RootIndexFile />
-      </IndexTestWrapper>
-    );
+    /**
+     * Tests that serializer and deserializer functions are NOT exported
+     * from the root index. These are internal implementation details
+     * that consumers should never use directly.
+     */
+    it("should not export serializer or deserializer functions", async () => {
+      const template = (
+        <MinimalIndexWrapper sdkContext={sdkContext}>
+          <RootIndexFile />
+        </MinimalIndexWrapper>
+      );
 
-    const result = renderToString(template);
+      const result = renderToString(template);
 
-    expect(result).toContain("GetWidgetOptionalParams");
-    expect(result).toContain("CreateWidgetOptionalParams");
-    expect(result).toContain("getWidget");
-    expect(result).toContain("createWidget");
-  });
-
-  /**
-   * Tests that serializer and deserializer functions are NOT exported
-   * from the root index. These are internal implementation details
-   * that consumers should never use directly.
-   */
-  it("should not export serializer or deserializer functions", async () => {
-    const runner = await TesterWithService.createInstance();
-    const { program } = await runner.compile(
-      t.code`
-        model Widget {
-          name: string;
-        }
-
-        @get op getWidget(): Widget;
-        @post op createWidget(@body body: Widget): Widget;
-      `,
-    );
-
-    const sdkContext = await createSdkContextForTest(program);
-    const template = (
-      <MinimalIndexWrapper sdkContext={sdkContext}>
-        <RootIndexFile />
-      </MinimalIndexWrapper>
-    );
-
-    const result = renderToString(template);
-
-    // Root index should not contain serializer/deserializer names
-    expect(result).not.toContain("widgetSerializer");
-    expect(result).not.toContain("widgetDeserializer");
-  });
-
-  /**
-   * Tests that _prefixed internal symbols (send, deserialize functions)
-   * are NOT exported from the root index. These private functions are
-   * implementation details of the operation layer.
-   */
-  it("should not export _prefixed internal symbols", async () => {
-    const runner = await TesterWithService.createInstance();
-    const { program } = await runner.compile(
-      t.code`
-        @get op ping(): string;
-      `,
-    );
-
-    const sdkContext = await createSdkContextForTest(program);
-    const template = (
-      <MinimalIndexWrapper sdkContext={sdkContext}>
-        <RootIndexFile />
-      </MinimalIndexWrapper>
-    );
-
-    const result = renderToString(template);
-
-    expect(result).not.toContain("_pingSend");
-    expect(result).not.toContain("_pingDeserialize");
+      // Root index should not contain serializer/deserializer names
+      expect(result).not.toContain("widgetSerializer");
+      expect(result).not.toContain("widgetDeserializer");
+    });
   });
 
   /**
@@ -356,54 +380,6 @@ describe("RootIndexFile", () => {
 
     // Should not contain any export statements
     expect(result).not.toContain("export");
-  });
-
-  /**
-   * Tests that the root index generates model exports even when there
-   * are no clients (model-only package). The legacy emitter supports
-   * model-only packages where models with @usage annotations are exported
-   * through the root index.ts without any client or operation layer.
-   *
-   * This is important because some TypeSpec packages define only models
-   * (shared types) that other packages depend on. These still need a
-   * proper root index.ts to be importable.
-   */
-  it("should export models in root index for model-only packages (no clients)", async () => {
-    const runner = await TesterWithService.createInstance();
-    const { program } = await runner.compile(
-      t.code`
-        model Widget {
-          name: string;
-        }
-
-        @get op getWidget(): Widget;
-      `,
-    );
-
-    const sdkContext = await createSdkContextForTest(program);
-
-    // Simulate model-only: keep models but remove clients
-    const mockContext = {
-      ...sdkContext,
-      sdkPackage: {
-        ...sdkContext.sdkPackage,
-        clients: [],
-      },
-    } as typeof sdkContext;
-
-    const template = (
-      <MinimalIndexWrapper sdkContext={mockContext}>
-        <RootIndexFile />
-      </MinimalIndexWrapper>
-    );
-
-    const result = renderToString(template);
-
-    expect(result).toContain('export { Widget } from "./models/index.js"');
-    // Should not contain any client-related exports
-    expect(result).not.toContain("Context");
-    expect(result).not.toContain("OptionalParams");
-    expect(result).not.toContain("create");
   });
 
   /**
@@ -501,106 +477,146 @@ describe("ModelsIndexFile", () => {
 });
 
 describe("ApiIndexFile", () => {
-  /**
-   * Tests that the API index file re-exports public operation names and
-   * options interfaces. This ensures consumers can import all API-layer
-   * symbols from a single `./api/index.js` path.
-   */
-  it("should export public operations and options from api files", async () => {
-    const runner = await TesterWithService.createInstance();
-    const { program } = await runner.compile(
-      t.code`
-        @get op ping(): string;
-      `,
-    );
+  describe("with ping operation", () => {
+    let sdkContext: SdkContext<Record<string, any>, SdkHttpOperation>;
 
-    const sdkContext = await createSdkContextForTest(program);
-    const template = (
-      <MinimalIndexWrapper sdkContext={sdkContext}>
-        <SourceDirectory path="api">
-          <ApiIndexFile />
-        </SourceDirectory>
-      </MinimalIndexWrapper>
-    );
+    beforeAll(async () => {
+      const runner = await TesterWithService.createInstance();
+      const { program } = await runner.compile(
+        t.code`
+          @get op ping(): string;
+        `,
+      );
+      sdkContext = await createSdkContextForTest(program);
+    });
 
-    const result = renderToString(template);
+    /**
+     * Tests that the API index file re-exports public operation names and
+     * options interfaces. This ensures consumers can import all API-layer
+     * symbols from a single `./api/index.js` path.
+     */
+    it("should export public operations and options from api files", async () => {
+      const template = (
+        <MinimalIndexWrapper sdkContext={sdkContext}>
+          <SourceDirectory path="api">
+            <ApiIndexFile />
+          </SourceDirectory>
+        </MinimalIndexWrapper>
+      );
 
-    // Should export public operation and its options
-    expect(result).toContain("PingOptionalParams");
-    expect(result).toContain("ping");
-    expect(result).toContain("operations.js");
+      const result = renderToString(template);
 
-    // Should export context symbols
-    expect(result).toContain("TestServiceContext");
-    expect(result).toContain("createTestService");
-  });
+      // Should export public operation and its options
+      expect(result).toContain("PingOptionalParams");
+      expect(result).toContain("ping");
+      expect(result).toContain("operations.js");
 
-  /**
-   * Tests that _prefixed internal symbols are NOT exported from the
-   * API index. The send and deserialize functions are private helpers.
-   */
-  it("should not export _prefixed internal functions", async () => {
-    const runner = await TesterWithService.createInstance();
-    const { program } = await runner.compile(
-      t.code`
-        @get op ping(): string;
-      `,
-    );
+      // Should export context symbols
+      expect(result).toContain("TestServiceContext");
+      expect(result).toContain("createTestService");
+    });
 
-    const sdkContext = await createSdkContextForTest(program);
-    const template = (
-      <MinimalIndexWrapper sdkContext={sdkContext}>
-        <SourceDirectory path="api">
-          <ApiIndexFile />
-        </SourceDirectory>
-      </MinimalIndexWrapper>
-    );
+    /**
+     * Tests that _prefixed internal symbols are NOT exported from the
+     * API index. The send and deserialize functions are private helpers.
+     */
+    it("should not export _prefixed internal functions", async () => {
+      const template = (
+        <MinimalIndexWrapper sdkContext={sdkContext}>
+          <SourceDirectory path="api">
+            <ApiIndexFile />
+          </SourceDirectory>
+        </MinimalIndexWrapper>
+      );
 
-    const result = renderToString(template);
+      const result = renderToString(template);
 
-    expect(result).not.toContain("_pingSend");
-    expect(result).not.toContain("_pingDeserialize");
+      expect(result).not.toContain("_pingSend");
+      expect(result).not.toContain("_pingDeserialize");
+    });
   });
 });
 
 describe("IndexFiles", () => {
-  /**
-   * Tests that the IndexFiles orchestrator produces all expected index
-   * files when given a service with models and operations. This is the
-   * primary integration test — it validates that root, models, and api
-   * index files are all generated together.
-   */
-  it("should produce root, models, and api index files", async () => {
-    const runner = await TesterWithService.createInstance();
-    const { program } = await runner.compile(
-      t.code`
-        model Widget {
-          name: string;
-        }
+  describe("with Widget model and getWidget operation", () => {
+    let sdkContext: SdkContext<Record<string, any>, SdkHttpOperation>;
 
-        @get op getWidget(): Widget;
-      `,
-    );
+    beforeAll(async () => {
+      const runner = await TesterWithService.createInstance();
+      const { program } = await runner.compile(
+        t.code`
+          model Widget {
+            name: string;
+          }
 
-    const sdkContext = await createSdkContextForTest(program);
-    const template = (
-      <IndexTestWrapper sdkContext={sdkContext}>
-        <IndexFiles />
-      </IndexTestWrapper>
-    );
+          @get op getWidget(): Widget;
+        `,
+      );
+      sdkContext = await createSdkContextForTest(program);
+    });
 
-    const result = renderToString(template);
+    /**
+     * Tests that the IndexFiles orchestrator produces all expected index
+     * files when given a service with models and operations. This is the
+     * primary integration test — it validates that root, models, and api
+     * index files are all generated together.
+     */
+    it("should produce root, models, and api index files", async () => {
+      const template = (
+        <IndexTestWrapper sdkContext={sdkContext}>
+          <IndexFiles />
+        </IndexTestWrapper>
+      );
 
-    // Root index should contain exports
-    expect(result).toContain("Widget");
-    expect(result).toContain("TestServiceClient");
+      const result = renderToString(template);
 
-    // Models index should contain model exports
-    expect(result).toContain("./models.js");
+      // Root index should contain exports
+      expect(result).toContain("Widget");
+      expect(result).toContain("TestServiceClient");
 
-    // API index should contain operation exports
-    expect(result).toContain("operations.js");
-    expect(result).toContain("TestServiceContext");
+      // Models index should contain model exports
+      expect(result).toContain("./models.js");
+
+      // API index should contain operation exports
+      expect(result).toContain("operations.js");
+      expect(result).toContain("TestServiceContext");
+    });
+
+    /**
+     * Tests that the IndexFiles orchestrator generates root index and
+     * models index for model-only packages (no clients but has models).
+     * Model-only packages still need a proper public API entry point.
+     *
+     * This validates the fix for model-only package support where the
+     * legacy emitter generates root index.ts even without clients, as
+     * long as there are models with @usage annotations.
+     */
+    it("should produce root and models index files for model-only packages", async () => {
+      // Simulate model-only: keep models but remove clients
+      const mockContext = {
+        ...sdkContext,
+        sdkPackage: {
+          ...sdkContext.sdkPackage,
+          clients: [],
+        },
+      } as typeof sdkContext;
+
+      const template = (
+        <MinimalIndexWrapper sdkContext={mockContext}>
+          <IndexFiles />
+        </MinimalIndexWrapper>
+      );
+
+      const result = renderToString(template);
+
+      // Root index should export models
+      expect(result).toContain('export { Widget } from "./models/index.js"');
+      // Models index should exist
+      expect(result).toContain('./models.js"');
+      // No API or classic index files should be generated
+      expect(result).not.toContain("Context");
+      expect(result).not.toContain("operations.js");
+    });
   });
 
   /**
@@ -633,55 +649,6 @@ describe("IndexFiles", () => {
     const result = renderToString(template);
 
     expect(result).not.toContain("export");
-  });
-
-  /**
-   * Tests that the IndexFiles orchestrator generates root index and
-   * models index for model-only packages (no clients but has models).
-   * Model-only packages still need a proper public API entry point.
-   *
-   * This validates the fix for model-only package support where the
-   * legacy emitter generates root index.ts even without clients, as
-   * long as there are models with @usage annotations.
-   */
-  it("should produce root and models index files for model-only packages", async () => {
-    const runner = await TesterWithService.createInstance();
-    const { program } = await runner.compile(
-      t.code`
-        model Widget {
-          name: string;
-        }
-
-        @get op getWidget(): Widget;
-      `,
-    );
-
-    const sdkContext = await createSdkContextForTest(program);
-
-    // Simulate model-only: keep models but remove clients
-    const mockContext = {
-      ...sdkContext,
-      sdkPackage: {
-        ...sdkContext.sdkPackage,
-        clients: [],
-      },
-    } as typeof sdkContext;
-
-    const template = (
-      <MinimalIndexWrapper sdkContext={mockContext}>
-        <IndexFiles />
-      </MinimalIndexWrapper>
-    );
-
-    const result = renderToString(template);
-
-    // Root index should export models
-    expect(result).toContain('export { Widget } from "./models/index.js"');
-    // Models index should exist
-    expect(result).toContain('./models.js"');
-    // No API or classic index files should be generated
-    expect(result).not.toContain("Context");
-    expect(result).not.toContain("operations.js");
   });
 
   /**

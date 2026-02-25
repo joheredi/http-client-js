@@ -26,22 +26,27 @@ import {
   SourceFile,
 } from "@alloy-js/typescript";
 import { Output } from "@typespec/emitter-framework";
-import { describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 import { t } from "@typespec/compiler/testing";
 import { MultipartHelpersFile } from "../../../src/components/static-helpers/multipart-helpers.js";
 import { multipartHelperRefkey } from "../../../src/utils/refkeys.js";
 import { TesterWithService } from "../../test-host.js";
+import type { Program } from "@typespec/compiler";
 
 describe("MultipartHelpersFile", () => {
+  let program: Program;
+
+  beforeAll(async () => {
+    const runner = await TesterWithService.createInstance();
+    ({ program } = await runner.compile(t.code`op test(): void;`));
+  });
+
   /**
    * Tests that the FileContents type alias is rendered with all the valid
    * binary content type variants. This type is used by models that have
    * file upload properties in multipart requests.
    */
   it("should render FileContents type alias", async () => {
-    const runner = await TesterWithService.createInstance();
-    const { program } = await runner.compile(t.code`op test(): void;`);
-
     const template = (
       <Output program={program} namePolicy={createTSNamePolicy()}>
         <MultipartHelpersFile />
@@ -63,9 +68,6 @@ describe("MultipartHelpersFile", () => {
    * because it's called by multipart serializers for file parts.
    */
   it("should render createFilePartDescriptor function", async () => {
-    const runner = await TesterWithService.createInstance();
-    const { program } = await runner.compile(t.code`op test(): void;`);
-
     const template = (
       <Output program={program} namePolicy={createTSNamePolicy()}>
         <MultipartHelpersFile />
@@ -84,9 +86,6 @@ describe("MultipartHelpersFile", () => {
    * with contents, contentType, and filename properties.
    */
   it("should handle structured file objects in createFilePartDescriptor", async () => {
-    const runner = await TesterWithService.createInstance();
-    const { program } = await runner.compile(t.code`op test(): void;`);
-
     const template = (
       <Output program={program} namePolicy={createTSNamePolicy()}>
         <MultipartHelpersFile />
@@ -104,9 +103,6 @@ describe("MultipartHelpersFile", () => {
    * (non-structured file inputs).
    */
   it("should handle raw binary values in createFilePartDescriptor", async () => {
-    const runner = await TesterWithService.createInstance();
-    const { program } = await runner.compile(t.code`op test(): void;`);
-
     const template = (
       <Output program={program} namePolicy={createTSNamePolicy()}>
         <MultipartHelpersFile />
@@ -125,9 +121,6 @@ describe("MultipartHelpersFile", () => {
    * import resolution that Alloy provides through refkeys.
    */
   it("should be referenceable via multipartHelperRefkey", async () => {
-    const runner = await TesterWithService.createInstance();
-    const { program } = await runner.compile(t.code`op test(): void;`);
-
     const template = (
       <Output program={program} namePolicy={createTSNamePolicy()}>
         <MultipartHelpersFile />
@@ -148,9 +141,6 @@ describe("MultipartHelpersFile", () => {
    * Tests that the FileContents type is referenceable via multipartHelperRefkey.
    */
   it("should make FileContents referenceable via refkey", async () => {
-    const runner = await TesterWithService.createInstance();
-    const { program } = await runner.compile(t.code`op test(): void;`);
-
     const template = (
       <Output program={program} namePolicy={createTSNamePolicy()}>
         <MultipartHelpersFile />

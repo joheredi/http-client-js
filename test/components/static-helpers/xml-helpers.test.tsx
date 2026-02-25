@@ -24,27 +24,31 @@ import { createTSNamePolicy } from "@alloy-js/typescript";
 import { Output } from "@typespec/emitter-framework";
 import { renderToString } from "@alloy-js/core/testing";
 import { t } from "@typespec/compiler/testing";
-import { describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 import { XmlHelpersFile } from "../../../src/components/static-helpers/xml-helpers.js";
 import { TesterWithService } from "../../test-host.js";
-
-/**
- * Helper to render the XmlHelpersFile component and return the output string.
- * Compiles a minimal TypeSpec program to satisfy the Output component's
- * program prop requirement.
- */
-async function renderXmlHelpers(): Promise<string> {
-  const runner = await TesterWithService.createInstance();
-  const { program } = await runner.compile(t.code`op test(): void;`);
-  const template = (
-    <Output program={program} namePolicy={createTSNamePolicy()}>
-      <XmlHelpersFile />
-    </Output>
-  );
-  return renderToString(template);
-}
+import type { Program } from "@typespec/compiler";
 
 describe("XmlHelpersFile", () => {
+  let program: Program;
+
+  beforeAll(async () => {
+    const runner = await TesterWithService.createInstance();
+    ({ program } = await runner.compile(t.code`op test(): void;`));
+  });
+
+  /**
+   * Helper to render the XmlHelpersFile component and return the output string.
+   */
+  function renderXmlHelpers(): string {
+    const template = (
+      <Output program={program} namePolicy={createTSNamePolicy()}>
+        <XmlHelpersFile />
+      </Output>
+    );
+    return renderToString(template);
+  }
+
   /**
    * Tests that the XmlSerializationOptions interface contains all required
    * members for describing XML element/attribute mapping. This is the core
@@ -52,7 +56,7 @@ describe("XmlHelpersFile", () => {
    * array wrapping behavior.
    */
   it("should render XmlSerializationOptions interface with all members", async () => {
-    const result = await renderXmlHelpers();
+    const result = renderXmlHelpers();
     expect(result).toContain("export interface XmlSerializationOptions");
     expect(result).toContain("name: string;");
     expect(result).toContain("attribute?: boolean;");
@@ -67,7 +71,7 @@ describe("XmlHelpersFile", () => {
    * strategy.
    */
   it("should render XmlPropertyMetadata interface with serializer member", async () => {
-    const result = await renderXmlHelpers();
+    const result = renderXmlHelpers();
     expect(result).toContain("export interface XmlPropertyMetadata");
     expect(result).toContain("propertyName: string;");
     expect(result).toContain("xmlOptions: XmlSerializationOptions;");
@@ -80,7 +84,7 @@ describe("XmlHelpersFile", () => {
    * the correct JavaScript types (string, number, boolean).
    */
   it("should render XmlPropertyDeserializeMetadata with primitiveSubtype", async () => {
-    const result = await renderXmlHelpers();
+    const result = renderXmlHelpers();
     expect(result).toContain("export interface XmlPropertyDeserializeMetadata");
     expect(result).toContain("deserializer?: (value: any) => any;");
     expect(result).toContain('primitiveSubtype?: "string" | "number" | "boolean";');
@@ -92,7 +96,7 @@ describe("XmlHelpersFile", () => {
    * with XML-named keys used as an intermediate representation.
    */
   it("should render XmlSerializedObject type alias", async () => {
-    const result = await renderXmlHelpers();
+    const result = renderXmlHelpers();
     expect(result).toContain("export type XmlSerializedObject = Record<string, any>;");
   });
 
@@ -103,7 +107,7 @@ describe("XmlHelpersFile", () => {
    * functions.
    */
   it("should render serializeToXml function with correct signature", async () => {
-    const result = await renderXmlHelpers();
+    const result = renderXmlHelpers();
     expect(result).toContain("export function serializeToXml");
     expect(result).toContain("item: Record<string, any>");
     expect(result).toContain("properties: XmlPropertyMetadata[]");
@@ -116,7 +120,7 @@ describe("XmlHelpersFile", () => {
    * it to a typed model using property metadata.
    */
   it("should render deserializeFromXml function with type parameter", async () => {
-    const result = await renderXmlHelpers();
+    const result = renderXmlHelpers();
     expect(result).toContain("export function deserializeFromXml");
     expect(result).toContain("xmlString: string");
     expect(result).toContain("properties: XmlPropertyDeserializeMetadata[]");
@@ -129,7 +133,7 @@ describe("XmlHelpersFile", () => {
    * model and is used for nested model deserialization.
    */
   it("should render deserializeXmlObject function with correct signature", async () => {
-    const result = await renderXmlHelpers();
+    const result = renderXmlHelpers();
     expect(result).toContain("export function deserializeXmlObject");
     expect(result).toContain("xmlObject: Record<string, unknown>");
     expect(result).toContain("properties: XmlPropertyDeserializeMetadata[]");

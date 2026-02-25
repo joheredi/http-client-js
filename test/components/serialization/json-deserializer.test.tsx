@@ -27,7 +27,7 @@ import { Children, code } from "@alloy-js/core";
 import { createTSNamePolicy, SourceFile } from "@alloy-js/typescript";
 import { Output } from "@typespec/emitter-framework";
 import { t } from "@typespec/compiler/testing";
-import { describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 import type { SdkContext, SdkHttpOperation } from "@azure-tools/typespec-client-generator-core";
 import { JsonDeserializer } from "../../../src/components/serialization/json-deserializer.js";
 import { ModelInterface } from "../../../src/components/model-interface.js";
@@ -59,48 +59,128 @@ function DeserializerMultiFileWrapper(props: {
 }
 
 describe("JsonDeserializer", () => {
-  /**
-   * Tests that a basic model with simple string and number properties
-   * produces a deserializer that maps each property from wire name to
-   * client name. This is the most fundamental deserializer behavior.
-   */
-  it("should deserialize basic model with simple properties", async () => {
-    const runner = await TesterWithService.createInstance();
-    const { program } = await runner.compile(
-      t.code`
-        model ${t.model("Widget")} {
+  describe("basic primitive models", () => {
+    let sdkContext: Awaited<ReturnType<typeof createSdkContextForTest>>;
+    let widgetModel: (typeof sdkContext.sdkPackage.models)[number];
+    let simpleModel: (typeof sdkContext.sdkPackage.models)[number];
+    let resultModel: (typeof sdkContext.sdkPackage.models)[number];
+
+    beforeAll(async () => {
+      const runner = await TesterWithService.createInstance();
+      const { program } = await runner.compile(
+        t.code`
+          model ${t.model("Widget")} {
+            name: string;
+            age: int32;
+          }
+
+          model ${t.model("Simple")} {
+            id: string;
+          }
+
+          model ${t.model("Result")} {
+            value: string;
+          }
+
+          @route("/widgets") op getWidget(): Widget;
+          @route("/simples") op getSimple(): Simple;
+          @route("/results") op getResult(): Result;
+        `,
+      );
+
+      sdkContext = await createSdkContextForTest(program);
+      widgetModel = sdkContext.sdkPackage.models.find((m) => m.name === "Widget")!;
+      simpleModel = sdkContext.sdkPackage.models.find((m) => m.name === "Simple")!;
+      resultModel = sdkContext.sdkPackage.models.find((m) => m.name === "Result")!;
+    });
+
+    /**
+     * Tests that a basic model with simple string and number properties
+     * produces a deserializer that maps each property from wire name to
+     * client name. This is the most fundamental deserializer behavior.
+     */
+    it("should deserialize basic model with simple properties", () => {
+      const template = (
+        <SdkTestFile sdkContext={sdkContext}>
+          <ModelInterface model={widgetModel} />
+          {"\n\n"}
+          <JsonDeserializer model={widgetModel} />
+        </SdkTestFile>
+      );
+
+      expect(template).toRenderTo(d`
+        export interface Widget {
           name: string;
-          age: int32;
+          age: number;
         }
 
-        op getWidget(): Widget;
-      `,
-    );
+        export function widgetDeserializer(item: any): Widget {
+          return {
+            name: item["name"],
+            age: item["age"],
+          };
+        }
+      `);
+    });
 
-    const sdkContext = await createSdkContextForTest(program);
-    const model = sdkContext.sdkPackage.models[0];
+    /**
+     * Tests that the deserializer refkey is correctly assigned so other
+     * components (e.g., parent model deserializers, operation response handlers)
+     * can reference this deserializer via refkey.
+     */
+    it("should be referenceable via deserializerRefkey", () => {
+      const template = (
+        <SdkTestFile sdkContext={sdkContext}>
+          <ModelInterface model={simpleModel} />
+          {"\n\n"}
+          <JsonDeserializer model={simpleModel} />
+          {"\n\n"}
+          {code`const result = ${deserializerRefkey(simpleModel)}(raw);`}
+        </SdkTestFile>
+      );
 
-    const template = (
-      <SdkTestFile sdkContext={sdkContext}>
-        <ModelInterface model={model} />
-        {"\n\n"}
-        <JsonDeserializer model={model} />
-      </SdkTestFile>
-    );
+      expect(template).toRenderTo(d`
+        export interface Simple {
+          id: string;
+        }
 
-    expect(template).toRenderTo(d`
-      export interface Widget {
-        name: string;
-        age: number;
-      }
+        export function simpleDeserializer(item: any): Simple {
+          return {
+            id: item["id"],
+          };
+        }
 
-      export function widgetDeserializer(item: any): Widget {
-        return {
-          name: item["name"],
-          age: item["age"],
-        };
-      }
-    `);
+        const result = simpleDeserializer(raw);
+      `);
+    });
+
+    /**
+     * Tests that the deserializer return type references the model interface
+     * via refkey, ensuring Alloy auto-generates imports if the model is in
+     * a different file.
+     */
+    it("should have return type referencing model interface", () => {
+      const template = (
+        <SdkTestFile sdkContext={sdkContext}>
+          <ModelInterface model={resultModel} />
+          {"\n\n"}
+          <JsonDeserializer model={resultModel} />
+        </SdkTestFile>
+      );
+
+      // The return type should be the model name (resolved from typeRefkey)
+      expect(template).toRenderTo(d`
+        export interface Result {
+          value: string;
+        }
+
+        export function resultDeserializer(item: any): Result {
+          return {
+            value: item["value"],
+          };
+        }
+      `);
+    });
   });
 
   /**
@@ -152,285 +232,182 @@ describe("JsonDeserializer", () => {
     `);
   });
 
-  /**
-   * Tests that optional properties with nested model types get a null-check
-   * ternary guard. Without this guard, calling a deserializer function on
-   * undefined would crash at runtime.
-   */
-  it("should wrap optional nested model properties with null check", async () => {
-    const runner = await TesterWithService.createInstance();
-    const { program } = await runner.compile(
-      t.code`
-        model ${t.model("Address")} {
+  describe("nested model deserialization", () => {
+    let sdkContext: Awaited<ReturnType<typeof createSdkContextForTest>>;
+    let addressModel: (typeof sdkContext.sdkPackage.models)[number];
+    let personModel: (typeof sdkContext.sdkPackage.models)[number];
+    let innerModel: (typeof sdkContext.sdkPackage.models)[number];
+    let outerModel: (typeof sdkContext.sdkPackage.models)[number];
+    let tagModel: (typeof sdkContext.sdkPackage.models)[number];
+    let itemModel: (typeof sdkContext.sdkPackage.models)[number];
+
+    beforeAll(async () => {
+      const runner = await TesterWithService.createInstance();
+      const { program } = await runner.compile(
+        t.code`
+          model ${t.model("Address")} {
+            street: string;
+          }
+
+          model ${t.model("Person")} {
+            name: string;
+            address?: Address;
+          }
+
+          model ${t.model("Inner")} {
+            value: string;
+          }
+
+          model ${t.model("Outer")} {
+            inner: Inner;
+          }
+
+          model ${t.model("Tag")} {
+            label: string;
+          }
+
+          model ${t.model("Item")} {
+            tags: Tag[];
+          }
+
+          @route("/persons") op getPerson(): Person;
+          @route("/outers") op getOuter(): Outer;
+          @route("/items") op getItem(): Item;
+        `,
+      );
+
+      sdkContext = await createSdkContextForTest(program);
+      addressModel = sdkContext.sdkPackage.models.find((m) => m.name === "Address")!;
+      personModel = sdkContext.sdkPackage.models.find((m) => m.name === "Person")!;
+      innerModel = sdkContext.sdkPackage.models.find((m) => m.name === "Inner")!;
+      outerModel = sdkContext.sdkPackage.models.find((m) => m.name === "Outer")!;
+      tagModel = sdkContext.sdkPackage.models.find((m) => m.name === "Tag")!;
+      itemModel = sdkContext.sdkPackage.models.find((m) => m.name === "Item")!;
+    });
+
+    /**
+     * Tests that optional properties with nested model types get a null-check
+     * ternary guard. Without this guard, calling a deserializer function on
+     * undefined would crash at runtime.
+     */
+    it("should wrap optional nested model properties with null check", () => {
+      const template = (
+        <SdkTestFile sdkContext={sdkContext}>
+          <ModelInterface model={addressModel} />
+          {"\n\n"}
+          <ModelInterface model={personModel} />
+          {"\n\n"}
+          <JsonDeserializer model={addressModel} />
+          {"\n\n"}
+          <JsonDeserializer model={personModel} />
+        </SdkTestFile>
+      );
+
+      expect(template).toRenderTo(d`
+        export interface Address {
           street: string;
         }
 
-        model ${t.model("Person")} {
+        export interface Person {
           name: string;
           address?: Address;
         }
 
-        op getPerson(): Person;
-      `,
-    );
+        export function addressDeserializer(item: any): Address {
+          return {
+            street: item["street"],
+          };
+        }
 
-    const sdkContext = await createSdkContextForTest(program);
-    const personModel = sdkContext.sdkPackage.models.find(
-      (m) => m.name === "Person",
-    )!;
-    const addressModel = sdkContext.sdkPackage.models.find(
-      (m) => m.name === "Address",
-    )!;
+        export function personDeserializer(item: any): Person {
+          return {
+            name: item["name"],
+            address: !item["address"] ? item["address"] : addressDeserializer(item["address"]),
+          };
+        }
+      `);
+    });
 
-    const template = (
-      <SdkTestFile sdkContext={sdkContext}>
-        <ModelInterface model={addressModel} />
-        {"\n\n"}
-        <ModelInterface model={personModel} />
-        {"\n\n"}
-        <JsonDeserializer model={addressModel} />
-        {"\n\n"}
-        <JsonDeserializer model={personModel} />
-      </SdkTestFile>
-    );
+    /**
+     * Tests that required nested model properties call the child deserializer
+     * directly without a null check guard.
+     */
+    it("should call child deserializer for required nested model", () => {
+      const template = (
+        <SdkTestFile sdkContext={sdkContext}>
+          <ModelInterface model={innerModel} />
+          {"\n\n"}
+          <ModelInterface model={outerModel} />
+          {"\n\n"}
+          <JsonDeserializer model={innerModel} />
+          {"\n\n"}
+          <JsonDeserializer model={outerModel} />
+        </SdkTestFile>
+      );
 
-    expect(template).toRenderTo(d`
-      export interface Address {
-        street: string;
-      }
-
-      export interface Person {
-        name: string;
-        address?: Address;
-      }
-
-      export function addressDeserializer(item: any): Address {
-        return {
-          street: item["street"],
-        };
-      }
-
-      export function personDeserializer(item: any): Person {
-        return {
-          name: item["name"],
-          address: !item["address"] ? item["address"] : addressDeserializer(item["address"]),
-        };
-      }
-    `);
-  });
-
-  /**
-   * Tests that required nested model properties call the child deserializer
-   * directly without a null check guard.
-   */
-  it("should call child deserializer for required nested model", async () => {
-    const runner = await TesterWithService.createInstance();
-    const { program } = await runner.compile(
-      t.code`
-        model ${t.model("Inner")} {
+      expect(template).toRenderTo(d`
+        export interface Inner {
           value: string;
         }
 
-        model ${t.model("Outer")} {
+        export interface Outer {
           inner: Inner;
         }
 
-        op getOuter(): Outer;
-      `,
-    );
+        export function innerDeserializer(item: any): Inner {
+          return {
+            value: item["value"],
+          };
+        }
 
-    const sdkContext = await createSdkContextForTest(program);
-    const outerModel = sdkContext.sdkPackage.models.find(
-      (m) => m.name === "Outer",
-    )!;
-    const innerModel = sdkContext.sdkPackage.models.find(
-      (m) => m.name === "Inner",
-    )!;
+        export function outerDeserializer(item: any): Outer {
+          return {
+            inner: innerDeserializer(item["inner"]),
+          };
+        }
+      `);
+    });
 
-    const template = (
-      <SdkTestFile sdkContext={sdkContext}>
-        <ModelInterface model={innerModel} />
-        {"\n\n"}
-        <ModelInterface model={outerModel} />
-        {"\n\n"}
-        <JsonDeserializer model={innerModel} />
-        {"\n\n"}
-        <JsonDeserializer model={outerModel} />
-      </SdkTestFile>
-    );
+    /**
+     * Tests that array properties with model elements use .map() with the
+     * child deserializer. This is essential for deserializing lists of complex
+     * objects from response bodies.
+     */
+    it("should deserialize array of models with .map()", () => {
+      const template = (
+        <SdkTestFile sdkContext={sdkContext}>
+          <ModelInterface model={tagModel} />
+          {"\n\n"}
+          <ModelInterface model={itemModel} />
+          {"\n\n"}
+          <JsonDeserializer model={tagModel} />
+          {"\n\n"}
+          <JsonDeserializer model={itemModel} />
+        </SdkTestFile>
+      );
 
-    expect(template).toRenderTo(d`
-      export interface Inner {
-        value: string;
-      }
-
-      export interface Outer {
-        inner: Inner;
-      }
-
-      export function innerDeserializer(item: any): Inner {
-        return {
-          value: item["value"],
-        };
-      }
-
-      export function outerDeserializer(item: any): Outer {
-        return {
-          inner: innerDeserializer(item["inner"]),
-        };
-      }
-    `);
-  });
-
-  /**
-   * Tests that array properties with model elements use .map() with the
-   * child deserializer. This is essential for deserializing lists of complex
-   * objects from response bodies.
-   */
-  it("should deserialize array of models with .map()", async () => {
-    const runner = await TesterWithService.createInstance();
-    const { program } = await runner.compile(
-      t.code`
-        model ${t.model("Tag")} {
+      expect(template).toRenderTo(d`
+        export interface Tag {
           label: string;
         }
 
-        model ${t.model("Item")} {
-          tags: Tag[];
+        export interface Item {
+          tags: (Tag)[];
         }
 
-        op getItem(): Item;
-      `,
-    );
-
-    const sdkContext = await createSdkContextForTest(program);
-    const itemModel = sdkContext.sdkPackage.models.find(
-      (m) => m.name === "Item",
-    )!;
-    const tagModel = sdkContext.sdkPackage.models.find(
-      (m) => m.name === "Tag",
-    )!;
-
-    const template = (
-      <SdkTestFile sdkContext={sdkContext}>
-        <ModelInterface model={tagModel} />
-        {"\n\n"}
-        <ModelInterface model={itemModel} />
-        {"\n\n"}
-        <JsonDeserializer model={tagModel} />
-        {"\n\n"}
-        <JsonDeserializer model={itemModel} />
-      </SdkTestFile>
-    );
-
-    expect(template).toRenderTo(d`
-      export interface Tag {
-        label: string;
-      }
-
-      export interface Item {
-        tags: (Tag)[];
-      }
-
-      export function tagDeserializer(item: any): Tag {
-        return {
-          label: item["label"],
-        };
-      }
-
-      export function itemDeserializer(item: any): Item {
-        return {
-          tags: item["tags"].map((p: any) => { return tagDeserializer(p); }),
-        };
-      }
-    `);
-  });
-
-  /**
-   * Tests that the deserializer refkey is correctly assigned so other
-   * components (e.g., parent model deserializers, operation response handlers)
-   * can reference this deserializer via refkey.
-   */
-  it("should be referenceable via deserializerRefkey", async () => {
-    const runner = await TesterWithService.createInstance();
-    const { program } = await runner.compile(
-      t.code`
-        model ${t.model("Simple")} {
-          id: string;
+        export function tagDeserializer(item: any): Tag {
+          return {
+            label: item["label"],
+          };
         }
 
-        op getSimple(): Simple;
-      `,
-    );
-
-    const sdkContext = await createSdkContextForTest(program);
-    const model = sdkContext.sdkPackage.models[0];
-
-    const template = (
-      <SdkTestFile sdkContext={sdkContext}>
-        <ModelInterface model={model} />
-        {"\n\n"}
-        <JsonDeserializer model={model} />
-        {"\n\n"}
-        {code`const result = ${deserializerRefkey(model)}(raw);`}
-      </SdkTestFile>
-    );
-
-    expect(template).toRenderTo(d`
-      export interface Simple {
-        id: string;
-      }
-
-      export function simpleDeserializer(item: any): Simple {
-        return {
-          id: item["id"],
-        };
-      }
-
-      const result = simpleDeserializer(raw);
-    `);
-  });
-
-  /**
-   * Tests that the deserializer return type references the model interface
-   * via refkey, ensuring Alloy auto-generates imports if the model is in
-   * a different file.
-   */
-  it("should have return type referencing model interface", async () => {
-    const runner = await TesterWithService.createInstance();
-    const { program } = await runner.compile(
-      t.code`
-        model ${t.model("Result")} {
-          value: string;
+        export function itemDeserializer(item: any): Item {
+          return {
+            tags: item["tags"].map((p: any) => { return tagDeserializer(p); }),
+          };
         }
-
-        op getResult(): Result;
-      `,
-    );
-
-    const sdkContext = await createSdkContextForTest(program);
-    const model = sdkContext.sdkPackage.models[0];
-
-    const template = (
-      <SdkTestFile sdkContext={sdkContext}>
-        <ModelInterface model={model} />
-        {"\n\n"}
-        <JsonDeserializer model={model} />
-      </SdkTestFile>
-    );
-
-    // The return type should be the model name (resolved from typeRefkey)
-    expect(template).toRenderTo(d`
-      export interface Result {
-        value: string;
-      }
-
-      export function resultDeserializer(item: any): Result {
-        return {
-          value: item["value"],
-        };
-      }
-    `);
+      `);
+    });
   });
 
   /**

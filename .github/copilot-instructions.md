@@ -423,29 +423,67 @@ code`return ${mySerializerKey}(input);`  // renders as mySerializer(input)
 2. **Context/Integration Tests** (`.test.tsx`) — Set up context chains, verify context values
 3. **Pure Unit Tests** (`.test.ts`) — Standard vitest for pure functions
 
+### Performance: Share Compilations via `beforeAll`
+
+TypeSpec compilation is expensive (~1–2s per call). **Always group tests that use the same TypeSpec input** into a sub-`describe` with a shared `beforeAll` to avoid redundant compilations.
+
+```tsx
+// ✅ GOOD — compile once, share across tests
+describe("basic model", () => {
+  let sdkContext: SdkContext;
+  beforeAll(async () => {
+    const runner = await TesterWithService.createInstance();
+    const { program } = await runner.compile(t.code`model Foo { bar: string; } op get(): Foo;`);
+    sdkContext = await createSdkContextForTest(program);
+  });
+  it("test A", () => { /* use sdkContext */ });
+  it("test B", () => { /* use sdkContext */ });
+});
+
+// ❌ BAD — compiles the same TypeSpec twice
+it("test A", async () => {
+  const runner = await TesterWithService.createInstance();
+  const { program } = await runner.compile(t.code`model Foo { bar: string; } op get(): Foo;`);
+  // ...
+});
+it("test B", async () => {
+  const runner = await TesterWithService.createInstance();
+  const { program } = await runner.compile(t.code`model Foo { bar: string; } op get(): Foo;`);
+  // ...
+});
+```
+
+Tests that need **unique** TypeSpec input can stay as standalone `it()` blocks.
+
 ### Example Component Test
 
 ```tsx
 import "@alloy-js/core/testing";
 import { t } from "@typespec/compiler/testing";
-import { expect, it } from "vitest";
-import { Tester } from "../../test/test-host.js";
-import { TestFile } from "../../test/utils.jsx";
+import { beforeAll, describe, expect, it } from "vitest";
+import { TesterWithService, createSdkContextForTest } from "../test-host.js";
+import { SdkTestFile } from "../utils.jsx";
 import { MyComponent } from "./MyComponent.jsx";
 
-it("renders expected output", async () => {
-  const runner = await Tester.createInstance();
-  const { program } = await runner.compile(t.code`
-    op ${t.op("test")}(): void;
-  `);
+describe("MyComponent", () => {
+  let sdkContext: SdkContext;
+  beforeAll(async () => {
+    const runner = await TesterWithService.createInstance();
+    const { program } = await runner.compile(t.code`
+      model Widget { id: string; }
+      op getWidget(): Widget;
+    `);
+    sdkContext = await createSdkContextForTest(program);
+  });
 
-  const template = (
-    <TestFile program={program}>
-      <MyComponent />
-    </TestFile>
-  );
-
-  expect(template).toRenderTo(`expected output`);
+  it("renders expected output", () => {
+    const template = (
+      <SdkTestFile sdkContext={sdkContext}>
+        <MyComponent />
+      </SdkTestFile>
+    );
+    expect(template).toRenderTo(`expected output`);
+  });
 });
 ```
 
