@@ -119,7 +119,7 @@ export enum KnownExtensibleString {
   /**
    * pascal_case_5
    */
-  PascalCase_5 = "pascal_case_5",
+  PascalCase5 = "pascal_case_5",
   /**
    * pascal_case6
    */
@@ -127,7 +127,7 @@ export enum KnownExtensibleString {
   /**
    * _pascal_case7
    */
-  _PascalCase7 = "_pascal_case7",
+  PascalCase7 = "_pascal_case7",
   /**
    * pascal, case8
    */
@@ -135,11 +135,11 @@ export enum KnownExtensibleString {
   /**
    * MAX_of_MLD
    */
-  MaxOfMld = "MAX_of_MLD",
+  MAXOfMLD = "MAX_of_MLD",
   /**
    * YES OR NO
    */
-  YesOrNo1 = "YES OR NO",
+  YESORNO1 = "YES OR NO",
   /**
    * YES OR NO
    */
@@ -151,7 +151,7 @@ export enum KnownExtensibleString {
   /**
    * ___pascal____case6666
    */
-  ___PascalCase6666 = "___pascal____case6666",
+  PascalCase6666 = "___pascal____case6666",
   /**
    * _10Pascal
    */
@@ -159,19 +159,19 @@ export enum KnownExtensibleString {
   /**
    * 090
    */
-  "090" = "090",
+  _090 = "090",
   /**
    * 10
    */
-  "10" = "10",
+  _10 = "10",
   /**
    * 20
    */
-  "20" = "20",
+  _20 = "20",
   /**
    * 1.0
    */
-  "1_0" = "1.0",
+  _10 = "1.0",
   /**
    * -2.0
    */
@@ -194,15 +194,15 @@ export enum KnownExtensibleNumber {
   /**
    * 2
    */
-  "2" = 2,
+  _2 = 2,
   /**
    * -2.1
    */
-  "2_1" = -2.1,
+  _21 = -2.1,
   /**
    * 3
    */
-  "3" = 3,
+  _3 = 3,
 }
 
 /**

@@ -259,14 +259,18 @@ export function createEmitterNamePolicy(): NamePolicy<TypeScriptElements> {
       return name.replace("$DO_NOT_NORMALIZE$", "");
     }
 
-    // Apply case conversion (same as createTSNamePolicy)
+    // Apply case conversion
     let transformed: string;
     switch (element) {
+      case "enum-member":
+        // Enum members use legacy normalization which preserves ≤3-char
+        // ALL-CAPS segments and prefixes leading digits with _
+        transformed = normalizeEnumMemberName(name);
+        break;
       case "class":
       case "type":
       case "interface":
       case "enum":
-      case "enum-member":
         transformed = pascalCase(name, caseOptions);
         break;
       default:
@@ -309,4 +313,93 @@ export function getEscapedParameterName(name: string): string {
     return `${cased}Param`;
   }
   return cased;
+}
+
+// ---------------------------------------------------------------------------
+// Legacy enum member normalization
+//
+// Ported from autorest.typescript/packages/rlc-common/src/helpers/nameUtils.ts.
+// Uses a custom word-splitting algorithm (deconstruct) that differs from
+// change-case's pascalCase in how it handles ALL-CAPS segments, leading
+// underscores, and numeric prefixes.
+// ---------------------------------------------------------------------------
+
+/**
+ * Normalize an enum member name using legacy conventions.
+ *
+ * 1. Split into word parts via `deconstruct()` (handles camelCase boundaries,
+ *    underscores, numbers, and ALL-CAPS segments)
+ * 2. Apply PascalCase with ALL-CAPS preservation for segments ≤3 chars
+ * 3. Prefix `_` for leading digits
+ */
+function normalizeEnumMemberName(name: string): string {
+  const parts = deconstruct(name);
+  if (parts.length === 0) return name;
+
+  const [first, ...rest] = parts;
+  const result =
+    toPascal(first, true) + rest.map((p) => toPascal(p, false)).join("");
+  return fixLeadingNumber(result);
+}
+
+/**
+ * Split an identifier into word parts, preserving ALL-CAPS segments ≤3 chars.
+ *
+ * Examples:
+ * - `"pascal_case_5"` → `["pascal", "case", "5"]`
+ * - `"MAX_of_MLD"` → `["MAX", "of", "MLD"]`
+ * - `"___pascal____case6666"` → `["pascal", "case", "6666"]`
+ * - `"YES_OR_NO1"` → `["YES", "OR", "NO", "1"]`
+ */
+function deconstruct(identifier: string): string[] {
+  return `${identifier}`
+    .replace(/([a-z]+)([A-Z])/g, "$1 $2")
+    .replace(/(\d+)/g, " $1 ")
+    .replace(/_/g, " ")
+    .replace(/\b([A-Z]+)([A-Z])s([^a-z])(.*)/g, "$1$2\u00AB $3$4")
+    .replace(/\b([A-Z]+)([A-Z])([a-z]+)/g, "$1 $2$3")
+    .replace(/\u00AB/g, "s")
+    .trim()
+    .split(/[\W|_]+/)
+    .map((each) => (isFullyUpperCase(each) ? each : each.toLowerCase()))
+    .filter((part) => !!part);
+}
+
+/**
+ * Check if a segment is fully uppercase and ≤ maxUppercasePreserve chars.
+ * These segments are preserved as-is (e.g., "MAX", "MLD", "SAS", "IP").
+ */
+function isFullyUpperCase(
+  identifier: string,
+  maxUppercasePreserve: number = 3,
+): boolean {
+  const len = identifier.length;
+  if (len > 1) {
+    if (len <= maxUppercasePreserve && identifier === identifier.toUpperCase()) {
+      return true;
+    }
+    // Plural forms like "MBs"
+    if (len <= maxUppercasePreserve + 1 && identifier.endsWith("s")) {
+      const stem = identifier.substring(0, len - 1);
+      if (stem.toUpperCase() === stem) return true;
+    }
+  }
+  return false;
+}
+
+/**
+ * Apply PascalCase to a single word part.
+ * If keepConsistent is true and the part is ALL-CAPS, it stays ALL-CAPS
+ * (only relevant for the first part with camelCase convention, not used here).
+ */
+function toPascal(str: string, _keepConsistent: boolean): string {
+  return str.charAt(0).toUpperCase() + str.substring(1);
+}
+
+/**
+ * Prefix `_` if the name starts with a digit.
+ */
+function fixLeadingNumber(name: string): string {
+  if (!name || !/^[-.]?\d/.test(name)) return name;
+  return `_${name}`;
 }

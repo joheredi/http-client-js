@@ -1193,27 +1193,27 @@ export enum KnownImageSize {
    * Very small image size of 256x256 pixels.
    * Only supported with dall-e-2 models.
    */
-  Size256x256 = "256x256",
+  Size256X256 = "256x256",
   /**
    * A smaller image size of 512x512 pixels.
    * Only supported with dall-e-2 models.
    */
-  Size512x512 = "512x512",
+  Size512X512 = "512x512",
   /**
    * A standard, square image size of 1024x1024 pixels.
    * Supported by both dall-e-2 and dall-e-3 models.
    */
-  Size1024x1024 = "1024x1024",
+  Size1024X1024 = "1024x1024",
   /**
    * A wider image size of 1024x1792 pixels.
    * Only supported with dall-e-3 models.
    */
-  Size1792x1024 = "1792x1024",
+  Size1792X1024 = "1792x1024",
   /**
    * A taller image size of 1792x1024 pixels.
    * Only supported with dall-e-3 models.
    */
-  Size1024x1792 = "1024x1792",
+  Size1024X1792 = "1024x1792",
 }
 ```
 
