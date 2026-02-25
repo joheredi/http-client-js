@@ -206,12 +206,22 @@ export enum KnownExtensibleNumber {
 }
 
 /**
- * Type of Versions
+ * The available API versions.
  */
-export type Versions =
-  | "2024-07-01-preview"
-  | "2024-07-01"
-  | "2024-08-01-preview";
+export enum KnownVersions {
+  /**
+   * 2024-07-01-preview
+   */
+  PreviewVersion = "2024-07-01-preview",
+  /**
+   * 2024-07-01
+   */
+  StableVersion = "2024-07-01",
+  /**
+   * 2024-08-01-preview
+   */
+  "2024-08-01-preview" = "2024-08-01-preview",
+}
 
 export function fooSerializer(item: Foo): any {
   return {

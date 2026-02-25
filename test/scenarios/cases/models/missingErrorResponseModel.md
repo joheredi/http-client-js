@@ -129,9 +129,14 @@ export interface InnerError {
 }
 
 /**
- * Type of Versions
+ * The available API versions.
  */
-export type Versions = "2023-03-01-preview";
+export enum KnownVersions {
+  /**
+   * Version 2023-03-01-preview
+   */
+  V20230301Preview = "2023-03-01-preview",
+}
 
 export function assetChainSummaryResultDeserializer(
   item: any,

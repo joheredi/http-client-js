@@ -3161,3 +3161,75 @@ When `@@override` groups individual query/header parameters into a model paramet
 - The 3 remaining skipped tests are blocked on external issues (TCGC #3088, TypeSpec #6983, TCGC #1419)
 - The vitest worker timeout error is an infrastructure issue, not a test failure.
 - RC15 (API version enum vs type alias) is a good next target — well-scoped, public API surface difference.
+
+## 2026-02-25 — RC15/SA5: API Version Types Emitted as KnownVersions Enum
+
+### What was done
+- **Fixed API version enum generation** to produce `enum KnownVersions { ... }` instead
+  of `type Versions = "..."` for version enums used only by the `@versioned` decorator.
+  This matches the legacy emitter's behavior and fixes a public API surface difference.
+
+- **Modified `src/components/enum-declaration.tsx`**:
+  - Added `isApiVersionEnumOnly()` function that checks `UsageFlags.ApiVersionEnum` flag
+    without Input/Output flags (detecting version-only enums)
+  - Added `ApiVersionEnumDeclaration` component that renders `enum Known${type.name}`
+    with PascalCase member names (e.g., `v2021_10_01_preview` → `V20211001Preview`)
+  - Added `normalizeVersionMemberName()` function for PascalCase conversion of version
+    identifiers (split on underscores, capitalize first char, join)
+  - Used `namekey(name, { ignoreNamePolicy: true })` to prevent Alloy's name policy
+    from re-transforming the already-normalized name
+  - API version enums referenced by operations (Input usage) still generate as
+    normal type aliases (no change to existing behavior)
+
+- **Added 4 unit tests** in `test/components/enum-declaration.test.tsx`:
+  - API version enum renders as KnownVersions enum only (no type alias)
+  - Multi-version enum has PascalCase members (V20231201, V20240615)
+  - Version enum referenced by operation still renders as type alias
+  - isApiVersionEnumOnly utility function with various UsageFlags combinations
+
+- **Updated 8 scenario test expectations**:
+  - apiVersionAsKnownVersions.md — `type Versions` → `enum KnownVersions`
+  - azureCoreErrorModels.md — `type Versions` → `enum KnownVersions`
+  - extends.md — `type Versions` → `enum KnownVersions`
+  - missingErrorResponseModel.md — `type Versions` → `enum KnownVersions`
+  - experimentalExtensibleEnumsTrue.md — `type Versions` → `enum KnownVersions`
+  - experimentalExtensibleEnumsFalse.md — `type Versions` → `enum KnownVersions`
+  - enumKeyNorm.md — `type Versions` → `enum KnownVersions` (with clientName-renamed members)
+  - lroPaging.md — `type Versions` → `enum KnownVersions`
+
+- **Updated PRD**: Marked RC15 and SA5 as done.
+
+### Test Results
+- Before: 844 passed, 3 skipped, 48 test files
+- After: 848 passed, 3 skipped, 48 test files (4 new tests)
+- Zero regressions in existing tests
+
+### Architecture decisions
+- **`UsageFlags.ApiVersionEnum` detection**: The key insight is that TCGC marks version
+  enums with `ApiVersionEnum` flag. When the enum is ONLY used for versioning (not
+  referenced by operations), `isApiVersionEnumOnly` returns true. When also used as an
+  operation parameter, the `Input` flag is set and it's treated as a normal fixed enum.
+- **`namekey({ ignoreNamePolicy: true })` pattern**: Alloy's TypeScript name policy
+  applies PascalCase via `change-case`, but it preserves underscores between numbers
+  (producing `V2023_12_01` instead of `V20231201`). Using `namekey` with
+  `ignoreNamePolicy` bypasses this and uses our pre-normalized name directly.
+- **Dual refkey registration**: The `ApiVersionEnumDeclaration` registers both
+  `knownValuesRefkey(type)` and `typeRefkey(type)` on the same enum declaration.
+  This ensures both reference paths resolve correctly to the Known enum.
+
+### Files Changed
+- `src/components/enum-declaration.tsx` — Added API version enum detection and rendering
+- `test/components/enum-declaration.test.tsx` — Added 4 new tests
+- 8 scenario test files — Updated expectations
+- `prd.json` — RC15, SA5 marked done
+
+### Notes for next person
+- Completed: All Phases 0-10, Tasks 11.02, 11.04, 11.07, SA4, SA5, SA11, SA20, SA3,
+  RC01-RC09, RC13, RC15, RC19, RC20, RC29 (DONE).
+- **Remaining P1 tasks**: RC10, RC11, RC14, RC16-RC18, RC21-RC28, RC30
+- **Remaining P2 tasks**: RC12, RC31-RC34
+- **RC16 (Enum member name normalization)** is a natural follow-up — same code area.
+  The `enumKeyNorm.md` scenario shows members like `"2024-08-01-preview"` that need
+  better normalization (legacy would produce proper PascalCase identifiers).
+- The 3 remaining skipped tests are blocked on external issues (TCGC #3088, TypeSpec #6983, TCGC #1419)
+- The vitest worker timeout error is an infrastructure issue, not a test failure.

@@ -256,9 +256,14 @@ export type CreatedByType = "User" | "Application" | "ManagedIdentity" | "Key";
 export type ResourceProvisioningState = "Succeeded" | "Failed" | "Canceled";
 
 /**
- * Type of Versions
+ * The available API versions.
  */
-export type Versions = "2023-12-01";
+export enum KnownVersions {
+  /**
+   * 2023-12-01
+   */
+  V20231201 = "2023-12-01",
+}
 
 export function webAppCollectionDeserializer(item: any): WebAppCollection {
   return {

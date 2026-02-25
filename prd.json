@@ -2446,7 +2446,7 @@
           "id": "RC15",
           "title": "API version types emitted as union type alias instead of KnownVersions enum",
           "priority": "P1",
-          "status": "not_started",
+          "status": "done",
           "root_cause": "enum-declaration.tsx generates KnownVersions enum only when experimentalExtensibleEnums is true AND the enum is not fixed. API version enums are typically fixed, so they get a simple type alias. Legacy always generates KnownVersions enum for versions.",
           "file": "src/components/enum-declaration.tsx",
           "description": "API version exports 'type Versions = \"2021-10-01-preview\"' instead of 'enum KnownVersions { V20211001Preview = \"...\" }'. This is a public API surface difference.",
@@ -2792,7 +2792,7 @@
         "priority": "P1",
         "description": "NEW generates 'export type Versions = \"2021-10-01-preview\"' (simple type alias). LEGACY generates 'export enum KnownVersions { V20211001Preview = \"2021-10-01-preview\" }' (full enum with PascalCase members). This is a public API surface difference.",
         "affected_scenarios": "models/apiVersion/*.md, models/azureCoreErrorModels.md, models/missingErrorResponseModel.md, models/nestedEnum/flatten/*.md, models/propertyFlatten/mulipleLayers.md, operations/lroPaging.md",
-        "status": "tracked"
+        "status": "done"
       },
       {
         "id": "SA6",

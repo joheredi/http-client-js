@@ -27,11 +27,12 @@ import { code } from "@alloy-js/core";
 import { InterfaceDeclaration, InterfaceMember } from "@alloy-js/typescript";
 import { t } from "@typespec/compiler/testing";
 import { describe, expect, it } from "vitest";
-import { EnumDeclaration } from "../../src/components/enum-declaration.js";
+import { EnumDeclaration, isApiVersionEnumOnly } from "../../src/components/enum-declaration.js";
 import { getTypeExpression } from "../../src/components/type-expression.js";
 import { typeRefkey } from "../../src/utils/refkeys.js";
-import { TesterWithService, createSdkContextForTest } from "../test-host.js";
+import { TesterWithService, RawTester, createSdkContextForTest } from "../test-host.js";
 import { SdkTestFile } from "../utils.jsx";
+import { UsageFlags } from "@azure-tools/typespec-client-generator-core";
 
 describe("Enum Declaration", () => {
   /**
@@ -361,5 +362,185 @@ describe("Enum Declaration", () => {
        */
       export type Singleton = "only";
     `);
+  });
+
+  /**
+   * Tests that API version enums (used only by @versioned decorator) generate
+   * a KnownXxx enum instead of a type alias. This is critical for public API
+   * parity with the legacy emitter, which produces `enum KnownVersions { ... }`
+   * for API version enums. The enum uses PascalCase member names
+   * (e.g., `v2021_10_01_preview` → `V20211001Preview`).
+   */
+  it("should render API version enum as Known enum only (no type alias)", async () => {
+    const runner = await RawTester.createInstance();
+    const { program } = await runner.compile(`
+      import "@typespec/versioning";
+      import "@typespec/http";
+      using TypeSpec.Versioning;
+      using TypeSpec.Http;
+
+      #suppress "@azure-tools/typespec-azure-core/auth-required" "for test"
+      @service(#{
+        title: "Test Service",
+      })
+      @versioned(TestService.Versions)
+      namespace TestService;
+
+      /** The available API versions. */
+      enum Versions {
+        /** 2021-10-01-preview version */
+        v2021_10_01_preview: "2021-10-01-preview",
+      }
+
+      op foo(): void;
+    `);
+
+    const sdkContext = await createSdkContextForTest(program);
+    const enumType = sdkContext.sdkPackage.enums.find(
+      (e) => (e.usage & UsageFlags.ApiVersionEnum) !== 0,
+    );
+    expect(enumType).toBeDefined();
+
+    const template = (
+      <SdkTestFile sdkContext={sdkContext}>
+        <EnumDeclaration type={enumType!} />
+      </SdkTestFile>
+    );
+
+    expect(template).toRenderTo(`
+      /**
+       * The available API versions.
+       */
+      export enum KnownVersions {
+        /**
+         * 2021-10-01-preview version
+         */
+        V20211001Preview = "2021-10-01-preview",
+      }
+    `);
+  });
+
+  /**
+   * Tests that an API version enum with multiple versions generates a Known enum
+   * with PascalCase members for each version. Ensures the naming transformation
+   * (e.g., `v2023_12_01` → `V20231201`) handles numeric-only segments correctly.
+   */
+  it("should render multi-version API version enum with PascalCase members", async () => {
+    const runner = await RawTester.createInstance();
+    const { program } = await runner.compile(`
+      import "@typespec/versioning";
+      import "@typespec/http";
+      using TypeSpec.Versioning;
+      using TypeSpec.Http;
+
+      #suppress "@azure-tools/typespec-azure-core/auth-required" "for test"
+      @service(#{
+        title: "Test Service",
+      })
+      @versioned(TestService.Versions)
+      namespace TestService;
+
+      /** Versions info. */
+      enum Versions {
+        /** The 2023-12-01 version. */
+        v2023_12_01: "2023-12-01",
+        /** The 2024-06-15 version. */
+        v2024_06_15: "2024-06-15",
+      }
+
+      op foo(): void;
+    `);
+
+    const sdkContext = await createSdkContextForTest(program);
+    const enumType = sdkContext.sdkPackage.enums.find(
+      (e) => (e.usage & UsageFlags.ApiVersionEnum) !== 0,
+    );
+    expect(enumType).toBeDefined();
+
+    const template = (
+      <SdkTestFile sdkContext={sdkContext}>
+        <EnumDeclaration type={enumType!} />
+      </SdkTestFile>
+    );
+
+    expect(template).toRenderTo(`
+      /**
+       * Versions info.
+       */
+      export enum KnownVersions {
+        /**
+         * The 2023-12-01 version.
+         */
+        V20231201 = "2023-12-01",
+        /**
+         * The 2024-06-15 version.
+         */
+        V20240615 = "2024-06-15",
+      }
+    `);
+  });
+
+  /**
+   * Tests that an API version enum referenced by an operation parameter
+   * is NOT treated as an API-version-only enum. When the version enum
+   * is used as an explicit parameter type (not just for @versioned),
+   * TCGC adds Input flags, so it should be generated as a normal type alias.
+   * This is the case described in apiVersionAsFixedEnum scenario.
+   */
+  it("should render version enum referenced by operation as normal type alias", async () => {
+    const runner = await RawTester.createInstance();
+    const { program } = await runner.compile(`
+      import "@typespec/versioning";
+      import "@typespec/http";
+      using TypeSpec.Versioning;
+      using TypeSpec.Http;
+
+      #suppress "@azure-tools/typespec-azure-core/auth-required" "for test"
+      @service(#{
+        title: "Test Service",
+      })
+      @versioned(TestService.Versions)
+      namespace TestService;
+
+      /** The available API versions. */
+      enum Versions {
+        /** 2021-10-01-preview version */
+        v2021_10_01_preview: "2021-10-01-preview",
+      }
+
+      op foo(@header apiVersion: Versions): void;
+    `);
+
+    const sdkContext = await createSdkContextForTest(program);
+    // This enum has both ApiVersionEnum and Input usage, so it should be treated as normal
+    const enumType = sdkContext.sdkPackage.enums[0];
+
+    const template = (
+      <SdkTestFile sdkContext={sdkContext}>
+        <EnumDeclaration type={enumType} />
+      </SdkTestFile>
+    );
+
+    expect(template).toRenderTo(`
+      /**
+       * The available API versions.
+       */
+      export type Versions = "2021-10-01-preview";
+    `);
+  });
+
+  /**
+   * Tests the isApiVersionEnumOnly helper function directly. This utility
+   * is exported for use by other components and must correctly distinguish
+   * API-version-only enums from enums with mixed usage.
+   */
+  it("isApiVersionEnumOnly should detect API version enum usage correctly", () => {
+    const makeEnum = (usage: number) => ({ usage } as any);
+
+    expect(isApiVersionEnumOnly(makeEnum(UsageFlags.ApiVersionEnum))).toBe(true);
+    expect(isApiVersionEnumOnly(makeEnum(UsageFlags.ApiVersionEnum | UsageFlags.Input))).toBe(false);
+    expect(isApiVersionEnumOnly(makeEnum(UsageFlags.ApiVersionEnum | UsageFlags.Output))).toBe(false);
+    expect(isApiVersionEnumOnly(makeEnum(UsageFlags.Input))).toBe(false);
+    expect(isApiVersionEnumOnly(makeEnum(UsageFlags.None))).toBe(false);
   });
 });

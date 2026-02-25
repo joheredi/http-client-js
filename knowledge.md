@@ -1345,3 +1345,52 @@ export function nameConflictResolver(name: string, symbols: unknown[]): void {
 resolver handled the `LocalImportSymbol` flag. Since we cannot modify submodules, the
 wrapper approach is the correct fix. Unit tests for the `OperationFiles` component didn't
 catch this because they didn't pass `nameConflictResolver` to `Output`.
+
+## Alloy Name Policy Preserves Underscores Between Numbers
+
+**Problem**: Alloy's TypeScript name policy uses `change-case` `pascalCase()` with
+`{ prefixCharacters: "$_", suffixCharacters: "$_" }`. This means underscores between
+numeric segments are preserved: `v2023_12_01` → `V2023_12_01` (not `V20231201`).
+
+**Workaround**: Use `namekey(normalizedName, { ignoreNamePolicy: true })` to pass a
+pre-normalized name to `TsEnumMember` (or any Alloy component accepting `Namekey`).
+This bypasses the name policy entirely for that specific symbol.
+
+**Example**:
+```tsx
+import { namekey } from "@alloy-js/core";
+
+// This would produce V2023_12_01 (wrong):
+<TsEnumMember name="v2023_12_01" jsValue="2023-12-01" />
+
+// This produces V20231201 (correct):
+<TsEnumMember name={namekey("V20231201", { ignoreNamePolicy: true })} jsValue="2023-12-01" />
+```
+
+## TCGC ApiVersionEnum Usage Flag
+
+**Discovery**: TCGC sets `UsageFlags.ApiVersionEnum = 8` on enums declared with the
+`@versioned()` decorator. The `sdkPackage.enums` property includes all enums (does NOT
+filter out API version enums). To detect version-only enums, check:
+```typescript
+const isApiVersionOnly = (type.usage & UsageFlags.ApiVersionEnum) !== 0
+  && (type.usage & UsageFlags.Input) === 0
+  && (type.usage & UsageFlags.Output) === 0;
+```
+
+When a version enum is also used as an operation parameter (e.g., `@header apiVersion: Versions`),
+TCGC adds `Input` flags, and `isApiVersionOnly` returns false.
+
+## Alloy TsEnumDeclaration refkey Prop Accepts Arrays
+
+The `refkey` prop on `TsEnumDeclaration` (and most Alloy declaration components) accepts
+`Refkey | Refkey[]`. Passing an array registers multiple refkeys for the same declaration,
+so references via any of those refkeys resolve to the same symbol.
+
+```tsx
+<TsEnumDeclaration
+  name="KnownVersions"
+  refkey={[knownValuesRefkey(type), typeRefkey(type)]}  // Both resolve to KnownVersions
+  export
+>
+```
