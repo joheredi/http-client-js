@@ -39,14 +39,10 @@ import { getClientName } from "./client-context.js";
  * - Operation group factory functions (`_getXxxOperations`)
  *
  * @returns An Alloy JSX tree for the root `index.ts` source file, or
- *          `undefined` if the SDK package has no clients.
+ *          `undefined` if neither clients nor exportable models exist.
  */
 export function RootIndexFile() {
   const { clients, models, enums, unions } = useSdkContext();
-
-  if (clients.length === 0) {
-    return undefined;
-  }
 
   // Filter unions to only named SdkUnionType (exclude SdkNullableType)
   const namedUnions = unions.filter(
@@ -55,6 +51,20 @@ export function RootIndexFile() {
 
   // Collect model export names
   const modelExportNames = buildModelExportNames(models, enums, namedUnions);
+
+  // For model-only packages (no clients), generate root index that re-exports
+  // models. This matches the legacy emitter behavior where model-only packages
+  // still get a root index.ts with model exports.
+  if (clients.length === 0) {
+    if (modelExportNames.length === 0) {
+      return undefined;
+    }
+    return (
+      <SourceFile path="index.ts">
+        {buildExportStatement(modelExportNames, "./models/index.js")}
+      </SourceFile>
+    );
+  }
 
   // Collect per-client export info
   const clientExports = clients.map((client) => ({
@@ -248,14 +258,10 @@ export function ClassicIndexFile() {
  * - Internal helper types
  *
  * @returns An Alloy JSX tree containing all index files, or `undefined`
- *          if the SDK package has no clients.
+ *          if the SDK package has neither clients nor exportable models.
  */
 export function IndexFiles() {
   const { clients, models, enums, unions } = useSdkContext();
-
-  if (clients.length === 0) {
-    return undefined;
-  }
 
   const namedUnions = unions.filter(
     (u): u is SdkUnionType => u.kind === "union",
@@ -263,6 +269,23 @@ export function IndexFiles() {
 
   const hasModels =
     models.length > 0 || enums.length > 0 || namedUnions.length > 0;
+
+  // For model-only packages (no clients), only generate root index and
+  // models index if there are models to export.
+  if (clients.length === 0) {
+    if (!hasModels) {
+      return undefined;
+    }
+    return (
+      <>
+        <RootIndexFile />
+        <SourceDirectory path="models">
+          <ModelsIndexFile />
+        </SourceDirectory>
+      </>
+    );
+  }
+
   const hasOperationGroups = clients.some(
     (c) => c.children && c.children.length > 0,
   );

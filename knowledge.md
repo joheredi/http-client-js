@@ -1098,3 +1098,26 @@ operation's `@doc` text. Using `example.doc` produces descriptions like "read" i
 
 **Fix**: Use `method.doc` (from TCGC's service method, which reflects the `@doc` decorator)
 as the primary source, falling back to `example.doc` and then `execute ${example.name}`.
+
+## Model-Only Package Index Generation
+
+**Problem**: When a TypeSpec package has models but no clients/operations (model-only), the emitter
+didn't generate `src/index.ts` or `src/models/index.ts`. Both `RootIndexFile()` and `IndexFiles()`
+returned `undefined` when `clients.length === 0`.
+
+**Fix**: Modified both components to check for models even when there are no clients. If models
+exist (models, enums, or unions), generate root index.ts with model re-exports and models/index.ts.
+
+**Key insight**: The legacy emitter's `buildRootIndex.ts` (line 31) has: "we still need to export
+the models if no client is provided" — model-only packages are a supported use case where shared
+types are defined in one TypeSpec package and consumed by others.
+
+## Scenario Harness Missing File Handling
+
+**Problem**: When a scenario test expected a file that wasn't generated (e.g., `ts root index` for
+an empty package), the harness threw "No output file found for legacy category X" which was not
+a helpful assertion failure.
+
+**Fix**: Modified `getExcerptForQuery()` to return `// (file was not generated)` sentinel when a
+legacy category file doesn't exist, allowing tests to explicitly assert file absence. Tests that
+expect an empty or missing file should use this sentinel in their expected output.

@@ -1454,7 +1454,7 @@
         {
           "id": "10.2",
           "title": "Fix XML serializer/deserializer function lookup (21 failures)",
-          "status": "not_started",
+          "status": "done",
           "description": "21 XML serializer tests fail with 'Could not find function X in file src/models/models.ts'. The XML serializer components (xml-serializer.tsx, xml-deserializer.tsx, xml-object-serializer.tsx, xml-object-deserializer.tsx) use the correct naming convention (e.g., retentionPolicyXmlSerializer) but the functions cannot be found in the generated models.ts output. Need to investigate whether: (a) the XML serializers are being rendered at all, (b) they end up in a different file, or (c) there's a naming mismatch between what's generated and what the tests expect.",
           "failure_count": 21,
           "affected_scenarios": [
@@ -1463,7 +1463,8 @@
             "payload/xml/xmlArrayItemsNameWrapping.md"
           ],
           "error_pattern": "Could not find function \"*Xml*\" in file \"src/models/models.ts\"",
-          "component": "src/components/serialization/xml-serializer.tsx, xml-deserializer.tsx, xml-object-serializer.tsx, xml-object-deserializer.tsx"
+          "component": "src/components/serialization/xml-serializer.tsx, xml-deserializer.tsx, xml-object-serializer.tsx, xml-object-deserializer.tsx",
+          "notes": "XML failures were already resolved in a previous session. No XML failures remain."
         },
         {
           "id": "10.3",
@@ -1543,14 +1544,15 @@
         {
           "id": "10.7",
           "title": "Fix model-only package root index generation (3 failures)",
-          "status": "not_started",
+          "status": "done",
           "description": "3 tests fail because root index.ts is not generated for model-only packages (no operations, just models). In `index-file.tsx`, `RootIndexFile()` returns undefined when `clients.length === 0`. For model-only packages with `@usage` annotation, models.ts IS generated but root index.ts is not. The fix: modify `RootIndexFile()` to generate index.ts even without clients if models/enums/unions exist. Also handle the case where no models should be generated (without @usage) \u2014 the test expects an empty output with only helper files.",
           "failure_count": 3,
           "affected_scenarios": [
             "modelsGenerator/modelsGenerator.md"
           ],
           "error_pattern": "No output file found for legacy category \"root index\" / \"models\"",
-          "component": "src/components/index-file.tsx (RootIndexFile, IndexFiles)"
+          "component": "src/components/index-file.tsx (RootIndexFile, IndexFiles)",
+          "notes": "Fixed by modifying RootIndexFile() and IndexFiles() to generate root index and models index for model-only packages (no clients). Also updated scenario harness to gracefully handle missing files with sentinel comment."
         },
         {
           "id": "10.8",
@@ -1567,14 +1569,15 @@
         {
           "id": "10.9",
           "title": "Fix empty project classicClient output (1 failure)",
-          "status": "not_started",
+          "status": "done",
           "description": "1 test fails because the empty project generates only helper files (no client file). The test `emptyProject/emptyProject.md` expects a `classicClient` category but the emitter only generates static helper files when `sdkPackage.clients` is empty. This may be a test expectation issue (the expected output is likely empty) rather than a real generation bug \u2014 the test harness throws when it can't resolve the 'classicClient' category. Fix: either update the harness to handle empty expected output for classicClient, or update the test expectation, or conditionally skip the classicClient assertion when no clients exist.",
           "failure_count": 1,
           "affected_scenarios": [
             "emptyProject/emptyProject.md"
           ],
           "error_pattern": "No output file found for legacy category \"classicClient\"",
-          "component": "test/scenarios/scenario-harness.ts or test/scenarios/cases/emptyProject/emptyProject.md"
+          "component": "test/scenarios/scenario-harness.ts or test/scenarios/cases/emptyProject/emptyProject.md",
+          "notes": "Fixed by updating scenario harness to return sentinel for missing files, and updating expected test output."
         }
       ]
     }

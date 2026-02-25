@@ -404,9 +404,22 @@ function getExcerptForQuery(
     return getSamplesConcatenated(outputs);
   }
 
-  // Resolve legacy category names to actual file paths
+  // Resolve legacy category names to actual file paths.
+  // If the file doesn't exist, return a sentinel comment so that
+  // tests expecting "// (file was not generated)" or empty content
+  // can still match against a missing file.
   if (isLegacyCategory(filePath)) {
-    filePath = resolveLegacyCategory(filePath, outputs);
+    const resolver = LEGACY_CATEGORIES[filePath];
+    if (!resolver) {
+      throw new Error(
+        `Unknown legacy category "${filePath}". Known categories: ${Object.keys(LEGACY_CATEGORIES).join(", ")}`,
+      );
+    }
+    const resolved = resolver(outputs);
+    if (!resolved) {
+      return "// (file was not generated)";
+    }
+    filePath = resolved;
   }
 
   const content = outputs[filePath];

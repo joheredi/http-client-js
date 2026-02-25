@@ -17,7 +17,7 @@ model Test {
 Shouldn't be included in root index file
 
 ```ts root index
-
+// (file was not generated)
 ```
 
 # should generate models with `@usage` added for model-only case

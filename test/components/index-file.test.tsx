@@ -325,15 +325,64 @@ describe("RootIndexFile", () => {
 
   /**
    * Tests that the root index returns undefined for empty SDK packages
-   * (no clients). This prevents generating a useless empty index file.
+   * (no clients AND no models). This prevents generating a useless empty
+   * index file when there's truly nothing to export.
    */
-  it("should return undefined when no clients exist", async () => {
+  it("should return undefined when no clients and no models exist", async () => {
     const runner = await TesterWithService.createInstance();
     const { program } = await runner.compile(t.code``);
 
     const sdkContext = await createSdkContextForTest(program);
 
-    // Override clients to be empty for this test
+    // Override to have no clients and no models
+    const mockContext = {
+      ...sdkContext,
+      sdkPackage: {
+        ...sdkContext.sdkPackage,
+        clients: [],
+        models: [],
+        enums: [],
+        unions: [],
+      },
+    } as typeof sdkContext;
+
+    const template = (
+      <MinimalIndexWrapper sdkContext={mockContext}>
+        <RootIndexFile />
+      </MinimalIndexWrapper>
+    );
+
+    const result = renderToString(template);
+
+    // Should not contain any export statements
+    expect(result).not.toContain("export");
+  });
+
+  /**
+   * Tests that the root index generates model exports even when there
+   * are no clients (model-only package). The legacy emitter supports
+   * model-only packages where models with @usage annotations are exported
+   * through the root index.ts without any client or operation layer.
+   *
+   * This is important because some TypeSpec packages define only models
+   * (shared types) that other packages depend on. These still need a
+   * proper root index.ts to be importable.
+   */
+  it("should export models in root index for model-only packages (no clients)", async () => {
+    const runner = await TesterWithService.createInstance();
+    const { program } = await runner.compile(
+      t.code`
+        model Widget {
+          name: string;
+        }
+
+        @get op getWidget(): Widget;
+      `,
+    );
+
+    const sdkContext = await createSdkContextForTest(program);
+
+    // Simulate model-only: keep models but remove clients
     const mockContext = {
       ...sdkContext,
       sdkPackage: {
@@ -350,8 +399,11 @@ describe("RootIndexFile", () => {
 
     const result = renderToString(template);
 
-    // Should not contain any export statements
-    expect(result).not.toContain("export");
+    expect(result).toContain('export { Widget } from "./models/index.js"');
+    // Should not contain any client-related exports
+    expect(result).not.toContain("Context");
+    expect(result).not.toContain("OptionalParams");
+    expect(result).not.toContain("create");
   });
 
   /**
@@ -553,14 +605,60 @@ describe("IndexFiles", () => {
 
   /**
    * Tests that the IndexFiles orchestrator returns undefined when
-   * there are no clients in the SDK package.
+   * there are no clients and no models in the SDK package.
    */
-  it("should return undefined when no clients exist", async () => {
+  it("should return undefined when no clients and no models exist", async () => {
     const runner = await TesterWithService.createInstance();
     const { program } = await runner.compile(t.code``);
 
     const sdkContext = await createSdkContextForTest(program);
 
+    const mockContext = {
+      ...sdkContext,
+      sdkPackage: {
+        ...sdkContext.sdkPackage,
+        clients: [],
+        models: [],
+        enums: [],
+        unions: [],
+      },
+    } as typeof sdkContext;
+
+    const template = (
+      <MinimalIndexWrapper sdkContext={mockContext}>
+        <IndexFiles />
+      </MinimalIndexWrapper>
+    );
+
+    const result = renderToString(template);
+
+    expect(result).not.toContain("export");
+  });
+
+  /**
+   * Tests that the IndexFiles orchestrator generates root index and
+   * models index for model-only packages (no clients but has models).
+   * Model-only packages still need a proper public API entry point.
+   *
+   * This validates the fix for model-only package support where the
+   * legacy emitter generates root index.ts even without clients, as
+   * long as there are models with @usage annotations.
+   */
+  it("should produce root and models index files for model-only packages", async () => {
+    const runner = await TesterWithService.createInstance();
+    const { program } = await runner.compile(
+      t.code`
+        model Widget {
+          name: string;
+        }
+
+        @get op getWidget(): Widget;
+      `,
+    );
+
+    const sdkContext = await createSdkContextForTest(program);
+
+    // Simulate model-only: keep models but remove clients
     const mockContext = {
       ...sdkContext,
       sdkPackage: {
@@ -577,7 +675,13 @@ describe("IndexFiles", () => {
 
     const result = renderToString(template);
 
-    expect(result).not.toContain("export");
+    // Root index should export models
+    expect(result).toContain('export { Widget } from "./models/index.js"');
+    // Models index should exist
+    expect(result).toContain('./models.js"');
+    // No API or classic index files should be generated
+    expect(result).not.toContain("Context");
+    expect(result).not.toContain("operations.js");
   });
 
   /**

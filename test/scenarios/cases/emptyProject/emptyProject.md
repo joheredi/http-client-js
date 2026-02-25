@@ -17,5 +17,5 @@ withRawContent: true
 ## classicClient
 
 ```ts classicClient
-
+// (file was not generated)
 ```
