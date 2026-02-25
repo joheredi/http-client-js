@@ -37,9 +37,13 @@ export interface User {
 export async function getUser(
   context: Client_1,
   options: GetUserOptionalParams_1 = { requestOptions: {} },
-): Promise<User_1> {
+): Promise<
+  User_1 & { userId?: string; createdAt?: Date; contentType: "application/xml" }
+> {
   const result = await _getUserSend(context, options);
-  return _getUserDeserialize(result);
+  const headers = _getUserDeserializeHeaders(result);
+  const payload = await _getUserDeserialize(result);
+  return { ...payload, ...headers };
 }
 ```
 
@@ -97,9 +101,10 @@ include-headers-in-response: true
 export async function deleteUser(
   context: Client_1,
   options: DeleteUserOptionalParams_1 = { requestOptions: {} },
-): Promise<void> {
+): Promise<{ requestId: string; optionalHeader?: string }> {
   const result = await _deleteUserSend(context, options);
-  return _deleteUserDeserialize(result);
+  await _deleteUserDeserialize(result);
+  return { ..._deleteUserDeserializeHeaders(result) };
 }
 ```
 
@@ -154,9 +159,15 @@ include-headers-in-response: true
 export async function getAccountInfo(
   context: Client_1,
   options: GetAccountInfoOptionalParams_1 = { requestOptions: {} },
-): Promise<void> {
+): Promise<{
+  date: Date;
+  legalHold: boolean;
+  contentMd5: Uint8Array;
+  requestId?: string;
+}> {
   const result = await _getAccountInfoSend(context, options);
-  return _getAccountInfoDeserialize(result);
+  await _getAccountInfoDeserialize(result);
+  return { ..._getAccountInfoDeserializeHeaders(result) };
 }
 ```
 

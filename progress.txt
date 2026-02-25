@@ -2441,3 +2441,56 @@ to pass the `experimental-extensible-enums` option through to components.
 - The `SnippetExtractor.getTypeAlias()` does NOT include JSDoc comments in its extraction,
   so scenario `type` queries should use bare declarations without JSDoc.
 
+
+## 2026-02-25 — Response Header Handling (Task 11.07)
+
+### What was done
+- **Modified `src/components/public-operation.tsx`**: `BasicOperation` now checks
+  `includeHeadersInResponse` emitter option and collects success response headers.
+  When enabled and headers exist:
+  - Body + headers: return type becomes `ModelType & { headerProps }`, body merges
+    payload and headers via spread: `return { ...payload, ...headers }`
+  - Void body + headers: return type becomes `{ headerProps }`, body validates via
+    deserialize then returns spread headers
+  - Added `getCompositeReturnType()` helper function
+- **Modified `src/components/deserialize-headers.tsx`**: Added refkey to
+  `DeserializeHeaders` FunctionDeclaration. Exported `collectSuccessResponseHeaders`
+  and `buildHeaderReturnType` for reuse by public-operation.
+- **Modified `src/utils/refkeys.ts`**: Added `deserializeHeadersRefkey()` function
+  for cross-file reference resolution.
+- **Updated 4 scenario test expected outputs** via `SCENARIOS_UPDATE=true`:
+  - models/response/headerAndModelInResponse.md
+  - models/response/headerAndModelSpread.md
+  - models/response/headerInResponse.md
+  - models/response/headerInXmlResponse.md
+- **Added 3 unit tests to `test/components/public-operation.test.tsx`**:
+  - Body + headers merge test
+  - Void-body + headers test
+  - Flag disabled (no merge) test
+- **Updated PRD**: Marked task 11.07 as done.
+
+### Test Results
+- Before: 804 passed, 0 failed, 6 skipped, 45 test files
+- After: 807 passed, 0 failed, 6 skipped, 45 test files (3 new tests added)
+- Zero regressions in existing tests
+
+### Architecture decisions
+- **Reuse existing header utilities**: Rather than duplicating header collection
+  logic, exported `collectSuccessResponseHeaders` and `buildHeaderReturnType`
+  from deserialize-headers.tsx.
+- **Refkey for header deserializer**: Added `deserializeHeadersRefkey` so Alloy
+  can auto-generate imports when the header deserializer is in a different file
+  from the public operation.
+- **Three-way branching**: BasicOperation now has three code paths (body+headers,
+  headers-only, standard) matching the legacy emitter's behavior exactly.
+
+### Notes for next person
+- Completed: All Phases 0-10, Tasks 11.04, 11.07 (DONE).
+- **Remaining Phase 11 tasks** (all pending):
+  - P0: 11.02 (reserved words - may already be done), 11.22 (sample quality), 11.24 (LRO/paging)
+  - P1: 11.03, 11.05-11.06, 11.08-11.13, 11.16-11.21, 11.23, 11.25-11.26
+  - P2: 11.01, 11.14-11.15
+- Task 11.02 (reserved word naming) may already be complete — the Alloy name policy
+  already uses `_` suffix for reserved words (e.g., `continue_`), matching legacy.
+  Verify by checking if all 3 affected scenario tests pass without changes.
+- The vitest worker timeout error is an infrastructure issue, not a test failure.

@@ -11,8 +11,14 @@ import type {
 import {
   azureCoreLroLib,
 } from "../utils/external-packages.js";
+import { useEmitterOptions } from "../context/emitter-options-context.js";
 import { useRuntimeLib } from "../context/flavor-context.js";
 import {
+  collectSuccessResponseHeaders,
+  buildHeaderReturnType,
+} from "./deserialize-headers.js";
+import {
+  deserializeHeadersRefkey,
   deserializeOperationRefkey,
   operationOptionsRefkey,
   pagingHelperRefkey,
@@ -96,14 +102,73 @@ export function PublicOperation(props: PublicOperationProps) {
  * 2. Awaits the response
  * 3. Passes the response to `_xxxDeserialize` for status validation and body parsing
  *
+ * When `include-headers-in-response` is enabled and the operation has response
+ * headers, the function also calls `_xxxDeserializeHeaders` and merges the header
+ * values into the return value using spread:
+ * ```typescript
+ * const result = await _xxxSend(context, options);
+ * const headers = _xxxDeserializeHeaders(result);
+ * const payload = await _xxxDeserialize(result);
+ * return { ...payload, ...headers };
+ * ```
+ *
+ * For void-body responses with headers, validation is performed via deserialize
+ * then only the headers object is returned.
+ *
  * @param props - The component props containing the TCGC service method.
  * @returns An Alloy JSX tree for the standard async operation function.
  */
 function BasicOperation(props: { method: SdkServiceMethod<SdkHttpOperation> }) {
   const { method } = props;
+  const { includeHeadersInResponse } = useEmitterOptions();
   const parameters = buildFunctionParameters(method);
-  const returnType = getReturnType(method);
   const callArgs = buildCallArguments(method);
+  const hasBody = !!method.response.type;
+
+  const headers = includeHeadersInResponse
+    ? collectSuccessResponseHeaders(method)
+    : [];
+  const hasHeaders = headers.length > 0;
+
+  // Build return type: model & headers intersection when both exist
+  const returnType = getCompositeReturnType(method, headers);
+
+  // Build function body based on whether we have headers and/or body
+  let body: Children;
+  if (hasHeaders && hasBody) {
+    // Merge payload + headers via spread
+    body = (
+      <>
+        {code`const result = await ${sendOperationRefkey(method)}(${callArgs});`}
+        {"\n"}
+        {code`const headers = ${deserializeHeadersRefkey(method)}(result);`}
+        {"\n"}
+        {code`const payload = await ${deserializeOperationRefkey(method)}(result);`}
+        {"\n"}
+        {code`return { ...payload, ...headers };`}
+      </>
+    );
+  } else if (hasHeaders && !hasBody) {
+    // Header-only response: validate status then return headers
+    body = (
+      <>
+        {code`const result = await ${sendOperationRefkey(method)}(${callArgs});`}
+        {"\n"}
+        {code`await ${deserializeOperationRefkey(method)}(result);`}
+        {"\n"}
+        {code`return { ...${deserializeHeadersRefkey(method)}(result) };`}
+      </>
+    );
+  } else {
+    // Standard: no header merging
+    body = (
+      <>
+        {code`const result = await ${sendOperationRefkey(method)}(${callArgs});`}
+        {"\n"}
+        {code`return ${deserializeOperationRefkey(method)}(result);`}
+      </>
+    );
+  }
 
   return (
     <FunctionDeclaration
@@ -115,9 +180,7 @@ function BasicOperation(props: { method: SdkServiceMethod<SdkHttpOperation> }) {
       parameters={parameters}
       doc={method.doc}
     >
-      {code`const result = await ${sendOperationRefkey(method)}(${callArgs});`}
-      {"\n"}
-      {code`return ${deserializeOperationRefkey(method)}(result);`}
+      {body}
     </FunctionDeclaration>
   );
 }
@@ -376,6 +439,44 @@ function getReturnType(method: SdkServiceMethod<SdkHttpOperation>): Children {
     return "void";
   }
   return getTypeExpression(responseType);
+}
+
+/**
+ * Computes the composite return type when response headers should be merged.
+ *
+ * When the operation has both a body and response headers, the return type
+ * is an intersection of the model type and an inline object type for the
+ * headers: `ModelType & { headerName: headerType; ... }`.
+ *
+ * When the operation has no body but has headers, the return type is just
+ * the inline header object type.
+ *
+ * When there are no headers, falls back to the standard return type.
+ *
+ * @param method - The TCGC service method.
+ * @param headers - The collected success response headers.
+ * @returns Alloy Children representing the composite return type expression.
+ */
+function getCompositeReturnType(
+  method: SdkServiceMethod<SdkHttpOperation>,
+  headers: import("@azure-tools/typespec-client-generator-core").SdkServiceResponseHeader[],
+): Children {
+  const hasBody = !!method.response.type;
+  const hasHeaders = headers.length > 0;
+
+  if (!hasHeaders) {
+    return getReturnType(method);
+  }
+
+  const headerType = buildHeaderReturnType(headers);
+
+  if (hasBody) {
+    const bodyType = getTypeExpression(method.response.type!);
+    return code`${bodyType} & ${headerType}`;
+  }
+
+  // Header-only response
+  return headerType;
 }
 
 /**

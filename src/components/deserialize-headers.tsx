@@ -8,6 +8,7 @@ import type {
 } from "@azure-tools/typespec-client-generator-core";
 import { useEmitterOptions } from "../context/emitter-options-context.js";
 import { useRuntimeLib } from "../context/flavor-context.js";
+import { deserializeHeadersRefkey } from "../utils/refkeys.js";
 import { getTypeExpression } from "./type-expression.js";
 
 /**
@@ -60,6 +61,7 @@ export function DeserializeHeaders(props: DeserializeHeadersProps) {
   return (
     <FunctionDeclaration
       name={functionName}
+      refkey={deserializeHeadersRefkey(method)}
       export
       returnType={returnType}
       parameters={[{ name: "result", type: runtimeLib.PathUncheckedResponse }]}
@@ -127,7 +129,7 @@ export function DeserializeExceptionHeaders(props: DeserializeHeadersProps) {
  * @param method - The TCGC service method.
  * @returns Array of unique response header definitions.
  */
-function collectSuccessResponseHeaders(
+export function collectSuccessResponseHeaders(
   method: SdkServiceMethod<SdkHttpOperation>,
 ): SdkServiceResponseHeader[] {
   const seen = new Set<string>();
@@ -186,7 +188,7 @@ function collectExceptionResponseHeaders(
  * @param headers - The response headers to include in the return type.
  * @returns A string representing the inline object type literal.
  */
-function buildHeaderReturnType(headers: SdkServiceResponseHeader[]): string {
+export function buildHeaderReturnType(headers: SdkServiceResponseHeader[]): string {
   const properties = headers.map((header) => {
     const typeExpr = getHeaderTypeExpression(header.type);
     const optionalMark = header.optional ? "?" : "";

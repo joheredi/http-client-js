@@ -1179,3 +1179,25 @@ propagate this option from the TypeSpec emitter context.
 - The SnippetExtractor's `getTypeAlias()` does NOT include JSDoc comments, so scenario
   test expected outputs for `type` queries should not include JSDoc
 
+
+## Response Header Merging
+
+When `include-headers-in-response: true`, the public operation function must merge
+response headers into the return type:
+
+- **Body + headers**: Return type is `ModelType & { headerProps }`, body calls both
+  `_xxxDeserializeHeaders(result)` and `_xxxDeserialize(result)`, spreads results:
+  `return { ...payload, ...headers }`
+- **Void body + headers**: Return type is the header object type `{ headerProps }`,
+  body calls `_xxxDeserialize(result)` for status validation then returns
+  `{ ..._xxxDeserializeHeaders(result) }`
+- **No headers or flag disabled**: Standard behavior — just `return _xxxDeserialize(result)`
+
+The `DeserializeHeaders` component now has a refkey (`deserializeHeadersRefkey`) so
+the public operation can reference it and Alloy auto-generates imports.
+
+Key files:
+- `src/components/public-operation.tsx` — `BasicOperation` component handles all three cases
+- `src/components/deserialize-headers.tsx` — `collectSuccessResponseHeaders` and
+  `buildHeaderReturnType` are exported for reuse
+- `src/utils/refkeys.ts` — `deserializeHeadersRefkey()` added
