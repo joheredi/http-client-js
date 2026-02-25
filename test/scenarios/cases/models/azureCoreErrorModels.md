@@ -443,35 +443,35 @@ export function systemDataDeserializer(item: any): SystemData {
 
 ```ts operations
 import {
-  buildPagedAsyncIterator as buildPagedAsyncIterator_1,
-  type PagedAsyncIterableIterator as PagedAsyncIterableIterator_1,
+  buildPagedAsyncIterator,
+  type PagedAsyncIterableIterator,
 } from "../helpers/pagingHelpers.js";
 import {
-  errorResponseDeserializer as errorResponseDeserializer_1,
-  type Operation as Operation_1,
-  operationDeserializer as operationDeserializer_1,
+  errorResponseDeserializer,
+  type Operation,
+  operationDeserializer,
 } from "../models/models.js";
-import { ListOptionalParams as ListOptionalParams_1 } from "./operations/options.js";
+import { ListOptionalParams } from "./operations/options.js";
 import {
-  Client as Client_1,
-  createRestError as createRestError_1,
-  expandUrlTemplate as expandUrlTemplate_1,
-  operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
-  type PathUncheckedResponse as PathUncheckedResponse_1,
-  type StreamableMethod as StreamableMethod_1,
+  Client,
+  createRestError,
+  expandUrlTemplate,
+  operationOptionsToRequestParameters,
+  type PathUncheckedResponse,
+  type StreamableMethod,
 } from "@typespec/ts-http-runtime";
 
 export function _listSend(
-  context: Client_1,
-  options: ListOptionalParams_1 = { requestOptions: {} },
-): StreamableMethod_1 {
-  const path = expandUrlTemplate_1(
+  context: Client,
+  options: ListOptionalParams = { requestOptions: {} },
+): StreamableMethod {
+  const path = expandUrlTemplate(
     "/providers/Microsoft.Contoso/operations{?api%2Dversion}",
     { "api-version": context.apiVersion },
     { allowReserved: options?.requestOptions?.skipUrlEncoding },
   );
   return context.path(path).get({
-    ...operationOptionsToRequestParameters_1(options),
+    ...operationOptionsToRequestParameters(options),
     headers: {
       accept: "application/json",
       ...options.requestOptions?.headers,
@@ -480,31 +480,31 @@ export function _listSend(
 }
 
 export async function _listDeserialize(
-  result: PathUncheckedResponse_1,
-): Promise<Operation_1[]> {
+  result: PathUncheckedResponse,
+): Promise<Operation[]> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
-    const error = createRestError_1(result);
-    error.details = errorResponseDeserializer_1(result.body);
+    const error = createRestError(result);
+    error.details = errorResponseDeserializer(result.body);
     throw error;
   }
 
   return result.body.map((p: any) => {
-    return operationDeserializer_1(p);
+    return operationDeserializer(p);
   });
 }
 
 /**
  * List the operations for the provider
  *
- * @param {Client_1} context
- * @param {ListOptionalParams_1} options
+ * @param {Client} context
+ * @param {ListOptionalParams} options
  */
 export function list(
-  context: Client_1,
-  options: ListOptionalParams_1 = { requestOptions: {} },
-): PagedAsyncIterableIterator_1<Operation_1> {
-  return buildPagedAsyncIterator_1(
+  context: Client,
+  options: ListOptionalParams = { requestOptions: {} },
+): PagedAsyncIterableIterator<Operation> {
+  return buildPagedAsyncIterator(
     context,
     () => _listSend(context, options),
     _listDeserialize,

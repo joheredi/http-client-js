@@ -50,21 +50,21 @@ export type Versions = "2021-10-01-preview";
 Should normal operation with enum parameter:
 
 ```ts operations
-import type { FooOptionalParams as FooOptionalParams_1 } from "./options.js";
+import type { FooOptionalParams } from "./options.js";
 import {
-  type Client as Client_1,
-  createRestError as createRestError_1,
-  operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
-  type PathUncheckedResponse as PathUncheckedResponse_1,
-  type StreamableMethod as StreamableMethod_1,
+  type Client,
+  createRestError,
+  operationOptionsToRequestParameters,
+  type PathUncheckedResponse,
+  type StreamableMethod,
 } from "@typespec/ts-http-runtime";
 
 export function _fooSend(
-  context: Client_1,
-  options: FooOptionalParams_1 = { requestOptions: {} },
-): StreamableMethod_1 {
+  context: Client,
+  options: FooOptionalParams = { requestOptions: {} },
+): StreamableMethod {
   return context.path("/").get({
-    ...operationOptionsToRequestParameters_1(options),
+    ...operationOptionsToRequestParameters(options),
     headers: {
       "api-version": options?.apiVersion,
       ...options.requestOptions?.headers,
@@ -73,19 +73,19 @@ export function _fooSend(
 }
 
 export async function _fooDeserialize(
-  result: PathUncheckedResponse_1,
+  result: PathUncheckedResponse,
 ): Promise<void> {
   const expectedStatuses = ["204"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError_1(result);
+    throw createRestError(result);
   }
 
   return;
 }
 
 export async function foo(
-  context: Client_1,
-  options: FooOptionalParams_1 = { requestOptions: {} },
+  context: Client,
+  options: FooOptionalParams = { requestOptions: {} },
 ): Promise<void> {
   const result = await _fooSend(context, options);
   return _fooDeserialize(result);

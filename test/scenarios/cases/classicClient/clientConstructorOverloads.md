@@ -43,34 +43,31 @@ withRawContent: true
 
 ```ts classicClient
 import {
-  _getOperationsOperations as _getOperationsOperations_1,
-  OperationsOperations as OperationsOperations_1,
+  _getOperationsOperations,
+  OperationsOperations,
 } from "./classic/operations/index.js";
 import {
-  createGlobalService as createGlobalService_1,
-  type GlobalServiceClientOptionalParams as GlobalServiceClientOptionalParams_1,
-  type GlobalServiceContext as GlobalServiceContext_1,
+  createGlobalService,
+  type GlobalServiceClientOptionalParams,
+  type GlobalServiceContext,
 } from "./globalServiceClientContext.js";
-import {
-  Pipeline as Pipeline_1,
-  type TokenCredential as TokenCredential_1,
-} from "@typespec/ts-http-runtime";
+import { Pipeline, type TokenCredential } from "@typespec/ts-http-runtime";
 
 export class GlobalServiceClient {
-  private _client: GlobalServiceContext_1;
+  private _client: GlobalServiceContext;
   /** The pipeline used by this client to make requests */
-  public readonly pipeline: Pipeline_1;
+  public readonly pipeline: Pipeline;
 
   /** The operation group for Operations */
-  public readonly operations: OperationsOperations_1;
+  public readonly operations: OperationsOperations;
 
   constructor(
-    credential: TokenCredential_1,
-    options: GlobalServiceClientOptionalParams_1 = {},
+    credential: TokenCredential,
+    options: GlobalServiceClientOptionalParams = {},
   ) {
-    this._client = createGlobalService_1(credential, options);
+    this._client = createGlobalService(credential, options);
     this.pipeline = this._client.pipeline;
-    this.operations = _getOperationsOperations_1(this._client);
+    this.operations = _getOperationsOperations(this._client);
   }
 }
 ```
@@ -162,55 +159,52 @@ withRawContent: true
 ## classicClient
 
 ```ts classicClient
-import { checkNameAvailability as checkNameAvailability_1 } from "./api/operations.js";
-import type { CheckNameAvailabilityOptionalParams as CheckNameAvailabilityOptionalParams_1 } from "./api/options.js";
+import { checkNameAvailability } from "./api/operations.js";
+import type { CheckNameAvailabilityOptionalParams } from "./api/options.js";
 import {
-  _getOperationsOperations as _getOperationsOperations_1,
-  OperationsOperations as OperationsOperations_1,
+  _getOperationsOperations,
+  OperationsOperations,
 } from "./classic/operations/index.js";
 import {
-  _getStandardResourcesOperations as _getStandardResourcesOperations_1,
-  StandardResourcesOperations as StandardResourcesOperations_1,
+  _getStandardResourcesOperations,
+  StandardResourcesOperations,
 } from "./classic/standardResources/index.js";
 import type {
-  CheckNameAvailabilityInput as CheckNameAvailabilityInput_1,
-  CheckNameAvailabilityOutput as CheckNameAvailabilityOutput_1,
+  CheckNameAvailabilityInput,
+  CheckNameAvailabilityOutput,
 } from "./models/models.js";
 import {
-  createStandardService as createStandardService_1,
-  type StandardServiceClientOptionalParams as StandardServiceClientOptionalParams_1,
-  type StandardServiceContext as StandardServiceContext_1,
+  createStandardService,
+  type StandardServiceClientOptionalParams,
+  type StandardServiceContext,
 } from "./standardServiceClientContext.js";
-import {
-  Pipeline as Pipeline_1,
-  type TokenCredential as TokenCredential_1,
-} from "@typespec/ts-http-runtime";
+import { Pipeline, type TokenCredential } from "@typespec/ts-http-runtime";
 
 export class StandardServiceClient {
-  private _client: StandardServiceContext_1;
+  private _client: StandardServiceContext;
   /** The pipeline used by this client to make requests */
-  public readonly pipeline: Pipeline_1;
+  public readonly pipeline: Pipeline;
 
   /** The operation group for Operations */
-  public readonly operations: OperationsOperations_1;
+  public readonly operations: OperationsOperations;
   /** The operation group for StandardResources */
-  public readonly standardResources: StandardResourcesOperations_1;
+  public readonly standardResources: StandardResourcesOperations;
 
   constructor(
-    credential: TokenCredential_1,
-    options: StandardServiceClientOptionalParams_1 = {},
+    credential: TokenCredential,
+    options: StandardServiceClientOptionalParams = {},
   ) {
-    this._client = createStandardService_1(credential, options);
+    this._client = createStandardService(credential, options);
     this.pipeline = this._client.pipeline;
-    this.operations = _getOperationsOperations_1(this._client);
-    this.standardResources = _getStandardResourcesOperations_1(this._client);
+    this.operations = _getOperationsOperations(this._client);
+    this.standardResources = _getStandardResourcesOperations(this._client);
   }
 
   checkNameAvailability(
-    body: CheckNameAvailabilityInput_1,
-    options: CheckNameAvailabilityOptionalParams_1 = { requestOptions: {} },
-  ): Promise<CheckNameAvailabilityOutput_1> {
-    return checkNameAvailability_1(this._client, body, options);
+    body: CheckNameAvailabilityInput,
+    options: CheckNameAvailabilityOptionalParams = { requestOptions: {} },
+  ): Promise<CheckNameAvailabilityOutput> {
+    return checkNameAvailability(this._client, body, options);
   }
 }
 ```
@@ -296,51 +290,48 @@ withRawContent: true
 ## classicClient
 
 ```ts classicClient
-import { listSkus as listSkus_1 } from "./api/operations.js";
-import type { ListSkusOptionalParams as ListSkusOptionalParams_1 } from "./api/options.js";
+import { listSkus } from "./api/operations.js";
+import type { ListSkusOptionalParams } from "./api/options.js";
 import {
-  _getMixedResourcesOperations as _getMixedResourcesOperations_1,
-  MixedResourcesOperations as MixedResourcesOperations_1,
+  _getMixedResourcesOperations,
+  MixedResourcesOperations,
 } from "./classic/mixedResources/index.js";
 import {
-  _getOperationsOperations as _getOperationsOperations_1,
-  OperationsOperations as OperationsOperations_1,
+  _getOperationsOperations,
+  OperationsOperations,
 } from "./classic/operations/index.js";
 import {
-  createMixedService as createMixedService_1,
-  type MixedServiceClientOptionalParams as MixedServiceClientOptionalParams_1,
-  type MixedServiceContext as MixedServiceContext_1,
+  createMixedService,
+  type MixedServiceClientOptionalParams,
+  type MixedServiceContext,
 } from "./mixedServiceClientContext.js";
-import type { SkuListResult as SkuListResult_1 } from "./models/models.js";
-import {
-  Pipeline as Pipeline_1,
-  type TokenCredential as TokenCredential_1,
-} from "@typespec/ts-http-runtime";
+import type { SkuListResult } from "./models/models.js";
+import { Pipeline, type TokenCredential } from "@typespec/ts-http-runtime";
 
 export class MixedServiceClient {
-  private _client: MixedServiceContext_1;
+  private _client: MixedServiceContext;
   /** The pipeline used by this client to make requests */
-  public readonly pipeline: Pipeline_1;
+  public readonly pipeline: Pipeline;
 
   /** The operation group for Operations */
-  public readonly operations: OperationsOperations_1;
+  public readonly operations: OperationsOperations;
   /** The operation group for MixedResources */
-  public readonly mixedResources: MixedResourcesOperations_1;
+  public readonly mixedResources: MixedResourcesOperations;
 
   constructor(
-    credential: TokenCredential_1,
-    options: MixedServiceClientOptionalParams_1 = {},
+    credential: TokenCredential,
+    options: MixedServiceClientOptionalParams = {},
   ) {
-    this._client = createMixedService_1(credential, options);
+    this._client = createMixedService(credential, options);
     this.pipeline = this._client.pipeline;
-    this.operations = _getOperationsOperations_1(this._client);
-    this.mixedResources = _getMixedResourcesOperations_1(this._client);
+    this.operations = _getOperationsOperations(this._client);
+    this.mixedResources = _getMixedResourcesOperations(this._client);
   }
 
   listSkus(
-    options: ListSkusOptionalParams_1 = { requestOptions: {} },
-  ): Promise<SkuListResult_1> {
-    return listSkus_1(this._client, options);
+    options: ListSkusOptionalParams = { requestOptions: {} },
+  ): Promise<SkuListResult> {
+    return listSkus(this._client, options);
   }
 }
 ```

@@ -12,7 +12,8 @@
  * @module
  */
 import { For, SourceDirectory, renderAsync, type OutputDirectory } from "@alloy-js/core";
-import { createTSNamePolicy, tsNameConflictResolver } from "@alloy-js/typescript";
+import { createTSNamePolicy } from "@alloy-js/typescript";
+import { nameConflictResolver } from "../../src/utils/name-conflict-resolver.js";
 import { Output } from "@typespec/emitter-framework";
 import { SdkContextProvider } from "../../src/context/sdk-context.js";
 import { FlavorProvider } from "../../src/context/flavor-context.js";
@@ -198,7 +199,7 @@ ${x}
     <Output
       program={program}
       namePolicy={createTSNamePolicy()}
-      nameConflictResolver={tsNameConflictResolver}
+      nameConflictResolver={nameConflictResolver}
       externals={[httpRuntimeLib, azureCoreLroLib]}
     >
       <FlavorProvider flavor="core">

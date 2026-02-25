@@ -1306,3 +1306,42 @@ for deserialization, which correctly parses both formats.
 
 **Note**: The related RC20 bug (unixTimestamp uses milliseconds instead of seconds) is in
 the same code area. Fix: `((accessor).getTime() / 1000) | 0` for integer seconds.
+
+## RC29: Import Aliases with _1 Suffix — Root Cause and Fix
+
+**Bug**: All imported types and functions in generated operations files received `_1`
+suffixes (e.g., `Client_1`, `StreamableMethod_1`, `createRestError_1`). This affected
+~73 scenario test files with ~2805 occurrences.
+
+**Root cause**: Alloy's built-in `tsNameConflictResolver` (from `@alloy-js/typescript`)
+always renames symbols that have the `LocalImportSymbol` flag, even when there's only
+one symbol with a given name (no actual naming conflict). The resolver is called for
+every symbol added to a scope's declaration space. When there's a single import symbol,
+the `badNamedSymbols` loop still executes and renames it to `name_1`.
+
+The relevant code in `tsNameConflictResolver`:
+```typescript
+const badNamedSymbols = symbols.filter(
+  (s) => s.tsFlags & TSSymbolFlags.LocalImportSymbol,
+);
+// This loop runs even when badNamedSymbols has only 1 entry and goodNamedSymbols is empty
+for (const sym of badNamedSymbols) {
+  sym.name = name + "_" + nameCount++;
+}
+```
+
+**Fix**: Created `src/utils/name-conflict-resolver.ts` with a custom resolver that
+wraps `tsNameConflictResolver` but only delegates when there are 2+ symbols with the
+same name (actual conflict). With 0 or 1 symbols, there's no conflict to resolve.
+
+```typescript
+export function nameConflictResolver(name: string, symbols: unknown[]): void {
+  if (symbols.length <= 1) return;
+  tsNameConflictResolver(name, symbols as any);
+}
+```
+
+**Key insight**: The issue was NOT in our code but in how the Alloy framework's conflict
+resolver handled the `LocalImportSymbol` flag. Since we cannot modify submodules, the
+wrapper approach is the correct fix. Unit tests for the `OperationFiles` component didn't
+catch this because they didn't pass `nameConflictResolver` to `Output`.

@@ -59,16 +59,16 @@ ignoreWeirdLine: false
 ## clientContext
 
 ```ts clientContext
-import { type Client as Client_1, type ClientOptions as ClientOptions_1, getClient as getClient_1 } from "@typespec/ts-http-runtime";
-import type { ClientType as ClientType_1 } from "./models/models.js";
+import { type Client, type ClientOptions, getClient } from "@typespec/ts-http-runtime";
+import type { ClientType } from "./models/models.js";
 
-export interface ServiceContext extends Client_1 {}
+export interface ServiceContext extends Client {}
 
-export interface ServiceClientOptionalParams extends ClientOptions_1 {
+export interface ServiceClientOptionalParams extends ClientOptions {
   /**
    * Need to be set as 'default', 'multi-client', 'renamed-operation', 'two-operation-group' in client.
    */
-  client?: ClientType_1;
+  client?: ClientType;
 }
 
 export function createService(
@@ -83,7 +83,7 @@ export function createService(
   ...options,
   userAgentOptions: { userAgentPrefix },
   };
-  return getClient_1(endpointUrl, updatedOptions); as ServiceContext;
+  return getClient(endpointUrl, updatedOptions); as ServiceContext;
 }
 
 ```
@@ -149,12 +149,12 @@ ignoreWeirdLine: false
 ## clientContext
 
 ```ts clientContext
-import { type Client as Client_1, type ClientOptions as ClientOptions_1, getClient as getClient_1 } from "@typespec/ts-http-runtime";
-import type { ClientType as ClientType_1 } from "./models/models.js";
+import { type Client, type ClientOptions, getClient } from "@typespec/ts-http-runtime";
+import type { ClientType } from "./models/models.js";
 
-export interface ServiceContext extends Client_1 {}
+export interface ServiceContext extends Client {}
 
-export interface ServiceClientOptionalParams extends ClientOptions_1 {
+export interface ServiceClientOptionalParams extends ClientOptions {
   /**
    * Need to be set as 'http://localhost:3000' in client.
    */
@@ -162,7 +162,7 @@ export interface ServiceClientOptionalParams extends ClientOptions_1 {
   /**
    * Need to be set as 'default', 'multi-client', 'renamed-operation', 'two-operation-group' in client.
    */
-  client?: ClientType_1;
+  client?: ClientType;
 }
 
 export function createService(
@@ -177,7 +177,7 @@ export function createService(
   ...options,
   userAgentOptions: { userAgentPrefix },
   };
-  return getClient_1(endpointUrl, updatedOptions); as ServiceContext;
+  return getClient(endpointUrl, updatedOptions); as ServiceContext;
 }
 
 ```
@@ -245,16 +245,16 @@ ignoreWeirdLine: false
 ## clientContext
 
 ```ts clientContext
-import { type Client as Client_1, type ClientOptions as ClientOptions_1, getClient as getClient_1 } from "@typespec/ts-http-runtime";
-import type { ClientType as ClientType_1 } from "./models/models.js";
+import { type Client, type ClientOptions, getClient } from "@typespec/ts-http-runtime";
+import type { ClientType } from "./models/models.js";
 
-export interface ServiceContext extends Client_1 {}
+export interface ServiceContext extends Client {}
 
-export interface ServiceClientOptionalParams extends ClientOptions_1 {
+export interface ServiceClientOptionalParams extends ClientOptions {
   /**
    * Need to be set as 'default', 'multi-client', 'renamed-operation', 'two-operation-group' in client.
    */
-  client?: ClientType_1;
+  client?: ClientType;
 }
 
 export function createService(
@@ -269,7 +269,7 @@ export function createService(
   ...options,
   userAgentOptions: { userAgentPrefix },
   };
-  return getClient_1(endpointUrl, updatedOptions); as ServiceContext;
+  return getClient(endpointUrl, updatedOptions); as ServiceContext;
 }
 
 ```

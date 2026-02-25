@@ -120,13 +120,13 @@ Raw json files.
 Generated operation options.
 
 ```ts models:withOptions
-import type { BackupRequestProperties as BackupRequestProperties_1 } from "../models/models.js";
-import type { OperationOptions as OperationOptions_1 } from "@typespec/ts-http-runtime";
+import type { BackupRequestProperties } from "../models/models.js";
+import type { OperationOptions } from "@typespec/ts-http-runtime";
 
 /**
  * Optional parameters for the backup operation.
  */
-export interface BackupOptionalParams extends OperationOptions_1 {
+export interface BackupOptionalParams extends OperationOptions {
   /**
    * Delay to wait until next poll, in milliseconds.
    */
@@ -134,7 +134,7 @@ export interface BackupOptionalParams extends OperationOptions_1 {
   /**
    * The content of the action request
    */
-  backupRequestProperties?: BackupRequestProperties_1;
+  backupRequestProperties?: BackupRequestProperties;
 }
 ```
 
@@ -145,34 +145,31 @@ export interface BackupOptionalParams extends OperationOptions_1 {
 Should generate operations correctly:
 
 ```ts operations
-import { getLongRunningPoller as getLongRunningPoller_1 } from "../helpers/pollingHelpers.js";
+import { getLongRunningPoller } from "../helpers/pollingHelpers.js";
 import {
-  backupRequestPropertiesSerializer as backupRequestPropertiesSerializer_1,
-  BackupResult as BackupResult_1,
-  backupResultDeserializer as backupResultDeserializer_1,
-  errorResponseDeserializer as errorResponseDeserializer_1,
+  backupRequestPropertiesSerializer,
+  BackupResult,
+  backupResultDeserializer,
+  errorResponseDeserializer,
 } from "../models/models.js";
-import { BackupOptionalParams as BackupOptionalParams_1 } from "./cloudHsmClusters/options.js";
+import { BackupOptionalParams } from "./cloudHsmClusters/options.js";
+import { OperationState, PollerLike } from "@azure/core-lro";
 import {
-  OperationState as OperationState_1,
-  PollerLike as PollerLike_1,
-} from "@azure/core-lro";
-import {
-  Client as Client_1,
-  createRestError as createRestError_1,
-  expandUrlTemplate as expandUrlTemplate_1,
-  operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
-  type PathUncheckedResponse as PathUncheckedResponse_1,
-  type StreamableMethod as StreamableMethod_1,
+  Client,
+  createRestError,
+  expandUrlTemplate,
+  operationOptionsToRequestParameters,
+  type PathUncheckedResponse,
+  type StreamableMethod,
 } from "@typespec/ts-http-runtime";
 
 export function _backupSend(
-  context: Client_1,
+  context: Client,
   resourceGroupName: string,
   cloudHsmClusterName: string,
-  options: BackupOptionalParams_1 = { requestOptions: {} },
-): StreamableMethod_1 {
-  const path = expandUrlTemplate_1(
+  options: BackupOptionalParams = { requestOptions: {} },
+): StreamableMethod {
+  const path = expandUrlTemplate(
     "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.HardwareSecurityModules/cloudHsmClusters/{cloudHsmClusterName}/backup{?api%2Dversion}",
     {
       "api-version": context.apiVersion,
@@ -183,7 +180,7 @@ export function _backupSend(
     { allowReserved: options?.requestOptions?.skipUrlEncoding },
   );
   return context.path(path).post({
-    ...operationOptionsToRequestParameters_1(options),
+    ...operationOptionsToRequestParameters(options),
     contentType: "application/json",
     headers: {
       accept: "application/json",
@@ -191,44 +188,44 @@ export function _backupSend(
     },
     body: !options?.backupRequestProperties
       ? options?.backupRequestProperties
-      : backupRequestPropertiesSerializer_1(options?.backupRequestProperties),
+      : backupRequestPropertiesSerializer(options?.backupRequestProperties),
   });
 }
 
 export async function _backupDeserialize(
-  result: PathUncheckedResponse_1,
-): Promise<BackupResult_1> {
+  result: PathUncheckedResponse,
+): Promise<BackupResult> {
   const expectedStatuses = ["202", "200", "201"];
   if (!expectedStatuses.includes(result.status)) {
-    const error = createRestError_1(result);
-    error.details = errorResponseDeserializer_1(result.body);
+    const error = createRestError(result);
+    error.details = errorResponseDeserializer(result.body);
     throw error;
   }
 
-  return backupResultDeserializer_1(result.body);
+  return backupResultDeserializer(result.body);
 }
 
 /**
  * A long-running resource action.
  *
- * @param {Client_1} context
+ * @param {Client} context
  * @param {string} resourceGroupName
  * @param {string} cloudHsmClusterName
- * @param {BackupOptionalParams_1} options
+ * @param {BackupOptionalParams} options
  */
 export function backup(
-  context: Client_1,
+  context: Client,
   resourceGroupName: string,
   cloudHsmClusterName: string,
-  options: BackupOptionalParams_1 = { requestOptions: {} },
-): PollerLike_1<OperationState_1<BackupResult_1>, BackupResult_1> {
-  return getLongRunningPoller_1(context, _backupDeserialize, ["202", "200"], {
+  options: BackupOptionalParams = { requestOptions: {} },
+): PollerLike<OperationState<BackupResult>, BackupResult> {
+  return getLongRunningPoller(context, _backupDeserialize, ["202", "200"], {
     updateIntervalInMs: options?.updateIntervalInMs,
     abortSignal: options?.abortSignal,
     getInitialResponse: () =>
       _backupSend(context, resourceGroupName, cloudHsmClusterName, options),
     resourceLocationConfig: "azure-async-operation",
-  }) as PollerLike_1<OperationState_1<BackupResult_1>, BackupResult_1>;
+  }) as PollerLike<OperationState<BackupResult>, BackupResult>;
 }
 ```
 

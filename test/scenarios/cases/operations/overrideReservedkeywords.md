@@ -59,43 +59,43 @@ withRawContent: true
 ## Operations
 
 ```ts operations
-import { errorResponseDeserializer as errorResponseDeserializer_1 } from "../models/models.js";
-import type { CheckNameAvailabilityOptionalParams as CheckNameAvailabilityOptionalParams_1 } from "./options.js";
+import { errorResponseDeserializer } from "../models/models.js";
+import type { CheckNameAvailabilityOptionalParams } from "./options.js";
 import {
-  type Client as Client_1,
-  createRestError as createRestError_1,
-  expandUrlTemplate as expandUrlTemplate_1,
-  operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
-  type PathUncheckedResponse as PathUncheckedResponse_1,
-  type StreamableMethod as StreamableMethod_1,
+  type Client,
+  createRestError,
+  expandUrlTemplate,
+  operationOptionsToRequestParameters,
+  type PathUncheckedResponse,
+  type StreamableMethod,
 } from "@typespec/ts-http-runtime";
 
 export function _checkNameAvailabilitySend(
-  context: Client_1,
+  context: Client,
   apiVersion: string,
   name: string,
   type: string,
-  options: CheckNameAvailabilityOptionalParams_1 = { requestOptions: {} },
-): StreamableMethod_1 {
-  const path = expandUrlTemplate_1(
+  options: CheckNameAvailabilityOptionalParams = { requestOptions: {} },
+): StreamableMethod {
+  const path = expandUrlTemplate(
     "/subscriptions/{subscriptionId}/providers/Microsoft.ThisWillBeReplaced/checknameavailability{?api%2Dversion}",
     { "api-version": apiVersion, subscriptionId: context["subscriptionId"] },
     { allowReserved: options?.requestOptions?.skipUrlEncoding },
   );
   return context.path(path).post({
-    ...operationOptionsToRequestParameters_1(options),
+    ...operationOptionsToRequestParameters(options),
     contentType: "application/json",
     body: { name: name, type: type },
   });
 }
 
 export async function _checkNameAvailabilityDeserialize(
-  result: PathUncheckedResponse_1,
+  result: PathUncheckedResponse,
 ): Promise<void> {
   const expectedStatuses = ["204"];
   if (!expectedStatuses.includes(result.status)) {
-    const error = createRestError_1(result);
-    error.details = errorResponseDeserializer_1(result.body);
+    const error = createRestError(result);
+    error.details = errorResponseDeserializer(result.body);
     throw error;
   }
 
@@ -103,11 +103,11 @@ export async function _checkNameAvailabilityDeserialize(
 }
 
 export async function checkNameAvailability(
-  context: Client_1,
+  context: Client,
   apiVersion: string,
   name: string,
   type: string,
-  options: CheckNameAvailabilityOptionalParams_1 = { requestOptions: {} },
+  options: CheckNameAvailabilityOptionalParams = { requestOptions: {} },
 ): Promise<void> {
   const result = await _checkNameAvailabilitySend(
     context,

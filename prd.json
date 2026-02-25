@@ -2600,7 +2600,7 @@
           "id": "RC29",
           "title": "Import aliases with _1 suffix in generated operations code",
           "priority": "P1",
-          "status": "not_started",
+          "status": "done",
           "root_cause": "Alloy's name conflict resolution generates _1 suffixed aliases when multiple declarations share the same name across files. Legacy uses direct imports without aliases. This may be caused by redundant refkey registrations or naming conflicts in the component tree.",
           "file": "Alloy framework behavior / src/components/operation-files.tsx",
           "description": "All imported types and functions get _1 suffixes (Client_1, StreamableMethod_1, fooDeserializer_1) in operations files, which doesn't match legacy output.",

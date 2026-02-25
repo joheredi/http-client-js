@@ -23,41 +23,41 @@ mustEmptyDiagnostic: false
 Should normal path parameter:
 
 ```ts operations
-import type { TestOptionalParams as TestOptionalParams_1 } from "./options.js";
+import type { TestOptionalParams } from "./options.js";
 import {
-  type Client as Client_1,
-  createRestError as createRestError_1,
-  operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
-  type PathUncheckedResponse as PathUncheckedResponse_1,
-  type StreamableMethod as StreamableMethod_1,
+  type Client,
+  createRestError,
+  operationOptionsToRequestParameters,
+  type PathUncheckedResponse,
+  type StreamableMethod,
 } from "@typespec/ts-http-runtime";
 
 export function _testSend(
-  context: Client_1,
+  context: Client,
   token: string,
-  options: TestOptionalParams_1 = { requestOptions: {} },
-): StreamableMethod_1 {
+  options: TestOptionalParams = { requestOptions: {} },
+): StreamableMethod {
   return context.path("/").get({
-    ...operationOptionsToRequestParameters_1(options),
+    ...operationOptionsToRequestParameters(options),
     headers: { accept: "text/plain", ...options.requestOptions?.headers },
   });
 }
 
 export async function _testDeserialize(
-  result: PathUncheckedResponse_1,
+  result: PathUncheckedResponse,
 ): Promise<string> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError_1(result);
+    throw createRestError(result);
   }
 
   return result.body;
 }
 
 export async function test(
-  context: Client_1,
+  context: Client,
   token: string,
-  options: TestOptionalParams_1 = { requestOptions: {} },
+  options: TestOptionalParams = { requestOptions: {} },
 ): Promise<string> {
   const result = await _testSend(context, token, options);
   return _testDeserialize(result);

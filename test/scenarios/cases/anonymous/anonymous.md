@@ -42,70 +42,67 @@ export function barSerializer(item: Bar): any {
 ## Operations
 
 ```ts operations
+import { type Bar, barSerializer } from "../models/models.js";
+import type { ReadOptionalParams } from "./options.js";
 import {
-  type Bar as Bar_1,
-  barSerializer as barSerializer_1,
-} from "../models/models.js";
-import type { ReadOptionalParams as ReadOptionalParams_1 } from "./options.js";
-import {
-  type Client as Client_1,
-  createRestError as createRestError_1,
-  expandUrlTemplate as expandUrlTemplate_1,
-  operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
-  type PathUncheckedResponse as PathUncheckedResponse_1,
-  type StreamableMethod as StreamableMethod_1,
+  type Client,
+  createRestError,
+  expandUrlTemplate,
+  operationOptionsToRequestParameters,
+  type PathUncheckedResponse,
+  type StreamableMethod,
 } from "@typespec/ts-http-runtime";
 
 export function _readSend(
-  context: Client_1,
+  context: Client,
   pathParam: string,
   queryParam: string,
   prop1: string,
   prop2: number,
   prop3: Date,
   prop4: string,
-  prop5: Bar_1,
-  options: ReadOptionalParams_1 = { requestOptions: {} },
-): StreamableMethod_1 {
-  const path = expandUrlTemplate_1(
+  prop5: Bar,
+  options: ReadOptionalParams = { requestOptions: {} },
+): StreamableMethod {
+  const path = expandUrlTemplate(
     "/{pathParam}{?queryParam}",
     { pathParam: pathParam, queryParam: queryParam },
     { allowReserved: options?.requestOptions?.skipUrlEncoding },
   );
   return context.path(path).post({
-    ...operationOptionsToRequestParameters_1(options),
+    ...operationOptionsToRequestParameters(options),
     contentType: "application/json",
     body: {
       prop1: prop1,
       prop2: prop2,
       prop3: prop3.toISOString(),
       prop4: prop4,
-      prop5: barSerializer_1(prop5),
+      prop5: barSerializer(prop5),
     },
   });
 }
 
 export async function _readDeserialize(
-  result: PathUncheckedResponse_1,
+  result: PathUncheckedResponse,
 ): Promise<void> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError_1(result);
+    throw createRestError(result);
   }
 
   return;
 }
 
 export async function read(
-  context: Client_1,
+  context: Client,
   pathParam: string,
   queryParam: string,
   prop1: string,
   prop2: number,
   prop3: Date,
   prop4: string,
-  prop5: Bar_1,
-  options: ReadOptionalParams_1 = { requestOptions: {} },
+  prop5: Bar,
+  options: ReadOptionalParams = { requestOptions: {} },
 ): Promise<void> {
   const result = await _readSend(
     context,
@@ -164,78 +161,78 @@ export function barSerializer(item: Bar): any {
 ## Models withOptions
 
 ```ts models:withOptions
-import type { Bar as Bar_1 } from "../models/models.js";
-import type { OperationOptions as OperationOptions_1 } from "@typespec/ts-http-runtime";
+import type { Bar } from "../models/models.js";
+import type { OperationOptions } from "@typespec/ts-http-runtime";
 
 /**
  * Optional parameters for the read operation.
  */
-export interface ReadOptionalParams extends OperationOptions_1 {
+export interface ReadOptionalParams extends OperationOptions {
   prop3?: Date;
-  prop5?: Bar_1;
+  prop5?: Bar;
 }
 ```
 
 ## Operations
 
 ```ts operations
-import { barSerializer as barSerializer_1 } from "../models/models.js";
-import type { ReadOptionalParams as ReadOptionalParams_1 } from "./options.js";
+import { barSerializer } from "../models/models.js";
+import type { ReadOptionalParams } from "./options.js";
 import {
-  type Client as Client_1,
-  createRestError as createRestError_1,
-  expandUrlTemplate as expandUrlTemplate_1,
-  operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
-  type PathUncheckedResponse as PathUncheckedResponse_1,
-  type StreamableMethod as StreamableMethod_1,
+  type Client,
+  createRestError,
+  expandUrlTemplate,
+  operationOptionsToRequestParameters,
+  type PathUncheckedResponse,
+  type StreamableMethod,
 } from "@typespec/ts-http-runtime";
 
 export function _readSend(
-  context: Client_1,
+  context: Client,
   pathParam: string,
   queryParam: string,
   prop1: string,
   prop2: number,
   prop4: string,
-  options: ReadOptionalParams_1 = { requestOptions: {} },
-): StreamableMethod_1 {
-  const path = expandUrlTemplate_1(
+  options: ReadOptionalParams = { requestOptions: {} },
+): StreamableMethod {
+  const path = expandUrlTemplate(
     "/{pathParam}{?queryParam}",
     { pathParam: pathParam, queryParam: queryParam },
     { allowReserved: options?.requestOptions?.skipUrlEncoding },
   );
   return context.path(path).post({
-    ...operationOptionsToRequestParameters_1(options),
+    ...operationOptionsToRequestParameters(options),
     contentType: "application/json",
     body: {
       prop1: prop1,
       prop2: prop2,
       prop3: !options?.prop3 ? options?.prop3 : (options?.prop3).toISOString(),
       prop4: prop4,
-      prop5: !options?.prop5 ? options?.prop5 : barSerializer_1(options?.prop5),
+      prop5: !options?.prop5 ? options?.prop5 : barSerializer(options?.prop5),
     },
   });
 }
 
 export async function _readDeserialize(
-  result: PathUncheckedResponse_1,
+  result: PathUncheckedResponse,
 ): Promise<void> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError_1(result);
+    throw createRestError(result);
   }
 
   return;
 }
 
 export async function read(
-  context: Client_1,
+  context: Client,
   pathParam: string,
   queryParam: string,
   prop1: string,
   prop2: number,
   prop4: string,
-  options: ReadOptionalParams_1 = { requestOptions: {} },
+  options: ReadOptionalParams = { requestOptions: {} },
 ): Promise<void> {
   const result = await _readSend(
     context,
@@ -294,42 +291,42 @@ export function barSerializer(item: Bar): any {
 ## Bar Model withOptions
 
 ```ts models:withOptions
-import type { Bar as Bar_1 } from "../models/models.js";
-import type { OperationOptions as OperationOptions_1 } from "@typespec/ts-http-runtime";
+import type { Bar } from "../models/models.js";
+import type { OperationOptions } from "@typespec/ts-http-runtime";
 
 /**
  * Optional parameters for the read operation.
  */
-export interface ReadOptionalParams extends OperationOptions_1 {
+export interface ReadOptionalParams extends OperationOptions {
   prop3?: Date;
-  prop5?: Bar_1;
+  prop5?: Bar;
 }
 ```
 
 ## Operations
 
 ```ts operations
-import { barSerializer as barSerializer_1 } from "../models/models.js";
-import type { ReadOptionalParams as ReadOptionalParams_1 } from "./options.js";
+import { barSerializer } from "../models/models.js";
+import type { ReadOptionalParams } from "./options.js";
 import {
-  type Client as Client_1,
-  createRestError as createRestError_1,
-  expandUrlTemplate as expandUrlTemplate_1,
-  operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
-  type PathUncheckedResponse as PathUncheckedResponse_1,
-  type StreamableMethod as StreamableMethod_1,
+  type Client,
+  createRestError,
+  expandUrlTemplate,
+  operationOptionsToRequestParameters,
+  type PathUncheckedResponse,
+  type StreamableMethod,
 } from "@typespec/ts-http-runtime";
 
 export function _readSend(
-  context: Client_1,
+  context: Client,
   pathParam: string,
   prop1: string,
   prop2: number,
   prop4: string,
   queryParam: string,
-  options: ReadOptionalParams_1 = { requestOptions: {} },
-): StreamableMethod_1 {
-  const path = expandUrlTemplate_1(
+  options: ReadOptionalParams = { requestOptions: {} },
+): StreamableMethod {
+  const path = expandUrlTemplate(
     "/{pathParam}/{prop1}{?prop4,queryParam}",
     {
       pathParam: pathParam,
@@ -340,35 +337,35 @@ export function _readSend(
     { allowReserved: options?.requestOptions?.skipUrlEncoding },
   );
   return context.path(path).post({
-    ...operationOptionsToRequestParameters_1(options),
+    ...operationOptionsToRequestParameters(options),
     contentType: "application/json",
     body: {
       prop2: prop2,
       prop3: !options?.prop3 ? options?.prop3 : (options?.prop3).toISOString(),
-      prop5: !options?.prop5 ? options?.prop5 : barSerializer_1(options?.prop5),
+      prop5: !options?.prop5 ? options?.prop5 : barSerializer(options?.prop5),
     },
   });
 }
 
 export async function _readDeserialize(
-  result: PathUncheckedResponse_1,
+  result: PathUncheckedResponse,
 ): Promise<void> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError_1(result);
+    throw createRestError(result);
   }
 
   return;
 }
 
 export async function read(
-  context: Client_1,
+  context: Client,
   pathParam: string,
   prop1: string,
   prop2: number,
   prop4: string,
   queryParam: string,
-  options: ReadOptionalParams_1 = { requestOptions: {} },
+  options: ReadOptionalParams = { requestOptions: {} },
 ): Promise<void> {
   const result = await _readSend(
     context,
@@ -451,56 +448,53 @@ export function fooSerializer(item: Foo): any {
 ## Operations
 
 ```ts operations
+import { type Foo, fooSerializer } from "../models/models.js";
+import type { ReadOptionalParams } from "./options.js";
 import {
-  type Foo as Foo_1,
-  fooSerializer as fooSerializer_1,
-} from "../models/models.js";
-import type { ReadOptionalParams as ReadOptionalParams_1 } from "./options.js";
-import {
-  type Client as Client_1,
-  createRestError as createRestError_1,
-  expandUrlTemplate as expandUrlTemplate_1,
-  operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
-  type PathUncheckedResponse as PathUncheckedResponse_1,
-  type StreamableMethod as StreamableMethod_1,
+  type Client,
+  createRestError,
+  expandUrlTemplate,
+  operationOptionsToRequestParameters,
+  type PathUncheckedResponse,
+  type StreamableMethod,
 } from "@typespec/ts-http-runtime";
 
 export function _readSend(
-  context: Client_1,
+  context: Client,
   pathParam: string,
   queryParam: string,
-  body: Foo_1,
-  options: ReadOptionalParams_1 = { requestOptions: {} },
-): StreamableMethod_1 {
-  const path = expandUrlTemplate_1(
+  body: Foo,
+  options: ReadOptionalParams = { requestOptions: {} },
+): StreamableMethod {
+  const path = expandUrlTemplate(
     "/{pathParam}{?queryParam}",
     { pathParam: pathParam, queryParam: queryParam },
     { allowReserved: options?.requestOptions?.skipUrlEncoding },
   );
   return context.path(path).post({
-    ...operationOptionsToRequestParameters_1(options),
+    ...operationOptionsToRequestParameters(options),
     contentType: "application/json",
-    body: fooSerializer_1(body),
+    body: fooSerializer(body),
   });
 }
 
 export async function _readDeserialize(
-  result: PathUncheckedResponse_1,
+  result: PathUncheckedResponse,
 ): Promise<void> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError_1(result);
+    throw createRestError(result);
   }
 
   return;
 }
 
 export async function read(
-  context: Client_1,
+  context: Client,
   pathParam: string,
   queryParam: string,
-  body: Foo_1,
-  options: ReadOptionalParams_1 = { requestOptions: {} },
+  body: Foo,
+  options: ReadOptionalParams = { requestOptions: {} },
 ): Promise<void> {
   const result = await _readSend(context, pathParam, queryParam, body, options);
   return _readDeserialize(result);
@@ -528,56 +522,53 @@ export function _readRequestSerializer(item: _ReadRequest): any {
 ## Operations
 
 ```ts operations
+import { type _ReadRequest, _readRequestSerializer } from "../models/models.js";
+import type { ReadOptionalParams } from "./options.js";
 import {
-  type _ReadRequest as _ReadRequest_1,
-  _readRequestSerializer as _readRequestSerializer_1,
-} from "../models/models.js";
-import type { ReadOptionalParams as ReadOptionalParams_1 } from "./options.js";
-import {
-  type Client as Client_1,
-  createRestError as createRestError_1,
-  expandUrlTemplate as expandUrlTemplate_1,
-  operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
-  type PathUncheckedResponse as PathUncheckedResponse_1,
-  type StreamableMethod as StreamableMethod_1,
+  type Client,
+  createRestError,
+  expandUrlTemplate,
+  operationOptionsToRequestParameters,
+  type PathUncheckedResponse,
+  type StreamableMethod,
 } from "@typespec/ts-http-runtime";
 
 export function _readSend(
-  context: Client_1,
+  context: Client,
   pathParam: string,
   queryParam: string,
-  body: _ReadRequest_1,
-  options: ReadOptionalParams_1 = { requestOptions: {} },
-): StreamableMethod_1 {
-  const path = expandUrlTemplate_1(
+  body: _ReadRequest,
+  options: ReadOptionalParams = { requestOptions: {} },
+): StreamableMethod {
+  const path = expandUrlTemplate(
     "/{pathParam}{?queryParam}",
     { pathParam: pathParam, queryParam: queryParam },
     { allowReserved: options?.requestOptions?.skipUrlEncoding },
   );
   return context.path(path).post({
-    ...operationOptionsToRequestParameters_1(options),
+    ...operationOptionsToRequestParameters(options),
     contentType: "application/json",
-    body: _readRequestSerializer_1(body),
+    body: _readRequestSerializer(body),
   });
 }
 
 export async function _readDeserialize(
-  result: PathUncheckedResponse_1,
+  result: PathUncheckedResponse,
 ): Promise<void> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError_1(result);
+    throw createRestError(result);
   }
 
   return;
 }
 
 export async function read(
-  context: Client_1,
+  context: Client,
   pathParam: string,
   queryParam: string,
-  body: _ReadRequest_1,
-  options: ReadOptionalParams_1 = { requestOptions: {} },
+  body: _ReadRequest,
+  options: ReadOptionalParams = { requestOptions: {} },
 ): Promise<void> {
   const result = await _readSend(context, pathParam, queryParam, body, options);
   return _readDeserialize(result);
@@ -622,56 +613,53 @@ export function barSerializer(item: Bar): any {
 ## Operations
 
 ```ts operations
+import { type _ReadRequest, _readRequestSerializer } from "../models/models.js";
+import type { ReadOptionalParams } from "./options.js";
 import {
-  type _ReadRequest as _ReadRequest_1,
-  _readRequestSerializer as _readRequestSerializer_1,
-} from "../models/models.js";
-import type { ReadOptionalParams as ReadOptionalParams_1 } from "./options.js";
-import {
-  type Client as Client_1,
-  createRestError as createRestError_1,
-  expandUrlTemplate as expandUrlTemplate_1,
-  operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
-  type PathUncheckedResponse as PathUncheckedResponse_1,
-  type StreamableMethod as StreamableMethod_1,
+  type Client,
+  createRestError,
+  expandUrlTemplate,
+  operationOptionsToRequestParameters,
+  type PathUncheckedResponse,
+  type StreamableMethod,
 } from "@typespec/ts-http-runtime";
 
 export function _readSend(
-  context: Client_1,
+  context: Client,
   pathParam: string,
   queryParam: string,
-  test: _ReadRequest_1,
-  options: ReadOptionalParams_1 = { requestOptions: {} },
-): StreamableMethod_1 {
-  const path = expandUrlTemplate_1(
+  test: _ReadRequest,
+  options: ReadOptionalParams = { requestOptions: {} },
+): StreamableMethod {
+  const path = expandUrlTemplate(
     "/{pathParam}{?queryParam}",
     { pathParam: pathParam, queryParam: queryParam },
     { allowReserved: options?.requestOptions?.skipUrlEncoding },
   );
   return context.path(path).post({
-    ...operationOptionsToRequestParameters_1(options),
+    ...operationOptionsToRequestParameters(options),
     contentType: "application/json",
-    body: _readRequestSerializer_1(test),
+    body: _readRequestSerializer(test),
   });
 }
 
 export async function _readDeserialize(
-  result: PathUncheckedResponse_1,
+  result: PathUncheckedResponse,
 ): Promise<void> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError_1(result);
+    throw createRestError(result);
   }
 
   return;
 }
 
 export async function read(
-  context: Client_1,
+  context: Client,
   pathParam: string,
   queryParam: string,
-  test: _ReadRequest_1,
-  options: ReadOptionalParams_1 = { requestOptions: {} },
+  test: _ReadRequest,
+  options: ReadOptionalParams = { requestOptions: {} },
 ): Promise<void> {
   const result = await _readSend(context, pathParam, queryParam, test, options);
   return _readDeserialize(result);
@@ -710,46 +698,43 @@ export function testSerializer(item: Test): any {
 ## Operations
 
 ```ts operations
+import { type Test, testSerializer } from "../models/models.js";
+import type { ReadOptionalParams } from "./options.js";
 import {
-  type Test as Test_1,
-  testSerializer as testSerializer_1,
-} from "../models/models.js";
-import type { ReadOptionalParams as ReadOptionalParams_1 } from "./options.js";
-import {
-  type Client as Client_1,
-  createRestError as createRestError_1,
-  operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
-  type PathUncheckedResponse as PathUncheckedResponse_1,
-  type StreamableMethod as StreamableMethod_1,
+  type Client,
+  createRestError,
+  operationOptionsToRequestParameters,
+  type PathUncheckedResponse,
+  type StreamableMethod,
 } from "@typespec/ts-http-runtime";
 
 export function _readSend(
-  context: Client_1,
-  body: Test_1,
-  options: ReadOptionalParams_1 = { requestOptions: {} },
-): StreamableMethod_1 {
+  context: Client,
+  body: Test,
+  options: ReadOptionalParams = { requestOptions: {} },
+): StreamableMethod {
   return context.path("/").post({
-    ...operationOptionsToRequestParameters_1(options),
+    ...operationOptionsToRequestParameters(options),
     contentType: "application/json",
-    body: testSerializer_1(body),
+    body: testSerializer(body),
   });
 }
 
 export async function _readDeserialize(
-  result: PathUncheckedResponse_1,
+  result: PathUncheckedResponse,
 ): Promise<void> {
   const expectedStatuses = ["204"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError_1(result);
+    throw createRestError(result);
   }
 
   return;
 }
 
 export async function read(
-  context: Client_1,
-  body: Test_1,
-  options: ReadOptionalParams_1 = { requestOptions: {} },
+  context: Client,
+  body: Test,
+  options: ReadOptionalParams = { requestOptions: {} },
 ): Promise<void> {
   const result = await _readSend(context, body, options);
   return _readDeserialize(result);
@@ -790,46 +775,43 @@ export function testSerializer(item: Test): any {
 ## Operations
 
 ```ts operations
+import { type Test, testSerializer } from "../models/models.js";
+import type { ReadOptionalParams } from "./options.js";
 import {
-  type Test as Test_1,
-  testSerializer as testSerializer_1,
-} from "../models/models.js";
-import type { ReadOptionalParams as ReadOptionalParams_1 } from "./options.js";
-import {
-  type Client as Client_1,
-  createRestError as createRestError_1,
-  operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
-  type PathUncheckedResponse as PathUncheckedResponse_1,
-  type StreamableMethod as StreamableMethod_1,
+  type Client,
+  createRestError,
+  operationOptionsToRequestParameters,
+  type PathUncheckedResponse,
+  type StreamableMethod,
 } from "@typespec/ts-http-runtime";
 
 export function _readSend(
-  context: Client_1,
-  body: Test_1,
-  options: ReadOptionalParams_1 = { requestOptions: {} },
-): StreamableMethod_1 {
+  context: Client,
+  body: Test,
+  options: ReadOptionalParams = { requestOptions: {} },
+): StreamableMethod {
   return context.path("/").post({
-    ...operationOptionsToRequestParameters_1(options),
+    ...operationOptionsToRequestParameters(options),
     contentType: "application/json",
-    body: testSerializer_1(body),
+    body: testSerializer(body),
   });
 }
 
 export async function _readDeserialize(
-  result: PathUncheckedResponse_1,
+  result: PathUncheckedResponse,
 ): Promise<void> {
   const expectedStatuses = ["204"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError_1(result);
+    throw createRestError(result);
   }
 
   return;
 }
 
 export async function read(
-  context: Client_1,
-  body: Test_1,
-  options: ReadOptionalParams_1 = { requestOptions: {} },
+  context: Client,
+  body: Test,
+  options: ReadOptionalParams = { requestOptions: {} },
 ): Promise<void> {
   const result = await _readSend(context, body, options);
   return _readDeserialize(result);
@@ -858,24 +840,24 @@ export function _readResponseDeserializer(item: any): _ReadResponse {
 
 ```ts operations
 import {
-  type _ReadResponse as _ReadResponse_1,
-  _readResponseDeserializer as _readResponseDeserializer_1,
+  type _ReadResponse,
+  _readResponseDeserializer,
 } from "../models/models.js";
-import type { ReadOptionalParams as ReadOptionalParams_1 } from "./options.js";
+import type { ReadOptionalParams } from "./options.js";
 import {
-  type Client as Client_1,
-  createRestError as createRestError_1,
-  operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
-  type PathUncheckedResponse as PathUncheckedResponse_1,
-  type StreamableMethod as StreamableMethod_1,
+  type Client,
+  createRestError,
+  operationOptionsToRequestParameters,
+  type PathUncheckedResponse,
+  type StreamableMethod,
 } from "@typespec/ts-http-runtime";
 
 export function _readSend(
-  context: Client_1,
-  options: ReadOptionalParams_1 = { requestOptions: {} },
-): StreamableMethod_1 {
+  context: Client,
+  options: ReadOptionalParams = { requestOptions: {} },
+): StreamableMethod {
   return context.path("/").get({
-    ...operationOptionsToRequestParameters_1(options),
+    ...operationOptionsToRequestParameters(options),
     headers: {
       accept: "application/json",
       ...options.requestOptions?.headers,
@@ -884,20 +866,20 @@ export function _readSend(
 }
 
 export async function _readDeserialize(
-  result: PathUncheckedResponse_1,
-): Promise<_ReadResponse_1> {
+  result: PathUncheckedResponse,
+): Promise<_ReadResponse> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError_1(result);
+    throw createRestError(result);
   }
 
-  return _readResponseDeserializer_1(result.body);
+  return _readResponseDeserializer(result.body);
 }
 
 export async function read(
-  context: Client_1,
-  options: ReadOptionalParams_1 = { requestOptions: {} },
-): Promise<_ReadResponse_1> {
+  context: Client,
+  options: ReadOptionalParams = { requestOptions: {} },
+): Promise<_ReadResponse> {
   const result = await _readSend(context, options);
   return _readDeserialize(result);
 }
@@ -927,24 +909,24 @@ export function publishResultDeserializer(item: any): PublishResult {
 
 ```ts operations
 import {
-  type PublishResult as PublishResult_1,
-  publishResultDeserializer as publishResultDeserializer_1,
+  type PublishResult,
+  publishResultDeserializer,
 } from "../models/models.js";
-import type { ReadOptionalParams as ReadOptionalParams_1 } from "./options.js";
+import type { ReadOptionalParams } from "./options.js";
 import {
-  type Client as Client_1,
-  createRestError as createRestError_1,
-  operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
-  type PathUncheckedResponse as PathUncheckedResponse_1,
-  type StreamableMethod as StreamableMethod_1,
+  type Client,
+  createRestError,
+  operationOptionsToRequestParameters,
+  type PathUncheckedResponse,
+  type StreamableMethod,
 } from "@typespec/ts-http-runtime";
 
 export function _readSend(
-  context: Client_1,
-  options: ReadOptionalParams_1 = { requestOptions: {} },
-): StreamableMethod_1 {
+  context: Client,
+  options: ReadOptionalParams = { requestOptions: {} },
+): StreamableMethod {
   return context.path("/").get({
-    ...operationOptionsToRequestParameters_1(options),
+    ...operationOptionsToRequestParameters(options),
     headers: {
       accept: "application/json",
       ...options.requestOptions?.headers,
@@ -953,20 +935,20 @@ export function _readSend(
 }
 
 export async function _readDeserialize(
-  result: PathUncheckedResponse_1,
-): Promise<PublishResult_1> {
+  result: PathUncheckedResponse,
+): Promise<PublishResult> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError_1(result);
+    throw createRestError(result);
   }
 
-  return publishResultDeserializer_1(result.body);
+  return publishResultDeserializer(result.body);
 }
 
 export async function read(
-  context: Client_1,
-  options: ReadOptionalParams_1 = { requestOptions: {} },
-): Promise<PublishResult_1> {
+  context: Client,
+  options: ReadOptionalParams = { requestOptions: {} },
+): Promise<PublishResult> {
   const result = await _readSend(context, options);
   return _readDeserialize(result);
 }
@@ -1010,24 +992,24 @@ export function _readResponseFooDeserializer(item: any): _ReadResponseFoo {
 
 ```ts operations
 import {
-  type _ReadResponse as _ReadResponse_1,
-  _readResponseDeserializer as _readResponseDeserializer_1,
+  type _ReadResponse,
+  _readResponseDeserializer,
 } from "../models/models.js";
-import type { ReadOptionalParams as ReadOptionalParams_1 } from "./options.js";
+import type { ReadOptionalParams } from "./options.js";
 import {
-  type Client as Client_1,
-  createRestError as createRestError_1,
-  operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
-  type PathUncheckedResponse as PathUncheckedResponse_1,
-  type StreamableMethod as StreamableMethod_1,
+  type Client,
+  createRestError,
+  operationOptionsToRequestParameters,
+  type PathUncheckedResponse,
+  type StreamableMethod,
 } from "@typespec/ts-http-runtime";
 
 export function _readSend(
-  context: Client_1,
-  options: ReadOptionalParams_1 = { requestOptions: {} },
-): StreamableMethod_1 {
+  context: Client,
+  options: ReadOptionalParams = { requestOptions: {} },
+): StreamableMethod {
   return context.path("/").get({
-    ...operationOptionsToRequestParameters_1(options),
+    ...operationOptionsToRequestParameters(options),
     headers: {
       accept: "application/json",
       ...options.requestOptions?.headers,
@@ -1036,20 +1018,20 @@ export function _readSend(
 }
 
 export async function _readDeserialize(
-  result: PathUncheckedResponse_1,
-): Promise<_ReadResponse_1> {
+  result: PathUncheckedResponse,
+): Promise<_ReadResponse> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError_1(result);
+    throw createRestError(result);
   }
 
-  return _readResponseDeserializer_1(result.body);
+  return _readResponseDeserializer(result.body);
 }
 
 export async function read(
-  context: Client_1,
-  options: ReadOptionalParams_1 = { requestOptions: {} },
-): Promise<_ReadResponse_1> {
+  context: Client,
+  options: ReadOptionalParams = { requestOptions: {} },
+): Promise<_ReadResponse> {
   const result = await _readSend(context, options);
   return _readDeserialize(result);
 }
@@ -1076,7 +1058,7 @@ op read(): ReturnBody;
 ## Models
 
 ```ts models
-import { deserializeRecord as deserializeRecord_1 } from "../helpers/serializationHelpers.js";
+import { deserializeRecord } from "../helpers/serializationHelpers.js";
 
 export interface ReturnBody {
   emptyAnomyous: _ReturnBodyEmptyAnomyous;
@@ -1101,7 +1083,7 @@ export function returnBodyDeserializer(item: any): ReturnBody {
     emptyAnomyousArray: item["emptyAnomyousArray"].map((p: any) => {
       return _returnBodyEmptyAnomyousArrayDeserializer(p);
     }),
-    emptyAnomyousDict: deserializeRecord_1(
+    emptyAnomyousDict: deserializeRecord(
       item["emptyAnomyousDict"] as any,
       (v: any) => _returnBodyEmptyAnomyousDictDeserializer(v),
     ),
@@ -1109,9 +1091,8 @@ export function returnBodyDeserializer(item: any): ReturnBody {
     emptyModelArray: item["emptyModelArray"].map((p: any) => {
       return emptyModelDeserializer(p);
     }),
-    emptyModelDict: deserializeRecord_1(
-      item["emptyModelDict"] as any,
-      (v: any) => emptyModelDeserializer(v),
+    emptyModelDict: deserializeRecord(item["emptyModelDict"] as any, (v: any) =>
+      emptyModelDeserializer(v),
     ),
   };
 }
@@ -1142,25 +1123,22 @@ export function emptyModelDeserializer(item: any): EmptyModel {
 ## Operations
 
 ```ts operations
+import { type ReturnBody, returnBodyDeserializer } from "../models/models.js";
+import type { ReadOptionalParams } from "./options.js";
 import {
-  type ReturnBody as ReturnBody_1,
-  returnBodyDeserializer as returnBodyDeserializer_1,
-} from "../models/models.js";
-import type { ReadOptionalParams as ReadOptionalParams_1 } from "./options.js";
-import {
-  type Client as Client_1,
-  createRestError as createRestError_1,
-  operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
-  type PathUncheckedResponse as PathUncheckedResponse_1,
-  type StreamableMethod as StreamableMethod_1,
+  type Client,
+  createRestError,
+  operationOptionsToRequestParameters,
+  type PathUncheckedResponse,
+  type StreamableMethod,
 } from "@typespec/ts-http-runtime";
 
 export function _readSend(
-  context: Client_1,
-  options: ReadOptionalParams_1 = { requestOptions: {} },
-): StreamableMethod_1 {
+  context: Client,
+  options: ReadOptionalParams = { requestOptions: {} },
+): StreamableMethod {
   return context.path("/").get({
-    ...operationOptionsToRequestParameters_1(options),
+    ...operationOptionsToRequestParameters(options),
     headers: {
       accept: "application/json",
       ...options.requestOptions?.headers,
@@ -1169,20 +1147,20 @@ export function _readSend(
 }
 
 export async function _readDeserialize(
-  result: PathUncheckedResponse_1,
-): Promise<ReturnBody_1> {
+  result: PathUncheckedResponse,
+): Promise<ReturnBody> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError_1(result);
+    throw createRestError(result);
   }
 
-  return returnBodyDeserializer_1(result.body);
+  return returnBodyDeserializer(result.body);
 }
 
 export async function read(
-  context: Client_1,
-  options: ReadOptionalParams_1 = { requestOptions: {} },
-): Promise<ReturnBody_1> {
+  context: Client,
+  options: ReadOptionalParams = { requestOptions: {} },
+): Promise<ReturnBody> {
   const result = await _readSend(context, options);
   return _readDeserialize(result);
 }
@@ -1213,7 +1191,7 @@ op read(): Foz;
 ## Models
 
 ```ts models
-import { deserializeRecord as deserializeRecord_1 } from "../helpers/serializationHelpers.js";
+import { deserializeRecord } from "../helpers/serializationHelpers.js";
 
 export interface Foz {
   baz: _FozBaz;
@@ -1265,7 +1243,7 @@ export function _fozBazDeserializer(item: any): _FozBaz {
     nonemptyAnomyousArray: item["nonemptyAnomyousArray"].map((p: any) => {
       return _fozBazNonemptyAnomyousArrayDeserializer(p);
     }),
-    nonemptyAnomyousDict: deserializeRecord_1(
+    nonemptyAnomyousDict: deserializeRecord(
       item["nonemptyAnomyousDict"] as any,
       (v: any) => _fozBazNonemptyAnomyousDictDeserializer(v),
     ),
@@ -1306,25 +1284,22 @@ export function _fozBazNonemptyAnomyousDictDeserializer(
 ## Operations
 
 ```ts operations
+import { type Foz, fozDeserializer } from "../models/models.js";
+import type { ReadOptionalParams } from "./options.js";
 import {
-  type Foz as Foz_1,
-  fozDeserializer as fozDeserializer_1,
-} from "../models/models.js";
-import type { ReadOptionalParams as ReadOptionalParams_1 } from "./options.js";
-import {
-  type Client as Client_1,
-  createRestError as createRestError_1,
-  operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
-  type PathUncheckedResponse as PathUncheckedResponse_1,
-  type StreamableMethod as StreamableMethod_1,
+  type Client,
+  createRestError,
+  operationOptionsToRequestParameters,
+  type PathUncheckedResponse,
+  type StreamableMethod,
 } from "@typespec/ts-http-runtime";
 
 export function _readSend(
-  context: Client_1,
-  options: ReadOptionalParams_1 = { requestOptions: {} },
-): StreamableMethod_1 {
+  context: Client,
+  options: ReadOptionalParams = { requestOptions: {} },
+): StreamableMethod {
   return context.path("/").get({
-    ...operationOptionsToRequestParameters_1(options),
+    ...operationOptionsToRequestParameters(options),
     headers: {
       accept: "application/json",
       ...options.requestOptions?.headers,
@@ -1333,20 +1308,20 @@ export function _readSend(
 }
 
 export async function _readDeserialize(
-  result: PathUncheckedResponse_1,
-): Promise<Foz_1> {
+  result: PathUncheckedResponse,
+): Promise<Foz> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError_1(result);
+    throw createRestError(result);
   }
 
-  return fozDeserializer_1(result.body);
+  return fozDeserializer(result.body);
 }
 
 export async function read(
-  context: Client_1,
-  options: ReadOptionalParams_1 = { requestOptions: {} },
-): Promise<Foz_1> {
+  context: Client,
+  options: ReadOptionalParams = { requestOptions: {} },
+): Promise<Foz> {
   const result = await _readSend(context, options);
   return _readDeserialize(result);
 }

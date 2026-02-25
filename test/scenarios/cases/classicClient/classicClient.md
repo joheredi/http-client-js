@@ -40,27 +40,27 @@ ignoreWeirdLine: false
 ## classicClient
 
 ```ts classicClient
-import { foo as foo_1 } from "./api/operations.js";
-import type { FooOptionalParams as FooOptionalParams_1 } from "./api/options.js";
+import { foo } from "./api/operations.js";
+import type { FooOptionalParams } from "./api/options.js";
 import {
-  createService as createService_1,
-  type ServiceClientOptionalParams as ServiceClientOptionalParams_1,
-  type ServiceContext as ServiceContext_1,
+  createService,
+  type ServiceClientOptionalParams,
+  type ServiceContext,
 } from "./serviceClientContext.js";
-import { Pipeline as Pipeline_1 } from "@typespec/ts-http-runtime";
+import { Pipeline } from "@typespec/ts-http-runtime";
 
 export class ServiceClient {
-  private _client: ServiceContext_1;
+  private _client: ServiceContext;
   /** The pipeline used by this client to make requests */
-  public readonly pipeline: Pipeline_1;
+  public readonly pipeline: Pipeline;
 
-  constructor(endpoint: string, options: ServiceClientOptionalParams_1 = {}) {
-    this._client = createService_1(endpoint, options);
+  constructor(endpoint: string, options: ServiceClientOptionalParams = {}) {
+    this._client = createService(endpoint, options);
     this.pipeline = this._client.pipeline;
   }
 
-  foo(options: FooOptionalParams_1 = { requestOptions: {} }): Promise<void> {
-    return foo_1(this._client, options);
+  foo(options: FooOptionalParams = { requestOptions: {} }): Promise<void> {
+    return foo(this._client, options);
   }
 }
 ```

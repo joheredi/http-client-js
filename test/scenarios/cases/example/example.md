@@ -60,18 +60,18 @@ export interface Example {
 You can also see the options interfaces that are generated using `ts models:withOptions`:
 
 ```ts models:withOptions
-import type { OperationOptions as OperationOptions_1 } from "@typespec/ts-http-runtime";
+import type { OperationOptions } from "@typespec/ts-http-runtime";
 
 /**
  * Optional parameters for the read operation.
  */
-export interface ReadOptionalParams extends OperationOptions_1 {}
+export interface ReadOptionalParams extends OperationOptions {}
 ```
 
 If you want to see a specific options interface, and not the whole file, you can be more specific with `ts models:withOptions interface <interface name>`:
 
 ```ts models:withOptions interface ReadOptionalParams
-export interface ReadOptionalParams extends OperationOptions_1 {}
+export interface ReadOptionalParams extends OperationOptions {}
 ```
 
 ## Operations
@@ -79,32 +79,29 @@ export interface ReadOptionalParams extends OperationOptions_1 {}
 You can extract the entire operations file using `ts operations`:
 
 ```ts operations
+import { type Example, exampleDeserializer } from "../models/models.js";
+import type { ReadOptionalParams } from "./options.js";
 import {
-  type Example as Example_1,
-  exampleDeserializer as exampleDeserializer_1,
-} from "../models/models.js";
-import type { ReadOptionalParams as ReadOptionalParams_1 } from "./options.js";
-import {
-  type Client as Client_1,
-  createRestError as createRestError_1,
-  expandUrlTemplate as expandUrlTemplate_1,
-  operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
-  type PathUncheckedResponse as PathUncheckedResponse_1,
-  type StreamableMethod as StreamableMethod_1,
+  type Client,
+  createRestError,
+  expandUrlTemplate,
+  operationOptionsToRequestParameters,
+  type PathUncheckedResponse,
+  type StreamableMethod,
 } from "@typespec/ts-http-runtime";
 
 export function _readSend(
-  context: Client_1,
+  context: Client,
   id: string,
-  options: ReadOptionalParams_1 = { requestOptions: {} },
-): StreamableMethod_1 {
-  const path = expandUrlTemplate_1(
+  options: ReadOptionalParams = { requestOptions: {} },
+): StreamableMethod {
+  const path = expandUrlTemplate(
     "/{id}",
     { id: id },
     { allowReserved: options?.requestOptions?.skipUrlEncoding },
   );
   return context.path(path).get({
-    ...operationOptionsToRequestParameters_1(options),
+    ...operationOptionsToRequestParameters(options),
     headers: {
       accept: "application/json",
       ...options.requestOptions?.headers,
@@ -113,21 +110,21 @@ export function _readSend(
 }
 
 export async function _readDeserialize(
-  result: PathUncheckedResponse_1,
-): Promise<Example_1> {
+  result: PathUncheckedResponse,
+): Promise<Example> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError_1(result);
+    throw createRestError(result);
   }
 
-  return exampleDeserializer_1(result.body);
+  return exampleDeserializer(result.body);
 }
 
 export async function read(
-  context: Client_1,
+  context: Client,
   id: string,
-  options: ReadOptionalParams_1 = { requestOptions: {} },
-): Promise<Example_1> {
+  options: ReadOptionalParams = { requestOptions: {} },
+): Promise<Example> {
   const result = await _readSend(context, id, options);
   return _readDeserialize(result);
 }
@@ -137,10 +134,10 @@ Or you can extract a specific operation using `ts operations function <operation
 
 ```ts operations function read
 export async function read(
-  context: Client_1,
+  context: Client,
   id: string,
-  options: ReadOptionalParams_1 = { requestOptions: {} },
-): Promise<Example_1> {
+  options: ReadOptionalParams = { requestOptions: {} },
+): Promise<Example> {
   const result = await _readSend(context, id, options);
   return _readDeserialize(result);
 }

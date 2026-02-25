@@ -35,10 +35,10 @@ export interface User {
 
 ```ts operations function getUser
 export async function getUser(
-  context: Client_1,
-  options: GetUserOptionalParams_1 = { requestOptions: {} },
+  context: Client,
+  options: GetUserOptionalParams = { requestOptions: {} },
 ): Promise<
-  User_1 & { userId?: string; createdAt?: Date; contentType: "application/xml" }
+  User & { userId?: string; createdAt?: Date; contentType: "application/xml" }
 > {
   const result = await _getUserSend(context, options);
   const headers = _getUserDeserializeHeaders(result);
@@ -48,7 +48,7 @@ export async function getUser(
 ```
 
 ```ts operations function _getUserDeserializeHeaders
-export function _getUserDeserializeHeaders(result: PathUncheckedResponse_1): {
+export function _getUserDeserializeHeaders(result: PathUncheckedResponse): {
   userId?: string;
   createdAt?: Date;
   contentType: "application/xml";
@@ -71,14 +71,14 @@ export function _getUserDeserializeHeaders(result: PathUncheckedResponse_1): {
 
 ```ts operations function _getUserDeserialize
 export async function _getUserDeserialize(
-  result: PathUncheckedResponse_1,
-): Promise<User_1> {
+  result: PathUncheckedResponse,
+): Promise<User> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError_1(result);
+    throw createRestError(result);
   }
 
-  return userDeserializer_1(result.body);
+  return userDeserializer(result.body);
 }
 ```
 
@@ -99,8 +99,8 @@ include-headers-in-response: true
 
 ```ts operations function deleteUser
 export async function deleteUser(
-  context: Client_1,
-  options: DeleteUserOptionalParams_1 = { requestOptions: {} },
+  context: Client,
+  options: DeleteUserOptionalParams = { requestOptions: {} },
 ): Promise<{ requestId: string; optionalHeader?: string }> {
   const result = await _deleteUserSend(context, options);
   await _deleteUserDeserialize(result);
@@ -109,9 +109,10 @@ export async function deleteUser(
 ```
 
 ```ts operations function _deleteUserDeserializeHeaders
-export function _deleteUserDeserializeHeaders(
-  result: PathUncheckedResponse_1,
-): { requestId: string; optionalHeader?: string } {
+export function _deleteUserDeserializeHeaders(result: PathUncheckedResponse): {
+  requestId: string;
+  optionalHeader?: string;
+} {
   return {
     requestId: result.headers["x-request-id"],
     optionalHeader:
@@ -125,11 +126,11 @@ export function _deleteUserDeserializeHeaders(
 
 ```ts operations function _deleteUserDeserialize
 export async function _deleteUserDeserialize(
-  result: PathUncheckedResponse_1,
+  result: PathUncheckedResponse,
 ): Promise<void> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError_1(result);
+    throw createRestError(result);
   }
 
   return;
@@ -157,8 +158,8 @@ include-headers-in-response: true
 
 ```ts operations function getAccountInfo
 export async function getAccountInfo(
-  context: Client_1,
-  options: GetAccountInfoOptionalParams_1 = { requestOptions: {} },
+  context: Client,
+  options: GetAccountInfoOptionalParams = { requestOptions: {} },
 ): Promise<{
   date: Date;
   legalHold: boolean;
@@ -173,7 +174,7 @@ export async function getAccountInfo(
 
 ```ts operations function _getAccountInfoDeserializeHeaders
 export function _getAccountInfoDeserializeHeaders(
-  result: PathUncheckedResponse_1,
+  result: PathUncheckedResponse,
 ): {
   date: Date;
   legalHold: boolean;
@@ -199,11 +200,11 @@ export function _getAccountInfoDeserializeHeaders(
 
 ```ts operations function _getAccountInfoDeserialize
 export async function _getAccountInfoDeserialize(
-  result: PathUncheckedResponse_1,
+  result: PathUncheckedResponse,
 ): Promise<void> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError_1(result);
+    throw createRestError(result);
   }
 
   return;

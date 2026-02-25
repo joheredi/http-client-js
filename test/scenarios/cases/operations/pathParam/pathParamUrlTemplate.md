@@ -51,29 +51,29 @@ withVersionedApiVersion: true
 
 ```ts operations
 import {
-  errorResponseDeserializer as errorResponseDeserializer_1,
-  type KeyBundle as KeyBundle_1,
-  keyBundleDeserializer as keyBundleDeserializer_1,
+  errorResponseDeserializer,
+  type KeyBundle,
+  keyBundleDeserializer,
 } from "../models/models.js";
-import { UpdateKeyOptionalParams as UpdateKeyOptionalParams_1 } from "./options.js";
+import { UpdateKeyOptionalParams } from "./options.js";
 import {
-  Client as Client_1,
-  createRestError as createRestError_1,
-  expandUrlTemplate as expandUrlTemplate_1,
-  operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
-  type PathUncheckedResponse as PathUncheckedResponse_1,
-  type StreamableMethod as StreamableMethod_1,
+  Client,
+  createRestError,
+  expandUrlTemplate,
+  operationOptionsToRequestParameters,
+  type PathUncheckedResponse,
+  type StreamableMethod,
 } from "@typespec/ts-http-runtime";
 
 export function _updateKeySend(
-  context: Client_1,
+  context: Client,
   apiVersion: string,
   keyName: string,
   keyVersion: string,
   parameters: string,
-  options: UpdateKeyOptionalParams_1 = { requestOptions: {} },
-): StreamableMethod_1 {
-  const path = expandUrlTemplate_1(
+  options: UpdateKeyOptionalParams = { requestOptions: {} },
+): StreamableMethod {
+  const path = expandUrlTemplate(
     "/keys/{key-name}/{key-version}{?api%2Dversion}",
     {
       "api-version": apiVersion,
@@ -83,7 +83,7 @@ export function _updateKeySend(
     { allowReserved: options?.requestOptions?.skipUrlEncoding },
   );
   return context.path(path).patch({
-    ...operationOptionsToRequestParameters_1(options),
+    ...operationOptionsToRequestParameters(options),
     contentType: "text/plain",
     headers: {
       accept: "application/json",
@@ -94,36 +94,36 @@ export function _updateKeySend(
 }
 
 export async function _updateKeyDeserialize(
-  result: PathUncheckedResponse_1,
-): Promise<KeyBundle_1> {
+  result: PathUncheckedResponse,
+): Promise<KeyBundle> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
-    const error = createRestError_1(result);
-    error.details = errorResponseDeserializer_1(result.body);
+    const error = createRestError(result);
+    error.details = errorResponseDeserializer(result.body);
     throw error;
   }
 
-  return keyBundleDeserializer_1(result.body);
+  return keyBundleDeserializer(result.body);
 }
 
 /**
  * The most basic operation.
  *
- * @param {Client_1} context
+ * @param {Client} context
  * @param {string} apiVersion
  * @param {string} keyName
  * @param {string} keyVersion
  * @param {string} parameters
- * @param {UpdateKeyOptionalParams_1} options
+ * @param {UpdateKeyOptionalParams} options
  */
 export async function updateKey(
-  context: Client_1,
+  context: Client,
   apiVersion: string,
   keyName: string,
   keyVersion: string,
   parameters: string,
-  options: UpdateKeyOptionalParams_1 = { requestOptions: {} },
-): Promise<KeyBundle_1> {
+  options: UpdateKeyOptionalParams = { requestOptions: {} },
+): Promise<KeyBundle> {
   const result = await _updateKeySend(
     context,
     apiVersion,

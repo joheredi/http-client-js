@@ -67,12 +67,12 @@ Raw json files.
 Generated operation options.
 
 ```ts models:withOptions
-import type { OperationOptions as OperationOptions_1 } from "@typespec/ts-http-runtime";
+import type { OperationOptions } from "@typespec/ts-http-runtime";
 
 /**
  * Optional parameters for the read operation.
  */
-export interface ReadOptionalParams extends OperationOptions_1 {}
+export interface ReadOptionalParams extends OperationOptions {}
 ```
 
 ## Provide generated operations to call rest-level methods
@@ -83,71 +83,71 @@ Should generate operations correctly:
 
 ```ts operations
 import {
-  type _ReadResponse as _ReadResponse_1,
-  _readResponseDeserializer as _readResponseDeserializer_1,
-  BodyParameter as BodyParameter_1,
-  bodyParameterSerializer as bodyParameterSerializer_1,
+  type _ReadResponse,
+  _readResponseDeserializer,
+  BodyParameter,
+  bodyParameterSerializer,
 } from "../models/models.js";
-import { ReadOptionalParams as ReadOptionalParams_1 } from "./options.js";
+import { ReadOptionalParams } from "./options.js";
 import {
-  Client as Client_1,
-  createRestError as createRestError_1,
-  expandUrlTemplate as expandUrlTemplate_1,
-  operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
-  type PathUncheckedResponse as PathUncheckedResponse_1,
-  type StreamableMethod as StreamableMethod_1,
+  Client,
+  createRestError,
+  expandUrlTemplate,
+  operationOptionsToRequestParameters,
+  type PathUncheckedResponse,
+  type StreamableMethod,
 } from "@typespec/ts-http-runtime";
 
 export function _readSend(
-  context: Client_1,
+  context: Client,
   name: string,
   requiredQuery: string,
-  widget: BodyParameter_1,
-  options: ReadOptionalParams_1 = { requestOptions: {} },
-): StreamableMethod_1 {
-  const path = expandUrlTemplate_1(
+  widget: BodyParameter,
+  options: ReadOptionalParams = { requestOptions: {} },
+): StreamableMethod {
+  const path = expandUrlTemplate(
     "/{name}{?requiredQuery}",
     { name: name, requiredQuery: requiredQuery },
     { allowReserved: options?.requestOptions?.skipUrlEncoding },
   );
   return context.path(path).post({
-    ...operationOptionsToRequestParameters_1(options),
+    ...operationOptionsToRequestParameters(options),
     contentType: "application/json",
     headers: {
       accept: "application/json",
       ...options.requestOptions?.headers,
     },
-    body: bodyParameterSerializer_1(widget),
+    body: bodyParameterSerializer(widget),
   });
 }
 
 export async function _readDeserialize(
-  result: PathUncheckedResponse_1,
-): Promise<_ReadResponse_1> {
+  result: PathUncheckedResponse,
+): Promise<_ReadResponse> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError_1(result);
+    throw createRestError(result);
   }
 
-  return _readResponseDeserializer_1(result.body);
+  return _readResponseDeserializer(result.body);
 }
 
 /**
  * show example demo
  *
- * @param {Client_1} context
+ * @param {Client} context
  * @param {string} name
  * @param {string} requiredQuery
- * @param {BodyParameter_1} widget
- * @param {ReadOptionalParams_1} options
+ * @param {BodyParameter} widget
+ * @param {ReadOptionalParams} options
  */
 export async function read(
-  context: Client_1,
+  context: Client,
   name: string,
   requiredQuery: string,
-  widget: BodyParameter_1,
-  options: ReadOptionalParams_1 = { requestOptions: {} },
-): Promise<_ReadResponse_1> {
+  widget: BodyParameter,
+  options: ReadOptionalParams = { requestOptions: {} },
+): Promise<_ReadResponse> {
   const result = await _readSend(context, name, requiredQuery, widget, options);
   return _readDeserialize(result);
 }

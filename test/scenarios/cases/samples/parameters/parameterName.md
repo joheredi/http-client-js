@@ -261,46 +261,43 @@ mustEmptyDiagnostic: false
 ## Operations
 
 ```ts operations
+import { type DocumentBase, documentBaseSerializer } from "../models/models.js";
+import type { PublishOptionalParams } from "./documents/options.js";
 import {
-  type DocumentBase as DocumentBase_1,
-  documentBaseSerializer as documentBaseSerializer_1,
-} from "../models/models.js";
-import type { PublishOptionalParams as PublishOptionalParams_1 } from "./documents/options.js";
-import {
-  type Client as Client_1,
-  createRestError as createRestError_1,
-  operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
-  type PathUncheckedResponse as PathUncheckedResponse_1,
-  type StreamableMethod as StreamableMethod_1,
+  type Client,
+  createRestError,
+  operationOptionsToRequestParameters,
+  type PathUncheckedResponse,
+  type StreamableMethod,
 } from "@typespec/ts-http-runtime";
 
 export function _publishSend(
-  context: Client_1,
-  endpoint: DocumentBase_1,
-  options: PublishOptionalParams_1 = { requestOptions: {} },
-): StreamableMethod_1 {
+  context: Client,
+  endpoint: DocumentBase,
+  options: PublishOptionalParams = { requestOptions: {} },
+): StreamableMethod {
   return context.path("/documents").post({
-    ...operationOptionsToRequestParameters_1(options),
+    ...operationOptionsToRequestParameters(options),
     contentType: "application/json",
-    body: documentBaseSerializer_1(endpoint),
+    body: documentBaseSerializer(endpoint),
   });
 }
 
 export async function _publishDeserialize(
-  result: PathUncheckedResponse_1,
+  result: PathUncheckedResponse,
 ): Promise<void> {
   const expectedStatuses = ["204"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError_1(result);
+    throw createRestError(result);
   }
 
   return;
 }
 
 export async function publish(
-  context: Client_1,
-  endpoint: DocumentBase_1,
-  options: PublishOptionalParams_1 = { requestOptions: {} },
+  context: Client,
+  endpoint: DocumentBase,
+  options: PublishOptionalParams = { requestOptions: {} },
 ): Promise<void> {
   const result = await _publishSend(context, endpoint, options);
   return _publishDeserialize(result);

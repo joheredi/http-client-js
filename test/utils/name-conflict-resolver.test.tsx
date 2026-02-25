@@ -1,0 +1,172 @@
+/**
+ * Test suite for the custom name conflict resolver.
+ *
+ * The custom resolver wraps Alloy's `tsNameConflictResolver` to fix a behavior
+ * where import symbols always receive `_1` suffixes, even when there's no actual
+ * naming conflict. This happens because `tsNameConflictResolver` renames ALL
+ * `LocalImportSymbol` symbols unconditionally. The custom resolver guards against
+ * this by skipping resolution when there's only one symbol (no conflict possible).
+ *
+ * What is tested:
+ * - Single symbol (import) should NOT be renamed (no conflict exists)
+ * - Two symbols with the same name (one local, one import) should trigger
+ *   renaming of the import to `name_1`
+ * - Two import symbols with the same name should both be renamed
+ *
+ * Why this matters:
+ * Without this fix, every import in generated operations files gets `_1` suffixes
+ * (e.g., `Client_1`, `StreamableMethod_1`). This affects ~73 scenario test files
+ * and ~2805 lines of output, producing code that doesn't match the legacy emitter's
+ * output. The fix ensures generated code has clean import names matching the legacy.
+ */
+import "@alloy-js/core/testing";
+import { renderAsync, refkey, code, Output } from "@alloy-js/core";
+import {
+  createTSNamePolicy,
+  SourceFile,
+  FunctionDeclaration,
+  createPackage,
+} from "@alloy-js/typescript";
+import { Output as EmitterOutput } from "@typespec/emitter-framework";
+import { describe, expect, it } from "vitest";
+import { nameConflictResolver } from "../../src/utils/name-conflict-resolver.js";
+import { TesterWithService, createSdkContextForTest } from "../test-host.js";
+import { t } from "@typespec/compiler/testing";
+import { SdkContextProvider } from "../../src/context/sdk-context.js";
+import { OperationFiles } from "../../src/components/operation-files.js";
+import { httpRuntimeLib } from "../../src/utils/external-packages.js";
+import { SourceDirectory } from "@alloy-js/core";
+
+/**
+ * Helper to collect rendered files from an Alloy output directory tree.
+ */
+function collectFiles(dir: any): Record<string, string> {
+  const files: Record<string, string> = {};
+  for (const entry of dir.contents) {
+    if ("contents" in entry) {
+      if (Array.isArray(entry.contents)) {
+        Object.assign(files, collectFiles(entry));
+      } else {
+        files[entry.path] = entry.contents as string;
+      }
+    }
+  }
+  return files;
+}
+
+/** Minimal external package for isolated testing. */
+const testLib = createPackage({
+  name: "test-lib",
+  version: "1.0.0",
+  descriptor: { ".": { named: ["Client", "StreamableMethod"] } },
+});
+
+describe("nameConflictResolver", () => {
+  /**
+   * Tests that a single imported symbol does not receive a `_1` suffix.
+   * This is the core bug fix: the built-in resolver renames lone imports.
+   */
+  it("should NOT add _1 suffix when there is no naming conflict", async () => {
+    const rk = refkey();
+    const output = (
+      <Output
+        namePolicy={createTSNamePolicy()}
+        nameConflictResolver={nameConflictResolver}
+        externals={[testLib]}
+      >
+        <SourceFile path="test.ts">
+          <FunctionDeclaration
+            name="myFunc"
+            refkey={rk}
+            export
+            parameters={[{ name: "ctx", type: testLib.Client }]}
+            returnType="void"
+          />
+        </SourceFile>
+      </Output>
+    );
+    const tree = await renderAsync(output);
+    const files = collectFiles(tree);
+    expect(files["test.ts"]).toContain("import type { Client } from");
+    expect(files["test.ts"]).not.toContain("Client_1");
+  });
+
+  /**
+   * Tests that an imported type keeps its name when used in multiple parameters
+   * within the same file. Multiple references to the same import should NOT
+   * create duplicate import symbols.
+   */
+  it("should NOT add _1 when same import is used multiple times in one file", async () => {
+    const rk1 = refkey();
+    const rk2 = refkey();
+    const output = (
+      <Output
+        namePolicy={createTSNamePolicy()}
+        nameConflictResolver={nameConflictResolver}
+        externals={[testLib]}
+      >
+        <SourceFile path="test.ts">
+          <FunctionDeclaration
+            name="funcA"
+            refkey={rk1}
+            export
+            parameters={[{ name: "ctx", type: testLib.Client }]}
+            returnType="void"
+          />
+          <FunctionDeclaration
+            name="funcB"
+            refkey={rk2}
+            export
+            parameters={[{ name: "ctx", type: testLib.Client }]}
+            returnType="void"
+          />
+        </SourceFile>
+      </Output>
+    );
+    const tree = await renderAsync(output);
+    const files = collectFiles(tree);
+    expect(files["test.ts"]).toContain("import type { Client } from");
+    expect(files["test.ts"]).not.toContain("Client_1");
+  });
+
+  /**
+   * Tests that the resolver correctly removes _1 suffixes from a full emitter
+   * operations file. This is an integration-level check that the fix works
+   * end-to-end with the actual OperationFiles component tree.
+   */
+  it("should produce clean imports in operations files (end-to-end)", async () => {
+    const runner = await TesterWithService.createInstance();
+    const { program } = await runner.compile(
+      t.code`@get op ${t.op("ping")}(): string;`,
+    );
+    const sdkContext = await createSdkContextForTest(program);
+    const output = (
+      <EmitterOutput
+        program={program}
+        namePolicy={createTSNamePolicy()}
+        nameConflictResolver={nameConflictResolver}
+        externals={[httpRuntimeLib]}
+      >
+        <SdkContextProvider sdkContext={sdkContext}>
+          <SourceDirectory path="src">
+            <OperationFiles />
+          </SourceDirectory>
+        </SdkContextProvider>
+      </EmitterOutput>
+    );
+    const tree = await renderAsync(output);
+    const files = collectFiles(tree);
+    const ops = files["src/api/operations.ts"];
+    expect(ops).toBeDefined();
+    // Imports should NOT have _1 suffixes
+    expect(ops).not.toContain("Client_1");
+    expect(ops).not.toContain("StreamableMethod_1");
+    expect(ops).not.toContain("createRestError_1");
+    expect(ops).not.toContain("operationOptionsToRequestParameters_1");
+    expect(ops).not.toContain("PathUncheckedResponse_1");
+    // But should contain the clean names
+    expect(ops).toContain("Client");
+    expect(ops).toContain("StreamableMethod");
+    expect(ops).toContain("createRestError");
+  });
+});

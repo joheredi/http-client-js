@@ -16,7 +16,7 @@ op withWireName(
 ## Models
 
 ```ts models
-import { createFilePartDescriptor as createFilePartDescriptor_1 } from "../helpers/multipartHelpers.js";
+import { createFilePartDescriptor } from "../helpers/multipartHelpers.js";
 
 export interface MultiPartRequestWithWireName {
   identifier: string;
@@ -28,7 +28,7 @@ export function multiPartRequestWithWireNameSerializer(
 ): any {
   return [
     { name: "id", body: item["identifier"] },
-    createFilePartDescriptor_1(
+    createFilePartDescriptor(
       "profileImage",
       item["image"],
       "application/octet-stream",
@@ -63,7 +63,7 @@ needTCGC: true
 ## Models
 
 ```ts models
-import { createFilePartDescriptor as createFilePartDescriptor_1 } from "../helpers/multipartHelpers.js";
+import { createFilePartDescriptor } from "../helpers/multipartHelpers.js";
 
 export interface MultiPartRequest {
   identifier: string;
@@ -73,7 +73,7 @@ export interface MultiPartRequest {
 export function multiPartRequestSerializer(item: MultiPartRequest): any {
   return [
     { name: "id", body: item["identifier"] },
-    createFilePartDescriptor_1(
+    createFilePartDescriptor(
       "profileImage",
       item["image"],
       "application/octet-stream",

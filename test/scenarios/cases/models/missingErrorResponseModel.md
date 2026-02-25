@@ -182,24 +182,24 @@ export function innerErrorDeserializer(item: any): InnerError {
 
 ```ts operations
 import {
-  type AssetChainSummaryResult as AssetChainSummaryResult_1,
-  assetChainSummaryResultDeserializer as assetChainSummaryResultDeserializer_1,
+  type AssetChainSummaryResult,
+  assetChainSummaryResultDeserializer,
 } from "../models/models.js";
-import type { GetAssetChainSummaryOptionalParams as GetAssetChainSummaryOptionalParams_1 } from "./operations/options.js";
+import type { GetAssetChainSummaryOptionalParams } from "./operations/options.js";
 import {
-  type Client as Client_1,
-  createRestError as createRestError_1,
-  operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
-  type PathUncheckedResponse as PathUncheckedResponse_1,
-  type StreamableMethod as StreamableMethod_1,
+  type Client,
+  createRestError,
+  operationOptionsToRequestParameters,
+  type PathUncheckedResponse,
+  type StreamableMethod,
 } from "@typespec/ts-http-runtime";
 
 export function _getAssetChainSummarySend(
-  context: Client_1,
-  options: GetAssetChainSummaryOptionalParams_1 = { requestOptions: {} },
-): StreamableMethod_1 {
+  context: Client,
+  options: GetAssetChainSummaryOptionalParams = { requestOptions: {} },
+): StreamableMethod {
   return context.path("/assetChainSummary").get({
-    ...operationOptionsToRequestParameters_1(options),
+    ...operationOptionsToRequestParameters(options),
     headers: {
       accept: "application/json",
       ...options.requestOptions?.headers,
@@ -208,20 +208,20 @@ export function _getAssetChainSummarySend(
 }
 
 export async function _getAssetChainSummaryDeserialize(
-  result: PathUncheckedResponse_1,
-): Promise<AssetChainSummaryResult_1> {
+  result: PathUncheckedResponse,
+): Promise<AssetChainSummaryResult> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError_1(result);
+    throw createRestError(result);
   }
 
-  return assetChainSummaryResultDeserializer_1(result.body);
+  return assetChainSummaryResultDeserializer(result.body);
 }
 
 export async function getAssetChainSummary(
-  context: Client_1,
-  options: GetAssetChainSummaryOptionalParams_1 = { requestOptions: {} },
-): Promise<AssetChainSummaryResult_1> {
+  context: Client,
+  options: GetAssetChainSummaryOptionalParams = { requestOptions: {} },
+): Promise<AssetChainSummaryResult> {
   const result = await _getAssetChainSummarySend(context, options);
   return _getAssetChainSummaryDeserialize(result);
 }

@@ -3103,3 +3103,61 @@ When `@@override` groups individual query/header parameters into a model paramet
 - **Remaining P2 tasks**: RC12, RC31-RC34
 - The 3 remaining skipped tests are blocked on external issues (TCGC #3088, TypeSpec #6983, TCGC #1419)
 - The vitest worker timeout error is an infrastructure issue, not a test failure.
+
+## 2026-02-25 — RC29: Fix _1 Import Suffixes in Generated Operations Code
+
+### What was done
+- **Fixed the _1 suffix bug** where ALL imports in generated operations files received
+  `_1` suffixes (e.g., `Client_1`, `StreamableMethod_1`, `createRestError_1`).
+
+- **Root cause**: Alloy's built-in `tsNameConflictResolver` always renames symbols
+  with the `LocalImportSymbol` flag, even when there's only one symbol with a given
+  name (no actual conflict). It's called for every symbol added to a scope's declaration
+  space, and the `badNamedSymbols` loop runs unconditionally.
+
+- **Fix**: Created `src/utils/name-conflict-resolver.ts` with a custom resolver that
+  wraps `tsNameConflictResolver` but only delegates when there are 2+ symbols (actual
+  conflict). Applied to `src/emitter.tsx`, `src/azure-emitter.tsx`, and
+  `test/scenarios/emit-for-scenario.tsx`.
+
+- **Added 3 unit tests** in `test/utils/name-conflict-resolver.test.tsx`:
+  - Single import symbol does NOT get _1 suffix
+  - Multiple references to same import in one file don't cause _1
+  - End-to-end: OperationFiles produces clean imports without _1
+
+- **Updated 67 scenario test expectations** via `SCENARIOS_UPDATE=true` to reflect
+  clean imports (removed ~2906 lines of _1 suffixes, added ~2738 lines of clean names).
+
+- **Updated PRD**: Marked RC29 as done.
+
+### Test Results
+- Before: 841 passed, 3 skipped, 47 test files
+- After: 844 passed, 3 skipped, 48 test files (3 new tests, 1 new test file)
+- Zero regressions in existing tests
+
+### Architecture decisions
+- **Wrapper pattern**: Since we cannot modify the Alloy framework (submodules), the
+  fix wraps the built-in resolver with a guard. This is the minimal, non-invasive fix.
+- **Single remaining _1**: The `modelsGenerator.md` scenario legitimately has a model
+  named `Client` that conflicts with the runtime's `Client` type — this _1 is correct.
+- **Export from utils/index.ts**: The resolver is exported for reuse across emitter
+  variants (core and Azure).
+
+### Files Changed
+- `src/utils/name-conflict-resolver.ts` — New custom resolver
+- `src/utils/index.ts` — Export new resolver
+- `src/emitter.tsx` — Use custom resolver
+- `src/azure-emitter.tsx` — Use custom resolver
+- `test/scenarios/emit-for-scenario.tsx` — Use custom resolver
+- `test/utils/name-conflict-resolver.test.tsx` — New test file (3 tests)
+- 67 scenario test files — Updated expectations
+- `prd.json` — RC29 marked done
+
+### Notes for next person
+- Completed: All Phases 0-10, Tasks 11.02, 11.04, 11.07, SA4, SA11, SA20, SA3,
+  RC01-RC09, RC13, RC19, RC20, RC29 (DONE).
+- **Remaining P1 tasks**: RC10, RC11, RC14-RC18, RC21-RC28, RC30
+- **Remaining P2 tasks**: RC12, RC31-RC34
+- The 3 remaining skipped tests are blocked on external issues (TCGC #3088, TypeSpec #6983, TCGC #1419)
+- The vitest worker timeout error is an infrastructure issue, not a test failure.
+- RC15 (API version enum vs type alias) is a good next target — well-scoped, public API surface difference.

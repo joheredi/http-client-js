@@ -57,36 +57,33 @@ The client constructor should expect all server template parameters:
 
 ```ts classicClient
 import {
-  _getIndexesOperations as _getIndexesOperations_1,
-  IndexesOperations as IndexesOperations_1,
+  _getIndexesOperations,
+  IndexesOperations,
 } from "./classic/indexes/index.js";
 import {
-  createMachineLearningServices as createMachineLearningServices_1,
-  type MachineLearningServicesClientOptionalParams as MachineLearningServicesClientOptionalParams_1,
-  type MachineLearningServicesContext as MachineLearningServicesContext_1,
+  createMachineLearningServices,
+  type MachineLearningServicesClientOptionalParams,
+  type MachineLearningServicesContext,
 } from "./machineLearningServicesClientContext.js";
-import {
-  Pipeline as Pipeline_1,
-  type TokenCredential as TokenCredential_1,
-} from "@typespec/ts-http-runtime";
+import { Pipeline, type TokenCredential } from "@typespec/ts-http-runtime";
 
 export class MachineLearningServicesClient {
-  private _client: MachineLearningServicesContext_1;
+  private _client: MachineLearningServicesContext;
   /** The pipeline used by this client to make requests */
-  public readonly pipeline: Pipeline_1;
+  public readonly pipeline: Pipeline;
 
   /** The operation group for Indexes */
-  public readonly indexes: IndexesOperations_1;
+  public readonly indexes: IndexesOperations;
 
   constructor(
     endpoint: string,
     subscriptionId: string,
     resourceGroupName: string,
     workspaceName: string,
-    credential: TokenCredential_1,
-    options: MachineLearningServicesClientOptionalParams_1 = {},
+    credential: TokenCredential,
+    options: MachineLearningServicesClientOptionalParams = {},
   ) {
-    this._client = createMachineLearningServices_1(
+    this._client = createMachineLearningServices(
       endpoint,
       subscriptionId,
       resourceGroupName,
@@ -95,7 +92,7 @@ export class MachineLearningServicesClient {
       options,
     );
     this.pipeline = this._client.pipeline;
-    this.indexes = _getIndexesOperations_1(this._client);
+    this.indexes = _getIndexesOperations(this._client);
   }
 }
 ```

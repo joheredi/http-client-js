@@ -13,8 +13,8 @@ op doThing(@header contentType: "multipart/form-data", @multipartBody bodyParam:
 This basic case uses TypeSpec's `Http.File`, which specifies an optional `filename` and `contentType`. Since both are optional, the customer can pass the file's content directly to the `basicFile` property. If the customer wants to specify the filename or content type, they can use the wrapper object.
 
 `````ts models
-import { createFilePartDescriptor as createFilePartDescriptor_1 } from "../helpers/multipartHelpers.js";
-import { uint8ArrayToString as uint8ArrayToString_1 } from "@typespec/ts-http-runtime";
+import { createFilePartDescriptor } from "../helpers/multipartHelpers.js";
+import { uint8ArrayToString } from "@typespec/ts-http-runtime";
 
 export interface RequestBody {
   basicFile: File;
@@ -93,12 +93,12 @@ export function fileSerializer(item: File): any {
   return {
     contentType: item["contentType"],
     filename: item["filename"],
-    contents: uint8ArrayToString_1(item["contents"], "base64"),
+    contents: uint8ArrayToString(item["contents"], "base64"),
   };
 }
 
 export function requestBodySerializer(item: RequestBody): any {
-  return [createFilePartDescriptor_1("basicFile", item["basicFile"])];
+  return [createFilePartDescriptor("basicFile", item["basicFile"])];
 }
 
 ```
@@ -106,48 +106,45 @@ export function requestBodySerializer(item: RequestBody): any {
 ## Operations
 
 ```ts operations
+import { type RequestBody, requestBodySerializer } from "../models/models.js";
+import type { DoThingOptionalParams } from "./options.js";
 import {
-  type RequestBody as RequestBody_1,
-  requestBodySerializer as requestBodySerializer_1,
-} from "../models/models.js";
-import type { DoThingOptionalParams as DoThingOptionalParams_1 } from "./options.js";
-import {
-  type Client as Client_1,
-  createRestError as createRestError_1,
-  operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
-  type PathUncheckedResponse as PathUncheckedResponse_1,
-  type StreamableMethod as StreamableMethod_1,
+  type Client,
+  createRestError,
+  operationOptionsToRequestParameters,
+  type PathUncheckedResponse,
+  type StreamableMethod,
 } from "@typespec/ts-http-runtime";
 
 export function _doThingSend(
-  context: Client_1,
+  context: Client,
   contentType: "multipart/form-data",
-  bodyParam: RequestBody_1,
-  options: DoThingOptionalParams_1 = { requestOptions: {} },
-): StreamableMethod_1 {
+  bodyParam: RequestBody,
+  options: DoThingOptionalParams = { requestOptions: {} },
+): StreamableMethod {
   return context.path("/").post({
-    ...operationOptionsToRequestParameters_1(options),
+    ...operationOptionsToRequestParameters(options),
     contentType: "multipart/form-data",
-    body: requestBodySerializer_1(bodyParam),
+    body: requestBodySerializer(bodyParam),
   });
 }
 
 export async function _doThingDeserialize(
-  result: PathUncheckedResponse_1,
+  result: PathUncheckedResponse,
 ): Promise<void> {
   const expectedStatuses = ["204"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError_1(result);
+    throw createRestError(result);
   }
 
   return;
 }
 
 export async function doThing(
-  context: Client_1,
+  context: Client,
   contentType: "multipart/form-data",
-  bodyParam: RequestBody_1,
-  options: DoThingOptionalParams_1 = { requestOptions: {} },
+  bodyParam: RequestBody,
+  options: DoThingOptionalParams = { requestOptions: {} },
 ): Promise<void> {
   const result = await _doThingSend(context, contentType, bodyParam, options);
   return _doThingDeserialize(result);
@@ -174,8 +171,8 @@ op doThing(@header contentType: "multipart/form-data", @multipartBody bodyParam:
 The filename must be provided _somehow_. This can either be done by passing a `File` object, which has a required filename property, or by using the wrapper object to pass a `filename` alongside the `contents`.
 
 ````ts models
-import { createFilePartDescriptor as createFilePartDescriptor_1 } from "../helpers/multipartHelpers.js";
-import { uint8ArrayToString as uint8ArrayToString_1 } from "@typespec/ts-http-runtime";
+import { createFilePartDescriptor } from "../helpers/multipartHelpers.js";
+import { uint8ArrayToString } from "@typespec/ts-http-runtime";
 
 export interface RequestBody {
   nameRequired: FileRequiredName;
@@ -264,12 +261,12 @@ export function fileSerializer(item: File): any {
   return {
     contentType: item["contentType"],
     filename: item["filename"],
-    contents: uint8ArrayToString_1(item["contents"], "base64"),
+    contents: uint8ArrayToString(item["contents"], "base64"),
   };
 }
 
 export function requestBodySerializer(item: RequestBody): any {
-  return [createFilePartDescriptor_1("nameRequired", item["nameRequired"])];
+  return [createFilePartDescriptor("nameRequired", item["nameRequired"])];
 }
 
 ```
@@ -291,8 +288,8 @@ op doThing(@header contentType: "multipart/form-data", @multipartBody bodyParam:
 ## Models
 
 ````ts models
-import { createFilePartDescriptor as createFilePartDescriptor_1 } from "../helpers/multipartHelpers.js";
-import { uint8ArrayToString as uint8ArrayToString_1 } from "@typespec/ts-http-runtime";
+import { createFilePartDescriptor } from "../helpers/multipartHelpers.js";
+import { uint8ArrayToString } from "@typespec/ts-http-runtime";
 
 export interface RequestBody {
   image: PngFile;
@@ -381,12 +378,12 @@ export function fileSerializer(item: File): any {
   return {
     contentType: item["contentType"],
     filename: item["filename"],
-    contents: uint8ArrayToString_1(item["contents"], "base64"),
+    contents: uint8ArrayToString(item["contents"], "base64"),
   };
 }
 
 export function requestBodySerializer(item: RequestBody): any {
-  return [createFilePartDescriptor_1("image", item["image"], "image/png")];
+  return [createFilePartDescriptor("image", item["image"], "image/png")];
 }
 
 ```
@@ -406,8 +403,8 @@ op doThing(@header contentType: "multipart/form-data", @multipartBody bodyParam:
 Each provided file in the input corresponds to one part in the multipart request.
 
 ````ts models
-import { createFilePartDescriptor as createFilePartDescriptor_1 } from "../helpers/multipartHelpers.js";
-import { uint8ArrayToString as uint8ArrayToString_1 } from "@typespec/ts-http-runtime";
+import { createFilePartDescriptor } from "../helpers/multipartHelpers.js";
+import { uint8ArrayToString } from "@typespec/ts-http-runtime";
 
 export interface RequestBody {
   files: File[];
@@ -486,15 +483,13 @@ export function fileSerializer(item: File): any {
   return {
     contentType: item["contentType"],
     filename: item["filename"],
-    contents: uint8ArrayToString_1(item["contents"], "base64"),
+    contents: uint8ArrayToString(item["contents"], "base64"),
   };
 }
 
 export function requestBodySerializer(item: RequestBody): any {
   return [
-    ...item["files"].map((x: unknown) =>
-      createFilePartDescriptor_1("files", x),
-    ),
+    ...item["files"].map((x: unknown) => createFilePartDescriptor("files", x)),
   ];
 }
 

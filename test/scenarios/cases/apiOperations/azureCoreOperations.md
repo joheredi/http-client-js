@@ -52,34 +52,34 @@ needAzureCore: true
 
 ```ts operations
 import {
-  errorResponseDeserializer as errorResponseDeserializer_1,
-  type ResourceOperationStatusWidgetSuiteWidgetSuiteError as ResourceOperationStatusWidgetSuiteWidgetSuiteError_1,
-  resourceOperationStatusWidgetSuiteWidgetSuiteErrorDeserializer as resourceOperationStatusWidgetSuiteWidgetSuiteErrorDeserializer_1,
+  errorResponseDeserializer,
+  type ResourceOperationStatusWidgetSuiteWidgetSuiteError,
+  resourceOperationStatusWidgetSuiteWidgetSuiteErrorDeserializer,
 } from "../models/models.js";
-import { GetWidgetOperationStatusOptionalParams as GetWidgetOperationStatusOptionalParams_1 } from "./widgets/options.js";
+import { GetWidgetOperationStatusOptionalParams } from "./widgets/options.js";
 import {
-  Client as Client_1,
-  createRestError as createRestError_1,
-  expandUrlTemplate as expandUrlTemplate_1,
-  operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
-  type PathUncheckedResponse as PathUncheckedResponse_1,
-  type StreamableMethod as StreamableMethod_1,
+  Client,
+  createRestError,
+  expandUrlTemplate,
+  operationOptionsToRequestParameters,
+  type PathUncheckedResponse,
+  type StreamableMethod,
 } from "@typespec/ts-http-runtime";
 
 export function _getWidgetOperationStatusSend(
-  context: Client_1,
+  context: Client,
   apiVersion: string,
   name: string,
   operationId: string,
-  options: GetWidgetOperationStatusOptionalParams_1 = { requestOptions: {} },
-): StreamableMethod_1 {
-  const path = expandUrlTemplate_1(
+  options: GetWidgetOperationStatusOptionalParams = { requestOptions: {} },
+): StreamableMethod {
+  const path = expandUrlTemplate(
     "/widgets/{name}/operations/{operationId}{?api%2Dversion}",
     { "api-version": apiVersion, name: name, operationId: operationId },
     { allowReserved: options?.requestOptions?.skipUrlEncoding },
   );
   return context.path(path).get({
-    ...operationOptionsToRequestParameters_1(options),
+    ...operationOptionsToRequestParameters(options),
     headers: {
       accept: "application/json",
       ...options.requestOptions?.headers,
@@ -88,16 +88,16 @@ export function _getWidgetOperationStatusSend(
 }
 
 export async function _getWidgetOperationStatusDeserialize(
-  result: PathUncheckedResponse_1,
-): Promise<ResourceOperationStatusWidgetSuiteWidgetSuiteError_1> {
+  result: PathUncheckedResponse,
+): Promise<ResourceOperationStatusWidgetSuiteWidgetSuiteError> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
-    const error = createRestError_1(result);
-    error.details = errorResponseDeserializer_1(result.body);
+    const error = createRestError(result);
+    error.details = errorResponseDeserializer(result.body);
     throw error;
   }
 
-  return resourceOperationStatusWidgetSuiteWidgetSuiteErrorDeserializer_1(
+  return resourceOperationStatusWidgetSuiteWidgetSuiteErrorDeserializer(
     result.body,
   );
 }
@@ -105,19 +105,19 @@ export async function _getWidgetOperationStatusDeserialize(
 /**
  * Get the status of a long-running operation on widgets.
  *
- * @param {Client_1} context
+ * @param {Client} context
  * @param {string} apiVersion
  * @param {string} name
  * @param {string} operationId
- * @param {GetWidgetOperationStatusOptionalParams_1} options
+ * @param {GetWidgetOperationStatusOptionalParams} options
  */
 export async function getWidgetOperationStatus(
-  context: Client_1,
+  context: Client,
   apiVersion: string,
   name: string,
   operationId: string,
-  options: GetWidgetOperationStatusOptionalParams_1 = { requestOptions: {} },
-): Promise<ResourceOperationStatusWidgetSuiteWidgetSuiteError_1> {
+  options: GetWidgetOperationStatusOptionalParams = { requestOptions: {} },
+): Promise<ResourceOperationStatusWidgetSuiteWidgetSuiteError> {
   const result = await _getWidgetOperationStatusSend(
     context,
     apiVersion,

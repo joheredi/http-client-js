@@ -13,44 +13,44 @@ op read(@path param?: string): OkResponse;
 Should normal path parameter:
 
 ```ts operations
-import type { ReadOptionalParams as ReadOptionalParams_1 } from "./options.js";
+import type { ReadOptionalParams } from "./options.js";
 import {
-  type Client as Client_1,
-  createRestError as createRestError_1,
-  expandUrlTemplate as expandUrlTemplate_1,
-  operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
-  type PathUncheckedResponse as PathUncheckedResponse_1,
-  type StreamableMethod as StreamableMethod_1,
+  type Client,
+  createRestError,
+  expandUrlTemplate,
+  operationOptionsToRequestParameters,
+  type PathUncheckedResponse,
+  type StreamableMethod,
 } from "@typespec/ts-http-runtime";
 
 export function _readSend(
-  context: Client_1,
-  options: ReadOptionalParams_1 = { requestOptions: {} },
-): StreamableMethod_1 {
-  const path = expandUrlTemplate_1(
+  context: Client,
+  options: ReadOptionalParams = { requestOptions: {} },
+): StreamableMethod {
+  const path = expandUrlTemplate(
     "{/param}",
     { param: options?.param },
     { allowReserved: options?.requestOptions?.skipUrlEncoding },
   );
   return context
     .path(path)
-    .get({ ...operationOptionsToRequestParameters_1(options) });
+    .get({ ...operationOptionsToRequestParameters(options) });
 }
 
 export async function _readDeserialize(
-  result: PathUncheckedResponse_1,
+  result: PathUncheckedResponse,
 ): Promise<void> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError_1(result);
+    throw createRestError(result);
   }
 
   return;
 }
 
 export async function read(
-  context: Client_1,
-  options: ReadOptionalParams_1 = { requestOptions: {} },
+  context: Client,
+  options: ReadOptionalParams = { requestOptions: {} },
 ): Promise<void> {
   const result = await _readSend(context, options);
   return _readDeserialize(result);
@@ -60,12 +60,12 @@ export async function read(
 ## Options should include optional path parameter
 
 ```ts models:withOptions
-import type { OperationOptions as OperationOptions_1 } from "@typespec/ts-http-runtime";
+import type { OperationOptions } from "@typespec/ts-http-runtime";
 
 /**
  * Optional parameters for the read operation.
  */
-export interface ReadOptionalParams extends OperationOptions_1 {
+export interface ReadOptionalParams extends OperationOptions {
   param?: string;
 }
 ```

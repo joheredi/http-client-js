@@ -44,57 +44,57 @@ withRawContent: true
 The options interface should be correctly generated:
 
 ```ts models:withOptions
-import type { OperationOptions as OperationOptions_1 } from "@typespec/ts-http-runtime";
+import type { OperationOptions } from "@typespec/ts-http-runtime";
 
 /**
  * Optional parameters for the getSecretOriginal operation.
  */
-export interface GetSecretOriginalOptionalParams extends OperationOptions_1 {}
+export interface GetSecretOriginalOptionalParams extends OperationOptions {}
 ```
 
 ## Operations
 
 ```ts operations
-import type { GetSecretOriginalOptionalParams as GetSecretOriginalOptionalParams_1 } from "./options.js";
+import type { GetSecretOriginalOptionalParams } from "./options.js";
 import {
-  type Client as Client_1,
-  createRestError as createRestError_1,
-  expandUrlTemplate as expandUrlTemplate_1,
-  operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
-  type PathUncheckedResponse as PathUncheckedResponse_1,
-  type StreamableMethod as StreamableMethod_1,
+  type Client,
+  createRestError,
+  expandUrlTemplate,
+  operationOptionsToRequestParameters,
+  type PathUncheckedResponse,
+  type StreamableMethod,
 } from "@typespec/ts-http-runtime";
 
 export function _getSecretOriginalSend(
-  context: Client_1,
+  context: Client,
   secretName: string,
-  options: GetSecretOriginalOptionalParams_1 = { requestOptions: {} },
-): StreamableMethod_1 {
-  const path = expandUrlTemplate_1(
+  options: GetSecretOriginalOptionalParams = { requestOptions: {} },
+): StreamableMethod {
+  const path = expandUrlTemplate(
     "/secrets/{secretName}{?outContentType}",
     { secretName: secretName, outContentType: "outContentType" },
     { allowReserved: options?.requestOptions?.skipUrlEncoding },
   );
   return context
     .path(path)
-    .get({ ...operationOptionsToRequestParameters_1(options) });
+    .get({ ...operationOptionsToRequestParameters(options) });
 }
 
 export async function _getSecretOriginalDeserialize(
-  result: PathUncheckedResponse_1,
+  result: PathUncheckedResponse,
 ): Promise<void> {
   const expectedStatuses = ["204"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError_1(result);
+    throw createRestError(result);
   }
 
   return;
 }
 
 export async function getSecretOriginal(
-  context: Client_1,
+  context: Client,
   secretName: string,
-  options: GetSecretOriginalOptionalParams_1 = { requestOptions: {} },
+  options: GetSecretOriginalOptionalParams = { requestOptions: {} },
 ): Promise<void> {
   const result = await _getSecretOriginalSend(context, secretName, options);
   return _getSecretOriginalDeserialize(result);
@@ -171,58 +171,58 @@ export function groupParametersOptionsSerializer(
 The options interface should be correctly generated:
 
 ```ts models:withOptions
-import type { OperationOptions as OperationOptions_1 } from "@typespec/ts-http-runtime";
+import type { OperationOptions } from "@typespec/ts-http-runtime";
 
 /**
  * Optional parameters for the groupOriginal operation.
  */
-export interface GroupOriginalOptionalParams extends OperationOptions_1 {}
+export interface GroupOriginalOptionalParams extends OperationOptions {}
 ```
 
 ## Operations
 
 ```ts operations
-import type { GroupParametersOptions as GroupParametersOptions_1 } from "../models/models.js";
-import type { GroupOriginalOptionalParams as GroupOriginalOptionalParams_1 } from "./options.js";
+import type { GroupParametersOptions } from "../models/models.js";
+import type { GroupOriginalOptionalParams } from "./options.js";
 import {
-  type Client as Client_1,
-  createRestError as createRestError_1,
-  expandUrlTemplate as expandUrlTemplate_1,
-  operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
-  type PathUncheckedResponse as PathUncheckedResponse_1,
-  type StreamableMethod as StreamableMethod_1,
+  type Client,
+  createRestError,
+  expandUrlTemplate,
+  operationOptionsToRequestParameters,
+  type PathUncheckedResponse,
+  type StreamableMethod,
 } from "@typespec/ts-http-runtime";
 
 export function _groupOriginalSend(
-  context: Client_1,
-  options: GroupParametersOptions_1,
-  optionalParams: GroupOriginalOptionalParams_1 = { requestOptions: {} },
-): StreamableMethod_1 {
-  const path = expandUrlTemplate_1(
+  context: Client,
+  options: GroupParametersOptions,
+  optionalParams: GroupOriginalOptionalParams = { requestOptions: {} },
+): StreamableMethod {
+  const path = expandUrlTemplate(
     "/group{?param1,param2}",
     { param1: options.param1, param2: options.param2 },
     { allowReserved: optionalParams?.requestOptions?.skipUrlEncoding },
   );
   return context
     .path(path)
-    .get({ ...operationOptionsToRequestParameters_1(optionalParams) });
+    .get({ ...operationOptionsToRequestParameters(optionalParams) });
 }
 
 export async function _groupOriginalDeserialize(
-  result: PathUncheckedResponse_1,
+  result: PathUncheckedResponse,
 ): Promise<void> {
   const expectedStatuses = ["204"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError_1(result);
+    throw createRestError(result);
   }
 
   return;
 }
 
 export async function groupOriginal(
-  context: Client_1,
-  options: GroupParametersOptions_1,
-  optionalParams: GroupOriginalOptionalParams_1 = { requestOptions: {} },
+  context: Client,
+  options: GroupParametersOptions,
+  optionalParams: GroupOriginalOptionalParams = { requestOptions: {} },
 ): Promise<void> {
   const result = await _groupOriginalSend(context, options, optionalParams);
   return _groupOriginalDeserialize(result);
@@ -280,12 +280,12 @@ withRawContent: true
 The options interface should only include parameters that exist in the override operation:
 
 ```ts models:withOptions
-import type { OperationOptions as OperationOptions_1 } from "@typespec/ts-http-runtime";
+import type { OperationOptions } from "@typespec/ts-http-runtime";
 
 /**
  * Optional parameters for the removeOptionalOriginal operation.
  */
-export interface RemoveOptionalOriginalOptionalParams extends OperationOptions_1 {
+export interface RemoveOptionalOriginalOptionalParams extends OperationOptions {
   param2?: string;
   param4?: string;
 }
@@ -294,28 +294,28 @@ export interface RemoveOptionalOriginalOptionalParams extends OperationOptions_1
 ## Operations
 
 ```ts operations
-import type { RemoveOptionalOriginalOptionalParams as RemoveOptionalOriginalOptionalParams_1 } from "./options.js";
+import type { RemoveOptionalOriginalOptionalParams } from "./options.js";
 import {
-  type Client as Client_1,
-  createRestError as createRestError_1,
-  expandUrlTemplate as expandUrlTemplate_1,
-  operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
-  type PathUncheckedResponse as PathUncheckedResponse_1,
-  type StreamableMethod as StreamableMethod_1,
+  type Client,
+  createRestError,
+  expandUrlTemplate,
+  operationOptionsToRequestParameters,
+  type PathUncheckedResponse,
+  type StreamableMethod,
 } from "@typespec/ts-http-runtime";
 
 export function _removeOptionalOriginalSend(
-  context: Client_1,
+  context: Client,
   param1: string,
-  options: RemoveOptionalOriginalOptionalParams_1 = { requestOptions: {} },
-): StreamableMethod_1 {
-  const path = expandUrlTemplate_1(
+  options: RemoveOptionalOriginalOptionalParams = { requestOptions: {} },
+): StreamableMethod {
+  const path = expandUrlTemplate(
     "/remove-optional/{param1}{?param2,param3}",
     { param1: param1, param2: options?.param2, param3: "param3" },
     { allowReserved: options?.requestOptions?.skipUrlEncoding },
   );
   return context.path(path).get({
-    ...operationOptionsToRequestParameters_1(options),
+    ...operationOptionsToRequestParameters(options),
     headers: {
       param4: options?.param4,
       param5: "param5",
@@ -325,20 +325,20 @@ export function _removeOptionalOriginalSend(
 }
 
 export async function _removeOptionalOriginalDeserialize(
-  result: PathUncheckedResponse_1,
+  result: PathUncheckedResponse,
 ): Promise<void> {
   const expectedStatuses = ["204"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError_1(result);
+    throw createRestError(result);
   }
 
   return;
 }
 
 export async function removeOptionalOriginal(
-  context: Client_1,
+  context: Client,
   param1: string,
-  options: RemoveOptionalOriginalOptionalParams_1 = { requestOptions: {} },
+  options: RemoveOptionalOriginalOptionalParams = { requestOptions: {} },
 ): Promise<void> {
   const result = await _removeOptionalOriginalSend(context, param1, options);
   return _removeOptionalOriginalDeserialize(result);

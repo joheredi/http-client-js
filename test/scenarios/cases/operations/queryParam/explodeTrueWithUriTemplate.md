@@ -23,119 +23,119 @@ Should enable URI template parse for parameters:
 
 ```ts operations
 import type {
-  ArrayOptionalParams as ArrayOptionalParams_1,
-  PrimitiveOptionalParams as PrimitiveOptionalParams_1,
-  RecordOptionalParams as RecordOptionalParams_1,
+  ArrayOptionalParams,
+  PrimitiveOptionalParams,
+  RecordOptionalParams,
 } from "./options.js";
 import {
-  type Client as Client_1,
-  createRestError as createRestError_1,
-  expandUrlTemplate as expandUrlTemplate_1,
-  operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
-  type PathUncheckedResponse as PathUncheckedResponse_1,
-  type StreamableMethod as StreamableMethod_1,
+  type Client,
+  createRestError,
+  expandUrlTemplate,
+  operationOptionsToRequestParameters,
+  type PathUncheckedResponse,
+  type StreamableMethod,
 } from "@typespec/ts-http-runtime";
 
 export function _primitiveSend(
-  context: Client_1,
+  context: Client,
   param: string,
-  options: PrimitiveOptionalParams_1 = { requestOptions: {} },
-): StreamableMethod_1 {
-  const path = expandUrlTemplate_1(
+  options: PrimitiveOptionalParams = { requestOptions: {} },
+): StreamableMethod {
+  const path = expandUrlTemplate(
     "/primitive?fixed=true{&param*}",
     { param: param },
     { allowReserved: options?.requestOptions?.skipUrlEncoding },
   );
   return context
     .path(path)
-    .get({ ...operationOptionsToRequestParameters_1(options) });
+    .get({ ...operationOptionsToRequestParameters(options) });
 }
 
 export async function _primitiveDeserialize(
-  result: PathUncheckedResponse_1,
+  result: PathUncheckedResponse,
 ): Promise<void> {
   const expectedStatuses = ["204"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError_1(result);
+    throw createRestError(result);
   }
 
   return;
 }
 
 export async function primitive(
-  context: Client_1,
+  context: Client,
   param: string,
-  options: PrimitiveOptionalParams_1 = { requestOptions: {} },
+  options: PrimitiveOptionalParams = { requestOptions: {} },
 ): Promise<void> {
   const result = await _primitiveSend(context, param, options);
   return _primitiveDeserialize(result);
 }
 
 export function _arraySend(
-  context: Client_1,
+  context: Client,
   param: string[],
-  options: ArrayOptionalParams_1 = { requestOptions: {} },
-): StreamableMethod_1 {
-  const path = expandUrlTemplate_1(
+  options: ArrayOptionalParams = { requestOptions: {} },
+): StreamableMethod {
+  const path = expandUrlTemplate(
     "/array?fixed=true{&param*}",
     { param: param },
     { allowReserved: options?.requestOptions?.skipUrlEncoding },
   );
   return context
     .path(path)
-    .get({ ...operationOptionsToRequestParameters_1(options) });
+    .get({ ...operationOptionsToRequestParameters(options) });
 }
 
 export async function _arrayDeserialize(
-  result: PathUncheckedResponse_1,
+  result: PathUncheckedResponse,
 ): Promise<void> {
   const expectedStatuses = ["204"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError_1(result);
+    throw createRestError(result);
   }
 
   return;
 }
 
 export async function array(
-  context: Client_1,
+  context: Client,
   param: string[],
-  options: ArrayOptionalParams_1 = { requestOptions: {} },
+  options: ArrayOptionalParams = { requestOptions: {} },
 ): Promise<void> {
   const result = await _arraySend(context, param, options);
   return _arrayDeserialize(result);
 }
 
 export function _recordSend(
-  context: Client_1,
+  context: Client,
   param: Record<string, number>,
-  options: RecordOptionalParams_1 = { requestOptions: {} },
-): StreamableMethod_1 {
-  const path = expandUrlTemplate_1(
+  options: RecordOptionalParams = { requestOptions: {} },
+): StreamableMethod {
+  const path = expandUrlTemplate(
     "/record?fixed=true{&param*}",
     { param: param },
     { allowReserved: options?.requestOptions?.skipUrlEncoding },
   );
   return context
     .path(path)
-    .get({ ...operationOptionsToRequestParameters_1(options) });
+    .get({ ...operationOptionsToRequestParameters(options) });
 }
 
 export async function _recordDeserialize(
-  result: PathUncheckedResponse_1,
+  result: PathUncheckedResponse,
 ): Promise<void> {
   const expectedStatuses = ["204"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError_1(result);
+    throw createRestError(result);
   }
 
   return;
 }
 
 export async function record(
-  context: Client_1,
+  context: Client,
   param: Record<string, number>,
-  options: RecordOptionalParams_1 = { requestOptions: {} },
+  options: RecordOptionalParams = { requestOptions: {} },
 ): Promise<void> {
   const result = await _recordSend(context, param, options);
   return _recordDeserialize(result);

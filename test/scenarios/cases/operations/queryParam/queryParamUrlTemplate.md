@@ -12,54 +12,54 @@ op read(@path pathParam: string, @query("key-name")
 ## Operations
 
 ```ts operations
-import type { ReadOptionalParams as ReadOptionalParams_1 } from "./options.js";
+import type { ReadOptionalParams } from "./options.js";
 import {
-  type Client as Client_1,
-  createRestError as createRestError_1,
-  expandUrlTemplate as expandUrlTemplate_1,
-  operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
-  type PathUncheckedResponse as PathUncheckedResponse_1,
-  type StreamableMethod as StreamableMethod_1,
+  type Client,
+  createRestError,
+  expandUrlTemplate,
+  operationOptionsToRequestParameters,
+  type PathUncheckedResponse,
+  type StreamableMethod,
 } from "@typespec/ts-http-runtime";
 
 export function _readSend(
-  context: Client_1,
+  context: Client,
   pathParam: string,
   keyName: string,
   keyVersion: string,
   parameters: string,
-  options: ReadOptionalParams_1 = { requestOptions: {} },
-): StreamableMethod_1 {
-  const path = expandUrlTemplate_1(
+  options: ReadOptionalParams = { requestOptions: {} },
+): StreamableMethod {
+  const path = expandUrlTemplate(
     "/{pathParam}{?key%2Dname,key%2Dversion}",
     { pathParam: pathParam, "key-name": keyName, "key-version": keyVersion },
     { allowReserved: options?.requestOptions?.skipUrlEncoding },
   );
   return context.path(path).post({
-    ...operationOptionsToRequestParameters_1(options),
+    ...operationOptionsToRequestParameters(options),
     contentType: "text/plain",
     body: parameters,
   });
 }
 
 export async function _readDeserialize(
-  result: PathUncheckedResponse_1,
+  result: PathUncheckedResponse,
 ): Promise<void> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError_1(result);
+    throw createRestError(result);
   }
 
   return;
 }
 
 export async function read(
-  context: Client_1,
+  context: Client,
   pathParam: string,
   keyName: string,
   keyVersion: string,
   parameters: string,
-  options: ReadOptionalParams_1 = { requestOptions: {} },
+  options: ReadOptionalParams = { requestOptions: {} },
 ): Promise<void> {
   const result = await _readSend(
     context,

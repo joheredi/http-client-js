@@ -51,45 +51,45 @@ export type SchemaContentTypeValues =
 ## paramOutput
 
 ```ts operations
-import type { SchemaContentTypeValues as SchemaContentTypeValues_1 } from "../models/models.js";
-import type { GetOptionalParams as GetOptionalParams_1 } from "./options.js";
+import type { SchemaContentTypeValues } from "../models/models.js";
+import type { GetOptionalParams } from "./options.js";
 import {
-  type Client as Client_1,
-  createRestError as createRestError_1,
-  operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
-  type PathUncheckedResponse as PathUncheckedResponse_1,
-  type StreamableMethod as StreamableMethod_1,
+  type Client,
+  createRestError,
+  operationOptionsToRequestParameters,
+  type PathUncheckedResponse,
+  type StreamableMethod,
 } from "@typespec/ts-http-runtime";
 
 export function _getSend(
-  context: Client_1,
-  contentType: SchemaContentTypeValues_1,
+  context: Client,
+  contentType: SchemaContentTypeValues,
   body: string,
-  options: GetOptionalParams_1 = { requestOptions: {} },
-): StreamableMethod_1 {
+  options: GetOptionalParams = { requestOptions: {} },
+): StreamableMethod {
   return context.path("/").post({
-    ...operationOptionsToRequestParameters_1(options),
+    ...operationOptionsToRequestParameters(options),
     contentType: "application/json; serialization=Avro",
     body: body,
   });
 }
 
 export async function _getDeserialize(
-  result: PathUncheckedResponse_1,
+  result: PathUncheckedResponse,
 ): Promise<void> {
   const expectedStatuses = ["204"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError_1(result);
+    throw createRestError(result);
   }
 
   return;
 }
 
 export async function get(
-  context: Client_1,
-  contentType: SchemaContentTypeValues_1,
+  context: Client,
+  contentType: SchemaContentTypeValues,
   body: string,
-  options: GetOptionalParams_1 = { requestOptions: {} },
+  options: GetOptionalParams = { requestOptions: {} },
 ): Promise<void> {
   const result = await _getSend(context, contentType, body, options);
   return _getDeserialize(result);
@@ -494,24 +494,24 @@ export type GetResponseTestHeader = "A" | "B";
 ## Operations
 
 ```ts operations
-import type { GetRequestTestHeader as GetRequestTestHeader_1 } from "../models/models.js";
-import type { GetOptionalParams as GetOptionalParams_1 } from "./options.js";
+import type { GetRequestTestHeader } from "../models/models.js";
+import type { GetOptionalParams } from "./options.js";
 import {
-  type Client as Client_1,
-  createRestError as createRestError_1,
-  operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
-  type PathUncheckedResponse as PathUncheckedResponse_1,
-  type StreamableMethod as StreamableMethod_1,
+  type Client,
+  createRestError,
+  operationOptionsToRequestParameters,
+  type PathUncheckedResponse,
+  type StreamableMethod,
 } from "@typespec/ts-http-runtime";
 
 export function _getSend(
-  context: Client_1,
-  testHeader: GetRequestTestHeader_1,
+  context: Client,
+  testHeader: GetRequestTestHeader,
   body: string,
-  options: GetOptionalParams_1 = { requestOptions: {} },
-): StreamableMethod_1 {
+  options: GetOptionalParams = { requestOptions: {} },
+): StreamableMethod {
   return context.path("/").post({
-    ...operationOptionsToRequestParameters_1(options),
+    ...operationOptionsToRequestParameters(options),
     contentType: "text/plain",
     headers: {
       "test-header": testHeader,
@@ -522,21 +522,21 @@ export function _getSend(
 }
 
 export async function _getDeserialize(
-  result: PathUncheckedResponse_1,
+  result: PathUncheckedResponse,
 ): Promise<void> {
   const expectedStatuses = ["204"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError_1(result);
+    throw createRestError(result);
   }
 
   return;
 }
 
 export async function get(
-  context: Client_1,
-  testHeader: GetRequestTestHeader_1,
+  context: Client,
+  testHeader: GetRequestTestHeader,
   body: string,
-  options: GetOptionalParams_1 = { requestOptions: {} },
+  options: GetOptionalParams = { requestOptions: {} },
 ): Promise<void> {
   const result = await _getSend(context, testHeader, body, options);
   return _getDeserialize(result);
@@ -620,24 +620,24 @@ export enum KnownGetResponseTestHeader {
 ## Operations
 
 ```ts operations
-import type { GetRequestTestHeader as GetRequestTestHeader_1 } from "../models/models.js";
-import type { GetOptionalParams as GetOptionalParams_1 } from "./options.js";
+import type { GetRequestTestHeader } from "../models/models.js";
+import type { GetOptionalParams } from "./options.js";
 import {
-  type Client as Client_1,
-  createRestError as createRestError_1,
-  operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
-  type PathUncheckedResponse as PathUncheckedResponse_1,
-  type StreamableMethod as StreamableMethod_1,
+  type Client,
+  createRestError,
+  operationOptionsToRequestParameters,
+  type PathUncheckedResponse,
+  type StreamableMethod,
 } from "@typespec/ts-http-runtime";
 
 export function _getSend(
-  context: Client_1,
-  testHeader: GetRequestTestHeader_1,
+  context: Client,
+  testHeader: GetRequestTestHeader,
   body: string,
-  options: GetOptionalParams_1 = { requestOptions: {} },
-): StreamableMethod_1 {
+  options: GetOptionalParams = { requestOptions: {} },
+): StreamableMethod {
   return context.path("/").post({
-    ...operationOptionsToRequestParameters_1(options),
+    ...operationOptionsToRequestParameters(options),
     contentType: "text/plain",
     headers: {
       "test-header": testHeader,
@@ -648,21 +648,21 @@ export function _getSend(
 }
 
 export async function _getDeserialize(
-  result: PathUncheckedResponse_1,
+  result: PathUncheckedResponse,
 ): Promise<void> {
   const expectedStatuses = ["204"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError_1(result);
+    throw createRestError(result);
   }
 
   return;
 }
 
 export async function get(
-  context: Client_1,
-  testHeader: GetRequestTestHeader_1,
+  context: Client,
+  testHeader: GetRequestTestHeader,
   body: string,
-  options: GetOptionalParams_1 = { requestOptions: {} },
+  options: GetOptionalParams = { requestOptions: {} },
 ): Promise<void> {
   const result = await _getSend(context, testHeader, body, options);
   return _getDeserialize(result);

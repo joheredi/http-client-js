@@ -27,32 +27,32 @@ op getWidget(@path id: string): Widget | StorageError;
 
 ```ts operations
 import {
-  storageErrorDeserializer as storageErrorDeserializer_1,
-  type Widget as Widget_1,
-  widgetDeserializer as widgetDeserializer_1,
+  storageErrorDeserializer,
+  type Widget,
+  widgetDeserializer,
 } from "../models/models.js";
-import type { GetWidgetOptionalParams as GetWidgetOptionalParams_1 } from "./options.js";
+import type { GetWidgetOptionalParams } from "./options.js";
 import {
-  type Client as Client_1,
-  createRestError as createRestError_1,
-  expandUrlTemplate as expandUrlTemplate_1,
-  operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
-  type PathUncheckedResponse as PathUncheckedResponse_1,
-  type StreamableMethod as StreamableMethod_1,
+  type Client,
+  createRestError,
+  expandUrlTemplate,
+  operationOptionsToRequestParameters,
+  type PathUncheckedResponse,
+  type StreamableMethod,
 } from "@typespec/ts-http-runtime";
 
 export function _getWidgetSend(
-  context: Client_1,
+  context: Client,
   id: string,
-  options: GetWidgetOptionalParams_1 = { requestOptions: {} },
-): StreamableMethod_1 {
-  const path = expandUrlTemplate_1(
+  options: GetWidgetOptionalParams = { requestOptions: {} },
+): StreamableMethod {
+  const path = expandUrlTemplate(
     "/widgets/{id}",
     { id: id },
     { allowReserved: options?.requestOptions?.skipUrlEncoding },
   );
   return context.path(path).get({
-    ...operationOptionsToRequestParameters_1(options),
+    ...operationOptionsToRequestParameters(options),
     headers: {
       accept: "application/json",
       ...options.requestOptions?.headers,
@@ -61,23 +61,23 @@ export function _getWidgetSend(
 }
 
 export async function _getWidgetDeserialize(
-  result: PathUncheckedResponse_1,
-): Promise<Widget_1> {
+  result: PathUncheckedResponse,
+): Promise<Widget> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
-    const error = createRestError_1(result);
-    error.details = storageErrorDeserializer_1(result.body);
+    const error = createRestError(result);
+    error.details = storageErrorDeserializer(result.body);
     throw error;
   }
 
-  return widgetDeserializer_1(result.body);
+  return widgetDeserializer(result.body);
 }
 
 export async function getWidget(
-  context: Client_1,
+  context: Client,
   id: string,
-  options: GetWidgetOptionalParams_1 = { requestOptions: {} },
-): Promise<Widget_1> {
+  options: GetWidgetOptionalParams = { requestOptions: {} },
+): Promise<Widget> {
   const result = await _getWidgetSend(context, id, options);
   return _getWidgetDeserialize(result);
 }
@@ -118,32 +118,32 @@ op getDocument(@path id: string): {
 
 ```ts operations
 import {
-  apiErrorDeserializer as apiErrorDeserializer_1,
-  type Document as Document_1,
-  documentDeserializer as documentDeserializer_1,
+  apiErrorDeserializer,
+  type Document,
+  documentDeserializer,
 } from "../models/models.js";
-import type { GetDocumentOptionalParams as GetDocumentOptionalParams_1 } from "./options.js";
+import type { GetDocumentOptionalParams } from "./options.js";
 import {
-  type Client as Client_1,
-  createRestError as createRestError_1,
-  expandUrlTemplate as expandUrlTemplate_1,
-  operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
-  type PathUncheckedResponse as PathUncheckedResponse_1,
-  type StreamableMethod as StreamableMethod_1,
+  type Client,
+  createRestError,
+  expandUrlTemplate,
+  operationOptionsToRequestParameters,
+  type PathUncheckedResponse,
+  type StreamableMethod,
 } from "@typespec/ts-http-runtime";
 
 export function _getDocumentSend(
-  context: Client_1,
+  context: Client,
   id: string,
-  options: GetDocumentOptionalParams_1 = { requestOptions: {} },
-): StreamableMethod_1 {
-  const path = expandUrlTemplate_1(
+  options: GetDocumentOptionalParams = { requestOptions: {} },
+): StreamableMethod {
+  const path = expandUrlTemplate(
     "/documents/{id}",
     { id: id },
     { allowReserved: options?.requestOptions?.skipUrlEncoding },
   );
   return context.path(path).get({
-    ...operationOptionsToRequestParameters_1(options),
+    ...operationOptionsToRequestParameters(options),
     headers: {
       accept: "application/json, application/xml",
       ...options.requestOptions?.headers,
@@ -152,23 +152,23 @@ export function _getDocumentSend(
 }
 
 export async function _getDocumentDeserialize(
-  result: PathUncheckedResponse_1,
-): Promise<Document_1> {
+  result: PathUncheckedResponse,
+): Promise<Document> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
-    const error = createRestError_1(result);
-    error.details = apiErrorDeserializer_1(result.body);
+    const error = createRestError(result);
+    error.details = apiErrorDeserializer(result.body);
     throw error;
   }
 
-  return documentDeserializer_1(result.body);
+  return documentDeserializer(result.body);
 }
 
 export async function getDocument(
-  context: Client_1,
+  context: Client,
   id: string,
-  options: GetDocumentOptionalParams_1 = { requestOptions: {} },
-): Promise<Document_1> {
+  options: GetDocumentOptionalParams = { requestOptions: {} },
+): Promise<Document> {
   const result = await _getDocumentSend(context, id, options);
   return _getDocumentDeserialize(result);
 }
@@ -202,32 +202,32 @@ op getItem(@path id: string): Item | SimpleError;
 
 ```ts operations
 import {
-  type Item as Item_1,
-  itemDeserializer as itemDeserializer_1,
-  simpleErrorDeserializer as simpleErrorDeserializer_1,
+  type Item,
+  itemDeserializer,
+  simpleErrorDeserializer,
 } from "../models/models.js";
-import type { GetItemOptionalParams as GetItemOptionalParams_1 } from "./options.js";
+import type { GetItemOptionalParams } from "./options.js";
 import {
-  type Client as Client_1,
-  createRestError as createRestError_1,
-  expandUrlTemplate as expandUrlTemplate_1,
-  operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
-  type PathUncheckedResponse as PathUncheckedResponse_1,
-  type StreamableMethod as StreamableMethod_1,
+  type Client,
+  createRestError,
+  expandUrlTemplate,
+  operationOptionsToRequestParameters,
+  type PathUncheckedResponse,
+  type StreamableMethod,
 } from "@typespec/ts-http-runtime";
 
 export function _getItemSend(
-  context: Client_1,
+  context: Client,
   id: string,
-  options: GetItemOptionalParams_1 = { requestOptions: {} },
-): StreamableMethod_1 {
-  const path = expandUrlTemplate_1(
+  options: GetItemOptionalParams = { requestOptions: {} },
+): StreamableMethod {
+  const path = expandUrlTemplate(
     "/items/{id}",
     { id: id },
     { allowReserved: options?.requestOptions?.skipUrlEncoding },
   );
   return context.path(path).get({
-    ...operationOptionsToRequestParameters_1(options),
+    ...operationOptionsToRequestParameters(options),
     headers: {
       accept: "application/json",
       ...options.requestOptions?.headers,
@@ -236,23 +236,23 @@ export function _getItemSend(
 }
 
 export async function _getItemDeserialize(
-  result: PathUncheckedResponse_1,
-): Promise<Item_1> {
+  result: PathUncheckedResponse,
+): Promise<Item> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
-    const error = createRestError_1(result);
-    error.details = simpleErrorDeserializer_1(result.body);
+    const error = createRestError(result);
+    error.details = simpleErrorDeserializer(result.body);
     throw error;
   }
 
-  return itemDeserializer_1(result.body);
+  return itemDeserializer(result.body);
 }
 
 export async function getItem(
-  context: Client_1,
+  context: Client,
   id: string,
-  options: GetItemOptionalParams_1 = { requestOptions: {} },
-): Promise<Item_1> {
+  options: GetItemOptionalParams = { requestOptions: {} },
+): Promise<Item> {
   const result = await _getItemSend(context, id, options);
   return _getItemDeserialize(result);
 }

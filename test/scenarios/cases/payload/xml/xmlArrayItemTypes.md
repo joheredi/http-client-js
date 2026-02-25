@@ -61,7 +61,7 @@ export interface BlockLookupList {
 
 ```ts models function blockLookupListXmlSerializer
 export function blockLookupListXmlSerializer(item: BlockLookupList): string {
-  const properties: XmlPropertyMetadata_1[] = [
+  const properties: XmlPropertyMetadata[] = [
     {
       propertyName: "committed",
       xmlOptions: {
@@ -89,14 +89,14 @@ export function blockLookupListXmlSerializer(item: BlockLookupList): string {
       itemType: "bytes",
     },
   ];
-  return serializeToXml_1(item, properties, "BlockList");
+  return serializeToXml(item, properties, "BlockList");
 }
 ```
 
 ```ts models function blockLookupListXmlObjectSerializer
 export function blockLookupListXmlObjectSerializer(
   item: BlockLookupList,
-): XmlSerializedObject_1 {
+): XmlSerializedObject {
   return {
     Committed: item["committed"],
     Uncommitted: item["uncommitted"],
@@ -153,7 +153,7 @@ export interface DateArraysModel {
 
 ```ts models function dateArraysModelXmlSerializer
 export function dateArraysModelXmlSerializer(item: DateArraysModel): string {
-  const properties: XmlPropertyMetadata_1[] = [
+  const properties: XmlPropertyMetadata[] = [
     {
       propertyName: "timestamps",
       xmlOptions: { name: "Timestamps", itemsName: "utcDateTime" },
@@ -167,7 +167,7 @@ export function dateArraysModelXmlSerializer(item: DateArraysModel): string {
       itemType: "date",
     },
   ];
-  return serializeToXml_1(item, properties, "DateArraysModel");
+  return serializeToXml(item, properties, "DateArraysModel");
 }
 ```
 
@@ -175,7 +175,7 @@ export function dateArraysModelXmlSerializer(item: DateArraysModel): string {
 export function dateArraysModelXmlDeserializer(
   xmlString: string,
 ): DateArraysModel {
-  const properties: XmlPropertyDeserializeMetadata_1[] = [
+  const properties: XmlPropertyDeserializeMetadata[] = [
     {
       propertyName: "timestamps",
       xmlOptions: { name: "Timestamps", itemsName: "utcDateTime" },
@@ -189,7 +189,7 @@ export function dateArraysModelXmlDeserializer(
       itemType: "date",
     },
   ];
-  return deserializeFromXml_1<DateArraysModel>(
+  return deserializeFromXml<DateArraysModel>(
     xmlString,
     properties,
     "DateArraysModel",

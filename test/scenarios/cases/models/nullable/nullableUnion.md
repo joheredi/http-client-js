@@ -48,51 +48,51 @@ export function _postRequestDeserializer(item: any): _PostRequest {
 
 ```ts operations
 import {
-  type _PostRequest as _PostRequest_1,
-  _postRequestDeserializer as _postRequestDeserializer_1,
-  _postRequestSerializer as _postRequestSerializer_1,
+  type _PostRequest,
+  _postRequestDeserializer,
+  _postRequestSerializer,
 } from "../models/models.js";
-import type { PostOptionalParams as PostOptionalParams_1 } from "./options.js";
+import type { PostOptionalParams } from "./options.js";
 import {
-  type Client as Client_1,
-  createRestError as createRestError_1,
-  operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
-  type PathUncheckedResponse as PathUncheckedResponse_1,
-  type StreamableMethod as StreamableMethod_1,
+  type Client,
+  createRestError,
+  operationOptionsToRequestParameters,
+  type PathUncheckedResponse,
+  type StreamableMethod,
 } from "@typespec/ts-http-runtime";
 
 export function _postSend(
-  context: Client_1,
-  body: _PostRequest_1 | null,
-  options: PostOptionalParams_1 = { requestOptions: {} },
-): StreamableMethod_1 {
+  context: Client,
+  body: _PostRequest | null,
+  options: PostOptionalParams = { requestOptions: {} },
+): StreamableMethod {
   return context.path("/").post({
-    ...operationOptionsToRequestParameters_1(options),
+    ...operationOptionsToRequestParameters(options),
     contentType: "application/json",
     headers: {
       accept: "application/json",
       ...options.requestOptions?.headers,
     },
-    body: _postRequestSerializer_1(body),
+    body: _postRequestSerializer(body),
   });
 }
 
 export async function _postDeserialize(
-  result: PathUncheckedResponse_1,
-): Promise<_PostRequest_1 | null> {
+  result: PathUncheckedResponse,
+): Promise<_PostRequest | null> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError_1(result);
+    throw createRestError(result);
   }
 
-  return _postRequestDeserializer_1(result.body);
+  return _postRequestDeserializer(result.body);
 }
 
 export async function post(
-  context: Client_1,
-  body: _PostRequest_1 | null,
-  options: PostOptionalParams_1 = { requestOptions: {} },
-): Promise<_PostRequest_1 | null> {
+  context: Client,
+  body: _PostRequest | null,
+  options: PostOptionalParams = { requestOptions: {} },
+): Promise<_PostRequest | null> {
   const result = await _postSend(context, body, options);
   return _postDeserialize(result);
 }

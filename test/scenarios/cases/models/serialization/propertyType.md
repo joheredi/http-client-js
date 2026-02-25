@@ -89,7 +89,7 @@ interface D {
 Generated Models.
 
 ```ts models
-import { serializeRecord as serializeRecord_1 } from "../helpers/serializationHelpers.js";
+import { serializeRecord } from "../helpers/serializationHelpers.js";
 
 export interface SimpleModel {
   propString: string;
@@ -300,7 +300,7 @@ export function simpleModelSerializer(item: SimpleModel): any {
     propStringArrayOptional: item["propStringArrayOptional"],
     propSimpleUnionArrayOptional: item["propSimpleUnionArrayOptional"],
     propRecordOfString: item["propRecordOfString"],
-    propRecordOfDate: serializeRecord_1(
+    propRecordOfDate: serializeRecord(
       item["propRecordOfDate"] as any,
       (v: any) => v.toISOString(),
     ),
@@ -319,7 +319,7 @@ export function simpleModelSerializer(item: SimpleModel): any {
     prop_encoded: item["propEncoded"],
     propNotNormalizeModel: fooSerializer(item["propNotNormalizeModel"]),
     propNormalizeModel: foobarSerializer(item["propNormalizeModel"]),
-    propRecordOfUnionArrayNotNormalize: serializeRecord_1(
+    propRecordOfUnionArrayNotNormalize: serializeRecord(
       item["propRecordOfUnionArrayNotNormalize"] as any,
       (v: any) =>
         v.map((p: any) => {
@@ -331,7 +331,7 @@ export function simpleModelSerializer(item: SimpleModel): any {
         return nfvIsUnionSerializer(p);
       },
     ),
-    propRecordOfUnionNotNormalize: serializeRecord_1(
+    propRecordOfUnionNotNormalize: serializeRecord(
       item["propRecordOfUnionNotNormalize"] as any,
       (v: any) => nfvIsUnionSerializer(v),
     ),
@@ -348,7 +348,7 @@ export function foobarSerializer(item: Foobar): any {
   return {
     name: !item["name"]
       ? item["name"]
-      : serializeRecord_1(item["name"] as any, (v: any) =>
+      : serializeRecord(item["name"] as any, (v: any) =>
           v.map((p: any) => {
             return nfvIsUnionSerializer(p);
           }),

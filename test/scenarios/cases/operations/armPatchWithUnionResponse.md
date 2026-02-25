@@ -63,31 +63,31 @@ withRawContent: true
 
 ```ts operations
 import {
-  errorResponseDeserializer as errorResponseDeserializer_1,
-  type PartnerTopic as PartnerTopic_1,
-  partnerTopicDeserializer as partnerTopicDeserializer_1,
-  PartnerTopicUpdateParameters as PartnerTopicUpdateParameters_1,
-  partnerTopicUpdateParametersSerializer as partnerTopicUpdateParametersSerializer_1,
+  errorResponseDeserializer,
+  type PartnerTopic,
+  partnerTopicDeserializer,
+  PartnerTopicUpdateParameters,
+  partnerTopicUpdateParametersSerializer,
 } from "../models/models.js";
-import { UpdateOptionalParams as UpdateOptionalParams_1 } from "./partnerTopics/options.js";
+import { UpdateOptionalParams } from "./partnerTopics/options.js";
 import {
-  Client as Client_1,
-  createRestError as createRestError_1,
-  expandUrlTemplate as expandUrlTemplate_1,
-  operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
-  type PathUncheckedResponse as PathUncheckedResponse_1,
-  type StreamableMethod as StreamableMethod_1,
+  Client,
+  createRestError,
+  expandUrlTemplate,
+  operationOptionsToRequestParameters,
+  type PathUncheckedResponse,
+  type StreamableMethod,
 } from "@typespec/ts-http-runtime";
 
 export function _updateSend(
-  context: Client_1,
+  context: Client,
   apiVersion: string,
   resourceGroupName: string,
   partnerTopicName: string,
-  properties: PartnerTopicUpdateParameters_1,
-  options: UpdateOptionalParams_1 = { requestOptions: {} },
-): StreamableMethod_1 {
-  const path = expandUrlTemplate_1(
+  properties: PartnerTopicUpdateParameters,
+  options: UpdateOptionalParams = { requestOptions: {} },
+): StreamableMethod {
+  const path = expandUrlTemplate(
     "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.TestArmPatch/partnerTopics/{partnerTopicName}{?api%2Dversion}",
     {
       "api-version": apiVersion,
@@ -98,47 +98,47 @@ export function _updateSend(
     { allowReserved: options?.requestOptions?.skipUrlEncoding },
   );
   return context.path(path).patch({
-    ...operationOptionsToRequestParameters_1(options),
+    ...operationOptionsToRequestParameters(options),
     contentType: "application/json",
     headers: {
       accept: "application/json",
       ...options.requestOptions?.headers,
     },
-    body: partnerTopicUpdateParametersSerializer_1(properties),
+    body: partnerTopicUpdateParametersSerializer(properties),
   });
 }
 
 export async function _updateDeserialize(
-  result: PathUncheckedResponse_1,
-): Promise<PartnerTopic_1> {
+  result: PathUncheckedResponse,
+): Promise<PartnerTopic> {
   const expectedStatuses = ["200", "201"];
   if (!expectedStatuses.includes(result.status)) {
-    const error = createRestError_1(result);
-    error.details = errorResponseDeserializer_1(result.body);
+    const error = createRestError(result);
+    error.details = errorResponseDeserializer(result.body);
     throw error;
   }
 
-  return partnerTopicDeserializer_1(result.body);
+  return partnerTopicDeserializer(result.body);
 }
 
 /**
  * Update a PartnerTopic
  *
- * @param {Client_1} context
+ * @param {Client} context
  * @param {string} apiVersion
  * @param {string} resourceGroupName
  * @param {string} partnerTopicName
- * @param {PartnerTopicUpdateParameters_1} properties
- * @param {UpdateOptionalParams_1} options
+ * @param {PartnerTopicUpdateParameters} properties
+ * @param {UpdateOptionalParams} options
  */
 export async function update(
-  context: Client_1,
+  context: Client,
   apiVersion: string,
   resourceGroupName: string,
   partnerTopicName: string,
-  properties: PartnerTopicUpdateParameters_1,
-  options: UpdateOptionalParams_1 = { requestOptions: {} },
-): Promise<PartnerTopic_1> {
+  properties: PartnerTopicUpdateParameters,
+  options: UpdateOptionalParams = { requestOptions: {} },
+): Promise<PartnerTopic> {
   const result = await _updateSend(
     context,
     apiVersion,

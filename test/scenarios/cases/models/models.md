@@ -47,59 +47,59 @@ export function streamingChatCompletionOptionsDeserializer(
 
 ```ts operations
 import {
-  type StreamingChatCompletionOptions as StreamingChatCompletionOptions_1,
-  streamingChatCompletionOptionsDeserializer as streamingChatCompletionOptionsDeserializer_1,
-  streamingChatCompletionOptionsSerializer as streamingChatCompletionOptionsSerializer_1,
+  type StreamingChatCompletionOptions,
+  streamingChatCompletionOptionsDeserializer,
+  streamingChatCompletionOptionsSerializer,
 } from "../models/models.js";
-import type { ReadOptionalParams as ReadOptionalParams_1 } from "./options.js";
+import type { ReadOptionalParams } from "./options.js";
 import {
-  type Client as Client_1,
-  createRestError as createRestError_1,
-  expandUrlTemplate as expandUrlTemplate_1,
-  operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
-  type PathUncheckedResponse as PathUncheckedResponse_1,
-  type StreamableMethod as StreamableMethod_1,
+  type Client,
+  createRestError,
+  expandUrlTemplate,
+  operationOptionsToRequestParameters,
+  type PathUncheckedResponse,
+  type StreamableMethod,
 } from "@typespec/ts-http-runtime";
 
 export function _readSend(
-  context: Client_1,
+  context: Client,
   id: string,
-  body: StreamingChatCompletionOptions_1,
-  options: ReadOptionalParams_1 = { requestOptions: {} },
-): StreamableMethod_1 {
-  const path = expandUrlTemplate_1(
+  body: StreamingChatCompletionOptions,
+  options: ReadOptionalParams = { requestOptions: {} },
+): StreamableMethod {
+  const path = expandUrlTemplate(
     "/{id}",
     { id: id },
     { allowReserved: options?.requestOptions?.skipUrlEncoding },
   );
   return context.path(path).post({
-    ...operationOptionsToRequestParameters_1(options),
+    ...operationOptionsToRequestParameters(options),
     contentType: "application/json",
     headers: {
       accept: "application/json",
       ...options.requestOptions?.headers,
     },
-    body: streamingChatCompletionOptionsSerializer_1(body),
+    body: streamingChatCompletionOptionsSerializer(body),
   });
 }
 
 export async function _readDeserialize(
-  result: PathUncheckedResponse_1,
-): Promise<StreamingChatCompletionOptions_1> {
+  result: PathUncheckedResponse,
+): Promise<StreamingChatCompletionOptions> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError_1(result);
+    throw createRestError(result);
   }
 
-  return streamingChatCompletionOptionsDeserializer_1(result.body);
+  return streamingChatCompletionOptionsDeserializer(result.body);
 }
 
 export async function read(
-  context: Client_1,
+  context: Client,
   id: string,
-  body: StreamingChatCompletionOptions_1,
-  options: ReadOptionalParams_1 = { requestOptions: {} },
-): Promise<StreamingChatCompletionOptions_1> {
+  body: StreamingChatCompletionOptions,
+  options: ReadOptionalParams = { requestOptions: {} },
+): Promise<StreamingChatCompletionOptions> {
   const result = await _readSend(context, id, body, options);
   return _readDeserialize(result);
 }
@@ -133,24 +133,24 @@ export interface StreamingChatCompletionOptions {
 ## Operations
 
 ```ts operations
-import type { ReadOptionalParams as ReadOptionalParams_1 } from "./options.js";
+import type { ReadOptionalParams } from "./options.js";
 import {
-  type Client as Client_1,
-  createRestError as createRestError_1,
-  operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
-  type PathUncheckedResponse as PathUncheckedResponse_1,
-  type StreamableMethod as StreamableMethod_1,
+  type Client,
+  createRestError,
+  operationOptionsToRequestParameters,
+  type PathUncheckedResponse,
+  type StreamableMethod,
 } from "@typespec/ts-http-runtime";
 
 export function _readSend(
-  context: Client_1,
+  context: Client,
   stream: true,
   messages: "aaaaa",
   index: 123,
-  options: ReadOptionalParams_1 = { requestOptions: {} },
-): StreamableMethod_1 {
+  options: ReadOptionalParams = { requestOptions: {} },
+): StreamableMethod {
   return context.path("/").post({
-    ...operationOptionsToRequestParameters_1(options),
+    ...operationOptionsToRequestParameters(options),
     contentType: "application/json",
     headers: { accept: "text/plain", ...options.requestOptions?.headers },
     body: { stream: stream, messages: messages, index: index },
@@ -158,22 +158,22 @@ export function _readSend(
 }
 
 export async function _readDeserialize(
-  result: PathUncheckedResponse_1,
+  result: PathUncheckedResponse,
 ): Promise<true> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError_1(result);
+    throw createRestError(result);
   }
 
   return result.body;
 }
 
 export async function read(
-  context: Client_1,
+  context: Client,
   stream: true,
   messages: "aaaaa",
   index: 123,
-  options: ReadOptionalParams_1 = { requestOptions: {} },
+  options: ReadOptionalParams = { requestOptions: {} },
 ): Promise<true> {
   const result = await _readSend(context, stream, messages, index, options);
   return _readDeserialize(result);

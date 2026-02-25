@@ -30,48 +30,45 @@ export function requestBodySerializer(item: RequestBody): any {
 ## Operations
 
 ```ts operations
+import { type RequestBody, requestBodySerializer } from "../models/models.js";
+import type { DoThingOptionalParams } from "./options.js";
 import {
-  type RequestBody as RequestBody_1,
-  requestBodySerializer as requestBodySerializer_1,
-} from "../models/models.js";
-import type { DoThingOptionalParams as DoThingOptionalParams_1 } from "./options.js";
-import {
-  type Client as Client_1,
-  createRestError as createRestError_1,
-  operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
-  type PathUncheckedResponse as PathUncheckedResponse_1,
-  type StreamableMethod as StreamableMethod_1,
+  type Client,
+  createRestError,
+  operationOptionsToRequestParameters,
+  type PathUncheckedResponse,
+  type StreamableMethod,
 } from "@typespec/ts-http-runtime";
 
 export function _doThingSend(
-  context: Client_1,
+  context: Client,
   contentType: "multipart/form-data",
-  bodyParam: RequestBody_1,
-  options: DoThingOptionalParams_1 = { requestOptions: {} },
-): StreamableMethod_1 {
+  bodyParam: RequestBody,
+  options: DoThingOptionalParams = { requestOptions: {} },
+): StreamableMethod {
   return context.path("/").post({
-    ...operationOptionsToRequestParameters_1(options),
+    ...operationOptionsToRequestParameters(options),
     contentType: "multipart/form-data",
-    body: requestBodySerializer_1(bodyParam),
+    body: requestBodySerializer(bodyParam),
   });
 }
 
 export async function _doThingDeserialize(
-  result: PathUncheckedResponse_1,
+  result: PathUncheckedResponse,
 ): Promise<void> {
   const expectedStatuses = ["204"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError_1(result);
+    throw createRestError(result);
   }
 
   return;
 }
 
 export async function doThing(
-  context: Client_1,
+  context: Client,
   contentType: "multipart/form-data",
-  bodyParam: RequestBody_1,
-  options: DoThingOptionalParams_1 = { requestOptions: {} },
+  bodyParam: RequestBody,
+  options: DoThingOptionalParams = { requestOptions: {} },
 ): Promise<void> {
   const result = await _doThingSend(context, contentType, bodyParam, options);
   return _doThingDeserialize(result);

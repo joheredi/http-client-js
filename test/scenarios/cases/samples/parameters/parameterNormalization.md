@@ -46,28 +46,28 @@ Raw json files.
 Operations
 
 ```ts operations
-import { listCredentialsRequestSerializer as listCredentialsRequestSerializer_1 } from "../models/models.js";
-import { PostOptionalParams as PostOptionalParams_1 } from "./options.js";
+import { listCredentialsRequestSerializer } from "../models/models.js";
+import { PostOptionalParams } from "./options.js";
 import {
-  Client as Client_1,
-  createRestError as createRestError_1,
-  expandUrlTemplate as expandUrlTemplate_1,
-  operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
-  type PathUncheckedResponse as PathUncheckedResponse_1,
-  type StreamableMethod as StreamableMethod_1,
+  Client,
+  createRestError,
+  expandUrlTemplate,
+  operationOptionsToRequestParameters,
+  type PathUncheckedResponse,
+  type StreamableMethod,
 } from "@typespec/ts-http-runtime";
 
 export function _postSend(
-  context: Client_1,
-  options: PostOptionalParams_1 = { requestOptions: {} },
-): StreamableMethod_1 {
-  const path = expandUrlTemplate_1(
+  context: Client,
+  options: PostOptionalParams = { requestOptions: {} },
+): StreamableMethod {
+  const path = expandUrlTemplate(
     "{/PATH_PARAM}{?QUERY_PARAM}",
     { QUERY_PARAM: options?.QUERY_PARAM, PATH_PARAM: options?.PATH_PARAM },
     { allowReserved: options?.requestOptions?.skipUrlEncoding },
   );
   return context.path(path).post({
-    ...operationOptionsToRequestParameters_1(options),
+    ...operationOptionsToRequestParameters(options),
     contentType: "application/json",
     headers: {
       header_param: options?.HEADER_PARAM,
@@ -75,16 +75,16 @@ export function _postSend(
     },
     body: !options?.ListCredentialsRequest
       ? options?.ListCredentialsRequest
-      : listCredentialsRequestSerializer_1(options?.ListCredentialsRequest),
+      : listCredentialsRequestSerializer(options?.ListCredentialsRequest),
   });
 }
 
 export async function _postDeserialize(
-  result: PathUncheckedResponse_1,
+  result: PathUncheckedResponse,
 ): Promise<void> {
   const expectedStatuses = ["204"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError_1(result);
+    throw createRestError(result);
   }
 
   return;
@@ -93,12 +93,12 @@ export async function _postDeserialize(
 /**
  * show example demo
  *
- * @param {Client_1} context
- * @param {PostOptionalParams_1} options
+ * @param {Client} context
+ * @param {PostOptionalParams} options
  */
 export async function post(
-  context: Client_1,
-  options: PostOptionalParams_1 = { requestOptions: {} },
+  context: Client,
+  options: PostOptionalParams = { requestOptions: {} },
 ): Promise<void> {
   const result = await _postSend(context, options);
   return _postDeserialize(result);
@@ -108,17 +108,17 @@ export async function post(
 Models
 
 ```ts models:withOptions
-import type { ListCredentialsRequest as ListCredentialsRequest_1 } from "../models/models.js";
-import type { OperationOptions as OperationOptions_1 } from "@typespec/ts-http-runtime";
+import type { ListCredentialsRequest } from "../models/models.js";
+import type { OperationOptions } from "@typespec/ts-http-runtime";
 
 /**
  * Optional parameters for the post operation.
  */
-export interface PostOptionalParams extends OperationOptions_1 {
+export interface PostOptionalParams extends OperationOptions {
   queryParam?: string;
   headerParam?: string;
   pathParam?: string;
-  listCredentialsRequest?: ListCredentialsRequest_1;
+  listCredentialsRequest?: ListCredentialsRequest;
 }
 ```
 

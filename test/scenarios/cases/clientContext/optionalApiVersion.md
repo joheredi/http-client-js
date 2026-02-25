@@ -57,19 +57,19 @@ ignoreWeirdLine: false
 
 ```ts clientContext
 import {
-  type Client as Client_1,
-  type ClientOptions as ClientOptions_1,
-  getClient as getClient_1,
+  type Client,
+  type ClientOptions,
+  getClient,
 } from "@typespec/ts-http-runtime";
 
-export interface DataMapServiceContext extends Client_1 {
+export interface DataMapServiceContext extends Client {
   /**
    * The API version to use for this operation.
    */
   apiVersion?: string;
 }
 
-export interface DataMapServiceClientOptionalParams extends ClientOptions_1 {
+export interface DataMapServiceClientOptionalParams extends ClientOptions {
   /**
    * The API version to use for this operation.
    */
@@ -89,7 +89,7 @@ export function createDataMapService(
     ...options,
     userAgentOptions: { userAgentPrefix },
   };
-  const clientContext = getClient_1(endpointUrl, updatedOptions);
+  const clientContext = getClient(endpointUrl, updatedOptions);
   return {
     ...clientContext,
     apiVersion: options.apiVersion ?? "2023-09-01",

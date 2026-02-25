@@ -66,36 +66,36 @@ withVersionedApiVersion: true
 
 ```ts operations
 import {
-  errorResponseDeserializer as errorResponseDeserializer_1,
-  TestVerificationContent as TestVerificationContent_1,
-  testVerificationContentSerializer as testVerificationContentSerializer_1,
-  type TestVerificationResult as TestVerificationResult_1,
-  testVerificationResultDeserializer as testVerificationResultDeserializer_1,
+  errorResponseDeserializer,
+  TestVerificationContent,
+  testVerificationContentSerializer,
+  type TestVerificationResult,
+  testVerificationResultDeserializer,
 } from "../models/models.js";
-import { VerifyOptionalParams as VerifyOptionalParams_1 } from "./deviceLocation/options.js";
+import { VerifyOptionalParams } from "./deviceLocation/options.js";
 import {
-  Client as Client_1,
-  createRestError as createRestError_1,
-  expandUrlTemplate as expandUrlTemplate_1,
-  operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
-  type PathUncheckedResponse as PathUncheckedResponse_1,
-  type StreamableMethod as StreamableMethod_1,
+  Client,
+  createRestError,
+  expandUrlTemplate,
+  operationOptionsToRequestParameters,
+  type PathUncheckedResponse,
+  type StreamableMethod,
 } from "@typespec/ts-http-runtime";
 
 export function _verifySend(
-  context: Client_1,
+  context: Client,
   apiVersion: string,
-  body: TestVerificationContent_1,
+  body: TestVerificationContent,
   apcGatewayId: string,
-  options: VerifyOptionalParams_1 = { requestOptions: {} },
-): StreamableMethod_1 {
-  const path = expandUrlTemplate_1(
+  options: VerifyOptionalParams = { requestOptions: {} },
+): StreamableMethod {
+  const path = expandUrlTemplate(
     "/device-location/location:verify{?api%2Dversion}",
     { "api-version": apiVersion },
     { allowReserved: options?.requestOptions?.skipUrlEncoding },
   );
   return context.path(path).post({
-    ...operationOptionsToRequestParameters_1(options),
+    ...operationOptionsToRequestParameters(options),
     contentType: "application/json",
     headers: {
       accept: "application/json",
@@ -103,39 +103,39 @@ export function _verifySend(
       "apc-gateway-id": apcGatewayId,
       ...options.requestOptions?.headers,
     },
-    body: testVerificationContentSerializer_1(body),
+    body: testVerificationContentSerializer(body),
   });
 }
 
 export async function _verifyDeserialize(
-  result: PathUncheckedResponse_1,
-): Promise<TestVerificationResult_1> {
+  result: PathUncheckedResponse,
+): Promise<TestVerificationResult> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
-    const error = createRestError_1(result);
-    error.details = errorResponseDeserializer_1(result.body);
+    const error = createRestError(result);
+    error.details = errorResponseDeserializer(result.body);
     throw error;
   }
 
-  return testVerificationResultDeserializer_1(result.body);
+  return testVerificationResultDeserializer(result.body);
 }
 
 /**
  * Resource action operation template.
  *
- * @param {Client_1} context
+ * @param {Client} context
  * @param {string} apiVersion
- * @param {TestVerificationContent_1} body
+ * @param {TestVerificationContent} body
  * @param {string} apcGatewayId
- * @param {VerifyOptionalParams_1} options
+ * @param {VerifyOptionalParams} options
  */
 export async function verify(
-  context: Client_1,
+  context: Client,
   apiVersion: string,
-  body: TestVerificationContent_1,
+  body: TestVerificationContent,
   apcGatewayId: string,
-  options: VerifyOptionalParams_1 = { requestOptions: {} },
-): Promise<TestVerificationResult_1> {
+  options: VerifyOptionalParams = { requestOptions: {} },
+): Promise<TestVerificationResult> {
   const result = await _verifySend(
     context,
     apiVersion,

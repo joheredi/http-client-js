@@ -13,7 +13,7 @@ model Widget {
 Should generate the client context interface and factory function.
 
 ```ts src/testServiceClientContext.ts interface TestServiceContext
-export interface TestServiceContext extends Client_1 {}
+export interface TestServiceContext extends Client {}
 ```
 
 ```ts src/testServiceClientContext.ts function createTestService
@@ -28,7 +28,7 @@ export function createTestService(
   ...options,
   userAgentOptions: { userAgentPrefix },
   };
-  return getClient_1(endpointUrl, updatedOptions); as TestServiceContext;
+  return getClient(endpointUrl, updatedOptions); as TestServiceContext;
 }
 ```
 
@@ -46,22 +46,19 @@ model Widget {
 
 ```ts src/testServiceClient.ts class TestServiceClient
 export class TestServiceClient {
-  private _client: TestServiceContext_1;
+  private _client: TestServiceContext;
   /** The pipeline used by this client to make requests */
-  public readonly pipeline: Pipeline_1;
+  public readonly pipeline: Pipeline;
 
-  constructor(
-    endpoint: string,
-    options: TestServiceClientOptionalParams_1 = {},
-  ) {
-    this._client = createTestService_1(endpoint, options);
+  constructor(endpoint: string, options: TestServiceClientOptionalParams = {}) {
+    this._client = createTestService(endpoint, options);
     this.pipeline = this._client.pipeline;
   }
 
   getWidget(
-    options: GetWidgetOptionalParams_1 = { requestOptions: {} },
-  ): Promise<Widget_1> {
-    return getWidget_1(this._client, options);
+    options: GetWidgetOptionalParams = { requestOptions: {} },
+  ): Promise<Widget> {
+    return getWidget(this._client, options);
   }
 }
 ```

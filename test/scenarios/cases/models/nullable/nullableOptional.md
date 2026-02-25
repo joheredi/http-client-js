@@ -94,16 +94,16 @@ interface TestOperations {
 ## Models with Options
 
 ```ts models:withOptions
-import type { Widget as Widget_1 } from "../models/models.js";
-import type { OperationOptions as OperationOptions_1 } from "@typespec/ts-http-runtime";
+import type { Widget } from "../models/models.js";
+import type { OperationOptions } from "@typespec/ts-http-runtime";
 
 /**
  * Optional parameters for the create operation.
  */
-export interface CreateOptionalParams extends OperationOptions_1 {
+export interface CreateOptionalParams extends OperationOptions {
   optionalNullableQuery?: string | null;
   optionalNullableHeader?: string | null;
-  optionalNullableBody?: Widget_1 | null;
+  optionalNullableBody?: Widget | null;
 }
 ```
 
@@ -139,15 +139,15 @@ ignore-nullable-on-optional: false
 ## Models with Options
 
 ```ts models:withOptions
-import type { Widget as Widget_1 } from "../models/models.js";
-import type { OperationOptions as OperationOptions_1 } from "@typespec/ts-http-runtime";
+import type { Widget } from "../models/models.js";
+import type { OperationOptions } from "@typespec/ts-http-runtime";
 
 /**
  * Optional parameters for the create operation.
  */
-export interface CreateOptionalParams extends OperationOptions_1 {
+export interface CreateOptionalParams extends OperationOptions {
   optionalNullableQuery?: string | null;
   optionalNullableHeader?: string | null;
-  optionalNullableBody?: Widget_1 | null;
+  optionalNullableBody?: Widget | null;
 }
 ```

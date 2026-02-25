@@ -70,7 +70,7 @@ experimental-extensible-enums: true
 Generated Models.
 
 ```ts models
-import { deserializeRecord as deserializeRecord_1 } from "../helpers/serializationHelpers.js";
+import { deserializeRecord } from "../helpers/serializationHelpers.js";
 
 export interface SimpleModel {
   proNumeric: number;
@@ -311,7 +311,7 @@ export function simpleModelDeserializer(item: any): SimpleModel {
     propStringArrayOptional: item["propStringArrayOptional"],
     propSimpleUnionArrayOptional: item["propSimpleUnionArrayOptional"],
     propRecordOfString: item["propRecordOfString"],
-    propRecordOfDate: deserializeRecord_1(
+    propRecordOfDate: deserializeRecord(
       item["propRecordOfDate"] as any,
       (v: any) => new Date(v),
     ),

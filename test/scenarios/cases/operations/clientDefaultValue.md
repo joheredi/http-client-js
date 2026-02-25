@@ -59,27 +59,27 @@ The generated operations should apply default values for query, header, and body
 
 ```ts operations
 import {
-  type Configuration as Configuration_1,
-  configurationDeserializer as configurationDeserializer_1,
+  type Configuration,
+  configurationDeserializer,
 } from "../models/models.js";
 import type {
-  CreateOptionalParams as CreateOptionalParams_1,
-  TestQueryOptionalParams as TestQueryOptionalParams_1,
+  CreateOptionalParams,
+  TestQueryOptionalParams,
 } from "./operations/options.js";
 import {
-  type Client as Client_1,
-  createRestError as createRestError_1,
-  expandUrlTemplate as expandUrlTemplate_1,
-  operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
-  type PathUncheckedResponse as PathUncheckedResponse_1,
-  type StreamableMethod as StreamableMethod_1,
+  type Client,
+  createRestError,
+  expandUrlTemplate,
+  operationOptionsToRequestParameters,
+  type PathUncheckedResponse,
+  type StreamableMethod,
 } from "@typespec/ts-http-runtime";
 
 export function _testQuerySend(
-  context: Client_1,
-  options: TestQueryOptionalParams_1 = { requestOptions: {} },
-): StreamableMethod_1 {
-  const path = expandUrlTemplate_1(
+  context: Client,
+  options: TestQueryOptionalParams = { requestOptions: {} },
+): StreamableMethod {
+  const path = expandUrlTemplate(
     "/api/test{?maxResults,sortOrder,limit,typeMismatch,serverDefault}",
     {
       maxResults: options?.maxResults,
@@ -91,7 +91,7 @@ export function _testQuerySend(
     { allowReserved: options?.requestOptions?.skipUrlEncoding },
   );
   return context.path(path).get({
-    ...operationOptionsToRequestParameters_1(options),
+    ...operationOptionsToRequestParameters(options),
     headers: {
       accept: "application/json",
       "custom-header": options?.customHeader,
@@ -101,30 +101,30 @@ export function _testQuerySend(
 }
 
 export async function _testQueryDeserialize(
-  result: PathUncheckedResponse_1,
-): Promise<Configuration_1> {
+  result: PathUncheckedResponse,
+): Promise<Configuration> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError_1(result);
+    throw createRestError(result);
   }
 
-  return configurationDeserializer_1(result.body);
+  return configurationDeserializer(result.body);
 }
 
 export async function testQuery(
-  context: Client_1,
-  options: TestQueryOptionalParams_1 = { requestOptions: {} },
-): Promise<Configuration_1> {
+  context: Client,
+  options: TestQueryOptionalParams = { requestOptions: {} },
+): Promise<Configuration> {
   const result = await _testQuerySend(context, options);
   return _testQueryDeserialize(result);
 }
 
 export function _createSend(
-  context: Client_1,
-  options: CreateOptionalParams_1 = { requestOptions: {} },
-): StreamableMethod_1 {
+  context: Client,
+  options: CreateOptionalParams = { requestOptions: {} },
+): StreamableMethod {
   return context.path("/api/create").post({
-    ...operationOptionsToRequestParameters_1(options),
+    ...operationOptionsToRequestParameters(options),
     contentType: "text/plain",
     headers: { accept: "text/plain", ...options.requestOptions?.headers },
     body: options?.body,
@@ -132,19 +132,19 @@ export function _createSend(
 }
 
 export async function _createDeserialize(
-  result: PathUncheckedResponse_1,
+  result: PathUncheckedResponse,
 ): Promise<string> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError_1(result);
+    throw createRestError(result);
   }
 
   return result.body;
 }
 
 export async function create(
-  context: Client_1,
-  options: CreateOptionalParams_1 = { requestOptions: {} },
+  context: Client,
+  options: CreateOptionalParams = { requestOptions: {} },
 ): Promise<string> {
   const result = await _createSend(context, options);
   return _createDeserialize(result);
@@ -195,34 +195,34 @@ needTCGC: true
 
 ```ts operations
 import {
-  type Configuration as Configuration_1,
-  configurationDeserializer as configurationDeserializer_1,
+  type Configuration,
+  configurationDeserializer,
 } from "../models/models.js";
 import type {
-  CreateRequiredOptionalParams as CreateRequiredOptionalParams_1,
-  TestRequiredOptionalParams as TestRequiredOptionalParams_1,
+  CreateRequiredOptionalParams,
+  TestRequiredOptionalParams,
 } from "./operations/options.js";
 import {
-  type Client as Client_1,
-  createRestError as createRestError_1,
-  expandUrlTemplate as expandUrlTemplate_1,
-  operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
-  type PathUncheckedResponse as PathUncheckedResponse_1,
-  type StreamableMethod as StreamableMethod_1,
+  type Client,
+  createRestError,
+  expandUrlTemplate,
+  operationOptionsToRequestParameters,
+  type PathUncheckedResponse,
+  type StreamableMethod,
 } from "@typespec/ts-http-runtime";
 
 export function _testRequiredSend(
-  context: Client_1,
+  context: Client,
   limit: number,
-  options: TestRequiredOptionalParams_1 = { requestOptions: {} },
-): StreamableMethod_1 {
-  const path = expandUrlTemplate_1(
+  options: TestRequiredOptionalParams = { requestOptions: {} },
+): StreamableMethod {
+  const path = expandUrlTemplate(
     "/api/required{?maxResults,limit}",
     { maxResults: options?.maxResults, limit: limit },
     { allowReserved: options?.requestOptions?.skipUrlEncoding },
   );
   return context.path(path).get({
-    ...operationOptionsToRequestParameters_1(options),
+    ...operationOptionsToRequestParameters(options),
     headers: {
       accept: "application/json",
       "custom-header": options?.customHeader,
@@ -232,31 +232,31 @@ export function _testRequiredSend(
 }
 
 export async function _testRequiredDeserialize(
-  result: PathUncheckedResponse_1,
-): Promise<Configuration_1> {
+  result: PathUncheckedResponse,
+): Promise<Configuration> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError_1(result);
+    throw createRestError(result);
   }
 
-  return configurationDeserializer_1(result.body);
+  return configurationDeserializer(result.body);
 }
 
 export async function testRequired(
-  context: Client_1,
+  context: Client,
   limit: number,
-  options: TestRequiredOptionalParams_1 = { requestOptions: {} },
-): Promise<Configuration_1> {
+  options: TestRequiredOptionalParams = { requestOptions: {} },
+): Promise<Configuration> {
   const result = await _testRequiredSend(context, limit, options);
   return _testRequiredDeserialize(result);
 }
 
 export function _createRequiredSend(
-  context: Client_1,
-  options: CreateRequiredOptionalParams_1 = { requestOptions: {} },
-): StreamableMethod_1 {
+  context: Client,
+  options: CreateRequiredOptionalParams = { requestOptions: {} },
+): StreamableMethod {
   return context.path("/api/createRequired").post({
-    ...operationOptionsToRequestParameters_1(options),
+    ...operationOptionsToRequestParameters(options),
     contentType: "text/plain",
     headers: { accept: "text/plain", ...options.requestOptions?.headers },
     body: options?.body,
@@ -264,19 +264,19 @@ export function _createRequiredSend(
 }
 
 export async function _createRequiredDeserialize(
-  result: PathUncheckedResponse_1,
+  result: PathUncheckedResponse,
 ): Promise<string> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError_1(result);
+    throw createRestError(result);
   }
 
   return result.body;
 }
 
 export async function createRequired(
-  context: Client_1,
-  options: CreateRequiredOptionalParams_1 = { requestOptions: {} },
+  context: Client,
+  options: CreateRequiredOptionalParams = { requestOptions: {} },
 ): Promise<string> {
   const result = await _createRequiredSend(context, options);
   return _createRequiredDeserialize(result);

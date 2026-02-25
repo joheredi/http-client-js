@@ -1,5 +1,6 @@
 import { For, SourceDirectory } from "@alloy-js/core";
-import { createTSNamePolicy, tsNameConflictResolver } from "@alloy-js/typescript";
+import { createTSNamePolicy } from "@alloy-js/typescript";
+import { nameConflictResolver } from "./utils/name-conflict-resolver.js";
 import type { EmitContext } from "@typespec/compiler";
 import { createSdkContext } from "@azure-tools/typespec-client-generator-core";
 import { Output, writeOutput } from "@typespec/emitter-framework";
@@ -56,7 +57,7 @@ export async function $onEmit(context: EmitContext) {
     <Output
       program={context.program}
       namePolicy={createTSNamePolicy()}
-      nameConflictResolver={tsNameConflictResolver}
+      nameConflictResolver={nameConflictResolver}
       externals={[httpRuntimeLib, azureCoreLroLib]}
     >
       <FlavorProvider flavor="core">
