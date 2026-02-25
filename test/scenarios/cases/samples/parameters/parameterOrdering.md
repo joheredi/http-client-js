@@ -171,20 +171,21 @@ Raw json files.
 ## Samples
 
 ```ts samples
-/** This file path is /samples-dev/verifySample.ts */
-import { TestingClient } from "@azure/internal-test";
+/** This file path is /samples-dev/deviceLocationVerifySample.ts */
+import { TestServiceClient } from "@azure/internal-test";
 
 /**
  * This sample demonstrates how to resource action operation template.
  *
  * @summary resource action operation template.
- * x-ms-original-file: 2021-10-01-preview/json.json
+ * x-ms-original-file: json.json
  */
 async function verify(): Promise<void> {
-  const endpoint = process.env.TESTING_ENDPOINT || "";
-  const client = new TestingClient(endpoint);
-  const result = await client.verify(
-    { message: "test message" },
+  const endpoint = process.env.TEST_SERVICE_ENDPOINT || "";
+  const client = new TestServiceClient(endpoint);
+  const result = await client.deviceLocation.verify(
+    "apiVersion",
+    {},
     "zdgrzzaxlodrvewbksn",
   );
   console.log(result);

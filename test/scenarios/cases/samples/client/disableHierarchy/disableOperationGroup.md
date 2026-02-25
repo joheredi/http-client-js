@@ -56,19 +56,20 @@ Raw json files.
 Generated samples.
 
 ```ts samples
-/** This file path is /samples-dev/barSample.ts */
-import { TestingClient } from "@azure/internal-test";
+/** This file path is /samples-dev/bcFooSample.ts */
+import { TestServiceClient } from "@azure/internal-test";
+import { TestServiceClient } from "@azure/internal-test";
 
 /**
- * This sample demonstrates how to execute bar
+ * This sample demonstrates how to bar
  *
- * @summary execute bar
- * x-ms-original-file: 2021-10-01-preview/json_for_bar.json
+ * @summary bar
+ * x-ms-original-file: json_for_bar.json
  */
 async function bar(): Promise<void> {
-  const endpoint = process.env.TESTING_ENDPOINT || "";
-  const client = new TestingClient(endpoint);
-  const result = await client.bar({ prop1: "body name" });
+  const endpoint = process.env.TEST_SERVICE_ENDPOINT || "";
+  const client = new TestServiceClient(endpoint);
+  const result = await client.d.bar({});
   console.log(result);
 }
 
@@ -99,24 +100,25 @@ Raw json files.
 Generated samples.
 
 ```ts samples
-/** This file path is /samples-dev/fooSample.ts */
-import { TestingClient } from "@azure/internal-test";
+/** This file path is /samples-dev/bcFooSample.ts */
+import { TestServiceClient } from "@azure/internal-test";
+import { TestServiceClient } from "@azure/internal-test";
 
 /**
- * This sample demonstrates how to execute foo
+ * This sample demonstrates how to bar
  *
- * @summary execute foo
- * x-ms-original-file: 2021-10-01-preview/json_for_foo.json
+ * @summary bar
+ * x-ms-original-file: json_for_bar.json
  */
-async function foo(): Promise<void> {
-  const endpoint = process.env.TESTING_ENDPOINT || "";
-  const client = new TestingClient(endpoint);
-  const result = await client.foo({ prop2: "body name" });
+async function bar(): Promise<void> {
+  const endpoint = process.env.TEST_SERVICE_ENDPOINT || "";
+  const client = new TestServiceClient(endpoint);
+  const result = await client.d.bar({});
   console.log(result);
 }
 
 async function main(): Promise<void> {
-  await foo();
+  await bar();
 }
 
 main().catch(console.error);

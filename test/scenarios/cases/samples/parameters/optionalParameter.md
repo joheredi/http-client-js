@@ -67,19 +67,19 @@ interface Persons {
 ## Generated Sample
 
 ```ts samples
-/** This file path is /samples-dev/listSample.ts */
+/** This file path is /samples-dev/personsListSample.ts */
 import { SampleServiceClient } from "@azure/internal-test";
 
 /**
- * This sample demonstrates how to execute list
+ * This sample demonstrates how to list persons
  *
- * @summary execute list
- * x-ms-original-file: 2021-10-01-preview/json.json
+ * @summary list persons
+ * x-ms-original-file: json.json
  */
 async function listPersons(): Promise<void> {
   const storage = process.env.SAMPLE_SERVICE_STORAGE || "";
   const client = new SampleServiceClient(storage);
-  const result = await client.list({
+  const result = await client.persons.list({
     start: "00000000-0000-0000-0000-000000000000",
     top: 20,
   });

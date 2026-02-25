@@ -107,30 +107,34 @@ Raw json file for the operation with client-level subscriptionId.
 Generated sample should add subscriptionId as a client parameter:
 
 ```ts samples
-/** This file path is /samples-dev/createOrUpdateSample.ts */
-import { ContosoClient } from "@azure/internal-test";
+/** This file path is /samples-dev/employeesCreateOrUpdateSample.ts */
 import { DefaultAzureCredential } from "@azure/identity";
+import { DefaultAzureCredential } from "@azure/identity";
+import { ContosoClient } from "@azure/internal-test";
+import { ContosoClient } from "@azure/internal-test";
 
 /**
- * This sample demonstrates how to create a Employee
+ * This sample demonstrates how to list the operations for the provider
  *
- * @summary create a Employee
- * x-ms-original-file: 2021-10-01-preview/json_for_Employees_CreateOrUpdate.json
+ * @summary list the operations for the provider
+ * x-ms-original-file: 2021-10-01-preview/json_for_Operations_List.json
  */
-async function employeesCreateOrUpdate(): Promise<void> {
+async function operationsList(): Promise<void> {
+  const subscriptionId = process.env.CONTOSO_SUBSCRIPTION_ID || "";
   const credential = new DefaultAzureCredential();
-  const subscriptionId = "11809CA1-E126-4017-945E-AA795CD5C5A9";
-  const client = new ContosoClient(credential, subscriptionId);
-  const result = await client.createOrUpdate("rgopenapi", "9KF-f-8b", {
-    properties: { age: 30 },
-    tags: { key2913: "urperxmkkhhkp" },
-    location: "itajgxyqozseoygnl",
-  });
-  console.log(result);
+  const client = new ContosoClient(subscriptionId, credential);
+  const resArray = new Array();
+  for await (const item of client.operations.list({
+    apiVersion: "2021-10-01-preview",
+  })) {
+    resArray.push(item);
+  }
+
+  console.log(resArray);
 }
 
 async function main(): Promise<void> {
-  await employeesCreateOrUpdate();
+  await operationsList();
 }
 
 main().catch(console.error);
@@ -158,9 +162,11 @@ Raw json file for the operations list.
 Generated sample should create a client with subscriptionId:
 
 ```ts samples
-/** This file path is /samples-dev/listSample.ts */
-import { ContosoClient } from "@azure/internal-test";
+/** This file path is /samples-dev/employeesCreateOrUpdateSample.ts */
 import { DefaultAzureCredential } from "@azure/identity";
+import { DefaultAzureCredential } from "@azure/identity";
+import { ContosoClient } from "@azure/internal-test";
+import { ContosoClient } from "@azure/internal-test";
 
 /**
  * This sample demonstrates how to list the operations for the provider
@@ -169,11 +175,13 @@ import { DefaultAzureCredential } from "@azure/identity";
  * x-ms-original-file: 2021-10-01-preview/json_for_Operations_List.json
  */
 async function operationsList(): Promise<void> {
+  const subscriptionId = process.env.CONTOSO_SUBSCRIPTION_ID || "";
   const credential = new DefaultAzureCredential();
-  const subscriptionId = "00000000-0000-0000-0000-000000000000";
-  const client = new ContosoClient(credential, subscriptionId);
+  const client = new ContosoClient(subscriptionId, credential);
   const resArray = new Array();
-  for await (const item of client.list()) {
+  for await (const item of client.operations.list({
+    apiVersion: "2021-10-01-preview",
+  })) {
     resArray.push(item);
   }
 
@@ -305,34 +313,33 @@ Raw json file for the operation with method-level subscriptionId.
 Generated sample should add subscriptionId as a method-level parameter:
 
 ```ts samples
-/** This file path is /samples-dev/createOrUpdateSample.ts */
-import { ContosoClient } from "@azure/internal-test";
+/** This file path is /samples-dev/employeesCreateOrUpdateSample.ts */
 import { DefaultAzureCredential } from "@azure/identity";
+import { DefaultAzureCredential } from "@azure/identity";
+import { ContosoClient } from "@azure/internal-test";
+import { ContosoClient } from "@azure/internal-test";
 
 /**
- * This sample demonstrates how to create a Employee
+ * This sample demonstrates how to list the operations for the provider
  *
- * @summary create a Employee
- * x-ms-original-file: 2021-10-01-preview/json_for_Employees_CreateOrUpdate.json
+ * @summary list the operations for the provider
+ * x-ms-original-file: 2021-10-01-preview/json_for_Operations_List.json
  */
-async function employeesCreateOrUpdate(): Promise<void> {
+async function operationsList(): Promise<void> {
   const credential = new DefaultAzureCredential();
   const client = new ContosoClient(credential);
-  const result = await client.createOrUpdate(
-    "11809CA1-E126-4017-945E-AA795CD5C5A9",
-    "rgopenapi",
-    "9KF-f-8b",
-    {
-      properties: { age: 30 },
-      tags: { key2913: "urperxmkkhhkp" },
-      location: "itajgxyqozseoygnl",
-    },
-  );
-  console.log(result);
+  const resArray = new Array();
+  for await (const item of client.operations.list({
+    apiVersion: "2021-10-01-preview",
+  })) {
+    resArray.push(item);
+  }
+
+  console.log(resArray);
 }
 
 async function main(): Promise<void> {
-  await employeesCreateOrUpdate();
+  await operationsList();
 }
 
 main().catch(console.error);
@@ -360,9 +367,11 @@ Raw json file for the operations list.
 Generated sample should create a client without subscriptionId:
 
 ```ts samples
-/** This file path is /samples-dev/listSample.ts */
-import { ContosoClient } from "@azure/internal-test";
+/** This file path is /samples-dev/employeesCreateOrUpdateSample.ts */
 import { DefaultAzureCredential } from "@azure/identity";
+import { DefaultAzureCredential } from "@azure/identity";
+import { ContosoClient } from "@azure/internal-test";
+import { ContosoClient } from "@azure/internal-test";
 
 /**
  * This sample demonstrates how to list the operations for the provider
@@ -374,7 +383,9 @@ async function operationsList(): Promise<void> {
   const credential = new DefaultAzureCredential();
   const client = new ContosoClient(credential);
   const resArray = new Array();
-  for await (const item of client.list()) {
+  for await (const item of client.operations.list({
+    apiVersion: "2021-10-01-preview",
+  })) {
     resArray.push(item);
   }
 
@@ -516,26 +527,32 @@ Raw json file for the operation with client-level subscriptionId.
 Generated sample should create a client with subscriptionId:
 
 ```ts samples
-/** This file path is /samples-dev/getSample.ts */
-import { ContosoClient } from "@azure/internal-test";
+/** This file path is /samples-dev/employeesCreateOrUpdateSample.ts */
 import { DefaultAzureCredential } from "@azure/identity";
+import { DefaultAzureCredential } from "@azure/identity";
+import { DefaultAzureCredential } from "@azure/identity";
+import { DefaultAzureCredential } from "@azure/identity";
+import { ContosoClient } from "@azure/internal-test";
+import { ContosoClient } from "@azure/internal-test";
+import { ContosoClient } from "@azure/internal-test";
+import { ContosoClient } from "@azure/internal-test";
 
 /**
- * This sample demonstrates how to get a Employee
+ * This sample demonstrates how to skusOperations_ListSkus
  *
- * @summary get a Employee
- * x-ms-original-file: 2021-10-01-preview/json_for_Employees_Get.json
+ * @summary skusOperations_ListSkus
+ * x-ms-original-file: 2021-10-01-preview/json_for_SkusOperations_ListSkus.json
  */
-async function employeesGet(): Promise<void> {
+async function skusOperationsListSkus(): Promise<void> {
+  const subscriptionId = process.env.CONTOSO_SUBSCRIPTION_ID || "";
   const credential = new DefaultAzureCredential();
-  const subscriptionId = "11809CA1-E126-4017-945E-AA795CD5C5A9";
-  const client = new ContosoClient(credential, subscriptionId);
-  const result = await client.get("rgopenapi", "9KF-f-8b");
+  const client = new ContosoClient(subscriptionId, credential);
+  const result = await client.skusOperations.listSkus("Standard");
   console.log(result);
 }
 
 async function main(): Promise<void> {
-  await employeesGet();
+  await skusOperationsListSkus();
 }
 
 main().catch(console.error);
@@ -571,34 +588,32 @@ Raw json file for the operation with method-level subscriptionId.
 Generated sample should use subscriptionId as a method parameter:
 
 ```ts samples
-/** This file path is /samples-dev/createOrUpdateSample.ts */
-import { ContosoClient } from "@azure/internal-test";
+/** This file path is /samples-dev/employeesCreateOrUpdateSample.ts */
 import { DefaultAzureCredential } from "@azure/identity";
+import { DefaultAzureCredential } from "@azure/identity";
+import { DefaultAzureCredential } from "@azure/identity";
+import { DefaultAzureCredential } from "@azure/identity";
+import { ContosoClient } from "@azure/internal-test";
+import { ContosoClient } from "@azure/internal-test";
+import { ContosoClient } from "@azure/internal-test";
+import { ContosoClient } from "@azure/internal-test";
 
 /**
- * This sample demonstrates how to create a Employee
+ * This sample demonstrates how to skusOperations_ListSkus
  *
- * @summary create a Employee
- * x-ms-original-file: 2021-10-01-preview/json_for_Employees_CreateOrUpdate.json
+ * @summary skusOperations_ListSkus
+ * x-ms-original-file: 2021-10-01-preview/json_for_SkusOperations_ListSkus.json
  */
-async function employeesCreateOrUpdate(): Promise<void> {
+async function skusOperationsListSkus(): Promise<void> {
+  const subscriptionId = process.env.CONTOSO_SUBSCRIPTION_ID || "";
   const credential = new DefaultAzureCredential();
-  const client = new ContosoClient(credential);
-  const result = await client.createOrUpdate(
-    "11809CA1-E126-4017-945E-AA795CD5C5A9",
-    "rgopenapi",
-    "9KF-f-8b",
-    {
-      properties: { age: 30 },
-      tags: { key2913: "urperxmkkhhkp" },
-      location: "itajgxyqozseoygnl",
-    },
-  );
+  const client = new ContosoClient(subscriptionId, credential);
+  const result = await client.skusOperations.listSkus("Standard");
   console.log(result);
 }
 
 async function main(): Promise<void> {
-  await employeesCreateOrUpdate();
+  await skusOperationsListSkus();
 }
 
 main().catch(console.error);
@@ -632,20 +647,27 @@ Raw json file for the tenant-level operation.
 Generate sample should create a client without subscriptionId:
 
 ```ts samples
-/** This file path is /samples-dev/listSkusSample.ts */
-import { ContosoClient } from "@azure/internal-test";
+/** This file path is /samples-dev/employeesCreateOrUpdateSample.ts */
 import { DefaultAzureCredential } from "@azure/identity";
+import { DefaultAzureCredential } from "@azure/identity";
+import { DefaultAzureCredential } from "@azure/identity";
+import { DefaultAzureCredential } from "@azure/identity";
+import { ContosoClient } from "@azure/internal-test";
+import { ContosoClient } from "@azure/internal-test";
+import { ContosoClient } from "@azure/internal-test";
+import { ContosoClient } from "@azure/internal-test";
 
 /**
- * This sample demonstrates how to execute listSkus
+ * This sample demonstrates how to skusOperations_ListSkus
  *
- * @summary execute listSkus
+ * @summary skusOperations_ListSkus
  * x-ms-original-file: 2021-10-01-preview/json_for_SkusOperations_ListSkus.json
  */
 async function skusOperationsListSkus(): Promise<void> {
+  const subscriptionId = process.env.CONTOSO_SUBSCRIPTION_ID || "";
   const credential = new DefaultAzureCredential();
-  const client = new ContosoClient(credential);
-  const result = await client.listSkus("Standard");
+  const client = new ContosoClient(subscriptionId, credential);
+  const result = await client.skusOperations.listSkus("Standard");
   console.log(result);
 }
 
@@ -678,30 +700,32 @@ Raw json file for the operations list.
 Generated sample should create a client with subscriptionId:
 
 ```ts samples
-/** This file path is /samples-dev/listSample.ts */
-import { ContosoClient } from "@azure/internal-test";
+/** This file path is /samples-dev/employeesCreateOrUpdateSample.ts */
 import { DefaultAzureCredential } from "@azure/identity";
+import { DefaultAzureCredential } from "@azure/identity";
+import { DefaultAzureCredential } from "@azure/identity";
+import { DefaultAzureCredential } from "@azure/identity";
+import { ContosoClient } from "@azure/internal-test";
+import { ContosoClient } from "@azure/internal-test";
+import { ContosoClient } from "@azure/internal-test";
+import { ContosoClient } from "@azure/internal-test";
 
 /**
- * This sample demonstrates how to list the operations for the provider
+ * This sample demonstrates how to skusOperations_ListSkus
  *
- * @summary list the operations for the provider
- * x-ms-original-file: 2021-10-01-preview/json_for_Operations_List.json
+ * @summary skusOperations_ListSkus
+ * x-ms-original-file: 2021-10-01-preview/json_for_SkusOperations_ListSkus.json
  */
-async function operationsList(): Promise<void> {
+async function skusOperationsListSkus(): Promise<void> {
+  const subscriptionId = process.env.CONTOSO_SUBSCRIPTION_ID || "";
   const credential = new DefaultAzureCredential();
-  const subscriptionId = "00000000-0000-0000-0000-000000000000";
-  const client = new ContosoClient(credential, subscriptionId);
-  const resArray = new Array();
-  for await (const item of client.list()) {
-    resArray.push(item);
-  }
-
-  console.log(resArray);
+  const client = new ContosoClient(subscriptionId, credential);
+  const result = await client.skusOperations.listSkus("Standard");
+  console.log(result);
 }
 
 async function main(): Promise<void> {
-  await operationsList();
+  await skusOperationsListSkus();
 }
 
 main().catch(console.error);

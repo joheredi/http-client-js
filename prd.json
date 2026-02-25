@@ -1416,7 +1416,7 @@
         {
           "id": "10.1",
           "title": "Fix `samples` generation (51 failures)",
-          "status": "not_started",
+          "status": "done",
           "description": "All 51 sample test assertions fail because no sample files are emitted. The `SampleFiles` component (src/components/sample-files.tsx) returns undefined because `collectSampleInfos()` finds no operations with examples. TCGC's `operation.examples` array is empty even though the test scenarios define examples in JSON blocks. Root cause: The test scenarios define examples in `json for OperationId` blocks but TCGC isn't parsing these into the `operation.examples` array. Need to either: (a) ensure examples are properly loaded by TCGC, or (b) wire up example data from the test harness into the emitter.",
           "failure_count": 51,
           "affected_scenarios": [

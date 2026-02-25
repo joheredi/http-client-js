@@ -1060,3 +1060,41 @@ them into a single combined `SdkEnumType` (e.g., "TestColor") with `isUnionAsEnu
 Group values by source and render each group as a separate type alias.
 
 Only apply this for enums where `isUnionAsEnum === true && isGeneratedName === true`.
+
+## TCGC Example Loading in Tests (Virtual Filesystem)
+
+**Problem**: TCGC's `loadExamples()` reads JSON example files from the filesystem via
+`program.host.readDir()` and `program.host.readFile()`. In test environments using the
+TypeSpec test host (virtual filesystem), examples must be explicitly added to the virtual
+filesystem before `createSdkContext()` is called.
+
+**Solution**: Use `runner.fs.addTypeSpecFile(path, content)` after `runner.compile(code)` but
+before `createSdkContextForTest(program)`. The virtual filesystem's `stat()` derives directory
+existence from file paths, so adding a file at `./examples/2021-10-01-preview/test.json`
+implicitly creates the directory structure TCGC expects.
+
+**Key details**:
+- TCGC looks for examples in `{projectRoot}/examples/{apiVersion}/` (versioned) or
+  `{projectRoot}/examples/` (unversioned)
+- The `runner.fs` from `createInstance()` is a cloned, unfrozen filesystem — safe to modify
+  after compilation
+- `program.host` reads from the same underlying Map, so files added after compile are visible
+- Example JSON files must have `operationId` and `title` fields for TCGC to match them
+
+## SampleFile Component — File Path Comment Duplication
+
+**Problem**: The test harness `getSamplesConcatenated()` adds `/** This file path is /path */`
+before each file's content. If the component also generates this comment in the file content,
+it appears twice in the concatenated output.
+
+**Fix**: Removed the inline file path comment from the `SampleFile` component. The harness
+is responsible for adding it.
+
+## JSDoc Description Source for Samples
+
+**Problem**: TCGC sets `example.doc` to the example's `title` field (from JSON), not the
+operation's `@doc` text. Using `example.doc` produces descriptions like "read" instead of
+"show example demo".
+
+**Fix**: Use `method.doc` (from TCGC's service method, which reflects the `@doc` decorator)
+as the primary source, falling back to `example.doc` and then `execute ${example.name}`.

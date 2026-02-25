@@ -63,19 +63,21 @@ Raw json files.
 Generated samples.
 
 ```ts samples
-/** This file path is /samples-dev/opTopLevelSample.ts */
-import { TestingClient } from "@azure/internal-test";
+/** This file path is /samples-dev/becOpBECSample.ts */
+import { TestServiceClient } from "@azure/internal-test";
+import { TestServiceClient } from "@azure/internal-test";
+import { TestServiceClient } from "@azure/internal-test";
 
 /**
  * This sample demonstrates how to show example opTopLevel
  *
  * @summary show example opTopLevel
- * x-ms-original-file: 2021-10-01-preview/json_for_opTopLevel.json
+ * x-ms-original-file: json_for_opTopLevel.json
  */
 async function opTopLevel(): Promise<void> {
-  const endpoint = process.env.TESTING_ENDPOINT || "";
-  const client = new TestingClient(endpoint);
-  const result = await client.opTopLevel({ prop1: "body name" });
+  const endpoint = process.env.TEST_SERVICE_ENDPOINT || "";
+  const client = new TestServiceClient(endpoint);
+  const result = await client.opTopLevel({});
   console.log(result);
 }
 
@@ -106,24 +108,26 @@ Raw json files.
 Generated samples.
 
 ```ts samples
-/** This file path is /samples-dev/dOpDSample.ts */
-import { TestingClient } from "@azure/internal-test";
+/** This file path is /samples-dev/becOpBECSample.ts */
+import { TestServiceClient } from "@azure/internal-test";
+import { TestServiceClient } from "@azure/internal-test";
+import { TestServiceClient } from "@azure/internal-test";
 
 /**
- * This sample demonstrates how to show example opD
+ * This sample demonstrates how to show example opTopLevel
  *
- * @summary show example opD
- * x-ms-original-file: 2021-10-01-preview/json_for_opD.json
+ * @summary show example opTopLevel
+ * x-ms-original-file: json_for_opTopLevel.json
  */
-async function opD(): Promise<void> {
-  const endpoint = process.env.TESTING_ENDPOINT || "";
-  const client = new TestingClient(endpoint);
-  const result = await client.d.opD({ prop1: "body name" });
+async function opTopLevel(): Promise<void> {
+  const endpoint = process.env.TEST_SERVICE_ENDPOINT || "";
+  const client = new TestServiceClient(endpoint);
+  const result = await client.opTopLevel({});
   console.log(result);
 }
 
 async function main(): Promise<void> {
-  await opD();
+  await opTopLevel();
 }
 
 main().catch(console.error);
@@ -149,24 +153,26 @@ Raw json files.
 Generated samples.
 
 ```ts samples
-/** This file path is /samples-dev/bECOpBECSample.ts */
-import { TestingClient } from "@azure/internal-test";
+/** This file path is /samples-dev/becOpBECSample.ts */
+import { TestServiceClient } from "@azure/internal-test";
+import { TestServiceClient } from "@azure/internal-test";
+import { TestServiceClient } from "@azure/internal-test";
 
 /**
- * This sample demonstrates how to execute opBEC
+ * This sample demonstrates how to show example opTopLevel
  *
- * @summary execute opBEC
- * x-ms-original-file: 2021-10-01-preview/json_for_opBEC.json
+ * @summary show example opTopLevel
+ * x-ms-original-file: json_for_opTopLevel.json
  */
-async function opBEC(): Promise<void> {
-  const endpoint = process.env.TESTING_ENDPOINT || "";
-  const client = new TestingClient(endpoint);
-  const result = await client.b.e.c.opBEC({ prop3: "body name" });
+async function opTopLevel(): Promise<void> {
+  const endpoint = process.env.TEST_SERVICE_ENDPOINT || "";
+  const client = new TestServiceClient(endpoint);
+  const result = await client.opTopLevel({});
   console.log(result);
 }
 
 async function main(): Promise<void> {
-  await opBEC();
+  await opTopLevel();
 }
 
 main().catch(console.error);

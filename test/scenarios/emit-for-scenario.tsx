@@ -177,6 +177,15 @@ ${x}
 
   const runner = await tester.createInstance();
   const { program } = await runner.compile(code);
+
+  // Write JSON example files to the virtual filesystem so TCGC can load them.
+  // TCGC's loadExamples() reads from {projectRoot}/examples/{apiVersion}/ or
+  // {projectRoot}/examples/ (if no versioning). We parse the API version from
+  // the TypeSpec code and place files in the correct directory.
+  if (jsonExamples.length > 0) {
+    addExamplesToFs(runner.fs, jsonExamples, code);
+  }
+
   const sdkContext = await createSdkContextForTest(program);
 
   // Extract emitter options from YAML config
@@ -249,4 +258,57 @@ function collectFiles(dir: OutputDirectory): Record<string, string> {
   }
 
   return files;
+}
+
+/**
+ * Extracts the API version string from TypeSpec code by matching version-like
+ * patterns (e.g., "2021-10-01-preview") in enum definitions.
+ *
+ * Returns the last matched version because TypeSpec versioning enums list
+ * versions chronologically, and TCGC uses the latest version to find examples.
+ *
+ * @param code - The raw TypeSpec code from a scenario
+ * @returns The API version string, or undefined if no versioning is found
+ */
+function extractApiVersion(code: string): string | undefined {
+  // Match date-based version strings in quotes or backticks (e.g., "2021-10-01-preview")
+  const versionPattern = /["`](\d{4}-\d{2}-\d{2}(?:-[\w]+)?)["`]/g;
+  let lastMatch: string | undefined;
+  let match;
+  while ((match = versionPattern.exec(code)) !== null) {
+    lastMatch = match[1];
+  }
+  return lastMatch;
+}
+
+/**
+ * Writes JSON example files to the test runner's virtual filesystem so TCGC
+ * can load them during SDK context creation.
+ *
+ * TCGC's `loadExamples()` searches for `.json` files in the examples directory:
+ * - If the service has versioning: `./examples/{apiVersion}/`
+ * - If no versioning: `./examples/`
+ *
+ * The virtual filesystem's `stat()` derives directory existence from file paths,
+ * so adding a file at `./examples/v1/test.json` implicitly creates the directory
+ * structure needed for TCGC's directory existence check.
+ *
+ * @param fs - The test file system from the tester instance
+ * @param examples - JSON example blocks parsed from the scenario markdown
+ * @param code - The raw TypeSpec code (used to extract API version)
+ */
+function addExamplesToFs(
+  fs: { addTypeSpecFile(path: string, contents: string): void },
+  examples: JsonExample[],
+  code: string,
+): void {
+  const apiVersion = extractApiVersion(code);
+  const baseDir = apiVersion
+    ? `./examples/${apiVersion}`
+    : "./examples";
+
+  for (const example of examples) {
+    const filePath = `${baseDir}/${example.filename}.json`;
+    fs.addTypeSpecFile(filePath, example.rawContent);
+  }
 }

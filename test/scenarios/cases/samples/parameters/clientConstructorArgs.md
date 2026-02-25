@@ -136,15 +136,15 @@ Raw json files for testing client constructor arguments.
 ## Samples
 
 ```ts samples
-/** This file path is /samples-dev/createOrUpdateSample.ts */
-import { MachineLearningServicesClient } from "@azure/internal-test";
+/** This file path is /samples-dev/indexesCreateOrUpdateSample.ts */
 import { DefaultAzureCredential } from "@azure/identity";
+import { MachineLearningServicesClient } from "@azure/internal-test";
 
 /**
- * This sample demonstrates how to execute createOrUpdate
+ * This sample demonstrates how to indexes_CreateOrUpdate
  *
- * @summary execute createOrUpdate
- * x-ms-original-file: 2021-10-01-preview/json_for_Indexes_CreateOrUpdate.json
+ * @summary indexes_CreateOrUpdate
+ * x-ms-original-file: json_for_Indexes_CreateOrUpdate.json
  */
 async function indexesCreateOrUpdate(): Promise<void> {
   const endpoint = process.env.MACHINE_LEARNING_SERVICES_ENDPOINT || "";
@@ -162,7 +162,8 @@ async function indexesCreateOrUpdate(): Promise<void> {
     workspaceName,
     credential,
   );
-  await client.createOrUpdate("test-index", "1");
+  const result = await client.indexes.createOrUpdate("test-index", "1");
+  console.log(result);
 }
 
 async function main(): Promise<void> {
@@ -243,18 +244,18 @@ Should generate client constructor with required endpoint parameter:
 import { TextTranslationClient } from "@azure/internal-test";
 
 /**
- * This sample demonstrates how to execute findSentenceBoundaries
+ * This sample demonstrates how to findSentenceBoundaries
  *
- * @summary execute findSentenceBoundaries
- * x-ms-original-file: 2021-10-01-preview/json.json
+ * @summary findSentenceBoundaries
+ * x-ms-original-file: json.json
  */
 async function findSentenceBoundaries(): Promise<void> {
   const endpoint = process.env.TEXT_TRANSLATION_ENDPOINT || "";
   const client = new TextTranslationClient(endpoint);
-  const result = await client.findSentenceBoundaries(
-    [{ text: "How are you? I am fine. What did you do today?" }],
-    { language: "en", script: "Latn" },
-  );
+  const result = await client.findSentenceBoundaries([{}], {
+    language: "en",
+    script: "Latn",
+  });
   console.log(result);
 }
 

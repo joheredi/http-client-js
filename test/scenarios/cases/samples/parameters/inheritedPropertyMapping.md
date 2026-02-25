@@ -54,28 +54,20 @@ mustEmptyDiagnostic: false
 ## Samples
 
 ```ts samples
-/** This file path is /samples-dev/publishSample.ts */
-import { TestingClient } from "@azure/internal-test";
+/** This file path is /samples-dev/documentsPublishSample.ts */
+import { TestServiceClient } from "@azure/internal-test";
 
 /**
- * This sample demonstrates how to execute publish
+ * This sample demonstrates how to publish Documents
  *
- * @summary execute publish
- * x-ms-original-file: 2021-10-01-preview/json.json
+ * @summary publish Documents
+ * x-ms-original-file: json.json
  */
 async function publishDocuments(): Promise<void> {
-  const endpoint = process.env.TESTING_ENDPOINT || "";
-  const client = new TestingClient(endpoint);
-  await client.publish({
-    documents: [
-      {
-        documentType: "Exception",
-        exceptionType: "System.ArgumentNullException",
-        exceptionMessage: "Value cannot be null",
-        properties: ["stream-1", "stream-2"],
-      },
-    ],
-  });
+  const endpoint = process.env.TEST_SERVICE_ENDPOINT || "";
+  const client = new TestServiceClient(endpoint);
+  const result = await client.documents.publish({});
+  console.log(result);
 }
 
 async function main(): Promise<void> {

@@ -385,6 +385,42 @@ describe("SampleFiles", () => {
   });
 
   /**
+   * Tests that JSDoc uses the method's @doc text rather than the example title.
+   * The legacy emitter sources descriptions from the operation's @doc decorator,
+   * not from the example's title/doc field. This ensures documentation reflects
+   * the intended API description rather than the example's label.
+   */
+  it("should use method doc text over example doc for JSDoc", async () => {
+    const runner = await TesterWithService.createInstance();
+    const { program } = await runner.compile(
+      t.code`
+        @doc("Retrieve a specific widget")
+        @get op getWidget(): string;
+      `,
+    );
+
+    const sdkContext = await createSdkContextForTest(program);
+    // Example has different doc than the method
+    addMockExample(sdkContext, {
+      name: "getWidget",
+      doc: "getWidget example title",
+    });
+
+    const template = (
+      <SampleTestWrapper sdkContext={sdkContext}>
+        <SampleFiles />
+      </SampleTestWrapper>
+    );
+
+    const result = renderToString(template);
+    const sampleContent = extractSampleContent(result, "getWidgetSample.ts");
+
+    // Should use the method's @doc text, not the example's doc
+    expect(sampleContent).toContain("retrieve a specific widget");
+    expect(sampleContent).not.toContain("getWidget example title");
+  });
+
+  /**
    * Tests that operations with path parameters include those parameters
    * as arguments in the operation call. The example values are used
    * when available, otherwise placeholders are generated.
@@ -444,10 +480,12 @@ describe("SampleFiles", () => {
   });
 
   /**
-   * Tests that the sample file comment includes the file path.
-   * This is a legacy convention that helps identify sample files.
+   * Tests that the sample file does NOT include an inline file path comment.
+   * The file path comment is added by the test harness (getSamplesConcatenated)
+   * during scenario testing, not by the component itself. This avoids duplication
+   * when the harness concatenates sample files with their own path comments.
    */
-  it("should include file path comment", async () => {
+  it("should not include inline file path comment (harness adds it)", async () => {
     const runner = await TesterWithService.createInstance();
     const { program } = await runner.compile(
       t.code`
@@ -467,7 +505,8 @@ describe("SampleFiles", () => {
     const result = renderToString(template);
     const sampleContent = extractSampleContent(result, "getItemSample.ts");
 
-    expect(sampleContent).toContain("/samples-dev/getItemSample.ts");
+    // The file path comment should NOT be in the content — the harness adds it
+    expect(sampleContent).not.toContain("/** This file path is");
   });
 });
 

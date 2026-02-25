@@ -234,9 +234,9 @@ export function backup(
 Generate optional body in option parameter:
 
 ```ts samples
-/** This file path is /samples-dev/backupSample.ts */
-import { HardwareSecurityModulesClient } from "@azure/internal-test";
+/** This file path is /samples-dev/cloudHsmClustersBackupSample.ts */
 import { DefaultAzureCredential } from "@azure/identity";
+import { HardwareSecurityModulesClient } from "@azure/internal-test";
 
 /**
  * This sample demonstrates how to a long-running resource action.
@@ -245,14 +245,17 @@ import { DefaultAzureCredential } from "@azure/identity";
  * x-ms-original-file: 2021-10-01-preview/json_for_CloudHsmClusters_backup.json
  */
 async function cloudHsmClustersBackup(): Promise<void> {
+  const subscriptionId =
+    process.env.HARDWARE_SECURITY_MODULES_SUBSCRIPTION_ID || "";
   const credential = new DefaultAzureCredential();
-  const subscriptionId = "00000000-0000-0000-0000-000000000000";
-  const client = new HardwareSecurityModulesClient(credential, subscriptionId);
-  const result = await client.backup("rgcloudhsm", "chsm1", {
+  const client = new HardwareSecurityModulesClient(subscriptionId, credential);
+  const result = await client.cloudHsmClusters.backup("rgcloudhsm", "chsm1", {
     backupRequestProperties: {
       azureStorageBlobContainerUri: "sss",
       token: "aaa",
     },
+    apiVersion: "2025-03-31",
+    subscriptionId: "00000000-0000-0000-0000-000000000000",
   });
   console.log(result);
 }
@@ -334,25 +337,25 @@ Generate optional body in option parameter:
 
 ```ts samples
 /** This file path is /samples-dev/readSample.ts */
-import { TestingClient } from "@azure/internal-test";
+import { TestServiceClient } from "@azure/internal-test";
 
 /**
  * This sample demonstrates how to show example demo
  *
  * @summary show example demo
- * x-ms-original-file: 2021-10-01-preview/json.json
+ * x-ms-original-file: json.json
  */
 async function read(): Promise<void> {
-  const endpoint = process.env.TESTING_ENDPOINT || "";
-  const client = new TestingClient(endpoint);
+  const endpoint = process.env.TEST_SERVICE_ENDPOINT || "";
+  const client = new TestServiceClient(endpoint);
   const result = await client.read(
     "required path param",
     "required header",
     "required query",
     {
-      widget: { name: "body name" },
-      testHeader: "optional header",
+      optionalHeader: "optional header",
       optionalQuery: "renamed optional query",
+      widget: {},
     },
   );
   console.log(result);
@@ -426,20 +429,20 @@ Generate optional body in option parameter:
 
 ```ts samples
 /** This file path is /samples-dev/readSample.ts */
-import { TestingClient } from "@azure/internal-test";
+import { TestServiceClient } from "@azure/internal-test";
 
 /**
  * This sample demonstrates how to show example demo
  *
  * @summary show example demo
- * x-ms-original-file: 2021-10-01-preview/json.json
+ * x-ms-original-file: json.json
  */
 async function read(): Promise<void> {
-  const endpoint = process.env.TESTING_ENDPOINT || "";
-  const client = new TestingClient(endpoint);
+  const endpoint = process.env.TEST_SERVICE_ENDPOINT || "";
+  const client = new TestServiceClient(endpoint);
   const result = await client.read("required path param", "required query", {
-    widget: { name: "body name" },
     optionalQuery: "renamed optional query",
+    widget: {},
   });
   console.log(result);
 }

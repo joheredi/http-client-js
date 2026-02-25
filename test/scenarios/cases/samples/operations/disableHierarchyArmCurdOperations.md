@@ -114,9 +114,13 @@ Raw json files.
 Generate samples for arm cases:
 
 ```ts samples
-/** This file path is /samples-dev/listSample.ts */
-import { ContosoClient } from "@azure/internal-test";
+/** This file path is /samples-dev/employeesCreateOrUpdateSample.ts */
 import { DefaultAzureCredential } from "@azure/identity";
+import { DefaultAzureCredential } from "@azure/identity";
+import { DefaultAzureCredential } from "@azure/identity";
+import { ContosoClient } from "@azure/internal-test";
+import { ContosoClient } from "@azure/internal-test";
+import { ContosoClient } from "@azure/internal-test";
 
 /**
  * This sample demonstrates how to list the operations for the provider
@@ -125,11 +129,13 @@ import { DefaultAzureCredential } from "@azure/identity";
  * x-ms-original-file: 2021-10-01-preview/json_for_Operations_List.json
  */
 async function operationsList(): Promise<void> {
+  const subscriptionId = process.env.CONTOSO_SUBSCRIPTION_ID || "";
   const credential = new DefaultAzureCredential();
-  const subscriptionId = "00000000-0000-0000-0000-000000000000";
-  const client = new ContosoClient(credential, subscriptionId);
+  const client = new ContosoClient(subscriptionId, credential);
   const resArray = new Array();
-  for await (const item of client.list()) {
+  for await (const item of client.operations.list({
+    apiVersion: "2021-10-01-preview",
+  })) {
     resArray.push(item);
   }
 
@@ -175,34 +181,36 @@ Raw json files.
 Generate samples for arm cases:
 
 ```ts samples
-/** This file path is /samples-dev/createOrUpdateSample.ts */
-import { ContosoClient } from "@azure/internal-test";
+/** This file path is /samples-dev/employeesCreateOrUpdateSample.ts */
 import { DefaultAzureCredential } from "@azure/identity";
+import { DefaultAzureCredential } from "@azure/identity";
+import { DefaultAzureCredential } from "@azure/identity";
+import { ContosoClient } from "@azure/internal-test";
+import { ContosoClient } from "@azure/internal-test";
+import { ContosoClient } from "@azure/internal-test";
 
 /**
- * This sample demonstrates how to create a Employee
+ * This sample demonstrates how to list the operations for the provider
  *
- * @summary create a Employee
- * x-ms-original-file: 2021-10-01-preview/json_for_Employees_CreateOrUpdate.json
+ * @summary list the operations for the provider
+ * x-ms-original-file: 2021-10-01-preview/json_for_Operations_List.json
  */
-async function employeesCreateOrUpdate(): Promise<void> {
+async function operationsList(): Promise<void> {
+  const subscriptionId = process.env.CONTOSO_SUBSCRIPTION_ID || "";
   const credential = new DefaultAzureCredential();
-  const subscriptionId = "11809CA1-E126-4017-945E-AA795CD5C5A9";
-  const client = new ContosoClient(credential, subscriptionId);
-  const result = await client.createOrUpdate("rgopenapi", "9KF-f-8b", {
-    properties: {
-      age: 30,
-      city: "gydhnntudughbmxlkyzrskcdkotrxn",
-      profile: Buffer.from("ms", "base64url"),
-    },
-    tags: { key2913: "urperxmkkhhkp" },
-    location: "itajgxyqozseoygnl",
-  });
-  console.log(result);
+  const client = new ContosoClient(subscriptionId, credential);
+  const resArray = new Array();
+  for await (const item of client.operations.list({
+    apiVersion: "2021-10-01-preview",
+  })) {
+    resArray.push(item);
+  }
+
+  console.log(resArray);
 }
 
 async function main(): Promise<void> {
-  await employeesCreateOrUpdate();
+  await operationsList();
 }
 
 main().catch(console.error);
@@ -229,25 +237,36 @@ Raw json files.
 Generate samples for arm cases:
 
 ```ts samples
-/** This file path is /samples-dev/deleteSample.ts */
-import { ContosoClient } from "@azure/internal-test";
+/** This file path is /samples-dev/employeesCreateOrUpdateSample.ts */
 import { DefaultAzureCredential } from "@azure/identity";
+import { DefaultAzureCredential } from "@azure/identity";
+import { DefaultAzureCredential } from "@azure/identity";
+import { ContosoClient } from "@azure/internal-test";
+import { ContosoClient } from "@azure/internal-test";
+import { ContosoClient } from "@azure/internal-test";
 
 /**
- * This sample demonstrates how to delete a Employee
+ * This sample demonstrates how to list the operations for the provider
  *
- * @summary delete a Employee
- * x-ms-original-file: 2021-10-01-preview/json_for_Employees_Delete.json
+ * @summary list the operations for the provider
+ * x-ms-original-file: 2021-10-01-preview/json_for_Operations_List.json
  */
-async function employeesDelete(): Promise<void> {
+async function operationsList(): Promise<void> {
+  const subscriptionId = process.env.CONTOSO_SUBSCRIPTION_ID || "";
   const credential = new DefaultAzureCredential();
-  const subscriptionId = "11809CA1-E126-4017-945E-AA795CD5C5A9";
-  const client = new ContosoClient(credential, subscriptionId);
-  await client.delete("rgopenapi", "5vX--BxSu3ux48rI4O9OQ569");
+  const client = new ContosoClient(subscriptionId, credential);
+  const resArray = new Array();
+  for await (const item of client.operations.list({
+    apiVersion: "2021-10-01-preview",
+  })) {
+    resArray.push(item);
+  }
+
+  console.log(resArray);
 }
 
 async function main(): Promise<void> {
-  await employeesDelete();
+  await operationsList();
 }
 
 main().catch(console.error);

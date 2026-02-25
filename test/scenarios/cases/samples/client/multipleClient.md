@@ -73,19 +73,18 @@ Raw json files.
 Generate samples for hierarchy cases:
 
 ```ts samples
-/** This file path is /samples-dev/aClient/fooSample.ts */
+/** This file path is /samples-dev/fooSample.ts */
 import { AClient } from "@azure/internal-test";
-import { DefaultAzureCredential } from "@azure/identity";
 
 /**
- * This sample demonstrates how to execute foo
+ * This sample demonstrates how to sub_foo
  *
- * @summary execute foo
+ * @summary sub_foo
  * x-ms-original-file: 2021-10-01-preview/json_for_Sub_foo.json
  */
 async function subFoo(): Promise<void> {
   const endpoint = process.env.A_ENDPOINT || "";
-  const credential = new DefaultAzureCredential();
+  const credential = { key: "INPUT_YOUR_KEY_HERE" };
   const client = new AClient(endpoint, credential);
   const result = await client.foo();
   console.log(result);

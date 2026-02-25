@@ -126,23 +126,24 @@ Samples
 
 ```ts samples
 /** This file path is /samples-dev/postSample.ts */
-import { TestingClient } from "@azure/internal-test";
+import { TestServiceClient } from "@azure/internal-test";
 
 /**
  * This sample demonstrates how to show example demo
  *
  * @summary show example demo
- * x-ms-original-file: 2021-10-01-preview/json.json
+ * x-ms-original-file: json.json
  */
 async function post(): Promise<void> {
-  const endpoint = process.env.TESTING_ENDPOINT || "";
-  const client = new TestingClient(endpoint);
-  await client.post({
-    listCredentialsRequest: { serviceName: "SSH", propertyName: "name" },
-    queryParam: "query",
-    headerParam: "header",
-    pathParam: "path",
+  const endpoint = process.env.TEST_SERVICE_ENDPOINT || "";
+  const client = new TestServiceClient(endpoint);
+  const result = await client.post({
+    QUERY_PARAM: "query",
+    HEADER_PARAM: "header",
+    PATH_PARAM: "path",
+    ListCredentialsRequest: {},
   });
+  console.log(result);
 }
 
 async function main(): Promise<void> {

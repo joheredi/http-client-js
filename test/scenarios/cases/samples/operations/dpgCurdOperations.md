@@ -132,9 +132,13 @@ enable-operation-group: false
 Generate samples for dpg cases:
 
 ```ts samples
-/** This file path is /samples-dev/widgetsListWidgetsSample.ts */
-import { WidgetManagerClient } from "@azure/internal-test";
+/** This file path is /samples-dev/widgetsCreateOrUpdateWidgetSample.ts */
 import { DefaultAzureCredential } from "@azure/identity";
+import { DefaultAzureCredential } from "@azure/identity";
+import { DefaultAzureCredential } from "@azure/identity";
+import { WidgetManagerClient } from "@azure/internal-test";
+import { WidgetManagerClient } from "@azure/internal-test";
+import { WidgetManagerClient } from "@azure/internal-test";
 
 /**
  * This sample demonstrates how to list Widget resources
@@ -151,6 +155,7 @@ async function widgetsListWidgets(): Promise<void> {
     top: 8,
     skip: 15,
     maxpagesize: 27,
+    apiVersion: "2021-10-01-preview",
   })) {
     resArray.push(item);
   }
@@ -160,56 +165,6 @@ async function widgetsListWidgets(): Promise<void> {
 
 async function main(): Promise<void> {
   await widgetsListWidgets();
-}
-
-main().catch(console.error);
-
-/** This file path is /samples-dev/widgetsDeleteWidgetSample.ts */
-import { WidgetManagerClient } from "@azure/internal-test";
-import { DefaultAzureCredential } from "@azure/identity";
-
-/**
- * This sample demonstrates how to delete a Widget asynchronously.
- *
- * @summary delete a Widget asynchronously.
- * x-ms-original-file: 2021-10-01-preview/json_for_Widgets_DeleteWidget.json
- */
-async function deleteWidgetByWidgetNameUsingLongRunningOperation(): Promise<void> {
-  const endpoint = process.env.WIDGET_MANAGER_ENDPOINT || "";
-  const credential = new DefaultAzureCredential();
-  const client = new WidgetManagerClient(endpoint, credential);
-  const result = await client.widgets.deleteWidget("searchbox");
-  console.log(result);
-}
-
-async function main(): Promise<void> {
-  await deleteWidgetByWidgetNameUsingLongRunningOperation();
-}
-
-main().catch(console.error);
-
-/** This file path is /samples-dev/widgetsCreateOrUpdateWidgetSample.ts */
-import { WidgetManagerClient } from "@azure/internal-test";
-import { DefaultAzureCredential } from "@azure/identity";
-
-/**
- * This sample demonstrates how to creates or updates a Widget asynchronously.
- *
- * @summary creates or updates a Widget asynchronously.
- * x-ms-original-file: 2021-10-01-preview/json_for_Widgets_CreateOrUpdateWidget.json
- */
-async function widgetsCreateOrUpdateWidget(): Promise<void> {
-  const endpoint = process.env.WIDGET_MANAGER_ENDPOINT || "";
-  const credential = new DefaultAzureCredential();
-  const client = new WidgetManagerClient(endpoint, credential);
-  const result = await client.widgets.createOrUpdateWidget("name1", {
-    manufacturerId: "manufacturer id1",
-  });
-  console.log(result);
-}
-
-async function main(): Promise<void> {
-  await widgetsCreateOrUpdateWidget();
 }
 
 main().catch(console.error);

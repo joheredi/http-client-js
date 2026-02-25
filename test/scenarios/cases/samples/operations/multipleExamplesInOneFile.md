@@ -147,9 +147,9 @@ Raw json files.
 Generate one file for multiple samples:
 
 ```ts samples
-/** This file path is /samples-dev/createOrUpdateSample.ts */
-import { ContosoClient } from "@azure/internal-test";
+/** This file path is /samples-dev/employeesCreateOrUpdateSample.ts */
 import { DefaultAzureCredential } from "@azure/identity";
+import { ContosoClient } from "@azure/internal-test";
 
 /**
  * This sample demonstrates how to create a Employee
@@ -158,18 +158,18 @@ import { DefaultAzureCredential } from "@azure/identity";
  * x-ms-original-file: 2021-10-01-preview/json_for_Employees_CreateOrUpdate_maxage.json
  */
 async function employeesCreateOrUpdateMaxage(): Promise<void> {
+  const subscriptionId = process.env.CONTOSO_SUBSCRIPTION_ID || "";
   const credential = new DefaultAzureCredential();
-  const subscriptionId = "11809CA1-E126-4017-945E-AA795CD5C5A9";
-  const client = new ContosoClient(credential, subscriptionId);
-  const result = await client.createOrUpdate("rgopenapi", "9KF-f-8b", {
-    properties: {
-      age: 110,
-      city: "gydhnntudughbmxlkyzrskcdkotrxn",
-      profile: Buffer.from("ms", "base64url"),
+  const client = new ContosoClient(subscriptionId, credential);
+  const result = await client.employees.createOrUpdate(
+    "rgopenapi",
+    "9KF-f-8b",
+    { tags: { key2913: "urperxmkkhhkp" }, location: "itajgxyqozseoygnl" },
+    {
+      apiVersion: "2021-10-01-preview",
+      subscriptionId: "11809CA1-E126-4017-945E-AA795CD5C5A9",
     },
-    tags: { key2913: "urperxmkkhhkp" },
-    location: "itajgxyqozseoygnl",
-  });
+  );
   console.log(result);
 }
 
@@ -180,18 +180,18 @@ async function employeesCreateOrUpdateMaxage(): Promise<void> {
  * x-ms-original-file: 2021-10-01-preview/json_for_Employees_CreateOrUpdate_minage.json
  */
 async function employeesCreateOrUpdateMinage(): Promise<void> {
+  const subscriptionId = process.env.CONTOSO_SUBSCRIPTION_ID || "";
   const credential = new DefaultAzureCredential();
-  const subscriptionId = "11809CA1-E126-4017-945E-AA795CD5C5A9";
-  const client = new ContosoClient(credential, subscriptionId);
-  const result = await client.createOrUpdate("rgopenapi", "9KF-f-8b", {
-    properties: {
-      age: 1,
-      city: "gydhnntudughbmxlkyzrskcdkotrxn",
-      profile: Buffer.from("ms", "base64url"),
+  const client = new ContosoClient(subscriptionId, credential);
+  const result = await client.employees.createOrUpdate(
+    "rgopenapi",
+    "9KF-f-8b",
+    { tags: { key2913: "urperxmkkhhkp" }, location: "itajgxyqozseoygnl" },
+    {
+      apiVersion: "2021-10-01-preview",
+      subscriptionId: "11809CA1-E126-4017-945E-AA795CD5C5A9",
     },
-    tags: { key2913: "urperxmkkhhkp" },
-    location: "itajgxyqozseoygnl",
-  });
+  );
   console.log(result);
 }
 

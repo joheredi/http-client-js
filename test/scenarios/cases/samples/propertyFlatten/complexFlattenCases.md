@@ -179,26 +179,19 @@ Generate optional body in option parameter:
 
 ```ts samples
 /** This file path is /samples-dev/readSample.ts */
-import { TestingClient } from "@azure/internal-test";
+import { TestServiceClient } from "@azure/internal-test";
 
 /**
  * This sample demonstrates how to show example demo
  *
  * @summary show example demo
- * x-ms-original-file: 2021-10-01-preview/json.json
+ * x-ms-original-file: json.json
  */
 async function read(): Promise<void> {
-  const endpoint = process.env.TESTING_ENDPOINT || "";
-  const client = new TestingClient(endpoint);
-  await client.read({
-    widget: {
-      baz: "body name",
-      bazPropertiesBaz: [{ x: "bbb" }],
-      bar: [{ x: "xx" }],
-      properties: { baz: 222 },
-      bazProperties2Baz: 111,
-    },
-  });
+  const endpoint = process.env.TEST_SERVICE_ENDPOINT || "";
+  const client = new TestServiceClient(endpoint);
+  const result = await client.read({ widget: {} });
+  console.log(result);
 }
 
 async function main(): Promise<void> {

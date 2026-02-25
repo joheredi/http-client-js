@@ -109,7 +109,6 @@ function SampleFile(props: SampleFileProps) {
   const { topLevelClient, method, examples } = info;
 
   const clientClassName = topLevelClient.name;
-  const apiVersion = getApiVersion(topLevelClient);
   const exampleFunctions = examples.map((example) =>
     buildExampleFunction(example, info),
   );
@@ -122,17 +121,14 @@ function SampleFile(props: SampleFileProps) {
   // Build main function
   const mainBody = functionNames.map((name) => `  await ${name}();`).join("\n");
 
-  const fileComment = `/** This file path is /samples-dev/${info.fileName} */`;
-
   const exampleBodies = exampleFunctions
     .map((f) => {
-      const jsdoc = buildExampleJsDoc(f.example, apiVersion);
+      const jsdoc = buildExampleJsDoc(f.example, method);
       return `${jsdoc}\nasync function ${f.name}(): Promise<void> {\n${f.body}\n}`;
     })
     .join("\n\n");
 
-  const content = `${fileComment}
-${importLines}
+  const content = `${importLines}
 
 ${exampleBodies}
 
@@ -343,30 +339,32 @@ function buildSampleImports(
  * Builds the JSDoc comment for an example function.
  *
  * Generates a JSDoc block with:
- * - A description derived from the operation's doc/summary
+ * - A description derived from the operation's doc/summary (matching legacy behavior)
  * - A `@summary` tag with the lowercase description
- * - An `x-ms-original-file` reference to the example source
+ * - An `x-ms-original-file` reference to the example source file (relative from examples dir)
+ *
+ * Uses the method's doc text (from `@doc` decorator) rather than the example's
+ * doc because the legacy emitter sources descriptions from the operation definition.
+ * The filePath from TCGC already contains the API version prefix (e.g.,
+ * "2021-10-01-preview/json_for_read.json"), so no additional version prefix is needed.
  *
  * @param example - The TCGC example with metadata.
- * @param apiVersion - The API version string for the original file reference.
+ * @param method - The TCGC service method (for its doc/summary text).
  * @returns A JSDoc comment string.
  */
 function buildExampleJsDoc(
   example: SdkHttpOperationExample,
-  apiVersion: string | undefined,
+  method: SdkServiceMethod<SdkHttpOperation>,
 ): string {
-  const doc = example.doc || `execute ${example.name}`;
+  const doc = method.doc || example.doc || `execute ${example.name}`;
   const summary = doc.charAt(0).toLowerCase() + doc.slice(1);
-  const filePath = example.filePath
-    ? example.filePath.replace(/^.*[/\\]/, "")
-    : "json.json";
-  const version = apiVersion ?? "unknown";
+  const filePath = example.filePath || "json.json";
 
   return `/**
  * This sample demonstrates how to ${summary}
  *
  * @summary ${summary}
- * x-ms-original-file: ${version}/${filePath}
+ * x-ms-original-file: ${filePath}
  */`;
 }
 
@@ -644,12 +642,16 @@ function buildExampleValueMap(
 /**
  * Finds the example value for a method parameter.
  *
- * Searches the example value map by the parameter's name and serialized name.
- * For body parameters, returns the example value directly since the body
- * is typically a model that maps to the method's body parameter.
+ * Searches in multiple ways to match method-level parameters to HTTP-level
+ * example values:
+ * 1. Direct name/serializedName match (for query, header, path params)
+ * 2. Body model match (for model-typed params matching the entire body)
+ * 3. Body property match (for spread body properties — when TypeSpec spreads
+ *    a body model into individual method params, the example values are nested
+ *    inside the body example's properties)
  *
  * @param param - The TCGC method parameter.
- * @param map - The example value lookup map.
+ * @param map - The example value lookup map (HTTP-level parameter names → values).
  * @returns The example value, or undefined if no example exists for this param.
  */
 function findExampleValue(
@@ -671,6 +673,22 @@ function findExampleValue(
   if (param.type.kind === "model") {
     const bodyParam = map.get("body") ?? map.get("resource");
     if (bodyParam) return bodyParam.value;
+  }
+
+  // Search inside body example values for spread body properties.
+  // When a body model's properties are spread into method parameters,
+  // the example values are nested as properties of the body example value.
+  for (const [, ep] of map) {
+    if (ep.parameter.kind === "body" && ep.value.kind === "model") {
+      const modelValue = ep.value as any;
+      if (modelValue.value) {
+        for (const [propName, propValue] of Object.entries(modelValue.value)) {
+          if (propName === param.name || propName === serialized) {
+            return propValue as import("@azure-tools/typespec-client-generator-core").SdkExampleValue;
+          }
+        }
+      }
+    }
   }
 
   return undefined;
@@ -752,21 +770,6 @@ function normalizeFunctionName(name: string): string {
         : word.charAt(0).toUpperCase() + word.slice(1),
     )
     .join("");
-}
-
-/**
- * Gets the API version string from a client's initialization parameters.
- *
- * Used for the `x-ms-original-file` reference in sample JSDoc comments.
- *
- * @param client - The TCGC client type.
- * @returns The API version string, or undefined if not configured.
- */
-function getApiVersion(client: SdkClientType<SdkHttpOperation>): string | undefined {
-  if (client.apiVersions && client.apiVersions.length > 0) {
-    return client.apiVersions[client.apiVersions.length - 1];
-  }
-  return undefined;
 }
 
 /**
