@@ -1580,6 +1580,669 @@
           "notes": "Fixed by updating scenario harness to return sentinel for missing files, and updating expected test output."
         }
       ]
+    },
+    {
+      "id": 11,
+      "name": "Scenario Test Parity \u2014 Audit Findings",
+      "description": "Tasks derived from the scenario test audit comparing 102 test files between the new Alloy emitter and the legacy autorest.typescript emitter. Each task represents a category of semantic differences that must be resolved to achieve output parity.",
+      "tasks": [
+        {
+          "id": "11.01",
+          "title": "[P2] Runtime Import Path Migration",
+          "status": "pending",
+          "severity": "low",
+          "description": "Import paths changed from @azure-rest/core-client (or similar Azure SDK paths) to @typespec/ts-http-runtime. This is an intentional migration to the new runtime library and affects nearly all files.",
+          "affected_file_count": 44,
+          "affected_files": [
+            "anonymous/anonymous.md",
+            "apiOperations/apiOperations.md",
+            "apiOperations/azureCoreOperations.md",
+            "apiOperations/reservedWordOperations.md",
+            "classicClient/classicClient.md",
+            "classicClient/clientConstructorOverloads.md",
+            "classicClient/reservedWordOperations.md",
+            "clientContext/clientContext.md",
+            "clientContext/optionalApiVersion.md",
+            "enumUnion/enumUnion.md",
+            "example/example.md",
+            "models/apiVersion/apiVersionAsFixedEnum.md",
+            "models/apiVersion/apiVersionAsKnownVersions.md",
+            "models/azureCoreErrorModels.md",
+            "models/missingErrorResponseModel.md",
+            "models/models.md",
+            "operations/armPatchWithUnionResponse.md",
+            "operations/clientDefaultValue.md",
+            "operations/cookieParam/ignoreCookieParam.md",
+            "operations/operations.md",
+            "operations/override.md",
+            "operations/overrideReservedkeywords.md",
+            "pathParam/pathParam.md",
+            "pathParam/pathParamAllowReserved.md",
+            "pathParam/pathParamNoExpand.md",
+            "pathParam/pathParamWithApiVersion.md",
+            "pathParam/optionalPath.md",
+            "pathParam/pathParamUrlTemplate.md",
+            "pathParam/pathParameterNamedPath.md",
+            "pathParam/requiredPathWithDefault.md",
+            "queryParam/explodeTrueWithAnnotation.md",
+            "queryParam/explodeTrueWithUriTemplate.md",
+            "queryParam/queryParamCollectionFormat.md",
+            "queryParam/queryParamUrlTemplate.md",
+            "queryParam/queryParamWithClientInitialization.md",
+            "payload/xml/xmlArrayItemTypes.md",
+            "payload/xml/xmlArrayItemsNameWrapping.md",
+            "payload/xml/xmlName.md",
+            "samples/parameters/bodyOptionalCheck.md",
+            "samples/parameters/bodyOptionalParameterName.md",
+            "samples/parameters/bodyReadonlyOptionalCheck.md",
+            "samples/parameters/clientConstructorArgs.md",
+            "samples/parameters/parameterNormalization.md",
+            "samples/parameters/parameterOrdering.md"
+          ],
+          "examples": [
+            "import { Client } from '@azure-rest/core-client' \u2192 import { Client } from '@typespec/ts-http-runtime'",
+            "import { expandUrlTemplate } from '../helpers/urlHelpers.js' \u2192 import { expandUrlTemplate } from '@typespec/ts-http-runtime'"
+          ],
+          "pass_criteria": [
+            "All 44 affected scenario test(s) produce output matching the legacy emitter for this category",
+            "No regressions in currently passing tests"
+          ]
+        },
+        {
+          "id": "11.02",
+          "title": "[P0] Reserved Word Naming Convention Change",
+          "status": "pending",
+          "severity": "high",
+          "description": "Legacy uses underscore suffix (continue_, return_) for reserved JavaScript keywords. New emitter uses dollar prefix ($continue, $return). This is a public API surface difference.",
+          "affected_file_count": 3,
+          "affected_files": [
+            "apiOperations/reservedWordOperations.md",
+            "classicClient/reservedWordOperations.md",
+            "operations/overrideReservedkeywords.md"
+          ],
+          "examples": [
+            "continue_ \u2192 $continue",
+            "return_ \u2192 $return",
+            "type \u2192 typeParam (for parameter naming)"
+          ],
+          "pass_criteria": [
+            "All 3 affected scenario test(s) produce output matching the legacy emitter for this category",
+            "No regressions in currently passing tests"
+          ]
+        },
+        {
+          "id": "11.03",
+          "title": "[P1] Type Alias _1 Suffix Generation",
+          "status": "pending",
+          "severity": "medium",
+          "description": "New emitter generates type aliases with _1 suffix in some cases where legacy did not. This may indicate naming collision avoidance logic that is too aggressive.",
+          "affected_file_count": 10,
+          "affected_files": [
+            "anonymous/anonymous.md",
+            "apiOperations/apiOperations.md",
+            "operations/operations.md",
+            "pathParam/pathParam.md",
+            "pathParam/pathParamAllowReserved.md",
+            "pathParam/pathParamNoExpand.md",
+            "pathParam/pathParamWithApiVersion.md",
+            "payload/xml/xmlArrayItemTypes.md",
+            "payload/xml/xmlArrayItemsNameWrapping.md",
+            "payload/xml/xmlName.md"
+          ],
+          "examples": [
+            "Type alias generated as FooResponse_1 instead of FooResponse",
+            "Aliases removed in some XML scenarios where legacy had them"
+          ],
+          "pass_criteria": [
+            "All 10 affected scenario test(s) produce output matching the legacy emitter for this category",
+            "No regressions in currently passing tests"
+          ]
+        },
+        {
+          "id": "11.04",
+          "title": "[P0] Extensible Enum to Literal Union Conversion",
+          "status": "pending",
+          "severity": "high",
+          "description": "Legacy emitter generates KnownXxx enums with a string type alias for extensible enums. New emitter generates literal union types instead, removing the KnownXxx enum pattern entirely. This is a public API surface change.",
+          "affected_file_count": 7,
+          "affected_files": [
+            "models/azureCoreErrorModels.md",
+            "models/deserialization/extends.md",
+            "models/deserialization/propertyType.md",
+            "models/nestedEnum/notFlatten/experimentalExtensibleEnumsFalse.md",
+            "models/nestedEnum/notFlatten/experimentalExtensibleEnumsUndefined.md",
+            "models/serialization/propertyType.md",
+            "operations/lroPaging.md"
+          ],
+          "examples": [
+            "type Origin = string; enum KnownOrigin { User = 'user' } \u2192 type Origin = 'user' | 'system'",
+            "KnownDiscountType enum removed, DiscountType changed from string to literal union",
+            "ProvisioningState from string to literal union, KnownProvisioningState enum removed"
+          ],
+          "pass_criteria": [
+            "All 7 affected scenario test(s) produce output matching the legacy emitter for this category",
+            "No regressions in currently passing tests"
+          ]
+        },
+        {
+          "id": "11.05",
+          "title": "[P1] Enum Key Normalization Differences",
+          "status": "pending",
+          "severity": "medium",
+          "description": "Enum member naming differs between legacy and new emitter. Underscores removed, acronym handling, numeric prefixes, and date format normalization produce different key names.",
+          "affected_file_count": 4,
+          "affected_files": [
+            "models/serialization/enumKeyNorm.md",
+            "models/apiVersion/apiVersionAsKnownVersions.md",
+            "models/nestedEnum/flatten/experimentalExtensibleEnumsTrue.md",
+            "models/nestedEnum/notFlatten/experimentalExtensibleEnumsFalse.md"
+          ],
+          "examples": [
+            "V2021_10_01Preview \u2192 V20211001Preview (date format normalization)",
+            "Underscore removal in enum keys",
+            "Acronym casing differences in enum member names"
+          ],
+          "pass_criteria": [
+            "All 4 affected scenario test(s) produce output matching the legacy emitter for this category",
+            "No regressions in currently passing tests"
+          ]
+        },
+        {
+          "id": "11.06",
+          "title": "[P1] Client Constructor and Initialization Logic",
+          "status": "pending",
+          "severity": "medium",
+          "description": "New emitter adds user agent prefix logic, enhanced logging, and apiVersion warning to client constructors. Constructor parameter names and ordering differ. createService function is significantly more complex.",
+          "affected_file_count": 5,
+          "affected_files": [
+            "classicClient/classicClient.md",
+            "classicClient/clientConstructorOverloads.md",
+            "clientContext/clientContext.md",
+            "clientContext/optionalApiVersion.md",
+            "samples/parameters/clientConstructorArgs.md"
+          ],
+          "examples": [
+            "Constructor adds userAgentPrefix logic and logging",
+            "endpoint \u2192 endpointParam parameter rename",
+            "apiVersion fallback and warning logic added",
+            "ServiceClient \u2192 TestServiceClient class rename"
+          ],
+          "pass_criteria": [
+            "All 5 affected scenario test(s) produce output matching the legacy emitter for this category",
+            "No regressions in currently passing tests"
+          ]
+        },
+        {
+          "id": "11.07",
+          "title": "[P0] Response Header Handling Differences",
+          "status": "pending",
+          "severity": "high",
+          "description": "Legacy emitter merges response headers into the response model (intersection type). New emitter returns just the model type, separating headers. This is a public API surface change.",
+          "affected_file_count": 4,
+          "affected_files": [
+            "models/response/headerAndModelInResponse.md",
+            "models/response/headerAndModelSpread.md",
+            "models/response/headerInResponse.md",
+            "models/response/headerInXmlResponse.md"
+          ],
+          "examples": [
+            "Promise<User & { headers: { x-ms-request-id: string } }> \u2192 Promise<User>",
+            "Headers merged into model interface in legacy, returned separately in new"
+          ],
+          "pass_criteria": [
+            "All 4 affected scenario test(s) produce output matching the legacy emitter for this category",
+            "No regressions in currently passing tests"
+          ]
+        },
+        {
+          "id": "11.08",
+          "title": "[P1] Additional Properties Modeling",
+          "status": "pending",
+          "severity": "medium",
+          "description": "Legacy uses indexed signature ([key: string]: T) for additional properties. New emitter uses explicit additionalProperties field and Record<string,T> extends pattern. serializeRecord helper introduced.",
+          "affected_file_count": 3,
+          "affected_files": [
+            "models/deserialization/additionalProperties.md",
+            "models/serialization/additionalProperties.md",
+            "anonymous/anonymous.md"
+          ],
+          "examples": [
+            "Interface with [key: string]: string \u2192 Interface extends Record<string, string>",
+            "additionalProperties explicit field introduced",
+            "serializeRecord helper function added",
+            "additionalPropertiesBag for conflict resolution"
+          ],
+          "pass_criteria": [
+            "All 3 affected scenario test(s) produce output matching the legacy emitter for this category",
+            "No regressions in currently passing tests"
+          ]
+        },
+        {
+          "id": "11.09",
+          "title": "[P1] Error Handling and Deserialization Enhancement",
+          "status": "pending",
+          "severity": "medium",
+          "description": "New emitter populates error.details with deserialized error bodies and merges error headers. Error types changed (Error vs ErrorModel). ErrorResponse imported from runtime instead of defined locally.",
+          "affected_file_count": 8,
+          "affected_files": [
+            "operations/errorDeserialization/errorHeaderDeserialization.md",
+            "operations/errorDeserialization/xmlErrorDeserialization.md",
+            "operations/armPatchWithUnionResponse.md",
+            "operations/overrideReservedkeywords.md",
+            "operations/headerParam/headerParamWithClientInitialization.md",
+            "queryParam/queryParamWithClientInitialization.md",
+            "models/missingErrorResponseModel.md",
+            "apiOperations/azureCoreOperations.md"
+          ],
+          "examples": [
+            "Error details now populated: error.details = deserializedBody",
+            "Error headers merged into error response",
+            "ErrorResponse imported from @typespec/ts-http-runtime vs locally defined",
+            "Error/InnerError models removed in favor of runtime types"
+          ],
+          "pass_criteria": [
+            "All 8 affected scenario test(s) produce output matching the legacy emitter for this category",
+            "No regressions in currently passing tests"
+          ]
+        },
+        {
+          "id": "11.10",
+          "title": "[P1] Anonymous Model Extraction and Naming",
+          "status": "pending",
+          "severity": "medium",
+          "description": "New emitter extracts anonymous inline types into named interfaces (with _ prefix conventions). Property casing and naming may differ between extracted types.",
+          "affected_file_count": 4,
+          "affected_files": [
+            "models/deserialization/anonymousModel.md",
+            "models/serialization/anonymousModel.md",
+            "anonymous/anonymous.md",
+            "models/nullable/nullableUnion.md"
+          ],
+          "examples": [
+            "Inline anonymous type \u2192 extracted _SimpleModelProp interface",
+            "Property casing: propAa vs propAA",
+            "Union type A removed, replaced with _PostRequest | null"
+          ],
+          "pass_criteria": [
+            "All 4 affected scenario test(s) produce output matching the legacy emitter for this category",
+            "No regressions in currently passing tests"
+          ]
+        },
+        {
+          "id": "11.11",
+          "title": "[P1] Property Flatten Serialization Helpers",
+          "status": "pending",
+          "severity": "medium",
+          "description": "New emitter extracts serialization of flattened properties into helper functions. Introduces areAllPropsUndefined utility and collision-suffixed property names (e.g., barPropertiesBar).",
+          "affected_file_count": 7,
+          "affected_files": [
+            "models/propertyFlatten/mulipleLayers.md",
+            "models/propertyFlatten/nameCollision.md",
+            "models/propertyFlatten/singleLayer.md",
+            "models/serialization/readonlyFlattenModel.md",
+            "samples/propertyFlatten/complexFlattenCases.md",
+            "samples/propertyFlatten/mulipleFlattenCases.md",
+            "samples/propertyFlatten/simpleFlattenCases.md"
+          ],
+          "examples": [
+            "areAllPropsUndefined utility function introduced",
+            "Collision-suffixed property: barPropertiesBar",
+            "Helper serializer functions extracted for nested flatten layers"
+          ],
+          "pass_criteria": [
+            "All 7 affected scenario test(s) produce output matching the legacy emitter for this category",
+            "No regressions in currently passing tests"
+          ]
+        },
+        {
+          "id": "11.12",
+          "title": "[P1] URL Template Encoding Differences",
+          "status": "pending",
+          "severity": "medium",
+          "description": "URL parameter encoding differs between emitters. Special characters in template keys may be percent-encoded differently (e.g., api-version vs api%2Dversion, key-name vs key%2Dname).",
+          "affected_file_count": 5,
+          "affected_files": [
+            "apiOperations/apiOperations.md",
+            "operations/armPatchWithUnionResponse.md",
+            "queryParam/queryParamUrlTemplate.md",
+            "operations/overrideReservedkeywords.md",
+            "samples/parameters/bodyOptionalParameterName.md"
+          ],
+          "examples": [
+            "api-version in URL template \u2192 api%2Dversion",
+            "key-name \u2192 key%2Dname in URL templates"
+          ],
+          "pass_criteria": [
+            "All 5 affected scenario test(s) produce output matching the legacy emitter for this category",
+            "No regressions in currently passing tests"
+          ]
+        },
+        {
+          "id": "11.13",
+          "title": "[P1] Multipart Form Data Handling",
+          "status": "pending",
+          "severity": "medium",
+          "description": "File type representation differs between emitters. New emitter uses FileContents union vs separate interfaces. Serializer generation differs. Content type parameter handling changes.",
+          "affected_file_count": 4,
+          "affected_files": [
+            "multipart/file.md",
+            "multipart/json.md",
+            "multipart/renamewithWireNameAndClientName.md",
+            "multipart/text.md"
+          ],
+          "examples": [
+            "File type: FileContents union vs separate interfaces",
+            "dateOfBirth serialization: milliseconds \u2192 seconds",
+            "contentType parameter removed from function signature",
+            "Person serializer applied vs raw object passthrough"
+          ],
+          "pass_criteria": [
+            "All 4 affected scenario test(s) produce output matching the legacy emitter for this category",
+            "No regressions in currently passing tests"
+          ]
+        },
+        {
+          "id": "11.14",
+          "title": "[P2] Array Collection Encoding Helpers",
+          "status": "pending",
+          "severity": "low",
+          "description": "New emitter introduces helper functions for array collection encoding (buildCsvCollection, buildSsvCollection, buildPipeCollection, parseCsvCollection). Legacy used inline logic.",
+          "affected_file_count": 3,
+          "affected_files": [
+            "models/serialization/modelPropertyArrayEncoding.md",
+            "queryParam/queryParamCollectionFormat.md",
+            "queryParam/explodeTrueWithAnnotation.md"
+          ],
+          "examples": [
+            "buildCsvCollection helper for CSV-encoded array query params",
+            "buildSsvCollection, buildPipeCollection for other formats",
+            "parseCsvCollection for deserialization"
+          ],
+          "pass_criteria": [
+            "All 3 affected scenario test(s) produce output matching the legacy emitter for this category",
+            "No regressions in currently passing tests"
+          ]
+        },
+        {
+          "id": "11.15",
+          "title": "[P2] ESLint Directives and JSDoc Comments",
+          "status": "pending",
+          "severity": "low",
+          "description": "New emitter adds ESLint disable directives and expanded JSDoc comments. These are cosmetic/tooling differences with no semantic impact on generated code behavior.",
+          "affected_file_count": 11,
+          "affected_files": [
+            "apiOperations/azureCoreOperations.md",
+            "example/example.md",
+            "models/apiVersion/apiVersionAsFixedEnum.md",
+            "models/apiVersion/apiVersionAsKnownVersions.md",
+            "models/models.md",
+            "models/nestedEnum/flatten/experimentalExtensibleEnumsTrue.md",
+            "models/serialization/encodeIntAsString.md",
+            "models/serialization/errorModels.md",
+            "models/propertyFlatten/mulipleLayers.md",
+            "models/template/template.md",
+            "payload/xml/xmlName.md"
+          ],
+          "examples": [
+            "/* eslint-disable ... */ directives added at file top",
+            "JSDoc @param and @returns descriptions expanded",
+            "Enhanced extensible enum JSDoc documentation"
+          ],
+          "pass_criteria": [
+            "All 11 affected scenario test(s) produce output matching the legacy emitter for this category",
+            "No regressions in currently passing tests"
+          ]
+        },
+        {
+          "id": "11.16",
+          "title": "[P1] Empty Model and Base Serializer Behavior",
+          "status": "pending",
+          "severity": "medium",
+          "description": "Empty model serializers return the item directly in new emitter vs returning {} in legacy. Base template serializers/deserializers similarly return item vs empty object.",
+          "affected_file_count": 2,
+          "affected_files": [
+            "anonymous/anonymous.md",
+            "models/template/template.md"
+          ],
+          "examples": [
+            "Empty model serializer: return {} \u2192 return item",
+            "baseSerializer returns item vs {}"
+          ],
+          "pass_criteria": [
+            "All 2 affected scenario test(s) produce output matching the legacy emitter for this category",
+            "No regressions in currently passing tests"
+          ]
+        },
+        {
+          "id": "11.17",
+          "title": "[P1] API Version Handling Differences",
+          "status": "pending",
+          "severity": "medium",
+          "description": "API version resolution differs: new emitter uses context.apiVersion with fallback and warning logging, legacy uses options.apiVersion or explicit parameter. KnownVersions enum sometimes removed.",
+          "affected_file_count": 5,
+          "affected_files": [
+            "clientContext/optionalApiVersion.md",
+            "models/apiVersion/apiVersionAsFixedEnum.md",
+            "pathParam/pathParamUrlTemplate.md",
+            "samples/parameters/parameterOrdering.md",
+            "samples/parameters/paramaterSpreadCheck.md"
+          ],
+          "examples": [
+            "options.apiVersion \u2192 context.apiVersion with fallback",
+            "apiVersion removed from public API parameters",
+            "KnownVersions enum removed, version string used directly"
+          ],
+          "pass_criteria": [
+            "All 5 affected scenario test(s) produce output matching the legacy emitter for this category",
+            "No regressions in currently passing tests"
+          ]
+        },
+        {
+          "id": "11.18",
+          "title": "[P1] Default Value and Required Parameter Elevation",
+          "status": "pending",
+          "severity": "medium",
+          "description": "New emitter elevates some parameters with default values to required function arguments instead of keeping them in options bags. Parameter handling for defaults differs.",
+          "affected_file_count": 2,
+          "affected_files": [
+            "operations/clientDefaultValue.md",
+            "pathParam/requiredPathWithDefault.md"
+          ],
+          "examples": [
+            "Required parameters with defaults elevated to function arguments",
+            "Default value application logic differs between emitters"
+          ],
+          "pass_criteria": [
+            "All 2 affected scenario test(s) produce output matching the legacy emitter for this category",
+            "No regressions in currently passing tests"
+          ]
+        },
+        {
+          "id": "11.19",
+          "title": "[P1] Discriminated Union Deserialization Logic",
+          "status": "pending",
+          "severity": "medium",
+          "description": "Union deserializer default case handling differs. New emitter calls base deserializer on unknown discriminator, legacy returns raw item. Hierarchical union switch patterns with fall-through differ.",
+          "affected_file_count": 2,
+          "affected_files": [
+            "models/deserialization/extends.md",
+            "models/serialization/propertyType.md"
+          ],
+          "examples": [
+            "Default case: return deserializeBase(item) vs return item",
+            "PascalCase discriminator handling differences",
+            "Hierarchical union switch with fall-through patterns"
+          ],
+          "pass_criteria": [
+            "All 2 affected scenario test(s) produce output matching the legacy emitter for this category",
+            "No regressions in currently passing tests"
+          ]
+        },
+        {
+          "id": "11.20",
+          "title": "[P1] Nullable Type Handling",
+          "status": "pending",
+          "severity": "medium",
+          "description": "Nullable optional properties handle null differently. New emitter may remove null from the type union for optional properties. Conditional serialization logic changes.",
+          "affected_file_count": 2,
+          "affected_files": [
+            "models/nullable/nullableOptional.md",
+            "models/nullable/nullableUnion.md"
+          ],
+          "examples": [
+            "Nullable optional property removes null from type in new",
+            "Null union preserved when ignore-nullable-on-optional=false",
+            "Apparent deserialization bug in nullableUnion"
+          ],
+          "pass_criteria": [
+            "All 2 affected scenario test(s) produce output matching the legacy emitter for this category",
+            "No regressions in currently passing tests"
+          ]
+        },
+        {
+          "id": "11.21",
+          "title": "[P1] XML Payload Handling Differences",
+          "status": "pending",
+          "severity": "medium",
+          "description": "XML-specific differences including bytesEncoding/dateEncoding metadata, base64 encoding logic, and array wrapping structure changes.",
+          "affected_file_count": 2,
+          "affected_files": [
+            "payload/xml/xmlArrayItemTypes.md",
+            "payload/xml/xmlArrayItemsNameWrapping.md"
+          ],
+          "examples": [
+            "bytesEncoding and dateEncoding metadata added to XML types",
+            "XML array wrapping: nested Field key structure changed",
+            "Base64 encoding logic differences"
+          ],
+          "pass_criteria": [
+            "All 2 affected scenario test(s) produce output matching the legacy emitter for this category",
+            "No regressions in currently passing tests"
+          ]
+        },
+        {
+          "id": "11.22",
+          "title": "[P0] Sample Code Generation Quality Issues",
+          "status": "pending",
+          "severity": "high",
+          "description": "Sample files have significant quality issues: duplicate/wrong content, copy-paste errors, broken sample generation, wrong function names, incorrect client naming, and incomplete sample data.",
+          "affected_file_count": 8,
+          "affected_files": [
+            "samples/client/disableHierarchy/disableOperationGroup.md",
+            "samples/client/disableHierarchy/enableOperationGroup.md",
+            "samples/client/enableHierarchy/disableOperationGroup.md",
+            "samples/client/enableHierarchy/enableOperationGroup.md",
+            "samples/operations/armCurdOperations.md",
+            "samples/operations/disableHierarchyArmCurdOperations.md",
+            "samples/operations/dpgCurdOperations.md",
+            "samples/operations/multipleExamplesInOneFile.md"
+          ],
+          "examples": [
+            "All samples contain identical wrong code (enableHierarchy/disableOperationGroup)",
+            "Duplicate imports in generated samples",
+            "Wrong function names in sample code",
+            "Copy-paste errors across sample files"
+          ],
+          "pass_criteria": [
+            "All 8 affected scenario test(s) produce output matching the legacy emitter for this category",
+            "No regressions in currently passing tests"
+          ]
+        },
+        {
+          "id": "11.23",
+          "title": "[P1] Sample Client Naming and Constructor Differences",
+          "status": "pending",
+          "severity": "medium",
+          "description": "Sample files have systematic differences in client class naming, constructor parameter ordering, environment variable usage, and API surface structure (flat vs hierarchical).",
+          "affected_file_count": 14,
+          "affected_files": [
+            "samples/client/multipleClient.md",
+            "samples/client/renameClientName.md",
+            "samples/client/subscriptionIdHandling.md",
+            "samples/parameters/bodyOptionalCheck.md",
+            "samples/parameters/bodyOptionalParameterName.md",
+            "samples/parameters/bodyReadonlyOptionalCheck.md",
+            "samples/parameters/bodyRequiredCheck.md",
+            "samples/parameters/inheritedPropertyMapping.md",
+            "samples/parameters/optionalParameter.md",
+            "samples/parameters/paramaterSpreadCheck.md",
+            "samples/parameters/parameterName.md",
+            "samples/parameters/parameterNormalization.md",
+            "samples/parameters/parameterOrdering.md",
+            "samples/parameters/parameterTypesCheck.md"
+          ],
+          "examples": [
+            "Client class name differences in samples",
+            "Constructor parameter order: (endpoint, credential) vs (credential, endpoint)",
+            "SubscriptionId hardcoded vs from env variable",
+            "client.list() vs client.operations.list() API surface"
+          ],
+          "pass_criteria": [
+            "All 14 affected scenario test(s) produce output matching the legacy emitter for this category",
+            "No regressions in currently passing tests"
+          ]
+        },
+        {
+          "id": "11.24",
+          "title": "[P0] LRO and Paging Structural Changes",
+          "status": "pending",
+          "severity": "high",
+          "description": "Long-running operation and paging patterns have major structural changes including collection naming, deserialization logic, enum types, enhanced error handling, expanded status codes, and additional paging configuration.",
+          "affected_file_count": 1,
+          "affected_files": [
+            "operations/lroPaging.md"
+          ],
+          "examples": [
+            "Collection naming conventions changed",
+            "OperationState type: string enum \u2192 literal union",
+            "Expanded status code handling",
+            "Additional paging configuration options"
+          ],
+          "pass_criteria": [
+            "All 1 affected scenario test(s) produce output matching the legacy emitter for this category",
+            "No regressions in currently passing tests"
+          ]
+        },
+        {
+          "id": "11.25",
+          "title": "[P1] Download Response Binary Handling",
+          "status": "pending",
+          "severity": "medium",
+          "description": "Binary download responses use different conversion utilities. New emitter uses stringToUint8Array vs legacy getBinaryResponse pattern.",
+          "affected_file_count": 1,
+          "affected_files": [
+            "apiOperations/apiOperations.md"
+          ],
+          "examples": [
+            "stringToUint8Array vs getBinaryResponse for download operations"
+          ],
+          "pass_criteria": [
+            "All 1 affected scenario test(s) produce output matching the legacy emitter for this category",
+            "No regressions in currently passing tests"
+          ]
+        },
+        {
+          "id": "11.26",
+          "title": "[P1] Model Name Normalization Differences",
+          "status": "pending",
+          "severity": "medium",
+          "description": "Model and type names are normalized differently between emitters. Acronym handling, casing rules, and prefix handling produce different names for the same TypeSpec type.",
+          "affected_file_count": 2,
+          "affected_files": [
+            "models/serialization/propertyType.md",
+            "models/azureCoreErrorModels.md"
+          ],
+          "examples": [
+            "Foo \u2192 FOO model name",
+            "NfvIs \u2192 NFVIs (acronym normalization)",
+            "OperationListResult \u2192 _OperationListResult (underscore prefix for internal types)"
+          ],
+          "pass_criteria": [
+            "All 2 affected scenario test(s) produce output matching the legacy emitter for this category",
+            "No regressions in currently passing tests"
+          ]
+        }
+      ]
     }
   ],
   "risks": [
