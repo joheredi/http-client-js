@@ -695,6 +695,7 @@ import {
   buildPagedAsyncIterator as buildPagedAsyncIterator_1,
   type PagedAsyncIterableIterator as PagedAsyncIterableIterator_1,
 } from "../helpers/pagingHelpers.js";
+import { errorDeserializer as errorDeserializer_1 } from "../models/models.js";
 import type { TestOptionalParams as TestOptionalParams_1 } from "./options.js";
 import {
   type Client as Client_1,
@@ -722,7 +723,9 @@ export async function _testDeserialize(
 ): Promise<string[]> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError_1(result);
+    const error = createRestError_1(result);
+    error.details = errorDeserializer_1(result.body);
+    throw error;
   }
 
   return result.body;
@@ -782,6 +785,7 @@ import {
   buildPagedAsyncIterator as buildPagedAsyncIterator_1,
   type PagedAsyncIterableIterator as PagedAsyncIterableIterator_1,
 } from "../helpers/pagingHelpers.js";
+import { errorDeserializer as errorDeserializer_1 } from "../models/models.js";
 import type { TestOptionalParams as TestOptionalParams_1 } from "./options.js";
 import {
   type Client as Client_1,
@@ -809,7 +813,9 @@ export async function _testDeserialize(
 ): Promise<string[]> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError_1(result);
+    const error = createRestError_1(result);
+    error.details = errorDeserializer_1(result.body);
+    throw error;
   }
 
   return result.body;

@@ -295,6 +295,22 @@ export function deserializeHeadersRefkey(entity: unknown): Refkey {
 }
 
 /**
+ * Creates a refkey for a `_xxxDeserializeExceptionHeaders` function that extracts
+ * typed header values from error HTTP responses.
+ *
+ * This refkey enables the deserialize operation function to reference the
+ * exception header deserializer when `include-headers-in-response` is enabled,
+ * so that Alloy can auto-generate the import if the two functions
+ * end up in different files.
+ *
+ * @param entity - The TCGC operation or method entity.
+ * @returns A stable refkey for the exception header deserializer function declaration.
+ */
+export function deserializeExceptionHeadersRefkey(entity: unknown): Refkey {
+  return refkey(entity, "deserializeExceptionHeaders");
+}
+
+/**
  * Creates a refkey for a multipart helper function or type.
  *
  * Multipart helpers manage multipart/form-data request body construction —

@@ -43,7 +43,13 @@ export async function _getWidgetDeserialize(
 ): Promise<Widget_1> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError_1(result);
+    const error = createRestError_1(result);
+    error.details = apiErrorDeserializer_1(result.body);
+    error.details = {
+      ...(error.details as Record<string, unknown>),
+      ..._getWidgetDeserializeExceptionHeaders(result),
+    };
+    throw error;
   }
 
   return widgetDeserializer_1(result.body);
@@ -82,7 +88,9 @@ export async function _getWidgetDeserialize(
 ): Promise<Widget_1> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError_1(result);
+    const error = createRestError_1(result);
+    error.details = apiErrorDeserializer_1(result.body);
+    throw error;
   }
 
   return widgetDeserializer_1(result.body);
@@ -146,7 +154,13 @@ export async function _getItemDeserialize(
 ): Promise<Item_1> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError_1(result);
+    const error = createRestError_1(result);
+    error.details = storageErrorDeserializer_1(result.body);
+    error.details = {
+      ...(error.details as Record<string, unknown>),
+      ..._getItemDeserializeExceptionHeaders(result),
+    };
+    throw error;
   }
 
   return itemDeserializer_1(result.body);
@@ -198,7 +212,13 @@ export async function _getWidgetDeserialize(
 ): Promise<Widget_1> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError_1(result);
+    const error = createRestError_1(result);
+    error.details = storageErrorDeserializer_1(result.body);
+    error.details = {
+      ...(error.details as Record<string, unknown>),
+      ..._getWidgetDeserializeExceptionHeaders(result),
+    };
+    throw error;
   }
 
   return widgetDeserializer_1(result.body);

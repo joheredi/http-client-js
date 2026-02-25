@@ -1254,3 +1254,32 @@ Similarly, model properties with `@encode(ArrayEncoding.xxx)` need collection en
 
 ### Unit Test Pattern
 When testing components that reference `serializationHelperRefkey` (e.g., `buildCsvCollection`), you must render `SerializationHelpersFile` as a sibling `<SourceFile>` at the `<Output>` level — NOT as a child of `SdkTestFile` (which creates nested SourceFiles, causing "Module not exported from package" errors). Create a `MultiFileTestWrapper` component that places helpers and test file as siblings.
+
+## Error Deserialization (SA4)
+
+### Issue
+The deserialize function was simply doing `throw createRestError(result)` without deserializing the error response body. The legacy emitter deserializes error bodies into `error.details` and merges exception headers.
+
+### Root Cause
+The `DeserializeOperation` component was not checking for error model types in `method.operation.exceptions`. It also did not reference the `DeserializeExceptionHeaders` function.
+
+### Fix
+1. Added `getExceptionBodyType()` to extract the error body type from the operation's exceptions
+2. Added `buildErrorHandlingBlock()` to generate the full error handling code:
+   - Creates the error: `const error = createRestError(result)`
+   - Deserializes error body: `error.details = errorDeserializer(result.body)`
+   - Merges exception headers (when `include-headers-in-response` enabled): `error.details = {...error.details, ..._xxxDeserializeExceptionHeaders(result)}`
+   - Throws: `throw error`
+3. Added `deserializeExceptionHeadersRefkey` to enable cross-file references to exception header functions
+4. Registered the refkey in `DeserializeExceptionHeaders` component
+5. Exported `collectExceptionResponseHeaders` for reuse
+
+### Key Pattern
+- When no error model exists: `throw createRestError(result)` (simple case)
+- When error model exists: `const error = createRestError(result); error.details = deserializer(result.body); throw error;`
+- When exception headers exist and are enabled: headers are merged into `error.details` via spread
+
+### TCGC Notes
+- `method.operation.exceptions` contains `SdkHttpErrorResponse[]` with error model types
+- Error models with `@header` properties still include those properties in both the interface and deserializer
+- The default ("*") exception is preferred; otherwise falls back to first exception with a body type

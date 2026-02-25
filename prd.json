@@ -2782,7 +2782,8 @@
         "priority": "P0",
         "description": "LEGACY creates error objects, deserializes error response bodies (errorResponseDeserializer, storageErrorDeserializer, etc.), attaches error.details, and optionally merges exception headers before throwing. NEW simply throws createRestError(result) without any error body deserialization or header merging.",
         "affected_scenarios": "operations/armPatchWithUnionResponse.md, operations/overrideReservedkeywords.md, operations/errorDeserialization/*.md, operations/lroPaging.md, operations/headerParam/*.md, operations/queryParam/queryParamWithClientInitialization.md, samples/parameters/bodyOptionalParameterName.md",
-        "status": "tracked"
+        "status": "done",
+        "resolution": "Implemented error body deserialization in the deserialize function. When an operation has error models (via @error decorator), the error handling path now creates a RestError, deserializes the error response body into error.details using the error model deserializer, optionally merges exception headers (when include-headers-in-response is enabled), and then throws. Operations without error models retain the simple throw createRestError(result) pattern."
       },
       {
         "id": "SA5",

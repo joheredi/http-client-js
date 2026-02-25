@@ -1,14 +1,20 @@
 import { Children, code } from "@alloy-js/core";
 import { FunctionDeclaration } from "@alloy-js/typescript";
 import type {
+  SdkHttpErrorResponse,
   SdkHttpOperation,
   SdkHttpResponse,
   SdkServiceMethod,
   SdkType,
 } from "@azure-tools/typespec-client-generator-core";
 import type { HttpStatusCodeRange } from "@typespec/http";
+import { useEmitterOptions } from "../context/emitter-options-context.js";
 import { useRuntimeLib } from "../context/flavor-context.js";
-import { deserializeOperationRefkey } from "../utils/refkeys.js";
+import {
+  deserializeExceptionHeadersRefkey,
+  deserializeOperationRefkey,
+} from "../utils/refkeys.js";
+import { collectExceptionResponseHeaders } from "./deserialize-headers.js";
 import { getTypeExpression } from "./type-expression.js";
 import {
   getDeserializationExpression,
@@ -29,8 +35,10 @@ export interface DeserializeOperationProps {
  * The deserialize function (`_xxxDeserialize`) is the response processor for each
  * operation. It is responsible for:
  * - Validating the HTTP response status code against expected status codes
- * - Throwing `createRestError(result)` for unexpected status codes
- * - Deserializing the response body using model deserializer refkeys
+ * - Deserializing error response bodies into `error.details` for unexpected status codes
+ * - Merging exception headers into `error.details` when `include-headers-in-response` is enabled
+ * - Throwing the enriched `RestError` for error responses
+ * - Deserializing the success response body using model deserializer refkeys
  * - Returning `void` for operations with no response body
  *
  * The function follows the legacy emitter's pattern:
@@ -40,7 +48,9 @@ export interface DeserializeOperationProps {
  * ): Promise<Item> {
  *   const expectedStatuses = ["200"];
  *   if (!expectedStatuses.includes(result.status)) {
- *     throw createRestError(result);
+ *     const error = createRestError(result);
+ *     error.details = itemErrorDeserializer(result.body);
+ *     throw error;
  *   }
  *   return itemDeserializer(result.body);
  * }
@@ -56,6 +66,7 @@ export function DeserializeOperation(props: DeserializeOperationProps) {
   const returnTypeExpr = getReturnType(method);
   const expectedStatuses = getExpectedStatuses(method);
   const bodyExpression = getResponseBodyExpression(method);
+  const errorBlock = buildErrorHandlingBlock(method, runtimeLib);
 
   return (
     <FunctionDeclaration
@@ -70,7 +81,7 @@ export function DeserializeOperation(props: DeserializeOperationProps) {
       {"\n"}
       {code`if (!expectedStatuses.includes(result.status)) {`}
       {"\n"}
-      {code`  throw ${runtimeLib.createRestError}(result);`}
+      {errorBlock}
       {"\n"}
       {code`}`}
       {"\n\n"}
@@ -190,4 +201,106 @@ function getResponseBodyExpression(
 
   // Primitive types — pass through directly
   return code`return result.body;`;
+}
+
+/**
+ * Builds the error handling block for the deserialize function's error path.
+ *
+ * This function generates the code that runs when the HTTP response status code
+ * does not match the expected status codes. The legacy emitter pattern is:
+ *
+ * 1. Create the error: `const error = createRestError(result);`
+ * 2. Deserialize the error body: `error.details = errorDeserializer(result.body);`
+ * 3. Merge exception headers (if enabled): `error.details = {...(error.details as any), ..._xxxDeserializeExceptionHeaders(result)};`
+ * 4. Throw: `throw error;`
+ *
+ * If the error model has no body that needs deserialization and there are no
+ * exception headers to merge, the simpler `throw createRestError(result)` pattern
+ * is used instead.
+ *
+ * @param method - The TCGC service method.
+ * @param runtimeLib - The runtime library providing `createRestError` and other symbols.
+ * @returns Alloy Children representing the error handling code block.
+ */
+function buildErrorHandlingBlock(
+  method: SdkServiceMethod<SdkHttpOperation>,
+  runtimeLib: ReturnType<typeof useRuntimeLib>,
+): Children {
+  const { includeHeadersInResponse } = useEmitterOptions();
+
+  // Determine if the error response has a body that needs deserialization
+  const exceptionType = getExceptionBodyType(method);
+  const hasErrorBody = exceptionType !== undefined && needsTransformation(exceptionType);
+
+  // Determine if there are exception headers to merge
+  const hasExceptionHeaders =
+    includeHeadersInResponse &&
+    collectExceptionResponseHeaders(method).length > 0;
+
+  // Simple case: no error body deserialization and no exception headers
+  if (!hasErrorBody && !hasExceptionHeaders) {
+    return code`  throw ${runtimeLib.createRestError}(result);`;
+  }
+
+  // Complex case: need to create error, attach details, then throw
+  const parts: Children[] = [];
+
+  parts.push(code`  const error = ${runtimeLib.createRestError}(result);`);
+
+  if (hasErrorBody) {
+    const deserExpr = getDeserializationExpression(exceptionType!, "result.body");
+    parts.push(code`  error.details = ${deserExpr};`);
+  }
+
+  if (hasExceptionHeaders) {
+    const exHeadersRef = deserializeExceptionHeadersRefkey(method);
+    if (hasErrorBody) {
+      parts.push(
+        code`  error.details = { ...(error.details as Record<string, unknown>), ...${exHeadersRef}(result) };`,
+      );
+    } else {
+      parts.push(code`  error.details = ${exHeadersRef}(result);`);
+    }
+  }
+
+  parts.push(code`  throw error;`);
+
+  return parts.map((part, i) => (
+    <>
+      {part}
+      {i < parts.length - 1 ? "\n" : undefined}
+    </>
+  ));
+}
+
+/**
+ * Extracts the error body type from an operation's exception responses.
+ *
+ * Examines the operation's `exceptions` array to find an error model type
+ * that can be deserialized. Prefers the default ("*") exception type, falling
+ * back to the first exception with a body type.
+ *
+ * @param method - The TCGC service method.
+ * @returns The SdkType of the error body, or undefined if no error body exists.
+ */
+function getExceptionBodyType(
+  method: SdkServiceMethod<SdkHttpOperation>,
+): SdkType | undefined {
+  const exceptions = method.operation.exceptions;
+  if (exceptions.length === 0) return undefined;
+
+  // Prefer the default ("*") exception
+  const defaultException = exceptions.find((e) => e.statusCodes === "*");
+  if (defaultException?.type) {
+    return defaultException.type;
+  }
+
+  // Fall back to first exception with a body type
+  for (const exception of exceptions) {
+    if (exception.type) {
+      return exception.type;
+    }
+  }
+
+  return undefined;
 }

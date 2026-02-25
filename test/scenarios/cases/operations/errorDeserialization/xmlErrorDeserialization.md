@@ -27,6 +27,7 @@ op getWidget(@path id: string): Widget | StorageError;
 
 ```ts operations
 import {
+  storageErrorDeserializer as storageErrorDeserializer_1,
   type Widget as Widget_1,
   widgetDeserializer as widgetDeserializer_1,
 } from "../models/models.js";
@@ -64,7 +65,9 @@ export async function _getWidgetDeserialize(
 ): Promise<Widget_1> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError_1(result);
+    const error = createRestError_1(result);
+    error.details = storageErrorDeserializer_1(result.body);
+    throw error;
   }
 
   return widgetDeserializer_1(result.body);
@@ -115,6 +118,7 @@ op getDocument(@path id: string): {
 
 ```ts operations
 import {
+  apiErrorDeserializer as apiErrorDeserializer_1,
   type Document as Document_1,
   documentDeserializer as documentDeserializer_1,
 } from "../models/models.js";
@@ -152,7 +156,9 @@ export async function _getDocumentDeserialize(
 ): Promise<Document_1> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError_1(result);
+    const error = createRestError_1(result);
+    error.details = apiErrorDeserializer_1(result.body);
+    throw error;
   }
 
   return documentDeserializer_1(result.body);
@@ -198,6 +204,7 @@ op getItem(@path id: string): Item | SimpleError;
 import {
   type Item as Item_1,
   itemDeserializer as itemDeserializer_1,
+  simpleErrorDeserializer as simpleErrorDeserializer_1,
 } from "../models/models.js";
 import type { GetItemOptionalParams as GetItemOptionalParams_1 } from "./options.js";
 import {
@@ -233,7 +240,9 @@ export async function _getItemDeserialize(
 ): Promise<Item_1> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError_1(result);
+    const error = createRestError_1(result);
+    error.details = simpleErrorDeserializer_1(result.body);
+    throw error;
   }
 
   return itemDeserializer_1(result.body);

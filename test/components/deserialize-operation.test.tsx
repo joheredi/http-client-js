@@ -14,6 +14,9 @@
  * - GET returning an array of models maps each element through the deserializer.
  * - Nullable model response wraps deserialization with null check.
  * - createRestError is imported and used for unexpected status codes.
+ * - Error body deserialization: @error model body is deserialized into error.details.
+ * - Exception header merging: headers are merged into error.details when enabled.
+ * - Exception headers only: assigned directly to error.details when no error body.
  */
 import "@alloy-js/core/testing";
 import { code } from "@alloy-js/core";
@@ -25,6 +28,7 @@ import type {
   SdkServiceMethod,
 } from "@azure-tools/typespec-client-generator-core";
 import { DeserializeOperation } from "../../src/components/deserialize-operation.js";
+import { DeserializeExceptionHeaders } from "../../src/components/deserialize-headers.js";
 import { ModelInterface } from "../../src/components/model-interface.js";
 import { JsonDeserializer } from "../../src/components/serialization/json-deserializer.js";
 import { deserializeOperationRefkey } from "../../src/utils/refkeys.js";
@@ -450,6 +454,273 @@ describe("DeserializeOperation", () => {
         }
 
         return result.body;
+      }
+    `);
+  });
+
+  /**
+   * Tests that when an operation has an @error model, the error handling path
+   * deserializes the error response body into error.details. This is critical
+   * because without error body deserialization, consumers cannot access
+   * structured error information (error codes, messages, etc.) from the
+   * RestError's details property.
+   */
+  it("should deserialize error body when @error model exists", async () => {
+    const runner = await TesterWithService.createInstance();
+    const { program } = await runner.compile(
+      t.code`
+        @error
+        model ApiError {
+          code: string;
+          message: string;
+        }
+
+        model Widget {
+          id: string;
+          name: string;
+        }
+
+        @get op ${t.op("getWidget")}(): Widget | ApiError;
+      `,
+    );
+
+    const sdkContext = await createSdkContextForTest(program);
+    const method = getFirstMethod(sdkContext);
+    const widgetModel = sdkContext.sdkPackage.models.find((m) => m.name === "Widget")!;
+    const errorModel = sdkContext.sdkPackage.models.find((m) => m.name === "ApiError")!;
+
+    const template = (
+      <SdkTestFile sdkContext={sdkContext} externals={[httpRuntimeLib]}>
+        <ModelInterface model={widgetModel} />
+        {"\n\n"}
+        <ModelInterface model={errorModel} />
+        {"\n\n"}
+        <JsonDeserializer model={widgetModel} />
+        {"\n\n"}
+        <JsonDeserializer model={errorModel} />
+        {"\n\n"}
+        <DeserializeOperation method={method} />
+      </SdkTestFile>
+    );
+
+    expect(template).toRenderTo(d`
+      import { createRestError, type PathUncheckedResponse } from "@typespec/ts-http-runtime";
+
+      export interface Widget {
+        id: string;
+        name: string;
+      }
+
+      export interface ApiError {
+        code: string;
+        message: string;
+      }
+
+      export function widgetDeserializer(item: any): Widget {
+        return {
+          id: item["id"],
+          name: item["name"],
+        };
+      }
+
+      export function apiErrorDeserializer(item: any): ApiError {
+        return {
+          code: item["code"],
+          message: item["message"],
+        };
+      }
+
+      export async function _getWidgetDeserialize(
+        result: PathUncheckedResponse,
+      ): Promise<Widget> {
+        const expectedStatuses = ["200"];
+        if (!expectedStatuses.includes(result.status)) {
+          const error = createRestError(result);
+          error.details = apiErrorDeserializer(result.body);
+          throw error;
+        }
+
+        return widgetDeserializer(result.body);
+      }
+    `);
+  });
+
+  /**
+   * Tests that exception headers are merged into error.details when both
+   * an @error model body and exception headers exist and include-headers-in-response
+   * is enabled. The legacy emitter pattern spreads the deserialized body and
+   * exception headers together: error.details = {...body, ...headers}. This ensures
+   * consumers get both the structured error data and the error headers in one place.
+   */
+  it("should merge exception headers into error.details when enabled", async () => {
+    const runner = await TesterWithService.createInstance();
+    const { program } = await runner.compile(
+      t.code`
+        @error
+        model ApiError {
+          code: string;
+          message: string;
+          @header("x-ms-error-code") errorCode: string;
+        }
+
+        model Widget {
+          id: string;
+          name: string;
+        }
+
+        @get op ${t.op("getWidget")}(): Widget | ApiError;
+      `,
+    );
+
+    const sdkContext = await createSdkContextForTest(program);
+    const method = getFirstMethod(sdkContext);
+    const widgetModel = sdkContext.sdkPackage.models.find((m) => m.name === "Widget")!;
+    const errorModel = sdkContext.sdkPackage.models.find((m) => m.name === "ApiError")!;
+
+    const template = (
+      <SdkTestFile
+        sdkContext={sdkContext}
+        externals={[httpRuntimeLib]}
+        emitterOptions={{ includeHeadersInResponse: true }}
+      >
+        <ModelInterface model={widgetModel} />
+        {"\n\n"}
+        <ModelInterface model={errorModel} />
+        {"\n\n"}
+        <JsonDeserializer model={widgetModel} />
+        {"\n\n"}
+        <JsonDeserializer model={errorModel} />
+        {"\n\n"}
+        <DeserializeExceptionHeaders method={method} />
+        {"\n\n"}
+        <DeserializeOperation method={method} />
+      </SdkTestFile>
+    );
+
+    expect(template).toRenderTo(d`
+      import { createRestError, type PathUncheckedResponse } from "@typespec/ts-http-runtime";
+
+      export interface Widget {
+        id: string;
+        name: string;
+      }
+
+      export interface ApiError {
+        code: string;
+        message: string;
+        errorCode: string;
+      }
+
+      export function widgetDeserializer(item: any): Widget {
+        return {
+          id: item["id"],
+          name: item["name"],
+        };
+      }
+
+      export function apiErrorDeserializer(item: any): ApiError {
+        return {
+          code: item["code"],
+          message: item["message"],
+          errorCode: item["errorCode"],
+        };
+      }
+
+      export function _getWidgetDeserializeExceptionHeaders(
+        result: PathUncheckedResponse,
+      ): { errorCode: string } {
+        return { errorCode: result.headers["x-ms-error-code"] };
+      }
+
+      export async function _getWidgetDeserialize(
+        result: PathUncheckedResponse,
+      ): Promise<Widget> {
+        const expectedStatuses = ["200"];
+        if (!expectedStatuses.includes(result.status)) {
+          const error = createRestError(result);
+          error.details = apiErrorDeserializer(result.body);
+          error.details = { ...(error.details as Record<string, unknown>), ..._getWidgetDeserializeExceptionHeaders(result) };
+          throw error;
+        }
+
+        return widgetDeserializer(result.body);
+      }
+    `);
+  });
+
+  /**
+   * Tests that when exception headers exist but there is no error body model,
+   * the exception headers are directly assigned to error.details instead of
+   * being merged with the body. This handles the case where the error model
+   * only has header properties and no body properties.
+   */
+  it("should assign exception headers directly when no error body", async () => {
+    const runner = await TesterWithService.createInstance();
+    const { program } = await runner.compile(
+      t.code`
+        @error
+        model ApiError {
+          @header("x-ms-error-code") errorCode: string;
+        }
+
+        model Widget {
+          id: string;
+        }
+
+        @get op ${t.op("getWidget")}(): Widget | ApiError;
+      `,
+    );
+
+    const sdkContext = await createSdkContextForTest(program);
+    const method = getFirstMethod(sdkContext);
+    const widgetModel = sdkContext.sdkPackage.models.find((m) => m.name === "Widget")!;
+
+    const template = (
+      <SdkTestFile
+        sdkContext={sdkContext}
+        externals={[httpRuntimeLib]}
+        emitterOptions={{ includeHeadersInResponse: true }}
+      >
+        <ModelInterface model={widgetModel} />
+        {"\n\n"}
+        <JsonDeserializer model={widgetModel} />
+        {"\n\n"}
+        <DeserializeExceptionHeaders method={method} />
+        {"\n\n"}
+        <DeserializeOperation method={method} />
+      </SdkTestFile>
+    );
+
+    expect(template).toRenderTo(d`
+      import { createRestError, type PathUncheckedResponse } from "@typespec/ts-http-runtime";
+
+      export interface Widget {
+        id: string;
+      }
+
+      export function widgetDeserializer(item: any): Widget {
+        return {
+          id: item["id"],
+        };
+      }
+
+      export function _getWidgetDeserializeExceptionHeaders(
+        result: PathUncheckedResponse,
+      ): { errorCode: string } {
+        return { errorCode: result.headers["x-ms-error-code"] };
+      }
+
+      export async function _getWidgetDeserialize(
+        result: PathUncheckedResponse,
+      ): Promise<Widget> {
+        const expectedStatuses = ["200"];
+        if (!expectedStatuses.includes(result.status)) {
+          const error = createRestError(result);
+          error.details = _getWidgetDeserializeExceptionHeaders(result);
+          throw error;
+        }
+
+        return widgetDeserializer(result.body);
       }
     `);
   });

@@ -362,6 +362,7 @@ import {
 } from "../helpers/pagingHelpers.js";
 import { getLongRunningPoller as getLongRunningPoller_1 } from "../helpers/pollingHelpers.js";
 import {
+  errorResponseDeserializer as errorResponseDeserializer_1,
   type Site as Site_1,
   siteDeserializer as siteDeserializer_1,
 } from "../models/models.js";
@@ -409,7 +410,9 @@ export async function _suspendDeserialize(
 ): Promise<Site_1[]> {
   const expectedStatuses = ["200", "202", "201"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError_1(result);
+    const error = createRestError_1(result);
+    error.details = errorResponseDeserializer_1(result.body);
+    throw error;
   }
 
   return result.body.map((p: any) => {

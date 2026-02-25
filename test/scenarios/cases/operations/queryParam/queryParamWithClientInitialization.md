@@ -146,6 +146,7 @@ export function createBillingBenefits(
 
 ```ts operations
 import {
+  errorResponseDeserializer as errorResponseDeserializer_1,
   type SavingsPlanModel as SavingsPlanModel_1,
   savingsPlanModelDeserializer as savingsPlanModelDeserializer_1,
 } from "../models/models.js";
@@ -194,7 +195,9 @@ export async function _getDeserialize(
 ): Promise<SavingsPlanModel_1> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError_1(result);
+    const error = createRestError_1(result);
+    error.details = errorResponseDeserializer_1(result.body);
+    throw error;
   }
 
   return savingsPlanModelDeserializer_1(result.body);
@@ -373,6 +376,7 @@ export function createBillingBenefits(
 
 ```ts operations
 import {
+  errorResponseDeserializer as errorResponseDeserializer_1,
   type SavingsPlanModel as SavingsPlanModel_1,
   savingsPlanModelDeserializer as savingsPlanModelDeserializer_1,
 } from "../models/models.js";
@@ -421,7 +425,9 @@ export async function _getDeserialize(
 ): Promise<SavingsPlanModel_1> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError_1(result);
+    const error = createRestError_1(result);
+    error.details = errorResponseDeserializer_1(result.body);
+    throw error;
   }
 
   return savingsPlanModelDeserializer_1(result.body);

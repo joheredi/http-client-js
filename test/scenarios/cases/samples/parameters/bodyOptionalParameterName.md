@@ -150,6 +150,7 @@ import {
   backupRequestPropertiesSerializer as backupRequestPropertiesSerializer_1,
   BackupResult as BackupResult_1,
   backupResultDeserializer as backupResultDeserializer_1,
+  errorResponseDeserializer as errorResponseDeserializer_1,
 } from "../models/models.js";
 import { BackupOptionalParams as BackupOptionalParams_1 } from "./cloudHsmClusters/options.js";
 import {
@@ -199,7 +200,9 @@ export async function _backupDeserialize(
 ): Promise<BackupResult_1> {
   const expectedStatuses = ["202", "200", "201"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError_1(result);
+    const error = createRestError_1(result);
+    error.details = errorResponseDeserializer_1(result.body);
+    throw error;
   }
 
   return backupResultDeserializer_1(result.body);

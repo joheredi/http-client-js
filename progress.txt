@@ -2711,3 +2711,69 @@ When `@@override` groups individual query/header parameters into a model paramet
   - P2: SA6, SA21, SA25
 - The 3 remaining skipped tests are blocked on external issues (TCGC #3088, TypeSpec #6983, TCGC #1419)
 - The vitest worker timeout error is an infrastructure issue, not a test failure.
+
+## 2026-02-25 — SA4: Error Deserialization in Operations
+
+### What was done
+- **Implemented error body deserialization** in the deserialize function. Previously, the error
+  handling path simply did `throw createRestError(result)`. Now, when an operation has error models
+  (via `@error` decorator), the error handling path:
+  1. Creates the error: `const error = createRestError(result)`
+  2. Deserializes error body: `error.details = errorDeserializer(result.body)`
+  3. Optionally merges exception headers when `include-headers-in-response` is enabled
+  4. Throws the enriched error
+
+- **Modified `src/components/deserialize-operation.tsx`**:
+  - Added `buildErrorHandlingBlock()` function that generates the error handling code
+  - Added `getExceptionBodyType()` function that extracts the error body type from exceptions
+  - Changed error path from simple `throw createRestError(result)` to multi-step error handling
+  - Imported `useEmitterOptions`, `deserializeExceptionHeadersRefkey`, `collectExceptionResponseHeaders`
+
+- **Modified `src/components/deserialize-headers.tsx`**:
+  - Registered `deserializeExceptionHeadersRefkey` in `DeserializeExceptionHeaders` component
+  - Exported `collectExceptionResponseHeaders` for use from deserialize-operation
+  - Imported `deserializeExceptionHeadersRefkey` from refkeys utility
+
+- **Modified `src/utils/refkeys.ts`**:
+  - Added `deserializeExceptionHeadersRefkey()` function for cross-file references to
+    exception header deserializer functions
+
+- **Updated 15 scenario test expected outputs** (auto-updated via SCENARIOS_UPDATE=true):
+  - operations/errorDeserialization/errorHeaderDeserialization.md — error body + exception headers
+  - operations/errorDeserialization/xmlErrorDeserialization.md — error body deserialization
+  - operations/operations.md, operations/armPatchWithUnionResponse.md, operations/lroPaging.md
+  - operations/overrideReservedkeywords.md, operations/pathParam/pathParamUrlTemplate.md
+  - operations/headerParam/headerParamWithClientInitialization.md
+  - operations/queryParam/queryParamWithClientInitialization.md
+  - apiOperations/apiOperations.md, apiOperations/azureCoreOperations.md
+  - models/azureCoreErrorModels.md
+  - samples/parameters/bodyOptionalParameterName.md, samples/parameters/parameterOrdering.md
+
+- **Added 3 unit tests** in `test/components/deserialize-operation.test.tsx`:
+  - Error body deserialization when @error model exists
+  - Exception header merging into error.details when enabled
+  - Exception headers assigned directly when no error body
+
+- **Updated PRD**: Marked SA4 as done.
+
+### Test Results
+- Before: 822 passed, 3 skipped, 46 test files
+- After: 825 passed, 3 skipped, 46 test files (3 new tests)
+- Zero regressions in existing tests
+
+### Architecture decisions
+- **Refkey-based exception headers**: Added `deserializeExceptionHeadersRefkey` to enable
+  Alloy to auto-generate imports when the exception headers function is in a different file
+- **Default exception preference**: Uses `statusCodes === "*"` exception first, falls back
+  to first exception with a body type
+- **Conditional complexity**: Simple `throw createRestError(result)` is preserved when no error
+  model exists. The multi-step pattern only activates when there's an error body or exception headers.
+
+### Notes for next person
+- Completed: All Phases 0-10, Tasks 11.02, 11.04, 11.07, SA4, SA11, SA20 (DONE).
+- **Remaining SA tasks**: SA1-SA3, SA5-SA10, SA12-SA19, SA21-SA25 (22 pending)
+  - P0: SA3 (client context), SA16 (samples)
+  - P1: SA1, SA2, SA5, SA7-SA10, SA12-SA15, SA17-SA19, SA22-SA24
+  - P2: SA6, SA21, SA25
+- The 3 remaining skipped tests are blocked on external issues (TCGC #3088, TypeSpec #6983, TCGC #1419)
+- The vitest worker timeout error is an infrastructure issue, not a test failure.

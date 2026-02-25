@@ -8,7 +8,10 @@ import type {
 } from "@azure-tools/typespec-client-generator-core";
 import { useEmitterOptions } from "../context/emitter-options-context.js";
 import { useRuntimeLib } from "../context/flavor-context.js";
-import { deserializeHeadersRefkey } from "../utils/refkeys.js";
+import {
+  deserializeHeadersRefkey,
+  deserializeExceptionHeadersRefkey,
+} from "../utils/refkeys.js";
 import { getTypeExpression } from "./type-expression.js";
 
 /**
@@ -109,6 +112,7 @@ export function DeserializeExceptionHeaders(props: DeserializeHeadersProps) {
   return (
     <FunctionDeclaration
       name={functionName}
+      refkey={deserializeExceptionHeadersRefkey(method)}
       export
       returnType={returnType}
       parameters={[{ name: "result", type: runtimeLib.PathUncheckedResponse }]}
@@ -158,7 +162,7 @@ export function collectSuccessResponseHeaders(
  * @param method - The TCGC service method.
  * @returns Array of unique exception response header definitions.
  */
-function collectExceptionResponseHeaders(
+export function collectExceptionResponseHeaders(
   method: SdkServiceMethod<SdkHttpOperation>,
 ): SdkServiceResponseHeader[] {
   const seen = new Set<string>();

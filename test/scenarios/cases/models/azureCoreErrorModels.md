@@ -447,6 +447,7 @@ import {
   type PagedAsyncIterableIterator as PagedAsyncIterableIterator_1,
 } from "../helpers/pagingHelpers.js";
 import {
+  errorResponseDeserializer as errorResponseDeserializer_1,
   type Operation as Operation_1,
   operationDeserializer as operationDeserializer_1,
 } from "../models/models.js";
@@ -483,7 +484,9 @@ export async function _listDeserialize(
 ): Promise<Operation_1[]> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError_1(result);
+    const error = createRestError_1(result);
+    error.details = errorResponseDeserializer_1(result.body);
+    throw error;
   }
 
   return result.body.map((p: any) => {
