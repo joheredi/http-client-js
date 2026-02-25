@@ -14,5 +14,6 @@ This should be the one YOU decide has the highest prority - not necessarily the 
 Use this to leave a note for the next person working on the codebase.
 11. Make a git commit of that feature.
 12. NEVER MAKE CHANGES IN submodules
+13. You can use up to 500 parallel sub agents when exploring, studying or investigating code.
 ONLY WORK ON A SINGLE FEATURE.
 If, while implementing the feature, you notcie the PRD is complete, output <promise>COMPLETED</promise>
