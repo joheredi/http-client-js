@@ -34,6 +34,7 @@
   "scripts": {
     "build": "alloy build",
     "clean": "rimraf dist/ .temp/",
+    "raplh": "node ralph.js --iterations 50",
     "test": "vitest run",
     "test:watch": "vitest -w",
     "watch": "alloy build --watch"
