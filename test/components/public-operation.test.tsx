@@ -18,6 +18,7 @@
  * - Response headers merged into return type when include-headers-in-response is enabled.
  * - Void-body response with headers returns header object type.
  * - Headers NOT merged when include-headers-in-response is disabled (default).
+ * - @@override parameter grouping uses optionalParams and forwards correctly.
  */
 import "@alloy-js/core/testing";
 import { code } from "@alloy-js/core";
@@ -38,8 +39,9 @@ import { JsonSerializer } from "../../src/components/serialization/json-serializ
 import { JsonDeserializer } from "../../src/components/serialization/json-deserializer.js";
 import { publicOperationRefkey } from "../../src/utils/refkeys.js";
 import { httpRuntimeLib } from "../../src/utils/external-packages.js";
-import { TesterWithService, createSdkContextForTest } from "../test-host.js";
+import { TesterWithService, RawTester, createSdkContextForTest } from "../test-host.js";
 import { SdkTestFile } from "../utils.jsx";
+import { renderToString } from "@alloy-js/core/testing";
 
 /**
  * Helper to extract the first method from the first client in an SDK context.
@@ -948,5 +950,65 @@ describe("PublicOperation", () => {
         return _getUserDeserialize(result);
       }
     `);
+  });
+
+  /**
+   * Tests that the public operation function correctly uses "optionalParams"
+   * when @@override creates a parameter named "options". Verifies that
+   * the call delegation forwards the correct argument names to the send function.
+   */
+  it("should use optionalParams when @@override parameter is named options", async () => {
+    const runner = await RawTester.createInstance();
+    const { program } = await runner.compile(`
+import "@typespec/http";
+import "@azure-tools/typespec-client-generator-core";
+using TypeSpec.Http;
+using Azure.ClientGenerator.Core;
+
+@service(#{
+  title: "Override Service"
+})
+namespace Override;
+
+@route("/group")
+@get
+op groupOriginal(
+  @query param1: string,
+  @query param2: string,
+): void;
+
+model GroupParametersOptions {
+  @query param1: string;
+  @query param2: string;
+}
+
+op groupCustomized(
+  options: GroupParametersOptions,
+): void;
+
+@@override(Override.groupOriginal, Override.groupCustomized);
+    `);
+
+    const sdkContext = await createSdkContextForTest(program);
+    const method = sdkContext.sdkPackage.clients[0].methods[0] as SdkServiceMethod<SdkHttpOperation>;
+
+    const template = (
+      <SdkTestFile sdkContext={sdkContext} externals={[httpRuntimeLib]}>
+        <OperationOptionsDeclaration method={method} />
+        {"\n\n"}
+        <SendOperation method={method} />
+        {"\n\n"}
+        <DeserializeOperation method={method} />
+        {"\n\n"}
+        <PublicOperation method={method} />
+      </SdkTestFile>
+    );
+
+    const rendered = renderToString(template);
+    // Verify the public function uses optionalParams
+    expect(rendered).toContain("optionalParams");
+    // Verify it forwards options and optionalParams correctly
+    expect(rendered).toContain("_groupOriginalSend(context, options, optionalParams)");
+    expect(rendered).toContain("_groupOriginalDeserialize(result)");
   });
 });

@@ -97,6 +97,26 @@ export function SendOperation(props: SendOperationProps) {
 }
 
 /**
+ * Determines the name for the optional parameters bag in the function signature.
+ *
+ * Normally the options bag is named "options". However, when a required method
+ * parameter is already named "options" (e.g., when @@override groups parameters
+ * into a model called "options"), we rename the bag to "optionalParams" to
+ * avoid name conflicts, matching the legacy emitter's behavior.
+ *
+ * @param method - The TCGC service method.
+ * @returns "optionalParams" if there is a naming conflict, "options" otherwise.
+ */
+export function getOptionsParamName(
+  method: SdkServiceMethod<SdkHttpOperation>,
+): string {
+  const hasConflict = method.parameters.some(
+    (p) => isRequiredSignatureParameter(p) && p.name === "options",
+  );
+  return hasConflict ? "optionalParams" : "options";
+}
+
+/**
  * Builds the parameter list for the send function signature.
  *
  * The parameter order follows the legacy emitter convention:
@@ -115,6 +135,7 @@ function buildFunctionParameters(
   method: SdkServiceMethod<SdkHttpOperation>,
 ): ParameterDescriptor[] {
   const runtimeLib = useRuntimeLib();
+  const optionsName = getOptionsParamName(method);
   const params: ParameterDescriptor[] = [
     { name: "context", type: runtimeLib.Client },
   ];
@@ -131,7 +152,7 @@ function buildFunctionParameters(
 
   // Add options parameter with default
   params.push({
-    name: "options",
+    name: optionsName,
     type: operationOptionsRefkey(method),
     default: "{ requestOptions: {} }",
   });
@@ -227,6 +248,12 @@ interface UrlTemplateParam {
  *
  * For API version parameters on the client, uses `context.apiVersion`.
  *
+ * When `@@override` groups parameters into a model, the HTTP param's
+ * `correspondingMethodParams[0]` is a model property (kind: "property")
+ * rather than a method parameter (kind: "method"). In that case, we use
+ * `methodParameterSegments` to traverse from the method parameter through
+ * the model property with dot notation (e.g., `options.param1`).
+ *
  * @param httpParam - The HTTP parameter (path or query).
  * @param method - The parent service method for context.
  * @returns A JavaScript expression string for the parameter value.
@@ -246,6 +273,11 @@ function getParameterAccessor(
     return `context["${correspondingParam.name}"]`;
   }
 
+  // Model property — the param is accessed via a model parameter (@@override grouping)
+  if (correspondingParam.kind === "property") {
+    return resolveModelPropertyAccessor(httpParam, method);
+  }
+
   // Required params are direct function arguments
   const isRequired = isRequiredSignatureParameter(correspondingParam as SdkMethodParameter);
   if (isRequired) {
@@ -253,7 +285,45 @@ function getParameterAccessor(
   }
 
   // Optional params come from the options bag
-  return `options?.${correspondingParam.name}`;
+  const optionsName = getOptionsParamName(method);
+  return `${optionsName}?.${correspondingParam.name}`;
+}
+
+/**
+ * Resolves the accessor expression for an HTTP parameter that maps to a
+ * model property via `@@override` parameter grouping.
+ *
+ * Uses `methodParameterSegments` to build a dot-notation path from the
+ * method parameter to the nested property (e.g., `options.param1`).
+ *
+ * @param httpParam - The HTTP parameter with model property correspondence.
+ * @param method - The parent service method.
+ * @returns A dot-notation accessor string.
+ */
+function resolveModelPropertyAccessor(
+  httpParam: SdkPathParameter | SdkQueryParameter | SdkHeaderParameter,
+  method: SdkServiceMethod<SdkHttpOperation>,
+): string {
+  const segments = httpParam.methodParameterSegments;
+  if (segments && segments.length > 0 && segments[0].length >= 2) {
+    // segments[0] = [methodParam, modelProperty, ...]
+    const parts = segments[0].map((s) => s.name);
+    return parts.join(".");
+  }
+
+  // Fallback: try to find the parent method parameter by scanning models
+  const prop = httpParam.correspondingMethodParams[0];
+  for (const p of method.parameters) {
+    if (p.type.kind === "model") {
+      for (const modelProp of p.type.properties) {
+        if (modelProp === prop) {
+          return `${p.name}.${prop.name}`;
+        }
+      }
+    }
+  }
+
+  return prop.name;
 }
 
 /**
@@ -283,7 +353,7 @@ function buildUrlTemplateExpansion(
     .map((p) => `"${p.serializedName}": ${p.valueExpression}`)
     .join(", ");
 
-  return code`const path = ${useRuntimeLib().expandUrlTemplate}("${uriTemplate}", { ${paramEntries} }, { allowReserved: options?.requestOptions?.skipUrlEncoding });`;
+  return code`const path = ${useRuntimeLib().expandUrlTemplate}("${uriTemplate}", { ${paramEntries} }, { allowReserved: ${getOptionsParamName(method)}?.requestOptions?.skipUrlEncoding });`;
 }
 
 /**
@@ -417,7 +487,8 @@ function buildReturnStatement(
   const stringParts = optionLines.map((l) => `, ${l}`).join("");
   const bodyPart = bodyExpr !== undefined ? code`, body: ${bodyExpr}` : "";
 
-  return code`return context.path(${pathExpr}).${verb}({ ...${useRuntimeLib().operationOptionsToRequestParameters}(options)${stringParts}${bodyPart} });`;
+  const optionsName = getOptionsParamName(method);
+  return code`return context.path(${pathExpr}).${verb}({ ...${useRuntimeLib().operationOptionsToRequestParameters}(${optionsName})${stringParts}${bodyPart} });`;
 }
 
 /**
@@ -449,15 +520,17 @@ function buildHeaderEntries(
 
   if (entries.length === 0) return undefined;
 
-  return `{ ${entries.join(", ")}, ...options.requestOptions?.headers }`;
+  const optionsName = getOptionsParamName(method);
+  return `{ ${entries.join(", ")}, ...${optionsName}.requestOptions?.headers }`;
 }
 
 /**
  * Generates the value expression for a custom header parameter.
  *
  * Maps the header to its corresponding method parameter and generates
- * the appropriate accessor expression (direct for required, options?.
- * prefix for optional).
+ * the appropriate accessor expression (direct for required, options bag
+ * prefix for optional). When the header maps to a model property via
+ * `@@override` grouping, resolves through the model parameter.
  *
  * @param header - The HTTP header parameter.
  * @param method - The parent service method.
@@ -470,12 +543,19 @@ function getHeaderAccessor(
   const corresponding = header.correspondingMethodParams[0];
   if (!corresponding) return `"${header.serializedName}"`;
 
-  if (corresponding.kind === "method") {
-    const isRequired = isRequiredSignatureParameter(corresponding);
-    return isRequired ? corresponding.name : `options?.${corresponding.name}`;
+  // Model property — accessed via a model parameter (@@override grouping)
+  if (corresponding.kind === "property") {
+    return resolveModelPropertyAccessor(header, method);
   }
 
-  return `options?.${corresponding.name}`;
+  if (corresponding.kind === "method") {
+    const isRequired = isRequiredSignatureParameter(corresponding);
+    const optionsName = getOptionsParamName(method);
+    return isRequired ? corresponding.name : `${optionsName}?.${corresponding.name}`;
+  }
+
+  // Exhaustive - correspondingMethodParams only contains "method" or "property" kinds
+  return `"${header.serializedName}"`;
 }
 
 /**
@@ -619,7 +699,8 @@ function getSpreadPropertyAccessor(
   if (methodParam && isRequiredSignatureParameter(methodParam)) {
     return prop.name;
   }
-  return `options?.${prop.name}`;
+  const optionsName = getOptionsParamName(method);
+  return `${optionsName}?.${prop.name}`;
 }
 
 /**
@@ -641,7 +722,8 @@ function getBodyAccessor(
 
   if (corresponding.kind === "method") {
     const isRequired = isRequiredSignatureParameter(corresponding);
-    return isRequired ? corresponding.name : `options?.${corresponding.name}`;
+    const optionsName = getOptionsParamName(method);
+    return isRequired ? corresponding.name : `${optionsName}?.${corresponding.name}`;
   }
 
   return corresponding.name;

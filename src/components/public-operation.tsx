@@ -26,7 +26,7 @@ import {
   publicOperationRefkey,
   sendOperationRefkey,
 } from "../utils/refkeys.js";
-import { isRequiredSignatureParameter } from "./send-operation.js";
+import { getOptionsParamName, isRequiredSignatureParameter } from "./send-operation.js";
 import { getTypeExpression } from "./type-expression.js";
 
 /**
@@ -237,7 +237,7 @@ function LroOperation(props: {
       parameters={parameters}
       doc={method.doc}
     >
-      {code`return ${pollingHelperRefkey("getLongRunningPoller")}(context, ${deserializeOperationRefkey(method)}, ${expectedStatuses}, { updateIntervalInMs: options?.updateIntervalInMs, abortSignal: options?.abortSignal, getInitialResponse: () => ${sendOperationRefkey(method)}(${callArgs})${resourceConfigPart} }) as ${castExpr};`}
+      {code`return ${pollingHelperRefkey("getLongRunningPoller")}(context, ${deserializeOperationRefkey(method)}, ${expectedStatuses}, { updateIntervalInMs: ${getOptionsParamName(method)}?.updateIntervalInMs, abortSignal: ${getOptionsParamName(method)}?.abortSignal, getInitialResponse: () => ${sendOperationRefkey(method)}(${callArgs})${resourceConfigPart} }) as ${castExpr};`}
     </FunctionDeclaration>
   );
 }
@@ -347,7 +347,7 @@ function LroPagingOperation(props: {
       parameters={parameters}
       doc={method.doc}
     >
-      {code`const initialPagingPoller = ${pollingHelperRefkey("getLongRunningPoller")}(context, async (result: ${useRuntimeLib().PathUncheckedResponse}) => result, ${expectedStatuses}, { updateIntervalInMs: options?.updateIntervalInMs, abortSignal: options?.abortSignal, getInitialResponse: () => ${sendOperationRefkey(method)}(${callArgs})${resourceConfigPart} }) as ${pollerCast};`}
+      {code`const initialPagingPoller = ${pollingHelperRefkey("getLongRunningPoller")}(context, async (result: ${useRuntimeLib().PathUncheckedResponse}) => result, ${expectedStatuses}, { updateIntervalInMs: ${getOptionsParamName(method)}?.updateIntervalInMs, abortSignal: ${getOptionsParamName(method)}?.abortSignal, getInitialResponse: () => ${sendOperationRefkey(method)}(${callArgs})${resourceConfigPart} }) as ${pollerCast};`}
       {"\n\n"}
       {code`return ${pagingHelperRefkey("buildPagedAsyncIterator")}(context, async () => await initialPagingPoller, ${deserializeOperationRefkey(method)}, ${expectedStatuses}${pagingOptions});`}
     </FunctionDeclaration>
@@ -376,6 +376,7 @@ function buildFunctionParameters(
   method: SdkServiceMethod<SdkHttpOperation>,
 ): ParameterDescriptor[] {
   const runtimeLib = useRuntimeLib();
+  const optionsName = getOptionsParamName(method);
   const params: ParameterDescriptor[] = [
     { name: "context", type: runtimeLib.Client },
   ];
@@ -390,7 +391,7 @@ function buildFunctionParameters(
   }
 
   params.push({
-    name: "options",
+    name: optionsName,
     type: operationOptionsRefkey(method),
     default: "{ requestOptions: {} }",
   });
@@ -410,6 +411,7 @@ function buildFunctionParameters(
 function buildCallArguments(
   method: SdkServiceMethod<SdkHttpOperation>,
 ): string {
+  const optionsName = getOptionsParamName(method);
   const args: string[] = ["context"];
 
   for (const param of method.parameters) {
@@ -418,7 +420,7 @@ function buildCallArguments(
     }
   }
 
-  args.push("options");
+  args.push(optionsName);
   return args.join(", ");
 }
 

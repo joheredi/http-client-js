@@ -101,7 +101,7 @@ export async function getSecretOriginal(
 }
 ```
 
-# skip: Should handle parameter grouping when using @@override
+# Should handle parameter grouping when using @@override
 
 Tests that parameters are correctly grouped into options model when using @@override directive.
 
@@ -151,7 +151,6 @@ withRawContent: true
 ## Models
 
 ```ts models
-/** model interface GroupParametersOptions */
 export interface GroupParametersOptions {
   param1: string;
   param2: string;
@@ -160,7 +159,10 @@ export interface GroupParametersOptions {
 export function groupParametersOptionsSerializer(
   item: GroupParametersOptions,
 ): any {
-  return { param1: item["param1"], param2: item["param2"] };
+  return {
+    param1: item["param1"],
+    param2: item["param2"],
+  };
 }
 ```
 
@@ -169,61 +171,58 @@ export function groupParametersOptionsSerializer(
 The options interface should be correctly generated:
 
 ```ts models:withOptions
-import { OperationOptions } from "@azure-rest/core-client";
+import type { OperationOptions as OperationOptions_1 } from "@typespec/ts-http-runtime";
 
-/** Optional parameters. */
-export interface GroupOriginalOptionalParams extends OperationOptions {}
+/**
+ * Optional parameters for the groupOriginal operation.
+ */
+export interface GroupOriginalOptionalParams extends OperationOptions_1 {}
 ```
 
 ## Operations
 
 ```ts operations
-import { OverrideContext as Client } from "./index.js";
-import { GroupParametersOptions } from "../models/models.js";
-import { expandUrlTemplate } from "../static-helpers/urlTemplate.js";
-import { GroupOriginalOptionalParams } from "./options.js";
+import type { GroupParametersOptions as GroupParametersOptions_1 } from "../models/models.js";
+import type { GroupOriginalOptionalParams as GroupOriginalOptionalParams_1 } from "./options.js";
 import {
-  StreamableMethod,
-  PathUncheckedResponse,
-  createRestError,
-  operationOptionsToRequestParameters,
-} from "@azure-rest/core-client";
+  type Client as Client_1,
+  createRestError as createRestError_1,
+  expandUrlTemplate as expandUrlTemplate_1,
+  operationOptionsToRequestParameters as operationOptionsToRequestParameters_1,
+  type PathUncheckedResponse as PathUncheckedResponse_1,
+  type StreamableMethod as StreamableMethod_1,
+} from "@typespec/ts-http-runtime";
 
 export function _groupOriginalSend(
-  context: Client,
-  options: GroupParametersOptions,
-  optionalParams: GroupOriginalOptionalParams = { requestOptions: {} },
-): StreamableMethod {
-  const path = expandUrlTemplate(
+  context: Client_1,
+  options: GroupParametersOptions_1,
+  optionalParams: GroupOriginalOptionalParams_1 = { requestOptions: {} },
+): StreamableMethod_1 {
+  const path = expandUrlTemplate_1(
     "/group{?param1,param2}",
-    {
-      param1: options.param1,
-      param2: options.param2,
-    },
-    {
-      allowReserved: optionalParams?.requestOptions?.skipUrlEncoding,
-    },
+    { param1: options.param1, param2: options.param2 },
+    { allowReserved: optionalParams?.requestOptions?.skipUrlEncoding },
   );
   return context
     .path(path)
-    .get({ ...operationOptionsToRequestParameters(optionalParams) });
+    .get({ ...operationOptionsToRequestParameters_1(optionalParams) });
 }
 
 export async function _groupOriginalDeserialize(
-  result: PathUncheckedResponse,
+  result: PathUncheckedResponse_1,
 ): Promise<void> {
   const expectedStatuses = ["204"];
   if (!expectedStatuses.includes(result.status)) {
-    throw createRestError(result);
+    throw createRestError_1(result);
   }
 
   return;
 }
 
 export async function groupOriginal(
-  context: Client,
-  options: GroupParametersOptions,
-  optionalParams: GroupOriginalOptionalParams = { requestOptions: {} },
+  context: Client_1,
+  options: GroupParametersOptions_1,
+  optionalParams: GroupOriginalOptionalParams_1 = { requestOptions: {} },
 ): Promise<void> {
   const result = await _groupOriginalSend(context, options, optionalParams);
   return _groupOriginalDeserialize(result);

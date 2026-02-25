@@ -106,7 +106,7 @@
         "description": "Generate TypeScript interfaces from SdkModelType, including properties, inheritance, discriminators, additional properties, and documentation.",
         "priority": "P0",
         "acceptance_criteria": [
-          "SdkModelType → ts.InterfaceDeclaration with correct properties",
+          "SdkModelType \u2192 ts.InterfaceDeclaration with correct properties",
           "Base model inheritance via extends",
           "Discriminator property marked correctly",
           "Additional properties support (Record types)",
@@ -122,8 +122,8 @@
         "description": "Generate TypeScript enums from SdkEnumType with the KnownXXX pattern for extensible enums.",
         "priority": "P0",
         "acceptance_criteria": [
-          "Fixed enums → standard TypeScript enum",
-          "Extensible enums → KnownXXX enum + type XXX = string alias",
+          "Fixed enums \u2192 standard TypeScript enum",
+          "Extensible enums \u2192 KnownXXX enum + type XXX = string alias",
           "Enum values correctly mapped",
           "Enum members have JSDoc documentation"
         ],
@@ -136,7 +136,7 @@
         "description": "Generate TypeScript union type aliases from SdkUnionType.",
         "priority": "P0",
         "acceptance_criteria": [
-          "SdkUnionType → type XXX = A | B | C",
+          "SdkUnionType \u2192 type XXX = A | B | C",
           "Variant types correctly referenced via refkeys",
           "Nullable types include | null"
         ],
@@ -151,7 +151,7 @@
         "acceptance_criteria": [
           "Serializer function per model with Input usage",
           "Deserializer function per model with Output/Exception usage",
-          "Property name mapping (client name → wire name and vice versa)",
+          "Property name mapping (client name \u2192 wire name and vice versa)",
           "Nested model types call child serializer refkeys",
           "Array types use .map() with child serializer",
           "Dictionary types use serializeRecord() helper",
@@ -196,7 +196,7 @@
         "acceptance_criteria": [
           "_sendXXX function builds HTTP request (URL, headers, query, body)",
           "_deserializeXXX function processes response (status check, body parse, headers)",
-          "Public xxx function calls send → deserialize",
+          "Public xxx function calls send \u2192 deserialize",
           "Operations grouped by operation group path",
           "Each group in separate source file under src/api/"
         ],
@@ -409,7 +409,7 @@
       "package": "@azure-tools/typespec-client-generator-core",
       "description": "Provides SdkPackage object model that pre-computes data from TypeSpec definitions. Language-agnostic SDK type system with clients, operations, models, enums, and type metadata."
     },
-    "data_flow": "TypeSpec Input → Compiler → TCGC SdkPackage → Alloy JSX Components → Symbol Tree → TypeScript Files",
+    "data_flow": "TypeSpec Input \u2192 Compiler \u2192 TCGC SdkPackage \u2192 Alloy JSX Components \u2192 Symbol Tree \u2192 TypeScript Files",
     "key_concepts": {
       "refkeys": "Symbolic reference keys created via refkey(entity, discriminator). Each declaration gets a refkey; references use the same refkey. Alloy resolves cross-file references and auto-generates imports.",
       "code_templates": "Tagged template literals (code`...`) that treat interpolated refkeys as live symbolic references. Alloy tracks them and resolves imports automatically.",
@@ -497,10 +497,10 @@
       }
     ],
     "test_infrastructure": {
-      "test_host": "test/test-host.ts — Tester instance with TypeSpec library imports",
-      "test_utils": "test/utils.tsx — TestFile, DeclarationTestFile wrappers, testHelper()",
-      "custom_matchers": "test/vitest.d.ts — toRenderTo, toRenderToAsync from @alloy-js/core/testing",
-      "scenario_harness": "test/scenarios/scenarios.spec.ts — MD file parser + assertion engine"
+      "test_host": "test/test-host.ts \u2014 Tester instance with TypeSpec library imports",
+      "test_utils": "test/utils.tsx \u2014 TestFile, DeclarationTestFile wrappers, testHelper()",
+      "custom_matchers": "test/vitest.d.ts \u2014 toRenderTo, toRenderToAsync from @alloy-js/core/testing",
+      "scenario_harness": "test/scenarios/scenarios.spec.ts \u2014 MD file parser + assertion engine"
     },
     "acceptable_differences": [
       "Import statement ordering",
@@ -863,7 +863,7 @@
           "pass_criteria": [
             "Handles all SdkType kinds: model, enum, union, array, dict, nullable, built-in scalars, datetime, duration, bytes",
             "Model types return typeRefkey(type) for cross-file reference",
-            "Scalar mappings match legacy: string→string, int32→number, int64→bigint, float→number, boolean→boolean, utcDateTime→Date, bytes→Uint8Array, duration→string",
+            "Scalar mappings match legacy: string\u2192string, int32\u2192number, int64\u2192bigint, float\u2192number, boolean\u2192boolean, utcDateTime\u2192Date, bytes\u2192Uint8Array, duration\u2192string",
             "Array types produce T[] with recursive element type resolution",
             "Dict types produce Record<K, V>",
             "Nullable types produce T | null",
@@ -881,7 +881,7 @@
             "Properties rendered as <ts.InterfaceMember> with correct name, type, optional, readonly",
             "Base model inheritance via extends prop on InterfaceDeclaration",
             "Discriminator property rendered with correct literal type",
-            "Additional properties support (additionalProperties → Record<string, unknown> index signature)",
+            "Additional properties support (additionalProperties \u2192 Record<string, unknown> index signature)",
             "Flattened properties expanded inline (not nested)",
             "JSDoc documentation from SDK model.doc and model.summary",
             "Scenario tests pass: models/models.md model interfaces match legacy output"
@@ -963,7 +963,7 @@
           "pass": true,
           "pass_criteria": [
             "Produces function xxxSerializer(item: Xxx): any with correct refkey",
-            "Property mapping: item.propName → result['wireName'] for each property",
+            "Property mapping: item.propName \u2192 result['wireName'] for each property",
             "Nested model properties call child serializerRefkey via code template",
             "Array properties use .map() with child serializer",
             "Dict properties use serializeRecord() static helper refkey",
@@ -982,7 +982,7 @@
           "pass": true,
           "pass_criteria": [
             "Produces function xxxDeserializer(item: any): Xxx with correct refkey",
-            "Property mapping: item['wireName'] → result.propName (reverse of serializer)",
+            "Property mapping: item['wireName'] \u2192 result.propName (reverse of serializer)",
             "Nested model properties call child deserializerRefkey",
             "Array deserialization with .map() and child deserializer",
             "Dict deserialization mirroring serializer",
@@ -1148,7 +1148,7 @@
             "API version property included for versioned services",
             "Factory function createXxx(endpoint, credentials?, options?) exported",
             "Endpoint parameter with correct default or template",
-            "Credential handling: API key → KeyCredential, Bearer → TokenCredential, OAuth2 → TokenCredential",
+            "Credential handling: API key \u2192 KeyCredential, Bearer \u2192 TokenCredential, OAuth2 \u2192 TokenCredential",
             "Pipeline configured via getClient() from runtime package",
             "API version defaults set from TCGC metadata",
             "Scenario tests pass: clientContext/clientContext.md, clientContext/optionalApiVersion.md"
@@ -1410,7 +1410,7 @@
     },
     {
       "id": 10,
-      "name": "Validation Fixes — Remaining 124 Test Failures",
+      "name": "Validation Fixes \u2014 Remaining 124 Test Failures",
       "description": "Tasks to fix the remaining 124 scenario test failures identified during validation. Categorized by root cause. Total: 124 failures across 9 categories.",
       "tasks": [
         {
@@ -1545,7 +1545,7 @@
           "id": "10.7",
           "title": "Fix model-only package root index generation (3 failures)",
           "status": "done",
-          "description": "3 tests fail because root index.ts is not generated for model-only packages (no operations, just models). In `index-file.tsx`, `RootIndexFile()` returns undefined when `clients.length === 0`. For model-only packages with `@usage` annotation, models.ts IS generated but root index.ts is not. The fix: modify `RootIndexFile()` to generate index.ts even without clients if models/enums/unions exist. Also handle the case where no models should be generated (without @usage) — the test expects an empty output with only helper files.",
+          "description": "3 tests fail because root index.ts is not generated for model-only packages (no operations, just models). In `index-file.tsx`, `RootIndexFile()` returns undefined when `clients.length === 0`. For model-only packages with `@usage` annotation, models.ts IS generated but root index.ts is not. The fix: modify `RootIndexFile()` to generate index.ts even without clients if models/enums/unions exist. Also handle the case where no models should be generated (without @usage) \u2014 the test expects an empty output with only helper files.",
           "failure_count": 3,
           "affected_scenarios": [
             "modelsGenerator/modelsGenerator.md"
@@ -1570,7 +1570,7 @@
           "id": "10.9",
           "title": "Fix empty project classicClient output (1 failure)",
           "status": "done",
-          "description": "1 test fails because the empty project generates only helper files (no client file). The test `emptyProject/emptyProject.md` expects a `classicClient` category but the emitter only generates static helper files when `sdkPackage.clients` is empty. This may be a test expectation issue (the expected output is likely empty) rather than a real generation bug — the test harness throws when it can't resolve the 'classicClient' category. Fix: either update the harness to handle empty expected output for classicClient, or update the test expectation, or conditionally skip the classicClient assertion when no clients exist.",
+          "description": "1 test fails because the empty project generates only helper files (no client file). The test `emptyProject/emptyProject.md` expects a `classicClient` category but the emitter only generates static helper files when `sdkPackage.clients` is empty. This may be a test expectation issue (the expected output is likely empty) rather than a real generation bug \u2014 the test harness throws when it can't resolve the 'classicClient' category. Fix: either update the harness to handle empty expected output for classicClient, or update the test expectation, or conditionally skip the classicClient assertion when no clients exist.",
           "failure_count": 1,
           "affected_scenarios": [
             "emptyProject/emptyProject.md"
@@ -1583,7 +1583,7 @@
     },
     {
       "id": 11,
-      "name": "Scenario Test Parity — Audit Findings",
+      "name": "Scenario Test Parity \u2014 Audit Findings",
       "description": "Tasks derived from the scenario test audit comparing 102 test files between the new Alloy emitter and the legacy autorest.typescript emitter. Each task represents a category of semantic differences that must be resolved to achieve output parity.",
       "tasks": [
         {
@@ -1640,8 +1640,8 @@
             "samples/parameters/parameterOrdering.md"
           ],
           "examples": [
-            "import { Client } from '@azure-rest/core-client' → import { Client } from '@typespec/ts-http-runtime'",
-            "import { expandUrlTemplate } from '../helpers/urlHelpers.js' → import { expandUrlTemplate } from '@typespec/ts-http-runtime'"
+            "import { Client } from '@azure-rest/core-client' \u2192 import { Client } from '@typespec/ts-http-runtime'",
+            "import { expandUrlTemplate } from '../helpers/urlHelpers.js' \u2192 import { expandUrlTemplate } from '@typespec/ts-http-runtime'"
           ],
           "pass_criteria": [
             "All 44 affected scenario test(s) produce output matching the legacy emitter for this category",
@@ -1651,7 +1651,7 @@
         {
           "id": "11.02",
           "title": "[P0] Reserved Word Naming Convention Change",
-          "status": "pending",
+          "status": "done",
           "severity": "high",
           "description": "Legacy uses underscore suffix (continue_, return_) for reserved JavaScript keywords. New emitter uses dollar prefix ($continue, $return). This is a public API surface difference.",
           "affected_file_count": 3,
@@ -1661,14 +1661,15 @@
             "operations/overrideReservedkeywords.md"
           ],
           "examples": [
-            "continue_ → $continue",
-            "return_ → $return",
-            "type → typeParam (for parameter naming)"
+            "continue_ \u2192 $continue",
+            "return_ \u2192 $return",
+            "type \u2192 typeParam (for parameter naming)"
           ],
           "pass_criteria": [
             "All 3 affected scenario test(s) produce output matching the legacy emitter for this category",
             "No regressions in currently passing tests"
-          ]
+          ],
+          "notes": "Already implemented by Alloy TypeScript name policy (underscore suffix for reserved words). Verified all 3 scenario tests pass without changes."
         },
         {
           "id": "11.03",
@@ -1715,7 +1716,7 @@
             "operations/lroPaging.md"
           ],
           "examples": [
-            "type Origin = string; enum KnownOrigin { User = 'user' } → type Origin = 'user' | 'system'",
+            "type Origin = string; enum KnownOrigin { User = 'user' } \u2192 type Origin = 'user' | 'system'",
             "KnownDiscountType enum removed, DiscountType changed from string to literal union",
             "ProvisioningState from string to literal union, KnownProvisioningState enum removed"
           ],
@@ -1738,7 +1739,7 @@
             "models/nestedEnum/notFlatten/experimentalExtensibleEnumsFalse.md"
           ],
           "examples": [
-            "V2021_10_01Preview → V20211001Preview (date format normalization)",
+            "V2021_10_01Preview \u2192 V20211001Preview (date format normalization)",
             "Underscore removal in enum keys",
             "Acronym casing differences in enum member names"
           ],
@@ -1763,9 +1764,9 @@
           ],
           "examples": [
             "Constructor adds userAgentPrefix logic and logging",
-            "endpoint → endpointParam parameter rename",
+            "endpoint \u2192 endpointParam parameter rename",
             "apiVersion fallback and warning logic added",
-            "ServiceClient → TestServiceClient class rename"
+            "ServiceClient \u2192 TestServiceClient class rename"
           ],
           "pass_criteria": [
             "All 5 affected scenario test(s) produce output matching the legacy emitter for this category",
@@ -1786,7 +1787,7 @@
             "models/response/headerInXmlResponse.md"
           ],
           "examples": [
-            "Promise<User & { headers: { x-ms-request-id: string } }> → Promise<User>",
+            "Promise<User & { headers: { x-ms-request-id: string } }> \u2192 Promise<User>",
             "Headers merged into model interface in legacy, returned separately in new"
           ],
           "pass_criteria": [
@@ -1807,7 +1808,7 @@
             "anonymous/anonymous.md"
           ],
           "examples": [
-            "Interface with [key: string]: string → Interface extends Record<string, string>",
+            "Interface with [key: string]: string \u2192 Interface extends Record<string, string>",
             "additionalProperties explicit field introduced",
             "serializeRecord helper function added",
             "additionalPropertiesBag for conflict resolution"
@@ -1859,7 +1860,7 @@
             "models/nullable/nullableUnion.md"
           ],
           "examples": [
-            "Inline anonymous type → extracted _SimpleModelProp interface",
+            "Inline anonymous type \u2192 extracted _SimpleModelProp interface",
             "Property casing: propAa vs propAA",
             "Union type A removed, replaced with _PostRequest | null"
           ],
@@ -1909,8 +1910,8 @@
             "samples/parameters/bodyOptionalParameterName.md"
           ],
           "examples": [
-            "api-version in URL template → api%2Dversion",
-            "key-name → key%2Dname in URL templates"
+            "api-version in URL template \u2192 api%2Dversion",
+            "key-name \u2192 key%2Dname in URL templates"
           ],
           "pass_criteria": [
             "All 5 affected scenario test(s) produce output matching the legacy emitter for this category",
@@ -1932,7 +1933,7 @@
           ],
           "examples": [
             "File type: FileContents union vs separate interfaces",
-            "dateOfBirth serialization: milliseconds → seconds",
+            "dateOfBirth serialization: milliseconds \u2192 seconds",
             "contentType parameter removed from function signature",
             "Person serializer applied vs raw object passthrough"
           ],
@@ -2005,7 +2006,7 @@
             "models/template/template.md"
           ],
           "examples": [
-            "Empty model serializer: return {} → return item",
+            "Empty model serializer: return {} \u2192 return item",
             "baseSerializer returns item vs {}"
           ],
           "pass_criteria": [
@@ -2028,7 +2029,7 @@
             "samples/parameters/paramaterSpreadCheck.md"
           ],
           "examples": [
-            "options.apiVersion → context.apiVersion with fallback",
+            "options.apiVersion \u2192 context.apiVersion with fallback",
             "apiVersion removed from public API parameters",
             "KnownVersions enum removed, version string used directly"
           ],
@@ -2194,7 +2195,7 @@
           ],
           "examples": [
             "Collection naming conventions changed",
-            "OperationState type: string enum → literal union",
+            "OperationState type: string enum \u2192 literal union",
             "Expanded status code handling",
             "Additional paging configuration options"
           ],
@@ -2233,9 +2234,9 @@
             "models/azureCoreErrorModels.md"
           ],
           "examples": [
-            "Foo → FOO model name",
-            "NfvIs → NFVIs (acronym normalization)",
-            "OperationListResult → _OperationListResult (underscore prefix for internal types)"
+            "Foo \u2192 FOO model name",
+            "NfvIs \u2192 NFVIs (acronym normalization)",
+            "OperationListResult \u2192 _OperationListResult (underscore prefix for internal types)"
           ],
           "pass_criteria": [
             "All 2 affected scenario test(s) produce output matching the legacy emitter for this category",

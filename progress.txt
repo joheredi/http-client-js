@@ -2494,3 +2494,72 @@ to pass the `experimental-extensible-enums` option through to components.
   already uses `_` suffix for reserved words (e.g., `continue_`), matching legacy.
   Verify by checking if all 3 affected scenario tests pass without changes.
 - The vitest worker timeout error is an infrastructure issue, not a test failure.
+
+## 2026-02-25 — @@override Parameter Grouping Fix
+
+### What was done
+- **Fixed `src/components/send-operation.tsx`**: Added support for @@override parameter
+  grouping, where individual query/header params are grouped into a model parameter.
+  - Added `getOptionsParamName(method)` exported helper: returns "optionalParams" when a
+    required method parameter is named "options" (avoiding name conflict with the
+    optional params bag), "options" otherwise.
+  - Fixed `getParameterAccessor()` to handle model properties (kind: "property") by
+    traversing `methodParameterSegments` to build dot-notation accessors (e.g., `options.param1`).
+  - Added `resolveModelPropertyAccessor()` helper for resolving HTTP params that map
+    to model properties via @@override grouping.
+  - Updated `buildUrlTemplateExpansion`, `buildReturnStatement`, `buildHeaderEntries`,
+    `getHeaderAccessor`, `getSpreadPropertyAccessor`, `getBodyAccessor` to use dynamic
+    options param name instead of hardcoded "options".
+- **Fixed `src/components/public-operation.tsx`**: Updated `buildFunctionParameters`,
+  `buildCallArguments`, `LroOperation`, `LroPagingOperation` to use `getOptionsParamName`.
+- **Fixed `src/components/classical-client.tsx`**: Updated `buildMethodParameters` and
+  `buildDelegateArguments` to use `getOptionsParamName`.
+- **Fixed `src/components/classical-operation-groups.tsx`**: Updated `buildFactoryParamList`
+  and `buildDelegateArgList` to use `getOptionsParamName`.
+- **Un-skipped `test/scenarios/cases/operations/override.md`**: The "parameter grouping"
+  scenario is no longer skipped. Expected output updated to match new emitter conventions.
+- **Added 3 unit tests to `test/components/send-operation.test.tsx`**:
+  - @@override parameter grouping generates correct naming and accessors
+  - getOptionsParamName returns "options" when no conflict
+  - getOptionsParamName returns "optionalParams" when conflict exists
+- **Added 1 unit test to `test/components/public-operation.test.tsx`**:
+  - Public operation uses optionalParams and forwards correctly for @@override
+- **Updated PRD**: Marked task 11.02 as done (already implemented by Alloy name policy).
+
+### Test Results
+- Before: 807 passed, 6 skipped, 45 test files
+- After: 813 passed, 3 skipped, 45 test files
+- Fixed: 3 previously skipped override scenario tests now pass
+- Added: 4 new unit tests (3 send-operation + 1 public-operation)
+- Zero regressions in existing tests
+
+### Root Cause Analysis
+When `@@override` groups individual query/header parameters into a model parameter:
+- TCGC reports the HTTP params with `correspondingMethodParams[0]` as an `SdkModelPropertyType`
+  (kind: "property") instead of `SdkMethodParameter` (kind: "method")
+- `methodParameterSegments[0]` provides the chain: [modelMethodParam, modelProperty]
+- The emitter was treating model properties as direct function parameters, generating bare
+  variable names (e.g., `param1`) instead of model accessors (e.g., `options.param1`)
+- When the model parameter is named "options", it conflicted with the optional params bag
+  also named "options", causing incorrect variable references
+
+### Architecture decisions
+- **Centralized naming**: `getOptionsParamName` is exported from send-operation.tsx and
+  used by all components that generate operation function parameters (send, public,
+  classical client, classical operation groups).
+- **Segment traversal**: `resolveModelPropertyAccessor` uses TCGC's `methodParameterSegments`
+  to resolve the full accessor path, with a fallback that scans method parameter models.
+- **Backwards compatible**: The change only affects operations where @@override creates
+  model parameters named "options". Standard operations are unaffected since
+  `getOptionsParamName` returns "options" by default.
+
+### Notes for next person
+- Completed: All Phases 0-10, Tasks 11.02, 11.04, 11.07 (DONE).
+- **Remaining 3 skipped tests** (all blocked on external issues):
+  - `models/models.md` (TCGC issue #3088)
+  - `models/serialization/additionalProperties.md` (TypeSpec issue #6983)
+  - `samples/client/parameterizedHost.md` (TCGC issue #1419)
+- **Remaining Phase 11 tasks**: Most are already resolved (tests pass). The PRD
+  hasn't been updated to reflect this. Next person should audit pending tasks
+  against test results and batch-mark resolved ones as done.
+- The vitest worker timeout error is an infrastructure issue, not a test failure.

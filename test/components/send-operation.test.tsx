@@ -16,6 +16,8 @@
  * - Send function is referenceable via sendOperationRefkey.
  * - Combined path + query parameters work together.
  * - Spread body parameters produce inline object literals with per-property serialization.
+ * - @@override parameter grouping names optionalParams bag correctly and accesses model properties.
+ * - getOptionsParamName returns "optionalParams" when a method parameter is named "options".
  */
 import "@alloy-js/core/testing";
 import { code } from "@alloy-js/core";
@@ -27,13 +29,15 @@ import type {
   SdkServiceMethod,
 } from "@azure-tools/typespec-client-generator-core";
 import { SendOperation } from "../../src/components/send-operation.js";
+import { getOptionsParamName } from "../../src/components/send-operation.js";
 import { OperationOptionsDeclaration } from "../../src/components/operation-options.js";
 import { ModelInterface } from "../../src/components/model-interface.js";
 import { JsonSerializer } from "../../src/components/serialization/json-serializer.js";
 import { sendOperationRefkey } from "../../src/utils/refkeys.js";
 import { httpRuntimeLib } from "../../src/utils/external-packages.js";
-import { TesterWithService, createSdkContextForTest } from "../test-host.js";
+import { TesterWithService, RawTester, createSdkContextForTest } from "../test-host.js";
 import { SdkTestFile } from "../utils.jsx";
+import { renderToString } from "@alloy-js/core/testing";
 
 /**
  * Helper to extract the first method from the first client in an SDK context.
@@ -498,5 +502,125 @@ describe("SendOperation", () => {
         return context.path("/").post({ ...operationOptionsToRequestParameters(options), contentType: "application/json", body: { "name": name, "count": count } });
       }
     `);
+  });
+
+  /**
+   * Tests that when @@override groups individual query parameters into a model
+   * parameter named "options", the emitter correctly:
+   * 1. Renames the optional params bag to "optionalParams" to avoid name conflict
+   * 2. Accesses query params through the model parameter (e.g., options.param1)
+   * 3. Uses optionalParams for requestOptions access
+   *
+   * This is critical for Azure SDK @@override patterns where parameters are
+   * grouped into option models for better API ergonomics.
+   */
+  it("should handle @@override parameter grouping with correct naming", async () => {
+    const runner = await RawTester.createInstance();
+    const { program } = await runner.compile(`
+import "@typespec/http";
+import "@azure-tools/typespec-client-generator-core";
+using TypeSpec.Http;
+using Azure.ClientGenerator.Core;
+
+@service(#{
+  title: "Override Service"
+})
+namespace Override;
+
+@route("/group")
+@get
+op groupOriginal(
+  @query param1: string,
+  @query param2: string,
+): void;
+
+model GroupParametersOptions {
+  @query param1: string;
+  @query param2: string;
+}
+
+op groupCustomized(
+  options: GroupParametersOptions,
+): void;
+
+@@override(Override.groupOriginal, Override.groupCustomized);
+    `);
+
+    const sdkContext = await createSdkContextForTest(program);
+    const method = getFirstMethod(sdkContext);
+
+    const template = (
+      <SdkTestFile sdkContext={sdkContext} externals={[httpRuntimeLib]}>
+        <OperationOptionsDeclaration method={method} />
+        {"\n\n"}
+        <SendOperation method={method} />
+      </SdkTestFile>
+    );
+
+    const rendered = renderToString(template);
+    // Verify optionalParams is used instead of second "options"
+    expect(rendered).toContain("optionalParams");
+    // Verify model property access through the options parameter
+    expect(rendered).toContain("options.param1");
+    expect(rendered).toContain("options.param2");
+    // Verify optionalParams is used for requestOptions
+    expect(rendered).toContain("optionalParams?.requestOptions?.skipUrlEncoding");
+    expect(rendered).toContain("operationOptionsToRequestParameters(optionalParams)");
+  });
+
+  /**
+   * Tests the getOptionsParamName utility function directly.
+   * When no method parameter is named "options", returns "options".
+   * When a required method parameter IS named "options" (e.g., from @@override
+   * parameter grouping), returns "optionalParams" to avoid name conflicts.
+   */
+  it("should return correct options param name based on conflicts", async () => {
+    // Standard case - no conflict
+    const runner = await TesterWithService.createInstance();
+    const { program } = await runner.compile(
+      t.code`
+        @get op ${t.op("listItems")}(): string[];
+      `,
+    );
+
+    const sdkContext = await createSdkContextForTest(program);
+    const method = getFirstMethod(sdkContext);
+    expect(getOptionsParamName(method)).toBe("options");
+
+    // Override case - conflict with "options" parameter
+    const runner2 = await RawTester.createInstance();
+    const { program: program2 } = await runner2.compile(`
+import "@typespec/http";
+import "@azure-tools/typespec-client-generator-core";
+using TypeSpec.Http;
+using Azure.ClientGenerator.Core;
+
+@service(#{
+  title: "Override Service"
+})
+namespace Override;
+
+@route("/group")
+@get
+op groupOriginal(
+  @query param1: string,
+  @query param2: string,
+): void;
+
+model GroupParametersOptions {
+  @query param1: string;
+  @query param2: string;
+}
+
+op groupCustomized(
+  options: GroupParametersOptions,
+): void;
+
+@@override(Override.groupOriginal, Override.groupCustomized);
+    `);
+
+    const sdkContext2 = await createSdkContextForTest(program2);
+    const method2 = getFirstMethod(sdkContext2);
+    expect(getOptionsParamName(method2)).toBe("optionalParams");
   });
 });

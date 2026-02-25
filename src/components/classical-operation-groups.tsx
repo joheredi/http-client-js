@@ -19,7 +19,7 @@ import {
   publicOperationRefkey,
 } from "../utils/refkeys.js";
 import { getTypeExpression } from "./type-expression.js";
-import { isRequiredSignatureParameter } from "./send-operation.js";
+import { getOptionsParamName, isRequiredSignatureParameter } from "./send-operation.js";
 
 /**
  * Represents a child client (operation group) along with its accumulated
@@ -408,7 +408,7 @@ function buildFactoryParamList(
     }
   }
 
-  params.push("options");
+  params.push(getOptionsParamName(method));
   return params.join(", ");
 }
 
@@ -432,7 +432,7 @@ function buildDelegateArgList(
     }
   }
 
-  args.push("options");
+  args.push(getOptionsParamName(method));
   return args.join(", ");
 }
 

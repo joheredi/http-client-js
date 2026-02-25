@@ -25,7 +25,7 @@ import {
   publicOperationRefkey,
 } from "../utils/refkeys.js";
 import { getClientName } from "./client-context.js";
-import { isRequiredSignatureParameter } from "./send-operation.js";
+import { getOptionsParamName, isRequiredSignatureParameter } from "./send-operation.js";
 import { getTypeExpression } from "./type-expression.js";
 
 /**
@@ -353,7 +353,7 @@ function buildMethodParameters(
   }
 
   params.push({
-    name: "options",
+    name: getOptionsParamName(method),
     type: operationOptionsRefkey(method),
     default: "{ requestOptions: {} }",
   });
@@ -407,7 +407,7 @@ function buildDelegateArguments(
     }
   }
 
-  args.push("options");
+  args.push(getOptionsParamName(method));
   return args.join(", ");
 }
 

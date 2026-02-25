@@ -1201,3 +1201,16 @@ Key files:
 - `src/components/deserialize-headers.tsx` — `collectSuccessResponseHeaders` and
   `buildHeaderReturnType` are exported for reuse
 - `src/utils/refkeys.ts` — `deserializeHeadersRefkey()` added
+
+## @@override Parameter Grouping - TCGC Data Model
+
+When `@@override` groups individual query/header params into a model parameter:
+- `method.parameters` contains a single `SdkMethodParameter` (kind: "method") with a model type
+- HTTP operation params (query/path/header) have:
+  - `correspondingMethodParams[0]` = `SdkModelPropertyType` (kind: "property"), NOT `SdkMethodParameter`
+  - `methodParameterSegments[0]` = `[SdkMethodParameter, SdkModelPropertyType]` — the chain from method param to model property
+- To generate correct accessor: use `methodParameterSegments[0][0].name + "." + methodParameterSegments[0][1].name`
+- When the model parameter is named "options", rename the optional params bag to "optionalParams" to avoid conflict
+
+### Failure Pattern
+Casting `correspondingMethodParams[0]` to `SdkMethodParameter` when it's actually `SdkModelPropertyType` causes `isRequiredSignatureParameter` to return incorrect results (model properties lack `onClient`, `isApiVersionParam` fields). Always check `.kind` before casting.
