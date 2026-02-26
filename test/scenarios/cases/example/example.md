@@ -38,6 +38,10 @@ These are the models that are generated. The language tag `ts models` is used to
 the test host that the content of the code block represents the entire generated `models.ts` file.
 
 ```ts models
+/**
+ * This file contains only generated model types and their (de)serializers.
+ * Disable the following rules for internal models with '_' prefix and deserializers which require 'any' for raw JSON input.
+ */
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
