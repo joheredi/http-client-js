@@ -371,25 +371,21 @@ interface SerializerDeclarationsProps {
 }
 
 /**
- * Checks whether a model is a child type in a discriminated hierarchy.
+ * Determines whether a model has a parent model (base model) in the inheritance hierarchy.
  *
- * A model is considered a discriminated child if any ancestor in its
- * `baseModel` chain has a `discriminatorProperty`. Such child models need
- * their serializers/deserializers to include inherited parent properties
- * so that all fields (own + inherited) are properly mapped.
+ * When a model has a base model, its (de)serializers must include all inherited
+ * parent properties alongside its own properties to ensure complete wire-format
+ * output. This applies to both discriminated and non-discriminated inheritance.
+ *
+ * For example, if `Cat extends Pet`, the `catDeserializer` must produce an object
+ * with both Pet's properties (`name`, `weight`) and Cat's own properties (`kind`, `meow`).
+ * Without this, the deserialized object would be missing inherited data.
  *
  * @param model - The TCGC model type to check.
- * @returns True if the model is a child in a discriminated hierarchy.
+ * @returns True if the model has a base model and needs inherited properties in (de)serializers.
  */
-function isDiscriminatedChild(model: SdkModelType): boolean {
-  let current = model.baseModel;
-  while (current) {
-    if (current.discriminatorProperty !== undefined) {
-      return true;
-    }
-    current = current.baseModel;
-  }
-  return false;
+function hasParentModel(model: SdkModelType): boolean {
+  return model.baseModel !== undefined;
 }
 
 /**
@@ -399,7 +395,7 @@ function isDiscriminatedChild(model: SdkModelType): boolean {
  * typed SDK objects into wire-format JSON. Serializers are placed in the same
  * source file as type declarations to prevent self-import bugs.
  *
- * Child models in discriminated hierarchies receive `includeParentProperties`
+ * Child models with parent models receive `includeParentProperties`
  * so their serializers include all inherited parent properties alongside
  * their own, ensuring complete wire-format output.
  *
@@ -414,7 +410,7 @@ function SerializerDeclarations(props: SerializerDeclarationsProps) {
       {(model) => (
         <JsonSerializer
           model={model}
-          includeParentProperties={isDiscriminatedChild(model)}
+          includeParentProperties={hasParentModel(model)}
         />
       )}
     </For>
@@ -437,7 +433,7 @@ interface DeserializerDeclarationsProps {
  * Deserializers are placed in the same source file as type declarations to
  * prevent self-import bugs.
  *
- * Child models in discriminated hierarchies receive `includeParentProperties`
+ * Child models with parent models receive `includeParentProperties`
  * so their deserializers include all inherited parent properties alongside
  * their own, ensuring complete deserialized output.
  *
@@ -452,7 +448,7 @@ function DeserializerDeclarations(props: DeserializerDeclarationsProps) {
       {(model) => (
         <JsonDeserializer
           model={model}
-          includeParentProperties={isDiscriminatedChild(model)}
+          includeParentProperties={hasParentModel(model)}
         />
       )}
     </For>
@@ -496,6 +492,7 @@ function PolymorphicSerializerDeclarations(
             model={model}
             refkeyOverride={baseSerializerRefkey(model)}
             nameSuffix="Serializer"
+            includeParentProperties={hasParentModel(model)}
           />
           {"\n\n"}
           <JsonPolymorphicSerializer model={model} />
@@ -543,6 +540,7 @@ function PolymorphicDeserializerDeclarations(
             model={model}
             refkeyOverride={baseDeserializerRefkey(model)}
             nameSuffix="Deserializer"
+            includeParentProperties={hasParentModel(model)}
           />
           {"\n\n"}
           <JsonPolymorphicDeserializer model={model} />

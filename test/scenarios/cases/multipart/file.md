@@ -259,6 +259,8 @@ export interface File {
 
 export function fileRequiredNameSerializer(item: FileRequiredName): any {
   return {
+    contentType: item["contentType"],
+    contents: uint8ArrayToString(item["contents"], "base64"),
     filename: item["filename"],
   };
 }
@@ -379,6 +381,8 @@ export interface File {
 
 export function pngFileSerializer(item: PngFile): any {
   return {
+    filename: item["filename"],
+    contents: uint8ArrayToString(item["contents"], "base64"),
     contentType: item["contentType"],
   };
 }

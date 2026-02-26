@@ -1634,3 +1634,17 @@ The test harness (`emit-for-scenario.tsx`) was not implementing the `withVersion
 
 ### Key Insight
 TCGC's `isApiVersion()` function requires `versionEnumSets.length > 0` (from `@versioned` decorator) to mark parameters as `isApiVersionParam`. Without versioning, even parameters named "api-version" won't be treated as client-level API version parameters.
+
+## SA32: Parent Property Inclusion in (De)serializers
+
+**Issue**: Child model (de)serializers must include ALL inherited properties from parent models,
+not just the child's own properties. This applies to ALL inheritance (discriminated AND non-discriminated).
+
+**Root cause**: The condition `isDiscriminatedChild(model)` was too narrow — it only checked for
+`@discriminator`-based hierarchies. Simple `extends` relationships also need parent properties.
+
+**Fix**: Use `model.baseModel !== undefined` instead of walking the `discriminatorProperty` chain.
+
+**Key insight**: In TypeScript, `interface Cat extends Pet` declares that Cat HAS Pet's properties,
+but the (de)serializer creates a plain object — it must explicitly map every field. If inherited
+fields are omitted, the returned object silently lacks them despite the type assertion.

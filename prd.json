@@ -3141,8 +3141,8 @@
         "priority": "P0",
         "description": "In inheritance hierarchies, child model deserializers must include properties from all parent models. The actual output only includes the child's own properties, missing inherited ones.\n\nACTUAL (`test/scenarios/cases/modelsGenerator/modelsGenerator.md`, lines 1310-1315):\n```ts\nexport function catDeserializer(item: any): Cat {\n  return {\n    kind: item[\"kind\"],\n    meow: item[\"meow\"],\n  };\n}\n```\n\nEXPECTED (`submodules/autorest.typescript/packages/typespec-ts/test/modularUnit/scenarios/modelsGenerator/modelsGenerator.md`, lines 1342-1349):\n```ts\nexport function catDeserializer(item: any): Cat {\n  return {\n    name: item[\"name\"],      // from Pet parent\n    weight: item[\"weight\"],  // from Pet parent\n    kind: item[\"kind\"],\n    meow: item[\"meow\"]\n  };\n}\n```\n\nSimilarly for dogDeserializer (actual lines 1325-1329 vs expected lines 1367-1374):\nMissing `name: item[\"name\"]` and `weight: item[\"weight\"]` from Pet parent.\n\nThis occurs in the 'should handle inheritance model with discriminator and no operation' section. The same pattern likely affects other inheritance scenarios. Related to SA14 (Discriminated Union Serialization) which noted this issue but was marked done.",
         "affected_scenarios": "modelsGenerator.md \u2014 inheritance with discriminator sections",
-        "status": "pending",
-        "resolution": null,
+        "status": "done",
+        "resolution": "Fixed: Changed isDiscriminatedChild() to hasParentModel() in model-files.tsx so ALL child models (not just discriminated) include inherited parent properties in their (de)serializers. Updated 14 scenario snapshots. Added unit tests for both serializer and deserializer.",
         "references": {
           "actual_file": "test/scenarios/cases/modelsGenerator/modelsGenerator.md",
           "actual_lines": "1310-1315, 1325-1329",

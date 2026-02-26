@@ -831,4 +831,69 @@ describe("JsonSerializer", () => {
     expect(result).toContain(`...(item["additionalPropertiesBag"] ?? {})`);
     expect(result).toContain(`additionalProperties: item["additionalProperties"]`);
   });
+
+  /**
+   * Tests that child model serializers include inherited parent properties.
+   *
+   * When `Cat extends Pet`, the `catSerializer` must include ALL properties —
+   * both inherited (`name`, `weight` from Pet) and own (`kind`, `meow` from Cat).
+   * Without this, the serialized request body would be missing inherited fields,
+   * causing the service to reject the request or lose data.
+   *
+   * This test validates the fix for SA32 (P0): previously, child serializers
+   * in non-discriminated inheritance hierarchies only included their own
+   * properties, causing data loss during serialization.
+   */
+  it("should include parent properties in child model serializer", async () => {
+    const runner = await TesterWithService.createInstance();
+    const { program } = await runner.compile(
+      t.code`
+        model ${t.model("Pet")} {
+          name: string;
+          weight?: float32;
+        }
+        model ${t.model("Cat")} extends Pet {
+          kind: "cat";
+          meow: int32;
+        }
+        @route("/cats") op create(@body body: Cat): void;
+      `,
+    );
+
+    const sdkContext = await createSdkContextForTest(program);
+    const petModel = sdkContext.sdkPackage.models.find((m) => m.name === "Pet")!;
+    const catModel = sdkContext.sdkPackage.models.find((m) => m.name === "Cat")!;
+
+    const template = (
+      <SdkTestFile sdkContext={sdkContext}>
+        <ModelInterface model={petModel} />
+        {"\n\n"}
+        <ModelInterface model={catModel} />
+        {"\n\n"}
+        <JsonSerializer model={catModel} includeParentProperties />
+      </SdkTestFile>
+    );
+
+    // catSerializer must include name and weight from Pet parent
+    expect(template).toRenderTo(d`
+      export interface Pet {
+        name: string;
+        weight?: number;
+      }
+
+      export interface Cat extends Pet {
+        kind: "cat";
+        meow: number;
+      }
+
+      export function catSerializer(item: Cat): any {
+        return {
+          name: item["name"],
+          weight: item["weight"],
+          kind: item["kind"],
+          meow: item["meow"],
+        };
+      }
+    `);
+  });
 });

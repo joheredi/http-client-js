@@ -288,6 +288,9 @@ export enum KnownVersions {
 
 export function avsSummarySerializer(item: AvsSummary): any {
   return {
+    id: item["id"],
+    type: item["type"],
+    systemData: !item["systemData"] ? item["systemData"] : item["systemData"],
     properties: !item["properties"]
       ? item["properties"]
       : avsSummaryPropertiesSerializer(item["properties"]),
@@ -312,7 +315,12 @@ export function errorDetailSerializer(item: ErrorDetail_1): any {
 }
 
 export function proxyResourceSerializer(item: ProxyResource): any {
-  return {};
+  return {
+    id: item["id"],
+    name: item["name"],
+    type: item["type"],
+    systemData: !item["systemData"] ? item["systemData"] : item["systemData"],
+  };
 }
 
 export function resourceSerializer(item: Resource): any {
@@ -393,6 +401,11 @@ export function errorAdditionalInfoDeserializer(
 
 export function avsSummaryDeserializer(item: any): AvsSummary {
   return {
+    id: item["id"],
+    type: item["type"],
+    systemData: !item["systemData"]
+      ? item["systemData"]
+      : systemDataDeserializer(item["systemData"]),
     properties: !item["properties"]
       ? item["properties"]
       : avsSummaryPropertiesDeserializer(item["properties"]),
@@ -417,7 +430,14 @@ export function errorDetailDeserializer(item: any): ErrorDetail_1 {
 }
 
 export function proxyResourceDeserializer(item: any): ProxyResource {
-  return {};
+  return {
+    id: item["id"],
+    name: item["name"],
+    type: item["type"],
+    systemData: !item["systemData"]
+      ? item["systemData"]
+      : systemDataDeserializer(item["systemData"]),
+  };
 }
 
 export function resourceDeserializer(item: any): Resource {

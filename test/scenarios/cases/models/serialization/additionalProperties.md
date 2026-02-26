@@ -414,6 +414,7 @@ export function simpleModelSerializer(item: SimpleModel): any {
 
 export function fooModelSerializer(item: FooModel): any {
   return {
+    additionalProperties: item["additionalProperties"],
     propA: item["propA"],
     propB: item["propB"],
     ...(item["additionalProperties"] ?? {}),

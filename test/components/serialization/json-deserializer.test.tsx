@@ -551,4 +551,69 @@ describe("JsonDeserializer", () => {
       }
     `);
   });
+
+  /**
+   * Tests that child model deserializers include inherited parent properties.
+   *
+   * When `Cat extends Pet`, the `catDeserializer` must produce an object with
+   * ALL properties — both inherited (`name`, `weight` from Pet) and own
+   * (`kind`, `meow` from Cat). Without this, the deserialized Cat object would
+   * be missing critical data that the TypeScript interface declares.
+   *
+   * This test validates the fix for SA32 (P0): previously, child deserializers
+   * in non-discriminated inheritance hierarchies only included their own
+   * properties, causing data loss during deserialization.
+   */
+  it("should include parent properties in child model deserializer", async () => {
+    const runner = await TesterWithService.createInstance();
+    const { program } = await runner.compile(
+      t.code`
+        model ${t.model("Pet")} {
+          name: string;
+          weight?: float32;
+        }
+        model ${t.model("Cat")} extends Pet {
+          kind: "cat";
+          meow: int32;
+        }
+        op read(): Cat;
+      `,
+    );
+
+    const sdkContext = await createSdkContextForTest(program);
+    const petModel = sdkContext.sdkPackage.models.find((m) => m.name === "Pet")!;
+    const catModel = sdkContext.sdkPackage.models.find((m) => m.name === "Cat")!;
+
+    const template = (
+      <SdkTestFile sdkContext={sdkContext}>
+        <ModelInterface model={petModel} />
+        {"\n\n"}
+        <ModelInterface model={catModel} />
+        {"\n\n"}
+        <JsonDeserializer model={catModel} includeParentProperties />
+      </SdkTestFile>
+    );
+
+    // catDeserializer must include name and weight from Pet parent
+    expect(template).toRenderTo(d`
+      export interface Pet {
+        name: string;
+        weight?: number;
+      }
+
+      export interface Cat extends Pet {
+        kind: "cat";
+        meow: number;
+      }
+
+      export function catDeserializer(item: any): Cat {
+        return {
+          name: item["name"],
+          weight: item["weight"],
+          kind: item["kind"],
+          meow: item["meow"],
+        };
+      }
+    `);
+  });
 });

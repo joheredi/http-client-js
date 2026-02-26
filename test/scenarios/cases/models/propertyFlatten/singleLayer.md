@@ -461,6 +461,7 @@ export function testSerializer(item: Test): any {
 
 export function fooPropertiesSerializer(item: FooProperties): any {
   return {
+    readOnlyProp: item["readOnlyProp"],
     bar: item["bar"],
     baz: item["baz"],
   };
@@ -483,6 +484,7 @@ export function testDeserializer(item: any): Test {
 
 export function fooPropertiesDeserializer(item: any): FooProperties {
   return {
+    readOnlyProp: item["readOnlyProp"],
     bar: item["bar"],
     baz: item["baz"],
   };
@@ -600,6 +602,7 @@ export function testSerializer(item: Test): any {
 
 export function fooPropertiesSerializer(item: FooProperties): any {
   return {
+    readOnlyProp: item["readOnlyProp"],
     bar: item["bar"],
     baz: item["baz"],
   };
@@ -631,6 +634,7 @@ export function testDeserializer(item: any): Test {
 
 export function fooPropertiesDeserializer(item: any): FooProperties {
   return {
+    readOnlyProp: item["readOnlyProp"],
     bar: item["bar"],
     baz: item["baz"],
   };

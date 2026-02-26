@@ -612,6 +612,7 @@ export function animalUnionSerializer(item: AnimalUnion): any {
 
 export function petSerializer(item: Pet): any {
   return {
+    name: item["name"],
     kind: item["kind"],
     trained: item["trained"],
   };
@@ -655,6 +656,7 @@ export function animalUnionDeserializer(item: any): AnimalUnion {
 
 export function petDeserializer(item: any): Pet {
   return {
+    name: item["name"],
     kind: item["kind"],
     trained: item["trained"],
   };

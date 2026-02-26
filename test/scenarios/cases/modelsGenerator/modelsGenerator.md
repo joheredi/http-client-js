@@ -1309,6 +1309,8 @@ export type ReadResponse = Cat | Dog;
 
 export function catDeserializer(item: any): Cat {
   return {
+    name: item["name"],
+    weight: item["weight"],
     kind: item["kind"],
     meow: item["meow"],
   };
@@ -1323,6 +1325,8 @@ export function petDeserializer(item: any): Pet {
 
 export function dogDeserializer(item: any): Dog {
   return {
+    name: item["name"],
+    weight: item["weight"],
     kind: item["kind"],
     bark: item["bark"],
   };
@@ -1367,6 +1371,8 @@ export interface Pet {
 
 export function catDeserializer(item: any): Cat {
   return {
+    name: item["name"],
+    weight: item["weight"],
     kind: item["kind"],
     meow: item["meow"],
   };
@@ -1465,6 +1471,8 @@ export interface Animal {
 
 export function catDeserializer(item: any): Cat {
   return {
+    name: item["name"],
+    weight: item["weight"],
     kind: item["kind"],
     meow: item["meow"],
   };
@@ -1472,6 +1480,7 @@ export function catDeserializer(item: any): Cat {
 
 export function petDeserializer(item: any): Pet {
   return {
+    name: item["name"],
     weight: item["weight"],
   };
 }
@@ -1922,6 +1931,8 @@ export function petUnionDeserializer(item: any): PetUnion {
 
 export function dogDeserializer(item: any): Dog {
   return {
+    name: item["name"],
+    weight: item["weight"],
     kind: item["kind"],
     type: item["type"],
     bark: item["bark"],
@@ -2418,6 +2429,8 @@ export interface A extends B {
 ```ts models function aSerializer
 export function aSerializer(item: A): any {
   return {
+    prop1: item["prop1"],
+    prop2: item["prop2"],
     name: item["name"],
   };
 }
@@ -2619,6 +2632,7 @@ export interface A extends Base {
 ```ts models function aSerializer
 export function aSerializer(item: A): any {
   return {
+    foo: item["foo"],
     prop: item["prop"],
     ...(item["additionalProperties"] ?? {}),
   };

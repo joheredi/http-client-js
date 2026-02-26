@@ -3845,3 +3845,36 @@ The scenario tests are the source of truth for expected emitter output. All 890 
 
 ### PRD Status
 ALL TASKS COMPLETE. 890 tests pass, build succeeds.
+
+## 2026-02-26: SA32 — Child Deserializers Missing Parent Properties (P0) [DONE]
+
+### Problem
+In non-discriminated inheritance hierarchies (e.g., `Cat extends Pet` without `@discriminator`),
+child model (de)serializers only included the child's own properties, missing inherited parent
+properties. The `catDeserializer` would produce `{ kind, meow }` instead of `{ name, weight, kind, meow }`.
+
+### Root Cause
+`model-files.tsx` used `isDiscriminatedChild(model)` to decide whether to pass
+`includeParentProperties` to `JsonDeserializer` and `JsonSerializer`. This function only
+returned `true` when an ancestor had `discriminatorProperty`, missing the simple inheritance case.
+
+### Fix
+- Replaced `isDiscriminatedChild()` with `hasParentModel()` which checks `model.baseModel !== undefined`
+- Applied to all 4 call sites: SerializerDeclarations, DeserializerDeclarations, PolymorphicSerializerDeclarations, PolymorphicDeserializerDeclarations
+- 14 scenario test snapshots updated to include parent properties in child (de)serializers
+- Added 2 unit tests (serializer + deserializer) validating parent property inclusion
+
+### Files Changed
+- `src/components/model-files.tsx` — core fix
+- `test/components/serialization/json-deserializer.test.tsx` — new test
+- `test/components/serialization/json-serializer.test.tsx` — new test
+- `test/scenarios/cases/modelsGenerator/modelsGenerator.md` — snapshot updates
+- `test/scenarios/cases/models/deserialization/extends.md` — snapshot updates
+- `test/scenarios/cases/models/propertyFlatten/singleLayer.md` — snapshot updates
+- `test/scenarios/cases/models/serialization/additionalProperties.md` — snapshot updates
+- `test/scenarios/cases/multipart/file.md` — snapshot updates
+- `test/scenarios/cases/operations/lroPaging.md` — snapshot updates
+
+### Test Results
+892 passed | 3 skipped (895 total) — all green
+

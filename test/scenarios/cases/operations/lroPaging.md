@@ -279,6 +279,13 @@ export function webAppCollectionDeserializer(item: any): WebAppCollection {
 
 export function siteDeserializer(item: any): Site {
   return {
+    id: item["id"],
+    type: item["type"],
+    systemData: !item["systemData"]
+      ? item["systemData"]
+      : systemDataDeserializer(item["systemData"]),
+    tags: item["tags"],
+    location: item["location"],
     properties: !item["properties"]
       ? item["properties"]
       : sitePropertiesDeserializer(item["properties"]),
@@ -294,6 +301,12 @@ export function sitePropertiesDeserializer(item: any): SiteProperties {
 
 export function trackedResourceDeserializer(item: any): TrackedResource {
   return {
+    id: item["id"],
+    name: item["name"],
+    type: item["type"],
+    systemData: !item["systemData"]
+      ? item["systemData"]
+      : systemDataDeserializer(item["systemData"]),
     tags: item["tags"],
     location: item["location"],
   };
