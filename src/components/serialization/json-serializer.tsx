@@ -243,6 +243,13 @@ export function getSerializationExpression(
         // Divide by 1000 and use bitwise OR to truncate to integer (matches legacy emitter).
         return code`((${accessor}).getTime() / 1000) | 0`;
       }
+      if (type.encode === "rfc7231") {
+        // RFC 7231 HTTP-date format for headers (e.g., "Mon, 15 Jan 2024 12:30:00 GMT").
+        // HTTP headers use this format per RFC 7231 §7.1.1.1. TCGC sets this encoding
+        // when utcDateTime is used in a header parameter position.
+        return code`(${accessor}).toUTCString()`;
+      }
+      // Default: RFC 3339 / ISO 8601 format (e.g., "2024-01-15T12:30:00.000Z")
       return code`(${accessor}).toISOString()`;
 
     case "plainDate":

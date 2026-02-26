@@ -392,6 +392,73 @@ describe("SendOperation", () => {
   });
 
   /**
+   * Tests that header parameters with utcDateTime type are encoded to string
+   * format in the request headers. HTTP headers are strings, so Date values
+   * must be serialized. When TCGC sets `encode: "rfc7231"` on a utcDateTime
+   * header parameter (the default for HTTP headers), the value should be
+   * encoded with `.toUTCString()` to produce RFC 7231 HTTP-date format.
+   *
+   * Without this, Date objects would be passed directly as header values,
+   * causing runtime errors (headers must be strings) or incorrect formatting.
+   */
+  it("should encode utcDateTime header parameters with toUTCString", async () => {
+    const runner = await TesterWithService.createInstance();
+    const { program } = await runner.compile(
+      t.code`
+        @get op ${t.op("getResource")}(
+          @header("x-date") prop: utcDateTime,
+        ): string;
+      `,
+    );
+
+    const sdkContext = await createSdkContextForTest(program);
+    const method = getFirstMethod(sdkContext);
+
+    const template = (
+      <SdkTestFile sdkContext={sdkContext} externals={[httpRuntimeLib]}>
+        <OperationOptionsDeclaration method={method} />
+        {"\n\n"}
+        <SendOperation method={method} />
+      </SdkTestFile>
+    );
+
+    const result = renderToString(template);
+    // Header value should be encoded with toUTCString for rfc7231 date format
+    expect(result).toContain('(prop).toUTCString()');
+  });
+
+  /**
+   * Tests that optional utcDateTime header parameters get a null guard
+   * so that encoding is only applied when the value is defined. This prevents
+   * calling `.toUTCString()` on `undefined`, which would throw at runtime.
+   */
+  it("should encode optional utcDateTime header parameters with null guard", async () => {
+    const runner = await TesterWithService.createInstance();
+    const { program } = await runner.compile(
+      t.code`
+        @get op ${t.op("getResource")}(
+          @header("x-date") prop?: utcDateTime,
+        ): string;
+      `,
+    );
+
+    const sdkContext = await createSdkContextForTest(program);
+    const method = getFirstMethod(sdkContext);
+
+    const template = (
+      <SdkTestFile sdkContext={sdkContext} externals={[httpRuntimeLib]}>
+        <OperationOptionsDeclaration method={method} />
+        {"\n\n"}
+        <SendOperation method={method} />
+      </SdkTestFile>
+    );
+
+    const result = renderToString(template);
+    // Optional header must have null guard before encoding
+    expect(result).toContain('options?.prop !== undefined ? (options?.prop).toUTCString() : undefined');
+  });
+
+  /**
    * Tests that path and query parameters can be combined in a single operation.
    * This is a very common pattern in REST APIs (e.g., GET /items/{id}?expand=details).
    */

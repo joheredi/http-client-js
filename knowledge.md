@@ -1673,3 +1673,28 @@ bytes need the typeof guard.
 **Test insight**: When unit testing components that use `useRuntimeLib()` (which provides refkeys like
 `stringToUint8Array`), the `SdkTestFile` wrapper must receive `externals={[httpRuntimeLib]}` to register
 the external package so refkeys resolve instead of showing `<Unresolved Symbol>`.
+
+## Header Date Encoding (SA30)
+
+**Key insight**: TCGC sets `encode: "rfc7231"` on `SdkUtcDateTimeType` when utcDateTime is used in a
+`@header` parameter position. The `json-serializer.tsx` `getSerializationExpression` function must check
+`type.encode` to differentiate between:
+- `"rfc7231"` → `.toUTCString()` (HTTP-date format for headers)
+- `"unixTimestamp"` → `((accessor).getTime() / 1000) | 0`
+- `"rfc3339"` or default → `.toISOString()` (ISO 8601 for JSON bodies)
+
+**Header encoding pattern**: The `send-operation.tsx` `buildHeaderEntries` function must apply date encoding
+to header parameter values. This is done via `applyHeaderDateEncoding()` which only handles `utcDateTime`
+and `plainDate` types. Non-date types (bytes, arrays, strings) pass through unchanged because:
+1. Bytes headers may be handled by the runtime library
+2. Array headers need collection format wrapping (CSV, pipes, etc.)
+3. Encoding all types would be too broad and break existing behavior
+
+**Null guard pattern for optional headers**: Optional date headers use
+`accessor !== undefined ? (accessor).toUTCString() : undefined` to avoid calling methods on undefined.
+This differs from the body serializer pattern which uses `!accessor ? accessor : expression` because
+header values can be `0` or `""` which are falsy but valid.
+
+**Test pattern**: To test header encoding, use `renderToString(template)` and check for the expected
+encoding expression with `expect(result).toContain(...)`. Full `toRenderTo` matching is harder because
+the entire output (imports, options interface, full function) must match.

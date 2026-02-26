@@ -537,7 +537,12 @@ function buildHeaderEntries(
 
   for (const header of headerParams) {
     const accessor = getHeaderAccessor(header, method);
-    const wrappedAccessor = wrapWithCollectionFormat(accessor, header.collectionFormat);
+    // Apply date encoding for Date-typed headers (e.g., utcDateTime → toUTCString),
+    // or collection format wrapping for array headers (e.g., CSV).
+    const encodedAccessor = applyHeaderDateEncoding(accessor, header);
+    const wrappedAccessor = encodedAccessor !== accessor
+      ? encodedAccessor
+      : wrapWithCollectionFormat(accessor, header.collectionFormat);
     entries.push(code`"${header.serializedName}": ${wrappedAccessor}`);
   }
 
@@ -579,6 +584,47 @@ function getHeaderAccessor(
 
   // Exhaustive - correspondingMethodParams only contains "method" or "property" kinds
   return `"${header.serializedName}"`;
+}
+
+/**
+ * Applies date encoding to a header parameter value when the type is a
+ * date/datetime scalar.
+ *
+ * HTTP headers are strings, so `Date` values must be serialized before
+ * being set as a header value. TCGC sets the encoding on the type:
+ * - `utcDateTime` with `rfc7231` encoding → `.toUTCString()` (HTTP-date format)
+ * - `utcDateTime` with `rfc3339` encoding → `.toISOString()` (ISO 8601)
+ * - `utcDateTime` with `unixTimestamp` encoding → integer seconds
+ * - `plainDate` → `.toISOString().split("T")[0]`
+ *
+ * For optional headers, a null guard is added so encoding is only applied
+ * when the value is defined (prevents calling methods on `undefined`).
+ *
+ * Non-date types are returned unchanged — they don't need encoding here.
+ *
+ * @param accessor - The JavaScript expression that accesses the header value.
+ * @param header - The TCGC header parameter (carries type and optionality info).
+ * @returns The encoded expression as Alloy Children, or the original accessor string if no encoding is needed.
+ */
+function applyHeaderDateEncoding(
+  accessor: string,
+  header: SdkHeaderParameter,
+): Children {
+  const type = header.type.kind === "nullable" ? header.type.type : header.type;
+
+  // Only encode date/datetime scalar types
+  if (type.kind !== "utcDateTime" && type.kind !== "plainDate") {
+    return accessor;
+  }
+
+  const encoded = getSerializationExpression(type, accessor);
+
+  // Wrap optional or nullable headers with null guard to avoid calling methods on undefined
+  if (header.optional || header.type.kind === "nullable") {
+    return code`${accessor} !== undefined ? ${encoded} : undefined`;
+  }
+
+  return encoded;
 }
 
 /**

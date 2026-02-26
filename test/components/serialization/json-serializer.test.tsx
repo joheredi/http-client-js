@@ -756,6 +756,104 @@ describe("JsonSerializer", () => {
   });
 
   /**
+   * Tests that utcDateTime with rfc7231 encoding serializes to HTTP-date format
+   * using `.toUTCString()` instead of `.toISOString()`.
+   *
+   * HTTP headers use RFC 7231 date format (e.g., "Mon, 15 Jan 2024 12:30:00 GMT")
+   * per RFC 7231 §7.1.1.1. When TCGC sets `encode: "rfc7231"` on a utcDateTime
+   * (typically for header parameters), the serializer must use `.toUTCString()`.
+   *
+   * Without this fix, Date objects sent as HTTP headers would use ISO 8601 format
+   * or be passed as raw Date objects, causing runtime errors or API rejections.
+   */
+  it("should serialize utcDateTime with rfc7231 encoding as toUTCString", async () => {
+    const runner = await TesterWithService.createInstance();
+    const { program } = await runner.compile(
+      t.code`
+        model ${t.model("Request")} {
+          name: string;
+          @encode("rfc7231")
+          retryAfter: utcDateTime;
+        }
+
+        op createRequest(@body request: Request): void;
+      `,
+    );
+
+    const sdkContext = await createSdkContextForTest(program);
+    const model = sdkContext.sdkPackage.models[0];
+
+    const template = (
+      <SdkTestFile sdkContext={sdkContext}>
+        <ModelInterface model={model} />
+        {"\n\n"}
+        <JsonSerializer model={model} />
+      </SdkTestFile>
+    );
+
+    // rfc7231 encoding must use .toUTCString() for HTTP-date format
+    expect(template).toRenderTo(d`
+      export interface Request {
+        name: string;
+        retryAfter: Date;
+      }
+
+      export function requestSerializer(item: Request): any {
+        return {
+          name: item["name"],
+          retryAfter: (item["retryAfter"]).toUTCString(),
+        };
+      }
+    `);
+  });
+
+  /**
+   * Tests that optional utcDateTime with rfc7231 encoding gets both the null-check
+   * guard AND the `.toUTCString()` encoding. This ensures optionality handling and
+   * rfc7231 encoding work together correctly.
+   */
+  it("should serialize optional utcDateTime with rfc7231 encoding and null check", async () => {
+    const runner = await TesterWithService.createInstance();
+    const { program } = await runner.compile(
+      t.code`
+        model ${t.model("Request")} {
+          name: string;
+          @encode("rfc7231")
+          retryAfter?: utcDateTime;
+        }
+
+        op createRequest(@body request: Request): void;
+      `,
+    );
+
+    const sdkContext = await createSdkContextForTest(program);
+    const model = sdkContext.sdkPackage.models[0];
+
+    const template = (
+      <SdkTestFile sdkContext={sdkContext}>
+        <ModelInterface model={model} />
+        {"\n\n"}
+        <JsonSerializer model={model} />
+      </SdkTestFile>
+    );
+
+    // Optional rfc7231 gets null check + toUTCString
+    expect(template).toRenderTo(d`
+      export interface Request {
+        name: string;
+        retryAfter?: Date;
+      }
+
+      export function requestSerializer(item: Request): any {
+        return {
+          name: item["name"],
+          retryAfter: !item["retryAfter"] ? item["retryAfter"] : (item["retryAfter"]).toUTCString(),
+        };
+      }
+    `);
+  });
+
+  /**
    * Tests that models with `...Record<T>` additional properties produce
    * a serializer that spreads the `additionalProperties` field into the
    * output. This verifies the explicit field approach works correctly with

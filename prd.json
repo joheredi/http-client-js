@@ -3105,8 +3105,8 @@
         "priority": "P1",
         "description": "When a utcDateTime parameter is sent as an HTTP header, the expected output encodes it with `.toUTCString()`. The actual output passes the Date object directly without encoding.\n\nACTUAL (`test/scenarios/cases/modelsGenerator/modelsGenerator.md`, line 510):\n```ts\nheaders: { prop: prop, ...options.requestOptions?.headers },\n```\n\nEXPECTED (`submodules/autorest.typescript/packages/typespec-ts/test/modularUnit/scenarios/modelsGenerator/modelsGenerator.md`, line 522):\n```ts\nheaders: { prop: prop.toUTCString(), ...options.requestOptions?.headers }\n```\n\nThis also applies to the serializer function:\n\nACTUAL (`test/scenarios/cases/modelsGenerator/modelsGenerator.md`, lines 410-417):\n```ts\nexport function fooSerializer(item: Foo): any {\n  return {\n    prop1: item[\"prop1\"].toISOString().split(\"T\")[0],\n    prop2: item[\"prop2\"],\n    prop3: item[\"prop3\"].toISOString(),\n    prop4: item[\"prop4\"],\n  };\n}\n```\n\nEXPECTED (`submodules/autorest.typescript/packages/typespec-ts/test/modularUnit/scenarios/modelsGenerator/modelsGenerator.md`, line 666):\n```ts\nexport function fooSerializer(item: Foo): any {\n  return { prop1: item[\"prop1\"].toUTCString(), prop2: item[\"prop2\"] };\n}\n```\n\nHTTP headers require string values; Date objects must be serialized. The rfc7231 encoding requires `.toUTCString()` specifically. Related to SA19 (Date/Time Serialization) which was marked done, but header encoding specifically with toUTCString() is still missing.",
         "affected_scenarios": "modelsGenerator.md \u2014 utcDateTime header parameter section",
-        "status": "pending",
-        "resolution": null,
+        "status": "done",
+        "resolution": "Fixed: Updated json-serializer.tsx to handle rfc7231 encoding (toUTCString) for utcDateTime types. Updated send-operation.tsx buildHeaderEntries to apply date encoding to header parameter values. Updated 3 scenario test expectations to match new correct behavior.",
         "references": {
           "actual_file": "test/scenarios/cases/modelsGenerator/modelsGenerator.md",
           "actual_lines": "510",

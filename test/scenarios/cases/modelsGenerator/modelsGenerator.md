@@ -507,7 +507,7 @@ export function _readSend(
 ): StreamableMethod {
   return context.path("/").get({
     ...operationOptionsToRequestParameters(options),
-    headers: { prop: prop, ...options.requestOptions?.headers },
+    headers: { prop: prop.toUTCString(), ...options.requestOptions?.headers },
   });
 }
 
@@ -644,7 +644,7 @@ export interface Foo {
 ```ts models function fooSerializer
 export function fooSerializer(item: Foo): any {
   return {
-    prop1: item["prop1"].toISOString(),
+    prop1: item["prop1"].toUTCString(),
     prop2: item["prop2"],
   };
 }

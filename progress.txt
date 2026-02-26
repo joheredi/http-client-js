@@ -3904,3 +3904,37 @@ When deserializing bytes (Uint8Array) properties from JSON responses, the emitte
 
 ### Test Results
 894 passed | 3 skipped (897 total) — all green (+2 new tests)
+
+---
+
+## SA30: Header Parameters Missing Date Encoding (toUTCString)
+**Date**: 2026-02-26
+**Task**: SA30 (P1)
+
+### Problem
+When a `utcDateTime` parameter is sent as an HTTP header, the emitter passed the `Date` object directly without encoding to a string. HTTP headers must be strings — Date objects cause runtime errors. Additionally, the `json-serializer.tsx` did not handle `rfc7231` encoding for `utcDateTime`, always using `.toISOString()` regardless of the `type.encode` setting.
+
+### Fix
+- **json-serializer.tsx**: Added `rfc7231` encoding case for `utcDateTime` that uses `.toUTCString()` (HTTP-date format per RFC 7231 §7.1.1.1). The existing `unixTimestamp` and default `rfc3339` (`.toISOString()`) paths remain unchanged.
+- **send-operation.tsx**: Added `applyHeaderDateEncoding()` function that checks if a header parameter's type is `utcDateTime` or `plainDate` and applies the appropriate serialization expression. For optional/nullable headers, wraps with a null guard (`!== undefined ? encode : undefined`). Non-date types pass through unchanged to preserve existing behavior (bytes, arrays with collection format, etc.).
+- Updated `buildHeaderEntries()` to call `applyHeaderDateEncoding` before falling back to `wrapWithCollectionFormat`.
+
+### Scenario Test Updates
+- `test/scenarios/cases/modelsGenerator/modelsGenerator.md`: Updated utcDateTime header expectation from `prop: prop` to `prop: prop.toUTCString()`
+- `test/scenarios/cases/modelsGenerator/modelsGenerator.md`: Updated rfc7231 model serializer from `.toISOString()` to `.toUTCString()`
+- `test/scenarios/cases/operations/operations.md`: Updated required, optional, and nullable utcDateTime header expectations with `.toUTCString()` and null guards
+
+### New Tests
+- `json-serializer.test.tsx`: 2 new tests for rfc7231 encoding (required and optional)
+- `send-operation.test.tsx`: 2 new tests for utcDateTime header encoding (required and optional with null guard)
+
+### Files Changed
+- `src/components/serialization/json-serializer.tsx` — rfc7231 encoding case
+- `src/components/send-operation.tsx` — applyHeaderDateEncoding function + buildHeaderEntries update
+- `test/components/serialization/json-serializer.test.tsx` — 2 new rfc7231 tests
+- `test/components/send-operation.test.tsx` — 2 new header encoding tests
+- `test/scenarios/cases/modelsGenerator/modelsGenerator.md` — 2 updated expectations
+- `test/scenarios/cases/operations/operations.md` — 1 updated expectation (3 header values)
+
+### Test Results
+898 passed | 3 skipped (901 total) — all green (+4 new tests)

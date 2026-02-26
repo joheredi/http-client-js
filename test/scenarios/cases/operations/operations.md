@@ -168,9 +168,15 @@ export function _readSend(
       "optional-csv-array-header": buildCsvCollection(
         options?.optionalCsvArrayHeader,
       ),
-      "utc-date-header": utcDateHeader,
-      "optional-date-header": options?.optionalDateHeader,
-      "nullable-date-header": options?.nullableDateHeader,
+      "utc-date-header": utcDateHeader.toUTCString(),
+      "optional-date-header":
+        options?.optionalDateHeader !== undefined
+          ? (options?.optionalDateHeader).toUTCString()
+          : undefined,
+      "nullable-date-header":
+        options?.nullableDateHeader !== undefined
+          ? (options?.nullableDateHeader).toUTCString()
+          : undefined,
       ...options.requestOptions?.headers,
     },
     body: { prop1: prop1, prop2: prop2 },
