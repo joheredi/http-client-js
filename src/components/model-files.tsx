@@ -27,6 +27,22 @@ import { extractSubEnums, SubEnumDeclarations } from "./sub-enum-declaration.js"
 import { hasXmlSerialization } from "../utils/xml-detection.js";
 
 /**
+ * ESLint disable directives placed at the top of generated model files.
+ *
+ * These directives match the legacy emitter's output and suppress lint rules
+ * that conflict with generated code patterns:
+ * - `@typescript-eslint/naming-convention`: Generated internal models may use
+ *   leading underscores (e.g., `_FooRequest`) which violate default naming rules.
+ * - `@typescript-eslint/explicit-module-boundary-types`: Deserializer functions
+ *   accept `any` for raw JSON input, which triggers this rule.
+ */
+const MODEL_FILE_ESLINT_DIRECTIVES = [
+  "/* eslint-disable @typescript-eslint/naming-convention */",
+  "/* eslint-disable @typescript-eslint/explicit-module-boundary-types */",
+  "",
+].join("\n");
+
+/**
  * Orchestrator component that organizes all type declarations into model source files.
  *
  * This component is the top-level coordinator for Phase 1 type output. It collects
@@ -154,7 +170,7 @@ export function ModelFiles() {
 
   return (
     <SourceDirectory path="models">
-      <SourceFile path="models.ts">
+      <SourceFile path="models.ts" header={MODEL_FILE_ESLINT_DIRECTIVES}>
         <ModelDeclarations models={models} />
         {models.length > 0 && (enums.length > 0 || nullableEnums.length > 0) ? "\n\n" : undefined}
         <EnumDeclarations enums={enums} />

@@ -31,6 +31,9 @@ interface WidgetOperations {
 ## Models
 
 ```ts models
+/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
 import {
   buildCsvCollection,
   buildNewlineCollection,
@@ -107,6 +110,9 @@ interface ContainerOperations {
 ## Models
 
 ```ts models
+/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
 import {
   buildCsvCollection,
   buildPipeCollection,
@@ -210,6 +216,9 @@ experimental-extensible-enums: true
 ## Models
 
 ```ts models
+/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
 import {
   buildCsvCollection,
   buildNewlineCollection,

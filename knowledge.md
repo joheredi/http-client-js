@@ -1581,3 +1581,40 @@ The scenario test harness (`emit-for-scenario.tsx`) now auto-detects Azure flavo
 **Pitfall:** The `\b` word boundary in regex doesn't match before `@` (non-word character). When matching package scope patterns like `@azure-tools/typespec-azure`, don't wrap the entire match in `\b...\b`.
 
 **Pitfall:** When adding `LoggerFile` to Azure flavor, the `getPackageName()` helper extracts the name from `sdkContext.sdkPackage.clients[0].name`. This produces the logger import `import { logger } from "./logger.js"` in client context files, and adds `loggingOptions: { logger: options.loggingOptions?.logger ?? logger.info }` to the client factory.
+
+## Alloy SourceFile `header` prop for file-level comments
+
+**Finding:** To add content at the very top of a generated file (before imports), use the `header` prop on `<SourceFile>`:
+
+```tsx
+<SourceFile path="models.ts" header={MY_HEADER_TEXT}>
+  {/* content */}
+</SourceFile>
+```
+
+The `header` prop accepts `Children` (string, JSX, etc.) and renders it BEFORE any import statements. The `headerComment` prop renders as single-line comments (`//`). Use `header` for block comments (`/* ... */`).
+
+**Gotcha:** There's an extra blank line between the header and the first import/declaration. The output looks like:
+```
+/* eslint-disable ... */
+
+<blank line>
+import { ... }
+```
+
+This means test expectations need TWO blank lines between the header and the first declaration (one from the trailing newline in the header string, one from Alloy's natural separation).
+
+## Flatten property serialization is inline expansion
+
+**Critical finding:** The `@flattenProperty` decorator causes nested model properties to be expanded inline at the parent level in BOTH the TypeScript interface AND the serializer/deserializer. Properties are NOT nested under the original property name on the wire.
+
+Example: If `Test` has `@flattenProperty properties: FooProperties` where FooProperties has `bar` and `baz`, the serializer produces:
+```typescript
+{ result: item["result"], bar: item["bar"], baz: item["baz"] }
+```
+NOT:
+```typescript
+{ result: item["result"], properties: { bar: item["bar"], baz: item["baz"] } }
+```
+
+This applies to both the legacy and new emitter. The PRD task RC30a's description was incorrect about needing nested wire format.

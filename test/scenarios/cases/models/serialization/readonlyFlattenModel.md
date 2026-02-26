@@ -35,6 +35,9 @@ needTCGC: true
 ## Models
 
 ```ts models
+/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
 export interface Solution {
   readonly solutionId?: string;
   readonly title?: string;

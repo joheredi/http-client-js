@@ -39,6 +39,9 @@ withRawContent: true
 Generate as normal enums.
 
 ```ts models
+/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
 /**
  * The available API versions.
  */

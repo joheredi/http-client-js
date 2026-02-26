@@ -13,6 +13,9 @@ op doThing(@header contentType: "multipart/form-data", @multipartBody bodyParam:
 This basic case uses TypeSpec's `Http.File`, which specifies an optional `filename` and `contentType`. Since both are optional, the customer can pass the file's content directly to the `basicFile` property. If the customer wants to specify the filename or content type, they can use the wrapper object.
 
 `````ts models
+/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
 import { createFilePartDescriptor } from "../helpers/multipartHelpers.js";
 import { uint8ArrayToString } from "@typespec/ts-http-runtime";
 
@@ -171,6 +174,9 @@ op doThing(@header contentType: "multipart/form-data", @multipartBody bodyParam:
 The filename must be provided _somehow_. This can either be done by passing a `File` object, which has a required filename property, or by using the wrapper object to pass a `filename` alongside the `contents`.
 
 ````ts models
+/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
 import { createFilePartDescriptor } from "../helpers/multipartHelpers.js";
 import { uint8ArrayToString } from "@typespec/ts-http-runtime";
 
@@ -288,6 +294,9 @@ op doThing(@header contentType: "multipart/form-data", @multipartBody bodyParam:
 ## Models
 
 ````ts models
+/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
 import { createFilePartDescriptor } from "../helpers/multipartHelpers.js";
 import { uint8ArrayToString } from "@typespec/ts-http-runtime";
 
@@ -403,6 +412,9 @@ op doThing(@header contentType: "multipart/form-data", @multipartBody bodyParam:
 Each provided file in the input corresponds to one part in the multipart request.
 
 ````ts models
+/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
 import { createFilePartDescriptor } from "../helpers/multipartHelpers.js";
 import { uint8ArrayToString } from "@typespec/ts-http-runtime";
 

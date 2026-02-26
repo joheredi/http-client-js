@@ -67,6 +67,9 @@ withRawContent: true
 ## Models
 
 ```ts models
+/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
 /**
  * Response for the asset chain summary.
  */

@@ -512,6 +512,9 @@ op read(@path pathParam: string, @query queryParam: string, @body body: {}): OkR
 ## Models
 
 ```ts models
+/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
 export interface _ReadRequest {}
 
 export function _readRequestSerializer(item: _ReadRequest): any {
@@ -829,6 +832,9 @@ op read(): { @body _: {}; };
 ## Models
 
 ```ts models
+/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
 export interface _ReadResponse {}
 
 export function _readResponseDeserializer(item: any): _ReadResponse {
@@ -898,6 +904,9 @@ op read(): {@body _: PublishResult};
 ## Models
 
 ```ts models
+/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
 export interface PublishResult {}
 
 export function publishResultDeserializer(item: any): PublishResult {
@@ -967,6 +976,9 @@ op read(): { foo?: {bar: string | null}};
 ## Models
 
 ```ts models
+/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
 export interface _ReadResponse {
   foo?: _ReadResponseFoo;
 }
@@ -1058,6 +1070,9 @@ op read(): ReturnBody;
 ## Models
 
 ```ts models
+/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
 import { deserializeRecord } from "../helpers/serializationHelpers.js";
 
 export interface ReturnBody {
@@ -1191,6 +1206,9 @@ op read(): Foz;
 ## Models
 
 ```ts models
+/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
 import { deserializeRecord } from "../helpers/serializationHelpers.js";
 
 export interface Foz {

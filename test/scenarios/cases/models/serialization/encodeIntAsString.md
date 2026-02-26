@@ -23,6 +23,9 @@ mustEmptyDiagnostic: false
 Generated Models.
 
 ```ts models
+/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
 export interface Foo {
   prop1: string;
 }

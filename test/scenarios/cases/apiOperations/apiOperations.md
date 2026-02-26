@@ -238,6 +238,9 @@ op uploadFiles(
 ## Models
 
 ```ts models
+/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
 import { createFilePartDescriptor } from "../helpers/multipartHelpers.js";
 
 export interface _UploadFilesRequest {

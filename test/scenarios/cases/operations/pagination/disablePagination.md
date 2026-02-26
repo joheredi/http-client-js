@@ -48,6 +48,9 @@ withRawContent: true
 ## models
 
 ```ts models
+/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
 export interface ListTestResult {
   tests: Test[];
   next: string;

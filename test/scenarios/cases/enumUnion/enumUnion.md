@@ -38,6 +38,9 @@ withRawContent: true
 ## schemaOutput
 
 ```ts models
+/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
 /**
  * Type of SchemaContentTypeValues
  */
@@ -134,6 +137,9 @@ withRawContent: true
 ## schemaOutput
 
 ```ts models
+/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
 /**
  * Type of SchemaContentTypeValues
  */
@@ -181,6 +187,9 @@ withRawContent: true
 ## schemaOutput
 
 ```ts models
+/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
 /**
  * Type of SchemaContentTypeValues
  */
@@ -232,6 +241,9 @@ withRawContent: true
 ## schemaOutput
 
 ```ts models
+/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
 /**
  * Type of SchemaContentTypeValues
  */
@@ -292,6 +304,9 @@ withRawContent: true
 ## schemaOutput
 
 ```ts models
+/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
 /**
  * Type of SchemaContentTypeValues
  */
@@ -346,6 +361,9 @@ withRawContent: true
 ## schemaOutput
 
 ```ts models
+/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
 /**
  * Type of SchemaContentTypeValues
  */
@@ -397,6 +415,9 @@ withRawContent: true
 ## schemaOutput
 
 ```ts models
+/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
 /**
  * Type of SchemaContentTypeValues
  */
@@ -457,6 +478,9 @@ withRawContent: true
 ## schemaOutput
 
 ```ts models
+/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
 /**
  * Type of SchemaContentTypeValues
  */
@@ -508,6 +532,9 @@ needOptions: false
 ## schemaOutput
 
 ```ts models
+/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
 /**
  * Type of GetRequestTestHeader
  */
@@ -606,6 +633,9 @@ experimental-extensible-enums: true
 ## schemaOutput
 
 ```ts models
+/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
 /**
  * Type of GetRequestTestHeader
  */
@@ -738,6 +768,9 @@ withRawContent: true
 ## schemaOutput
 
 ```ts models
+/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
 /**
  * Type of SchemaContentTypeValues
  */
@@ -789,6 +822,9 @@ withRawContent: true
 ## schemaOutput
 
 ```ts models
+/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
 /**
  * Type of SchemaContentTypeValues
  */
@@ -841,6 +877,9 @@ withRawContent: true
 ## schemaOutput
 
 ```ts models
+/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
 /**
  * Type of EnumTest
  */
@@ -899,6 +938,9 @@ mustEmptyDiagnostic: false
 ## schemaOutput
 
 ```ts models
+/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
 export interface Foo {}
 
 /**

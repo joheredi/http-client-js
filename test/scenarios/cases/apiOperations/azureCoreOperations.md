@@ -132,6 +132,9 @@ export async function getWidgetOperationStatus(
 Generate the models
 
 ```ts models
+/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
 /**
  * Provides status details for long running operations.
  */

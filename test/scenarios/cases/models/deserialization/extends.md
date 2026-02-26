@@ -34,6 +34,9 @@ interface D {
 Generated Models.
 
 ```ts models
+/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
 export interface AWidgetData {
   kind: string;
 }
@@ -162,6 +165,9 @@ interface D {
 Generated Models.
 
 ```ts models
+/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
 export interface DiscountTypeProperties {
   discountType: DiscountType;
   discountPercentage?: number;
@@ -320,6 +326,9 @@ mustEmptyDiagnostic: false
 Generated Models.
 
 ```ts models
+/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
 export interface DocumentIngress {
   documentType: DocumentType;
   documentStreamIds?: string[];
@@ -516,6 +525,9 @@ mustEmptyDiagnostic: false
 Generated Models.
 
 ```ts models
+/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
 export interface Animal {
   /**
    * The kind of animal

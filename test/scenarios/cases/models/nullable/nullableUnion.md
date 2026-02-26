@@ -17,6 +17,9 @@ op post(@body body: A): { @body body: A };
 ## Models
 
 ```ts models
+/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
 export interface _PostRequest {
   code?: string;
   message?: string;

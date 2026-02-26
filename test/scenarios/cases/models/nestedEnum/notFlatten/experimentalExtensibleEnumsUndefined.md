@@ -40,6 +40,9 @@ withRawContent: true
 Model generated.
 
 ```ts models
+/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
 /**
  * Type of Foo
  */

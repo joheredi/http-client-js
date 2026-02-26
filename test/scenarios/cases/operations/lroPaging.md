@@ -57,6 +57,9 @@ withRawContent: true
 ## models
 
 ```ts models
+/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
 /**
  * Collection of App Service apps - Page type
  */

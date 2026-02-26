@@ -70,6 +70,9 @@ experimental-extensible-enums: true
 Generated Models.
 
 ```ts models
+/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
 import { deserializeRecord } from "../helpers/serializationHelpers.js";
 
 export interface SimpleModel {

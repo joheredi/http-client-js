@@ -69,6 +69,9 @@ Raw json files.
 Model generated.
 
 ```ts models
+/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
 /**
  * This is a simple model.
  */

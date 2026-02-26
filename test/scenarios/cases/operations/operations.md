@@ -839,6 +839,9 @@ op get(): TestArrayModel;
 ## Models
 
 ```ts models
+/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
 export interface TestArrayModel {
   prop: Test[];
 }
@@ -933,6 +936,9 @@ op get(): TestDictionary;
 ## models
 
 ```ts models
+/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
 import { deserializeRecord } from "../helpers/serializationHelpers.js";
 
 export interface TestDictionary {
@@ -1029,6 +1035,9 @@ op createOrUpdateEndpoint(
 ## models
 
 ```ts models
+/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
 export interface Endpoint {
   name: string;
   description?: string;
@@ -1164,6 +1173,9 @@ withRawContent: true
 ## models
 
 ```ts models
+/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
 export interface ListTestResult {
   tests: Test[];
   next: string;

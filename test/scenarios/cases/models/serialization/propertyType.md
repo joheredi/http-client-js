@@ -89,6 +89,9 @@ interface D {
 Generated Models.
 
 ```ts models
+/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
 import { serializeRecord } from "../helpers/serializationHelpers.js";
 
 export interface SimpleModel {

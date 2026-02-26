@@ -88,6 +88,10 @@ describe("ModelFiles", () => {
 
     expect(template).toRenderTo({
       "models/models.ts": d`
+        /* eslint-disable @typescript-eslint/naming-convention */
+        /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
+
         export interface Widget {
           name: string;
           age: number;
@@ -132,6 +136,10 @@ describe("ModelFiles", () => {
 
     expect(template).toRenderTo({
       "models/models.ts": d`
+        /* eslint-disable @typescript-eslint/naming-convention */
+        /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
+
         /**
          * Type of Color
          */
@@ -173,6 +181,10 @@ describe("ModelFiles", () => {
 
     expect(template).toRenderTo({
       "models/models.ts": d`
+        /* eslint-disable @typescript-eslint/naming-convention */
+        /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
+
         export interface Widget {
           name: string;
           status: Status;
@@ -311,6 +323,10 @@ describe("ModelFiles", () => {
 
     expect(template).toRenderTo({
       "models/models.ts": d`
+        /* eslint-disable @typescript-eslint/naming-convention */
+        /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
+
         /**
          * Alias for MixedType
          */
@@ -351,6 +367,10 @@ describe("ModelFiles", () => {
 
     expect(template).toRenderTo({
       "models/models.ts": d`
+        /* eslint-disable @typescript-eslint/naming-convention */
+        /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
+
         export interface Foo {
           x: string;
         }

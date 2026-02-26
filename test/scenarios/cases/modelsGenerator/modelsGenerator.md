@@ -41,6 +41,9 @@ needTCGC: true
 ## Models
 
 ```ts models
+/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
 export interface Test {
   prop: string;
 }
@@ -99,6 +102,9 @@ withRawContent: true
 ## Models
 
 ```ts models
+/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
 export interface InputOutputModel {
   prop: true;
 }
@@ -158,6 +164,9 @@ withRawContent: true
 ## Models
 
 ```ts models
+/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
 export interface InputOutputModel {
   prop: 1;
 }
@@ -216,6 +225,9 @@ withRawContent: true
 ## Models
 
 ```ts models
+/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
 export interface InputOutputModel {
   prop: "foo";
 }
@@ -281,6 +293,9 @@ withRawContent: true
 ## Models
 
 ```ts models
+/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
 export interface InputOutputModel {
   prop: "English";
 }
@@ -1269,6 +1284,9 @@ op read(): { @body body: Cat | Dog };
 ## Models
 
 ```ts models
+/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
 export interface Cat extends Pet {
   kind: "cat";
   meow: number;
@@ -1334,6 +1352,9 @@ op read(): { @body body: Cat };
 ## Models
 
 ```ts models
+/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
 export interface Cat extends Pet {
   kind: "cat";
   meow: number;
@@ -1426,6 +1447,9 @@ op read(): { @body body: Cat };
 ## Models
 
 ```ts models
+/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
 export interface Cat extends Pet {
   kind: "cat";
   meow: number;
@@ -1530,6 +1554,9 @@ op read(@body body: PSDog): { @body body: PSDog };
 ## Models
 
 ```ts models
+/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
 export interface PsDog extends Pet {
   kind: "dog";
   bark: string;
@@ -1678,6 +1705,9 @@ op read(): { @body body: Pet };
 ## Models
 
 ```ts models
+/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
 export interface Pet {
   kind: string;
   name: string;
@@ -1814,6 +1844,9 @@ op read(): { @body body: Pet };
 ## Models
 
 ```ts models
+/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
 export interface Pet {
   kind: string;
   name: string;
@@ -1970,6 +2003,9 @@ op read(): { @body body: Foo };
 ## Models
 
 ```ts models
+/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
 export interface Foo {
   name: string;
   weight?: number;
@@ -2081,6 +2117,9 @@ needAzureCore: false
 ## Models
 
 ```ts models
+/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
 /**
  * Type of SchemaContentTypeValues
  */
@@ -2178,6 +2217,9 @@ withRawContent: true
 ## Models
 
 ```ts models
+/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
 /**
  * Type of SchemaContentTypeValues
  */
@@ -2223,6 +2265,9 @@ needAzureCore: false
 ## Models
 
 ```ts models
+/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
 /**
  * Type of GetRequestTestHeader
  */
@@ -2393,6 +2438,9 @@ op read(@body body: A): void;
 ## Models
 
 ```ts models
+/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
 export interface A {
   readonly exactVersion?: string;
 }
@@ -2500,6 +2548,9 @@ mustEmptyDiagnostic: true
 ## Models
 
 ```ts models
+/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
 export interface Vegetables {
   carrots: number;
   beans: number;
@@ -2623,6 +2674,9 @@ op createService(@body body: ServiceResourceProperties): ServiceResourceProperti
 ## Models
 
 ```ts models
+/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
 export interface ServiceResourceProperties {
   servicePlacementPolicies?: ServicePlacementPolicyDescription[];
 }
@@ -2744,6 +2798,9 @@ op read(@body body: Client): Client;
 ## Models
 
 ```ts models
+/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
 export interface Client {
   id: string;
   email: string;

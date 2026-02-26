@@ -15,6 +15,9 @@ op test(): { @body body: TestModel };
 ## Models
 
 ```ts models
+/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
 export interface TestModel {
   optionalNullableBoolean?: boolean;
   requiredNullableBoolean: boolean | null;
@@ -55,6 +58,9 @@ ignore-nullable-on-optional: false
 ## Models
 
 ```ts models
+/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
 export interface TestModel {
   optionalNullableBoolean?: boolean | null;
   requiredNullableBoolean: boolean | null;

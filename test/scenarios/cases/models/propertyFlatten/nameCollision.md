@@ -36,6 +36,9 @@ needTCGC: true
 Model generated.
 
 ```ts models
+/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
 export interface Test {
   bar?: string;
   baz: string;
@@ -131,6 +134,9 @@ needTCGC: true
 Model generated.
 
 ```ts models
+/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
 export interface Test {
   result: string;
   bar?: string;
@@ -256,6 +262,9 @@ needTCGC: true
 Model generated.
 
 ```ts models
+/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
 export interface Test {
   result: string;
   bar?: string;
@@ -381,6 +390,9 @@ needTCGC: true
 Model generated.
 
 ```ts models
+/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
 export interface Test {
   result: string;
   name: string;

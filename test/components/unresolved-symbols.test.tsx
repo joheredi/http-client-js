@@ -99,6 +99,10 @@ describe("Unresolved Symbol Prevention", () => {
     // The nullable variant must have a declared enum type, not an unresolved symbol.
     expect(template).toRenderTo({
       "models/models.ts": d`
+        /* eslint-disable @typescript-eslint/naming-convention */
+        /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
+
         export interface TestModel {
           normalUnion: TestModelNormalUnion;
           nullableUnion: TestModelNullableUnion | null;

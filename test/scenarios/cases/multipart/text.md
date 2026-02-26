@@ -14,6 +14,9 @@ op doThing(@header contentType: "multipart/form-data", @multipartBody bodyParam:
 ## Models
 
 ```ts models
+/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
 export interface RequestBody {
   firstName: string;
   lastName: string;
@@ -90,6 +93,9 @@ op doThing(@header contentType: "multipart/form-data", @multipartBody bodyParam:
 If a part is optional, not specifying a value should cause no part to be sent in the request.
 
 ```ts models
+/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
 export interface RequestBody {
   lastName?: string;
 }
@@ -118,6 +124,9 @@ op doThing(@header contentType: "multipart/form-data", @multipartBody bodyParam:
 ## Models
 
 ```ts models
+/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
 export interface RequestBody {
   names: string[];
 }
