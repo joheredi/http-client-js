@@ -3,6 +3,7 @@ import {
   FunctionDeclaration,
   ObjectExpression,
   ObjectProperty,
+  ObjectSpreadProperty,
 } from "@alloy-js/typescript";
 import type {
   SdkModelPropertyType,
@@ -72,6 +73,7 @@ export interface JsonDeserializerProps {
 export function JsonDeserializer(props: JsonDeserializerProps) {
   const { model, refkeyOverride, nameSuffix, includeParentProperties } = props;
   const properties = getDeserializableProperties(model, includeParentProperties);
+  const hasAdditional = model.additionalProperties !== undefined;
 
   return (
     <FunctionDeclaration
@@ -83,6 +85,12 @@ export function JsonDeserializer(props: JsonDeserializerProps) {
     >
       {code`return `}
       <ObjectExpression>
+        {hasAdditional ? (
+          <>
+            <ObjectSpreadProperty value="item" />
+            {properties.length > 0 ? code`, ` : undefined}
+          </>
+        ) : undefined}
         <For each={properties} comma softline enderPunctuation>
           {(prop) => {
             const accessor = `item["${prop.serializedName}"]`;

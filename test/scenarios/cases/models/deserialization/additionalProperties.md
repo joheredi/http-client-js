@@ -38,17 +38,14 @@ Generated Models.
 /**
  * model interface SimpleModel
  */
-export interface SimpleModel {
+export interface SimpleModel extends Record<string, string> {
   propA: string;
   propB: string;
-  /**
-   * Additional properties
-   */
-  additionalProperties?: Record<string, string>;
 }
 
 export function simpleModelDeserializer(item: any): SimpleModel {
   return {
+    ...item,
     propA: item["propA"],
     propB: item["propB"],
   };
@@ -130,61 +127,40 @@ Generated Models.
 /**
  * model interface SimpleModel
  */
-export interface SimpleModel {
+export interface SimpleModel extends Record<string, string> {
   propA: string;
   propB: string;
-  /**
-   * Additional properties
-   */
-  additionalProperties?: Record<string, string>;
 }
 
 /**
  * model interface EmptyModel
  */
-export interface EmptyModel {
-  /**
-   * Additional properties
-   */
-  additionalProperties?: Record<string, string>;
-}
+export interface EmptyModel extends Record<string, string> {}
 
 /**
  * model interface UnionModel
  */
-export interface UnionModel {
+export interface UnionModel extends Record<string, _UnionModelAdditionalProperty> {
   propA: string;
   propB: string;
-  /**
-   * Additional properties
-   */
-  additionalProperties?: Record<string, _UnionModelAdditionalProperty>;
 }
 
 /**
  * model interface NameConflictModel
  */
-export interface NameConflictModel {
+export interface NameConflictModel extends Record<string, any> {
   additionalProperties: Record<string, number>;
   propA: string;
   propB: string;
-  /**
-   * Additional properties
-   */
-  additionalPropertiesBag?: Record<string, string>;
 }
 
 /**
  * model interface ObjectAdditionalPropsModel
  */
-export interface ObjectAdditionalPropsModel {
+export interface ObjectAdditionalPropsModel extends Record<string, any> {
   additionalProperties: _ObjectAdditionalPropsModelAdditionalProperties;
   propA: string;
   propB: string;
-  /**
-   * Additional properties
-   */
-  additionalPropertiesBag?: Record<string, string>;
 }
 
 /**
@@ -199,17 +175,21 @@ export type _UnionModelAdditionalProperty = string | number;
 
 export function simpleModelDeserializer(item: any): SimpleModel {
   return {
+    ...item,
     propA: item["propA"],
     propB: item["propB"],
   };
 }
 
 export function emptyModelDeserializer(item: any): EmptyModel {
-  return {};
+  return {
+    ...item,
+  };
 }
 
 export function unionModelDeserializer(item: any): UnionModel {
   return {
+    ...item,
     propA: item["propA"],
     propB: item["propB"],
   };
@@ -217,6 +197,7 @@ export function unionModelDeserializer(item: any): UnionModel {
 
 export function nameConflictModelDeserializer(item: any): NameConflictModel {
   return {
+    ...item,
     additionalProperties: item["additionalProperties"],
     propA: item["propA"],
     propB: item["propB"],
@@ -227,6 +208,7 @@ export function objectAdditionalPropsModelDeserializer(
   item: any,
 ): ObjectAdditionalPropsModel {
   return {
+    ...item,
     additionalProperties:
       _objectAdditionalPropsModelAdditionalPropertiesDeserializer(
         item["additionalProperties"],

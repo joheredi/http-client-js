@@ -286,7 +286,17 @@ describe("Model Interface", () => {
    * The explicit field approach matches the legacy emitter's output and avoids
    * type conflicts between index signatures and named properties.
    */
-  it("should render explicit additionalProperties field for additionalProperties", async () => {
+  /**
+   * Tests that when a model has `...Record<T>` (additional properties), the
+   * interface uses `extends Record<string, T>` instead of an explicit
+   * `additionalProperties` bag property. This matches the legacy emitter's
+   * compatibility-mode behavior where additional properties are expressed
+   * via the extends clause.
+   *
+   * When all named property types are compatible with the Record value type,
+   * the specific type is used (here: `string` since all props are string).
+   */
+  it("should extend Record<string, T> for models with additional properties", async () => {
     const { program } = await runner.compile(
       t.code`
         model ${t.model("Metadata")} {
@@ -311,12 +321,8 @@ describe("Model Interface", () => {
       /**
        * model interface Metadata
        */
-      export interface Metadata {
+      export interface Metadata extends Record<string, string> {
         name: string;
-        /**
-         * Additional properties
-         */
-        additionalProperties?: Record<string, string>
       }
     `);
   });
@@ -324,10 +330,13 @@ describe("Model Interface", () => {
   /**
    * Tests that when a model has BOTH `...Record<T>` (additional properties)
    * and an explicitly declared property named `additionalProperties`, the
-   * additional properties bag is renamed to `additionalPropertiesBag` to
-   * avoid a name collision. This matches the legacy emitter's behavior.
+   * interface uses `extends Record<string, any>` (since the named property type
+   * Record<string, number> is not compatible with the additional properties
+   * type string) and the `additionalProperties` property is kept as a regular
+   * member. No renaming to `additionalPropertiesBag` is needed with the
+   * extends Record approach.
    */
-  it("should use additionalPropertiesBag when name conflict exists", async () => {
+  it("should use extends Record<string, any> when name conflict exists", async () => {
     const { program } = await runner.compile(
       t.code`
         model ${t.model("Metadata")} {
@@ -353,13 +362,9 @@ describe("Model Interface", () => {
       /**
        * model interface Metadata
        */
-      export interface Metadata {
+      export interface Metadata extends Record<string, any> {
         additionalProperties: Record<string, number>;
         name: string;
-        /**
-         * Additional properties
-         */
-        additionalPropertiesBag?: Record<string, string>
       }
     `);
   });

@@ -2667,13 +2667,9 @@ compatibility-mode: true
 ## Model interface Vegetables
 
 ```ts models interface Vegetables
-export interface Vegetables {
+export interface Vegetables extends Record<string, _VegetablesAdditionalProperty> {
   carrots: number;
   beans: number;
-  /**
-   * Additional properties
-   */
-  additionalProperties?: Record<string, _VegetablesAdditionalProperty>;
 }
 ```
 
@@ -2682,12 +2678,9 @@ export interface Vegetables {
 ```ts models function vegetablesSerializer
 export function vegetablesSerializer(item: Vegetables): any {
   return {
+    ...item,
     carrots: item["carrots"],
     beans: item["beans"],
-    ...serializeRecord(
-      item["additionalProperties"] ?? ({} as any),
-      (v: any) => v,
-    ),
   };
 }
 ```
@@ -2721,18 +2714,12 @@ mustEmptyDiagnostic: true
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import { serializeRecord } from "../helpers/serializationHelpers.js";
-
 /**
  * model interface Vegetables
  */
-export interface Vegetables {
+export interface Vegetables extends Record<string, _VegetablesAdditionalProperty> {
   carrots: number;
   beans: number;
-  /**
-   * Additional properties
-   */
-  additionalProperties?: Record<string, _VegetablesAdditionalProperty>;
 }
 
 /**
@@ -2742,17 +2729,15 @@ export type _VegetablesAdditionalProperty = number | string;
 
 export function vegetablesSerializer(item: Vegetables): any {
   return {
+    ...item,
     carrots: item["carrots"],
     beans: item["beans"],
-    ...serializeRecord(
-      item["additionalProperties"] ?? ({} as any),
-      (v: any) => v,
-    ),
   };
 }
 
 export function vegetablesDeserializer(item: any): Vegetables {
   return {
+    ...item,
     carrots: item["carrots"],
     beans: item["beans"],
   };
@@ -2789,12 +2774,8 @@ compatibility-mode: true
 ## Model interface A
 
 ```ts models interface A
-export interface A extends Base {
+export interface A extends Base, Record<string, number> {
   prop: number;
-  /**
-   * Additional properties
-   */
-  additionalProperties?: Record<string, number>;
 }
 ```
 
@@ -2803,9 +2784,9 @@ export interface A extends Base {
 ```ts models function aSerializer
 export function aSerializer(item: A): any {
   return {
+    ...item,
     foo: item["foo"],
     prop: item["prop"],
-    ...(item["additionalProperties"] ?? {}),
   };
 }
 ```

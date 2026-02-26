@@ -909,11 +909,12 @@ describe("JsonSerializer", () => {
 
   /**
    * Tests that models with `...Record<T>` additional properties produce
-   * a serializer that spreads the `additionalProperties` field into the
-   * output. This verifies the explicit field approach works correctly with
-   * the serializer's spread pattern.
+   * a serializer that spreads `...item` FIRST in the return object to capture
+   * all additional properties, then overrides known properties with their
+   * serialized versions. This matches the legacy compatibility-mode pattern
+   * where `extends Record<string, T>` is used on the interface.
    */
-  it("should spread additionalProperties field in serializer", async () => {
+  it("should spread item in serializer for models with additional properties", async () => {
     const runner = await TesterWithService.createInstance();
     const { program } = await runner.compile(
       t.code`
@@ -941,17 +942,17 @@ describe("JsonSerializer", () => {
     );
 
     const result = renderToString(template);
-    expect(result).toContain(`...(item["additionalProperties"] ?? {})`);
+    expect(result).toContain(`...item`);
     expect(result).toContain(`item: Metadata`);
   });
 
   /**
-   * Tests that models with a name conflict on `additionalProperties` use
-   * `additionalPropertiesBag` in the serializer spread. When the model has
-   * an explicit property named `additionalProperties`, the bag for extra
-   * properties must use a different name to avoid collision.
+   * Tests that models with a name conflict on `additionalProperties` still
+   * use `...item` spread in the serializer (the extends Record<string, any>
+   * pattern). The named `additionalProperties` property is serialized as a
+   * normal property, while additional properties are captured by the spread.
    */
-  it("should use additionalPropertiesBag in serializer when name conflict exists", async () => {
+  it("should spread item in serializer when name conflict on additionalProperties exists", async () => {
     const runner = await TesterWithService.createInstance();
     const { program } = await runner.compile(
       t.code`
@@ -980,7 +981,7 @@ describe("JsonSerializer", () => {
     );
 
     const result = renderToString(template);
-    expect(result).toContain(`...(item["additionalPropertiesBag"] ?? {})`);
+    expect(result).toContain(`...item`);
     expect(result).toContain(`additionalProperties: item["additionalProperties"]`);
   });
 

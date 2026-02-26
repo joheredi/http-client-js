@@ -1,4 +1,4 @@
-# Should generate serializer for additional properties with `additionalProperties` property for legacy code
+# Should generate serializer for additional properties with `extends Record` for legacy code
 
 ## TypeSpec
 
@@ -44,29 +44,22 @@ Generated Models.
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import { serializeRecord } from "../helpers/serializationHelpers.js";
-
 /**
  * model interface SimpleModel
  */
-export interface SimpleModel {
+export interface SimpleModel extends Record<
+  string,
+  _SimpleModelAdditionalProperty
+> {
   propA: string;
   propB: string;
-  /**
-   * Additional properties
-   */
-  additionalProperties?: Record<string, _SimpleModelAdditionalProperty>;
 }
 
 /**
  * model interface ComplexModel
  */
-export interface ComplexModel {
+export interface ComplexModel extends Record<string, SimpleModel> {
   propA: SimpleModel;
-  /**
-   * Additional properties
-   */
-  additionalProperties?: Record<string, SimpleModel>;
 }
 
 /**
@@ -76,18 +69,16 @@ export type _SimpleModelAdditionalProperty = number | string;
 
 export function simpleModelSerializer(item: SimpleModel): any {
   return {
+    ...item,
     propA: item["propA"],
     propB: item["propB"],
-    ...(item["additionalProperties"] ?? {}),
   };
 }
 
 export function complexModelSerializer(item: ComplexModel): any {
   return {
+    ...item,
     propA: simpleModelSerializer(item["propA"]),
-    ...serializeRecord(item["additionalProperties"] ?? ({} as any), (v: any) =>
-      simpleModelSerializer(v),
-    ),
   };
 }
 ```
@@ -147,7 +138,7 @@ export function simpleModelSerializer(item: SimpleModel): any {
 }
 ```
 
-# Should generate `additionalProperties` bag for non-legacy code if additional property is the same type
+# Should generate `extends Record` for non-legacy code if additional property is the same type
 
 ## TypeSpec
 
@@ -192,45 +183,33 @@ Generated Models.
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import { serializeRecord } from "../helpers/serializationHelpers.js";
-
 /**
  * model interface SimpleModel
  */
-export interface SimpleModel {
+export interface SimpleModel extends Record<string, string> {
   propA: string;
   propB: string;
-  /**
-   * Additional properties
-   */
-  additionalProperties?: Record<string, string>;
 }
 
 /**
  * model interface ComplexModel
  */
-export interface ComplexModel {
+export interface ComplexModel extends Record<string, SimpleModel> {
   propA: SimpleModel;
-  /**
-   * Additional properties
-   */
-  additionalProperties?: Record<string, SimpleModel>;
 }
 
 export function simpleModelSerializer(item: SimpleModel): any {
   return {
+    ...item,
     propA: item["propA"],
     propB: item["propB"],
-    ...(item["additionalProperties"] ?? {}),
   };
 }
 
 export function complexModelSerializer(item: ComplexModel): any {
   return {
+    ...item,
     propA: simpleModelSerializer(item["propA"]),
-    ...serializeRecord(item["additionalProperties"] ?? ({} as any), (v: any) =>
-      simpleModelSerializer(v),
-    ),
   };
 }
 ```
@@ -301,7 +280,7 @@ export function complexModelSerializer(item: ComplexModel): any {
 }
 ```
 
-# Should generate union `additionalProperties` bag for non-legacy code if multiple additional properties
+# Should generate union `extends Record` for non-legacy code if multiple additional properties
 
 ## TypeSpec
 
@@ -343,13 +322,9 @@ Generated Models.
 /**
  * model interface SimpleModel
  */
-export interface SimpleModel {
+export interface SimpleModel extends Record<string, _SimpleModelAdditionalProperty> {
   propA: string;
   propB: string;
-  /**
-   * Additional properties
-   */
-  additionalProperties?: Record<string, _SimpleModelAdditionalProperty>;
 }
 
 /**
@@ -359,14 +334,14 @@ export type _SimpleModelAdditionalProperty = string | number | boolean;
 
 export function simpleModelSerializer(item: SimpleModel): any {
   return {
+    ...item,
     propA: item["propA"],
     propB: item["propB"],
-    ...(item["additionalProperties"] ?? {}),
   };
 }
 ```
 
-# Should generate `additionalProperties` bag if we have another same name property as `additionalProperties`
+# Should generate `extends Record` if we have another same name property as `additionalProperties`
 
 ## TypeSpec
 
@@ -421,26 +396,18 @@ Generated Models.
 /**
  * model interface SimpleModel
  */
-export interface SimpleModel {
+export interface SimpleModel extends Record<string, any> {
   additionalProperties: Record<string, number>;
   propA: string;
   propB: string;
-  /**
-   * Additional properties
-   */
-  additionalPropertiesBag?: Record<string, string>;
 }
 
 /**
  * model interface FooModel
  */
-export interface FooModel extends BarModel {
+export interface FooModel extends BarModel, Record<string, any> {
   propA: string;
   propB: string;
-  /**
-   * Additional properties
-   */
-  additionalProperties?: Record<string, string>;
 }
 
 /**
@@ -452,19 +419,19 @@ export interface BarModel {
 
 export function simpleModelSerializer(item: SimpleModel): any {
   return {
+    ...item,
     additionalProperties: item["additionalProperties"],
     propA: item["propA"],
     propB: item["propB"],
-    ...(item["additionalPropertiesBag"] ?? {}),
   };
 }
 
 export function fooModelSerializer(item: FooModel): any {
   return {
+    ...item,
     additionalProperties: item["additionalProperties"],
     propA: item["propA"],
     propB: item["propB"],
-    ...(item["additionalProperties"] ?? {}),
   };
 }
 

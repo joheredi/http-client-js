@@ -1378,7 +1378,7 @@
       "title": "Additional Properties: extends Record<string, T> vs Explicit additionalProperties Property",
       "category": "scenario-audit/Models",
       "priority": "P0-CRITICAL",
-      "status": "not-started",
+      "status": "done",
       "description": "The new emitter models additional properties as an explicit additionalProperties property. Legacy has the interface extend Record<string, T>. The legacy pattern (extends Record) is the expected output.",
       "legacy_behavior": "interface SpreadModel extends Record<string, unknown> { knownProp: string; }",
       "new_behavior": "interface SpreadModel { knownProp: string; additionalProperties?: Record<string, unknown>; }",

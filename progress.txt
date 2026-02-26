@@ -533,3 +533,35 @@ This was the last remaining pending task (SA27) in the PRD. All implementation p
 - `getBaseTypeKind()` helper unwraps nullable, enum, and constant types to their base scalar kind
 - `isNumericTypeKind()` covers all TCGC numeric scalar kinds (int32, int64, float32, float64, decimal, safeint, uint*, int*, etc.)
 - The `applyClientDefault` function is only called for `SdkMethodParameter` (not property types) — spread body properties find their method param before applying defaults
+
+---
+
+## 2026-02-26 — SA-C23: Additional Properties: extends Record<string, T> (done)
+
+### What was done
+- Changed model interface generation from explicit `additionalProperties?: Record<string, T>` property to `extends Record<string, T>` in the extends clause
+- Changed serializer pattern from `...(item["additionalProperties"] ?? {})` at end to `...item` at beginning (spread entire object, then override known properties)
+- Changed deserializer pattern to include `...item` spread at beginning to capture all response properties including additional ones
+- Implemented type compatibility check: when all named property types are compatible with the additional properties type, uses the specific type; otherwise falls back to `any` to satisfy TypeScript's index-signature constraint
+
+### Key decisions
+- Removed `AdditionalPropertiesMember` component and `getAdditionalPropertiesFieldName` export (no longer needed)
+- Removed `getAdditionalPropertiesSpread` from serializer (replaced by simple `...item` spread)
+- Type compatibility uses heuristic string-based check matching legacy emitter: `getTypeScriptTypeName()` maps SdkType to TS type name, then checks if additional properties type string `.includes()` each property type string
+- When both `baseModel` and `additionalProperties` exist, extends clause has both: `extends BaseModel, Record<string, T>`
+- For union additional properties types (e.g., `...Record<int32>; ...Record<string>;`), the type alias refkey is used in the extends clause, which Alloy may wrap to multiple lines
+
+### Files changed
+- `src/components/model-interface.tsx` — Replaced `AdditionalPropertiesMember` + `getAdditionalPropertiesFieldName` with `getAdditionalPropertiesRecordType`, `arePropertyTypesCompatibleWithRecord`, `getTypeScriptTypeName`, `collectAllModelProperties`. Updated `getExtendsClause` to handle both base model and Record extends.
+- `src/components/serialization/json-serializer.tsx` — Changed to `...item` spread first, removed `getAdditionalPropertiesSpread` and import of `getAdditionalPropertiesFieldName`
+- `src/components/serialization/json-deserializer.tsx` — Added `...item` spread support via `ObjectSpreadProperty`
+- `test/components/model-interface.test.tsx` — Updated 2 unit tests
+- `test/components/serialization/json-serializer.test.tsx` — Updated 2 unit tests
+- `test/scenarios/cases/models/serialization/additionalProperties.md` — Updated all expected outputs
+- `test/scenarios/cases/models/deserialization/additionalProperties.md` — Updated all expected outputs
+- `test/scenarios/cases/modelsGenerator/modelsGenerator.md` — Updated 3 additional properties scenarios
+
+### Note for next contributor
+- `getTypeScriptTypeName()` handles scalars, models (by name), enums (by name), arrays, dicts, and unions. Returns null for unrecognized types → falls back to `any` in Record extends.
+- The `...item` serializer pattern does NOT individually serialize additional property values (model-typed values are spread as-is). Only known properties get explicit serialization. This matches legacy compatibility-mode behavior.
+- `ObjectSpreadProperty` from `@alloy-js/typescript` is used for `...item` spread in both serializer and deserializer. The comma between spread and subsequent properties is handled by explicit `code\`, \`` insertion.

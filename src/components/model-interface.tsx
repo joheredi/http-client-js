@@ -6,6 +6,7 @@ import {
 import type {
   SdkModelPropertyType,
   SdkModelType,
+  SdkType,
 } from "@azure-tools/typespec-client-generator-core";
 import { Visibility } from "@typespec/http";
 import { getModelName } from "../utils/model-name.js";
@@ -35,8 +36,10 @@ export interface ModelInterfaceProps {
  * - Base model inheritance produces an `extends BaseModel` clause via refkey.
  * - Discriminator properties on subtypes use the literal `discriminatorValue`
  *   as their type instead of the general discriminator type.
- * - `additionalProperties` on the model becomes an index signature member
- *   (`[key: string]: T`).
+ * - `additionalProperties` on the model adds `Record<string, T>` to the
+ *   `extends` clause. When named property types are compatible with `T`, the
+ *   specific type is used; otherwise `any` is used to satisfy TypeScript's
+ *   index-signature constraint.
  * - Flattened properties (property with `flatten: true` and a model type)
  *   are expanded inline — their nested model's properties become direct
  *   members of this interface.
@@ -64,10 +67,6 @@ export function ModelInterface(props: ModelInterfaceProps) {
       <For each={properties} semicolon hardline enderPunctuation>
         {(prop) => <ModelPropertyMember property={prop} model={model} />}
       </For>
-      {model.additionalProperties ? <>
-        {properties.length > 0 ? "\n" : ""}
-        <AdditionalPropertiesMember model={model} />
-      </> : undefined}
     </InterfaceDeclaration>
   );
 }
@@ -115,80 +114,182 @@ function ModelPropertyMember(props: ModelPropertyMemberProps) {
 }
 
 /**
- * Renders an explicit `additionalProperties` field for models with additional properties.
- *
- * When a TCGC model has `additionalProperties` set, it means the model
- * accepts extra key-value pairs beyond its declared properties. This is
- * rendered as an explicit optional property:
- * ```typescript
- * additionalProperties?: Record<string, T>
- * ```
- *
- * This matches the legacy emitter's non-compatibility-mode output where
- * additional properties are collected in an explicit bag rather than using
- * a TypeScript index signature (`[key: string]: T`). The explicit field
- * approach is preferred because:
- * 1. It avoids type conflicts between index signatures and named properties
- * 2. It clearly communicates the extra-properties concept to SDK consumers
- * 3. It works correctly with the serializer's `item["additionalProperties"]` access
- *
- * If the model already has a property named `additionalProperties`, the field
- * is renamed to `additionalPropertiesBag` to avoid conflicts.
- *
- * @param props - Component props containing the model with additionalProperties.
- * @returns An Alloy JSX `<InterfaceMember>` for the explicit field, or undefined.
- */
-function AdditionalPropertiesMember(props: { model: SdkModelType }) {
-  const { model } = props;
-  if (!model.additionalProperties) return undefined;
-
-  const valueType = getTypeExpression(model.additionalProperties);
-  const fieldName = getAdditionalPropertiesFieldName(model);
-
-  return (
-    <InterfaceMember
-      name={fieldName}
-      type={code`Record<string, ${valueType}>`}
-      optional
-      doc="Additional properties"
-    />
-  );
-}
-
-/**
- * Determines the field name for the additional properties bag on a model.
- *
- * Returns `"additionalProperties"` by default. If the model already has an
- * explicitly declared property named `"additionalProperties"`, returns
- * `"additionalPropertiesBag"` to avoid name collisions.
- *
- * This mirrors the legacy emitter's `getAdditionalPropertiesName()` logic.
- *
- * @param model - The TCGC model type to check for name conflicts.
- * @returns The field name to use for the additional properties bag.
- */
-export function getAdditionalPropertiesFieldName(model: SdkModelType): string {
-  const hasConflict = model.properties.some(
-    (p) => p.name === "additionalProperties",
-  );
-  return hasConflict ? "additionalPropertiesBag" : "additionalProperties";
-}
-
-/**
  * Builds the `extends` clause for a model interface.
  *
- * When the model has a `baseModel`, this returns a refkey reference to the
- * base model's type declaration. Alloy resolves this refkey to the base model's
- * name and auto-generates imports if the base is in a different file.
+ * Produces extends entries for two scenarios:
+ * 1. When the model has a `baseModel` (type inheritance): adds a refkey reference
+ *    to the base model's type declaration.
+ * 2. When the model has `additionalProperties`: adds `Record<string, T>` where T
+ *    is the additional properties type (or `any` if named property types are not
+ *    compatible with T, to satisfy TypeScript's index-signature constraint).
+ *
+ * Both can be combined: `extends BaseModel, Record<string, T>`.
  *
  * @param model - The TCGC model type to inspect for inheritance.
- * @returns Alloy Children for the extends clause, or undefined if no base model.
+ * @returns Alloy Children for the extends clause, or undefined if no extends needed.
  */
 function getExtendsClause(model: SdkModelType): Children | undefined {
-  if (!model.baseModel) {
-    return undefined;
+  const hasBase = !!model.baseModel;
+  const hasAdditional = !!model.additionalProperties;
+
+  if (!hasBase && !hasAdditional) return undefined;
+
+  if (hasBase && hasAdditional) {
+    const recordExpr = getAdditionalPropertiesRecordType(model);
+    return code`${typeRefkey(model.baseModel!)}, ${recordExpr}`;
   }
-  return code`${typeRefkey(model.baseModel)}`;
+
+  if (hasBase) {
+    return code`${typeRefkey(model.baseModel!)}`;
+  }
+
+  return getAdditionalPropertiesRecordType(model);
+}
+
+/**
+ * Builds the `Record<string, T>` type expression for the extends clause when
+ * a model has additional properties.
+ *
+ * Determines the Record value type by checking whether all named property types
+ * (own + inherited) are compatible with the additional properties type. When
+ * compatible, uses the specific type; otherwise falls back to `any` so the
+ * interface satisfies TypeScript's index-signature constraint.
+ *
+ * This matches the legacy emitter's `addExtendedDictInfo()` compatibility-mode
+ * behavior where `extends Record<string, T>` is used instead of an explicit
+ * `additionalProperties` bag property.
+ *
+ * @param model - The TCGC model type with additional properties.
+ * @returns Alloy Children representing the `Record<string, T>` extends entry.
+ */
+function getAdditionalPropertiesRecordType(model: SdkModelType): Children {
+  const apType = model.additionalProperties!;
+  const allProps = collectAllModelProperties(model);
+
+  if (allProps.length === 0) {
+    const apTypeExpr = getTypeExpression(apType);
+    return code`Record<string, ${apTypeExpr}>`;
+  }
+
+  const isCompatible = arePropertyTypesCompatibleWithRecord(allProps, apType);
+
+  if (isCompatible) {
+    const apTypeExpr = getTypeExpression(apType);
+    return code`Record<string, ${apTypeExpr}>`;
+  }
+
+  return code`Record<string, any>`;
+}
+
+/**
+ * Checks whether all named property types are compatible with the additional
+ * properties type for use in an `extends Record<string, T>` clause.
+ *
+ * TypeScript requires that all named property types are assignable to the
+ * index-signature type when using `extends Record<string, T>`. This function
+ * performs a heuristic string-based check: it compares the TypeScript output
+ * type string of each property with the additional properties type string.
+ *
+ * This matches the legacy emitter's compatibility check which uses
+ * `additionalPropertiesType.includes(getTypeExpression(prop.type))`.
+ *
+ * @param properties - All named properties (own + inherited) of the model.
+ * @param apType - The TCGC additional properties type.
+ * @returns `true` if all property types are compatible with the Record type.
+ */
+function arePropertyTypesCompatibleWithRecord(
+  properties: SdkModelPropertyType[],
+  apType: SdkType,
+): boolean {
+  const apTypeStr = getTypeScriptTypeName(apType);
+  if (apTypeStr === null) return false;
+
+  return properties.every((p) => {
+    const propTypeStr = getTypeScriptTypeName(p.type);
+    return propTypeStr !== null && apTypeStr.includes(propTypeStr);
+  });
+}
+
+/**
+ * Returns a simple TypeScript type name string for an SdkType, used for
+ * compatibility checking between property types and additional properties type.
+ *
+ * Returns `null` for complex types that cannot be represented as a simple string
+ * (e.g., deeply nested generics), causing the compatibility check to fall back
+ * to `any`.
+ *
+ * @param type - The TCGC type to get a TypeScript name for.
+ * @returns A TypeScript type name string, or null for complex types.
+ */
+function getTypeScriptTypeName(type: SdkType): string | null {
+  switch (type.kind) {
+    case "string":
+      return "string";
+    case "int8":
+    case "int16":
+    case "int32":
+    case "int64":
+    case "uint8":
+    case "uint16":
+    case "uint32":
+    case "uint64":
+    case "float32":
+    case "float64":
+    case "decimal":
+    case "decimal128":
+    case "safeint":
+      return "number";
+    case "boolean":
+      return "boolean";
+    case "nullable":
+      return getTypeScriptTypeName(type.type);
+    case "model":
+      return type.name;
+    case "enum":
+      return type.name;
+    case "array": {
+      const elem = getTypeScriptTypeName(type.valueType);
+      return elem ? `${elem}[]` : null;
+    }
+    case "dict": {
+      const val = getTypeScriptTypeName(type.valueType);
+      return val ? `Record<string, ${val}>` : null;
+    }
+    case "union": {
+      if (!type.variantTypes) return null;
+      const parts = type.variantTypes.map((v) => getTypeScriptTypeName(v));
+      if (parts.some((p) => p === null)) return null;
+      return [...new Set(parts)].join(" | ");
+    }
+    default:
+      return null;
+  }
+}
+
+/**
+ * Collects all named properties from a model, including inherited properties
+ * from ancestor models.
+ *
+ * Walks the `baseModel` chain upward to gather ancestor properties, then
+ * includes the model's own properties. Used for the extends Record<string, T>
+ * compatibility check, which must consider all properties the interface will have.
+ *
+ * @param model - The TCGC model type to collect properties from.
+ * @returns An array of all named properties (ancestors first, then own).
+ */
+function collectAllModelProperties(
+  model: SdkModelType,
+): SdkModelPropertyType[] {
+  const result: SdkModelPropertyType[] = [];
+
+  let current = model.baseModel;
+  while (current) {
+    result.push(...current.properties);
+    current = current.baseModel;
+  }
+
+  result.push(...model.properties);
+  return result;
 }
 
 /**
