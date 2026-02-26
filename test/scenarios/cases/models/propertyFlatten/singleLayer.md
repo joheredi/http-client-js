@@ -89,14 +89,7 @@ export enum KnownVersions {
 export function testSerializer(item: Test): any {
   return {
     result: item["result"],
-    bar: !item["bar"]
-      ? item["bar"]
-      : item["bar"].map((p: any) => {
-          return aSerializer(p);
-        }),
-    baz: item["baz"].map((p: any) => {
-      return aSerializer(p);
-    }),
+    properties: _testPropertiesSerializer(item),
   };
 }
 
@@ -122,14 +115,7 @@ export function aSerializer(item: A): any {
 export function testDeserializer(item: any): Test {
   return {
     result: item["result"],
-    bar: !item["bar"]
-      ? item["bar"]
-      : item["bar"].map((p: any) => {
-          return aDeserializer(p);
-        }),
-    baz: item["baz"].map((p: any) => {
-      return aDeserializer(p);
-    }),
+    ..._testPropertiesDeserializer(item["properties"]),
   };
 }
 
@@ -149,6 +135,32 @@ export function fooPropertiesDeserializer(item: any): FooProperties {
 export function aDeserializer(item: any): A {
   return {
     x: item["x"],
+  };
+}
+
+export function _testPropertiesSerializer(item: Test): any {
+  return {
+    bar: !item["bar"]
+      ? item["bar"]
+      : item["bar"].map((p: any) => {
+          return aSerializer(p);
+        }),
+    baz: item["baz"].map((p: any) => {
+      return aSerializer(p);
+    }),
+  };
+}
+
+export function _testPropertiesDeserializer(item: any) {
+  return {
+    bar: !item["bar"]
+      ? item["bar"]
+      : item["bar"].map((p: any) => {
+          return aDeserializer(p);
+        }),
+    baz: item["baz"].map((p: any) => {
+      return aDeserializer(p);
+    }),
   };
 }
 ```
@@ -200,6 +212,8 @@ Model generated.
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
+import { areAllPropsUndefined } from "../helpers/serializationHelpers.js";
+
 /**
  * model interface Test
  */
@@ -244,16 +258,9 @@ export enum KnownVersions {
 export function testSerializer(item: Test): any {
   return {
     result: item["result"],
-    bar: !item["bar"]
-      ? item["bar"]
-      : item["bar"].map((p: any) => {
-          return aSerializer(p);
-        }),
-    baz: !item["baz"]
-      ? item["baz"]
-      : item["baz"].map((p: any) => {
-          return aSerializer(p);
-        }),
+    properties: areAllPropsUndefined(item, ["bar", "baz"])
+      ? undefined
+      : _testPropertiesSerializer(item),
   };
 }
 
@@ -279,16 +286,9 @@ export function aSerializer(item: A): any {
 export function testDeserializer(item: any): Test {
   return {
     result: item["result"],
-    bar: !item["bar"]
-      ? item["bar"]
-      : item["bar"].map((p: any) => {
-          return aDeserializer(p);
-        }),
-    baz: !item["baz"]
-      ? item["baz"]
-      : item["baz"].map((p: any) => {
-          return aDeserializer(p);
-        }),
+    ...(!item["properties"]
+      ? item["properties"]
+      : _testPropertiesDeserializer(item["properties"])),
   };
 }
 
@@ -308,6 +308,36 @@ export function fooPropertiesDeserializer(item: any): FooProperties {
 export function aDeserializer(item: any): A {
   return {
     x: item["x"],
+  };
+}
+
+export function _testPropertiesSerializer(item: Test): any {
+  return {
+    bar: !item["bar"]
+      ? item["bar"]
+      : item["bar"].map((p: any) => {
+          return aSerializer(p);
+        }),
+    baz: !item["baz"]
+      ? item["baz"]
+      : item["baz"].map((p: any) => {
+          return aSerializer(p);
+        }),
+  };
+}
+
+export function _testPropertiesDeserializer(item: any) {
+  return {
+    bar: !item["bar"]
+      ? item["bar"]
+      : item["bar"].map((p: any) => {
+          return aDeserializer(p);
+        }),
+    baz: !item["baz"]
+      ? item["baz"]
+      : item["baz"].map((p: any) => {
+          return aDeserializer(p);
+        }),
   };
 }
 ```
@@ -409,12 +439,18 @@ export function testSerializer(item: Test): any {
 
 export function testFooSerializer(item: TestFoo): any {
   return {
+    properties: _testFooPropertiesSerializer(item),
+  };
+}
+
+export function fooPropertiesSerializer(item: FooProperties): any {
+  return {
     bar: item["bar"],
     baz: item["baz"],
   };
 }
 
-export function fooPropertiesSerializer(item: FooProperties): any {
+export function _testFooPropertiesSerializer(item: TestFoo): any {
   return {
     bar: item["bar"],
     baz: item["baz"],
@@ -473,6 +509,8 @@ Model generated.
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
+import { areAllPropsUndefined } from "../helpers/serializationHelpers.js";
+
 /**
  * model interface Test
  */
@@ -518,8 +556,9 @@ export enum KnownVersions {
 export function testSerializer(item: Test): any {
   return {
     result: item["result"],
-    bar: item["bar"],
-    baz: item["baz"],
+    properties: areAllPropsUndefined(item, ["readOnlyProp", "bar", "baz"])
+      ? undefined
+      : _testPropertiesSerializer(item),
   };
 }
 
@@ -541,8 +580,9 @@ export function bazSerializer(item: Baz): any {
 export function testDeserializer(item: any): Test {
   return {
     result: item["result"],
-    bar: item["bar"],
-    baz: item["baz"],
+    ...(!item["properties"]
+      ? item["properties"]
+      : _testPropertiesDeserializer(item["properties"])),
   };
 }
 
@@ -557,6 +597,22 @@ export function fooPropertiesDeserializer(item: any): FooProperties {
 export function bazDeserializer(item: any): Baz {
   return {
     readOnlyProp: item["readOnlyProp"],
+    baz: item["baz"],
+  };
+}
+
+export function _testPropertiesSerializer(item: Test): any {
+  return {
+    readOnlyProp: item["readOnlyProp"],
+    bar: item["bar"],
+    baz: item["baz"],
+  };
+}
+
+export function _testPropertiesDeserializer(item: any) {
+  return {
+    readOnlyProp: item["readOnlyProp"],
+    bar: item["bar"],
     baz: item["baz"],
   };
 }
@@ -621,6 +677,8 @@ Model generated.
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
+import { areAllPropsUndefined } from "../helpers/serializationHelpers.js";
+
 /**
  * model interface Test
  */
@@ -676,10 +734,10 @@ export enum KnownVersions {
 export function testSerializer(item: Test): any {
   return {
     result: item["result"],
-    bar: item["bar"],
-    baz: item["baz"],
-    id: item["id"],
-    location: item["location"],
+    properties: areAllPropsUndefined(item, ["readOnlyProp", "bar", "baz"])
+      ? undefined
+      : _testPropertiesSerializer(item),
+    identifiers: _testIdentifiersSerializer(item),
   };
 }
 
@@ -708,10 +766,10 @@ export function testIdentifiersSerializer(item: TestIdentifiers): any {
 export function testDeserializer(item: any): Test {
   return {
     result: item["result"],
-    bar: item["bar"],
-    baz: item["baz"],
-    id: item["id"],
-    location: item["location"],
+    ...(!item["properties"]
+      ? item["properties"]
+      : _testPropertiesDeserializer(item["properties"])),
+    ..._testIdentifiersDeserializer(item["identifiers"]),
   };
 }
 
@@ -731,6 +789,36 @@ export function bazDeserializer(item: any): Baz {
 }
 
 export function testIdentifiersDeserializer(item: any): TestIdentifiers {
+  return {
+    id: item["id"],
+    location: item["location"],
+  };
+}
+
+export function _testPropertiesSerializer(item: Test): any {
+  return {
+    readOnlyProp: item["readOnlyProp"],
+    bar: item["bar"],
+    baz: item["baz"],
+  };
+}
+
+export function _testPropertiesDeserializer(item: any) {
+  return {
+    readOnlyProp: item["readOnlyProp"],
+    bar: item["bar"],
+    baz: item["baz"],
+  };
+}
+
+export function _testIdentifiersSerializer(item: Test): any {
+  return {
+    id: item["id"],
+    location: item["location"],
+  };
+}
+
+export function _testIdentifiersDeserializer(item: any) {
   return {
     id: item["id"],
     location: item["location"],
@@ -826,8 +914,7 @@ export function testSerializer(item: Test): any {
   return {
     result: item["result"],
     name: item["name"],
-    prop1: item["prop1"],
-    prop2: item["prop2"],
+    properties: _testPropertiesSerializer(item),
   };
 }
 
@@ -842,12 +929,25 @@ export function testDeserializer(item: any): Test {
   return {
     result: item["result"],
     name: item["name"],
+    ..._testPropertiesDeserializer(item["properties"]),
+  };
+}
+
+export function fooPropertiesDeserializer(item: any): FooProperties {
+  return {
     prop1: item["prop1"],
     prop2: item["prop2"],
   };
 }
 
-export function fooPropertiesDeserializer(item: any): FooProperties {
+export function _testPropertiesSerializer(item: Test): any {
+  return {
+    prop1: item["prop1"],
+    prop2: item["prop2"],
+  };
+}
+
+export function _testPropertiesDeserializer(item: any) {
   return {
     prop1: item["prop1"],
     prop2: item["prop2"],

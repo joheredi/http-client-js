@@ -95,16 +95,14 @@ export enum KnownVersions {
 export function nestedFlattenModelSerializer(item: NestedFlattenModel): any {
   return {
     name: item["name"],
-    summary: item["summary"],
-    properties: childModelSerializer(item["properties"]),
+    properties: _nestedFlattenModelPropertiesSerializer(item),
   };
 }
 
 export function childFlattenModelSerializer(item: ChildFlattenModel): any {
   return {
     summary: item["summary"],
-    description: item["description"],
-    age: item["age"],
+    properties: _childFlattenModelPropertiesSerializer(item),
   };
 }
 
@@ -118,20 +116,50 @@ export function childModelSerializer(item: ChildModel): any {
 export function nestedFlattenModelDeserializer(item: any): NestedFlattenModel {
   return {
     name: item["name"],
-    summary: item["summary"],
-    properties: childModelDeserializer(item["properties"]),
+    ..._nestedFlattenModelPropertiesDeserializer(item["properties"]),
   };
 }
 
 export function childFlattenModelDeserializer(item: any): ChildFlattenModel {
   return {
     summary: item["summary"],
+    ..._childFlattenModelPropertiesDeserializer(item["properties"]),
+  };
+}
+
+export function childModelDeserializer(item: any): ChildModel {
+  return {
     description: item["description"],
     age: item["age"],
   };
 }
 
-export function childModelDeserializer(item: any): ChildModel {
+export function _nestedFlattenModelPropertiesSerializer(
+  item: NestedFlattenModel,
+): any {
+  return {
+    summary: item["summary"],
+    properties: childModelSerializer(item["properties"]),
+  };
+}
+
+export function _nestedFlattenModelPropertiesDeserializer(item: any) {
+  return {
+    summary: item["summary"],
+    properties: childModelDeserializer(item["properties"]),
+  };
+}
+
+export function _childFlattenModelPropertiesSerializer(
+  item: ChildFlattenModel,
+): any {
+  return {
+    description: item["description"],
+    age: item["age"],
+  };
+}
+
+export function _childFlattenModelPropertiesDeserializer(item: any) {
   return {
     description: item["description"],
     age: item["age"],
@@ -246,8 +274,7 @@ export enum KnownVersions {
 export function nestedFlattenModelSerializer(item: NestedFlattenModel): any {
   return {
     name: item["name"],
-    summary: item["summary"],
-    foo: fooSerializer(item["foo"]),
+    properties: _nestedFlattenModelPropertiesSerializer(item),
   };
 }
 
@@ -260,8 +287,7 @@ export function childFlattenModelSerializer(item: ChildFlattenModel): any {
 
 export function fooSerializer(item: Foo): any {
   return {
-    description: item["description"],
-    age: item["age"],
+    properties: _fooPropertiesSerializer(item),
   };
 }
 
@@ -275,8 +301,7 @@ export function childModelSerializer(item: ChildModel): any {
 export function nestedFlattenModelDeserializer(item: any): NestedFlattenModel {
   return {
     name: item["name"],
-    summary: item["summary"],
-    foo: fooDeserializer(item["foo"]),
+    ..._nestedFlattenModelPropertiesDeserializer(item["properties"]),
   };
 }
 
@@ -289,12 +314,41 @@ export function childFlattenModelDeserializer(item: any): ChildFlattenModel {
 
 export function fooDeserializer(item: any): Foo {
   return {
+    ..._fooPropertiesDeserializer(item["properties"]),
+  };
+}
+
+export function childModelDeserializer(item: any): ChildModel {
+  return {
     description: item["description"],
     age: item["age"],
   };
 }
 
-export function childModelDeserializer(item: any): ChildModel {
+export function _nestedFlattenModelPropertiesSerializer(
+  item: NestedFlattenModel,
+): any {
+  return {
+    summary: item["summary"],
+    foo: fooSerializer(item["foo"]),
+  };
+}
+
+export function _nestedFlattenModelPropertiesDeserializer(item: any) {
+  return {
+    summary: item["summary"],
+    foo: fooDeserializer(item["foo"]),
+  };
+}
+
+export function _fooPropertiesSerializer(item: Foo): any {
+  return {
+    description: item["description"],
+    age: item["age"],
+  };
+}
+
+export function _fooPropertiesDeserializer(item: any) {
   return {
     description: item["description"],
     age: item["age"],

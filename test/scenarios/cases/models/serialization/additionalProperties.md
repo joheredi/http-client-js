@@ -322,7 +322,10 @@ Generated Models.
 /**
  * model interface SimpleModel
  */
-export interface SimpleModel extends Record<string, _SimpleModelAdditionalProperty> {
+export interface SimpleModel extends Record<
+  string,
+  _SimpleModelAdditionalProperty
+> {
   propA: string;
   propB: string;
 }

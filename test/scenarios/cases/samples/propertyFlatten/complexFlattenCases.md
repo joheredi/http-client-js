@@ -100,6 +100,8 @@ Model generated.
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
+import { areAllPropsUndefined } from "../helpers/serializationHelpers.js";
+
 /**
  * This is a simple model.
  */
@@ -152,21 +154,13 @@ export enum KnownVersions {
 export function bodyParameterSerializer(item: BodyParameter): any {
   return {
     baz: item["baz"],
-    bar: !item["bar"]
-      ? item["bar"]
-      : item["bar"].map((p: any) => {
-          return aSerializer(p);
-        }),
-    baz: item["baz"].map((p: any) => {
-      return aSerializer(p);
-    }),
-    properties: !item["properties"]
-      ? item["properties"]
-      : childFlattenModelSerializer(item["properties"]),
-    description: item["description"],
-    baz: item["baz"],
-    description: item["description"],
-    baz: item["baz"],
+    properties: _bodyParameterPropertiesSerializer(item),
+    properties2: areAllPropsUndefined(item, ["description", "baz"])
+      ? undefined
+      : _bodyParameterProperties2Serializer(item),
+    emptyFlatten: areAllPropsUndefined(item, ["description", "baz"])
+      ? undefined
+      : _bodyParameterEmptyFlattenSerializer(item),
   };
 }
 
@@ -180,8 +174,9 @@ export function fooPropertiesSerializer(item: FooProperties): any {
     baz: item["baz"].map((p: any) => {
       return aSerializer(p);
     }),
-    description: item["description"],
-    baz: item["baz"],
+    properties: areAllPropsUndefined(item, ["description", "baz"])
+      ? undefined
+      : _fooPropertiesPropertiesSerializer(item),
   };
 }
 
@@ -192,6 +187,43 @@ export function aSerializer(item: A): any {
 }
 
 export function childFlattenModelSerializer(item: ChildFlattenModel): any {
+  return {
+    description: item["description"],
+    baz: item["baz"],
+  };
+}
+
+export function _bodyParameterPropertiesSerializer(item: BodyParameter): any {
+  return {
+    bar: !item["bar"]
+      ? item["bar"]
+      : item["bar"].map((p: any) => {
+          return aSerializer(p);
+        }),
+    baz: item["baz"].map((p: any) => {
+      return aSerializer(p);
+    }),
+    properties: !item["properties"]
+      ? item["properties"]
+      : childFlattenModelSerializer(item["properties"]),
+  };
+}
+
+export function _bodyParameterProperties2Serializer(item: BodyParameter): any {
+  return {
+    description: item["description"],
+    baz: item["baz"],
+  };
+}
+
+export function _bodyParameterEmptyFlattenSerializer(item: BodyParameter): any {
+  return {
+    description: item["description"],
+    baz: item["baz"],
+  };
+}
+
+export function _fooPropertiesPropertiesSerializer(item: FooProperties): any {
   return {
     description: item["description"],
     baz: item["baz"],

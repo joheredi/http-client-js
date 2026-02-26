@@ -1424,7 +1424,7 @@
       "id": "SA-C25a",
       "title": "Fix flatten ser/deser to use nested wire format with helper functions",
       "description": "The new emitter incorrectly expands flatten properties inline on the wire (e.g. { bar: ..., baz: ... }) instead of keeping them nested (e.g. { properties: { bar: ..., baz: ... } }). Fix json-serializer.tsx to generate _helperSerializer() functions that read from flat client properties and produce nested wire objects. Fix json-deserializer.tsx to generate _helperDeserializer() functions with spread syntax that read from nested wire objects. Integrate areAllPropsUndefined for optional flatten properties. Update singleLayer.md, multipleLayers.md, readonlyFlattenModel.md test expected outputs to match legacy pattern. Scope: non-collision cases only.",
-      "status": "not-started",
+      "status": "done",
       "category": "scenario-audit/Serialization",
       "priority": "P0-CRITICAL",
       "dependencies": []

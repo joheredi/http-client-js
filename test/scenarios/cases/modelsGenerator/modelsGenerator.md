@@ -2667,7 +2667,10 @@ compatibility-mode: true
 ## Model interface Vegetables
 
 ```ts models interface Vegetables
-export interface Vegetables extends Record<string, _VegetablesAdditionalProperty> {
+export interface Vegetables extends Record<
+  string,
+  _VegetablesAdditionalProperty
+> {
   carrots: number;
   beans: number;
 }
@@ -2717,7 +2720,10 @@ mustEmptyDiagnostic: true
 /**
  * model interface Vegetables
  */
-export interface Vegetables extends Record<string, _VegetablesAdditionalProperty> {
+export interface Vegetables extends Record<
+  string,
+  _VegetablesAdditionalProperty
+> {
   carrots: number;
   beans: number;
 }

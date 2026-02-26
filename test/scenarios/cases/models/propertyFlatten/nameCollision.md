@@ -82,8 +82,7 @@ export function testSerializer(item: Test): any {
   return {
     bar: item["bar"],
     baz: item["baz"],
-    bar: item["bar"],
-    baz: item["baz"],
+    properties: _testPropertiesSerializer(item),
   };
 }
 
@@ -98,12 +97,25 @@ export function testDeserializer(item: any): Test {
   return {
     bar: item["bar"],
     baz: item["baz"],
+    ..._testPropertiesDeserializer(item["properties"]),
+  };
+}
+
+export function fooPropertiesDeserializer(item: any): FooProperties {
+  return {
     bar: item["bar"],
     baz: item["baz"],
   };
 }
 
-export function fooPropertiesDeserializer(item: any): FooProperties {
+export function _testPropertiesSerializer(item: Test): any {
+  return {
+    bar: item["bar"],
+    baz: item["baz"],
+  };
+}
+
+export function _testPropertiesDeserializer(item: any) {
   return {
     bar: item["bar"],
     baz: item["baz"],
@@ -164,6 +176,8 @@ Model generated.
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
+import { areAllPropsUndefined } from "../helpers/serializationHelpers.js";
+
 /**
  * model interface Test
  */
@@ -213,11 +227,10 @@ export enum KnownVersions {
 export function testSerializer(item: Test): any {
   return {
     result: item["result"],
-    bar: item["bar"],
-    baz: item["baz"],
-    bar: item["bar"],
-    baz: item["baz"],
-    x: item["x"],
+    properties: _testPropertiesSerializer(item),
+    anotherProperties: areAllPropsUndefined(item, ["bar", "baz", "x"])
+      ? undefined
+      : _testAnotherPropertiesSerializer(item),
   };
 }
 
@@ -239,11 +252,10 @@ export function xPropertiesSerializer(item: XProperties): any {
 export function testDeserializer(item: any): Test {
   return {
     result: item["result"],
-    bar: item["bar"],
-    baz: item["baz"],
-    bar: item["bar"],
-    baz: item["baz"],
-    x: item["x"],
+    ..._testPropertiesDeserializer(item["properties"]),
+    ...(!item["anotherProperties"]
+      ? item["anotherProperties"]
+      : _testAnotherPropertiesDeserializer(item["anotherProperties"])),
   };
 }
 
@@ -255,6 +267,36 @@ export function fooPropertiesDeserializer(item: any): FooProperties {
 }
 
 export function xPropertiesDeserializer(item: any): XProperties {
+  return {
+    bar: item["bar"],
+    baz: item["baz"],
+    x: item["x"],
+  };
+}
+
+export function _testPropertiesSerializer(item: Test): any {
+  return {
+    bar: item["bar"],
+    baz: item["baz"],
+  };
+}
+
+export function _testPropertiesDeserializer(item: any) {
+  return {
+    bar: item["bar"],
+    baz: item["baz"],
+  };
+}
+
+export function _testAnotherPropertiesSerializer(item: Test): any {
+  return {
+    bar: item["bar"],
+    baz: item["baz"],
+    x: item["x"],
+  };
+}
+
+export function _testAnotherPropertiesDeserializer(item: any) {
   return {
     bar: item["bar"],
     baz: item["baz"],
@@ -318,6 +360,8 @@ Model generated.
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
+import { areAllPropsUndefined } from "../helpers/serializationHelpers.js";
+
 /**
  * model interface Test
  */
@@ -371,11 +415,10 @@ export function testSerializer(item: Test): any {
     result: item["result"],
     bar: item["bar"],
     baz: item["baz"],
-    bar: item["bar"],
-    baz: item["baz"],
-    bar: item["bar"],
-    baz: item["baz"],
-    result: item["result"],
+    properties: _testPropertiesSerializer(item),
+    anotherProperties: areAllPropsUndefined(item, ["bar", "baz", "result"])
+      ? undefined
+      : _testAnotherPropertiesSerializer(item),
   };
 }
 
@@ -399,11 +442,10 @@ export function testDeserializer(item: any): Test {
     result: item["result"],
     bar: item["bar"],
     baz: item["baz"],
-    bar: item["bar"],
-    baz: item["baz"],
-    bar: item["bar"],
-    baz: item["baz"],
-    result: item["result"],
+    ..._testPropertiesDeserializer(item["properties"]),
+    ...(!item["anotherProperties"]
+      ? item["anotherProperties"]
+      : _testAnotherPropertiesDeserializer(item["anotherProperties"])),
   };
 }
 
@@ -415,6 +457,36 @@ export function fooPropertiesDeserializer(item: any): FooProperties {
 }
 
 export function xPropertiesDeserializer(item: any): XProperties {
+  return {
+    bar: item["bar"],
+    baz: item["baz"],
+    result: item["result"],
+  };
+}
+
+export function _testPropertiesSerializer(item: Test): any {
+  return {
+    bar: item["bar"],
+    baz: item["baz"],
+  };
+}
+
+export function _testPropertiesDeserializer(item: any) {
+  return {
+    bar: item["bar"],
+    baz: item["baz"],
+  };
+}
+
+export function _testAnotherPropertiesSerializer(item: Test): any {
+  return {
+    bar: item["bar"],
+    baz: item["baz"],
+    result: item["result"],
+  };
+}
+
+export function _testAnotherPropertiesDeserializer(item: any) {
   return {
     bar: item["bar"],
     baz: item["baz"],
@@ -513,9 +585,7 @@ export function testSerializer(item: Test): any {
   return {
     result: item["result"],
     name: item["name"],
-    name: item["name"],
-    prop1: item["prop1"],
-    prop2: item["prop2"],
+    properties: _testPropertiesSerializer(item),
   };
 }
 
@@ -531,13 +601,27 @@ export function testDeserializer(item: any): Test {
   return {
     result: item["result"],
     name: item["name"],
+    ..._testPropertiesDeserializer(item["properties"]),
+  };
+}
+
+export function fooPropertiesDeserializer(item: any): FooProperties {
+  return {
     name: item["name"],
     prop1: item["prop1"],
     prop2: item["prop2"],
   };
 }
 
-export function fooPropertiesDeserializer(item: any): FooProperties {
+export function _testPropertiesSerializer(item: Test): any {
+  return {
+    name: item["name"],
+    prop1: item["prop1"],
+    prop2: item["prop2"],
+  };
+}
+
+export function _testPropertiesDeserializer(item: any) {
   return {
     name: item["name"],
     prop1: item["prop1"],

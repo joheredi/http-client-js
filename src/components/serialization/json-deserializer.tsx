@@ -1,4 +1,4 @@
-import { Children, code, For } from "@alloy-js/core";
+import { Children, code, For, namekey } from "@alloy-js/core";
 import {
   FunctionDeclaration,
   ObjectExpression,
@@ -12,7 +12,7 @@ import type {
 } from "@azure-tools/typespec-client-generator-core";
 import { UsageFlags } from "@azure-tools/typespec-client-generator-core";
 import { getModelFunctionName } from "../../utils/model-name.js";
-import { deserializerRefkey, serializationHelperRefkey, typeRefkey } from "../../utils/refkeys.js";
+import { deserializerRefkey, flattenDeserializerRefkey, serializationHelperRefkey, typeRefkey } from "../../utils/refkeys.js";
 import { useRuntimeLib } from "../../context/flavor-context.js";
 import { needsTransformation } from "./json-serializer.js";
 
@@ -93,6 +93,16 @@ export function JsonDeserializer(props: JsonDeserializerProps) {
         ) : undefined}
         <For each={properties} comma softline enderPunctuation>
           {(prop) => {
+            // Flatten properties emit a spread with a helper function call.
+            // Required: `..._testPropertiesDeserializer(item["properties"])`
+            // Optional: `...(!item["properties"] ? item["properties"] : _testPropertiesDeserializer(item["properties"]))`
+            if (prop.flatten && prop.type.kind === "model") {
+              const helperRef = flattenDeserializerRefkey(model, prop.serializedName);
+              if (prop.optional) {
+                return code`...(!item["${prop.serializedName}"] ? item["${prop.serializedName}"] : ${helperRef}(item["${prop.serializedName}"]))`;
+              }
+              return code`...${helperRef}(item["${prop.serializedName}"])`;
+            }
             const accessor = `item["${prop.serializedName}"]`;
             let valueExpr = getDeserializationExpression(prop.type, accessor);
             // Apply array decoding if the property has @encode(ArrayEncoding.xxx).
@@ -111,9 +121,9 @@ export function JsonDeserializer(props: JsonDeserializerProps) {
 /**
  * Collects the properties that need to be deserialized for a model.
  *
- * Handles flattened properties by expanding them inline, mirroring the
- * serializer's property expansion logic. See `getSerializableProperties()`
- * in json-serializer.tsx for details.
+ * Returns the model's direct properties without expanding flatten properties.
+ * Flatten properties remain as-is; the JsonDeserializer component detects them
+ * at render time and emits spread expressions with helper function calls.
  *
  * When `includeParent` is true, walks the `baseModel` chain to collect all
  * inherited ancestor properties before the model's own properties. This is
@@ -137,16 +147,7 @@ function getDeserializableProperties(
   }
 
   for (const prop of model.properties) {
-    if (prop.flatten && prop.type.kind === "model") {
-      for (const nestedProp of prop.type.properties) {
-        result.push({
-          ...nestedProp,
-          optional: prop.optional ? true : nestedProp.optional,
-        });
-      }
-    } else {
-      result.push(prop);
-    }
+    result.push(prop);
   }
 
   return result;
@@ -369,4 +370,109 @@ function getArrayEncodingParserName(
     default:
       return undefined;
   }
+}
+
+/**
+ * Props for the {@link FlattenDeserializerHelper} component.
+ */
+export interface FlattenDeserializerHelperProps {
+  /** The parent model that contains the flatten property. */
+  parentModel: SdkModelType;
+  /** The flatten property (with `flatten: true` and `type.kind === "model"`). */
+  flattenProp: SdkModelPropertyType;
+}
+
+/**
+ * Renders a flatten deserializer helper function for a specific flatten property.
+ *
+ * Generates a function like `_testPropertiesDeserializer(item: any)` that reads
+ * from the nested wire-format sub-object and returns an object with client-side
+ * property names. The returned object gets spread into the parent model's
+ * deserialized result.
+ *
+ * The function name follows the legacy emitter's pattern:
+ * `_${lcfirst(parentModelName)}${ucfirst(propSerializedName)}Deserializer`.
+ * Unlike the regular deserializer, the flatten helper has NO explicit return type
+ * annotation (implicit `any`), matching the legacy emitter's output.
+ *
+ * @param props - The component props containing the parent model and flatten property.
+ * @returns An Alloy JSX tree representing the flatten helper function declaration.
+ */
+export function FlattenDeserializerHelper(props: FlattenDeserializerHelperProps) {
+  const { parentModel, flattenProp } = props;
+  const flatModel = flattenProp.type as SdkModelType;
+  const properties = getFlattenHelperDeserializableProperties(flatModel, flattenProp.optional);
+  const funcName = getFlattenHelperFunctionName(parentModel, flattenProp, "Deserializer");
+  const refkeyVal = flattenDeserializerRefkey(parentModel, flattenProp.serializedName);
+
+  return (
+    <FunctionDeclaration
+      name={funcName}
+      refkey={refkeyVal}
+      export
+      parameters={[{ name: "item", type: "any" }]}
+    >
+      {code`return `}
+      <ObjectExpression>
+        <For each={properties} comma softline enderPunctuation>
+          {(prop) => {
+            const accessor = `item["${prop.serializedName}"]`;
+            let valueExpr = getDeserializationExpression(prop.type, accessor);
+            valueExpr = wrapWithArrayDecoding(valueExpr, accessor, prop);
+            const wrapped = wrapWithNullCheck(valueExpr, accessor, prop);
+            return <ObjectProperty name={prop.name} value={wrapped} />;
+          }}
+        </For>
+      </ObjectExpression>
+      {code`;`}
+    </FunctionDeclaration>
+  );
+}
+
+/**
+ * Collects the properties for a flatten deserializer helper function.
+ *
+ * Gathers all properties from the flattened model type (own + inherited from base
+ * models). If the flatten property is optional, all expanded properties become
+ * optional. Unlike the main deserializer, this function does NOT check for nested
+ * flatten — all properties are treated as regular for the wire sub-object.
+ *
+ * @param flatModel - The flatten model type (the `type` of the flatten property).
+ * @param parentOptional - Whether the parent flatten property is optional.
+ * @returns An array of properties to include in the flatten helper.
+ */
+function getFlattenHelperDeserializableProperties(
+  flatModel: SdkModelType,
+  parentOptional: boolean,
+): SdkModelPropertyType[] {
+  const result: SdkModelPropertyType[] = [];
+
+  if (flatModel.baseModel) {
+    result.push(...collectAncestorProperties(flatModel));
+  }
+
+  for (const prop of flatModel.properties) {
+    result.push(prop);
+  }
+
+  if (parentOptional) {
+    return result.map((p) => ({ ...p, optional: true }));
+  }
+
+  return result;
+}
+
+/**
+ * Generates the function name for a flatten deserializer helper.
+ * See the serializer's `getFlattenHelperFunctionName` for the naming convention.
+ */
+function getFlattenHelperFunctionName(
+  parentModel: SdkModelType,
+  flattenProp: SdkModelPropertyType,
+  suffix: string,
+) {
+  const modelName = parentModel.name.charAt(0).toLowerCase() + parentModel.name.slice(1);
+  const propName =
+    flattenProp.serializedName.charAt(0).toUpperCase() + flattenProp.serializedName.slice(1);
+  return namekey(`_${modelName}${propName}${suffix}`, { ignoreNamePolicy: true });
 }

@@ -42,6 +42,8 @@ needTCGC: true
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
+import { areAllPropsUndefined } from "../helpers/serializationHelpers.js";
+
 /**
  * model interface Solution
  */
@@ -65,16 +67,34 @@ export interface SolutionProperties {
 
 export function solutionSerializer(item: Solution): any {
   return {
-    solutionId: item["solutionId"],
-    title: item["title"],
-    content: item["content"],
+    properties: _solutionPropertiesSerializer(item),
+    propertiesOptional: areAllPropsUndefined(item, [
+      "solutionId",
+      "title",
+      "content",
+    ])
+      ? undefined
+      : _solutionPropertiesOptionalSerializer(item),
+  };
+}
+
+export function solutionPropertiesSerializer(item: SolutionProperties): any {
+  return {
     solutionId: item["solutionId"],
     title: item["title"],
     content: item["content"],
   };
 }
 
-export function solutionPropertiesSerializer(item: SolutionProperties): any {
+export function _solutionPropertiesSerializer(item: Solution): any {
+  return {
+    solutionId: item["solutionId"],
+    title: item["title"],
+    content: item["content"],
+  };
+}
+
+export function _solutionPropertiesOptionalSerializer(item: Solution): any {
   return {
     solutionId: item["solutionId"],
     title: item["title"],

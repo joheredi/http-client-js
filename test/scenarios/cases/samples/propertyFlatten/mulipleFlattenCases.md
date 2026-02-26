@@ -76,6 +76,8 @@ Model generated.
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
+import { areAllPropsUndefined } from "../helpers/serializationHelpers.js";
+
 /**
  * This is a simple model.
  */
@@ -115,20 +117,34 @@ export enum KnownVersions {
 export function bodyParameterSerializer(item: BodyParameter): any {
   return {
     name: item["name"],
-    bar: !item["bar"] ? item["bar"] : aSerializer(item["bar"]),
-    baz: item["baz"],
+    properties: _bodyParameterPropertiesSerializer(item),
   };
 }
 
 export function fooPropertiesSerializer(item: FooProperties): any {
   return {
-    x: item["x"],
-    y: item["y"],
+    bar: areAllPropsUndefined(item, ["x", "y"])
+      ? undefined
+      : _fooPropertiesBarSerializer(item),
     baz: item["baz"],
   };
 }
 
 export function aSerializer(item: A): any {
+  return {
+    x: item["x"],
+    y: item["y"],
+  };
+}
+
+export function _bodyParameterPropertiesSerializer(item: BodyParameter): any {
+  return {
+    bar: !item["bar"] ? item["bar"] : aSerializer(item["bar"]),
+    baz: item["baz"],
+  };
+}
+
+export function _fooPropertiesBarSerializer(item: FooProperties): any {
   return {
     x: item["x"],
     y: item["y"],

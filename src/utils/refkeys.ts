@@ -415,3 +415,37 @@ export function operationGroupFactoryRefkey(entity: unknown): Refkey {
 export function loggerRefkey(): Refkey {
   return refkey("logger");
 }
+
+/**
+ * Creates a refkey for a flatten serializer helper function.
+ *
+ * Flatten helpers serialize the flattened properties of a nested model type,
+ * reading from the parent model's flat interface and producing the nested
+ * wire-format sub-object. For example, `_testPropertiesSerializer(item: Test)`
+ * reads `bar` and `baz` from the flat `Test` interface and returns
+ * `{ bar: ..., baz: ... }` for the `properties` wire key.
+ *
+ * @param parentModel - The parent TCGC model that contains the flatten property.
+ * @param propSerializedName - The wire name of the flatten property (e.g., "properties").
+ * @returns A stable refkey for the flatten serializer helper function declaration.
+ */
+export function flattenSerializerRefkey(parentModel: unknown, propSerializedName: string): Refkey {
+  return refkey(parentModel, "flattenSerializer", propSerializedName);
+}
+
+/**
+ * Creates a refkey for a flatten deserializer helper function.
+ *
+ * Flatten deserializer helpers read from the nested wire-format sub-object
+ * and return an object with client-side property names that gets spread
+ * into the parent model's deserialized result. For example,
+ * `_testPropertiesDeserializer(item)` reads `bar` and `baz` from the
+ * wire sub-object and returns `{ bar: ..., baz: ... }`.
+ *
+ * @param parentModel - The parent TCGC model that contains the flatten property.
+ * @param propSerializedName - The wire name of the flatten property (e.g., "properties").
+ * @returns A stable refkey for the flatten deserializer helper function declaration.
+ */
+export function flattenDeserializerRefkey(parentModel: unknown, propSerializedName: string): Refkey {
+  return refkey(parentModel, "flattenDeserializer", propSerializedName);
+}

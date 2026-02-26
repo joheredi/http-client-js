@@ -14,7 +14,9 @@ import { EnumDeclaration } from "./enum-declaration.js";
 import { ModelInterface } from "./model-interface.js";
 import { getDirectSubtypes, PolymorphicType } from "./polymorphic-type.js";
 import { JsonSerializer } from "./serialization/json-serializer.js";
+import { FlattenSerializerHelper } from "./serialization/json-serializer.js";
 import { JsonDeserializer } from "./serialization/json-deserializer.js";
+import { FlattenDeserializerHelper } from "./serialization/json-deserializer.js";
 import { JsonPolymorphicSerializer } from "./serialization/json-polymorphic-serializer.js";
 import { JsonPolymorphicDeserializer } from "./serialization/json-polymorphic-deserializer.js";
 import { MultipartSerializer } from "./serialization/multipart-serializer.js";
@@ -227,6 +229,9 @@ export function ModelFiles() {
         <XmlSerializerDeclarations models={xmlInputModels} />
         {hasXmlSerializers && hasXmlDeserializers ? "\n\n" : undefined}
         <XmlDeserializerDeclarations models={xmlOutputModels} />
+        {(hasSerializers || hasDeserializers || hasUnionDeserializers || hasXmlSerializers || hasXmlDeserializers) ? (
+          <FlattenHelperDeclarations inputModels={regularInputModels} outputModels={regularOutputModels} />
+        ) : undefined}
       </SourceFile>
     </SourceDirectory>
   );
@@ -698,5 +703,94 @@ function XmlDeserializerDeclarations(props: XmlDeserializerDeclarationsProps) {
         </>
       )}
     </For>
+  );
+}
+
+/**
+ * Props for the {@link FlattenHelperDeclarations} component.
+ */
+interface FlattenHelperDeclarationsProps {
+  /** Input models that may need flatten serializer helpers. */
+  inputModels: SdkModelType[];
+  /** Output models that may need flatten deserializer helpers. */
+  outputModels: SdkModelType[];
+}
+
+/**
+ * Collects (model, flattenProp) pairs from a list of models.
+ *
+ * @param models - The models to scan for flatten properties.
+ * @returns An array of { model, flattenProp } pairs.
+ */
+function collectFlattenPairs(models: SdkModelType[]) {
+  const pairs: { model: SdkModelType; flattenProp: import("@azure-tools/typespec-client-generator-core").SdkModelPropertyType }[] = [];
+  for (const model of models) {
+    for (const prop of model.properties) {
+      if (prop.flatten && prop.type.kind === "model") {
+        pairs.push({ model, flattenProp: prop });
+      }
+    }
+  }
+  return pairs;
+}
+
+/**
+ * Renders flatten helper function declarations for both serializers and deserializers.
+ *
+ * Scans all input and output models for flatten properties and renders the
+ * corresponding helper functions. Each flatten property gets a serializer helper
+ * (if the model has Input usage) and/or a deserializer helper (if the model has
+ * Output/Exception usage). Helpers are rendered at the end of the models file,
+ * matching the legacy emitter's output ordering.
+ *
+ * @param props - Component props with input and output model lists.
+ * @returns Alloy JSX tree with flatten helper declarations, or undefined if none needed.
+ */
+function FlattenHelperDeclarations(props: FlattenHelperDeclarationsProps) {
+  const serPairs = collectFlattenPairs(props.inputModels);
+  const deserPairs = collectFlattenPairs(props.outputModels);
+
+  if (serPairs.length === 0 && deserPairs.length === 0) return undefined;
+
+  // Build a combined list: for each (model, prop), emit ser helper, deser helper, or both
+  const allModels = new Set([...props.inputModels, ...props.outputModels]);
+  const combinedPairs: {
+    model: SdkModelType;
+    flattenProp: import("@azure-tools/typespec-client-generator-core").SdkModelPropertyType;
+    needsSer: boolean;
+    needsDeser: boolean;
+  }[] = [];
+
+  for (const model of allModels) {
+    for (const prop of model.properties) {
+      if (prop.flatten && prop.type.kind === "model") {
+        const needsSer = props.inputModels.includes(model);
+        const needsDeser = props.outputModels.includes(model);
+        if (needsSer || needsDeser) {
+          combinedPairs.push({ model, flattenProp: prop, needsSer, needsDeser });
+        }
+      }
+    }
+  }
+
+  if (combinedPairs.length === 0) return undefined;
+
+  return (
+    <>
+      {"\n\n"}
+      <For each={combinedPairs} doubleHardline>
+        {({ model, flattenProp, needsSer, needsDeser }) => (
+          <>
+            {needsSer ? (
+              <FlattenSerializerHelper parentModel={model} flattenProp={flattenProp} />
+            ) : undefined}
+            {needsSer && needsDeser ? "\n\n" : undefined}
+            {needsDeser ? (
+              <FlattenDeserializerHelper parentModel={model} flattenProp={flattenProp} />
+            ) : undefined}
+          </>
+        )}
+      </For>
+    </>
   );
 }

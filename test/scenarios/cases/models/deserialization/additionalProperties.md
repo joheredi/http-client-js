@@ -140,7 +140,10 @@ export interface EmptyModel extends Record<string, string> {}
 /**
  * model interface UnionModel
  */
-export interface UnionModel extends Record<string, _UnionModelAdditionalProperty> {
+export interface UnionModel extends Record<
+  string,
+  _UnionModelAdditionalProperty
+> {
   propA: string;
   propB: string;
 }
