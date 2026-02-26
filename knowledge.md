@@ -1540,3 +1540,22 @@ When detecting tenant-level operations for constructor overloads, these ARM boil
 2. Provider-level `checkNameAvailability` — check via `operation.path` containing `{namespace}/checknameavailability`
 
 Without these exclusions, Standard ARM services (which have Operations.list) would incorrectly trigger overload generation.
+
+---
+
+## typespec-title-map YAML Parsing
+
+**Problem**: The simple YAML parser in `scenario-harness.ts` only handled flat key-value pairs. The `typespec-title-map` config uses nested indented sub-keys:
+```yaml
+typespec-title-map:
+  ServiceClient: TestServiceClient
+```
+
+**Fix**: Enhanced `parseYamlConfig()` to detect map-start lines (key with no value) and collect subsequent indented lines as nested objects. The parser now handles one-level-deep maps.
+
+**Location**: `test/scenarios/scenario-harness.ts` — `parseYamlConfig()` function.
+
+## Client Name Renaming Flow
+
+The `typespec-title-map` option works by mutating `client.name` on TCGC client objects BEFORE the Alloy rendering pipeline runs. This means all downstream components (classical-client, client-context, sample-files) automatically see the renamed name without any changes. The `applyClientRenames()` function in `src/emitter.tsx` handles this.
+

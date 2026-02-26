@@ -43,22 +43,22 @@ ignoreWeirdLine: false
 import { foo } from "./api/operations.js";
 import type { FooOptionalParams } from "./api/options.js";
 import {
-  createService,
-  type ServiceClientOptionalParams,
-  type ServiceContext,
-} from "./serviceClientContext.js";
+  createTestService,
+  type TestServiceClientOptionalParams,
+  type TestServiceContext,
+} from "./testServiceClientContext.js";
 import { Pipeline } from "@typespec/ts-http-runtime";
 
-export class ServiceClient {
-  private _client: ServiceContext;
+export class TestServiceClient {
+  private _client: TestServiceContext;
   /** The pipeline used by this client to make requests */
   public readonly pipeline: Pipeline;
 
   constructor(
     endpointParam: string,
-    options: ServiceClientOptionalParams = {},
+    options: TestServiceClientOptionalParams = {},
   ) {
-    this._client = createService(endpoint, options);
+    this._client = createTestService(endpoint, options);
     this.pipeline = this._client.pipeline;
   }
 

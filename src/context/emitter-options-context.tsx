@@ -46,6 +46,30 @@ export interface EmitterOptionsValue {
    * Corresponds to the `ignore-nullable-on-optional` YAML config option.
    */
   ignoreNullableOnOptional: boolean;
+
+  /**
+   * Maps original TCGC client names to desired renamed client names.
+   *
+   * By default, code generation uses client names derived from the `@client`
+   * and `@service` decorators in TypeSpec. This option overrides those names
+   * post-TCGC processing, allowing SDK authors to rename clients without
+   * modifying TypeSpec source files.
+   *
+   * The map keys are the original client names (as TCGC derives them),
+   * and the values are the desired client names. Supports renaming multiple
+   * clients.
+   *
+   * @example
+   * ```yaml
+   * typespec-title-map:
+   *   AnomalyDetectorClient: AnomalyDetectorRest
+   *   AnomalyDetectorClient2: AnomalyDetectorRest2
+   * ```
+   *
+   * Corresponds to the `typespec-title-map` YAML config option from the
+   * legacy emitter.
+   */
+  typespecTitleMap?: Record<string, string>;
 }
 
 /**

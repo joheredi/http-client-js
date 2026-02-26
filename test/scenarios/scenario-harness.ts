@@ -663,13 +663,41 @@ function parseScenario(content: string): ScenarioContents {
  * Parses a YAML config string into a key-value record.
  * Used for legacy scenario configs that modify emitter behavior.
  *
+ * Supports both flat key-value pairs and one-level-deep nested maps
+ * (e.g., typespec-title-map with indented sub-keys).
+ *
  * @param content - Raw YAML string
  * @returns Parsed config object
  */
 function parseYamlConfig(content: string): Record<string, unknown> {
-  // Simple YAML parser for key: value pairs (no nested objects needed)
   const result: Record<string, unknown> = {};
+  let currentMapKey: string | null = null;
+  let currentMap: Record<string, string> = {};
+
   for (const line of content.split("\n")) {
+    // Check if this is an indented sub-key (part of a nested map)
+    const indentedMatch = line.match(/^\s+(\S+):\s*(.+)$/);
+    if (indentedMatch && currentMapKey) {
+      currentMap[indentedMatch[1]] = indentedMatch[2].trim();
+      continue;
+    }
+
+    // If we were building a map and hit a non-indented line, flush it
+    if (currentMapKey) {
+      result[currentMapKey] = currentMap;
+      currentMapKey = null;
+      currentMap = {};
+    }
+
+    // Check for map start (key with no value, followed by indented sub-keys)
+    const mapStartMatch = line.match(/^(\S+):\s*$/);
+    if (mapStartMatch) {
+      currentMapKey = mapStartMatch[1];
+      currentMap = {};
+      continue;
+    }
+
+    // Regular flat key-value pair
     const match = line.match(/^(\S+):\s*(.+)$/);
     if (match) {
       const [, key, value] = match;
@@ -679,6 +707,12 @@ function parseYamlConfig(content: string): Record<string, unknown> {
       else result[key] = value;
     }
   }
+
+  // Flush any remaining nested map
+  if (currentMapKey) {
+    result[currentMapKey] = currentMap;
+  }
+
   return result;
 }
 

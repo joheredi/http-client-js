@@ -29,6 +29,7 @@ import { IndexFiles } from "../../src/components/index-file.js";
 import { StaticHelpers } from "../../src/components/static-helpers/index.js";
 import { RestorePollerFile } from "../../src/components/restore-poller.js";
 import { SampleFiles } from "../../src/components/sample-files.js";
+import { applyClientRenames } from "../../src/emitter.js";
 import { Tester, RawTester, TesterWithService, createSdkContextForTest } from "../test-host.js";
 
 /**
@@ -188,6 +189,14 @@ ${x}
   }
 
   const sdkContext = await createSdkContextForTest(program);
+
+  // Apply typespec-title-map renames to client names before rendering.
+  // This mirrors the $onEmit behavior where client names are mutated
+  // in-place before the rendering pipeline runs.
+  const titleMap = yamlConfig["typespec-title-map"] as Record<string, string> | undefined;
+  if (titleMap) {
+    applyClientRenames(sdkContext.sdkPackage.clients, titleMap);
+  }
 
   // Extract emitter options from YAML config
   const emitterOptions = {

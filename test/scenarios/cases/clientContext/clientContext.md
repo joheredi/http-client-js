@@ -248,19 +248,19 @@ ignoreWeirdLine: false
 import { type Client, type ClientOptions, getClient } from "@typespec/ts-http-runtime";
 import type { ClientType } from "./models/models.js";
 
-export interface ServiceContext extends Client {}
+export interface TestServiceContext extends Client {}
 
-export interface ServiceClientOptionalParams extends ClientOptions {
+export interface TestServiceClientOptionalParams extends ClientOptions {
   /**
    * Need to be set as 'default', 'multi-client', 'renamed-operation', 'two-operation-group' in client.
    */
   client?: ClientType;
 }
 
-export function createService(
+export function createTestService(
   endpointParam: string,
-  options: ServiceClientOptionalParams = {},
-): ServiceContext {
+  options: TestServiceClientOptionalParams = {},
+): TestServiceContext {
   const client = options.client ?? "default";
   const endpointUrl = options.endpoint ?? `${endpoint}/client/structure/${client}`;
   const prefixFromOptions = options?.userAgentOptions?.userAgentPrefix;
@@ -269,7 +269,7 @@ export function createService(
   ...options,
   userAgentOptions: { userAgentPrefix },
   };
-  return getClient(endpointUrl, updatedOptions); as ServiceContext;
+  return getClient(endpointUrl, updatedOptions); as TestServiceContext;
 }
 
 ```

@@ -3625,3 +3625,31 @@ Matches legacy emitter behavior:
 - `Azure.ResourceManager.Operations.list` (by crossLanguageDefinitionId) → excluded
 - Provider-level `checkNameAvailability` actions (by path match) → excluded
 - Everything else without subscriptionId → tenant-level
+
+---
+
+## 2026-02-26: RC27 — typespec-title-map Client Renaming (Copilot)
+
+### What was done
+- Implemented `typespec-title-map` configuration option that allows SDK authors to rename client classes after TCGC derives names from TypeSpec decorators
+- Added `applyClientRenames()` function in `src/emitter.tsx` that mutates client.name before the rendering pipeline (matching legacy emitter pattern)
+- Added `typespecTitleMap` optional field to `EmitterOptionsValue` interface in `src/context/emitter-options-context.tsx`
+- Enhanced YAML parser in `test/scenarios/scenario-harness.ts` to handle one-level-deep nested maps (required for `typespec-title-map:` indented sub-keys)
+- Applied title map in `test/scenarios/emit-for-scenario.tsx` test helper
+- Updated scenario test expectations:
+  - `classicClient/classicClient.md`: ServiceClient → TestServiceClient (with matching context, factory, options, file names)
+  - `clientContext/clientContext.md`: Same renames for the title config scenario
+  - `samples/client/renameClientName.md`: DemoServiceClient → TestServiceClient (with matching env vars)
+- Added 6 unit tests in `test/context/apply-client-renames.test.tsx` covering: single rename, multiple renames, no-match passthrough, empty map, partial match rejection, mixed set
+
+### Key decisions
+- Matched legacy emitter approach: mutate client.name in-place before rendering, so all downstream components automatically use renamed names
+- Title map is parsed from `context.options["typespec-title-map"]` in $onEmit, same key name as legacy
+
+### RC10 marked as done
+- `hasOAuth2Auth()` in `sample-files.tsx` already handles union credential types with explicit union variant checking (lines 529-535)
+
+### Test results
+- 876 tests pass (6 new), 3 skipped, 63 test files
+- Build passes cleanly
+

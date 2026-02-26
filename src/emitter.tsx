@@ -19,6 +19,31 @@ import { StaticHelpers } from "./components/static-helpers/index.js";
 import { RestorePollerFile } from "./components/restore-poller.js";
 import { SampleFiles } from "./components/sample-files.js";
 
+import type { SdkClientType, SdkHttpOperation } from "@azure-tools/typespec-client-generator-core";
+
+/**
+ * Applies client name overrides from the `typespec-title-map` configuration.
+ *
+ * This mutates client objects in-place before the rendering pipeline runs,
+ * matching the legacy emitter behavior where `renameClientName()` was called
+ * per-client before building operations. All downstream components (classical
+ * client, client context, samples) then use the renamed `client.name` value
+ * automatically.
+ *
+ * @param clients - TCGC client objects to potentially rename
+ * @param titleMap - Map from original TCGC client names to desired names
+ */
+export function applyClientRenames(
+  clients: SdkClientType<SdkHttpOperation>[],
+  titleMap: Record<string, string>,
+): void {
+  for (const client of clients) {
+    if (titleMap[client.name]) {
+      client.name = titleMap[client.name];
+    }
+  }
+}
+
 /**
  * TypeSpec emitter entry point for generating TypeScript HTTP client libraries.
  *
@@ -48,10 +73,19 @@ import { SampleFiles } from "./components/sample-files.js";
 export async function $onEmit(context: EmitContext) {
   const sdkContext = await createSdkContext(context);
 
+  // Apply typespec-title-map renames to client names before rendering.
+  // This matches the legacy emitter's renameClientName() behavior where
+  // client.name is mutated in-place before the rendering pipeline runs.
+  const titleMap = context.options?.["typespec-title-map"] as Record<string, string> | undefined;
+  if (titleMap) {
+    applyClientRenames(sdkContext.sdkPackage.clients, titleMap);
+  }
+
   const emitterOptions = {
     includeHeadersInResponse: context.options?.["include-headers-in-response"] === true,
     experimentalExtensibleEnums: context.options?.["experimental-extensible-enums"] === true,
     ignoreNullableOnOptional: context.options?.["ignore-nullable-on-optional"] !== false,
+    typespecTitleMap: titleMap,
   };
 
   const output = (
