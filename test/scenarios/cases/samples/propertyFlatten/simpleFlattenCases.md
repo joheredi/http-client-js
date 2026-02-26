@@ -78,7 +78,7 @@ import { TestServiceClient } from "@azure/internal-test";
  * This sample demonstrates how to show example demo
  *
  * @summary show example demo
- * x-ms-original-file: json.json
+ * x-ms-original-file: 2022-05-15-preview/json.json
  */
 async function read(): Promise<void> {
   const endpoint = process.env.TEST_SERVICE_ENDPOINT || "";
@@ -174,7 +174,7 @@ import { TestServiceClient } from "@azure/internal-test";
  * This sample demonstrates how to show example demo
  *
  * @summary show example demo
- * x-ms-original-file: json.json
+ * x-ms-original-file: 2022-05-15-preview/json.json
  */
 async function read(): Promise<void> {
   const endpoint = process.env.TEST_SERVICE_ENDPOINT || "";

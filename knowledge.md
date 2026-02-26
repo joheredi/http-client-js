@@ -1618,3 +1618,19 @@ NOT:
 ```
 
 This applies to both the legacy and new emitter. The PRD task RC30a's description was incorrect about needing nested wire format.
+
+## RC26: API Version as Function Parameter vs Context Property
+
+### Problem
+Scenarios with `withVersionedApiVersion: true` in their YAML config were generating `apiVersion` as an explicit function parameter instead of reading it from `context.apiVersion` with a default fallback.
+
+### Root Cause
+The test harness (`emit-for-scenario.tsx`) was not implementing the `withVersionedApiVersion` YAML config option. The legacy test infrastructure adds `@versioned(Versions)` decorator and a `Versions` enum when this flag is set, which causes TCGC to mark the apiVersion parameter as `onClient=true` and `isApiVersionParam=true`. Without this, TCGC treats apiVersion as a regular operation parameter.
+
+### Fix
+1. **Test harness**: Added support for `withVersionedApiVersion: true` in `emit-for-scenario.tsx` to inject `@versioned(Versions)` decorator and `enum Versions { v2022_05_15_preview: "2022-05-15-preview" }` into the TypeSpec wrapper.
+2. **Send operation**: Added default value fallback in `getParameterAccessor()` when the client-level apiVersion has `clientDefaultValue`, generating `context.apiVersion ?? "defaultValue"` instead of bare `context.apiVersion`.
+3. **Example files**: When `withVersionedApiVersion` is true, the injected version `"2022-05-15-preview"` is appended to the code for `extractApiVersion()` to find, so JSON examples are placed in the correct versioned directory.
+
+### Key Insight
+TCGC's `isApiVersion()` function requires `versionEnumSets.length > 0` (from `@versioned` decorator) to mark parameters as `isApiVersionParam`. Without versioning, even parameters named "api-version" won't be treated as client-level API version parameters.

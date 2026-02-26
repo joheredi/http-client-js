@@ -282,6 +282,13 @@ function getParameterAccessor(
   // Client-level params like apiVersion
   if (correspondingParam.kind === "method" && correspondingParam.onClient) {
     if (correspondingParam.isApiVersionParam) {
+      // When the apiVersion has a default value (from @versioned enum), generate
+      // a nullish coalescing fallback to match legacy behavior:
+      //   context.apiVersion ?? "2022-05-15-preview"
+      const defaultValue = correspondingParam.clientDefaultValue;
+      if (defaultValue !== undefined) {
+        return `context.apiVersion ?? "${defaultValue}"`;
+      }
       return "context.apiVersion";
     }
     return `context["${correspondingParam.name}"]`;

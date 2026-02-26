@@ -84,14 +84,13 @@ import { expandUrlTemplate } from "@typespec/ts-http-runtime";
 
 export function _verifySend(
   context: Client,
-  apiVersion: string,
   body: TestVerificationContent,
   apcGatewayId: string,
   options: VerifyOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
   const path = expandUrlTemplate(
     "/device-location/location:verify{?api%2Dversion}",
-    { "api%2Dversion": apiVersion },
+    { "api%2Dversion": context.apiVersion ?? "2022-05-15-preview" },
     { allowReserved: options?.requestOptions?.skipUrlEncoding },
   );
   return context.path(path).post({
@@ -124,25 +123,17 @@ export async function _verifyDeserialize(
  * Resource action operation template.
  *
  * @param {Client} context
- * @param {string} apiVersion
  * @param {TestVerificationContent} body
  * @param {string} apcGatewayId
  * @param {VerifyOptionalParams} options
  */
 export async function verify(
   context: Client,
-  apiVersion: string,
   body: TestVerificationContent,
   apcGatewayId: string,
   options: VerifyOptionalParams = { requestOptions: {} },
 ): Promise<TestVerificationResult> {
-  const result = await _verifySend(
-    context,
-    apiVersion,
-    body,
-    apcGatewayId,
-    options,
-  );
+  const result = await _verifySend(context, body, apcGatewayId, options);
   return _verifyDeserialize(result);
 }
 ```
@@ -181,16 +172,12 @@ import { TestServiceClient } from "@azure/internal-test";
  * This sample demonstrates how to resource action operation template.
  *
  * @summary resource action operation template.
- * x-ms-original-file: json.json
+ * x-ms-original-file: 2022-05-15-preview/json.json
  */
 async function verify(): Promise<void> {
   const endpoint = process.env.TEST_SERVICE_ENDPOINT || "";
   const client = new TestServiceClient(endpoint);
-  const result = await client.deviceLocation.verify(
-    "apiVersion",
-    {},
-    "zdgrzzaxlodrvewbksn",
-  );
+  const result = await client.deviceLocation.verify({}, "zdgrzzaxlodrvewbksn");
   console.log(result);
 }
 

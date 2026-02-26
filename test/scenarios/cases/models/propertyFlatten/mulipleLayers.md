@@ -66,6 +66,16 @@ export interface _FooRequest {
   body: NestedFlattenModel;
 }
 
+/**
+ * The available API versions.
+ */
+export enum KnownVersions {
+  /**
+   * 2022-05-15-preview
+   */
+  V20220515Preview = "2022-05-15-preview",
+}
+
 export function nestedFlattenModelSerializer(item: NestedFlattenModel): any {
   return {
     name: item["name"],
@@ -186,6 +196,16 @@ export interface ChildModel {
 
 export interface _FooRequest {
   body: NestedFlattenModel;
+}
+
+/**
+ * The available API versions.
+ */
+export enum KnownVersions {
+  /**
+   * 2022-05-15-preview
+   */
+  V20220515Preview = "2022-05-15-preview",
 }
 
 export function nestedFlattenModelSerializer(item: NestedFlattenModel): any {

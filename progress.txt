@@ -3799,3 +3799,24 @@ Deep analysis of RC30 (Property flatten serialization approach) revealed three d
 - RC26 investigation: The emitter code (`isRequiredSignatureParameter`) correctly filters out `isApiVersionParam`, but some test expectations still show `apiVersion` as a function parameter. This suggests TCGC may not mark these params with `isApiVersionParam: true` in certain scenarios (e.g., pathParamUrlTemplate, explodeTrueWithAnnotation). Investigate whether this is a TCGC behavior difference or an emitter issue.
 - RC25 investigation: Multipart test expectations show File interface hierarchy. Legacy uses FileContents union. Test expectations may have been auto-updated.
 - The scenario test expectations may have been auto-updated via `SCENARIOS_UPDATE=true` to match current (potentially incorrect) emitter output. Compare with actual legacy output before assuming tests are correct.
+
+## 2026-02-26: RC26 - API version passed as explicit function parameter instead of context property
+
+### What was done
+- Fixed RC26: API version handling now matches legacy behavior for versioned services
+- `send-operation.tsx`: Added `?? "defaultValue"` fallback for client-level apiVersion parameters with `clientDefaultValue`
+- `emit-for-scenario.tsx`: Added `withVersionedApiVersion` config support to inject `@versioned(Versions)` and Versions enum
+- Updated 14 test scenario files to match the corrected output
+- All 890 tests pass, build succeeds
+
+### Files changed
+- `src/components/send-operation.tsx` - apiVersion default fallback in `getParameterAccessor()`
+- `test/scenarios/emit-for-scenario.tsx` - `withVersionedApiVersion` test harness support
+- 12 test scenario `.md` files - updated expectations
+
+### Key finding
+The test harness was missing `withVersionedApiVersion` support that the legacy test infrastructure provided. Without `@versioned(Versions)`, TCGC doesn't detect apiVersion as a client-level parameter, so it was being treated as a regular function parameter.
+
+### Remaining P1 tasks
+- RC11: Sample environment variable names don't match legacy convention
+- RC25: Multipart file types use File interface hierarchy instead of FileContents union

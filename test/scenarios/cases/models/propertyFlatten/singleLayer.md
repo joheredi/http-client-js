@@ -60,6 +60,16 @@ export interface _FooRequest {
   body: Test;
 }
 
+/**
+ * The available API versions.
+ */
+export enum KnownVersions {
+  /**
+   * 2022-05-15-preview
+   */
+  V20220515Preview = "2022-05-15-preview",
+}
+
 export function testSerializer(item: Test): any {
   return {
     result: item["result"],
@@ -187,6 +197,16 @@ export interface A {
 
 export interface _FooRequest {
   body: Test;
+}
+
+/**
+ * The available API versions.
+ */
+export enum KnownVersions {
+  /**
+   * 2022-05-15-preview
+   */
+  V20220515Preview = "2022-05-15-preview",
 }
 
 export function testSerializer(item: Test): any {
@@ -322,6 +342,16 @@ export interface _FooRequest {
   body: Test;
 }
 
+/**
+ * The available API versions.
+ */
+export enum KnownVersions {
+  /**
+   * 2022-05-15-preview
+   */
+  V20220515Preview = "2022-05-15-preview",
+}
+
 export function testSerializer(item: Test): any {
   return {
     result: item["result"],
@@ -409,6 +439,16 @@ export interface Baz {
 
 export interface _FooRequest {
   body: Test;
+}
+
+/**
+ * The available API versions.
+ */
+export enum KnownVersions {
+  /**
+   * 2022-05-15-preview
+   */
+  V20220515Preview = "2022-05-15-preview",
 }
 
 export function testSerializer(item: Test): any {
@@ -538,6 +578,16 @@ export interface _FooRequest {
   body: Test;
 }
 
+/**
+ * The available API versions.
+ */
+export enum KnownVersions {
+  /**
+   * 2022-05-15-preview
+   */
+  V20220515Preview = "2022-05-15-preview",
+}
+
 export function testSerializer(item: Test): any {
   return {
     result: item["result"],
@@ -660,6 +710,16 @@ export interface FooProperties {
 
 export interface _FooRequest {
   body: Test;
+}
+
+/**
+ * The available API versions.
+ */
+export enum KnownVersions {
+  /**
+   * 2022-05-15-preview
+   */
+  V20220515Preview = "2022-05-15-preview",
 }
 
 export function testSerializer(item: Test): any {

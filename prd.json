@@ -2567,12 +2567,13 @@
           "id": "RC26",
           "title": "API version passed as explicit function parameter instead of context property",
           "priority": "P1",
-          "status": "not_started",
+          "status": "done",
           "root_cause": "send-operation.tsx excludes apiVersion from function parameters (line 178: isApiVersionParam filter) and reads it from context.apiVersion. However, in some scenarios the NEW output shows apiVersion as a function parameter. Inconsistency between send-operation logic and test expectations.",
           "file": "src/components/send-operation.tsx, src/components/public-operation.tsx",
           "description": "Some operations pass apiVersion as function parameter while legacy always reads from context with fallback default.",
           "affected_scenarios": "operations/pathParam/pathParamUrlTemplate.md, operations/queryParam/explodeTrueWithAnnotation.md, samples/parameters/parameterOrdering.md",
-          "replaces": "SA18"
+          "replaces": "SA18",
+          "resolution": "Fixed by: (1) Adding withVersionedApiVersion support to test harness to inject @versioned(Versions) decorator and Versions enum, causing TCGC to correctly mark apiVersion as a client-level parameter; (2) Adding default value fallback (context.apiVersion ?? \"defaultValue\") in send-operation.tsx for client-level apiVersion with clientDefaultValue."
         },
         {
           "id": "RC27",

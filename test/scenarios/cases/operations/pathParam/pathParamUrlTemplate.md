@@ -67,7 +67,6 @@ import { expandUrlTemplate } from "@typespec/ts-http-runtime";
 
 export function _updateKeySend(
   context: Client,
-  apiVersion: string,
   keyName: string,
   keyVersion: string,
   parameters: string,
@@ -76,7 +75,7 @@ export function _updateKeySend(
   const path = expandUrlTemplate(
     "/keys/{key-name}/{key-version}{?api%2Dversion}",
     {
-      "api%2Dversion": apiVersion,
+      "api%2Dversion": context.apiVersion ?? "2022-05-15-preview",
       "key-name": keyName,
       "key-version": keyVersion,
     },
@@ -110,7 +109,6 @@ export async function _updateKeyDeserialize(
  * The most basic operation.
  *
  * @param {Client} context
- * @param {string} apiVersion
  * @param {string} keyName
  * @param {string} keyVersion
  * @param {string} parameters
@@ -118,7 +116,6 @@ export async function _updateKeyDeserialize(
  */
 export async function updateKey(
   context: Client,
-  apiVersion: string,
   keyName: string,
   keyVersion: string,
   parameters: string,
@@ -126,7 +123,6 @@ export async function updateKey(
 ): Promise<KeyBundle> {
   const result = await _updateKeySend(
     context,
-    apiVersion,
     keyName,
     keyVersion,
     parameters,

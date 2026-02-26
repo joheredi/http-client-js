@@ -243,6 +243,12 @@ export async function emitForScenario(
   // - default: use TesterWithService with dynamic usings
   const useRaw = yamlConfig["withRawContent"] === true || hasOwnImports(code);
 
+  // When withVersionedApiVersion is true, add @versioned(Versions) decorator
+  // and a Versions enum to simulate a versioned API. This causes TCGC to mark
+  // api-version parameters as client-level (onClient=true, isApiVersionParam=true),
+  // matching the legacy test infrastructure behavior.
+  const withVersionedApiVersion = yamlConfig["withVersionedApiVersion"] === true;
+
   let tester;
   if (useRaw) {
     tester = RawTester;
@@ -251,6 +257,11 @@ export async function emitForScenario(
     // Build extra using statements based on code content analysis
     const extraUsing = buildExtraUsings(code);
 
+    const versionedDecorator = withVersionedApiVersion ? "@versioned(Versions)" : "";
+    const versionsEnum = withVersionedApiVersion
+      ? 'enum Versions { v2022_05_15_preview: "2022-05-15-preview"}'
+      : "";
+
     if (ownService) {
       // Scenario defines its own @service — just add extra usings before code
       tester = extraUsing
@@ -258,12 +269,15 @@ export async function emitForScenario(
         : Tester;
     } else {
       // No @service — wrap with service namespace, putting extra usings BEFORE namespace
-      if (extraUsing) {
+      if (extraUsing || withVersionedApiVersion) {
         tester = Tester.wrap((x) => `
 ${extraUsing}
 #suppress "@azure-tools/typespec-azure-core/auth-required" "for test"
+${versionedDecorator}
 @service(#{title: "Test Service"})
 namespace TestService;
+
+${versionsEnum}
 
 ${x}
 `);
@@ -280,8 +294,13 @@ ${x}
   // TCGC's loadExamples() reads from {projectRoot}/examples/{apiVersion}/ or
   // {projectRoot}/examples/ (if no versioning). We parse the API version from
   // the TypeSpec code and place files in the correct directory.
+  // When withVersionedApiVersion injects a version enum, append the injected
+  // version so extractApiVersion can find it.
   if (jsonExamples.length > 0) {
-    addExamplesToFs(runner.fs, jsonExamples, code);
+    const codeForVersionDetection = withVersionedApiVersion
+      ? `${code}\n"2022-05-15-preview"`
+      : code;
+    addExamplesToFs(runner.fs, jsonExamples, codeForVersionDetection);
   }
 
   const sdkContext = await createSdkContextForTest(program);

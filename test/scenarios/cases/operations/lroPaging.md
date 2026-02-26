@@ -394,7 +394,7 @@ export function _suspendSend(
   const path = expandUrlTemplate(
     "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/suspend{?api%2Dversion}",
     {
-      "api%2Dversion": context.apiVersion,
+      "api%2Dversion": context.apiVersion ?? "2023-12-01",
       subscriptionId: context["subscriptionId"],
       resourceGroupName: resourceGroupName,
       name: name,
