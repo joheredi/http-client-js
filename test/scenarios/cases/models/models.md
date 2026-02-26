@@ -150,16 +150,13 @@ import {
 
 export function _readSend(
   context: Client,
-  stream: true,
-  messages: "aaaaa",
-  index: 123,
   options: ReadOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
   return context.path("/").post({
     ...operationOptionsToRequestParameters(options),
     contentType: "application/json",
     headers: { accept: "text/plain", ...options.requestOptions?.headers },
-    body: { stream: stream, messages: messages, index: index },
+    body: { stream: true, messages: "aaaaa", index: 123 },
   });
 }
 
@@ -176,12 +173,9 @@ export async function _readDeserialize(
 
 export async function read(
   context: Client,
-  stream: true,
-  messages: "aaaaa",
-  index: 123,
   options: ReadOptionalParams = { requestOptions: {} },
 ): Promise<true> {
-  const result = await _readSend(context, stream, messages, index, options);
+  const result = await _readSend(context, options);
   return _readDeserialize(result);
 }
 ```

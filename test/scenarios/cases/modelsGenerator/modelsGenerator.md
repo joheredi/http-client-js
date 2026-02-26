@@ -348,13 +348,12 @@ import {
 
 export function _createStreamingSend(
   context: Client,
-  stream: true,
   options: CreateStreamingOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
   return context.path("/createStreaming").post({
     ...operationOptionsToRequestParameters(options),
     contentType: "application/json",
-    body: { stream: stream },
+    body: { stream: true },
   });
 }
 
@@ -371,10 +370,9 @@ export async function _createStreamingDeserialize(
 
 export async function createStreaming(
   context: Client,
-  stream: true,
   options: CreateStreamingOptionalParams = { requestOptions: {} },
 ): Promise<void> {
-  const result = await _createStreamingSend(context, stream, options);
+  const result = await _createStreamingSend(context, options);
   return _createStreamingDeserialize(result);
 }
 ```

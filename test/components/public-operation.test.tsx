@@ -1002,4 +1002,43 @@ op groupCustomized(
     expect(rendered).toContain("_groupOriginalSend(context, options, optionalParams)");
     expect(rendered).toContain("_groupOriginalDeserialize(result)");
   });
+
+  /**
+   * Tests that constant-type parameters are excluded from the public operation
+   * function signature and the call to the send function. This ensures that
+   * the public API surface does not expose fixed values as arguments, matching
+   * the legacy emitter behavior (SA26).
+   */
+  it("should exclude constant params from public function and send call", async () => {
+    const runner = await TesterWithService.createInstance();
+    const { program } = await runner.compile(
+      t.code`
+        model StreamingOpts {
+          stream: true;
+        }
+        @post op ${t.op("createStreaming")}(...StreamingOpts): void;
+      `,
+    );
+
+    const sdkContext = await createSdkContextForTest(program);
+    const method = getFirstMethod(sdkContext);
+
+    const template = (
+      <SdkTestFile sdkContext={sdkContext} externals={[httpRuntimeLib]}>
+        <OperationOptionsDeclaration method={method} />
+        {"\n\n"}
+        <SendOperation method={method} />
+        {"\n\n"}
+        <DeserializeOperation method={method} />
+        {"\n\n"}
+        <PublicOperation method={method} />
+      </SdkTestFile>
+    );
+
+    const rendered = renderToString(template);
+    // Constant param 'stream' should NOT appear in public function signature
+    expect(rendered).not.toMatch(/createStreaming\(\s*context: Client,\s*stream: true/);
+    // Call to send function should only pass context and options
+    expect(rendered).toContain("_createStreamingSend(context, options)");
+  });
 });

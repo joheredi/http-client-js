@@ -26,7 +26,6 @@ import {
 
 export function _uploadFileViaBodySend(
   context: Client,
-  contentType: "application/octet-stream",
   body: Uint8Array,
   options: UploadFileViaBodyOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
@@ -50,16 +49,10 @@ export async function _uploadFileViaBodyDeserialize(
 
 export async function uploadFileViaBody(
   context: Client,
-  contentType: "application/octet-stream",
   body: Uint8Array,
   options: UploadFileViaBodyOptionalParams = { requestOptions: {} },
 ): Promise<void> {
-  const result = await _uploadFileViaBodySend(
-    context,
-    contentType,
-    body,
-    options,
-  );
+  const result = await _uploadFileViaBodySend(context, body, options);
   return _uploadFileViaBodyDeserialize(result);
 }
 ```
@@ -93,7 +86,6 @@ import {
 
 export function _uploadFileViaBodySend(
   context: Client,
-  contentType: "application/octet-stream",
   body: Uint8Array,
   options: UploadFileViaBodyOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
@@ -117,16 +109,10 @@ export async function _uploadFileViaBodyDeserialize(
 
 export async function uploadFileViaBody(
   context: Client,
-  contentType: "application/octet-stream",
   body: Uint8Array,
   options: UploadFileViaBodyOptionalParams = { requestOptions: {} },
 ): Promise<void> {
-  const result = await _uploadFileViaBodySend(
-    context,
-    contentType,
-    body,
-    options,
-  );
+  const result = await _uploadFileViaBodySend(context, body, options);
   return _uploadFileViaBodyDeserialize(result);
 }
 ```
@@ -185,7 +171,6 @@ import {
 
 export function _uploadFileSend(
   context: Client,
-  contentType: "multipart/form-data",
   body: _UploadFileRequest,
   options: UploadFileOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
@@ -209,11 +194,10 @@ export async function _uploadFileDeserialize(
 
 export async function uploadFile(
   context: Client,
-  contentType: "multipart/form-data",
   body: _UploadFileRequest,
   options: UploadFileOptionalParams = { requestOptions: {} },
 ): Promise<void> {
-  const result = await _uploadFileSend(context, contentType, body, options);
+  const result = await _uploadFileSend(context, body, options);
   return _uploadFileDeserialize(result);
 }
 ```
@@ -274,7 +258,6 @@ import {
 
 export function _uploadFilesSend(
   context: Client,
-  contentType: "multipart/form-data",
   body: _UploadFilesRequest,
   options: UploadFilesOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
@@ -298,11 +281,10 @@ export async function _uploadFilesDeserialize(
 
 export async function uploadFiles(
   context: Client,
-  contentType: "multipart/form-data",
   body: _UploadFilesRequest,
   options: UploadFilesOptionalParams = { requestOptions: {} },
 ): Promise<void> {
-  const result = await _uploadFilesSend(context, contentType, body, options);
+  const result = await _uploadFilesSend(context, body, options);
   return _uploadFilesDeserialize(result);
 }
 ```

@@ -33,7 +33,7 @@ import type {
   SdkHttpOperation,
   SdkServiceMethod,
 } from "@azure-tools/typespec-client-generator-core";
-import { SendOperation, escapeUriTemplateParamName } from "../../src/components/send-operation.js";
+import { SendOperation, escapeUriTemplateParamName, isRequiredSignatureParameter, isConstantType, getConstantLiteral } from "../../src/components/send-operation.js";
 import { getOptionsParamName } from "../../src/components/send-operation.js";
 import { OperationOptionsDeclaration } from "../../src/components/operation-options.js";
 import { ModelInterface } from "../../src/components/model-interface.js";
@@ -795,6 +795,185 @@ op groupCustomized(
 
     const result = renderToString(template);
     expect(result).toContain("buildCsvCollection(colors)");
+  });
+
+  /**
+   * Tests that constant-type parameters (e.g., `stream: true`, `contentType: "application/octet-stream"`)
+   * are excluded from the function signature and their literal values are hardcoded
+   * in the request body. This is critical for API surface correctness — constants
+   * should never be exposed as positional arguments because their values are fixed
+   * and cannot be changed by consumers. Matches the legacy emitter behavior (SA26).
+   */
+  describe("constant parameter handling", () => {
+    /**
+     * Tests spread body with all-constant properties. When every property
+     * of a spread model is a constant type, the function should have NO
+     * required positional parameters (only context + options), and the body
+     * should contain hardcoded literal values.
+     */
+    it("should exclude constant-type params from signature and hardcode in body", async () => {
+      const runner = await TesterWithService.createInstance();
+      const { program } = await runner.compile(
+        t.code`
+          model StreamingOpts {
+            stream: true;
+          }
+          @post op ${t.op("createStreaming")}(...StreamingOpts): void;
+        `,
+      );
+
+      const sdkContext = await createSdkContextForTest(program);
+      const method = getFirstMethod(sdkContext);
+
+      const template = (
+        <SdkTestFile sdkContext={sdkContext} externals={[httpRuntimeLib]}>
+          <OperationOptionsDeclaration method={method} />
+          {"\n\n"}
+          <SendOperation method={method} />
+        </SdkTestFile>
+      );
+
+      const result = renderToString(template);
+      // Constant param should NOT appear in function signature as a parameter
+      expect(result).not.toMatch(/createStreamingSend\(\s*context: Client,\s*stream: true/);
+      // Constant value should be hardcoded in the body (keys are quoted in spread bodies)
+      expect(result).toContain('"stream": true');
+    });
+
+    /**
+     * Tests explicit constant-type @header contentType parameter. When a
+     * header is declared with a constant value like `"application/octet-stream"`,
+     * it should not appear as a positional argument in the function signature.
+     * The content type is already hardcoded in the request options.
+     */
+    it("should exclude constant contentType header from signature", async () => {
+      const runner = await TesterWithService.createInstance();
+      const { program } = await runner.compile(
+        t.code`
+          @route("/upload")
+          @post op ${t.op("uploadFile")}(
+            @header contentType: "application/octet-stream",
+            @body body: bytes
+          ): void;
+        `,
+      );
+
+      const sdkContext = await createSdkContextForTest(program);
+      const method = getFirstMethod(sdkContext);
+
+      const template = (
+        <SdkTestFile sdkContext={sdkContext} externals={[httpRuntimeLib]}>
+          <OperationOptionsDeclaration method={method} />
+          {"\n\n"}
+          <SendOperation method={method} />
+        </SdkTestFile>
+      );
+
+      const result = renderToString(template);
+      // contentType constant should NOT be a positional parameter before body
+      expect(result).not.toMatch(/uploadFileSend\(\s*context: Client,\s*contentType:/);
+      // But contentType should still be in the request options
+      expect(result).toContain('contentType: "application/octet-stream"');
+      // body should still be a parameter
+      expect(result).toContain("body: Uint8Array");
+    });
+
+    /**
+     * Tests constant path parameters. When a path parameter has a constant
+     * type (e.g., `@path strDefault: "foobar"`), it should not appear as a function
+     * argument. Instead, the literal value should be used in the URL template
+     * expansion object.
+     */
+    it("should hardcode constant path parameter values in URL expansion", async () => {
+      const runner = await TesterWithService.createInstance();
+      const { program } = await runner.compile(
+        t.code`
+          @route("/{strDefault}")
+          @get op ${t.op("readItem")}(@path strDefault: "foobar"): void;
+        `,
+      );
+
+      const sdkContext = await createSdkContextForTest(program);
+      const method = getFirstMethod(sdkContext);
+
+      const template = (
+        <SdkTestFile sdkContext={sdkContext} externals={[httpRuntimeLib]}>
+          <OperationOptionsDeclaration method={method} />
+          {"\n\n"}
+          <SendOperation method={method} />
+        </SdkTestFile>
+      );
+
+      const result = renderToString(template);
+      // Constant path param should NOT be in function signature
+      expect(result).not.toMatch(/readItemSend\(\s*context: Client,\s*strDefault:/);
+      // Literal should be hardcoded in URL expansion (key is quoted in expansion object)
+      expect(result).toContain('"strDefault": "foobar"');
+    });
+  });
+});
+
+/**
+ * Tests for the isConstantType and getConstantLiteral utility functions.
+ *
+ * isConstantType checks whether an SdkType is a constant (literal) type.
+ * getConstantLiteral returns the JavaScript literal representation of a
+ * constant type's value.
+ *
+ * Why this is important:
+ * - These functions are used to detect constant-type parameters and
+ *   hardcode their values in generated code instead of exposing them
+ *   as function arguments (SA26).
+ * - String constants need quote wrapping; numeric/boolean do not.
+ */
+describe("isConstantType and getConstantLiteral", () => {
+  /**
+   * Tests that isConstantType returns true for types with kind "constant"
+   * and false for other type kinds like "string" or "model".
+   */
+  it("should identify constant types correctly", () => {
+    expect(isConstantType({ kind: "constant", value: true } as any)).toBe(true);
+    expect(isConstantType({ kind: "string" } as any)).toBe(false);
+    expect(isConstantType({ kind: "model" } as any)).toBe(false);
+  });
+
+  /**
+   * Tests that string constant values are wrapped in double quotes.
+   */
+  it("should format string constants with quotes", () => {
+    expect(
+      getConstantLiteral({
+        kind: "constant",
+        value: "application/json",
+        valueType: { kind: "string" },
+      } as any),
+    ).toBe('"application/json"');
+  });
+
+  /**
+   * Tests that boolean constant values are rendered as bare literals.
+   */
+  it("should format boolean constants without quotes", () => {
+    expect(
+      getConstantLiteral({
+        kind: "constant",
+        value: true,
+        valueType: { kind: "boolean" },
+      } as any),
+    ).toBe("true");
+  });
+
+  /**
+   * Tests that numeric constant values are rendered as bare literals.
+   */
+  it("should format numeric constants without quotes", () => {
+    expect(
+      getConstantLiteral({
+        kind: "constant",
+        value: 42,
+        valueType: { kind: "int32" },
+      } as any),
+    ).toBe("42");
   });
 });
 

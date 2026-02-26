@@ -44,13 +44,11 @@ import {
 
 export function _readSend(
   context: Client,
-  strDefault: "foobar",
-  numberDefault: 1,
   options: ReadOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
   const path = expandUrlTemplate(
     "/{strDefault}/{numberDefault}",
-    { strDefault: strDefault, numberDefault: numberDefault },
+    { strDefault: "foobar", numberDefault: 1 },
     { allowReserved: options?.requestOptions?.skipUrlEncoding },
   );
   return context
@@ -73,17 +71,13 @@ export async function _readDeserialize(
  * show example demo
  *
  * @param {Client} context
- * @param {"foobar"} strDefault
- * @param {1} numberDefault
  * @param {ReadOptionalParams} options
  */
 export async function read(
   context: Client,
-  strDefault: "foobar",
-  numberDefault: 1,
   options: ReadOptionalParams = { requestOptions: {} },
 ): Promise<void> {
-  const result = await _readSend(context, strDefault, numberDefault, options);
+  const result = await _readSend(context, options);
   return _readDeserialize(result);
 }
 ```

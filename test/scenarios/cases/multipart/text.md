@@ -45,7 +45,6 @@ import {
 
 export function _doThingSend(
   context: Client,
-  contentType: "multipart/form-data",
   bodyParam: RequestBody,
   options: DoThingOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
@@ -69,11 +68,10 @@ export async function _doThingDeserialize(
 
 export async function doThing(
   context: Client,
-  contentType: "multipart/form-data",
   bodyParam: RequestBody,
   options: DoThingOptionalParams = { requestOptions: {} },
 ): Promise<void> {
-  const result = await _doThingSend(context, contentType, bodyParam, options);
+  const result = await _doThingSend(context, bodyParam, options);
   return _doThingDeserialize(result);
 }
 ```

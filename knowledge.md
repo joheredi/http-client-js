@@ -1698,3 +1698,31 @@ header values can be `0` or `""` which are falsy but valid.
 **Test pattern**: To test header encoding, use `renderToString(template)` and check for the expected
 encoding expression with `expect(result).toContain(...)`. Full `toRenderTo` matching is harder because
 the entire output (imports, options interface, full function) must match.
+
+## Constant-Type Parameters (SA26)
+
+**Problem**: When a method parameter has type `SdkConstantType` (kind === "constant"), e.g.,
+`stream: true`, `@header contentType: "application/octet-stream"`, `@path version: "v1"`,
+the emitter was exposing them as positional function parameters. Constants should be hardcoded
+directly in the generated code.
+
+**Solution**: Updated `isRequiredSignatureParameter` in `send-operation.tsx` to return `false`
+for constant-type parameters. Added `isConstantType(type)` and `getConstantLiteral(type)` helpers.
+Updated all accessor functions (`getParameterAccessor`, `getHeaderAccessor`, `getSpreadPropertyAccessor`,
+`getBodyAccessor`) to return literal values for constant types. Also excluded constants from the
+operation options interface in `operation-options.tsx`.
+
+**Key insight**: The spread body builder (`buildSpreadBodyExpression`) uses `getSpreadPropertyAccessor`
+to determine how to access each property value. For constant properties, this must return the literal
+value (e.g., `true`, `"foobar"`, `42`) since the parameter no longer exists in the function signature.
+
+**Test pattern**: Use `renderToString(template)` and regex negation to verify constant params are absent
+from signatures: `expect(result).not.toMatch(/functionName\(\s*context: Client,\s*paramName:/)`.
+For verifying hardcoded values in body objects, note that spread body keys are quoted:
+`expect(result).toContain('"propName": true')`.
+
+**Affected files**:
+- `src/components/send-operation.tsx` — Core logic changes
+- `src/components/operation-options.tsx` — Exclude constants from options interface
+- 7 scenario test files updated to match new output
+- 8 new unit tests added

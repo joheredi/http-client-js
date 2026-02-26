@@ -3938,3 +3938,37 @@ When a `utcDateTime` parameter is sent as an HTTP header, the emitter passed the
 
 ### Test Results
 898 passed | 3 skipped (901 total) — all green (+4 new tests)
+
+## 2026-02-26: SA26 — Constant Parameters Should Not Be Positional
+
+**What was done**: Implemented SA26 from the scenario audit. Constant-type parameters
+(SdkConstantType) are now excluded from function signatures and their literal values
+are hardcoded directly in the generated code (request body, URL expansion, headers).
+
+**Changes made**:
+- `src/components/send-operation.tsx`:
+  - Added `SdkConstantType` and `SdkType` imports
+  - Added `isConstantType(type)` export — checks if `type.kind === "constant"`
+  - Added `getConstantLiteral(type)` export — returns JS literal for constant values
+  - Updated `isRequiredSignatureParameter()` to return `false` for constant-type params
+  - Updated `getParameterAccessor()` to return literal value for constant method params
+  - Updated `getHeaderAccessor()` to return literal value for constant header params
+  - Updated `getSpreadPropertyAccessor()` to return literal value for constant properties
+  - Updated `getBodyAccessor()` to return literal value for constant body params
+- `src/components/operation-options.tsx`:
+  - Updated `isOptionalParameter()` to exclude constant-type params from options interface
+- Updated 7 scenario test files:
+  - `test/scenarios/cases/operations/pathParam/requiredPathWithDefault.md`
+  - `test/scenarios/cases/models/models.md`
+  - `test/scenarios/cases/modelsGenerator/modelsGenerator.md`
+  - `test/scenarios/cases/apiOperations/apiOperations.md` (3 scenarios)
+  - `test/scenarios/cases/multipart/file.md`
+  - `test/scenarios/cases/multipart/text.md`
+  - `test/scenarios/cases/samples/operations/dpgCurdOperations.md`
+- Added 8 new unit tests:
+  - 3 integration tests in `send-operation.test.tsx` (constant body, constant header, constant path)
+  - 4 utility tests for `isConstantType` and `getConstantLiteral`
+  - 1 integration test in `public-operation.test.tsx` (constant params excluded from public function)
+
+**Tests**: 906 passed, 3 skipped (0 failures). Build successful.
+**PRD**: SA26 marked as done.

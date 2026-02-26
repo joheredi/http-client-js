@@ -148,7 +148,6 @@ async function widgetsCreateOrUpdateWidget(): Promise<void> {
   const client = new WidgetManagerClient(endpoint, credential);
   const result = await client.widgets.createOrUpdateWidget(
     "name1",
-    "contentType",
     {},
     { apiVersion: "2021-10-01-preview" },
   );
