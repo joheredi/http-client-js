@@ -2692,6 +2692,199 @@
         }
       ],
       "name": "Remaining Corrections"
+    },
+    {
+      "phase": 10,
+      "name": "Flavor Parity \u2014 Match Legacy Emitter Flavor Behavior",
+      "description": "Ensure the new emitter correctly handles the 'flavor' option ('core' vs 'azure') with full parity to the legacy emitter. Core flavor should use @typespec/ts-http-runtime and NOT generate Azure-specific features (LRO, paging, logger, DefaultAzureCredential). Azure flavor should use Azure SDK packages. No 'branded' option support. Flavor must be set explicitly or not at all (defaulting to 'core').",
+      "tasks": [
+        {
+          "id": "10.1",
+          "title": "Make ignoreNullableOnOptional default flavor-aware",
+          "description": "In src/emitter.tsx line 184, ignoreNullableOnOptional currently defaults to true for all flavors (context.options?.['ignore-nullable-on-optional'] !== false). The legacy emitter defaults this to true only for Azure flavor and false for core. Update: if user explicitly sets the option, use their value; otherwise default to true for Azure, false for core. The flavor is already resolved at line 178 before emitterOptions is constructed.\n\nLegacy ref: submodules/autorest.typescript/packages/typespec-ts/src/transform/transfromRLCOptions.ts lines 275-285.\nFile to modify: src/emitter.tsx (line 184).",
+          "pass": false,
+          "pass_criteria": [
+            "When flavor='azure' and ignore-nullable-on-optional is NOT set, ignoreNullableOnOptional defaults to true",
+            "When flavor='core' and ignore-nullable-on-optional is NOT set, ignoreNullableOnOptional defaults to false",
+            "When ignore-nullable-on-optional is explicitly set to true/false, that value is used regardless of flavor",
+            "Existing tests still pass"
+          ],
+          "status": "pending"
+        },
+        {
+          "id": "10.2",
+          "title": "Remove azureCoreLroLib from coreExternals",
+          "description": "In src/emitter.tsx line 60, coreExternals includes azureCoreLroLib: `const coreExternals = [httpRuntimeLib, azureCoreLroLib];`. Since LRO/paging will be gated behind Azure flavor, core should not include azureCoreLroLib. This is @azure/core-lro which should not appear in core-generated code.\n\nFile to modify: src/emitter.tsx line 60 \u2014 change to `const coreExternals = [httpRuntimeLib];`",
+          "pass": false,
+          "pass_criteria": [
+            "coreExternals only contains [httpRuntimeLib]",
+            "Core flavor generated code has no @azure/core-lro imports",
+            "Azure flavor still has azureCoreLroLib in its externals"
+          ],
+          "status": "pending"
+        },
+        {
+          "id": "10.3",
+          "title": "Gate RestorePollerFile behind Azure flavor",
+          "description": "RestorePollerFile in src/emitter.tsx line 211 is rendered unconditionally for every client. It directly references azureCoreLroLib (PollerLike, OperationState, deserializeState, ResourceLocationConfig). For core flavor this will produce broken imports since @azure/core-lro won't be in externals.\n\nWrap in flavor check: `{flavor === 'azure' && <RestorePollerFile client={client} />}`\n\nNote: The flavor variable is already available in the emitter.tsx scope (line 178).\n\nFile to modify: src/emitter.tsx line 211.\nRef component: src/components/restore-poller.tsx (lines 14-15, 185, 205, 214, 222 \u2014 all use azureCoreLroLib).",
+          "pass": false,
+          "pass_criteria": [
+            "RestorePollerFile is only rendered when flavor='azure'",
+            "Core flavor does not generate restore-poller related files",
+            "Azure flavor still generates RestorePollerFile correctly"
+          ],
+          "status": "pending"
+        },
+        {
+          "id": "10.4",
+          "title": "Gate PollingHelpersFile behind Azure flavor",
+          "description": "PollingHelpersFile in src/components/static-helpers/index.tsx line 37 is rendered unconditionally. It generates getLongRunningPoller, OperationState interface, PollerLike interface, and GetLongRunningPollerOptions.\n\nThe StaticHelpers component needs to check flavor via useFlavorContext() and conditionally render PollingHelpersFile only for Azure.\n\nFile to modify: src/components/static-helpers/index.tsx \u2014 add flavor check around <PollingHelpersFile />.\nRef: src/components/static-helpers/polling-helpers.tsx \u2014 uses useRuntimeLib() for RestError, AbortSignalLike, PathUncheckedResponse, createRestError.",
+          "pass": false,
+          "pass_criteria": [
+            "PollingHelpersFile only rendered when flavor='azure'",
+            "Core flavor does not generate helpers/pollingHelpers.ts",
+            "Azure flavor still generates polling helpers correctly"
+          ],
+          "status": "pending"
+        },
+        {
+          "id": "10.5",
+          "title": "Gate PagingHelpersFile behind Azure flavor",
+          "description": "PagingHelpersFile in src/components/static-helpers/index.tsx line 36 is rendered unconditionally. It generates PageSettings, PagedAsyncIterableIterator, and buildPagedAsyncIterator.\n\nThe StaticHelpers component needs to conditionally render PagingHelpersFile only for Azure flavor.\n\nFile to modify: src/components/static-helpers/index.tsx \u2014 add flavor check around <PagingHelpersFile />.\nRef: src/components/static-helpers/paging-helpers.tsx \u2014 uses useRuntimeLib() for Client, PathUncheckedResponse, createRestError.",
+          "pass": false,
+          "pass_criteria": [
+            "PagingHelpersFile only rendered when flavor='azure'",
+            "Core flavor does not generate helpers/pagingHelpers.ts",
+            "Azure flavor still generates paging helpers correctly"
+          ],
+          "status": "pending"
+        },
+        {
+          "id": "10.6",
+          "title": "Handle LRO operations for core flavor in public-operation",
+          "description": "In src/components/public-operation.tsx, LRO operations always generate Azure-specific return types:\n- LroOperation (lines 239-240): Returns PollerLike<OperationState<T>, T> from azureCoreLroLib\n- LroPagingOperation (line 350): Combines PollerLike with paging\n\nFor core flavor, LRO operations should generate as regular async functions returning Promise<T> (the final result type directly). The component should check flavor via useFlavorContext() and dispatch accordingly.\n\nFile to modify: src/components/public-operation.tsx \u2014 LroOperation and LroPagingOperation components.\nImport needed: useFlavorContext from ../context/flavor-context.js (already used by other components).",
+          "pass": false,
+          "pass_criteria": [
+            "Core flavor LRO operations return Promise<T> instead of PollerLike<OperationState<T>, T>",
+            "Core flavor LRO operations are async functions",
+            "Azure flavor retains PollerLike return types",
+            "No azureCoreLroLib references appear in core flavor generated code"
+          ],
+          "status": "pending"
+        },
+        {
+          "id": "10.7",
+          "title": "Handle paging operations for core flavor in public-operation",
+          "description": "In src/components/public-operation.tsx, paging operations generate PagedAsyncIterableIterator return types and call buildPagedAsyncIterator. For core flavor, paging operations should generate as regular async functions returning Promise<T> (the list response directly).\n\nThe component should check flavor and for core: use the same pattern as a regular BasicOperation (async function returning the deserialized response).\n\nFile to modify: src/components/public-operation.tsx \u2014 paging case handling.\nRef: The 'paging' and 'lropaging' cases in the switch/dispatch logic.",
+          "pass": false,
+          "pass_criteria": [
+            "Core flavor paging operations return Promise<T> instead of PagedAsyncIterableIterator<T>",
+            "Core flavor paging operations are regular async functions",
+            "Azure flavor retains PagedAsyncIterableIterator return types",
+            "No paging helper references appear in core flavor generated code"
+          ],
+          "status": "pending"
+        },
+        {
+          "id": "10.8",
+          "title": "Remove LRO-specific operation options for core flavor",
+          "description": "In src/components/operation-options.tsx lines 202-208, LRO operations get an `updateIntervalInMs` option added. For core flavor, this should not be generated since LRO operations are regular async functions.\n\nThe component should check flavor and skip the updateIntervalInMs member for core flavor.\n\nFile to modify: src/components/operation-options.tsx \u2014 around lines 196-220 where synthetic members are added.",
+          "pass": false,
+          "pass_criteria": [
+            "Core flavor LRO operations do not have updateIntervalInMs in their options",
+            "Azure flavor LRO operations still have updateIntervalInMs",
+            "Existing tests pass"
+          ],
+          "status": "pending"
+        },
+        {
+          "id": "10.9",
+          "title": "Remove LRO-specific status codes for core flavor in deserialize-operation",
+          "description": "In src/components/deserialize-operation.tsx lines 145-152, LRO operations get extra status codes (200, 201, 202) added for polling. For core flavor, since LRO operations are regular async functions, these extra codes should not be added.\n\nThe component should check flavor and skip the extra LRO status codes for core flavor.\n\nFile to modify: src/components/deserialize-operation.tsx \u2014 around lines 145-152.",
+          "pass": false,
+          "pass_criteria": [
+            "Core flavor LRO operations do not get extra 200/201/202 status codes",
+            "Azure flavor LRO operations still get the extra status codes",
+            "Existing tests pass"
+          ],
+          "status": "pending"
+        },
+        {
+          "id": "10.10",
+          "title": "Make sample credentials flavor-aware",
+          "description": "In src/components/sample-files.tsx, the getCredentialCodeForScheme() function (around line 495-506) always uses DefaultAzureCredential for OAuth2/OpenIDConnect regardless of flavor.\n\nFor core flavor, OAuth2 samples should use a placeholder TokenCredential instead:\n```\n{ getToken: async () => ({ token: 'INPUT_YOUR_TOKEN_HERE', expiresOnTimestamp: Date.now() + 3600000 }) }\n```\n\nThe component needs to use useFlavorContext() to determine which credential to generate.\n\nLegacy ref: submodules/autorest.typescript/packages/typespec-ts/src/modular/emitSamples.ts lines 504-540.\nFile to modify: src/components/sample-files.tsx \u2014 getCredentialCodeForScheme() and hasOAuth2Auth() functions.",
+          "pass": false,
+          "pass_criteria": [
+            "Azure flavor samples use new DefaultAzureCredential() for OAuth2",
+            "Core flavor samples use placeholder TokenCredential for OAuth2",
+            "Both flavors use { key: 'INPUT_YOUR_KEY_HERE' } for API key auth",
+            "@azure/identity import only appears in Azure flavor samples"
+          ],
+          "status": "pending"
+        },
+        {
+          "id": "10.11",
+          "title": "Add core flavor scenario tests for LRO/paging gating",
+          "description": "Create scenario tests verifying core flavor generates correct output without LRO/paging Azure features.\n\nTests should verify:\n1. A service with LRO operations under core flavor generates regular async functions (not PollerLike)\n2. A service with paging operations under core flavor generates regular async functions (not PagedAsyncIterableIterator)\n3. Core flavor output contains no @azure/core-lro imports\n4. Core flavor output contains no helpers/pagingHelpers.ts or helpers/pollingHelpers.ts\n5. Core flavor output contains no DefaultAzureCredential imports\n\nTest infrastructure: test/scenarios/emit-for-scenario.tsx has resolveFlavor() and detectAzureFlavor(). Use existing scenario framework.\n\nFiles to create/modify: test/scenarios/cases/ \u2014 new or updated scenario files.",
+          "pass": false,
+          "pass_criteria": [
+            "Core flavor scenario tests exist and pass",
+            "Tests verify no @azure/* imports in core flavor output (except expandUrlTemplate from ts-http-runtime)",
+            "Tests verify LRO generates as regular async for core",
+            "Tests verify paging generates as regular async for core",
+            "Tests verify credential placeholder for core"
+          ],
+          "status": "pending"
+        },
+        {
+          "id": "10.12",
+          "title": "Generate pass-through (identity) serializer/deserializer functions",
+          "description": "The new emitter omits serializer functions for types that are identity operations (e.g., models where all properties are simple scalars). The legacy emitter generates these as `function fooSerializer(item) { return item; }`. Consumers may import these functions, so omitting them is a breaking change.\n\nThe issue is in the serializer/deserializer generation pipeline. When `needsTransformation()` returns false for a model, no serializer function is generated. Instead, a pass-through serializer should still be emitted.\n\nKey files:\n- src/components/serialization/json-serializer.tsx \u2014 `needsTransformation()` function (lines 290-316) determines if a type needs transformation. Models always return true, but the issue may be in how model-files.tsx filters which models get serializers.\n- src/components/model-files.tsx \u2014 lines 126-149, filters models by UsageFlags.Input for serializers and UsageFlags.Output for deserializers.\n- The filtering may be too aggressive \u2014 some models with only simple properties may need serializer functions even if the body is just `return item;`.\n\nLegacy ref: submodules/autorest.typescript/packages/typespec-ts/src/modular/ \u2014 serializer generation always emits a function for each model.\n\nScenario audit: SA-C13.",
+          "pass": false,
+          "pass_criteria": [
+            "Models that have only simple scalar properties still get serializer functions generated",
+            "Pass-through serializers generate as: function fooSerializer(item: Foo): any { return item; }",
+            "Pass-through deserializers generate similarly for output-only simple types",
+            "Consumers who import these functions from the generated code are not broken",
+            "Existing tests pass"
+          ],
+          "status": "pending"
+        },
+        {
+          "id": "10.13",
+          "title": "Match legacy error handling: import ErrorModel from runtime, throw directly",
+          "description": "The new emitter defines ErrorModel/InnerError/ErrorResponse locally with deserializers and attaches deserialized error body to `error.details`. The legacy emitter imports ErrorModel from the runtime package and throws errors directly without detailed deserialization.\n\nChanges needed:\n1. Do NOT generate local ErrorModel/InnerError/ErrorResponse interface definitions \u2014 these should be imported from the runtime package (already in external-packages.ts: httpRuntimeLib.ErrorModel, azureCoreClientLib.ErrorModel, azureCoreClientLib.ErrorResponse).\n2. Do NOT generate deserializer functions for error types.\n3. In deserialize-operation.tsx (lines 207-265, buildErrorHandlingBlock), simplify to: `throw createRestError(result);` without attaching error.details with deserialized body.\n4. Skip filtering error types through the model generation pipeline.\n\nKey files:\n- src/components/deserialize-operation.tsx \u2014 buildErrorHandlingBlock function (lines 207-265)\n- src/components/model-files.tsx \u2014 may need to filter out Azure Core error types from model generation\n- src/utils/external-packages.ts \u2014 already exports ErrorModel/ErrorResponse from runtime packages\n\nLegacy ref: The legacy emitter checks `isAzureCoreErrorType()` and skips generating model definitions for these types.\n\nScenario audit: SA-C15.",
+          "pass": false,
+          "pass_criteria": [
+            "ErrorModel/InnerError/ErrorResponse are NOT defined as local interfaces in generated code",
+            "ErrorModel is imported from the runtime package when referenced",
+            "No deserializer functions are generated for error types",
+            "Error handling in operations uses throw createRestError(result) directly",
+            "error.details is NOT populated with deserialized error bodies",
+            "Existing tests updated to match new error handling pattern"
+          ],
+          "status": "pending"
+        },
+        {
+          "id": "10.14",
+          "title": "Match legacy binary response handling: direct return or getBinaryResponse",
+          "description": "The new emitter uses `stringToUint8Array(result.body, 'base64')` for binary responses. The legacy emitter either returns body directly or uses a `getBinaryResponse()` helper wrapper that calls the streaming method to prevent the Core from doing a UTF-8 decode on raw bytes.\n\nThe issue is in how binary (bytes with encode='bytes') responses are deserialized. The legacy uses a special path:\n1. Instead of awaiting the send function normally, it captures the StreamableMethod\n2. Passes it to `getBinaryResponse(streamableMethod)` which handles binary streaming\n3. This prevents the HTTP pipeline from corrupting binary data with UTF-8 decoding\n\nKey files:\n- src/components/deserialize-operation.tsx \u2014 response body handling\n- src/components/serialization/json-deserializer.tsx lines 248-261 \u2014 bytes case uses stringToUint8Array\n- Legacy ref: submodules/autorest.typescript/packages/typespec-ts/src/modular/helpers/operationHelpers.ts lines 895-912 \u2014 getBinaryResponse helper pattern\n- Legacy ref: submodules/autorest.typescript/packages/typespec-ts/src/modular/static-helpers-metadata.ts lines 57-61 \u2014 getBinaryResponse helper definition\n\nScenario audit: SA-C19.",
+          "pass": false,
+          "pass_criteria": [
+            "Binary responses (bytes with encode='bytes') use getBinaryResponse helper or direct return pattern matching legacy",
+            "No stringToUint8Array conversion on binary response bodies",
+            "Binary streaming is not corrupted by UTF-8 decoding in the pipeline",
+            "Non-binary bytes properties (e.g., base64-encoded model properties) still use stringToUint8Array correctly",
+            "Existing tests updated to match legacy pattern"
+          ],
+          "status": "pending"
+        }
+      ],
+      "dependencies": [
+        8,
+        9
+      ],
+      "status": "pending"
     }
   ],
   "risks": [
@@ -2757,18 +2950,26 @@
     "tcgc_python_usage": "submodules/typespec/packages/http-client-python"
   },
   "scenario_audit": {
-    "description": "Categorized semantic differences between NEW (http-client-js) and LEGACY (autorest.typescript) scenario test expectations, identified through automated comparison of 102 matched .md files.",
+    "description": "Comprehensive audit of semantic differences between NEW (http-client-js) and LEGACY (autorest.typescript) scenario test expectations. Conducted by comparing all 91 matched .md files across both test suites. The LEGACY emitter output is the source of truth - all regression tasks specify that the expected state matches the legacy test.",
+    "audit_date": "2026-02-26",
     "summary": {
-      "total_matched_files": 102,
+      "total_matched_files": 91,
       "files_only_in_new": 4,
       "files_only_in_legacy": 0,
-      "files_with_no_diff": 2,
-      "files_with_differences": 100,
-      "total_categories": 25
+      "identical_files": 3,
+      "files_with_differences": 88,
+      "total_regression_categories": 34,
+      "total_intentional_changes": 3,
+      "critical_regressions": 7,
+      "high_regressions": 15,
+      "medium_regressions": 11,
+      "low_cosmetic": 1,
+      "needs_review": 4
     },
     "identical_files": [
       "samples/client/apiKeyCredentialClient.md",
-      "samples/client/parameterizedHost.md"
+      "samples/client/parameterizedHost.md",
+      "samples/client/renameClientName.md"
     ],
     "new_only_files": [
       "client/client.md",
@@ -2776,405 +2977,729 @@
       "models/types.md",
       "operations/basic.md"
     ],
+    "file_paths": {
+      "new_tests": "test/scenarios/cases",
+      "legacy_tests": "submodules/autorest.typescript/packages/typespec-ts/test/modularUnit/scenarios"
+    },
     "tasks": [
       {
-        "id": "SA1",
-        "title": "Azure Flavor Import Source Detection",
-        "category": "Infrastructure",
-        "priority": "P1",
-        "description": "The legacy emitter uses @azure-rest/core-client when the flavor option is 'Azure', and @typespec/ts-http-runtime otherwise. The NEW emitter always uses @typespec/ts-http-runtime regardless of flavor. The scenario tests are configured for Azure flavor, so the expected output should use @azure-rest/core-client. The NEW emitter needs to respect the flavor option and switch import sources accordingly.",
-        "affected_scenarios": "ALL (102/102)",
-        "status": "done",
-        "resolution": "Resolved by RC28. All scenario tests pass."
-      },
-      {
-        "id": "SA2",
-        "title": "Import Aliasing with _1 Suffix",
-        "category": "Code Generation Style",
-        "priority": "P1",
-        "description": "NEW generates aliased imports with _1 suffix (e.g., Client_1, StreamableMethod_1, fooDeserializer_1). LEGACY uses direct import names without aliases. This is a pervasive pattern difference in operations files that changes all type references throughout generated code.",
-        "affected_scenarios": "ALL operations files (~80+)",
-        "status": "done",
-        "resolution": "Resolved by RC29. All scenario tests pass."
-      },
-      {
-        "id": "SA3",
-        "title": "Client Context Creation Logic",
+        "id": "SA-C4",
+        "title": "Client Naming Convention: TestingClient vs TestServiceClient",
         "category": "Client Infrastructure",
-        "priority": "P0",
-        "description": "LEGACY createService/createTestService functions include: (1) user agent prefix computation, (2) logger integration, (3) apiVersion destructuring with defaults, (4) spreading clientParam into context. NEW has minimal logic: just getClient(endpointUrl, options). Missing user agent handling, logger setup, and apiVersion defaults.",
-        "affected_scenarios": "clientContext/clientContext.md, clientContext/optionalApiVersion.md, classicClient/*.md, operations/headerParam/*.md, operations/queryParam/queryParamWithClientInitialization.md",
-        "status": "done"
+        "priority": "P0-CRITICAL",
+        "status": "REGRESSION",
+        "description": "The new emitter derives client names differently, producing TestServiceClient/TestServiceContext/createTestService instead of TestingClient/TestingContext/createTesting. The legacy naming is the expected output and must be matched exactly.",
+        "legacy_behavior": "Client class named TestingClient, context named TestingContext, factory function createTesting().",
+        "new_behavior": "Client class named TestServiceClient, context named TestServiceContext, factory function createTestService().",
+        "affected_scenarios": [
+          "apiOperations/apiOperations",
+          "classicClient/classicClient",
+          "classicClient/clientConstructorOverloads",
+          "classicClient/reservedWordOperations",
+          "samples/client/disableHierarchy/disableOperationGroup",
+          "samples/client/disableHierarchy/enableOperationGroup",
+          "samples/client/enableHierarchy/disableOperationGroup",
+          "samples/client/enableHierarchy/enableOperationGroup",
+          "samples/client/multipleClient",
+          "samples/client/subscriptionIdHandling",
+          "samples/operations/armCurdOperations",
+          "samples/operations/disableHierarchyArmCurdOperations",
+          "samples/operations/dpgCurdOperations",
+          "samples/operations/multipleExamplesInOneFile",
+          "samples/parameters/bodyOptionalCheck",
+          "samples/parameters/bodyOptionalParameterName",
+          "samples/parameters/bodyReadonlyOptionalCheck",
+          "samples/parameters/bodyRequiredCheck",
+          "samples/parameters/clientConstructorArgs",
+          "samples/parameters/inheritedPropertyMapping",
+          "samples/parameters/optionalParameter",
+          "samples/parameters/paramaterSpreadCheck",
+          "samples/parameters/parameterName",
+          "samples/parameters/parameterNormalization",
+          "samples/parameters/parameterOrdering",
+          "samples/parameters/parameterTypesCheck",
+          "samples/propertyFlatten/complexFlattenCases",
+          "samples/propertyFlatten/mulipleFlattenCases",
+          "samples/propertyFlatten/simpleFlattenCases"
+        ],
+        "reference_legacy_tests": "submodules/autorest.typescript/packages/typespec-ts/test/modularUnit/scenarios/classicClient/classicClient.md",
+        "reference_new_tests": "test/scenarios/cases/classicClient/classicClient.md"
       },
       {
-        "id": "SA4",
-        "title": "Error Deserialization in Operations",
-        "category": "Error Handling",
-        "priority": "P0",
-        "description": "LEGACY creates error objects, deserializes error response bodies (errorResponseDeserializer, storageErrorDeserializer, etc.), attaches error.details, and optionally merges exception headers before throwing. NEW simply throws createRestError(result) without any error body deserialization or header merging.",
-        "affected_scenarios": "operations/armPatchWithUnionResponse.md, operations/overrideReservedkeywords.md, operations/errorDeserialization/*.md, operations/lroPaging.md, operations/headerParam/*.md, operations/queryParam/queryParamWithClientInitialization.md, samples/parameters/bodyOptionalParameterName.md",
-        "status": "done",
-        "resolution": "Implemented error body deserialization in the deserialize function. When an operation has error models (via @error decorator), the error handling path now creates a RestError, deserializes the error response body into error.details using the error model deserializer, optionally merges exception headers (when include-headers-in-response is enabled), and then throws. Operations without error models retain the simple throw createRestError(result) pattern."
+        "id": "SA-C5",
+        "title": "Client Context Interface: Missing Service-Specific Properties",
+        "category": "Client Infrastructure",
+        "priority": "P0-CRITICAL",
+        "status": "REGRESSION",
+        "description": "The new emitter generates empty or simplified client context interfaces, removing service-specific properties (e.g., clientParam, expand, subscriptionId) that the legacy emitter exposed on the context. The expected state is the legacy output where the context includes these properties.",
+        "legacy_behavior": "ServiceContext extends Client with service-specific properties like clientParam, expand, subscriptionId.",
+        "new_behavior": "ServiceContext is an empty extension of Client or properties are missing.",
+        "affected_scenarios": [
+          "clientContext/clientContext",
+          "clientContext/optionalApiVersion",
+          "operations/clientDefaultValue",
+          "operations/headerParam/headerParamWithClientInitialization",
+          "operations/queryParam/queryParamWithClientInitialization"
+        ],
+        "reference_legacy_tests": "submodules/autorest.typescript/packages/typespec-ts/test/modularUnit/scenarios/clientContext/clientContext.md",
+        "reference_new_tests": "test/scenarios/cases/clientContext/clientContext.md"
       },
       {
-        "id": "SA5",
-        "title": "Versions Type vs KnownVersions Enum",
-        "category": "Model Generation",
-        "priority": "P1",
-        "description": "NEW generates 'export type Versions = \"2021-10-01-preview\"' (simple type alias). LEGACY generates 'export enum KnownVersions { V20211001Preview = \"2021-10-01-preview\" }' (full enum with PascalCase members). This is a public API surface difference.",
-        "affected_scenarios": "models/apiVersion/*.md, models/azureCoreErrorModels.md, models/missingErrorResponseModel.md, models/nestedEnum/flatten/*.md, models/propertyFlatten/mulipleLayers.md, operations/lroPaging.md",
-        "status": "done"
+        "id": "SA-C6",
+        "title": "Endpoint Parameter Handling: endpointParam as Required Positional Parameter",
+        "category": "Client Infrastructure",
+        "priority": "P0-CRITICAL",
+        "status": "REGRESSION",
+        "description": "The new emitter uses 'endpoint' pulled from options or as a bare variable. The legacy emitter uses 'endpointParam' as a required positional function parameter with String() wrapping. The legacy signature is the expected output.",
+        "legacy_behavior": "createTestService(endpointParam: string, options) with endpointUrl = String(endpointParam).",
+        "new_behavior": "createTestService(options) with endpointUrl = endpoint (potentially unresolved variable).",
+        "affected_scenarios": [
+          "clientContext/clientContext",
+          "clientContext/optionalApiVersion",
+          "apiOperations/apiOperations",
+          "classicClient/classicClient",
+          "classicClient/reservedWordOperations"
+        ],
+        "reference_legacy_tests": "submodules/autorest.typescript/packages/typespec-ts/test/modularUnit/scenarios/clientContext/clientContext.md",
+        "reference_new_tests": "test/scenarios/cases/clientContext/clientContext.md"
       },
       {
-        "id": "SA6",
-        "title": "ESLint Directives and JSDoc Comments",
-        "category": "Code Generation Style",
-        "priority": "P2",
-        "description": "LEGACY includes eslint-disable comments (naming-convention, explicit-module-boundary-types) and JSDoc comments (/** model interface Foo */) in model files. NEW omits these entirely. While not functionally impactful, this is an output parity difference.",
-        "affected_scenarios": "ALL model files (~40+)",
-        "status": "done",
-        "resolution": "Resolved by RC31. All scenario tests pass."
-      },
-      {
-        "id": "SA7",
-        "title": "Client Naming Conventions",
+        "id": "SA-C7",
+        "title": "API Version Handling: Validation, Warnings, and KnownVersions Integration",
         "category": "Client Infrastructure",
         "priority": "P1",
-        "description": "NEW generates ServiceClient/ServiceContext/createService. LEGACY generates TestServiceClient/TestServiceContext/createTestService (applying the service title). The title configuration is not being applied in the NEW emitter for class/function/context naming.",
-        "affected_scenarios": "classicClient/classicClient.md, classicClient/reservedWordOperations.md, samples/client/renameClientName.md, samples/parameters/*.md (many)",
-        "status": "done",
-        "resolution": "Resolved by RC27. All scenario tests pass."
+        "status": "REGRESSION",
+        "description": "The new emitter removes API version negotiation logic including version warnings, KnownVersions imports, and default version injection. The legacy behavior with validation and warnings is the expected output.",
+        "legacy_behavior": "Imports KnownVersions enum, validates/warns about API version mismatches, passes API version through context or as parameter.",
+        "new_behavior": "API version handling simplified or removed entirely.",
+        "affected_scenarios": [
+          "clientContext/optionalApiVersion",
+          "apiOperations/apiOperations",
+          "models/apiVersion/apiVersionAsFixedEnum",
+          "models/apiVersion/apiVersionAsKnownVersions",
+          "operations/lroPaging",
+          "operations/headerParam/headerParamWithClientInitialization",
+          "operations/queryParam/queryParamWithClientInitialization"
+        ],
+        "reference_legacy_tests": "submodules/autorest.typescript/packages/typespec-ts/test/modularUnit/scenarios/clientContext/optionalApiVersion.md",
+        "reference_new_tests": "test/scenarios/cases/clientContext/optionalApiVersion.md"
       },
       {
-        "id": "SA8",
-        "title": "Constructor Parameter Naming",
+        "id": "SA-C8",
+        "title": "Classic Client Constructor: userAgentPrefix Assembly Logic",
         "category": "Client Infrastructure",
         "priority": "P1",
-        "description": "NEW uses 'endpoint' as constructor parameter name. LEGACY uses 'endpointParam'. When server has default values, LEGACY moves endpoint to options; NEW keeps it positional. This affects the public API of generated clients.",
-        "affected_scenarios": "clientContext/clientContext.md, classicClient/classicClient.md, classicClient/reservedWordOperations.md, operations/headerParam/*.md",
-        "status": "done",
-        "resolution": "Resolved by RC34. All scenario tests pass."
+        "status": "REGRESSION",
+        "description": "The new emitter removes userAgentPrefix assembly from classic client constructors. The legacy constructs userAgentPrefix from package name/version and merges with existing prefix. Legacy behavior is the expected output.",
+        "legacy_behavior": "Constructs userAgentPrefix from package name/version, merges with existing prefix from options before passing to createTestService.",
+        "new_behavior": "userAgentPrefix logic removed entirely from constructor, passes options directly.",
+        "affected_scenarios": [
+          "classicClient/classicClient",
+          "classicClient/clientConstructorOverloads",
+          "classicClient/reservedWordOperations",
+          "apiOperations/apiOperations"
+        ],
+        "reference_legacy_tests": "submodules/autorest.typescript/packages/typespec-ts/test/modularUnit/scenarios/classicClient/classicClient.md",
+        "reference_new_tests": "test/scenarios/cases/classicClient/classicClient.md"
       },
       {
-        "id": "SA9",
-        "title": "Reserved Word Handling Strategy",
-        "category": "Code Generation Style",
+        "id": "SA-C9",
+        "title": "TestServiceClientOptionalParams Re-Export Missing from Index",
+        "category": "Client Infrastructure",
         "priority": "P1",
-        "description": "NEW uses trailing underscore suffix for reserved words (continue_, return_). LEGACY uses dollar sign prefix ($continue, $return). The public-facing method name differs: NEW exposes 'continue_' while LEGACY exposes 'continue' (calling $continue internally).",
-        "affected_scenarios": "apiOperations/reservedWordOperations.md, classicClient/reservedWordOperations.md, operations/overrideReservedkeywords.md",
-        "status": "done",
-        "resolution": "Resolved by RC23. All scenario tests pass."
+        "status": "REGRESSION",
+        "description": "The new emitter does not re-export TestServiceClientOptionalParams from the package index. Legacy does re-export it. Legacy behavior is the expected output.",
+        "legacy_behavior": "export { TestServiceClientOptionalParams } from './api/testServiceContext.js';",
+        "new_behavior": "No re-export of client optional params type.",
+        "affected_scenarios": [
+          "classicClient/classicClient"
+        ],
+        "reference_legacy_tests": "submodules/autorest.typescript/packages/typespec-ts/test/modularUnit/scenarios/classicClient/classicClient.md",
+        "reference_new_tests": "test/scenarios/cases/classicClient/classicClient.md"
       },
       {
-        "id": "SA10",
-        "title": "Additional Properties Handling",
-        "category": "Model Generation",
+        "id": "SA-C10",
+        "title": "Operation Group Restructuring: Direct Methods vs Nested Hierarchies",
+        "category": "Operations",
+        "priority": "P0-CRITICAL",
+        "status": "REGRESSION",
+        "description": "The new emitter places operations into hierarchical operation groups on the classic client (e.g., client.b.c.foo()), while legacy sometimes uses direct methods (e.g., client.foo()). The operation hierarchy structure from legacy is the expected output.",
+        "legacy_behavior": "client.foo(), client.read() \u2014 operations as direct methods on the client.",
+        "new_behavior": "client.b.c.foo({}), client.operations.list() \u2014 operations nested under operation group properties.",
+        "affected_scenarios": [
+          "classicClient/clientConstructorOverloads",
+          "samples/client/disableHierarchy/disableOperationGroup",
+          "samples/client/disableHierarchy/enableOperationGroup",
+          "samples/client/enableHierarchy/disableOperationGroup",
+          "samples/client/enableHierarchy/enableOperationGroup",
+          "samples/client/subscriptionIdHandling",
+          "samples/operations/armCurdOperations",
+          "samples/operations/disableHierarchyArmCurdOperations",
+          "samples/operations/dpgCurdOperations",
+          "samples/parameters/bodyOptionalParameterName",
+          "samples/parameters/clientConstructorArgs",
+          "samples/parameters/inheritedPropertyMapping",
+          "samples/parameters/optionalParameter",
+          "samples/parameters/paramaterSpreadCheck",
+          "samples/parameters/parameterName",
+          "samples/parameters/parameterOrdering"
+        ],
+        "reference_legacy_tests": "submodules/autorest.typescript/packages/typespec-ts/test/modularUnit/scenarios/classicClient/clientConstructorOverloads.md",
+        "reference_new_tests": "test/scenarios/cases/classicClient/clientConstructorOverloads.md"
+      },
+      {
+        "id": "SA-C11",
+        "title": "Inline Types Extracted to Named Interfaces (_ReadResponse, _ReadRequest, etc.)",
+        "category": "Models",
         "priority": "P1",
-        "description": "NEW uses index signatures ([key: string]: T) for additional properties. LEGACY uses explicit additionalProperties?: Record<string, T> field with serializeRecord() helper. Different structural representation of the same TypeSpec concept, affects both interface shape and serialization logic.",
-        "affected_scenarios": "models/serialization/additionalProperties.md, models/deserialization/additionalProperties.md, modelsGenerator/modelsGenerator.md",
-        "status": "done",
-        "resolution": "Resolved by RC17. All scenario tests pass."
+        "status": "REGRESSION",
+        "description": "The new emitter extracts anonymous/inline response and request types into named interfaces (prefixed with _), while legacy uses Record<string, any> or inline object types. Legacy typing is the expected output.",
+        "legacy_behavior": "Uses Record<string, any> or inline object types for request/response bodies.",
+        "new_behavior": "Generates named interfaces like _ReadResponse, _ReadRequest, _FooRequest.",
+        "affected_scenarios": [
+          "anonymous/anonymous",
+          "apiOperations/apiOperations",
+          "models/deserialization/anonymousModel",
+          "models/deserialization/additionalProperties",
+          "models/nestedEnum/flatten/experimentalExtensibleEnumsTrue",
+          "samples/parameters/bodyOptionalCheck",
+          "samples/parameters/bodyReadonlyOptionalCheck"
+        ],
+        "reference_legacy_tests": "submodules/autorest.typescript/packages/typespec-ts/test/modularUnit/scenarios/anonymous/anonymous.md",
+        "reference_new_tests": "test/scenarios/cases/anonymous/anonymous.md"
       },
       {
-        "id": "SA11",
-        "title": "Collection Encoding Helpers Missing",
+        "id": "SA-C12",
+        "title": "Array/Record Deserialization: Helper Functions vs Inline .map()",
         "category": "Serialization",
-        "priority": "P0",
-        "description": "LEGACY uses buildCsvCollection, buildSsvCollection, buildPipeCollection, parseCsvCollection, parsePipeCollection helper functions for array encoding in query/header parameters. NEW passes arrays directly without any collection encoding transformation, which will produce incorrect wire format.",
-        "affected_scenarios": "models/serialization/modelPropertyArrayEncoding.md, operations/queryParam/queryParamCollectionFormat.md",
-        "status": "done",
-        "resolution": "Implemented collection format encoding for query params (pipes, ssv, csv via collectionFormat), header params (csv via collectionFormat), and model body properties (commaDelimited, pipeDelimited, spaceDelimited, newlineDelimited via encode). Uses refkeys to buildCsvCollection, buildPipeCollection, buildSsvCollection, buildNewlineCollection for serialization, and parseCsvCollection, parsePipeCollection, parseSsvCollection, parseNewlineCollection for deserialization."
+        "priority": "P2",
+        "status": "REGRESSION",
+        "description": "The new emitter replaces dedicated array/record deserializer helper functions with inline .map() calls and deserializeRecord() utility. The legacy pattern with named helper functions is the expected output.",
+        "legacy_behavior": "Generates standalone helpers: testArrayDeserializer(items), serializeRecord(record, undefined, serializer).",
+        "new_behavior": "Inlines: items.map((item) => deserialize(item)) or deserializeRecord(items, (v) => serializer(v)).",
+        "affected_scenarios": [
+          "anonymous/anonymous",
+          "apiOperations/apiOperations",
+          "models/azureCoreErrorModels",
+          "models/deserialization/propertyType",
+          "models/deserialization/extends",
+          "models/serialization/modelPropertyArrayEncoding",
+          "models/serialization/propertyType",
+          "operations/operations",
+          "operations/pagination/disablePagination",
+          "operations/lroPaging",
+          "samples/propertyFlatten/complexFlattenCases"
+        ],
+        "reference_legacy_tests": "submodules/autorest.typescript/packages/typespec-ts/test/modularUnit/scenarios/anonymous/anonymous.md",
+        "reference_new_tests": "test/scenarios/cases/anonymous/anonymous.md"
       },
       {
-        "id": "SA12",
-        "title": "URL Template Parameter Key Encoding",
+        "id": "SA-C13",
+        "title": "Identity Serializer/Deserializer Removal",
+        "category": "Serialization",
+        "priority": "P2",
+        "status": "pending",
+        "description": "The new emitter omits serializer functions that are identity operations (return item). Legacy generates these. If consumers import and call them, their code breaks. Review whether legacy behavior is required.",
+        "legacy_behavior": "Generates function fooSerializer(item) { return item; } even for pass-through types.",
+        "new_behavior": "Omits identity serializers entirely.",
+        "affected_scenarios": [
+          "enumUnion/enumUnion",
+          "models/nestedEnum/notFlatten/experimentalExtensibleEnumsFalse",
+          "models/nestedEnum/notFlatten/experimentalExtensibleEnumsUndefined",
+          "models/serialization/propertyType",
+          "models/serialization/template"
+        ],
+        "reference_legacy_tests": "submodules/autorest.typescript/packages/typespec-ts/test/modularUnit/scenarios/enumUnion/enumUnion.md",
+        "reference_new_tests": "test/scenarios/cases/enumUnion/enumUnion.md",
+        "decision": "Match legacy. Generate pass-through serializers (identity functions) for types that do not need transformation. Consumers may import these functions."
+      },
+      {
+        "id": "SA-C14",
+        "title": "Empty Model Deserializer: return item vs return {}",
+        "category": "Serialization",
+        "priority": "P2",
+        "status": "REGRESSION",
+        "description": "For models with no properties, the new emitter returns {} instead of the input item. Legacy passes through the original object. Legacy behavior (return item) is the expected output.",
+        "legacy_behavior": "return item \u2014 passes through original object preserving extra properties.",
+        "new_behavior": "return {} \u2014 returns new empty object, discarding all properties.",
+        "affected_scenarios": [
+          "anonymous/anonymous",
+          "models/serialization/template"
+        ],
+        "reference_legacy_tests": "submodules/autorest.typescript/packages/typespec-ts/test/modularUnit/scenarios/anonymous/anonymous.md",
+        "reference_new_tests": "test/scenarios/cases/anonymous/anonymous.md"
+      },
+      {
+        "id": "SA-C15",
+        "title": "Error Handling: Local Error Model Definitions and Enhanced Deserialization",
+        "category": "Error Handling",
+        "priority": "P2",
+        "status": "pending",
+        "description": "The new emitter generates local ErrorModel/InnerError/ErrorResponse definitions with deserializers and attaches deserialized details to thrown errors. Legacy imports types from shared package or throws directly. Review if this is an acceptable improvement or must match legacy.",
+        "legacy_behavior": "Throws errors directly or imports error types from shared package. Minimal error deserialization.",
+        "new_behavior": "Defines error models locally, deserializes error response bodies, attaches to error.details.",
+        "affected_scenarios": [
+          "apiOperations/azureCoreOperations",
+          "models/missingErrorResponseModel",
+          "operations/pathParam/pathParamUrlTemplate",
+          "operations/errorDeserialization/errorHeaderDeserialization",
+          "operations/errorDeserialization/xmlErrorDeserialization",
+          "samples/parameters/parameterOrdering"
+        ],
+        "reference_legacy_tests": "submodules/autorest.typescript/packages/typespec-ts/test/modularUnit/scenarios/apiOperations/azureCoreOperations.md",
+        "reference_new_tests": "test/scenarios/cases/apiOperations/azureCoreOperations.md",
+        "decision": "Match legacy. Import ErrorModel/ErrorResponse from runtime package (@azure-rest/core-client or @typespec/ts-http-runtime). Do not define locally with deserializers. Throw errors directly without attaching deserialized details to error.details."
+      },
+      {
+        "id": "SA-C16",
+        "title": "JSDoc Comments: Expanded @param Tags and Description Text Changes",
+        "category": "Documentation",
+        "priority": "P3",
+        "status": "NEEDS_REVIEW",
+        "description": "The new emitter generates different JSDoc content \u2014 expanded @param annotations, 'Optional parameters for the X operation' instead of 'Optional parameters.', removal of eslint-disable comments, multi-line formatting. Review if legacy JSDoc format must be matched exactly.",
+        "legacy_behavior": "Minimal JSDoc: '/** Optional parameters. */' with eslint-disable comments, single-line format.",
+        "new_behavior": "Expanded JSDoc with @param tags, operation-specific descriptions, multi-line format.",
+        "affected_scenarios": [
+          "anonymous/anonymous",
+          "apiOperations/azureCoreOperations",
+          "apiOperations/reservedWordOperations",
+          "enumUnion/enumUnion",
+          "example/example",
+          "models/apiVersion/apiVersionAsFixedEnum",
+          "models/apiVersion/apiVersionAsKnownVersions",
+          "models/azureCoreErrorModels",
+          "models/models",
+          "models/nestedEnum/flatten/experimentalExtensibleEnumsTrue",
+          "models/nullable/nullableOptional",
+          "operations/pagination/disablePagination",
+          "operations/pathParam/requiredPathWithDefault",
+          "operations/headerParam/headerParamWithClientInitialization"
+        ],
+        "reference_legacy_tests": "submodules/autorest.typescript/packages/typespec-ts/test/modularUnit/scenarios/anonymous/anonymous.md",
+        "reference_new_tests": "test/scenarios/cases/anonymous/anonymous.md"
+      },
+      {
+        "id": "SA-C17",
+        "title": "ContentType: Variable Reference Replaced with Hardcoded Literal",
         "category": "Operations",
         "priority": "P1",
-        "description": "NEW uses unencoded keys in URL template expansion (e.g., 'api-version'). LEGACY uses URL-encoded keys (e.g., 'api%2Dversion'). Similarly, '$expand' vs '%24expand'. This may affect URL template resolution behavior.",
-        "affected_scenarios": "operations/pathParam/pathParamUrlTemplate.md, operations/queryParam/queryParamUrlTemplate.md, operations/queryParam/queryParamWithClientInitialization.md, apiOperations/azureCoreOperations.md",
-        "status": "done"
+        "status": "REGRESSION",
+        "description": "The new emitter uses hardcoded content type string literals ('*/*' or 'application/json') instead of variable references. Legacy uses dynamic contentType parameter. Legacy behavior is the expected output.",
+        "legacy_behavior": "headers: { 'Content-Type': contentType } using parameter value.",
+        "new_behavior": "headers: { 'Content-Type': '*/*' } or 'application/json' literal.",
+        "affected_scenarios": [
+          "apiOperations/apiOperations",
+          "enumUnion/enumUnion",
+          "operations/operations"
+        ],
+        "reference_legacy_tests": "submodules/autorest.typescript/packages/typespec-ts/test/modularUnit/scenarios/apiOperations/apiOperations.md",
+        "reference_new_tests": "test/scenarios/cases/apiOperations/apiOperations.md"
       },
       {
-        "id": "SA13",
-        "title": "Property Flatten Serialization Approach",
-        "category": "Serialization",
-        "priority": "P1",
-        "description": "NEW uses helper functions (_testPropertiesSerializer, _fooPropertiesSerializer) with spread operators and areAllPropsUndefined checks. LEGACY uses inline direct property serialization. Different approach to name collision resolution: NEW renames with path prefix (barPropertiesBar), LEGACY duplicates property names.",
-        "affected_scenarios": "models/propertyFlatten/*.md, models/serialization/readonlyFlattenModel.md, samples/propertyFlatten/*.md",
-        "status": "done",
-        "resolution": "Resolved by RC30a+RC30b+RC30c. All scenario tests pass."
-      },
-      {
-        "id": "SA14",
-        "title": "Discriminated Union Serialization",
-        "category": "Serialization",
-        "priority": "P1",
-        "description": "LEGACY generates base model serializers/deserializers and uses them as default case in switch statements. NEW returns item directly in default case without base model processing. LEGACY child deserializers include parent fields; NEW only includes child-specific fields.",
-        "affected_scenarios": "models/deserialization/extends.md, models/serialization/propertyType.md",
-        "status": "done"
-      },
-      {
-        "id": "SA15",
-        "title": "Nullable Type Preservation",
-        "category": "Model Generation",
-        "priority": "P1",
-        "description": "NEW preserves '| null' in optional nullable types (e.g., optionalNullableBoolean?: boolean | null). LEGACY strips the null from optional types (optionalNullableBoolean?: boolean). This is a type-level semantic difference.",
-        "affected_scenarios": "models/nullable/nullableOptional.md, models/nullable/nullableUnion.md",
-        "status": "done",
-        "resolution": "Resolved by RC24. All scenario tests pass."
-      },
-      {
-        "id": "SA16",
-        "title": "Sample Code Generation Defects",
-        "category": "Samples",
-        "priority": "P0",
-        "description": "NEW has multiple sample generation bugs: (1) wrong file paths (all samples get same path), (2) wrong function names (copy-paste of first function), (3) duplicate import statements, (4) empty body objects instead of populated test data, (5) wrong client class names, (6) wrong environment variable names, (7) missing credential imports (DefaultAzureCredential), (8) constructor parameter order reversed.",
-        "affected_scenarios": "samples/client/disableHierarchy/*.md, samples/client/enableHierarchy/*.md, samples/operations/armCurdOperations.md, samples/operations/disableHierarchyArmCurdOperations.md, samples/operations/dpgCurdOperations.md, samples/operations/multipleExamplesInOneFile.md, samples/parameters/*.md (many)",
-        "status": "done",
-        "resolution": "Fixed via multiple RC tasks (RC05-RC09, RC13, RC11, RC12). All sample scenario tests pass (65 tests). Remaining naming differences (RC11 env vars, RC12 file paths) are accepted divergences from TCGC data model."
-      },
-      {
-        "id": "SA17",
-        "title": "Multipart File Type Representation",
+        "id": "SA-C18",
+        "title": "FileContents Union Type Changed to Uint8Array/File Interface",
         "category": "Multipart",
         "priority": "P1",
-        "description": "NEW uses structured File interfaces with inheritance (File, FileRequiredName extends File, PngFile extends File). LEGACY uses FileContents union types (FileContents | { contents: FileContents; contentType?: string; filename?: string }). NEW also adds contentType as explicit operation parameter; LEGACY omits it.",
-        "affected_scenarios": "multipart/file.md, multipart/text.md, multipart/renamewithWireNameAndClientName.md",
-        "status": "done",
-        "resolution": "Accepted divergence: TypeSpec File model hierarchy is the correct modern approach. See RC25."
+        "status": "REGRESSION",
+        "description": "The new emitter uses Uint8Array or generated File interfaces instead of the FileContents union type. Legacy uses FileContents | { contents: FileContents; contentType: string; filename: string }. Legacy type is the expected output.",
+        "legacy_behavior": "FileContents | { contents: FileContents; contentType?: string; filename?: string }",
+        "new_behavior": "Uint8Array or File interface with contents: Uint8Array",
+        "affected_scenarios": [
+          "apiOperations/apiOperations",
+          "modelsGenerator/modelsGenerator",
+          "multipart/file",
+          "multipart/renamewithWireNameAndClientName"
+        ],
+        "reference_legacy_tests": "submodules/autorest.typescript/packages/typespec-ts/test/modularUnit/scenarios/multipart/file.md",
+        "reference_new_tests": "test/scenarios/cases/multipart/file.md"
       },
       {
-        "id": "SA18",
-        "title": "API Version as Function Parameter vs Context Property",
-        "category": "Operations",
-        "priority": "P1",
-        "description": "NEW passes apiVersion as an explicit function parameter to _send functions. LEGACY reads apiVersion from context (context.apiVersion) with fallback defaults. This changes function signatures throughout operations code.",
-        "affected_scenarios": "operations/pathParam/pathParamUrlTemplate.md, operations/queryParam/explodeTrueWithAnnotation.md, samples/parameters/parameterOrdering.md, classicClient/clientConstructorOverloads.md",
-        "status": "done",
-        "resolution": "Resolved by RC26. All scenario tests pass."
-      },
-      {
-        "id": "SA19",
-        "title": "Date/Time Serialization Encoding",
+        "id": "SA-C19",
+        "title": "Binary Deserialization: Direct Return vs stringToUint8Array Conversion",
         "category": "Serialization",
-        "priority": "P1",
-        "description": "NEW uses toISOString() for all date types including plainDate. LEGACY uses toISOString().split('T')[0] for plainDate (date-only) and toUTCString() for UTC datetime. This produces incorrect wire format for plainDate types.",
-        "affected_scenarios": "modelsGenerator/modelsGenerator.md, multipart/json.md (unix timestamp encoding difference)",
-        "status": "done",
-        "resolution": "Resolved by RC19+RC20. All scenario tests pass."
-      },
-      {
-        "id": "SA20",
-        "title": "Unresolved Symbol Placeholders",
-        "category": "Code Generation Bugs",
-        "priority": "P0-CRITICAL",
-        "description": "NEW contains <Unresolved Symbol: refkey[...]> placeholders in generated code for certain union types and deserializers. These indicate refkey resolution failures in the Alloy framework rendering pipeline. This is a BUG in the new emitter that MUST be fixed immediately and prevented from recurring. No unresolved symbols should ever appear in generated output. A CI guard/assertion should be added to prevent regressions.",
-        "affected_scenarios": "models/deserialization/propertyType.md, models/serialization/propertyType.md, operations/errorDeserialization/xmlErrorDeserialization.md, models/response/headerInXmlResponse.md",
-        "status": "done",
-        "must_fix": true,
-        "prevent_regression": true
-      },
-      {
-        "id": "SA21",
-        "title": "Response Type Composition Pattern",
-        "category": "Model Generation",
         "priority": "P2",
-        "description": "NEW uses type intersection for response types (User & { requestId: string }). LEGACY expands all properties into inline object types ({ name: string; email: string; requestId: string }). Semantically equivalent but different generated code style.",
-        "affected_scenarios": "models/response/headerAndModelInResponse.md, models/response/headerAndModelSpread.md, models/response/headerInResponse.md, models/response/headerInXmlResponse.md",
-        "status": "done",
-        "resolution": "Accepted divergence: Intersection types are valid TypeScript. See RC32."
+        "status": "pending",
+        "description": "The new emitter uses stringToUint8Array(result.body, 'base64') instead of direct body return for binary responses. Review if legacy direct-return or new conversion is correct.",
+        "legacy_behavior": "Direct return of response body or getBinaryResponse wrapper.",
+        "new_behavior": "Explicit stringToUint8Array(result.body, 'base64') conversion.",
+        "affected_scenarios": [
+          "apiOperations/apiOperations"
+        ],
+        "reference_legacy_tests": "submodules/autorest.typescript/packages/typespec-ts/test/modularUnit/scenarios/apiOperations/apiOperations.md",
+        "reference_new_tests": "test/scenarios/cases/apiOperations/apiOperations.md",
+        "decision": "Match legacy. Use getBinaryResponse helper or return body directly for binary responses. Do not use stringToUint8Array conversion on response bodies."
       },
       {
-        "id": "SA22",
-        "title": "Enum Key Normalization Differences",
-        "category": "Model Generation",
+        "id": "SA-C20",
+        "title": "Model Naming: Underscore Prefix Removal (_OperationListResult \u2192 OperationListResult)",
+        "category": "Models",
         "priority": "P1",
-        "description": "Different PascalCase normalization rules for enum member names. Examples: PascalCase_5 vs PascalCase5, _PascalCase7 vs PascalCase7, MaxOfMld vs MAXOfMLD, numeric-prefix handling ('090' vs _090). Custom clientName handling also differs ($DoNotNormalizeItem_1_0 vs Item-1.0 as string).",
-        "affected_scenarios": "models/serialization/enumKeyNorm.md",
-        "status": "done",
-        "resolution": "Resolved by RC16. All scenario tests pass."
+        "status": "REGRESSION",
+        "description": "The new emitter removes underscore prefixes from internal model names. Legacy uses _OperationListResult, _ListTestResult, _WebAppCollection. Legacy naming is the expected output.",
+        "legacy_behavior": "_OperationListResult, _ListTestResult, _WebAppCollection (underscore prefix for internal types).",
+        "new_behavior": "OperationListResult, ListTestResult, WebAppCollection (no underscore).",
+        "affected_scenarios": [
+          "models/azureCoreErrorModels",
+          "operations/lroPaging",
+          "operations/operations"
+        ],
+        "reference_legacy_tests": "submodules/autorest.typescript/packages/typespec-ts/test/modularUnit/scenarios/models/azureCoreErrorModels.md",
+        "reference_new_tests": "test/scenarios/cases/models/azureCoreErrorModels.md"
       },
       {
-        "id": "SA23",
-        "title": "Nested Enum Flattening Behavior",
-        "category": "Model Generation",
+        "id": "SA-C21",
+        "title": "Return Type: Wrapper Collection Types vs Unwrapped Arrays",
+        "category": "Operations",
         "priority": "P1",
-        "description": "When experimentalExtensibleEnums is false/undefined, NEW generates flattened string literal unions directly. LEGACY generates separate type aliases (ResourceProvisioningState, Baz) composed into unions with '| string' for extensibility, plus dedicated serializer functions.",
-        "affected_scenarios": "models/nestedEnum/notFlatten/experimentalExtensibleEnumsFalse.md, models/nestedEnum/notFlatten/experimentalExtensibleEnumsUndefined.md",
-        "status": "done",
-        "resolution": "Resolved by RC21. All scenario tests pass."
+        "status": "REGRESSION",
+        "description": "The new emitter returns unwrapped array types (Promise<Operation[]>) instead of wrapper collection types (Promise<_OperationListResult>). Legacy wrapper return type is the expected output.",
+        "legacy_behavior": "Promise<_OperationListResult> \u2014 returns wrapper object containing array.",
+        "new_behavior": "Promise<Operation[]> \u2014 returns array directly.",
+        "affected_scenarios": [
+          "models/azureCoreErrorModels",
+          "operations/lroPaging"
+        ],
+        "reference_legacy_tests": "submodules/autorest.typescript/packages/typespec-ts/test/modularUnit/scenarios/models/azureCoreErrorModels.md",
+        "reference_new_tests": "test/scenarios/cases/models/azureCoreErrorModels.md"
       },
       {
-        "id": "SA24",
-        "title": "Classic Client Constructor Overloads",
-        "category": "Client Infrastructure",
+        "id": "SA-C22",
+        "title": "Paging Configuration: Missing itemName/nextLinkName/apiVersion",
+        "category": "Operations",
         "priority": "P1",
-        "description": "LEGACY generates constructor overloads for mixed tenant/subscription-level operations with polymorphic parameter handling. NEW generates single simple constructor without overloads, missing subscriptionId parameter handling, operation group properties, and delegating methods.",
-        "affected_scenarios": "classicClient/clientConstructorOverloads.md",
-        "status": "done",
-        "resolution": "Resolved by RC22. All scenario tests pass."
+        "status": "REGRESSION",
+        "description": "The new emitter simplifies paging configuration by removing itemName, nextLinkName, apiVersion, and nextLinkMethod. Legacy includes full paging config. Legacy configuration is the expected output.",
+        "legacy_behavior": "{ itemName: 'value', nextLinkName: 'nextLink', apiVersion: '2023-09-01' }",
+        "new_behavior": "{ itemName: 'value' } or {} \u2014 other fields omitted.",
+        "affected_scenarios": [
+          "models/azureCoreErrorModels",
+          "operations/lroPaging",
+          "operations/operations"
+        ],
+        "reference_legacy_tests": "submodules/autorest.typescript/packages/typespec-ts/test/modularUnit/scenarios/operations/lroPaging.md",
+        "reference_new_tests": "test/scenarios/cases/operations/lroPaging.md"
       },
       {
-        "id": "SA25",
-        "title": "Constant Model Parameter Expansion",
+        "id": "SA-C23",
+        "title": "Additional Properties: extends Record<string, T> vs Explicit additionalProperties Property",
+        "category": "Models",
+        "priority": "P0-CRITICAL",
+        "status": "REGRESSION",
+        "description": "The new emitter models additional properties as an explicit additionalProperties property. Legacy has the interface extend Record<string, T>. The legacy pattern (extends Record) is the expected output.",
+        "legacy_behavior": "interface SpreadModel extends Record<string, unknown> { knownProp: string; }",
+        "new_behavior": "interface SpreadModel { knownProp: string; additionalProperties?: Record<string, unknown>; }",
+        "affected_scenarios": [
+          "models/deserialization/additionalProperties",
+          "models/serialization/additionalProperties"
+        ],
+        "reference_legacy_tests": "submodules/autorest.typescript/packages/typespec-ts/test/modularUnit/scenarios/models/deserialization/additionalProperties.md",
+        "reference_new_tests": "test/scenarios/cases/models/deserialization/additionalProperties.md"
+      },
+      {
+        "id": "SA-C24",
+        "title": "Response Header Handling: Intersection Types vs Direct Model Return",
+        "category": "Models",
+        "priority": "P2",
+        "status": "REGRESSION",
+        "description": "The new emitter returns intersection types (User & { requestId: string }) for responses with headers, while legacy returns the model type directly or uses expanded inline types. Legacy return type is the expected output.",
+        "legacy_behavior": "Returns expanded inline object type with all properties.",
+        "new_behavior": "Returns intersection type: User & { requestId: string }.",
+        "affected_scenarios": [
+          "models/response/headerAndModelInResponse",
+          "models/response/headerAndModelSpread",
+          "models/response/headerInResponse",
+          "models/response/headerInXmlResponse"
+        ],
+        "reference_legacy_tests": "submodules/autorest.typescript/packages/typespec-ts/test/modularUnit/scenarios/models/response/headerAndModelInResponse.md",
+        "reference_new_tests": "test/scenarios/cases/models/response/headerAndModelInResponse.md"
+      },
+      {
+        "id": "SA-C25",
+        "title": "Property Flatten: Helper Removal and Duplicate Property Bug",
+        "category": "Serialization",
+        "priority": "P0-CRITICAL",
+        "status": "REGRESSION",
+        "description": "The new emitter removes areAllPropsUndefined helper and property flatten serializer functions, potentially producing duplicate property assignments in serialized output. Legacy flatten pattern with helpers is the expected output.",
+        "legacy_behavior": "Uses areAllPropsUndefined() guard and dedicated helper functions for nested property serialization.",
+        "new_behavior": "Removes helpers, direct property assignment, may produce duplicate property keys.",
+        "affected_scenarios": [
+          "models/propertyFlatten/mulipleLayers",
+          "models/propertyFlatten/nameCollision",
+          "models/propertyFlatten/singleLayer",
+          "models/serialization/readonlyFlattenModel",
+          "samples/propertyFlatten/complexFlattenCases",
+          "samples/propertyFlatten/mulipleFlattenCases",
+          "samples/propertyFlatten/simpleFlattenCases"
+        ],
+        "reference_legacy_tests": "submodules/autorest.typescript/packages/typespec-ts/test/modularUnit/scenarios/models/propertyFlatten/singleLayer.md",
+        "reference_new_tests": "test/scenarios/cases/models/propertyFlatten/singleLayer.md"
+      },
+      {
+        "id": "SA-C26",
+        "title": "Default Values Removed from Query Parameters and Headers",
+        "category": "Operations",
+        "priority": "P0-CRITICAL",
+        "status": "REGRESSION",
+        "description": "The new emitter does not emit default values for optional query parameters and headers that have defaults in the TypeSpec definition. Legacy applies defaults with ?? operator. Legacy default-value behavior is the expected output.",
+        "legacy_behavior": "queryParam: options?.queryParam ?? 'defaultValue', header: options?.header ?? 'application/json'",
+        "new_behavior": "queryParam: options?.queryParam (no default), header: options?.header (no default).",
+        "affected_scenarios": [
+          "operations/clientDefaultValue"
+        ],
+        "reference_legacy_tests": "submodules/autorest.typescript/packages/typespec-ts/test/modularUnit/scenarios/operations/clientDefaultValue.md",
+        "reference_new_tests": "test/scenarios/cases/operations/clientDefaultValue.md"
+      },
+      {
+        "id": "SA-C27",
+        "title": "Cookie/Token Parameter Injection in Function Signatures",
+        "category": "Operations",
+        "priority": "P1",
+        "status": "REGRESSION",
+        "description": "The new emitter adds a token parameter to operation function signatures that was not present in the legacy output. Legacy does not expose cookie/token params. Legacy behavior (no token param) is the expected output.",
+        "legacy_behavior": "function read(context: Client, options?: ReadOptions)",
+        "new_behavior": "function read(context: Client, token: string, options?: ReadOptions)",
+        "affected_scenarios": [
+          "operations/cookieParam/ignoreCookieParam"
+        ],
+        "reference_legacy_tests": "submodules/autorest.typescript/packages/typespec-ts/test/modularUnit/scenarios/operations/cookieParam/ignoreCookieParam.md",
+        "reference_new_tests": "test/scenarios/cases/operations/cookieParam/ignoreCookieParam.md"
+      },
+      {
+        "id": "SA-C29",
+        "title": "Enum Naming Normalization: PascalCase for Acronyms (FOO\u2192Foo, NFVIs\u2192NfvIs)",
+        "category": "Models",
+        "priority": "P1",
+        "status": "REGRESSION",
+        "description": "The new emitter applies different PascalCase normalization for enum members and type aliases, especially for acronyms. Legacy preserves certain casing (FOO, NFVIs). Legacy casing is the expected output.",
+        "legacy_behavior": "Preserves acronym casing: FOO, NFVIs, AzureArcK8SClusterNfviDetails.",
+        "new_behavior": "Normalizes to standard PascalCase: Foo, NfvIs, AzureArcK8sClusterNfviDetails.",
+        "affected_scenarios": [
+          "models/serialization/enumKeyNorm",
+          "models/serialization/propertyType",
+          "models/deserialization/propertyType"
+        ],
+        "reference_legacy_tests": "submodules/autorest.typescript/packages/typespec-ts/test/modularUnit/scenarios/models/serialization/propertyType.md",
+        "reference_new_tests": "test/scenarios/cases/models/serialization/propertyType.md"
+      },
+      {
+        "id": "SA-C30",
+        "title": "Sample Code Generation: Environment Variables, Body Params, and Method Structure",
+        "category": "Samples",
+        "priority": "P2",
+        "status": "REGRESSION",
+        "description": "Multiple compounding issues in sample generation: environment variable naming (TESTING_ENDPOINT\u2192TEST_SERVICE_ENDPOINT), constructor argument ordering, body parameter simplification ({name:'body name'}\u2192{}), versioned\u2192unversioned file paths, and sample file naming conventions. Legacy sample patterns are the expected output.",
+        "legacy_behavior": "TESTING_ENDPOINT env vars, ordered constructor params (credential, subscriptionId), detailed body objects, versioned file paths.",
+        "new_behavior": "TEST_SERVICE_ENDPOINT env vars, reversed constructor order (subscriptionId, credential), empty body objects {}, unversioned paths.",
+        "affected_scenarios": [
+          "samples/client/disableHierarchy/disableOperationGroup",
+          "samples/client/disableHierarchy/enableOperationGroup",
+          "samples/client/enableHierarchy/disableOperationGroup",
+          "samples/client/enableHierarchy/enableOperationGroup",
+          "samples/client/multipleClient",
+          "samples/client/subscriptionIdHandling",
+          "samples/operations/armCurdOperations",
+          "samples/operations/disableHierarchyArmCurdOperations",
+          "samples/operations/dpgCurdOperations",
+          "samples/operations/multipleExamplesInOneFile",
+          "samples/parameters/bodyOptionalCheck",
+          "samples/parameters/bodyOptionalParameterName",
+          "samples/parameters/bodyReadonlyOptionalCheck",
+          "samples/parameters/bodyRequiredCheck",
+          "samples/parameters/clientConstructorArgs",
+          "samples/parameters/inheritedPropertyMapping",
+          "samples/parameters/optionalParameter",
+          "samples/parameters/paramaterSpreadCheck",
+          "samples/parameters/parameterName",
+          "samples/parameters/parameterNormalization",
+          "samples/parameters/parameterOrdering",
+          "samples/parameters/parameterTypesCheck",
+          "samples/propertyFlatten/complexFlattenCases",
+          "samples/propertyFlatten/mulipleFlattenCases",
+          "samples/propertyFlatten/simpleFlattenCases"
+        ],
+        "reference_legacy_tests": "submodules/autorest.typescript/packages/typespec-ts/test/modularUnit/scenarios/samples/client/subscriptionIdHandling.md",
+        "reference_new_tests": "test/scenarios/cases/samples/client/subscriptionIdHandling.md"
+      },
+      {
+        "id": "SA-C31",
+        "title": "Discriminator/Union Handling: Property Order, Type Alias Descriptions, Serializers",
+        "category": "Serialization",
+        "priority": "P2",
+        "status": "REGRESSION",
+        "description": "The new emitter handles discriminated unions differently \u2014 reorders properties, changes 'Alias for' to 'Type of' in descriptions, removes some union serializers, and reorders union members. Legacy behavior is the expected output.",
+        "legacy_behavior": "Generates union serializers, 'Alias for' description prefix, specific property ordering.",
+        "new_behavior": "Removes some union serializers, 'Type of' description prefix, different property ordering.",
+        "affected_scenarios": [
+          "models/deserialization/extends",
+          "models/nestedEnum/notFlatten/experimentalExtensibleEnumsFalse",
+          "models/nestedEnum/notFlatten/experimentalExtensibleEnumsUndefined",
+          "models/nullable/nullableUnion"
+        ],
+        "reference_legacy_tests": "submodules/autorest.typescript/packages/typespec-ts/test/modularUnit/scenarios/models/deserialization/extends.md",
+        "reference_new_tests": "test/scenarios/cases/models/deserialization/extends.md"
+      },
+      {
+        "id": "SA-C32",
+        "title": "XML Encoding Metadata Removal (bytesEncoding, dateEncoding, uint8ArrayToString)",
+        "category": "XML",
+        "priority": "P1",
+        "status": "REGRESSION",
+        "description": "The new emitter omits encoding metadata (bytesEncoding, dateEncoding) from XML array item type definitions and removes uint8ArrayToString encoding calls. Legacy includes these encoding hints. Legacy behavior is the expected output.",
+        "legacy_behavior": "Includes bytesEncoding: 'base64', dateEncoding: 'rfc3339' in metadata, uses uint8ArrayToString for binary fields.",
+        "new_behavior": "Encoding metadata removed, binary encoding calls omitted.",
+        "affected_scenarios": [
+          "payload/xml/xmlArrayItemTypes",
+          "payload/xml/xmlArrayItemsNameWrapping"
+        ],
+        "reference_legacy_tests": "submodules/autorest.typescript/packages/typespec-ts/test/modularUnit/scenarios/payload/xml/xmlArrayItemTypes.md",
+        "reference_new_tests": "test/scenarios/cases/payload/xml/xmlArrayItemTypes.md"
+      },
+      {
+        "id": "SA-C33",
+        "title": "Helper Import Paths: static-helpers/ \u2192 helpers/",
+        "category": "Infrastructure",
+        "priority": "P2",
+        "status": "REGRESSION",
+        "description": "The new emitter uses helpers/ path prefix instead of legacy static-helpers/ for serialization, multipart, polling, and paging helper imports. Legacy paths are the expected output.",
+        "legacy_behavior": "import from '../static-helpers/multipartHelpers.js', '../static-helpers/pagingHelpers.js', etc.",
+        "new_behavior": "import from '../helpers/multipartHelpers.js', '../helpers/pagingHelpers.js', etc.",
+        "affected_scenarios": [
+          "multipart/file",
+          "multipart/renamewithWireNameAndClientName",
+          "operations/operations",
+          "models/serialization/additionalProperties",
+          "models/serialization/modelPropertyArrayEncoding",
+          "samples/parameters/bodyOptionalParameterName"
+        ],
+        "reference_legacy_tests": "submodules/autorest.typescript/packages/typespec-ts/test/modularUnit/scenarios/multipart/file.md",
+        "reference_new_tests": "test/scenarios/cases/multipart/file.md"
+      },
+      {
+        "id": "SA-C34",
+        "title": "LRO Poller Status Codes Reduced and apiVersion Removed",
+        "category": "Operations",
+        "priority": "P1",
+        "status": "REGRESSION",
+        "description": "The new emitter reduces expected status codes for LRO operations (e.g., ['202','200','201'] \u2192 ['202','200']) and removes apiVersion from poller options. Legacy configuration is the expected output.",
+        "legacy_behavior": "Status codes include all expected codes, getLongRunningPoller includes apiVersion parameter.",
+        "new_behavior": "Status codes reduced, apiVersion removed from poller options.",
+        "affected_scenarios": [
+          "samples/parameters/bodyOptionalParameterName",
+          "operations/lroPaging"
+        ],
+        "reference_legacy_tests": "submodules/autorest.typescript/packages/typespec-ts/test/modularUnit/scenarios/operations/lroPaging.md",
+        "reference_new_tests": "test/scenarios/cases/operations/lroPaging.md"
+      },
+      {
+        "id": "SA-C35",
+        "title": "XML Error Deserialization: Content-Type Check Logic Removed",
+        "category": "Error Handling",
+        "priority": "P1",
+        "status": "REGRESSION",
+        "description": "The new emitter removes XML content-type checking logic and conditional deserializer selection. Legacy checks response content-type to choose between JSON and XML deserializers. Legacy behavior is the expected output.",
+        "legacy_behavior": "Checks content-type header, selects JSON or XML deserializer accordingly.",
+        "new_behavior": "Content-type check removed, always uses same deserializer path.",
+        "affected_scenarios": [
+          "operations/errorDeserialization/xmlErrorDeserialization"
+        ],
+        "reference_legacy_tests": "submodules/autorest.typescript/packages/typespec-ts/test/modularUnit/scenarios/operations/errorDeserialization/xmlErrorDeserialization.md",
+        "reference_new_tests": "test/scenarios/cases/operations/errorDeserialization/xmlErrorDeserialization.md"
+      },
+      {
+        "id": "SA-C36",
+        "title": "Property Access: $-Prefixed Property Names (expand \u2192 $expand)",
+        "category": "Operations",
+        "priority": "P1",
+        "status": "REGRESSION",
+        "description": "The new emitter uses $-prefixed property names ($expand) on the client context instead of bare names (expand). Legacy uses bare property names. Legacy naming is the expected output.",
+        "legacy_behavior": "context.expand, options.expand",
+        "new_behavior": "context['$expand'], options.$expand",
+        "affected_scenarios": [
+          "operations/headerParam/headerParamWithClientInitialization",
+          "operations/queryParam/queryParamWithClientInitialization"
+        ],
+        "reference_legacy_tests": "submodules/autorest.typescript/packages/typespec-ts/test/modularUnit/scenarios/operations/headerParam/headerParamWithClientInitialization.md",
+        "reference_new_tests": "test/scenarios/cases/operations/headerParam/headerParamWithClientInitialization.md"
+      },
+      {
+        "id": "SA-C37",
+        "title": "Options Import Path: Nested Subdirectories vs Flat",
         "category": "Operations",
         "priority": "P2",
-        "description": "For constant-only models, NEW explodes constant properties into function parameters with literal types. LEGACY keeps them as hardcoded values in the request body. Different approach to handling models where all properties have constant values.",
-        "affected_scenarios": "models/models.md (generate only constant type model scenario)",
-        "status": "done",
-        "resolution": "Accepted divergence: TCGC models spread constants as parameters. See RC33."
+        "status": "REGRESSION",
+        "description": "The new emitter imports options from nested subdirectory paths (e.g., ./partnerTopics/options.js, ./widgets/options.js) instead of flat ./options.js. Legacy flat import paths are the expected output.",
+        "legacy_behavior": "import from './options.js'",
+        "new_behavior": "import from './partnerTopics/options.js' or './widgets/options.js'",
+        "affected_scenarios": [
+          "operations/armPatchWithUnionResponse",
+          "apiOperations/azureCoreOperations",
+          "operations/queryParam/queryParamCollectionFormat",
+          "operations/queryParam/queryParamWithClientInitialization",
+          "samples/parameters/parameterName",
+          "samples/parameters/parameterOrdering"
+        ],
+        "reference_legacy_tests": "submodules/autorest.typescript/packages/typespec-ts/test/modularUnit/scenarios/operations/armPatchWithUnionResponse.md",
+        "reference_new_tests": "test/scenarios/cases/operations/armPatchWithUnionResponse.md"
       },
       {
-        "id": "SA26",
-        "title": "Constant Parameters Should Not Be Positional",
-        "category": "Code Generation - Operations",
-        "priority": "P1",
-        "description": "For models where all properties are constant literal types (e.g., `stream: true`), the emitter currently exposes them as positional function parameters. Instead, constant values should be hardcoded directly in the request body, not passed as function arguments.\n\nACTUAL (`test/scenarios/cases/modelsGenerator/modelsGenerator.md`, lines 349-357):\n```ts\nexport function _createStreamingSend(\n  context: Client,\n  stream: true,  // <-- should NOT be a parameter\n  options: CreateStreamingOptionalParams = { requestOptions: {} },\n): StreamableMethod {\n  return context.path(\"/createStreaming\").post({\n    body: { stream: stream },  // <-- uses variable\n  });\n}\n```\n\nEXPECTED (`submodules/autorest.typescript/packages/typespec-ts/test/modularUnit/scenarios/modelsGenerator/modelsGenerator.md`, lines 359-369):\n```ts\nexport function _createStreamingSend(\n  context: Client,\n  options: CreateStreamingOptionalParams = { requestOptions: {} }\n): StreamableMethod {\n  return context.path(\"/createStreaming\").post({\n    body: { stream: true }  // <-- hardcoded literal\n  });\n}\n```\n\nThis also affects the public-facing function signature (line 377 actual) where `stream: true` is passed as a positional argument at the call site. Related to SA25 but SA25 was accepted as divergence \u2014 this task re-opens the issue since the expected output clearly does not expose constants as parameters.",
-        "affected_scenarios": "modelsGenerator.md \u2014 Boolean literal types section",
-        "status": "done",
-        "resolution": "Implemented: isRequiredSignatureParameter now filters out constant-type params. Added isConstantType/getConstantLiteral helpers. Updated getSpreadPropertyAccessor, getParameterAccessor, getHeaderAccessor, getBodyAccessor to return literal values for constants. Also excluded constant params from operation-options. Updated 7 scenario test files and added 8 new unit tests.",
-        "references": {
-          "actual_file": "test/scenarios/cases/modelsGenerator/modelsGenerator.md",
-          "actual_lines": "349-380",
-          "expected_file": "submodules/autorest.typescript/packages/typespec-ts/test/modularUnit/scenarios/modelsGenerator/modelsGenerator.md",
-          "expected_lines": "359-380",
-          "related_tasks": [
-            "SA25"
-          ]
-        }
-      },
-      {
-        "id": "SA27",
-        "title": "JSDoc File Header Comment Missing in Models",
-        "category": "Code Generation - Models",
+        "id": "SA-C38",
+        "title": "Conditional Header Logic: Spread Operator vs Direct Assignment",
+        "category": "Operations",
         "priority": "P2",
-        "description": "The expected output includes a multi-line JSDoc header comment at the top of each models file explaining the eslint-disable rationale. The actual output omits this comment entirely.\n\nACTUAL (`test/scenarios/cases/modelsGenerator/modelsGenerator.md`, lines 44-45):\n```ts\n/* eslint-disable @typescript-eslint/naming-convention */\n/* eslint-disable @typescript-eslint/explicit-module-boundary-types */\n```\n\nEXPECTED (`submodules/autorest.typescript/packages/typespec-ts/test/modularUnit/scenarios/modelsGenerator/modelsGenerator.md`, lines 44-49):\n```ts\n/**\n * This file contains only generated model types and their (de)serializers.\n * Disable the following rules for internal models with '_' prefix and deserializers which require 'any' for raw JSON input.\n */\n/* eslint-disable @typescript-eslint/naming-convention */\n/* eslint-disable @typescript-eslint/explicit-module-boundary-types */\n```\n\nThis header appears before every models code block in the expected output. Related to SA6 which was marked done, but this specific aspect is still missing.",
-        "affected_scenarios": "modelsGenerator.md \u2014 All models sections",
-        "status": "done",
-        "resolution": "Added JSDoc file header comment (/** This file contains only generated model types... */) before ESLint disable directives in MODEL_FILE_ESLINT_DIRECTIVES constant in src/components/model-files.tsx. Updated all 42 test scenario .md files and 2 unit test files to match.",
-        "references": {
-          "actual_file": "test/scenarios/cases/modelsGenerator/modelsGenerator.md",
-          "actual_lines": "44-45, 105-106, 167-168, 228-229, 296-297",
-          "expected_file": "submodules/autorest.typescript/packages/typespec-ts/test/modularUnit/scenarios/modelsGenerator/modelsGenerator.md",
-          "expected_lines": "44-49, 109-114, 173-178, 236-241, 306-311",
-          "related_tasks": [
-            "SA6"
-          ]
-        }
-      },
-      {
-        "id": "SA28",
-        "title": "JSDoc Model Interface Comments Missing",
-        "category": "Code Generation - Models",
-        "priority": "P2",
-        "description": "The expected output includes `/** model interface <Name> */` JSDoc comments above each exported interface declaration. The actual output omits these comments entirely.\n\nACTUAL (`test/scenarios/cases/modelsGenerator/modelsGenerator.md`, line 47):\n```ts\nexport interface Test {\n```\n\nEXPECTED (`submodules/autorest.typescript/packages/typespec-ts/test/modularUnit/scenarios/modelsGenerator/modelsGenerator.md`, lines 50-51):\n```ts\n/** model interface Test */\nexport interface Test {\n```\n\nThis pattern is consistent across all interface declarations in the expected file. Found at expected lines: 50, 115, 179, 242, 312, 413, 570, 655, 738, 819, 893, 969, 1043, 1138, 1233, 1336, 1351, 1364, 1416, 1431, and more. Zero occurrences in the actual file. Related to SA6 which was marked done, but this specific aspect is still missing.",
-        "affected_scenarios": "modelsGenerator.md \u2014 All model interface declarations",
-        "status": "done",
-        "resolution": "Modified getModelDoc() in src/components/model-interface.tsx to fall back to \"model interface <Name>\" when no explicit @doc or summary exists. Added getModelDisplayName() helper to produce plain-string names for JSDoc text. Added dedicated unit test for fallback behavior. Updated all test expectations (unit tests and scenario .md files) to include the new JSDoc comments.",
-        "references": {
-          "actual_file": "test/scenarios/cases/modelsGenerator/modelsGenerator.md",
-          "actual_lines": "None (pattern absent)",
-          "expected_file": "submodules/autorest.typescript/packages/typespec-ts/test/modularUnit/scenarios/modelsGenerator/modelsGenerator.md",
-          "expected_lines": "50, 115, 179, 242, 312, 413, 570, 655, 738, 819, 893, 969, 1043, 1138, 1233, 1336, 1351, 1364, 1416, 1431",
-          "related_tasks": [
-            "SA6"
-          ]
-        }
-      },
-      {
-        "id": "SA29",
-        "title": "Flavor Should Be Emitter Config Not Hardcoded",
-        "category": "Infrastructure",
-        "priority": "P1",
-        "description": "The 'flavor' setting (Azure vs generic) should be an emitter configuration option that can be set in tspconfig.yaml or in test scenarios via a yaml code fence. Currently the flavor detection affects import sources (@azure-rest/core-client vs @typespec/ts-http-runtime) and other Azure-specific behaviors. The expected file uses `@azure-rest/core-client` imports throughout (16+ occurrences), while the actual file uses `@typespec/ts-http-runtime`.\n\nEXPECTED (`submodules/autorest.typescript/packages/typespec-ts/test/modularUnit/scenarios/modelsGenerator/modelsGenerator.md`, line 358):\n```ts\n} from \"@azure-rest/core-client\";\n```\n\nACTUAL (`test/scenarios/cases/modelsGenerator/modelsGenerator.md`, line 347):\n```ts\n} from \"@typespec/ts-http-runtime\";\n```\n\nBoth test files use yaml code fences with `needTCGC: true` and `needAzureCore: false` but neither specifies a `flavor` config key. The flavor should be configurable per-test via yaml code fences so tests can explicitly set `flavor: azure` or `flavor: generic`. Related to SA1 which was marked done, but this is a request for the configuration mechanism itself.",
-        "affected_scenarios": "modelsGenerator.md \u2014 All operation sections with imports",
-        "status": "done",
-        "resolution": "Implemented flavor as an emitter configuration option. The $onEmit entry point now reads context.options[\"flavor\"] (\"azure\" or \"core\", default \"core\") to determine which runtime packages and components to use. $onEmitAzure delegates to $onEmit with flavor forced to \"azure\" for backward compatibility. Added resolveEmitterFlavor() function, 6 unit tests, and 4 integration tests.",
-        "references": {
-          "actual_file": "test/scenarios/cases/modelsGenerator/modelsGenerator.md",
-          "expected_file": "submodules/autorest.typescript/packages/typespec-ts/test/modularUnit/scenarios/modelsGenerator/modelsGenerator.md",
-          "related_tasks": [
-            "SA1"
-          ]
-        }
-      },
-      {
-        "id": "SA30",
-        "title": "Header Parameters Missing Date Encoding (toUTCString)",
-        "category": "Code Generation - Operations",
-        "priority": "P1",
-        "description": "When a utcDateTime parameter is sent as an HTTP header, the expected output encodes it with `.toUTCString()`. The actual output passes the Date object directly without encoding.\n\nACTUAL (`test/scenarios/cases/modelsGenerator/modelsGenerator.md`, line 510):\n```ts\nheaders: { prop: prop, ...options.requestOptions?.headers },\n```\n\nEXPECTED (`submodules/autorest.typescript/packages/typespec-ts/test/modularUnit/scenarios/modelsGenerator/modelsGenerator.md`, line 522):\n```ts\nheaders: { prop: prop.toUTCString(), ...options.requestOptions?.headers }\n```\n\nThis also applies to the serializer function:\n\nACTUAL (`test/scenarios/cases/modelsGenerator/modelsGenerator.md`, lines 410-417):\n```ts\nexport function fooSerializer(item: Foo): any {\n  return {\n    prop1: item[\"prop1\"].toISOString().split(\"T\")[0],\n    prop2: item[\"prop2\"],\n    prop3: item[\"prop3\"].toISOString(),\n    prop4: item[\"prop4\"],\n  };\n}\n```\n\nEXPECTED (`submodules/autorest.typescript/packages/typespec-ts/test/modularUnit/scenarios/modelsGenerator/modelsGenerator.md`, line 666):\n```ts\nexport function fooSerializer(item: Foo): any {\n  return { prop1: item[\"prop1\"].toUTCString(), prop2: item[\"prop2\"] };\n}\n```\n\nHTTP headers require string values; Date objects must be serialized. The rfc7231 encoding requires `.toUTCString()` specifically. Related to SA19 (Date/Time Serialization) which was marked done, but header encoding specifically with toUTCString() is still missing.",
-        "affected_scenarios": "modelsGenerator.md \u2014 utcDateTime header parameter section",
-        "status": "done",
-        "resolution": "Fixed: Updated json-serializer.tsx to handle rfc7231 encoding (toUTCString) for utcDateTime types. Updated send-operation.tsx buildHeaderEntries to apply date encoding to header parameter values. Updated 3 scenario test expectations to match new correct behavior.",
-        "references": {
-          "actual_file": "test/scenarios/cases/modelsGenerator/modelsGenerator.md",
-          "actual_lines": "510",
-          "expected_file": "submodules/autorest.typescript/packages/typespec-ts/test/modularUnit/scenarios/modelsGenerator/modelsGenerator.md",
-          "expected_lines": "522, 666",
-          "related_tasks": [
-            "SA19"
-          ]
-        }
-      },
-      {
-        "id": "SA31",
-        "title": "Bytes Deserialization Missing typeof Guard",
-        "category": "Code Generation - Models",
-        "priority": "P1",
-        "description": "When deserializing bytes (Uint8Array) properties, the expected output wraps the conversion in a `typeof` check to handle cases where the value might already be a Uint8Array. The actual output directly calls `stringToUint8Array` without checking.\n\nACTUAL (`test/scenarios/cases/modelsGenerator/modelsGenerator.md`, lines 1027-1029):\n```ts\nexport function fooDeserializer(item: any): Foo {\n  return {\n    prop1: stringToUint8Array(item[\"prop1\"], \"base64\"),\n  };\n}\n```\n\nEXPECTED (`submodules/autorest.typescript/packages/typespec-ts/test/modularUnit/scenarios/modelsGenerator/modelsGenerator.md`, lines 1060-1067):\n```ts\nexport function fooDeserializer(item: any): Foo {\n  return {\n    prop1:\n      typeof item[\"prop1\"] === \"string\"\n        ? stringToUint8Array(item[\"prop1\"], \"base64\")\n        : item[\"prop1\"]\n  };\n}\n```\n\nThis pattern repeats for all bytes deserializations:\n- base64 at actual lines 1029, 1119 (expected lines 1063-1065, 1158-1160)\n- base64url at actual line 1209 (expected lines 1253-1255)\n\nThe typeof guard is important for robustness \u2014 the value may already be deserialized as Uint8Array in certain runtime contexts (e.g., round-trip scenarios).",
-        "affected_scenarios": "modelsGenerator.md \u2014 bytes base64, bytes base64url, bytes base64 encoding sections",
-        "status": "done",
-        "resolution": "Added typeof guard to bytes deserialization in json-deserializer.tsx. For base64/base64url-encoded bytes, the expression now checks typeof === \"string\" before calling stringToUint8Array, falling back to the raw value if already a Uint8Array. Also fixed encoding format to use type.encode (e.g., base64url) instead of hardcoding base64. Binary/bytes wire formats skip the typeof guard and use base64. Updated scenario tests and added 2 unit tests.",
-        "references": {
-          "actual_file": "test/scenarios/cases/modelsGenerator/modelsGenerator.md",
-          "actual_lines": "1029, 1119, 1209",
-          "expected_file": "submodules/autorest.typescript/packages/typespec-ts/test/modularUnit/scenarios/modelsGenerator/modelsGenerator.md",
-          "expected_lines": "1063-1065, 1158-1160, 1253-1255",
-          "related_tasks": []
-        }
-      },
-      {
-        "id": "SA32",
-        "title": "Child Deserializers Missing Parent Properties",
-        "category": "Code Generation - Models",
-        "priority": "P0",
-        "description": "In inheritance hierarchies, child model deserializers must include properties from all parent models. The actual output only includes the child's own properties, missing inherited ones.\n\nACTUAL (`test/scenarios/cases/modelsGenerator/modelsGenerator.md`, lines 1310-1315):\n```ts\nexport function catDeserializer(item: any): Cat {\n  return {\n    kind: item[\"kind\"],\n    meow: item[\"meow\"],\n  };\n}\n```\n\nEXPECTED (`submodules/autorest.typescript/packages/typespec-ts/test/modularUnit/scenarios/modelsGenerator/modelsGenerator.md`, lines 1342-1349):\n```ts\nexport function catDeserializer(item: any): Cat {\n  return {\n    name: item[\"name\"],      // from Pet parent\n    weight: item[\"weight\"],  // from Pet parent\n    kind: item[\"kind\"],\n    meow: item[\"meow\"]\n  };\n}\n```\n\nSimilarly for dogDeserializer (actual lines 1325-1329 vs expected lines 1367-1374):\nMissing `name: item[\"name\"]` and `weight: item[\"weight\"]` from Pet parent.\n\nThis occurs in the 'should handle inheritance model with discriminator and no operation' section. The same pattern likely affects other inheritance scenarios. Related to SA14 (Discriminated Union Serialization) which noted this issue but was marked done.",
-        "affected_scenarios": "modelsGenerator.md \u2014 inheritance with discriminator sections",
-        "status": "done",
-        "resolution": "Fixed: Changed isDiscriminatedChild() to hasParentModel() in model-files.tsx so ALL child models (not just discriminated) include inherited parent properties in their (de)serializers. Updated 14 scenario snapshots. Added unit tests for both serializer and deserializer.",
-        "references": {
-          "actual_file": "test/scenarios/cases/modelsGenerator/modelsGenerator.md",
-          "actual_lines": "1310-1315, 1325-1329",
-          "expected_file": "submodules/autorest.typescript/packages/typespec-ts/test/modularUnit/scenarios/modelsGenerator/modelsGenerator.md",
-          "expected_lines": "1342-1349, 1367-1374",
-          "related_tasks": [
-            "SA14"
-          ]
-        }
-      },
-      {
-        "id": "SA33",
-        "title": "Missing Union Type Alias Deserializer (_ReadResponse)",
-        "category": "Code Generation - Models",
-        "priority": "P1",
-        "description": "The expected output generates a type alias with underscore prefix and a corresponding deserializer function for response union types. The actual output generates the type alias without underscore prefix and omits the deserializer entirely.\n\nACTUAL (`test/scenarios/cases/modelsGenerator/modelsGenerator.md`, lines 1306-1308):\n```ts\n/**\n * Alias for ReadResponse\n */\nexport type ReadResponse = Cat | Dog;\n// NO deserializer function\n```\n\nEXPECTED (`submodules/autorest.typescript/packages/typespec-ts/test/modularUnit/scenarios/modelsGenerator/modelsGenerator.md`, lines 1379-1384):\n```ts\n/** Alias for _ReadResponse */\nexport type _ReadResponse = Cat | Dog;\n\nexport function _readResponseDeserializer(item: any): _ReadResponse {\n  return item;\n}\n```\n\nIssues:\n1. Type name should be `_ReadResponse` (with underscore prefix) not `ReadResponse`\n2. Missing `_readResponseDeserializer` function entirely\n3. JSDoc format differs: expected uses single-line `/** Alias for _ReadResponse */`, actual uses multi-line `/**\\n * Alias for ReadResponse\\n */`",
-        "affected_scenarios": "modelsGenerator.md \u2014 inheritance with discriminator section",
-        "status": "done",
-        "resolution": "Implemented underscore prefix for generated union type names, added pass-through JsonUnionDeserializer component, integrated union deserializer rendering in model-files.tsx, added union case to getDeserializationExpression, and updated needsTransformation to handle union types. All scenario tests updated.",
-        "references": {
-          "actual_file": "test/scenarios/cases/modelsGenerator/modelsGenerator.md",
-          "actual_lines": "1306-1308",
-          "expected_file": "submodules/autorest.typescript/packages/typespec-ts/test/modularUnit/scenarios/modelsGenerator/modelsGenerator.md",
-          "expected_lines": "1379-1384",
-          "related_tasks": [
-            "SA14",
-            "SA21"
-          ]
-        }
+        "status": "REGRESSION",
+        "description": "The new emitter uses direct property assignment for headers instead of legacy conditional spread pattern. Legacy conditional spread with undefined check is the expected output.",
+        "legacy_behavior": "...(options?.header !== undefined ? { header: options.header } : {})",
+        "new_behavior": "header: options?.header (direct assignment, always present even if undefined).",
+        "affected_scenarios": [
+          "operations/override",
+          "operations/operations",
+          "samples/parameters/parameterNormalization"
+        ],
+        "reference_legacy_tests": "submodules/autorest.typescript/packages/typespec-ts/test/modularUnit/scenarios/operations/override.md",
+        "reference_new_tests": "test/scenarios/cases/operations/override.md"
       }
     ],
-    "tasks_recategorized": true,
-    "total_root_cause_tasks": 33
+    "intentional_changes": [
+      {
+        "id": "SA-INT1",
+        "title": "INTENTIONAL: Runtime Package Migration (@azure-rest/core-client \u2192 @typespec/ts-http-runtime)",
+        "category": "Intentional",
+        "priority": "N/A",
+        "status": "INTENTIONAL",
+        "description": "The new emitter targets @typespec/ts-http-runtime instead of @azure-rest/core-client. This is the intended design direction. No action needed unless Azure flavor detection requires @azure-rest/core-client.",
+        "legacy_behavior": "Imports from @azure-rest/core-client and @azure/core-rest-pipeline.",
+        "new_behavior": "Imports from @typespec/ts-http-runtime.",
+        "affected_scenarios": [
+          "Nearly all scenarios"
+        ]
+      },
+      {
+        "id": "SA-INT2",
+        "title": "INTENTIONAL: Type-Only Import Modifiers (import type)",
+        "category": "Intentional",
+        "priority": "N/A",
+        "status": "INTENTIONAL",
+        "description": "The new emitter adds the type keyword to type-only imports per TypeScript best practices. This is correct behavior.",
+        "legacy_behavior": "import { SomeType } from './models.js';",
+        "new_behavior": "import type { SomeType } from './models.js';",
+        "affected_scenarios": [
+          "Nearly all scenarios"
+        ]
+      },
+      {
+        "id": "SA-INT3",
+        "title": "INTENTIONAL: expandUrlTemplate Import from Runtime",
+        "category": "Intentional",
+        "priority": "N/A",
+        "status": "INTENTIONAL",
+        "description": "expandUrlTemplate utility is now imported from the runtime package instead of a static-helpers path. This is part of the runtime consolidation.",
+        "legacy_behavior": "import { expandUrlTemplate } from '../static-helpers/urlTemplate.js';",
+        "new_behavior": "import { expandUrlTemplate } from '@typespec/ts-http-runtime';",
+        "affected_scenarios": [
+          "Scenarios using URL templates"
+        ]
+      }
+    ],
+    "total_root_cause_tasks": 34
   }
 }
