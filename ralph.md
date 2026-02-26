@@ -38,7 +38,21 @@ Use up to 500 parallel subagents to study the codebase. **Do NOT assume somethin
 
 ---
 
-## Phase 3: IMPLEMENT — Write code and tests
+## Phase 3: DESIGN — Evaluate approaches before coding
+
+Before writing any code, do a design review using subagents:
+
+1. Identify at least **2 viable approaches** for implementing the task.
+2. For each approach, evaluate against these criteria (in priority order):
+   - **Output consistency with the legacy emitter** — the generated code must match the legacy emitter's public API surface. This is the top priority.
+   - **Idiomatic Alloy** — follows patterns from `flight-instructor` and `alloy-guide-final.md` (refkeys, `code` templates, `<For>`, no string concatenation, no manual imports).
+   - **Completeness** — covers all edge cases visible in the legacy implementation.
+   - **Simplicity** — fewer moving parts, less indirection, easier for future loops to understand.
+3. Choose the approach that best satisfies the criteria above. Record your decision in `knowledge.md` under a `## Design Decisions` section (approach chosen, why, and what was rejected) so future loops don't revisit the same question.
+
+---
+
+## Phase 4: IMPLEMENT — Write code and tests
 
 1. Every component must have a unit test.
 2. Every function must have JSDoc explaining what it does and why.
@@ -47,7 +61,7 @@ Use up to 500 parallel subagents to study the codebase. **Do NOT assume somethin
 
 ---
 
-## Phase 4: VALIDATE — Build and test
+## Phase 5: VALIDATE — Build and test
 
 Run validation with a **single subagent** (do not fan out builds/tests to multiple subagents — it causes backpressure):
 
@@ -59,7 +73,7 @@ If tests unrelated to your work fail, it is **your job** to resolve them as part
 
 ---
 
-## Phase 5: RECORD — Document and commit
+## Phase 6: RECORD — Document and commit
 
 1. Update `prd.json` — mark your task as done:
 ```bash
@@ -84,7 +98,7 @@ print(f'Marked {TASK_ID} as done')
 
 ---
 
-## Phase 6: EXIT
+## Phase 7: EXIT
 
 Exit the copilot CLI. If the PRD is complete (no remaining not-started tasks), output `<promise>COMPLETED</promise>` before exiting.
 
