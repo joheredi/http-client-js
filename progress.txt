@@ -693,3 +693,26 @@ Key implementation details:
 Important for next iteration:
 - SA-C25c (flatten in multipart-serializer) still pending
 - The areAllPropsUndefined check uses ORIGINAL names, not renamed ones — this matches legacy but may be semantically incorrect for collision cases
+
+---
+SA-C27 Fix cookie/token parameter injection in function signatures (2026-02-26)
+
+What was done:
+- Modified isRequiredSignatureParameter() in send-operation.tsx to accept an optional `method` parameter
+- Added isCookieParam() helper that checks if a method parameter corresponds to a cookie HTTP parameter via operation.parameters -> correspondingMethodParams mapping
+- Updated all function-signature-building call sites in: send-operation.tsx, public-operation.tsx, classical-client.tsx, classical-operation-groups.tsx, sample-files.tsx
+- Updated test/scenarios/cases/operations/cookieParam/ignoreCookieParam.md expected output to remove `token: string` from function signatures
+- Cookie HTTP params (kind: "cookie") are now properly excluded from operation function signatures, matching legacy emitter behavior
+
+Also marked as already-done: SA-C5, SA-C6, SA-C9, SA-C10, SA-C20, SA-C36 (all already implemented, just needed prd.json status update)
+
+Key implementation details:
+- SdkMethodParameter has kind: "method" always - can't determine cookie from method param alone
+- Must check HTTP operation parameters (SdkCookieParameter, kind: "cookie") and their correspondingMethodParams to link back to the method param
+- The method parameter is optional in isRequiredSignatureParameter for backward compatibility - internal HTTP param value rendering call sites don't need the cookie check since cookie HTTP params are never processed as path/query/header
+- Legacy emitter filters cookies in operationHelpers.ts line 754-770 with `?.kind !== "cookie"` check
+
+Important for next iteration:
+- SA-C29 (Enum Naming Normalization) is a real issue: toPascal() doesn't preserve ≤3-char ALL-CAPS segments
+- SA-C17 (ContentType) is a real issue: hardcoded string literals instead of dynamic references
+- Phase 10 tasks have no priority set but may be important for flavor parity

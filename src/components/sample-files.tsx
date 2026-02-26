@@ -567,7 +567,7 @@ function buildOperationCallArgs(
 
   // Process required parameters first (in order)
   for (const param of method.parameters) {
-    if (isRequiredSignatureParameter(param)) {
+    if (isRequiredSignatureParameter(param, method)) {
       const exampleValue = findExampleValue(param, exampleValueMap);
       if (exampleValue) {
         args.push(getExampleValueCode(exampleValue));
@@ -581,7 +581,7 @@ function buildOperationCallArgs(
   // Collect optional parameters into an options object
   const optionalEntries: string[] = [];
   for (const param of method.parameters) {
-    if (!isRequiredSignatureParameter(param) && param.name !== "options") {
+    if (!isRequiredSignatureParameter(param, method) && param.name !== "options") {
       const exampleValue = findExampleValue(param, exampleValueMap);
       if (exampleValue) {
         optionalEntries.push(`${param.name}: ${getExampleValueCode(exampleValue)}`);

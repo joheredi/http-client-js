@@ -329,7 +329,7 @@ function buildMethodParamList(
   const parts: Children[] = [];
 
   for (const param of method.parameters) {
-    if (isRequiredSignatureParameter(param)) {
+    if (isRequiredSignatureParameter(param, method)) {
       parts.push(code`${param.name}: ${getTypeExpression(param.type)}`);
     }
   }
@@ -403,7 +403,7 @@ function buildFactoryParamList(
   const params: string[] = [];
 
   for (const param of method.parameters) {
-    if (isRequiredSignatureParameter(param)) {
+    if (isRequiredSignatureParameter(param, method)) {
       params.push(param.name);
     }
   }
@@ -427,7 +427,7 @@ function buildDelegateArgList(
   const args: string[] = [];
 
   for (const param of method.parameters) {
-    if (isRequiredSignatureParameter(param)) {
+    if (isRequiredSignatureParameter(param, method)) {
       args.push(param.name);
     }
   }

@@ -34,7 +34,6 @@ import {
 
 export function _testSend(
   context: Client,
-  token: string,
   options: TestOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
   return context.path("/").get({
@@ -56,10 +55,9 @@ export async function _testDeserialize(
 
 export async function test(
   context: Client,
-  token: string,
   options: TestOptionalParams = { requestOptions: {} },
 ): Promise<string> {
-  const result = await _testSend(context, token, options);
+  const result = await _testSend(context, options);
   return _testDeserialize(result);
 }
 ```

@@ -360,7 +360,7 @@ function buildMethodParameters(
   const params: ParameterDescriptor[] = [];
 
   for (const param of method.parameters) {
-    if (isRequiredSignatureParameter(param)) {
+    if (isRequiredSignatureParameter(param, method)) {
       params.push({
         name: param.name,
         type: getTypeExpression(param.type),
@@ -418,7 +418,7 @@ function buildDelegateArguments(
   const args: string[] = [];
 
   for (const param of method.parameters) {
-    if (isRequiredSignatureParameter(param)) {
+    if (isRequiredSignatureParameter(param, method)) {
       args.push(param.name);
     }
   }

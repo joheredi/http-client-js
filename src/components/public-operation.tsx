@@ -397,7 +397,7 @@ function buildFunctionParameters(
   ];
 
   for (const param of method.parameters) {
-    if (isRequiredSignatureParameter(param)) {
+    if (isRequiredSignatureParameter(param, method)) {
       params.push({
         name: param.name,
         type: getTypeExpression(param.type),
@@ -430,7 +430,7 @@ function buildCallArguments(
   const args: string[] = ["context"];
 
   for (const param of method.parameters) {
-    if (isRequiredSignatureParameter(param)) {
+    if (isRequiredSignatureParameter(param, method)) {
       args.push(getEscapedParameterName(param.name));
     }
   }
