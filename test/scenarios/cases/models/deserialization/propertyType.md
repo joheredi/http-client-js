@@ -78,13 +78,13 @@ import { deserializeRecord } from "../helpers/serializationHelpers.js";
 export interface SimpleModel {
   proNumeric: number;
   proNumericArray: number[];
-  propNumericUnion: SimpleModelPropNumericUnion;
+  propNumericUnion: _SimpleModelPropNumericUnion;
   propString: string;
   propboolean: boolean;
   propNumber: number;
   propStringOptional?: string;
-  propSimpleUnion: SimpleModelPropSimpleUnion;
-  propSimpleUnionOptional?: SimpleModelPropSimpleUnionOptional;
+  propSimpleUnion: _SimpleModelPropSimpleUnion;
+  propSimpleUnionOptional?: _SimpleModelPropSimpleUnionOptional;
   propStringLiteral: "A";
   propBooleanLiteral: false;
   propNumberLiteral: 1;
@@ -96,34 +96,34 @@ export interface SimpleModel {
   propStringUnionAsExtensibleOptional?: SimpleModelPropStringUnionAsExtensibleOptional;
   propStringUnionAsExtensibleNullable: SimpleModelPropStringUnionAsExtensibleNullable | null;
   propStringUnionAsExtensibleOptionalAndNullable?: SimpleModelPropStringUnionAsExtensibleOptionalAndNullable;
-  propMixedTypeLiteral: SimpleModelPropMixedTypeLiteral;
+  propMixedTypeLiteral: _SimpleModelPropMixedTypeLiteral;
   propStringArray: string[];
   propBooleanArray: boolean[];
   propNumberArray: number[];
-  propSimpleUnionArray: SimpleModelPropSimpleUnionArray[];
+  propSimpleUnionArray: _SimpleModelPropSimpleUnionArray[];
   propStringArrayOptional?: string[];
-  propSimpleUnionArrayOptional?: SimpleModelPropSimpleUnionArrayOptional[];
+  propSimpleUnionArrayOptional?: _SimpleModelPropSimpleUnionArrayOptional[];
   propRecordOfString: Record<string, string>;
   propRecordOfDate: Record<string, Date>;
   propRecordOfBoolean: Record<string, boolean>;
   propRecordOfNumber: Record<string, number>;
-  propRecordOfSimpleUnion: Record<string, SimpleModelPropRecordOfSimpleUnion>;
+  propRecordOfSimpleUnion: Record<string, _SimpleModelPropRecordOfSimpleUnion>;
   propRecordOfStringOptional?: Record<string, string>;
   propRecordOfStringArray: Record<string, string[]>;
   propArrayOfRecordOfString: Record<string, string>[];
   propArrayOfRecordOfStringOptional?: Record<string, string>[];
-  propRecordOfUnionArray: Record<string, SimpleModelPropRecordOfUnionArray[]>;
+  propRecordOfUnionArray: Record<string, _SimpleModelPropRecordOfUnionArray[]>;
   propRecordOfUnionArrayOptional?: Record<
     string,
-    SimpleModelPropRecordOfUnionArrayOptional[]
+    _SimpleModelPropRecordOfUnionArrayOptional[]
   >;
   propArrayOfRecordOfUnion: Record<
     string,
-    SimpleModelPropArrayOfRecordOfUnion
+    _SimpleModelPropArrayOfRecordOfUnion
   >[];
   propArrayOfRecordOfUnionOptional?: Record<
     string,
-    SimpleModelPropArrayOfRecordOfUnionOptional
+    _SimpleModelPropArrayOfRecordOfUnionOptional
   >[];
   propEncoded: string;
   propNestedDict?: Record<string, Record<string, any>>;
@@ -221,62 +221,65 @@ export enum KnownSimpleModelPropStringUnionAsExtensibleOptionalAndNullable {
 }
 
 /**
- * Alias for SimpleModelPropNumericUnion
+ * Alias for _SimpleModelPropNumericUnion
  */
-export type SimpleModelPropNumericUnion = string | number;
+export type _SimpleModelPropNumericUnion = string | number;
 
 /**
- * Alias for SimpleModelPropSimpleUnion
+ * Alias for _SimpleModelPropSimpleUnion
  */
-export type SimpleModelPropSimpleUnion = string | boolean | number;
+export type _SimpleModelPropSimpleUnion = string | boolean | number;
 
 /**
- * Alias for SimpleModelPropSimpleUnionOptional
+ * Alias for _SimpleModelPropSimpleUnionOptional
  */
-export type SimpleModelPropSimpleUnionOptional = string | boolean | number;
+export type _SimpleModelPropSimpleUnionOptional = string | boolean | number;
 
 /**
- * Alias for SimpleModelPropMixedTypeLiteral
+ * Alias for _SimpleModelPropMixedTypeLiteral
  */
-export type SimpleModelPropMixedTypeLiteral = "A" | false | 1;
+export type _SimpleModelPropMixedTypeLiteral = "A" | false | 1;
 
 /**
- * Alias for SimpleModelPropSimpleUnionArray
+ * Alias for _SimpleModelPropSimpleUnionArray
  */
-export type SimpleModelPropSimpleUnionArray = string | boolean | number;
+export type _SimpleModelPropSimpleUnionArray = string | boolean | number;
 
 /**
- * Alias for SimpleModelPropSimpleUnionArrayOptional
+ * Alias for _SimpleModelPropSimpleUnionArrayOptional
  */
-export type SimpleModelPropSimpleUnionArrayOptional = string | boolean | number;
-
-/**
- * Alias for SimpleModelPropRecordOfSimpleUnion
- */
-export type SimpleModelPropRecordOfSimpleUnion = string | boolean | number;
-
-/**
- * Alias for SimpleModelPropRecordOfUnionArray
- */
-export type SimpleModelPropRecordOfUnionArray = string | boolean | number;
-
-/**
- * Alias for SimpleModelPropRecordOfUnionArrayOptional
- */
-export type SimpleModelPropRecordOfUnionArrayOptional =
+export type _SimpleModelPropSimpleUnionArrayOptional =
   | string
   | boolean
   | number;
 
 /**
- * Alias for SimpleModelPropArrayOfRecordOfUnion
+ * Alias for _SimpleModelPropRecordOfSimpleUnion
  */
-export type SimpleModelPropArrayOfRecordOfUnion = string | boolean | number;
+export type _SimpleModelPropRecordOfSimpleUnion = string | boolean | number;
 
 /**
- * Alias for SimpleModelPropArrayOfRecordOfUnionOptional
+ * Alias for _SimpleModelPropRecordOfUnionArray
  */
-export type SimpleModelPropArrayOfRecordOfUnionOptional =
+export type _SimpleModelPropRecordOfUnionArray = string | boolean | number;
+
+/**
+ * Alias for _SimpleModelPropRecordOfUnionArrayOptional
+ */
+export type _SimpleModelPropRecordOfUnionArrayOptional =
+  | string
+  | boolean
+  | number;
+
+/**
+ * Alias for _SimpleModelPropArrayOfRecordOfUnion
+ */
+export type _SimpleModelPropArrayOfRecordOfUnion = string | boolean | number;
+
+/**
+ * Alias for _SimpleModelPropArrayOfRecordOfUnionOptional
+ */
+export type _SimpleModelPropArrayOfRecordOfUnionOptional =
   | string
   | boolean
   | number;
@@ -285,13 +288,21 @@ export function simpleModelDeserializer(item: any): SimpleModel {
   return {
     proNumeric: item["proNumeric"],
     proNumericArray: item["proNumericArray"],
-    propNumericUnion: item["propNumericUnion"],
+    propNumericUnion: _simpleModelPropNumericUnionDeserializer(
+      item["propNumericUnion"],
+    ),
     propString: item["propString"],
     propboolean: item["propboolean"],
     propNumber: item["propNumber"],
     propStringOptional: item["propStringOptional"],
-    propSimpleUnion: item["propSimpleUnion"],
-    propSimpleUnionOptional: item["propSimpleUnionOptional"],
+    propSimpleUnion: _simpleModelPropSimpleUnionDeserializer(
+      item["propSimpleUnion"],
+    ),
+    propSimpleUnionOptional: !item["propSimpleUnionOptional"]
+      ? item["propSimpleUnionOptional"]
+      : _simpleModelPropSimpleUnionOptionalDeserializer(
+          item["propSimpleUnionOptional"],
+        ),
     propStringLiteral: item["propStringLiteral"],
     propBooleanLiteral: item["propBooleanLiteral"],
     propNumberLiteral: item["propNumberLiteral"],
@@ -306,13 +317,21 @@ export function simpleModelDeserializer(item: any): SimpleModel {
       item["propStringUnionAsExtensibleNullable"],
     propStringUnionAsExtensibleOptionalAndNullable:
       item["propStringUnionAsExtensibleOptionalAndNullable"],
-    propMixedTypeLiteral: item["propMixedTypeLiteral"],
+    propMixedTypeLiteral: _simpleModelPropMixedTypeLiteralDeserializer(
+      item["propMixedTypeLiteral"],
+    ),
     propStringArray: item["propStringArray"],
     propBooleanArray: item["propBooleanArray"],
     propNumberArray: item["propNumberArray"],
-    propSimpleUnionArray: item["propSimpleUnionArray"],
+    propSimpleUnionArray: item["propSimpleUnionArray"].map((p: any) => {
+      return _simpleModelPropSimpleUnionArrayDeserializer(p);
+    }),
     propStringArrayOptional: item["propStringArrayOptional"],
-    propSimpleUnionArrayOptional: item["propSimpleUnionArrayOptional"],
+    propSimpleUnionArrayOptional: !item["propSimpleUnionArrayOptional"]
+      ? item["propSimpleUnionArrayOptional"]
+      : item["propSimpleUnionArrayOptional"].map((p: any) => {
+          return _simpleModelPropSimpleUnionArrayOptionalDeserializer(p);
+        }),
     propRecordOfString: item["propRecordOfString"],
     propRecordOfDate: deserializeRecord(
       item["propRecordOfDate"] as any,
@@ -320,18 +339,111 @@ export function simpleModelDeserializer(item: any): SimpleModel {
     ),
     propRecordOfBoolean: item["propRecordOfBoolean"],
     propRecordOfNumber: item["propRecordOfNumber"],
-    propRecordOfSimpleUnion: item["propRecordOfSimpleUnion"],
+    propRecordOfSimpleUnion: deserializeRecord(
+      item["propRecordOfSimpleUnion"] as any,
+      (v: any) => _simpleModelPropRecordOfSimpleUnionDeserializer(v),
+    ),
     propRecordOfStringOptional: item["propRecordOfStringOptional"],
     propRecordOfStringArray: item["propRecordOfStringArray"],
     propArrayOfRecordOfString: item["propArrayOfRecordOfString"],
     propArrayOfRecordOfStringOptional:
       item["propArrayOfRecordOfStringOptional"],
-    propRecordOfUnionArray: item["propRecordOfUnionArray"],
-    propRecordOfUnionArrayOptional: item["propRecordOfUnionArrayOptional"],
-    propArrayOfRecordOfUnion: item["propArrayOfRecordOfUnion"],
-    propArrayOfRecordOfUnionOptional: item["propArrayOfRecordOfUnionOptional"],
+    propRecordOfUnionArray: deserializeRecord(
+      item["propRecordOfUnionArray"] as any,
+      (v: any) =>
+        v.map((p: any) => {
+          return _simpleModelPropRecordOfUnionArrayDeserializer(p);
+        }),
+    ),
+    propRecordOfUnionArrayOptional: !item["propRecordOfUnionArrayOptional"]
+      ? item["propRecordOfUnionArrayOptional"]
+      : deserializeRecord(
+          item["propRecordOfUnionArrayOptional"] as any,
+          (v: any) =>
+            v.map((p: any) => {
+              return _simpleModelPropRecordOfUnionArrayOptionalDeserializer(p);
+            }),
+        ),
+    propArrayOfRecordOfUnion: item["propArrayOfRecordOfUnion"].map((p: any) => {
+      return deserializeRecord(p as any, (v: any) =>
+        _simpleModelPropArrayOfRecordOfUnionDeserializer(v),
+      );
+    }),
+    propArrayOfRecordOfUnionOptional: !item["propArrayOfRecordOfUnionOptional"]
+      ? item["propArrayOfRecordOfUnionOptional"]
+      : item["propArrayOfRecordOfUnionOptional"].map((p: any) => {
+          return deserializeRecord(p as any, (v: any) =>
+            _simpleModelPropArrayOfRecordOfUnionOptionalDeserializer(v),
+          );
+        }),
     propEncoded: item["prop_encoded"],
     propNestedDict: item["propNestedDict"],
   };
+}
+
+export function _simpleModelPropNumericUnionDeserializer(
+  item: any,
+): _SimpleModelPropNumericUnion {
+  return item;
+}
+
+export function _simpleModelPropSimpleUnionDeserializer(
+  item: any,
+): _SimpleModelPropSimpleUnion {
+  return item;
+}
+
+export function _simpleModelPropSimpleUnionOptionalDeserializer(
+  item: any,
+): _SimpleModelPropSimpleUnionOptional {
+  return item;
+}
+
+export function _simpleModelPropMixedTypeLiteralDeserializer(
+  item: any,
+): _SimpleModelPropMixedTypeLiteral {
+  return item;
+}
+
+export function _simpleModelPropSimpleUnionArrayDeserializer(
+  item: any,
+): _SimpleModelPropSimpleUnionArray {
+  return item;
+}
+
+export function _simpleModelPropSimpleUnionArrayOptionalDeserializer(
+  item: any,
+): _SimpleModelPropSimpleUnionArrayOptional {
+  return item;
+}
+
+export function _simpleModelPropRecordOfSimpleUnionDeserializer(
+  item: any,
+): _SimpleModelPropRecordOfSimpleUnion {
+  return item;
+}
+
+export function _simpleModelPropRecordOfUnionArrayDeserializer(
+  item: any,
+): _SimpleModelPropRecordOfUnionArray {
+  return item;
+}
+
+export function _simpleModelPropRecordOfUnionArrayOptionalDeserializer(
+  item: any,
+): _SimpleModelPropRecordOfUnionArrayOptional {
+  return item;
+}
+
+export function _simpleModelPropArrayOfRecordOfUnionDeserializer(
+  item: any,
+): _SimpleModelPropArrayOfRecordOfUnion {
+  return item;
+}
+
+export function _simpleModelPropArrayOfRecordOfUnionOptionalDeserializer(
+  item: any,
+): _SimpleModelPropArrayOfRecordOfUnionOptional {
+  return item;
 }
 ```

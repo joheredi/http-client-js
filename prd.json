@@ -3160,8 +3160,8 @@
         "priority": "P1",
         "description": "The expected output generates a type alias with underscore prefix and a corresponding deserializer function for response union types. The actual output generates the type alias without underscore prefix and omits the deserializer entirely.\n\nACTUAL (`test/scenarios/cases/modelsGenerator/modelsGenerator.md`, lines 1306-1308):\n```ts\n/**\n * Alias for ReadResponse\n */\nexport type ReadResponse = Cat | Dog;\n// NO deserializer function\n```\n\nEXPECTED (`submodules/autorest.typescript/packages/typespec-ts/test/modularUnit/scenarios/modelsGenerator/modelsGenerator.md`, lines 1379-1384):\n```ts\n/** Alias for _ReadResponse */\nexport type _ReadResponse = Cat | Dog;\n\nexport function _readResponseDeserializer(item: any): _ReadResponse {\n  return item;\n}\n```\n\nIssues:\n1. Type name should be `_ReadResponse` (with underscore prefix) not `ReadResponse`\n2. Missing `_readResponseDeserializer` function entirely\n3. JSDoc format differs: expected uses single-line `/** Alias for _ReadResponse */`, actual uses multi-line `/**\\n * Alias for ReadResponse\\n */`",
         "affected_scenarios": "modelsGenerator.md \u2014 inheritance with discriminator section",
-        "status": "pending",
-        "resolution": null,
+        "status": "done",
+        "resolution": "Implemented underscore prefix for generated union type names, added pass-through JsonUnionDeserializer component, integrated union deserializer rendering in model-files.tsx, added union case to getDeserializationExpression, and updated needsTransformation to handle union types. All scenario tests updated.",
         "references": {
           "actual_file": "test/scenarios/cases/modelsGenerator/modelsGenerator.md",
           "actual_lines": "1306-1308",

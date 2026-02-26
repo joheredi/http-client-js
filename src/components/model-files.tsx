@@ -23,6 +23,7 @@ import { XmlObjectSerializer } from "./serialization/xml-object-serializer.js";
 import { XmlDeserializer } from "./serialization/xml-deserializer.js";
 import { XmlObjectDeserializer } from "./serialization/xml-object-deserializer.js";
 import { UnionDeclaration } from "./union-declaration.js";
+import { JsonUnionDeserializer } from "./serialization/json-union-deserializer.js";
 import { extractSubEnums, SubEnumDeclarations } from "./sub-enum-declaration.js";
 import { hasXmlSerialization } from "../utils/xml-detection.js";
 
@@ -154,12 +155,22 @@ export function ModelFiles() {
     (m) => isDiscriminated(m),
   );
 
+  // Filter unions that appear in Output/Exception context — they need deserializers.
+  // Non-discriminated unions get simple pass-through deserializers that return the
+  // raw JSON item unchanged, matching the legacy emitter's behavior.
+  const outputUnions = namedUnions.filter(
+    (u) =>
+      (u.usage & UsageFlags.Output) !== 0 ||
+      (u.usage & UsageFlags.Exception) !== 0,
+  );
+
   const hasSerializers =
     regularInputModels.length > 0 ||
     polymorphicInputModels.length > 0 ||
     multipartInputModels.length > 0;
   const hasDeserializers =
     regularOutputModels.length > 0 || polymorphicOutputModels.length > 0;
+  const hasUnionDeserializers = outputUnions.length > 0;
   const hasXmlSerializers = xmlInputModels.length > 0;
   const hasXmlDeserializers = xmlOutputModels.length > 0;
 
@@ -202,7 +213,11 @@ export function ModelFiles() {
           ? "\n\n"
           : undefined}
         <PolymorphicDeserializerDeclarations models={polymorphicOutputModels} />
-        {(hasSerializers || hasDeserializers) && hasXmlSerializers
+        {(hasDeserializers || hasSerializers) && hasUnionDeserializers
+          ? "\n\n"
+          : undefined}
+        <UnionDeserializerDeclarations unions={outputUnions} />
+        {(hasSerializers || hasDeserializers || hasUnionDeserializers) && hasXmlSerializers
           ? "\n\n"
           : undefined}
         <XmlSerializerDeclarations models={xmlInputModels} />
@@ -546,6 +561,35 @@ function PolymorphicDeserializerDeclarations(
           <JsonPolymorphicDeserializer model={model} />
         </>
       )}
+    </For>
+  );
+}
+
+/**
+ * Props for the {@link UnionDeserializerDeclarations} component.
+ */
+interface UnionDeserializerDeclarationsProps {
+  /** The list of TCGC union types that have Output/Exception usage and need deserializers. */
+  unions: SdkUnionType[];
+}
+
+/**
+ * Renders all pass-through JSON deserializer function declarations for union types.
+ *
+ * Non-discriminated unions (e.g., `Cat | Dog` without a discriminator property)
+ * get a simple pass-through deserializer that returns `item` as-is. This exists
+ * so that operation response deserialization can uniformly reference a deserializer
+ * refkey for the response type, regardless of whether it is a model or union.
+ *
+ * @param props - Component props containing the list of output/exception union types.
+ * @returns Alloy JSX tree with union deserializer declarations, or undefined if empty.
+ */
+function UnionDeserializerDeclarations(props: UnionDeserializerDeclarationsProps) {
+  if (props.unions.length === 0) return undefined;
+
+  return (
+    <For each={props.unions} doubleHardline>
+      {(unionType) => <JsonUnionDeserializer type={unionType} />}
     </For>
   );
 }

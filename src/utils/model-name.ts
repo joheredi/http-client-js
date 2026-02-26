@@ -1,5 +1,8 @@
 import { namekey, type Namekey, type NamekeyOptions } from "@alloy-js/core";
-import type { SdkModelType } from "@azure-tools/typespec-client-generator-core";
+import type {
+  SdkModelType,
+  SdkUnionType,
+} from "@azure-tools/typespec-client-generator-core";
 
 /**
  * Returns the display name for a model, adding an underscore prefix for
@@ -56,4 +59,71 @@ export function getModelFunctionName(
     return namekey(prefixedName, { ignoreNamePolicy: true });
   }
   return `${model.name}${suffix}`;
+}
+
+/**
+ * Returns the display name for a union type, adding an underscore prefix for
+ * internally-generated (anonymous) unions.
+ *
+ * The legacy emitter prefixes `_` to union names when `isGeneratedName` is
+ * `true`. This signals that the type is an internal/anonymous union — for
+ * example, a response body union wrapper like `_ReadResponse` — that is not
+ * part of the public API surface. The underscore prefix follows Azure SDK
+ * naming conventions for generated types.
+ *
+ * Uses Alloy's `namekey` with `ignoreNamePolicy: true` to prevent the
+ * TypeScript name policy from stripping the underscore prefix.
+ *
+ * @param union - The TCGC union type to compute the name for.
+ * @returns The union name (plain string or namekey), suitable for use as the
+ *          `name` prop on Alloy declaration components.
+ */
+export function getUnionName(union: SdkUnionType): string | Namekey<NamekeyOptions> {
+  if (union.isGeneratedName) {
+    const prefixedName = `_${union.name}`;
+    return namekey(prefixedName, { ignoreNamePolicy: true });
+  }
+  return union.name;
+}
+
+/**
+ * Returns the display name for the union type in documentation strings.
+ *
+ * Unlike {@link getUnionName} which returns a `Namekey` for generated names,
+ * this returns a plain string suitable for embedding in JSDoc comments.
+ * For generated names, prepends `_` to match the rendered type name.
+ *
+ * @param union - The TCGC union type.
+ * @returns A plain string name for use in documentation.
+ */
+export function getUnionDisplayName(union: SdkUnionType): string {
+  if (union.isGeneratedName) {
+    return `_${union.name}`;
+  }
+  return union.name;
+}
+
+/**
+ * Returns a declaration name for a function derived from a union type, adding
+ * an underscore prefix for internally-generated (anonymous) unions.
+ *
+ * This is used for serializer/deserializer function names that incorporate
+ * the union name as a prefix (e.g., `_readResponseDeserializer`). When the
+ * union has `isGeneratedName`, the full function name gets a `namekey` with
+ * `ignoreNamePolicy: true` to preserve the underscore prefix.
+ *
+ * @param union - The TCGC union type.
+ * @param suffix - The suffix to append (e.g., `"Serializer"`, `"Deserializer"`).
+ * @returns The function name (plain string or namekey) for the `name` prop.
+ */
+export function getUnionFunctionName(
+  union: SdkUnionType,
+  suffix: string,
+): string | Namekey<NamekeyOptions> {
+  if (union.isGeneratedName) {
+    const camelName = union.name.charAt(0).toLowerCase() + union.name.slice(1);
+    const prefixedName = `_${camelName}${suffix}`;
+    return namekey(prefixedName, { ignoreNamePolicy: true });
+  }
+  return `${union.name}${suffix}`;
 }

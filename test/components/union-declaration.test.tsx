@@ -325,4 +325,59 @@ describe("Union Declaration", () => {
       type Test = Identifier
     `);
   });
+
+  /**
+   * Tests that a union with `isGeneratedName: true` (i.e., an anonymous
+   * response union like `Cat | Dog`) gets the `_` underscore prefix on the
+   * type name. This matches the legacy emitter convention where generated
+   * (non-user-defined) type names are prefixed with `_` to signal they are
+   * internal implementation details (e.g., `_ReadResponse`).
+   *
+   * Without this underscore prefix, the generated type name would collide
+   * with user-defined names and break the Azure SDK naming convention for
+   * internal types.
+   */
+  it("should prefix generated union names with underscore", async () => {
+    const runner = await TesterWithService.createInstance();
+    const { program } = await runner.compile(
+      t.code`
+        model ${t.model("Cat")} { meow: boolean; }
+        model ${t.model("Dog")} { bark: boolean; }
+        op ${t.op("read")}(): { @body body: Cat | Dog };
+      `,
+    );
+
+    const sdkContext = await createSdkContextForTest(program);
+    const unionType = sdkContext.sdkPackage.unions[0] as SdkUnionType;
+    const catModel = sdkContext.sdkPackage.models.find((m) => m.name === "Cat")!;
+    const dogModel = sdkContext.sdkPackage.models.find((m) => m.name === "Dog")!;
+
+    // Verify TCGC marks this as a generated name
+    expect(unionType.isGeneratedName).toBe(true);
+
+    const template = (
+      <SdkTestFile sdkContext={sdkContext}>
+        <ModelInterface model={catModel} />
+        {"\n\n"}
+        <ModelInterface model={dogModel} />
+        {"\n\n"}
+        <UnionDeclaration type={unionType} />
+      </SdkTestFile>
+    );
+
+    expect(template).toRenderTo(`
+      export interface Cat {
+        meow: boolean;
+      }
+
+      export interface Dog {
+        bark: boolean;
+      }
+
+      /**
+       * Alias for _ReadResponse
+       */
+      export type _ReadResponse = Cat | Dog;
+    `);
+  });
 });

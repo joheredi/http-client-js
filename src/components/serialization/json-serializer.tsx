@@ -302,6 +302,14 @@ export function needsTransformation(type: SdkType): boolean {
       return true;
     case "bytes":
       return true;
+    case "union":
+      // Named unions with Output/Exception usage have deserializer functions,
+      // so they need transformation in deserialization contexts.
+      return !!(
+        type.name &&
+        ((type.usage & UsageFlags.Output) !== 0 ||
+          (type.usage & UsageFlags.Exception) !== 0)
+      );
     default:
       return false;
   }

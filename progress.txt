@@ -3972,3 +3972,49 @@ are hardcoded directly in the generated code (request body, URL expansion, heade
 
 **Tests**: 906 passed, 3 skipped (0 failures). Build successful.
 **PRD**: SA26 marked as done.
+
+---
+
+## 2026-02-26: SA33 — Missing Union Type Alias Deserializer (_ReadResponse)
+
+### Problem
+When an operation returns a union type (e.g., `Cat | Dog`), TCGC generates an `SdkUnionType` with
+`isGeneratedName: true` and `name: "ReadResponse"`. The legacy emitter prefixes these with `_`
+(`_ReadResponse`) and generates a pass-through deserializer function (`_readResponseDeserializer`).
+The new emitter was missing both the underscore prefix and the deserializer.
+
+### Fix
+- **model-name.ts**: Added `getUnionName()`, `getUnionDisplayName()`, `getUnionFunctionName()` utilities
+  for `SdkUnionType`, mirroring the existing `getModelName()`/`getModelFunctionName()` for `SdkModelType`.
+- **union-declaration.tsx**: Updated to use `getUnionName()` instead of `type.name` directly.
+  Updated `getUnionDoc()` to reference the prefixed display name.
+- **NEW: json-union-deserializer.tsx**: Created `JsonUnionDeserializer` component that renders
+  pass-through `return item;` deserializer functions for union types.
+- **model-files.tsx**: Added filtering of unions by `UsageFlags.Output`/`UsageFlags.Exception`
+  and rendering of `UnionDeserializerDeclarations` after model deserializers.
+- **json-deserializer.tsx**: Added `union` case to `getDeserializationExpression()` that calls
+  `deserializerRefkey(type)` for named output unions.
+- **json-serializer.tsx**: Added `union` case to `needsTransformation()` for named output unions,
+  so null checks and transformation wrappers apply correctly.
+
+### Side Effects
+All union types with `isGeneratedName: true` now get `_` prefix. This affected:
+- `modelsGenerator.md`: ReadResponse → _ReadResponse, added _readResponseDeserializer
+- `additionalProperties.md`: UnionModelAdditionalProperty → _UnionModelAdditionalProperty, added deserializer
+- `propertyType.md`: All generated union types get `_` prefix and deserializer functions
+
+### New Files
+- `src/components/serialization/json-union-deserializer.tsx` — JsonUnionDeserializer component
+- `test/components/serialization/json-union-deserializer.test.tsx` — 2 unit tests
+
+### Files Changed
+- `src/utils/model-name.ts` — 3 new utility functions for union naming
+- `src/components/union-declaration.tsx` — uses getUnionName/getUnionDisplayName
+- `src/components/model-files.tsx` — union deserializer orchestration
+- `src/components/serialization/json-deserializer.tsx` — union case in deserialization
+- `src/components/serialization/json-serializer.tsx` — union case in needsTransformation
+- `test/components/union-declaration.test.tsx` — 1 new test for isGeneratedName
+- 5 scenario test files updated
+
+### Test Results
+909 passed | 3 skipped (912 total) — all green (+3 new tests)

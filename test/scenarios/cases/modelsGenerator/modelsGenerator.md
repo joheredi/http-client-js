@@ -1310,9 +1310,9 @@ export interface Dog extends Pet {
 }
 
 /**
- * Alias for ReadResponse
+ * Alias for _ReadResponse
  */
-export type ReadResponse = Cat | Dog;
+export type _ReadResponse = Cat | Dog;
 
 export function catDeserializer(item: any): Cat {
   return {
@@ -1337,6 +1337,10 @@ export function dogDeserializer(item: any): Dog {
     kind: item["kind"],
     bark: item["bark"],
   };
+}
+
+export function _readResponseDeserializer(item: any): _ReadResponse {
+  return item;
 }
 ```
 
@@ -2530,7 +2534,7 @@ export interface Vegetables {
   /**
    * Additional properties
    */
-  additionalProperties?: Record<string, VegetablesAdditionalProperty>;
+  additionalProperties?: Record<string, _VegetablesAdditionalProperty>;
 }
 ```
 
@@ -2541,7 +2545,10 @@ export function vegetablesSerializer(item: Vegetables): any {
   return {
     carrots: item["carrots"],
     beans: item["beans"],
-    ...(item["additionalProperties"] ?? {}),
+    ...serializeRecord(
+      item["additionalProperties"] ?? ({} as any),
+      (v: any) => v,
+    ),
   };
 }
 ```
@@ -2571,25 +2578,30 @@ mustEmptyDiagnostic: true
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
+import { serializeRecord } from "../helpers/serializationHelpers.js";
+
 export interface Vegetables {
   carrots: number;
   beans: number;
   /**
    * Additional properties
    */
-  additionalProperties?: Record<string, VegetablesAdditionalProperty>;
+  additionalProperties?: Record<string, _VegetablesAdditionalProperty>;
 }
 
 /**
- * Alias for VegetablesAdditionalProperty
+ * Alias for _VegetablesAdditionalProperty
  */
-export type VegetablesAdditionalProperty = number | string;
+export type _VegetablesAdditionalProperty = number | string;
 
 export function vegetablesSerializer(item: Vegetables): any {
   return {
     carrots: item["carrots"],
     beans: item["beans"],
-    ...(item["additionalProperties"] ?? {}),
+    ...serializeRecord(
+      item["additionalProperties"] ?? ({} as any),
+      (v: any) => v,
+    ),
   };
 }
 
@@ -2598,6 +2610,12 @@ export function vegetablesDeserializer(item: any): Vegetables {
     carrots: item["carrots"],
     beans: item["beans"],
   };
+}
+
+export function _vegetablesAdditionalPropertyDeserializer(
+  item: any,
+): _VegetablesAdditionalProperty {
+  return item;
 }
 ```
 

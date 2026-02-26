@@ -260,6 +260,19 @@ export function getDeserializationExpression(
     : ${accessor}`;
     }
 
+    case "union":
+      // Named unions with Output/Exception usage have pass-through deserializer
+      // functions. Call the union deserializer refkey so the function is referenced
+      // and Alloy auto-generates the import.
+      if (
+        type.name &&
+        ((type.usage & UsageFlags.Output) !== 0 ||
+          (type.usage & UsageFlags.Exception) !== 0)
+      ) {
+        return code`${deserializerRefkey(type)}(${accessor})`;
+      }
+      return accessor;
+
     case "nullable":
       return getDeserializationExpression(type.type, accessor);
 

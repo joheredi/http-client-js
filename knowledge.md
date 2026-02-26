@@ -1726,3 +1726,26 @@ For verifying hardcoded values in body objects, note that spread body keys are q
 - `src/components/operation-options.tsx` — Exclude constants from options interface
 - 7 scenario test files updated to match new output
 - 8 new unit tests added
+
+## Union Types with isGeneratedName Need Underscore Prefix and Deserializers
+
+**Problem**: When TCGC generates anonymous union types (e.g., from `op read(): { @body body: Cat | Dog }`),
+it sets `isGeneratedName: true` on the `SdkUnionType`. The legacy emitter prefixes these with `_` (e.g.,
+`_ReadResponse`) and generates a pass-through deserializer (`_readResponseDeserializer`).
+
+**Root Cause**: The `UnionDeclaration` component used `type.name` directly without checking `isGeneratedName`,
+and no deserializer was generated for union types.
+
+**Fix**:
+- Added `getUnionName()`, `getUnionDisplayName()`, `getUnionFunctionName()` to `model-name.ts`
+- Updated `UnionDeclaration` to use `getUnionName()` instead of `type.name`
+- Created `JsonUnionDeserializer` component in `json-union-deserializer.tsx` — generates `return item;` functions
+- Updated `model-files.tsx` to filter unions by Output/Exception usage and render `UnionDeserializerDeclarations`
+- Added `union` case to `getDeserializationExpression()` in `json-deserializer.tsx`
+- Added `union` case to `needsTransformation()` in `json-serializer.tsx`
+
+**Side Effects**: Any union type with `isGeneratedName: true` and Output/Exception usage now gets:
+1. Underscore prefix on the type name
+2. A pass-through deserializer function
+3. Deserialization expressions that call the union deserializer
+This affected additional properties scenarios and property type scenarios that use unions.

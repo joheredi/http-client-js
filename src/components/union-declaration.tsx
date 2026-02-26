@@ -1,6 +1,7 @@
 import { Children, For } from "@alloy-js/core";
 import { TypeDeclaration } from "@alloy-js/typescript";
 import type { SdkUnionType } from "@azure-tools/typespec-client-generator-core";
+import { getUnionName, getUnionDisplayName } from "../utils/model-name.js";
 import { typeRefkey } from "../utils/refkeys.js";
 import { getTypeExpression } from "./type-expression.js";
 
@@ -38,7 +39,7 @@ export function UnionDeclaration(props: UnionDeclarationProps) {
 
   return (
     <TypeDeclaration
-      name={type.name}
+      name={getUnionName(type)}
       refkey={typeRefkey(type)}
       export
       doc={doc}
@@ -62,5 +63,5 @@ export function UnionDeclaration(props: UnionDeclarationProps) {
  * @returns A documentation string for the type alias.
  */
 function getUnionDoc(type: SdkUnionType): string {
-  return type.doc ?? `Alias for ${type.name}`;
+  return type.doc ?? `Alias for ${getUnionDisplayName(type)}`;
 }

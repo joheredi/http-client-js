@@ -48,7 +48,7 @@ export interface SimpleModel {
   /**
    * Additional properties
    */
-  additionalProperties?: Record<string, SimpleModelAdditionalProperty>;
+  additionalProperties?: Record<string, _SimpleModelAdditionalProperty>;
 }
 
 export interface ComplexModel {
@@ -60,9 +60,9 @@ export interface ComplexModel {
 }
 
 /**
- * Alias for SimpleModelAdditionalProperty
+ * Alias for _SimpleModelAdditionalProperty
  */
-export type SimpleModelAdditionalProperty = number | string;
+export type _SimpleModelAdditionalProperty = number | string;
 
 export function simpleModelSerializer(item: SimpleModel): any {
   return {
@@ -315,13 +315,13 @@ export interface SimpleModel {
   /**
    * Additional properties
    */
-  additionalProperties?: Record<string, SimpleModelAdditionalProperty>;
+  additionalProperties?: Record<string, _SimpleModelAdditionalProperty>;
 }
 
 /**
- * Alias for SimpleModelAdditionalProperty
+ * Alias for _SimpleModelAdditionalProperty
  */
-export type SimpleModelAdditionalProperty = string | number | boolean;
+export type _SimpleModelAdditionalProperty = string | number | boolean;
 
 export function simpleModelSerializer(item: SimpleModel): any {
   return {

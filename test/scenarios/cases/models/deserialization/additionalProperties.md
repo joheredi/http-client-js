@@ -138,7 +138,7 @@ export interface UnionModel {
   /**
    * Additional properties
    */
-  additionalProperties?: Record<string, UnionModelAdditionalProperty>;
+  additionalProperties?: Record<string, _UnionModelAdditionalProperty>;
 }
 
 export interface NameConflictModel {
@@ -164,9 +164,9 @@ export interface ObjectAdditionalPropsModel {
 export interface _ObjectAdditionalPropsModelAdditionalProperties {}
 
 /**
- * Alias for UnionModelAdditionalProperty
+ * Alias for _UnionModelAdditionalProperty
  */
-export type UnionModelAdditionalProperty = string | number;
+export type _UnionModelAdditionalProperty = string | number;
 
 export function simpleModelDeserializer(item: any): SimpleModel {
   return {
@@ -211,5 +211,11 @@ export function _objectAdditionalPropsModelAdditionalPropertiesDeserializer(
   item: any,
 ): _ObjectAdditionalPropsModelAdditionalProperties {
   return {};
+}
+
+export function _unionModelAdditionalPropertyDeserializer(
+  item: any,
+): _UnionModelAdditionalProperty {
+  return item;
 }
 ```
