@@ -263,15 +263,21 @@ export function createEmitterNamePolicy(): NamePolicy<TypeScriptElements> {
     let transformed: string;
     switch (element) {
       case "enum-member":
-        // Enum members use legacy normalization which preserves ≤3-char
-        // ALL-CAPS segments and prefixes leading digits with _
-        transformed = normalizeEnumMemberName(name);
+        // Enum members use strict legacy normalization which preserves ≤3-char
+        // ALL-CAPS segments and prefixes leading digits with _. Underscores are
+        // always treated as word separators (e.g., pascal_case_5 → PascalCase5).
+        transformed = normalizePascalCaseName(name);
         break;
       case "class":
       case "type":
       case "interface":
       case "enum":
-        transformed = pascalCase(name, caseOptions);
+        // Type names use legacy normalization when the name contains consecutive
+        // uppercase letters (ALL-CAPS segments like FOO, NFV, PS) that change-case
+        // would incorrectly lowercase. Otherwise, falls back to change-case's
+        // pascalCase which correctly handles _<digits> patterns (Color_1) from
+        // TCGC conflict resolution.
+        transformed = normalizePascalCaseTypeName(name);
         break;
       default:
         transformed = camelCase(name, caseOptions);
@@ -325,14 +331,19 @@ export function getEscapedParameterName(name: string): string {
 // ---------------------------------------------------------------------------
 
 /**
- * Normalize an enum member name using legacy conventions.
+ * Normalize a name using legacy PascalCase conventions.
  *
- * 1. Split into word parts via `deconstruct()` (handles camelCase boundaries,
- *    underscores, numbers, and ALL-CAPS segments)
- * 2. Apply PascalCase with ALL-CAPS preservation for segments ≤3 chars
- * 3. Prefix `_` for leading digits
+ * Used for enum member names and as the foundation for type name normalization.
+ * Preserves ALL-CAPS segments ≤3 chars (e.g., `FOO`, `NFV`, `MLD`, `SAS`, `IP`)
+ * and prefixes `_` for leading digits. Treats ALL underscores as word separators.
+ *
+ * This matches the legacy autorest.typescript `normalizeName` behavior for
+ * `NameType.EnumMemberName`.
+ *
+ * @param name - The raw name to normalize.
+ * @returns The PascalCase-normalized name with ALL-CAPS preservation.
  */
-function normalizeEnumMemberName(name: string): string {
+export function normalizePascalCaseName(name: string): string {
   const parts = deconstruct(name);
   if (parts.length === 0) return name;
 
@@ -340,6 +351,32 @@ function normalizeEnumMemberName(name: string): string {
   const result =
     toPascal(first, true) + rest.map((p) => toPascal(p, false)).join("");
   return fixLeadingNumber(result);
+}
+
+/**
+ * Normalize a type/interface/class/enum name using legacy PascalCase conventions,
+ * with fallback to change-case for names without ALL-CAPS segments.
+ *
+ * When the name contains consecutive uppercase letters (≥2), uses the legacy
+ * normalization which preserves ≤3-char ALL-CAPS segments (e.g., `FOO` → `FOO`,
+ * `NFVIs` → `NFVIs`, `PSDog` → `PSDog`).
+ *
+ * When the name has no consecutive uppercase letters, falls back to change-case's
+ * `pascalCase` which correctly handles `_<digits>` patterns from TCGC conflict
+ * resolution (e.g., `Color_1` → `Color_1`, `ErrorDetail_1` → `ErrorDetail_1`).
+ *
+ * @param name - The raw type name to normalize.
+ * @returns The PascalCase-normalized name.
+ */
+function normalizePascalCaseTypeName(name: string): string {
+  // Names with 2+ consecutive uppercase letters need legacy normalization
+  // to preserve ALL-CAPS segments (FOO, NFV, PS, etc.)
+  if (/[A-Z]{2}/.test(name)) {
+    return normalizePascalCaseName(name);
+  }
+  // Names without ALL-CAPS segments use change-case which correctly
+  // preserves _<digits> patterns from TCGC conflict resolution
+  return pascalCase(name, caseOptions);
 }
 
 /**

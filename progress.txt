@@ -716,3 +716,31 @@ Important for next iteration:
 - SA-C29 (Enum Naming Normalization) is a real issue: toPascal() doesn't preserve ≤3-char ALL-CAPS segments
 - SA-C17 (ContentType) is a real issue: hardcoded string literals instead of dynamic references
 - Phase 10 tasks have no priority set but may be important for flavor parity
+
+### SA-C29 Enum Naming Normalization: PascalCase for Acronyms (2026-02-26)
+
+**What was done:**
+- Fixed PascalCase normalization for model/interface/type/enum names to preserve ≤3-char ALL-CAPS segments, matching legacy autorest.typescript behavior
+- `FOO` now stays `FOO` (not `Foo`), `NFVIs` stays `NFVIs` (not `NfvIs`), `PSDog` stays `PSDog` (not `PsDog`)
+- Modified `src/utils/name-policy.ts`:
+  - Renamed `normalizeEnumMemberName` → `normalizePascalCaseName` (exported)
+  - Added `normalizePascalCaseTypeName` for class/type/interface/enum elements
+  - Uses hybrid approach: legacy normalization when name has ≥2 consecutive uppercase letters (for ALL-CAPS preservation), falls back to change-case's pascalCase otherwise (for _<digits> patterns like `Color_1`)
+- Modified `src/utils/model-name.ts`:
+  - `getModelFunctionName` now composes from `normalizePascalCaseName(model.name)` + suffix, so camelCase serializer names are derived from correctly normalized model names
+  - Same for `getUnionFunctionName`
+- Modified `src/components/polymorphic-type.tsx`:
+  - Polymorphic union type alias now uses `namekey` bypass with normalized model name to avoid re-normalization of composed names (e.g., `NFVIsUnion` not `NfvisUnion`)
+- Updated test expectations in `propertyType.md` and `modelsGenerator.md`
+
+**Key implementation details:**
+- The `deconstruct()` function splits names into word parts and `isFullyUpperCase()` preserves ≤3-char ALL-CAPS segments (FOO, NFV, MLD, SAS, IP)
+- change-case's `pascalCase` lowercases ALL-CAPS segments regardless of length: `FOO` → `Foo`
+- The hybrid approach for type names (`normalizePascalCaseTypeName`) uses `/[A-Z]{2}/` regex to detect names needing legacy normalization
+- Composed names (union type aliases, serializer function names) must NOT be re-normalized through the same PascalCase function — they use either namekey bypass or are composed from pre-normalized names
+- change-case's camelCase correctly handles composed names when the input already has correct casing
+
+**Important for next iteration:**
+- SA-C17 (ContentType) is a real issue: hardcoded string literals instead of dynamic references
+- Phase 10 tasks have no priority set but may be important for flavor parity
+- The `_<digits>` pattern (like `Color_1` from TCGC conflict resolution) is preserved by change-case but stripped by legacy normalization — the hybrid approach handles this by falling back to change-case for names without ALL-CAPS segments

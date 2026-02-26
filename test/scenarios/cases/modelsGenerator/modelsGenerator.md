@@ -1655,7 +1655,7 @@ op read(@body body: PSDog): { @body body: PSDog };
 /**
  * model interface PSDog
  */
-export interface PsDog extends Pet {
+export interface PSDog extends Pet {
   kind: "dog";
   bark: string;
 }
@@ -1672,9 +1672,9 @@ export interface Pet {
 /**
  * Alias for `Pet`
  */
-export type PetUnion = PsDog | Pet;
+export type PetUnion = PSDog | Pet;
 
-export function psDogSerializer(item: PsDog): any {
+export function psDogSerializer(item: PSDog): any {
   return {
     name: item["name"],
     weight: item["weight"],
@@ -1694,13 +1694,13 @@ export function petSerializer(item: Pet): any {
 export function petUnionSerializer(item: PetUnion): any {
   switch (item["kind"]) {
     case "dog":
-      return psDogSerializer(item as PsDog);
+      return psDogSerializer(item as PSDog);
     default:
       return petSerializer(item);
   }
 }
 
-export function psDogDeserializer(item: any): PsDog {
+export function psDogDeserializer(item: any): PSDog {
   return {
     name: item["name"],
     weight: item["weight"],
@@ -1720,7 +1720,7 @@ export function petDeserializer(item: any): Pet {
 export function petUnionDeserializer(item: any): PetUnion {
   switch (item["kind"]) {
     case "dog":
-      return psDogDeserializer(item as PsDog);
+      return psDogDeserializer(item as PSDog);
     default:
       return petDeserializer(item);
   }
@@ -1731,7 +1731,7 @@ export function petUnionDeserializer(item: any): PetUnion {
 
 ```ts operations
 import {
-  type PsDog,
+  type PSDog,
   psDogDeserializer,
   psDogSerializer,
 } from "../models/models.js";
@@ -1746,7 +1746,7 @@ import {
 
 export function _readSend(
   context: Client,
-  body: PsDog,
+  body: PSDog,
   options: ReadOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
   return context.path("/").post({
@@ -1762,7 +1762,7 @@ export function _readSend(
 
 export async function _readDeserialize(
   result: PathUncheckedResponse,
-): Promise<PsDog> {
+): Promise<PSDog> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
     throw createRestError(result);
@@ -1773,9 +1773,9 @@ export async function _readDeserialize(
 
 export async function read(
   context: Client,
-  body: PsDog,
+  body: PSDog,
   options: ReadOptionalParams = { requestOptions: {} },
-): Promise<PsDog> {
+): Promise<PSDog> {
   const result = await _readSend(context, body, options);
   return _readDeserialize(result);
 }

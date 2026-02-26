@@ -1765,3 +1765,25 @@ This affected additional properties scenarios and property type scenarios that u
 - **API version parameters must be excluded** from `applyClientDefault` via `isApiVersionParam` check. They have `clientDefaultValue` set (from versioned enum) but are managed by client infrastructure, not operation defaults.
 - **Required params with `@clientDefaultValue` go to options bag** (via `isRequiredSignatureParameter` returning false) **but do NOT get `??` fallback**. Only `param.optional === true` triggers the `??` default.
 - **Type validation is critical**: `isDefaultValueTypeMatch` prevents generating type-mismatched defaults (e.g., `?? "mismatch"` on an int32 param). Always validate before emitting `??`.
+
+### PascalCase normalization for type names: hybrid approach (SA-C29)
+
+**Problem**: The name policy uses `pascalCase` from `change-case` which lowercases ALL-CAPS segments
+regardless of length (FOO → Foo, NFVIs → NfvIs). The legacy emitter preserves ≤3-char ALL-CAPS
+segments via its `deconstruct()` + `isFullyUpperCase()` logic.
+
+**Solution**: Two separate PascalCase functions:
+1. `normalizePascalCaseName()` — Strict legacy normalization. Used for **enum members** and as the base
+   for composing function/type names. Strips ALL underscores as word separators.
+2. `normalizePascalCaseTypeName()` — Hybrid approach. Used for **class/type/interface/enum** elements.
+   Detects `/[A-Z]{2}/` (2+ consecutive uppercase) → uses legacy normalization.
+   Otherwise → uses change-case `pascalCase` (preserves `_<digits>` patterns like `Color_1`).
+
+**Key gotcha**: Composed names (e.g., `NFVIsUnion`, `NFVIsSerializer`) must NOT be re-normalized:
+- Union type aliases: use `namekey(..., { ignoreNamePolicy: true })`
+- Serializer/deserializer function names: compose from `normalizePascalCaseName(model.name)` + suffix,
+  then let camelCase handle it (change-case's camelCase preserves already-correct casing)
+
+**Why not full legacy normalization for all types?**: Legacy `deconstruct()` strips ALL underscores,
+including `_<digits>` patterns from TCGC conflict resolution (e.g., `Color_1` → `Color1`). The
+`change-case` library correctly preserves these. The hybrid approach gets the best of both worlds.

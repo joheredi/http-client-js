@@ -1,6 +1,7 @@
-import { Children, code, For } from "@alloy-js/core";
+import { Children, code, For, namekey } from "@alloy-js/core";
 import { TypeDeclaration } from "@alloy-js/typescript";
 import type { SdkModelType } from "@azure-tools/typespec-client-generator-core";
+import { normalizePascalCaseName } from "../utils/name-policy.js";
 import { polymorphicTypeRefkey, typeRefkey } from "../utils/refkeys.js";
 
 /**
@@ -51,9 +52,17 @@ export function PolymorphicType(props: PolymorphicTypeProps) {
 
   const doc = getPolymorphicDoc(model);
 
+  // Compose the union type name from the PascalCase-normalized model name
+  // and use namekey bypass to prevent the name policy from re-normalizing
+  // the composed name. For example: NFVIs → "NFVIsUnion" (not "NfvisUnion").
+  const normalizedModelName = normalizePascalCaseName(model.name);
+  const unionName = namekey(`${normalizedModelName}Union`, {
+    ignoreNamePolicy: true,
+  });
+
   return (
     <TypeDeclaration
-      name={`${model.name}Union`}
+      name={unionName}
       refkey={polymorphicTypeRefkey(model)}
       export
       doc={doc}

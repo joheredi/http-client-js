@@ -1490,7 +1490,7 @@
       "title": "Enum Naming Normalization: PascalCase for Acronyms (FOO\u2192Foo, NFVIs\u2192NfvIs)",
       "category": "scenario-audit/Models",
       "priority": "P1",
-      "status": "not-started",
+      "status": "done",
       "description": "The new emitter applies different PascalCase normalization for enum members and type aliases, especially for acronyms. Legacy preserves certain casing (FOO, NFVIs). Legacy casing is the expected output.",
       "legacy_behavior": "Preserves acronym casing: FOO, NFVIs, AzureArcK8SClusterNfviDetails.",
       "new_behavior": "Normalizes to standard PascalCase: Foo, NfvIs, AzureArcK8sClusterNfviDetails.",

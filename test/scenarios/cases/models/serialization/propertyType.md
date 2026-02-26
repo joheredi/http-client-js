@@ -149,17 +149,17 @@ export interface SimpleModel {
     _SimpleModelPropArrayOfRecordOfUnionOptional
   >[];
   propEncoded: string;
-  propNotNormalizeModel: Foo;
+  propNotNormalizeModel: FOO;
   propNormalizeModel: Foobar;
-  propRecordOfUnionArrayNotNormalize: Record<string, NfvIs[]>;
-  propUnionArrayNotNormalize: NfvIs[];
-  propRecordOfUnionNotNormalize: Record<string, NfvIs>;
+  propRecordOfUnionArrayNotNormalize: Record<string, NFVIs[]>;
+  propUnionArrayNotNormalize: NFVIs[];
+  propRecordOfUnionNotNormalize: Record<string, NFVIs>;
 }
 
 /**
  * model interface FOO
  */
-export interface Foo {
+export interface FOO {
   param?: Foobar;
 }
 
@@ -167,13 +167,13 @@ export interface Foo {
  * model interface FOOBAR
  */
 export interface Foobar {
-  name?: Record<string, NfvIs[]>;
+  name?: Record<string, NFVIs[]>;
 }
 
 /**
  * model interface NFVIs
  */
-export interface NfvIs {
+export interface NFVIs {
   name?: string;
   nfviType: string;
 }
@@ -181,15 +181,15 @@ export interface NfvIs {
 /**
  * Alias for `NFVIs`
  */
-export type NfvIsUnion =
+export type NFVIsUnion =
   | AzureCoreNfviDetails
-  | AzureArcK8sClusterNfviDetails
-  | NfvIs;
+  | AzureArcK8SClusterNfviDetails
+  | NFVIs;
 
 /**
  * model interface AzureCoreNFVIDetails
  */
-export interface AzureCoreNfviDetails extends NfvIs {
+export interface AzureCoreNfviDetails extends NFVIs {
   location?: string;
   nfviType: "AzureCore";
 }
@@ -197,7 +197,7 @@ export interface AzureCoreNfviDetails extends NfvIs {
 /**
  * model interface AzureArcK8sClusterNFVIDetails
  */
-export interface AzureArcK8sClusterNfviDetails extends NfvIs {
+export interface AzureArcK8SClusterNfviDetails extends NFVIs {
   customLocationId?: string;
   nfviType: "AzureArcKubernetes";
 }
@@ -366,7 +366,7 @@ export function simpleModelSerializer(item: SimpleModel): any {
   };
 }
 
-export function fooSerializer(item: Foo): any {
+export function fooSerializer(item: FOO): any {
   return {
     param: !item["param"] ? item["param"] : foobarSerializer(item["param"]),
   };
@@ -394,8 +394,8 @@ export function azureCoreNfviDetailsSerializer(
   };
 }
 
-export function azureArcK8sClusterNfviDetailsSerializer(
-  item: AzureArcK8sClusterNfviDetails,
+export function azureArcK8SClusterNfviDetailsSerializer(
+  item: AzureArcK8SClusterNfviDetails,
 ): any {
   return {
     name: item["name"],
@@ -404,14 +404,14 @@ export function azureArcK8sClusterNfviDetailsSerializer(
   };
 }
 
-export function nfvIsSerializer(item: NfvIs): any {
+export function nfvIsSerializer(item: NFVIs): any {
   return {
     name: item["name"],
     nfviType: item["nfviType"],
   };
 }
 
-export function nfvIsUnionSerializer(item: NfvIsUnion): any {
+export function nfvIsUnionSerializer(item: NFVIsUnion): any {
   switch (item["nfviType"]) {
     case "AzureCore":
       return azureCoreNfviDetailsSerializer(item as AzureCoreNfviDetails);
@@ -422,5 +422,4 @@ export function nfvIsUnionSerializer(item: NfvIsUnion): any {
     default:
       return nfvIsSerializer(item);
   }
-}
-```
+}```

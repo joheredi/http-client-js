@@ -3,6 +3,7 @@ import type {
   SdkModelType,
   SdkUnionType,
 } from "@azure-tools/typespec-client-generator-core";
+import { normalizePascalCaseName } from "./name-policy.js";
 
 /**
  * Returns the display name for a model, adding an underscore prefix for
@@ -58,7 +59,11 @@ export function getModelFunctionName(
     const prefixedName = `_${camelName}${suffix}`;
     return namekey(prefixedName, { ignoreNamePolicy: true });
   }
-  return `${model.name}${suffix}`;
+  // Compose from the PascalCase-normalized model name so that camelCase
+  // (applied by the name policy) preserves ALL-CAPS segments. For example,
+  // model "AzureArcK8sClusterNFVIDetails" normalizes to
+  // "AzureArcK8SClusterNfviDetails" → camelCase → "azureArcK8SClusterNfviDetailsSerializer".
+  return `${normalizePascalCaseName(model.name)}${suffix}`;
 }
 
 /**
@@ -125,5 +130,7 @@ export function getUnionFunctionName(
     const prefixedName = `_${camelName}${suffix}`;
     return namekey(prefixedName, { ignoreNamePolicy: true });
   }
-  return `${union.name}${suffix}`;
+  // Compose from the PascalCase-normalized union name so that camelCase
+  // (applied by the name policy) preserves ALL-CAPS segments.
+  return `${normalizePascalCaseName(union.name)}${suffix}`;
 }
