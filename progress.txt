@@ -3653,3 +3653,74 @@ Matches legacy emitter behavior:
 - 876 tests pass (6 new), 3 skipped, 63 test files
 - Build passes cleanly
 
+
+---
+
+## 2026-02-26 — RC28: Azure flavor not applied in scenario test expectations
+
+### What was done
+- **RC28 (P1)**: Fixed the scenario test harness to auto-detect Azure flavor and
+  generate Azure SDK imports for scenarios that use Azure-specific TypeSpec features.
+
+**Infrastructure changes in `test/scenarios/emit-for-scenario.tsx`:**
+- Added `detectAzureFlavor()` function that checks TypeSpec code for Azure-specific
+  patterns (Azure.Core, Azure.ResourceManager, Foundations, ARM decorators, etc.)
+- Added `resolveFlavor()` function that determines flavor from YAML config or
+  auto-detection, with YAML config taking priority
+- Added `getPackageName()` helper to extract logger package name from SDK context
+- Added `azureExternals` and `coreExternals` arrays for flavor-appropriate external packages
+- Updated `emitForScenario()` to use resolved flavor for:
+  - Selecting external packages (Azure split across 8 packages vs 1 core package)
+  - Setting `FlavorProvider flavor` prop
+  - Conditionally rendering `<LoggerFile>` for Azure flavor
+
+**New test file `test/scenarios/flavor-detection.test.ts`:**
+- 12 unit tests covering `detectAzureFlavor()` and `resolveFlavor()`:
+  - Azure.Core, Azure.ResourceManager, ARM decorators, @azure-tools imports
+  - Foundations namespace, Azure Core resource operation types
+  - Non-Azure code returns false
+  - YAML config overrides auto-detection
+  - Invalid flavor values fall through to auto-detection
+
+**Updated 17 scenario test expectations:**
+- 17 .md files auto-updated via SCENARIOS_UPDATE=true
+- Import sources changed from `@typespec/ts-http-runtime` to Azure packages:
+  - Core types → `@azure-rest/core-client`
+  - Auth types → `@azure/core-auth`
+  - Pipeline → `@azure/core-rest-pipeline`
+  - LRO types → `@azure/core-lro`
+  - `expandUrlTemplate` stays in `@typespec/ts-http-runtime` (no Azure equivalent)
+- Azure client contexts now include logger import and loggingOptions
+
+### Test Results
+- Before: 876 passed, 3 skipped, 63 test files
+- After: 890 passed, 3 skipped, 64 test files (12 new flavor detection tests + 2 new from scenario splits)
+- Zero regressions in existing tests
+
+### Architecture decisions
+- **Auto-detection over default-azure**: Rather than changing the default flavor to
+  "azure" for ALL scenarios (which would change non-Azure scenarios unnecessarily),
+  the harness auto-detects Azure flavor from code patterns. This keeps non-Azure
+  scenarios with core imports and only switches Azure scenarios.
+- **Pattern matching mirrors buildExtraUsings()**: The detection regex covers the same
+  Azure-specific patterns that `buildExtraUsings()` uses to add Azure using statements,
+  ensuring consistency between what gets Azure usings and what gets Azure flavor.
+- **YAML override**: Scenarios can explicitly set `flavor: azure` or `flavor: core`
+  in YAML config to override auto-detection for edge cases.
+
+### Files Changed
+- `test/scenarios/emit-for-scenario.tsx` — Added flavor detection, resolution, Azure externals, LoggerFile
+- `test/scenarios/flavor-detection.test.ts` — 12 new unit tests (NEW FILE)
+- 17 scenario test `.md` files — Updated import expectations for Azure flavor
+- `prd.json` — RC28 marked done
+- `knowledge.md` — Azure flavor detection patterns documented
+- `progress.txt` — This entry
+
+### Notes for next person
+- Completed: All Phases 0-10, plus RC01-RC09, RC10, RC13-RC15, RC17-RC24, RC27-RC29, RC34 (DONE).
+- **Remaining P1 tasks**: RC11, RC25, RC26, RC30
+- **Remaining P2 tasks**: RC12, RC31-RC33
+- The 3 remaining skipped tests are blocked on external issues (TCGC #3088,
+  TypeSpec #6983, TCGC #1419)
+- When adding new scenario tests that use Azure features, the flavor will be
+  auto-detected. No need to add `flavor: azure` YAML config unless overriding.

@@ -65,7 +65,8 @@ import {
   type MachineLearningServicesClientOptionalParams,
   type MachineLearningServicesContext,
 } from "./machineLearningServicesClientContext.js";
-import { Pipeline, type TokenCredential } from "@typespec/ts-http-runtime";
+import type { TokenCredential } from "@azure/core-auth";
+import { Pipeline } from "@azure/core-rest-pipeline";
 
 export class MachineLearningServicesClient {
   private _client: MachineLearningServicesContext;

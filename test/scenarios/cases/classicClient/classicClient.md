@@ -47,7 +47,7 @@ import {
   type TestServiceClientOptionalParams,
   type TestServiceContext,
 } from "./testServiceClientContext.js";
-import { Pipeline } from "@typespec/ts-http-runtime";
+import { Pipeline } from "@azure/core-rest-pipeline";
 
 export class TestServiceClient {
   private _client: TestServiceContext;

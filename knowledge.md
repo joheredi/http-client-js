@@ -1559,3 +1559,25 @@ typespec-title-map:
 
 The `typespec-title-map` option works by mutating `client.name` on TCGC client objects BEFORE the Alloy rendering pipeline runs. This means all downstream components (classical-client, client-context, sample-files) automatically see the renamed name without any changes. The `applyClientRenames()` function in `src/emitter.tsx` handles this.
 
+
+## Azure Flavor Detection in Test Harness
+
+The scenario test harness (`emit-for-scenario.tsx`) now auto-detects Azure flavor from TypeSpec code patterns. When Azure features are detected (Azure.Core, Azure.ResourceManager, Foundations, ARM decorators, etc.), the test harness automatically:
+
+1. Uses Azure external packages (`@azure-rest/core-client`, `@azure/core-auth`, etc.) instead of `@typespec/ts-http-runtime`
+2. Sets `FlavorProvider flavor="azure"` in the component tree
+3. Includes `<LoggerFile>` component (generates `src/logger.ts`)
+
+**Key patterns detected:**
+- `Azure.Core`, `Azure.ResourceManager` namespace usage
+- `@azure-tools/typespec-azure` package imports
+- `@armProviderNamespace`, `@armCommonTypesVersion` decorators
+- `Foundations.` namespace (Azure.Core.Foundations)
+- Azure Core resource types (`ResourceRead`, `ResourceList`, etc.)
+- Azure Core traits (`ServiceTraits`, `RequestHeadersTrait`, etc.)
+
+**Override via YAML config:** Scenarios can explicitly set `flavor: azure` or `flavor: core` in their YAML config block to override auto-detection.
+
+**Pitfall:** The `\b` word boundary in regex doesn't match before `@` (non-word character). When matching package scope patterns like `@azure-tools/typespec-azure`, don't wrap the entire match in `\b...\b`.
+
+**Pitfall:** When adding `LoggerFile` to Azure flavor, the `getPackageName()` helper extracts the name from `sdkContext.sdkPackage.clients[0].name`. This produces the logger import `import { logger } from "./logger.js"` in client context files, and adds `loggingOptions: { logger: options.loggingOptions?.logger ?? logger.info }` to the client factory.

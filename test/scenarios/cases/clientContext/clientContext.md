@@ -59,7 +59,8 @@ ignoreWeirdLine: false
 ## clientContext
 
 ```ts clientContext
-import { type Client, type ClientOptions, getClient } from "@typespec/ts-http-runtime";
+import { type Client, type ClientOptions, getClient } from "@azure-rest/core-client";
+import { logger } from "./logger.js";
 import type { ClientType } from "./models/models.js";
 
 export interface ServiceContext extends Client {}
@@ -82,6 +83,7 @@ export function createService(
   const updatedOptions = {
   ...options,
   userAgentOptions: { userAgentPrefix },
+  loggingOptions: { logger: options.loggingOptions?.logger ?? logger.info },
   };
   return getClient(endpointUrl, updatedOptions); as ServiceContext;
 }
@@ -149,7 +151,8 @@ ignoreWeirdLine: false
 ## clientContext
 
 ```ts clientContext
-import { type Client, type ClientOptions, getClient } from "@typespec/ts-http-runtime";
+import { type Client, type ClientOptions, getClient } from "@azure-rest/core-client";
+import { logger } from "./logger.js";
 import type { ClientType } from "./models/models.js";
 
 export interface ServiceContext extends Client {}
@@ -176,6 +179,7 @@ export function createService(
   const updatedOptions = {
   ...options,
   userAgentOptions: { userAgentPrefix },
+  loggingOptions: { logger: options.loggingOptions?.logger ?? logger.info },
   };
   return getClient(endpointUrl, updatedOptions); as ServiceContext;
 }
@@ -245,7 +249,8 @@ ignoreWeirdLine: false
 ## clientContext
 
 ```ts clientContext
-import { type Client, type ClientOptions, getClient } from "@typespec/ts-http-runtime";
+import { type Client, type ClientOptions, getClient } from "@azure-rest/core-client";
+import { logger } from "./logger.js";
 import type { ClientType } from "./models/models.js";
 
 export interface TestServiceContext extends Client {}
@@ -268,6 +273,7 @@ export function createTestService(
   const updatedOptions = {
   ...options,
   userAgentOptions: { userAgentPrefix },
+  loggingOptions: { logger: options.loggingOptions?.logger ?? logger.info },
   };
   return getClient(endpointUrl, updatedOptions); as TestServiceContext;
 }

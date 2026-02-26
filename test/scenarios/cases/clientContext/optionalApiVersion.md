@@ -56,11 +56,12 @@ ignoreWeirdLine: false
 ## clientContext
 
 ```ts clientContext
+import { logger } from "./logger.js";
 import {
   type Client,
   type ClientOptions,
   getClient,
-} from "@typespec/ts-http-runtime";
+} from "@azure-rest/core-client";
 
 export interface DataMapServiceContext extends Client {
   /**
@@ -88,6 +89,7 @@ export function createDataMapService(
   const updatedOptions = {
     ...options,
     userAgentOptions: { userAgentPrefix },
+    loggingOptions: { logger: options.loggingOptions?.logger ?? logger.info },
   };
   const clientContext = getClient(endpointUrl, updatedOptions);
   return {

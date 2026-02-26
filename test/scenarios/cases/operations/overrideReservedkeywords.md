@@ -64,11 +64,11 @@ import type { CheckNameAvailabilityOptionalParams } from "./options.js";
 import {
   type Client,
   createRestError,
-  expandUrlTemplate,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
-} from "@typespec/ts-http-runtime";
+} from "@azure-rest/core-client";
+import { expandUrlTemplate } from "@typespec/ts-http-runtime";
 
 export function _checkNameAvailabilitySend(
   context: Client,

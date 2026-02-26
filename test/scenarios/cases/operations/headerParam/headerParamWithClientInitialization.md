@@ -109,11 +109,12 @@ withRawContent: true
 ## clientContext
 
 ```ts clientContext
+import { logger } from "./logger.js";
 import {
   type Client,
   type ClientOptions,
   getClient,
-} from "@typespec/ts-http-runtime";
+} from "@azure-rest/core-client";
 
 export interface BillingBenefitsContext extends Client {
   /**
@@ -141,6 +142,7 @@ export function createBillingBenefits(
   const updatedOptions = {
     ...options,
     userAgentOptions: { userAgentPrefix },
+    loggingOptions: { logger: options.loggingOptions?.logger ?? logger.info },
   };
   const clientContext = getClient(endpointUrl, updatedOptions);
   return {
@@ -162,11 +164,11 @@ import { GetOptionalParams } from "./savingsPlanModels/options.js";
 import {
   Client,
   createRestError,
-  expandUrlTemplate,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
-} from "@typespec/ts-http-runtime";
+} from "@azure-rest/core-client";
+import { expandUrlTemplate } from "@typespec/ts-http-runtime";
 
 export function _getSend(
   context: Client,
@@ -355,11 +357,12 @@ withRawContent: true
 ## clientContext
 
 ```ts clientContext
+import { logger } from "./logger.js";
 import {
   type Client,
   type ClientOptions,
   getClient,
-} from "@typespec/ts-http-runtime";
+} from "@azure-rest/core-client";
 
 export interface BillingBenefitsContext extends Client {
   /**
@@ -383,6 +386,7 @@ export function createBillingBenefits(
   const updatedOptions = {
     ...options,
     userAgentOptions: { userAgentPrefix },
+    loggingOptions: { logger: options.loggingOptions?.logger ?? logger.info },
   };
   const clientContext = getClient(endpointUrl, updatedOptions);
   return { ...clientContext, $expand } as BillingBenefitsContext;
@@ -401,11 +405,11 @@ import { GetOptionalParams } from "./savingsPlanModels/options.js";
 import {
   Client,
   createRestError,
-  expandUrlTemplate,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
-} from "@typespec/ts-http-runtime";
+} from "@azure-rest/core-client";
+import { expandUrlTemplate } from "@typespec/ts-http-runtime";
 
 export function _getSend(
   context: Client,

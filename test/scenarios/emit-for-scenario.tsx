@@ -24,13 +24,24 @@ import { OperationOptionsFiles } from "../../src/components/operation-options-fi
 import { ClientContextFile } from "../../src/components/client-context.js";
 import { ClassicalClientFile } from "../../src/components/classical-client.js";
 import { ClassicalOperationGroupFiles } from "../../src/components/classical-operation-groups.js";
-import { httpRuntimeLib, azureCoreLroLib } from "../../src/utils/external-packages.js";
+import {
+  httpRuntimeLib,
+  azureCoreLroLib,
+  azureCoreClientLib,
+  azureCorePipelineLib,
+  azureCoreAuthLib,
+  azureCoreUtilLib,
+  azureAbortControllerLib,
+  azureLoggerLib,
+} from "../../src/utils/external-packages.js";
 import { IndexFiles } from "../../src/components/index-file.js";
 import { StaticHelpers } from "../../src/components/static-helpers/index.js";
 import { RestorePollerFile } from "../../src/components/restore-poller.js";
 import { SampleFiles } from "../../src/components/sample-files.js";
+import { LoggerFile } from "../../src/components/logger-file.js";
 import { applyClientRenames } from "../../src/emitter.js";
 import { Tester, RawTester, TesterWithService, createSdkContextForTest } from "../test-host.js";
+import type { FlavorKind } from "../../src/context/flavor-context.js";
 
 /**
  * JSON example block from a scenario file, used for sample generation.
@@ -121,6 +132,91 @@ function buildExtraUsings(code: string): string {
 }
 
 /**
+ * All external packages needed for Azure-flavored SDK generation.
+ *
+ * Azure SDKs split runtime symbols across multiple packages, so all
+ * must be registered as externals for Alloy's import resolution to work.
+ * The `httpRuntimeLib` is still included because `expandUrlTemplate`
+ * has no Azure equivalent.
+ */
+const azureExternals = [
+  httpRuntimeLib,
+  azureCoreClientLib,
+  azureCorePipelineLib,
+  azureCoreAuthLib,
+  azureCoreUtilLib,
+  azureAbortControllerLib,
+  azureCoreLroLib,
+  azureLoggerLib,
+];
+
+/**
+ * External packages for core (non-Azure) SDK generation.
+ *
+ * Core flavor uses a single runtime package for all symbols.
+ */
+const coreExternals = [httpRuntimeLib, azureCoreLroLib];
+
+/**
+ * Detects whether TypeSpec code uses Azure-specific features, indicating
+ * that Azure flavor should be used for SDK generation.
+ *
+ * This checks for Azure Core, Azure Resource Manager, and other Azure-specific
+ * namespace usages or imports. When any of these patterns are found, the
+ * generated SDK should use Azure-flavored imports (`@azure-rest/core-client`,
+ * `@azure/core-auth`, etc.) instead of `@typespec/ts-http-runtime`.
+ *
+ * @param code - Raw TypeSpec code from a scenario
+ * @returns true if the code uses Azure-specific TypeSpec features
+ */
+export function detectAzureFlavor(code: string): boolean {
+  // Match Azure.Core namespace patterns (same patterns that buildExtraUsings
+  // uses to add Azure.Core/Azure.ResourceManager using statements)
+  return /\bAzure\.Core\b|\bAzure\.ResourceManager\b|@azure-tools\/typespec-azure|@armProviderNamespace\b|@armCommonTypesVersion\b|\bFoundations\.\b|\b(@resource|ResourceRead|ResourceList|LongRunningResourceDelete|ResourceCreateOrReplace|GetResourceOperationStatus|StandardResourceOperations|StandardListQueryParameters|ResourceOperations)\b|\b(Azure\.Core\.Traits|ServiceTraits|RequestHeadersTrait|NoRepeatableRequests|NoConditionalRequests|SupportsClientRequestId)\b/.test(
+    code,
+  );
+}
+
+/**
+ * Determines the SDK flavor for a scenario based on explicit YAML config
+ * or auto-detection from the TypeSpec code.
+ *
+ * Priority:
+ * 1. Explicit `flavor` in YAML config (highest priority)
+ * 2. Auto-detection from Azure-specific TypeSpec patterns
+ * 3. Default to "core" flavor
+ *
+ * @param code - Raw TypeSpec code from a scenario
+ * @param yamlConfig - YAML configuration parsed from the scenario
+ * @returns The resolved flavor kind ("core" or "azure")
+ */
+export function resolveFlavor(
+  code: string,
+  yamlConfig: Record<string, unknown>,
+): FlavorKind {
+  if (yamlConfig["flavor"] === "azure" || yamlConfig["flavor"] === "core") {
+    return yamlConfig["flavor"] as FlavorKind;
+  }
+  return detectAzureFlavor(code) ? "azure" : "core";
+}
+
+/**
+ * Extracts a short package name from the first client in the SDK context.
+ *
+ * Used to create a namespaced logger for Azure-flavored SDKs via
+ * `createClientLogger("name")`.
+ *
+ * @param sdkContext - The TCGC SDK context
+ * @returns A human-readable package identifier string
+ */
+function getPackageName(
+  sdkContext: { sdkPackage: { clients: Array<{ name?: string }> } },
+): string {
+  const firstClient = sdkContext.sdkPackage.clients[0];
+  return firstClient?.name?.replace(/Client$/, "").toLowerCase() ?? "unknown";
+}
+
+/**
  * Compiles TypeSpec code and runs the http-client-js emitter, returning generated files.
  *
  * This function mirrors the `$onEmit` entry point but collects output in memory
@@ -198,6 +294,12 @@ ${x}
     applyClientRenames(sdkContext.sdkPackage.clients, titleMap);
   }
 
+  // Resolve the SDK flavor from YAML config or auto-detection from code patterns.
+  // Azure flavor uses Azure SDK package imports (@azure-rest/core-client, etc.)
+  // while core flavor uses @typespec/ts-http-runtime.
+  const flavor = resolveFlavor(code, yamlConfig);
+  const externals = flavor === "azure" ? azureExternals : coreExternals;
+
   // Extract emitter options from YAML config
   const emitterOptions = {
     includeHeadersInResponse: yamlConfig["include-headers-in-response"] === true,
@@ -210,12 +312,15 @@ ${x}
       program={program}
       namePolicy={createEmitterNamePolicy()}
       nameConflictResolver={nameConflictResolver}
-      externals={[httpRuntimeLib, azureCoreLroLib]}
+      externals={externals}
     >
-      <FlavorProvider flavor="core">
+      <FlavorProvider flavor={flavor}>
         <EmitterOptionsProvider options={emitterOptions}>
           <SdkContextProvider sdkContext={sdkContext}>
             <SourceDirectory path="src">
+              {flavor === "azure" && (
+                <LoggerFile packageName={getPackageName(sdkContext)} />
+              )}
               <ModelFiles />
               <OperationFiles />
               <OperationOptionsFiles />

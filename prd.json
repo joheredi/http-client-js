@@ -2589,7 +2589,7 @@
           "id": "RC28",
           "title": "Azure flavor not applied in scenario test expectations",
           "priority": "P1",
-          "status": "not_started",
+          "status": "done",
           "root_cause": "The flavor context infrastructure exists and correctly switches import sources. However, the scenario test harness may not be configured to use Azure flavor, causing all tests to emit @typespec/ts-http-runtime imports instead of @azure-rest/core-client.",
           "file": "test/scenarios/emit-for-scenario.tsx or test/scenarios/scenario-harness.ts",
           "description": "Test infrastructure needs to set flavor='azure' for scenarios that expect Azure SDK imports. The emitter supports both flavors but tests may default to 'core'.",

@@ -1008,11 +1008,11 @@ import { ListOptionalParams } from "./operations/options.js";
 import {
   Client,
   createRestError,
-  expandUrlTemplate,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
-} from "@typespec/ts-http-runtime";
+} from "@azure-rest/core-client";
+import { expandUrlTemplate } from "@typespec/ts-http-runtime";
 
 export function _listSend(
   context: Client,

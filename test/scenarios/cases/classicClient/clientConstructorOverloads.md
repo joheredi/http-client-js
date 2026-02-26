@@ -51,7 +51,8 @@ import {
   type GlobalServiceClientOptionalParams,
   type GlobalServiceContext,
 } from "./globalServiceClientContext.js";
-import { Pipeline, type TokenCredential } from "@typespec/ts-http-runtime";
+import type { TokenCredential } from "@azure/core-auth";
+import { Pipeline } from "@azure/core-rest-pipeline";
 
 export class GlobalServiceClient {
   private _client: GlobalServiceContext;
@@ -178,7 +179,8 @@ import {
   type StandardServiceClientOptionalParams,
   type StandardServiceContext,
 } from "./standardServiceClientContext.js";
-import { Pipeline, type TokenCredential } from "@typespec/ts-http-runtime";
+import type { TokenCredential } from "@azure/core-auth";
+import { Pipeline } from "@azure/core-rest-pipeline";
 
 export class StandardServiceClient {
   private _client: StandardServiceContext;
@@ -307,7 +309,8 @@ import {
   type MixedServiceContext,
 } from "./mixedServiceClientContext.js";
 import type { SkuListResult } from "./models/models.js";
-import { Pipeline, TokenCredential } from "@typespec/ts-http-runtime";
+import { TokenCredential } from "@azure/core-auth";
+import { Pipeline } from "@azure/core-rest-pipeline";
 
 export class MixedServiceClient {
   private _client: MixedServiceContext;

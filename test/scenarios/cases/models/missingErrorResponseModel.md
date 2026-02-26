@@ -197,7 +197,7 @@ import {
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
-} from "@typespec/ts-http-runtime";
+} from "@azure-rest/core-client";
 
 export function _getAssetChainSummarySend(
   context: Client,

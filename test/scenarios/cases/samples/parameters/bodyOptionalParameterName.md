@@ -121,7 +121,7 @@ Generated operation options.
 
 ```ts models:withOptions
 import type { BackupRequestProperties } from "../models/models.js";
-import type { OperationOptions } from "@typespec/ts-http-runtime";
+import type { OperationOptions } from "@azure-rest/core-client";
 
 /**
  * Optional parameters for the backup operation.
@@ -153,15 +153,15 @@ import {
   errorResponseDeserializer,
 } from "../models/models.js";
 import { BackupOptionalParams } from "./cloudHsmClusters/options.js";
-import { OperationState, PollerLike } from "@azure/core-lro";
 import {
   Client,
   createRestError,
-  expandUrlTemplate,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
-} from "@typespec/ts-http-runtime";
+} from "@azure-rest/core-client";
+import { OperationState, PollerLike } from "@azure/core-lro";
+import { expandUrlTemplate } from "@typespec/ts-http-runtime";
 
 export function _backupSend(
   context: Client,

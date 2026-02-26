@@ -372,15 +372,15 @@ import {
   siteDeserializer,
 } from "../models/models.js";
 import { SuspendOptionalParams } from "./sites/options.js";
-import { OperationState, PollerLike } from "@azure/core-lro";
 import {
   Client,
   createRestError,
-  expandUrlTemplate,
   operationOptionsToRequestParameters,
   PathUncheckedResponse,
   type StreamableMethod,
-} from "@typespec/ts-http-runtime";
+} from "@azure-rest/core-client";
+import { OperationState, PollerLike } from "@azure/core-lro";
+import { expandUrlTemplate } from "@typespec/ts-http-runtime";
 
 export function _suspendSend(
   context: Client,
