@@ -3724,3 +3724,35 @@ Matches legacy emitter behavior:
   TypeSpec #6983, TCGC #1419)
 - When adding new scenario tests that use Azure features, the flavor will be
   auto-detected. No need to add `flavor: azure` YAML config unless overriding.
+
+---
+
+## 2026-02-26: RC30 Split — Property Flatten Serialization (Copilot)
+
+### Analysis Performed
+Deep analysis of RC30 (Property flatten serialization approach) revealed three distinct sub-problems that should be addressed separately:
+
+1. **Wire Format (RC30a, P1)**: The serializer puts flattened properties at the top level (`{ result, bar, baz }`) instead of wrapping them under the original wire name (`{ result, properties: { bar, baz } }`). Similarly, the deserializer reads from `item["bar"]` instead of `item["properties"]["bar"]`. This is a correctness bug affecting the HTTP request/response body structure.
+
+2. **Name Collision (RC30b, P1)**: When a parent model has properties with the same name as flattened child properties (e.g., both have `bar`), the current emitter produces duplicate property names in interfaces and serializers (invalid TypeScript). Legacy resolves this by prefixing collisions with the flatten property path (e.g., `barPropertiesBar`).
+
+3. **Helper Functions (RC30c, P2)**: Legacy generates separate exported helper functions (`_testPropertiesSerializer`, `_testPropertiesDeserializer`) for each flatten group. The new emitter can inline the nested object for correct wire format, but generating separate helpers achieves full output parity.
+
+### Key Findings from Legacy Emitter Analysis
+- **Serializer pattern**: `properties: _testPropertiesSerializer(item)` for required, with `areAllPropsUndefined(item, [...])` guard for optional
+- **Deserializer pattern**: Uses spread `..._testPropertiesDeserializer(item["properties"])` to merge deserialized flatten properties
+- **areAllPropsUndefined** helper already exists in new emitter's static helpers
+- **Name collision resolution**: First flatten property wins naming, subsequent collisions get `{propName}{FlattenPropName}{PropName}` prefix pattern
+
+### PRD Changes
+- RC30 split into: RC30a (wire format, P1), RC30b (name collision, P1), RC30c (helper functions, P2)
+- Phase 12 now has 36 tasks (26 done, 10 remaining)
+
+### Notes for next person
+- **RC30a should be tackled first** — it's the wire format correctness fix. Changes are in json-serializer.tsx and json-deserializer.tsx.
+- **RC30b can follow** — it handles the name collision edge cases.
+- **RC30c is P2** — style parity with legacy, not a correctness issue.
+- The `areAllPropsUndefined` helper is already available via `serializationHelperRefkey("areAllPropsUndefined")`.
+- When implementing RC30a: modify the rendering loop in JsonSerializer/JsonDeserializer to iterate `model.properties` directly instead of using `getSerializableProperties()` (which flattens). For flatten properties (`prop.flatten && prop.type.kind === "model"`), generate nested ObjectExpression under `prop.serializedName`.
+- **Remaining P1 tasks**: RC11, RC25, RC26, RC30a, RC30b
+- **Remaining P2 tasks**: RC12, RC30c, RC31, RC32, RC33

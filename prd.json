@@ -2283,7 +2283,7 @@
     {
       "phase": 12,
       "title": "Scenario Test Parity \u2014 Root Cause Fixes",
-      "description": "Address all semantic differences identified by the scenario audit, recategorized by root cause. Each task maps to a specific code location and a single fix. 34 tasks total.",
+      "description": "Address all semantic differences identified by the scenario audit, recategorized by root cause. Each task maps to a specific code location and a single fix. 36 tasks total.",
       "status": "not_started",
       "tasks": [
         {
@@ -2608,15 +2608,37 @@
           "replaces": "SA2"
         },
         {
-          "id": "RC30",
-          "title": "Property flatten uses helper functions instead of inline serialization",
+          "id": "RC30a",
+          "title": "Fix flatten property wire format in serializer and deserializer",
           "priority": "P1",
           "status": "not_started",
-          "root_cause": "json-serializer.tsx flattens properties inline via getSerializableProperties(). But the generated output produces separate helper functions (_testPropertiesSerializer) with areAllPropsUndefined checks. Legacy inlines property serialization directly. Different approach to name collision resolution: NEW renames with path prefix (barPropertiesBar), LEGACY duplicates names.",
-          "file": "src/components/serialization/json-serializer.tsx, src/components/model-interface.tsx",
-          "description": "Flatten serialization approach differs: helper functions with spread vs inline direct property mapping. Name collision handling uses different strategies.",
-          "affected_scenarios": "models/propertyFlatten/*.md, models/serialization/readonlyFlattenModel.md, samples/propertyFlatten/*.md",
-          "replaces": "SA13"
+          "root_cause": "json-serializer.tsx expands flatten properties inline via getSerializableProperties(), placing them at the top level of the serialized object. The correct wire format wraps them under the original property name (e.g., 'properties: { bar, baz }' not 'bar, baz'). Similarly, json-deserializer.tsx reads from top-level item['bar'] instead of nested item['properties']['bar'].",
+          "file": "src/components/serialization/json-serializer.tsx, src/components/serialization/json-deserializer.tsx",
+          "description": "Modify JsonSerializer to iterate model.properties directly, generating nested ObjectExpression under the original wire name for flatten properties. For optional flatten, use areAllPropsUndefined helper. Modify JsonDeserializer to read flatten properties from the nested wire location (item[wireName][nestedSerializedName]). This is the core wire format correctness fix.",
+          "affected_scenarios": "models/propertyFlatten/singleLayer.md, models/propertyFlatten/mulipleLayers.md, models/serialization/readonlyFlattenModel.md, samples/propertyFlatten/*.md",
+          "replaces": "RC30 (partial \u2014 wire format)"
+        },
+        {
+          "id": "RC30b",
+          "title": "Fix name collision resolution for flattened properties",
+          "priority": "P1",
+          "status": "not_started",
+          "root_cause": "When a parent model has properties with the same name as flattened properties, the current emitter produces duplicate property names in interfaces and serializers (invalid TypeScript). Legacy resolves collisions by prefixing with the flatten property path (e.g., 'bar' from 'properties' becomes 'barPropertiesBar').",
+          "file": "src/components/model-interface.tsx, src/components/serialization/json-serializer.tsx, src/components/serialization/json-deserializer.tsx",
+          "description": "Implement name collision detection in getExpandedProperties() and getSerializerEntries(). When a flattened property name collides with an existing property, rename it with path prefix (propName + flattenPropName + PropName pattern). Update serializer to map prefixed client names to original wire names. Update deserializer similarly.",
+          "affected_scenarios": "models/propertyFlatten/nameCollision.md, models/serialization/readonlyFlattenModel.md",
+          "replaces": "RC30 (partial \u2014 name collision)"
+        },
+        {
+          "id": "RC30c",
+          "title": "Generate helper serializer/deserializer functions for flatten groups",
+          "priority": "P2",
+          "status": "not_started",
+          "root_cause": "Legacy emitter generates separate exported helper functions (_modelPropertiesSerializer, _modelPropertiesDeserializer) for each flatten property group. The new emitter (after RC30a fix) will inline the nested object. Generating separate helpers achieves output parity.",
+          "file": "src/components/serialization/json-serializer.tsx, src/components/serialization/json-deserializer.tsx, src/components/model-files.tsx",
+          "description": "Instead of inlining nested object expressions for flatten groups, generate separate FunctionDeclaration components (_modelPropSerializer, _modelPropDeserializer) and reference them from the main serializer/deserializer via refkeys. The deserializer uses spread syntax to merge helper results.",
+          "affected_scenarios": "models/propertyFlatten/*.md, models/serialization/readonlyFlattenModel.md",
+          "replaces": "RC30 (partial \u2014 helper functions)"
         },
         {
           "id": "RC31",
