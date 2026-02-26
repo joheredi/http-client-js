@@ -115,7 +115,7 @@ function OperationGroupTestWrapper(props: {
     >
       <SdkContextProvider sdkContext={props.sdkContext}>
         {/* Render context file so refkeys resolve */}
-        <SourceFile path="api/testServiceContext.ts">
+        <SourceFile path="api/testingContext.ts">
           <ClientContextDeclaration client={root} />
           <ClientContextOptionsDeclaration client={root} />
           <ClientContextFactory client={root} />
@@ -293,7 +293,7 @@ describe("ClassicalOperationGroups", () => {
             <OperationGroupInterface group={buildGroupInfo(child, root)} />
             <OperationGroupFactory group={buildGroupInfo(child, root)} />
           </SourceFile>
-          <SourceFile path="testServiceClient.ts">
+          <SourceFile path="testingClient.ts">
             <ClassicalClientDeclaration client={root} />
           </SourceFile>
         </OperationGroupTestWrapper>
@@ -325,7 +325,7 @@ describe("ClassicalOperationGroups", () => {
       // The output should contain a file at classic/widgets/index.ts
       expect(template).toRenderTo({
         "classic/widgets/index.ts": expect.stringContaining("WidgetsOperations"),
-        "api/testServiceContext.ts": expect.stringContaining("TestService"),
+        "api/testingContext.ts": expect.stringContaining("Testing"),
         "api/operations.ts": expect.stringContaining("getWidget"),
       });
     });
@@ -509,7 +509,7 @@ describe("ClassicalOperationGroups", () => {
     expect(template).toRenderTo({
       "classic/widgets/index.ts": expect.stringContaining("WidgetsOperations"),
       "classic/gadgets/index.ts": expect.stringContaining("GadgetsOperations"),
-      "api/testServiceContext.ts": expect.stringContaining("TestService"),
+      "api/testingContext.ts": expect.stringContaining("Testing"),
       "api/operations.ts": expect.stringContaining("getWidget"),
     });
   });

@@ -973,7 +973,7 @@
       "title": "Client Naming Convention: TestingClient vs TestServiceClient",
       "category": "scenario-audit/Client Infrastructure",
       "priority": "P0-CRITICAL",
-      "status": "not-started",
+      "status": "done",
       "description": "The new emitter derives client names differently, producing TestServiceClient/TestServiceContext/createTestService instead of TestingClient/TestingContext/createTesting. The legacy naming is the expected output and must be matched exactly.",
       "legacy_behavior": "Client class named TestingClient, context named TestingContext, factory function createTesting().",
       "new_behavior": "Client class named TestServiceClient, context named TestServiceContext, factory function createTestService().",

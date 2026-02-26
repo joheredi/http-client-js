@@ -90,7 +90,7 @@ function SampleTestWrapper(props: {
     >
       <SdkContextProvider sdkContext={props.sdkContext}>
         {/* Infrastructure files for refkey resolution */}
-        <SourceFile path="src/api/testServiceClientContext.ts">
+        <SourceFile path="src/api/testingClientContext.ts">
           <ClientContextDeclaration client={client} />
           <ClientContextOptionsDeclaration client={client} />
           <ClientContextFactory client={client} />
@@ -109,7 +109,7 @@ function SampleTestWrapper(props: {
             </>
           ))}
         </SourceFile>
-        <SourceFile path="src/testServiceClient.ts">
+        <SourceFile path="src/testingClient.ts">
           <ClassicalClientDeclaration client={client} />
         </SourceFile>
         {props.children}
@@ -217,9 +217,9 @@ describe("SampleFiles", () => {
         // Check that the sample file appears in the rendered output
         expect(template).toRenderTo({
           "samples-dev/getItemSample.ts": expect.stringContaining("async function"),
-          "src/api/testServiceClientContext.ts": expect.any(String),
+          "src/api/testingClientContext.ts": expect.any(String),
           "src/api/operations.ts": expect.any(String),
-          "src/testServiceClient.ts": expect.any(String),
+          "src/testingClient.ts": expect.any(String),
         });
       });
 
@@ -229,7 +229,7 @@ describe("SampleFiles", () => {
        * the generated SDK in their own code.
        */
       it("should include client import in sample file", () => {
-        expect(sampleContent).toContain('import { TestServiceClient }');
+        expect(sampleContent).toContain('import { TestingClient }');
       });
 
       /**
@@ -239,7 +239,7 @@ describe("SampleFiles", () => {
        */
       it("should setup endpoint from environment variable", () => {
         expect(sampleContent).toContain("process.env.");
-        expect(sampleContent).toContain("TEST_SERVICE_ENDPOINT");
+        expect(sampleContent).toContain("TESTING_ENDPOINT");
       });
 
       /**
@@ -248,7 +248,7 @@ describe("SampleFiles", () => {
        * method on the client instance.
        */
       it("should construct client and call operation", () => {
-        expect(sampleContent).toContain("new TestServiceClient(");
+        expect(sampleContent).toContain("new TestingClient(");
         expect(sampleContent).toContain("client.getItem(");
         expect(sampleContent).toContain("console.log(result)");
       });

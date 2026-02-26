@@ -235,7 +235,7 @@ export interface OperationGroupFactoryProps {
  * Example output:
  * ```typescript
  * export function _getWidgetsOperations(
- *   context: TestServiceContext,
+ *   context: TestingContext,
  * ): WidgetsOperations {
  *   return {
  *     getWidget: (id, options) => getWidget(context, id, options),

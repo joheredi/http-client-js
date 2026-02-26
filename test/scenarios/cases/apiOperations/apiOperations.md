@@ -550,14 +550,14 @@ export async function test(
 ```ts clientContext
 import { type Client, type ClientOptions, getClient } from "@typespec/ts-http-runtime";
 
-export interface TestServiceContext extends Client {}
+export interface TestingContext extends Client {}
 
-export interface TestServiceClientOptionalParams extends ClientOptions {}
+export interface TestingClientOptionalParams extends ClientOptions {}
 
-export function createTestService(
+export function createTesting(
   endpointParam: string,
-  options: TestServiceClientOptionalParams = {},
-): TestServiceContext {
+  options: TestingClientOptionalParams = {},
+): TestingContext {
   const endpointUrl = options.endpoint ?? endpoint;
   const prefixFromOptions = options?.userAgentOptions?.userAgentPrefix;
   const userAgentPrefix = prefixFromOptions ? `${prefixFromOptions} azsdk-js-api` : `azsdk-js-api`;
@@ -565,7 +565,7 @@ export function createTestService(
   ...options,
   userAgentOptions: { userAgentPrefix },
   };
-  return getClient(endpointUrl, updatedOptions); as TestServiceContext;
+  return getClient(endpointUrl, updatedOptions); as TestingContext;
 }
 
 ```
@@ -576,22 +576,22 @@ export function createTestService(
 import { test } from "./api/operations.js";
 import type { TestOptionalParams } from "./api/options.js";
 import {
-  createTestService,
-  type TestServiceClientOptionalParams,
-  type TestServiceContext,
-} from "./testServiceClientContext.js";
+  createTesting,
+  type TestingClientOptionalParams,
+  type TestingContext,
+} from "./testingClientContext.js";
 import { Pipeline } from "@typespec/ts-http-runtime";
 
-export class TestServiceClient {
-  private _client: TestServiceContext;
+export class TestingClient {
+  private _client: TestingContext;
   /** The pipeline used by this client to make requests */
   public readonly pipeline: Pipeline;
 
   constructor(
     endpointParam: string,
-    options: TestServiceClientOptionalParams = {},
+    options: TestingClientOptionalParams = {},
   ) {
-    this._client = createTestService(endpoint, options);
+    this._client = createTesting(endpoint, options);
     this.pipeline = this._client.pipeline;
   }
 
@@ -680,14 +680,14 @@ export async function test(
 ```ts clientContext
 import { type Client, type ClientOptions, getClient } from "@typespec/ts-http-runtime";
 
-export interface TestServiceContext extends Client {}
+export interface TestingContext extends Client {}
 
-export interface TestServiceClientOptionalParams extends ClientOptions {}
+export interface TestingClientOptionalParams extends ClientOptions {}
 
-export function createTestService(
+export function createTesting(
   endpointParam: string,
-  options: TestServiceClientOptionalParams = {},
-): TestServiceContext {
+  options: TestingClientOptionalParams = {},
+): TestingContext {
   const endpointUrl = options.endpoint ?? endpoint;
   const prefixFromOptions = options?.userAgentOptions?.userAgentPrefix;
   const userAgentPrefix = prefixFromOptions ? `${prefixFromOptions} azsdk-js-api` : `azsdk-js-api`;
@@ -695,7 +695,7 @@ export function createTestService(
   ...options,
   userAgentOptions: { userAgentPrefix },
   };
-  return getClient(endpointUrl, updatedOptions); as TestServiceContext;
+  return getClient(endpointUrl, updatedOptions); as TestingContext;
 }
 
 ```
@@ -706,22 +706,22 @@ export function createTestService(
 import { test } from "./api/operations.js";
 import type { TestOptionalParams } from "./api/options.js";
 import {
-  createTestService,
-  type TestServiceClientOptionalParams,
-  type TestServiceContext,
-} from "./testServiceClientContext.js";
+  createTesting,
+  type TestingClientOptionalParams,
+  type TestingContext,
+} from "./testingClientContext.js";
 import { Pipeline } from "@typespec/ts-http-runtime";
 
-export class TestServiceClient {
-  private _client: TestServiceContext;
+export class TestingClient {
+  private _client: TestingContext;
   /** The pipeline used by this client to make requests */
   public readonly pipeline: Pipeline;
 
   constructor(
     endpointParam: string,
-    options: TestServiceClientOptionalParams = {},
+    options: TestingClientOptionalParams = {},
   ) {
-    this._client = createTestService(endpoint, options);
+    this._client = createTesting(endpoint, options);
     this.pipeline = this._client.pipeline;
   }
 
@@ -833,14 +833,14 @@ export async function test1(
 ```ts clientContext
 import { type Client, type ClientOptions, getClient } from "@typespec/ts-http-runtime";
 
-export interface TestServiceContext extends Client {}
+export interface TestingContext extends Client {}
 
-export interface TestServiceClientOptionalParams extends ClientOptions {}
+export interface TestingClientOptionalParams extends ClientOptions {}
 
-export function createTestService(
+export function createTesting(
   endpointParam: string,
-  options: TestServiceClientOptionalParams = {},
-): TestServiceContext {
+  options: TestingClientOptionalParams = {},
+): TestingContext {
   const endpointUrl = options.endpoint ?? endpoint;
   const prefixFromOptions = options?.userAgentOptions?.userAgentPrefix;
   const userAgentPrefix = prefixFromOptions ? `${prefixFromOptions} azsdk-js-api` : `azsdk-js-api`;
@@ -848,7 +848,7 @@ export function createTestService(
   ...options,
   userAgentOptions: { userAgentPrefix },
   };
-  return getClient(endpointUrl, updatedOptions); as TestServiceContext;
+  return getClient(endpointUrl, updatedOptions); as TestingContext;
 }
 
 ```
@@ -859,22 +859,22 @@ export function createTestService(
 import { test, test1 } from "./api/operations.js";
 import type { Test1OptionalParams, TestOptionalParams } from "./api/options.js";
 import {
-  createTestService,
-  type TestServiceClientOptionalParams,
-  type TestServiceContext,
-} from "./testServiceClientContext.js";
+  createTesting,
+  type TestingClientOptionalParams,
+  type TestingContext,
+} from "./testingClientContext.js";
 import { Pipeline } from "@typespec/ts-http-runtime";
 
-export class TestServiceClient {
-  private _client: TestServiceContext;
+export class TestingClient {
+  private _client: TestingContext;
   /** The pipeline used by this client to make requests */
   public readonly pipeline: Pipeline;
 
   constructor(
     endpointParam: string,
-    options: TestServiceClientOptionalParams = {},
+    options: TestingClientOptionalParams = {},
   ) {
-    this._client = createTestService(endpoint, options);
+    this._client = createTesting(endpoint, options);
     this.pipeline = this._client.pipeline;
   }
 

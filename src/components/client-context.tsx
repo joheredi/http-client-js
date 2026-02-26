@@ -82,7 +82,7 @@ export interface ClientContextDeclarationProps {
  *
  * Generates an interface like:
  * ```typescript
- * export interface TestServiceContext extends Client {
+ * export interface TestingContext extends Client {
  *   apiVersion?: string;
  * }
  * ```
@@ -138,7 +138,7 @@ export interface ClientContextOptionsDeclarationProps {
  *
  * Generates an interface like:
  * ```typescript
- * export interface TestServiceClientOptionalParams extends ClientOptions {
+ * export interface TestingClientOptionalParams extends ClientOptions {
  *   apiVersion?: string;
  * }
  * ```
@@ -194,13 +194,13 @@ export interface ClientContextFactoryProps {
  *
  * Generates a function like:
  * ```typescript
- * export function createTestService(
+ * export function createTesting(
  *   endpointParam: string,
- *   options: TestServiceClientOptionalParams = {},
- * ): TestServiceContext {
+ *   options: TestingClientOptionalParams = {},
+ * ): TestingContext {
  *   const endpointUrl = options.endpoint ?? endpointParam;
  *   const clientContext = getClient(endpointUrl, options);
- *   return clientContext as TestServiceContext;
+ *   return clientContext as TestingContext;
  * }
  * ```
  *
@@ -255,8 +255,8 @@ interface ContextMember {
  * Extracts the client name by stripping the "Client" suffix from the TCGC name.
  *
  * This matches the legacy emitter's `getClientName()` convention. For example,
- * `TestServiceClient` becomes `TestService`, which is used to form the factory
- * function name (`createTestService`) and context interface name (`TestServiceContext`).
+ * `TestingClient` becomes `TestService`, which is used to form the factory
+ * function name (`createTesting`) and context interface name (`TestingContext`).
  *
  * @param client - The TCGC client type.
  * @returns The client name without the "Client" suffix.
@@ -271,7 +271,7 @@ export function getClientName(
  * Converts a PascalCase name to camelCase by lowercasing the first character.
  *
  * Used for generating file paths from client names. For example,
- * `TestServiceClient` becomes `testServiceClient` for `testServiceClientContext.ts`.
+ * `TestingClient` becomes `testingClient` for `testingClientContext.ts`.
  *
  * @param name - The PascalCase name to convert.
  * @returns The camelCase version of the name.

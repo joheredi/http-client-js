@@ -121,11 +121,11 @@ describe("$onEmit", () => {
     expect(result).toContain("export async function createWidget");
 
     // Verify client context exists with factory function
-    expect(result).toContain("TestServiceContext");
-    expect(result).toContain("createTestService");
+    expect(result).toContain("TestingContext");
+    expect(result).toContain("createTesting");
 
     // Verify classical client exists
-    expect(result).toContain("export class TestServiceClient");
+    expect(result).toContain("export class TestingClient");
   });
 
   /**
@@ -153,9 +153,9 @@ describe("$onEmit", () => {
     expect(result).toContain("PingOptionalParams");
 
     // Client context and classical client should be present
-    expect(result).toContain("TestServiceContext");
-    expect(result).toContain("createTestService");
-    expect(result).toContain("export class TestServiceClient");
+    expect(result).toContain("TestingContext");
+    expect(result).toContain("createTesting");
+    expect(result).toContain("export class TestingClient");
   });
 
   /**
@@ -195,7 +195,7 @@ describe("$onEmit", () => {
     expect(result).toContain("export async function getItem");
 
     // Classical client should reference the public operation
-    expect(result).toContain("export class TestServiceClient");
+    expect(result).toContain("export class TestingClient");
   });
 
   /**

@@ -12,15 +12,15 @@ model Widget {
 
 Should generate the client context interface and factory function.
 
-```ts src/testServiceClientContext.ts interface TestServiceContext
-export interface TestServiceContext extends Client {}
+```ts src/testingClientContext.ts interface TestingContext
+export interface TestingContext extends Client {}
 ```
 
-```ts src/testServiceClientContext.ts function createTestService
-export function createTestService(
+```ts src/testingClientContext.ts function createTesting
+export function createTesting(
   endpointParam: string,
-  options: TestServiceClientOptionalParams = {},
-): TestServiceContext {
+  options: TestingClientOptionalParams = {},
+): TestingContext {
   const endpointUrl = options.endpoint ?? endpoint;
   const prefixFromOptions = options?.userAgentOptions?.userAgentPrefix;
   const userAgentPrefix = prefixFromOptions ? `${prefixFromOptions} azsdk-js-api` : `azsdk-js-api`;
@@ -28,7 +28,7 @@ export function createTestService(
   ...options,
   userAgentOptions: { userAgentPrefix },
   };
-  return getClient(endpointUrl, updatedOptions); as TestServiceContext;
+  return getClient(endpointUrl, updatedOptions); as TestingContext;
 }
 ```
 
@@ -44,17 +44,17 @@ model Widget {
 
 ## TypeScript
 
-```ts src/testServiceClient.ts class TestServiceClient
-export class TestServiceClient {
-  private _client: TestServiceContext;
+```ts src/testingClient.ts class TestingClient
+export class TestingClient {
+  private _client: TestingContext;
   /** The pipeline used by this client to make requests */
   public readonly pipeline: Pipeline;
 
   constructor(
     endpointParam: string,
-    options: TestServiceClientOptionalParams = {},
+    options: TestingClientOptionalParams = {},
   ) {
-    this._client = createTestService(endpoint, options);
+    this._client = createTesting(endpoint, options);
     this.pipeline = this._client.pipeline;
   }
 

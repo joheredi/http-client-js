@@ -280,9 +280,9 @@ describe("Azure Extension", () => {
       "export interface Widget",
       "export async function getWidget",
       "export async function createWidget",
-      "TestServiceContext",
-      "createTestService",
-      "export class TestServiceClient",
+      "TestingContext",
+      "createTesting",
+      "export class TestingClient",
     ]) {
       expect(azureResult).toContain(element);
       expect(coreResult).toContain(element);
@@ -328,7 +328,7 @@ describe("Azure Extension", () => {
 
     const result = renderToString(template);
     expect(result).toBeDefined();
-    expect(result).toContain("TestServiceClient");
+    expect(result).toContain("TestingClient");
   });
 });
 

@@ -274,8 +274,8 @@ export async function emitForScenario(
 ${extraUsing}
 #suppress "@azure-tools/typespec-azure-core/auth-required" "for test"
 ${versionedDecorator}
-@service(#{title: "Test Service"})
-namespace TestService;
+@service(#{title: "Azure TypeScript Testing"})
+namespace Azure.TypeScript.Testing;
 
 ${versionsEnum}
 

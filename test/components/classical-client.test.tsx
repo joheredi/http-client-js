@@ -89,7 +89,7 @@ function ClassicalClientTestWrapper(props: {
     >
       <SdkContextProvider sdkContext={props.sdkContext}>
         {/* Render context file so refkeys resolve */}
-        <SourceFile path="api/testServiceClientContext.ts">
+        <SourceFile path="api/testingClientContext.ts">
           <ClientContextDeclaration client={client} />
           <ClientContextOptionsDeclaration client={client} />
           <ClientContextFactory client={client} />
@@ -120,7 +120,7 @@ function FullTestWrapper(props: {
     >
       <SdkContextProvider sdkContext={props.sdkContext}>
         {/* Render context file so refkeys resolve */}
-        <SourceFile path="api/testServiceClientContext.ts">
+        <SourceFile path="api/testingClientContext.ts">
           <ClientContextDeclaration client={client} />
           <ClientContextOptionsDeclaration client={client} />
           <ClientContextFactory client={client} />
@@ -175,7 +175,7 @@ describe("ClassicalClient", () => {
     it("should render class with _client field, pipeline, and constructor", () => {
       const template = (
         <ClassicalClientTestWrapper sdkContext={sdkContext}>
-          <SourceFile path="testServiceClient.ts">
+          <SourceFile path="testingClient.ts">
             <ClassicalClientDeclaration client={client} />
           </SourceFile>
         </ClassicalClientTestWrapper>
@@ -184,10 +184,10 @@ describe("ClassicalClient", () => {
       const result = renderToString(template);
 
       // Check for the file containing the client class
-      expect(result).toContain("export class TestServiceClient");
+      expect(result).toContain("export class TestingClient");
       expect(result).toContain("private _client");
       expect(result).toContain("public readonly pipeline");
-      expect(result).toContain("this._client = createTestService");
+      expect(result).toContain("this._client = createTesting");
       expect(result).toContain("this.pipeline = this._client.pipeline");
     });
 
@@ -195,22 +195,22 @@ describe("ClassicalClient", () => {
      * Tests that the constructor calls the factory function via refkey,
      * which enables Alloy to auto-generate cross-file imports. This is
      * critical because the factory function lives in a separate file
-     * (api/testServiceClientContext.ts), and the import must be generated
+     * (api/testingClientContext.ts), and the import must be generated
      * automatically by Alloy's refkey system.
      */
     it("should generate import for factory function via refkey", () => {
       const template = (
         <ClassicalClientTestWrapper sdkContext={sdkContext}>
-          <SourceFile path="testServiceClient.ts">
+          <SourceFile path="testingClient.ts">
             <ClassicalClientDeclaration client={client} />
           </SourceFile>
         </ClassicalClientTestWrapper>
       );
 
-      // Check that the output file imports createTestService from the context file
+      // Check that the output file imports createTesting from the context file
       expect(template).toRenderTo({
-        "testServiceClient.ts": expect.stringContaining("createTestService"),
-        "api/testServiceClientContext.ts": expect.stringContaining("createTestService"),
+        "testingClient.ts": expect.stringContaining("createTesting"),
+        "api/testingClientContext.ts": expect.stringContaining("createTesting"),
       });
     });
 
@@ -223,7 +223,7 @@ describe("ClassicalClient", () => {
     it("should render operation method delegating to public API function", () => {
       const template = (
         <FullTestWrapper sdkContext={sdkContext}>
-          <SourceFile path="testServiceClient.ts">
+          <SourceFile path="testingClient.ts">
             <ClassicalClientDeclaration client={client} />
           </SourceFile>
         </FullTestWrapper>
@@ -252,7 +252,7 @@ describe("ClassicalClient", () => {
 
       const result = renderToString(template);
       // The refkey reference should resolve to the class name
-      expect(result).toContain("new TestServiceClient()");
+      expect(result).toContain("new TestingClient()");
     });
 
     /**
@@ -269,8 +269,8 @@ describe("ClassicalClient", () => {
 
       // The file should be rendered with the camelCase client name
       expect(template).toRenderTo({
-        "testServiceClient.ts": expect.stringContaining("export class TestServiceClient"),
-        "api/testServiceClientContext.ts": expect.stringContaining("TestServiceContext"),
+        "testingClient.ts": expect.stringContaining("export class TestingClient"),
+        "api/testingClientContext.ts": expect.stringContaining("TestingContext"),
         "api/operations.ts": expect.stringContaining("getItem"),
       });
     });
@@ -295,7 +295,7 @@ describe("ClassicalClient", () => {
 
     const template = (
       <FullTestWrapper sdkContext={sdkContext}>
-        <SourceFile path="testServiceClient.ts">
+        <SourceFile path="testingClient.ts">
           <ClassicalClientDeclaration client={client} />
         </SourceFile>
       </FullTestWrapper>
@@ -327,7 +327,7 @@ describe("ClassicalClient", () => {
 
     const template = (
       <FullTestWrapper sdkContext={sdkContext}>
-        <SourceFile path="testServiceClient.ts">
+        <SourceFile path="testingClient.ts">
           <ClassicalClientDeclaration client={client} />
         </SourceFile>
       </FullTestWrapper>
@@ -358,7 +358,7 @@ describe("ClassicalClient", () => {
 
     const template = (
       <FullTestWrapper sdkContext={sdkContext}>
-        <SourceFile path="testServiceClient.ts">
+        <SourceFile path="testingClient.ts">
           <ClassicalClientDeclaration client={client} />
         </SourceFile>
       </FullTestWrapper>

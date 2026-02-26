@@ -32,7 +32,7 @@ The config would be like:
 
 ```yaml
 typespec-title-map:
-  ServiceClient: TestServiceClient
+  ServiceClient: TestingClient
 withRawContent: true
 ignoreWeirdLine: false
 ```
@@ -43,22 +43,22 @@ ignoreWeirdLine: false
 import { foo } from "./api/operations.js";
 import type { FooOptionalParams } from "./api/options.js";
 import {
-  createTestService,
-  type TestServiceClientOptionalParams,
-  type TestServiceContext,
-} from "./testServiceClientContext.js";
+  createTesting,
+  type TestingClientOptionalParams,
+  type TestingContext,
+} from "./testingClientContext.js";
 import { Pipeline } from "@azure/core-rest-pipeline";
 
-export class TestServiceClient {
-  private _client: TestServiceContext;
+export class TestingClient {
+  private _client: TestingContext;
   /** The pipeline used by this client to make requests */
   public readonly pipeline: Pipeline;
 
   constructor(
     endpointParam: string,
-    options: TestServiceClientOptionalParams = {},
+    options: TestingClientOptionalParams = {},
   ) {
-    this._client = createTestService(endpoint, options);
+    this._client = createTesting(endpoint, options);
     this.pipeline = this._client.pipeline;
   }
 

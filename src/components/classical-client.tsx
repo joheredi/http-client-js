@@ -49,7 +49,7 @@ export interface ClassicalClientFileProps {
  * - The client class with constructor, pipeline property, and operation methods
  *
  * File location follows the legacy emitter convention: the client class file
- * is placed at the root of the source output (e.g., `testServiceClient.ts`).
+ * is placed at the root of the source output (e.g., `testingClient.ts`).
  *
  * @param props - The component props containing the TCGC client type.
  * @returns An Alloy JSX tree representing the classical client source file.
@@ -78,12 +78,12 @@ export interface ClassicalClientDeclarationProps {
  *
  * Generates a class like:
  * ```typescript
- * export class TestServiceClient {
- *   private _client: TestServiceContext;
+ * export class TestingClient {
+ *   private _client: TestingContext;
  *   public readonly pipeline: Pipeline;
  *
- *   constructor(endpointParam: string, options: TestServiceClientOptionalParams = {}) {
- *     this._client = createTestService(endpointParam, { ...options });
+ *   constructor(endpointParam: string, options: TestingClientOptionalParams = {}) {
+ *     this._client = createTesting(endpointParam, { ...options });
  *     this.pipeline = this._client.pipeline;
  *   }
  *
@@ -785,7 +785,7 @@ function OverloadedConstructor(props: { client: SdkClientType<SdkHttpOperation> 
  * Converts a PascalCase name to camelCase by lowercasing the first character.
  *
  * Used for generating file paths from client names. For example,
- * `TestServiceClient` → `testServiceClient.ts`.
+ * `TestingClient` → `testingClient.ts`.
  *
  * @param name - The PascalCase name to convert.
  * @returns The camelCase version of the name.

@@ -181,9 +181,9 @@ export function ModelsIndexFile() {
  * Exported symbols include:
  * - Operation options interfaces (e.g., `GetWidgetOptionalParams`)
  * - Public operation functions (e.g., `getWidget`, `createWidget`)
- * - Client context interfaces (e.g., `TestServiceContext`)
- * - Client options interfaces (e.g., `TestServiceClientOptionalParams`)
- * - Client factory functions (e.g., `createTestService`)
+ * - Client context interfaces (e.g., `TestingContext`)
+ * - Client options interfaces (e.g., `TestingClientOptionalParams`)
+ * - Client factory functions (e.g., `createTesting`)
  *
  * Excluded symbols:
  * - `_xxxSend` functions (private)

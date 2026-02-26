@@ -122,7 +122,7 @@ describe("ClientContext", () => {
       expect(template).toRenderTo(d`
         import type { Client } from "@typespec/ts-http-runtime";
 
-        export interface TestServiceContext extends Client {}
+        export interface TestingContext extends Client {}
       `);
     });
 
@@ -141,7 +141,7 @@ describe("ClientContext", () => {
       expect(template).toRenderTo(d`
         import type { ClientOptions } from "@typespec/ts-http-runtime";
 
-        export interface TestServiceClientOptionalParams extends ClientOptions {}
+        export interface TestingClientOptionalParams extends ClientOptions {}
       `);
     });
 
@@ -160,7 +160,7 @@ describe("ClientContext", () => {
 
       const result = renderToString(template);
       expect(result).toContain("getClient");
-      expect(result).toContain("createTestService");
+      expect(result).toContain("createTesting");
       expect(result).toContain("endpointUrl");
     });
 
@@ -180,7 +180,7 @@ describe("ClientContext", () => {
 
       // The refkey reference should resolve to the factory function name
       const result = renderToString(template);
-      expect(result).toContain("createTestService");
+      expect(result).toContain("createTesting");
     });
 
     /**
@@ -197,7 +197,7 @@ describe("ClientContext", () => {
       );
 
       const result = renderToString(template);
-      expect(result).toContain("TestServiceContext");
+      expect(result).toContain("TestingContext");
     });
 
     /**
@@ -214,7 +214,7 @@ describe("ClientContext", () => {
       );
 
       const result = renderToString(template);
-      expect(result).toContain("TestServiceClientOptionalParams");
+      expect(result).toContain("TestingClientOptionalParams");
     });
 
     /**
@@ -287,7 +287,7 @@ describe("ClientContext", () => {
 
       // Should contain all three declarations
       expect(template).toRenderTo({
-        "testServiceClientContext.ts": expect.stringContaining("TestServiceContext"),
+        "testingClientContext.ts": expect.stringContaining("TestingContext"),
       });
     });
 

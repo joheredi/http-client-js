@@ -156,7 +156,7 @@ describe("SDK Context Provider", () => {
       );
 
       expect(template).toRenderTo(`
-        clients: TestServiceClient
+        clients: TestingClient
       `);
     });
 

@@ -39,8 +39,8 @@ describe("applyClientRenames", () => {
    */
   it("should rename a client when its name matches the title map", () => {
     const clients = [mockClient("ServiceClient")];
-    applyClientRenames(clients, { ServiceClient: "TestServiceClient" });
-    expect(clients[0].name).toBe("TestServiceClient");
+    applyClientRenames(clients, { ServiceClient: "TestingClient" });
+    expect(clients[0].name).toBe("TestingClient");
   });
 
   /**

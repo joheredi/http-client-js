@@ -248,7 +248,7 @@ describe("RootIndexFile", () => {
       const result = renderToString(template);
 
       expect(result).toContain(
-        'export { TestServiceClient } from "./testServiceClient.js"',
+        'export { TestingClient } from "./testingClient.js"',
       );
     });
 
@@ -266,10 +266,10 @@ describe("RootIndexFile", () => {
 
       const result = renderToString(template);
 
-      expect(result).toContain("TestServiceContext");
-      expect(result).toContain("TestServiceClientOptionalParams");
-      expect(result).toContain("createTestService");
-      expect(result).toContain("testServiceClientContext.js");
+      expect(result).toContain("TestingContext");
+      expect(result).toContain("TestingClientOptionalParams");
+      expect(result).toContain("createTesting");
+      expect(result).toContain("testingClientContext.js");
     });
 
     /**
@@ -512,8 +512,8 @@ describe("ApiIndexFile", () => {
       expect(result).toContain("operations.js");
 
       // Should export context symbols
-      expect(result).toContain("TestServiceContext");
-      expect(result).toContain("createTestService");
+      expect(result).toContain("TestingContext");
+      expect(result).toContain("createTesting");
     });
 
     /**
@@ -572,14 +572,14 @@ describe("IndexFiles", () => {
 
       // Root index should contain exports
       expect(result).toContain("Widget");
-      expect(result).toContain("TestServiceClient");
+      expect(result).toContain("TestingClient");
 
       // Models index should contain model exports
       expect(result).toContain("./models.js");
 
       // API index should contain operation exports
       expect(result).toContain("operations.js");
-      expect(result).toContain("TestServiceContext");
+      expect(result).toContain("TestingContext");
     });
 
     /**

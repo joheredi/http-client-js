@@ -12,22 +12,22 @@ op continue(): void;
 import { $continue } from "./api/operations.js";
 import type { ContinueOptionalParams } from "./api/options.js";
 import {
-  createTestService,
-  type TestServiceClientOptionalParams,
-  type TestServiceContext,
-} from "./testServiceClientContext.js";
+  createTesting,
+  type TestingClientOptionalParams,
+  type TestingContext,
+} from "./testingClientContext.js";
 import { Pipeline } from "@typespec/ts-http-runtime";
 
-export class TestServiceClient {
-  private _client: TestServiceContext;
+export class TestingClient {
+  private _client: TestingContext;
   /** The pipeline used by this client to make requests */
   public readonly pipeline: Pipeline;
 
   constructor(
     endpointParam: string,
-    options: TestServiceClientOptionalParams = {},
+    options: TestingClientOptionalParams = {},
   ) {
-    this._client = createTestService(endpoint, options);
+    this._client = createTesting(endpoint, options);
     this.pipeline = this._client.pipeline;
   }
 

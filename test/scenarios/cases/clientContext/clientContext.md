@@ -241,7 +241,7 @@ The config would be like:
 
 ```yaml
 typespec-title-map:
-  ServiceClient: TestServiceClient
+  ServiceClient: TestingClient
 withRawContent: true
 ignoreWeirdLine: false
 ```
@@ -253,19 +253,19 @@ import { type Client, type ClientOptions, getClient } from "@azure-rest/core-cli
 import { logger } from "./logger.js";
 import type { ClientType } from "./models/models.js";
 
-export interface TestServiceContext extends Client {}
+export interface TestingContext extends Client {}
 
-export interface TestServiceClientOptionalParams extends ClientOptions {
+export interface TestingClientOptionalParams extends ClientOptions {
   /**
    * Need to be set as 'default', 'multi-client', 'renamed-operation', 'two-operation-group' in client.
    */
   client?: ClientType;
 }
 
-export function createTestService(
+export function createTesting(
   endpointParam: string,
-  options: TestServiceClientOptionalParams = {},
-): TestServiceContext {
+  options: TestingClientOptionalParams = {},
+): TestingContext {
   const client = options.client ?? "default";
   const endpointUrl = options.endpoint ?? `${endpoint}/client/structure/${client}`;
   const prefixFromOptions = options?.userAgentOptions?.userAgentPrefix;
@@ -275,7 +275,7 @@ export function createTestService(
   userAgentOptions: { userAgentPrefix },
   loggingOptions: { logger: options.loggingOptions?.logger ?? logger.info },
   };
-  return getClient(endpointUrl, updatedOptions); as TestServiceContext;
+  return getClient(endpointUrl, updatedOptions); as TestingContext;
 }
 
 ```

@@ -86,7 +86,7 @@ function createMockLroMethod(
 /**
  * Creates a mock SdkClientType with the given methods and children.
  *
- * @param name - The client name (e.g., "TestServiceClient").
+ * @param name - The client name (e.g., "TestingClient").
  * @param methods - The service methods (can include LRO methods).
  * @param children - Optional child clients for operation groups.
  * @returns A mock SdkClientType object.
@@ -211,7 +211,7 @@ describe("RestorePollerFile", () => {
 
       beforeAll(() => {
         method = createMockLroMethod("createResource", "put", "/resources/{id}", [200, 201]);
-        client = createMockClient("TestServiceClient", [method]);
+        client = createMockClient("TestingClient", [method]);
         result = renderWithContext(program, client, [method]);
       });
 
@@ -317,7 +317,7 @@ describe("RestorePollerFile", () => {
     it("should handle multiple LRO operations in deserialize map", () => {
       const method1 = createMockLroMethod("createResource", "put", "/resources/{id}", [200, 201]);
       const method2 = createMockLroMethod("deleteResource", "delete", "/resources/{id}", [200, 202]);
-      const client = createMockClient("TestServiceClient", [method1, method2]);
+      const client = createMockClient("TestingClient", [method1, method2]);
 
       const result = renderWithContext(program, client, [method1, method2]);
       expect(result).toContain('"PUT /resources/{id}"');
@@ -335,7 +335,7 @@ describe("RestorePollerFile", () => {
       const childMethod = createMockLroMethod("provisionWidget", "put", "/widgets/{id}", [200, 201]);
       const childClient = createMockClient("Widgets", [childMethod]);
       const rootMethod = createMockLroMethod("createResource", "put", "/resources/{id}", [200, 201]);
-      const client = createMockClient("TestServiceClient", [rootMethod], [childClient]);
+      const client = createMockClient("TestingClient", [rootMethod], [childClient]);
 
       const result = renderWithContext(program, client, [rootMethod, childMethod]);
       // Both operations should be in the map
@@ -350,7 +350,7 @@ describe("RestorePollerFile", () => {
      */
     it("should make RestorePollerOptions referenceable via refkey", () => {
       const method = createMockLroMethod("createResource", "put", "/resources/{id}", [200, 201]);
-      const client = createMockClient("TestServiceClient", [method]);
+      const client = createMockClient("TestingClient", [method]);
 
       const template = (
         <Output
@@ -360,8 +360,8 @@ describe("RestorePollerFile", () => {
         >
           <SourceDirectory path="src">
             {/* Stub for classical client */}
-            <SourceFile path="testServiceClient.ts">
-              <ClassDeclaration name="TestServiceClient" refkey={classicalClientRefkey(client)} export>
+            <SourceFile path="testingClient.ts">
+              <ClassDeclaration name="TestingClient" refkey={classicalClientRefkey(client)} export>
                 {code`private _client: any;`}
               </ClassDeclaration>
             </SourceFile>

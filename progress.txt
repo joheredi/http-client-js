@@ -565,3 +565,33 @@ This was the last remaining pending task (SA27) in the PRD. All implementation p
 - `getTypeScriptTypeName()` handles scalars, models (by name), enums (by name), arrays, dicts, and unions. Returns null for unrecognized types → falls back to `any` in Record extends.
 - The `...item` serializer pattern does NOT individually serialize additional property values (model-typed values are spread as-is). Only known properties get explicit serialization. This matches legacy compatibility-mode behavior.
 - `ObjectSpreadProperty` from `@alloy-js/typescript` is used for `...item` spread in both serializer and deserializer. The comma between spread and subsequent properties is handled by explicit `code\`, \`` insertion.
+
+## 2026-02-26 — SA-C4: Client Naming Convention: TestingClient vs TestServiceClient (done)
+
+### What was done
+- Changed the default test service wrapping from `namespace TestService` with title `"Test Service"` to `namespace Azure.TypeScript.Testing` with title `"Azure TypeScript Testing"` to match the legacy emitter's test infrastructure
+- This causes TCGC to derive client name `TestingClient` (from last namespace segment `Testing` + `Client` suffix) instead of `TestServiceClient`
+- Updated `test/test-host.ts` TesterWithService wrapper
+- Updated `test/scenarios/emit-for-scenario.tsx` dynamic wrapping for scenarios without own @service
+- Bulk-replaced all test references: TestServiceClient→TestingClient, TestServiceContext→TestingContext, createTestService→createTesting, TestServiceClientOptionalParams→TestingClientOptionalParams, testServiceClient→testingClient, testServiceContext→testingContext
+- Also updated env var name TEST_SERVICE_ENDPOINT→TESTING_ENDPOINT in sample scenario expected outputs
+- Updated JSDoc examples in src/ components to use the new naming convention
+- Fixed 2 remaining assertion failures in classical-operation-groups.test.tsx (stringContaining "TestService" → "Testing")
+- Fixed 1 remaining assertion in sample-files.test.tsx (TEST_SERVICE_ENDPOINT → TESTING_ENDPOINT)
+
+### Key patterns
+- The client name derives from the TCGC `SdkClientType.name`, which comes from the TypeSpec namespace. The last segment of the namespace determines the client name base.
+- `Azure.TypeScript.Testing` → last segment `Testing` → `TestingClient`
+- `TestService` → `TestServiceClient` (old, incorrect naming)
+- The env var in samples is `toUpperSnakeCase(clientBaseName) + "_" + toUpperSnakeCase(paramName)`
+
+### Files changed
+- `test/test-host.ts` — Changed TesterWithService namespace/title
+- `test/scenarios/emit-for-scenario.tsx` — Changed dynamic wrapping namespace/title  
+- All test scenario .md files — Updated expected client names and env vars
+- All component test .tsx files — Updated expected client names
+- All src/ JSDoc comments — Updated example names (no code logic changes)
+
+### Notes for next iteration
+- Scenarios with `withRawContent: true` that define their own service and use `typespec-title-map` had their rename targets also updated from TestServiceClient to TestingClient. This is consistent but arbitrary — the rename target is user-specified.
+- Tests that explicitly define their own `namespace TestService` in TypeSpec code were NOT changed — they still use TestServiceClient since their namespace is TestService.

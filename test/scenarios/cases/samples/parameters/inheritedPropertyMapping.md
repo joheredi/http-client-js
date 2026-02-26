@@ -55,7 +55,7 @@ mustEmptyDiagnostic: false
 
 ```ts samples
 /** This file path is /samples-dev/documentsPublishSample.ts */
-import { TestServiceClient } from "@azure/internal-test";
+import { TestingClient } from "@azure/internal-test";
 
 /**
  * This sample demonstrates how to publish Documents
@@ -64,8 +64,8 @@ import { TestServiceClient } from "@azure/internal-test";
  * x-ms-original-file: json.json
  */
 async function publishDocuments(): Promise<void> {
-  const endpoint = process.env.TEST_SERVICE_ENDPOINT || "";
-  const client = new TestServiceClient(endpoint);
+  const endpoint = process.env.TESTING_ENDPOINT || "";
+  const client = new TestingClient(endpoint);
   const result = await client.documents.publish({});
   console.log(result);
 }

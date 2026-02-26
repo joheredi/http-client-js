@@ -212,7 +212,7 @@ function HeaderDeserializationBlock(props: OperationDeclarationsProps) {
  *
  * For example, given a client hierarchy:
  * ```
- * TestServiceClient
+ * TestingClient
  *   ├─ methods: [ping]         → prefixPath: ""
  *   └─ children:
  *       └─ Users

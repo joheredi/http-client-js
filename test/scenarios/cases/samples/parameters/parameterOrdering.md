@@ -166,7 +166,7 @@ Raw json files.
 
 ```ts samples
 /** This file path is /samples-dev/deviceLocationVerifySample.ts */
-import { TestServiceClient } from "@azure/internal-test";
+import { TestingClient } from "@azure/internal-test";
 
 /**
  * This sample demonstrates how to resource action operation template.
@@ -175,8 +175,8 @@ import { TestServiceClient } from "@azure/internal-test";
  * x-ms-original-file: 2022-05-15-preview/json.json
  */
 async function verify(): Promise<void> {
-  const endpoint = process.env.TEST_SERVICE_ENDPOINT || "";
-  const client = new TestServiceClient(endpoint);
+  const endpoint = process.env.TESTING_ENDPOINT || "";
+  const client = new TestingClient(endpoint);
   const result = await client.deviceLocation.verify({}, "zdgrzzaxlodrvewbksn");
   console.log(result);
 }

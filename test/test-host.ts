@@ -72,8 +72,8 @@ export const RawTester = createTester(resolvePath(import.meta.dirname, ".."), {
 export const TesterWithService = Tester.wrap(
   (x) => `
 #suppress "@azure-tools/typespec-azure-core/auth-required" "for test"
-@service(#{title: "Test Service"})
-namespace TestService;
+@service(#{title: "Azure TypeScript Testing"})
+namespace Azure.TypeScript.Testing;
 
 ${x}
 `,
