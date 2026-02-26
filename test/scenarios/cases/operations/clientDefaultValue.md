@@ -82,8 +82,8 @@ export function _testQuerySend(
   const path = expandUrlTemplate(
     "/api/test{?maxResults,sortOrder,limit,typeMismatch,serverDefault}",
     {
-      maxResults: options?.maxResults,
-      sortOrder: options?.sortOrder,
+      maxResults: options?.maxResults ?? 10,
+      sortOrder: options?.sortOrder ?? "asc",
       limit: options?.limit,
       typeMismatch: options?.typeMismatch,
       serverDefault: options?.serverDefault,
@@ -94,7 +94,7 @@ export function _testQuerySend(
     ...operationOptionsToRequestParameters(options),
     headers: {
       accept: "application/json",
-      "custom-header": options?.customHeader,
+      "custom-header": options?.customHeader ?? "application/json",
       ...options.requestOptions?.headers,
     },
   });
@@ -127,7 +127,7 @@ export function _createSend(
     ...operationOptionsToRequestParameters(options),
     contentType: "text/plain",
     headers: { accept: "text/plain", ...options.requestOptions?.headers },
-    body: options?.body,
+    body: options?.body ?? "default-body",
   });
 }
 

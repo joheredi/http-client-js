@@ -33,7 +33,7 @@ import type {
   SdkHttpOperation,
   SdkServiceMethod,
 } from "@azure-tools/typespec-client-generator-core";
-import { SendOperation, escapeUriTemplateParamName, isRequiredSignatureParameter, isConstantType, getConstantLiteral } from "../../src/components/send-operation.js";
+import { SendOperation, escapeUriTemplateParamName, isRequiredSignatureParameter, isConstantType, getConstantLiteral, formatDefaultValue, isDefaultValueTypeMatch } from "../../src/components/send-operation.js";
 import { getOptionsParamName } from "../../src/components/send-operation.js";
 import { OperationOptionsDeclaration } from "../../src/components/operation-options.js";
 import { ModelInterface } from "../../src/components/model-interface.js";
@@ -1038,5 +1038,147 @@ describe("escapeUriTemplateParamName", () => {
    */
   it("should encode multiple hyphens", () => {
     expect(escapeUriTemplateParamName("key-name-version")).toBe("key%2Dname%2Dversion");
+  });
+});
+
+/**
+ * Tests for the formatDefaultValue utility function.
+ *
+ * This function formats client default values as JavaScript literals for
+ * embedding in generated code. String values must be quoted; numeric and
+ * boolean values are stringified directly.
+ *
+ * Why this is important:
+ * - Generated code must contain syntactically valid JavaScript literals.
+ * - String defaults without quotes would be interpreted as variable references,
+ *   producing broken output (e.g., `?? asc` instead of `?? "asc"`).
+ * - Numeric and boolean values must not be quoted (e.g., `?? 10`, not `?? "10"`).
+ */
+describe("formatDefaultValue", () => {
+  /**
+   * String default values must be wrapped in double quotes so the generated
+   * code produces a valid string literal (e.g., `options?.sort ?? "asc"`).
+   */
+  it("should wrap string values in double quotes", () => {
+    expect(formatDefaultValue("asc")).toBe('"asc"');
+    expect(formatDefaultValue("application/json")).toBe('"application/json"');
+    expect(formatDefaultValue("")).toBe('""');
+  });
+
+  /**
+   * Numeric defaults must be emitted as bare numbers without quotes,
+   * matching TypeScript number literal syntax (e.g., `options?.count ?? 10`).
+   */
+  it("should stringify numeric values without quotes", () => {
+    expect(formatDefaultValue(10)).toBe("10");
+    expect(formatDefaultValue(0)).toBe("0");
+    expect(formatDefaultValue(3.14)).toBe("3.14");
+  });
+
+  /**
+   * Boolean defaults must be emitted as bare `true`/`false` keywords,
+   * not as quoted strings.
+   */
+  it("should stringify boolean values without quotes", () => {
+    expect(formatDefaultValue(true)).toBe("true");
+    expect(formatDefaultValue(false)).toBe("false");
+  });
+});
+
+/**
+ * Tests for the isDefaultValueTypeMatch utility function.
+ *
+ * This function validates that a client default value's JavaScript type is
+ * compatible with the parameter's SDK type. This prevents generating
+ * type-mismatched defaults (e.g., `options?.count ?? "text"` where count
+ * is `number`), which would be invalid TypeScript.
+ *
+ * Why this is important:
+ * - The `@clientDefaultValue` decorator in TCGC accepts any value, but
+ *   the generated code must be type-safe.
+ * - The legacy emitter performs the same type validation before applying
+ *   defaults, and the new emitter must match this behavior.
+ * - Without this check, the `typeMismatch` scenario test case would
+ *   incorrectly emit `?? "mismatch"` for an int32 parameter.
+ */
+describe("isDefaultValueTypeMatch", () => {
+  /**
+   * String default should match string parameter type.
+   */
+  it("should match string default with string type", () => {
+    expect(isDefaultValueTypeMatch({ kind: "string" } as any, "hello")).toBe(true);
+  });
+
+  /**
+   * String default should NOT match numeric parameter types.
+   * This is the `typeMismatch` scenario — a string default on int32.
+   */
+  it("should reject string default with numeric type", () => {
+    expect(isDefaultValueTypeMatch({ kind: "int32" } as any, "mismatch")).toBe(false);
+  });
+
+  /**
+   * Numeric default should match int32 parameter type.
+   */
+  it("should match numeric default with int32 type", () => {
+    expect(isDefaultValueTypeMatch({ kind: "int32" } as any, 10)).toBe(true);
+  });
+
+  /**
+   * Numeric default should match float64 parameter type.
+   */
+  it("should match numeric default with float64 type", () => {
+    expect(isDefaultValueTypeMatch({ kind: "float64" } as any, 3.14)).toBe(true);
+  });
+
+  /**
+   * Numeric default should NOT match string parameter type.
+   */
+  it("should reject numeric default with string type", () => {
+    expect(isDefaultValueTypeMatch({ kind: "string" } as any, 42)).toBe(false);
+  });
+
+  /**
+   * Boolean default should match boolean parameter type.
+   */
+  it("should match boolean default with boolean type", () => {
+    expect(isDefaultValueTypeMatch({ kind: "boolean" } as any, true)).toBe(true);
+  });
+
+  /**
+   * Boolean default should NOT match string parameter type.
+   */
+  it("should reject boolean default with string type", () => {
+    expect(isDefaultValueTypeMatch({ kind: "string" } as any, false)).toBe(false);
+  });
+
+  /**
+   * Nullable wrapper should be unwrapped to check the inner type.
+   * This ensures that `string | null` parameter with a string default
+   * correctly matches.
+   */
+  it("should unwrap nullable types to match inner type", () => {
+    const nullableString = { kind: "nullable", type: { kind: "string" } } as any;
+    expect(isDefaultValueTypeMatch(nullableString, "default")).toBe(true);
+    expect(isDefaultValueTypeMatch(nullableString, 42)).toBe(false);
+  });
+
+  /**
+   * Enum types should match based on their valueType kind.
+   * A string-valued enum should accept string defaults.
+   */
+  it("should match defaults against enum valueType", () => {
+    const stringEnum = { kind: "enum", valueType: { kind: "string" } } as any;
+    expect(isDefaultValueTypeMatch(stringEnum, "value1")).toBe(true);
+    expect(isDefaultValueTypeMatch(stringEnum, 42)).toBe(false);
+  });
+
+  /**
+   * Constant types should match based on their valueType kind.
+   */
+  it("should match defaults against constant valueType", () => {
+    const intConstant = { kind: "constant", valueType: { kind: "int32" } } as any;
+    expect(isDefaultValueTypeMatch(intConstant, 10)).toBe(true);
+    expect(isDefaultValueTypeMatch(intConstant, "ten")).toBe(false);
   });
 });

@@ -1439,7 +1439,7 @@
       "title": "Default Values Removed from Query Parameters and Headers",
       "category": "scenario-audit/Operations",
       "priority": "P0-CRITICAL",
-      "status": "not-started",
+      "status": "done",
       "description": "The new emitter does not emit default values for optional query parameters and headers that have defaults in the TypeSpec definition. Legacy applies defaults with ?? operator. Legacy default-value behavior is the expected output.",
       "legacy_behavior": "queryParam: options?.queryParam ?? 'defaultValue', header: options?.header ?? 'application/json'",
       "new_behavior": "queryParam: options?.queryParam (no default), header: options?.header (no default).",

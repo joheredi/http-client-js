@@ -350,7 +350,8 @@ function getParameterAccessor(
 
   // Optional params come from the options bag
   const optionsName = getOptionsParamName(method);
-  return `${optionsName}?.${correspondingParam.name}`;
+  const accessor = `${optionsName}?.${correspondingParam.name}`;
+  return applyClientDefault(accessor, correspondingParam as SdkMethodParameter);
 }
 
 /**
@@ -626,7 +627,9 @@ function getHeaderAccessor(
     }
     const isRequired = isRequiredSignatureParameter(corresponding);
     const optionsName = getOptionsParamName(method);
-    return isRequired ? getEscapedParameterName(corresponding.name) : `${optionsName}?.${corresponding.name}`;
+    if (isRequired) return getEscapedParameterName(corresponding.name);
+    const accessor = `${optionsName}?.${corresponding.name}`;
+    return applyClientDefault(accessor, corresponding);
   }
 
   // Exhaustive - correspondingMethodParams only contains "method" or "property" kinds
@@ -824,7 +827,11 @@ function getSpreadPropertyAccessor(
     return getEscapedParameterName(prop.name);
   }
   const optionsName = getOptionsParamName(method);
-  return `${optionsName}?.${prop.name}`;
+  const accessor = `${optionsName}?.${prop.name}`;
+  if (methodParam) {
+    return applyClientDefault(accessor, methodParam);
+  }
+  return accessor;
 }
 
 /**
@@ -851,7 +858,9 @@ function getBodyAccessor(
     }
     const isRequired = isRequiredSignatureParameter(corresponding);
     const optionsName = getOptionsParamName(method);
-    return isRequired ? getEscapedParameterName(corresponding.name) : `${optionsName}?.${corresponding.name}`;
+    if (isRequired) return getEscapedParameterName(corresponding.name);
+    const accessor = `${optionsName}?.${corresponding.name}`;
+    return applyClientDefault(accessor, corresponding);
   }
 
   return getEscapedParameterName(corresponding.name);
@@ -915,6 +924,123 @@ function getCollectionBuilderName(
     default:
       return undefined;
   }
+}
+
+/**
+ * Appends a nullish coalescing (`??`) default-value fallback to a parameter
+ * accessor expression when the parameter is optional and has a
+ * `clientDefaultValue` whose type matches the parameter type.
+ *
+ * This matches the legacy emitter's behavior of generating
+ * `options?.paramName ?? defaultValue` for optional parameters that carry
+ * a client-supplied default. Required parameters with `clientDefaultValue`
+ * are NOT given a fallback — they go in the options bag but the runtime
+ * is expected to provide a value.
+ *
+ * @param accessor - The base JavaScript expression (e.g., `options?.maxResults`).
+ * @param param - The TCGC method parameter that may carry a clientDefaultValue.
+ * @returns The accessor with `?? default` appended, or the original accessor.
+ */
+function applyClientDefault(
+  accessor: string,
+  param: SdkMethodParameter,
+): string {
+  if (
+    !param.optional ||
+    param.clientDefaultValue === undefined ||
+    param.isApiVersionParam ||
+    !isDefaultValueTypeMatch(param.type, param.clientDefaultValue)
+  ) {
+    return accessor;
+  }
+  return `${accessor} ?? ${formatDefaultValue(param.clientDefaultValue)}`;
+}
+
+/**
+ * Formats a client default value as a JavaScript literal for embedding in
+ * generated code.
+ *
+ * String values are wrapped in double quotes; numeric and boolean values
+ * are converted to their string representation.
+ *
+ * @param defaultValue - The raw default value (string, number, or boolean).
+ * @returns A JavaScript literal string.
+ */
+export function formatDefaultValue(defaultValue: unknown): string {
+  if (typeof defaultValue === "string") {
+    return `"${defaultValue}"`;
+  }
+  return String(defaultValue);
+}
+
+/**
+ * Validates that a client default value's JavaScript type is compatible with
+ * the parameter's SDK type, preventing mismatched defaults from being emitted.
+ *
+ * For example, a string default on an `int32` parameter would be rejected
+ * because it would produce invalid TypeScript (e.g., `options?.count ?? "text"`
+ * where count is `number`).
+ *
+ * @param paramType - The TCGC SDK type of the parameter.
+ * @param defaultValue - The raw client default value.
+ * @returns `true` if the default value type matches the parameter type.
+ */
+export function isDefaultValueTypeMatch(
+  paramType: SdkType,
+  defaultValue: unknown,
+): boolean {
+  const baseKind = getBaseTypeKind(paramType);
+  if (typeof defaultValue === "string") {
+    return baseKind === "string";
+  }
+  if (typeof defaultValue === "number") {
+    return isNumericTypeKind(baseKind);
+  }
+  if (typeof defaultValue === "boolean") {
+    return baseKind === "boolean";
+  }
+  return false;
+}
+
+/**
+ * Resolves the base scalar kind of an SDK type, unwrapping nullable wrappers
+ * and extracting value types from enums and constants.
+ *
+ * @param type - The TCGC SDK type.
+ * @returns The kind string of the underlying scalar type.
+ */
+function getBaseTypeKind(type: SdkType): string {
+  if (type.kind === "nullable") return getBaseTypeKind(type.type);
+  if (type.kind === "enum") return type.valueType.kind;
+  if (type.kind === "constant") return type.valueType.kind;
+  return type.kind;
+}
+
+/**
+ * Checks whether an SDK type kind represents a numeric scalar.
+ *
+ * @param kind - The SDK type kind string.
+ * @returns `true` if the kind is a numeric type.
+ */
+function isNumericTypeKind(kind: string): boolean {
+  return [
+    "int32",
+    "int64",
+    "float32",
+    "float64",
+    "decimal",
+    "decimal128",
+    "numeric",
+    "integer",
+    "safeint",
+    "uint8",
+    "uint16",
+    "uint32",
+    "uint64",
+    "int8",
+    "int16",
+    "float",
+  ].includes(kind);
 }
 
 /**

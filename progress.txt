@@ -508,3 +508,28 @@ The header reads:
 
 ### Note for next contributor
 This was the last remaining pending task (SA27) in the PRD. All implementation phases, scenario audit tasks, and RC tasks are now marked as done. The PRD appears complete.
+
+## 2026-02-26 — SA-C26: Default Values for Query Parameters and Headers (done)
+
+### What was done
+- Added `??` default value fallbacks for optional query parameters, header parameters, and body parameters that have `clientDefaultValue` set via TCGC's `@clientDefaultValue` decorator
+- Legacy emitter applies `options?.paramName ?? defaultValue` pattern; new emitter now matches this behavior
+- Implemented `applyClientDefault()`, `formatDefaultValue()`, and `isDefaultValueTypeMatch()` helper functions in `send-operation.tsx`
+
+### Key decisions
+- Only apply `??` defaults when ALL of: `param.optional === true`, `clientDefaultValue` is defined, AND type matches (string→string, number→numeric, boolean→boolean)
+- Required params with `@clientDefaultValue` go to options bag but do NOT get `??` (matches scenario test expectations)
+- API version parameters excluded via `isApiVersionParam` check (they're managed by client infrastructure, not operation-level defaults)
+- TypeSpec server defaults (`param?: int32 = 100`) do NOT get `??` because TCGC doesn't populate `clientDefaultValue` from TypeSpec defaults — only from the `@clientDefaultValue` decorator
+- Type mismatch protection: string default on int32 param is rejected (e.g., `@clientDefaultValue("mismatch")` on `int32` doesn't emit `??`)
+
+### Files changed
+- `src/components/send-operation.tsx` — Added `applyClientDefault()`, `formatDefaultValue()`, `isDefaultValueTypeMatch()`, and supporting helpers. Modified `getParameterAccessor()`, `getHeaderAccessor()`, `getBodyAccessor()`, `getSpreadPropertyAccessor()` to apply defaults
+- `test/scenarios/cases/operations/clientDefaultValue.md` — Updated expected output with `??` defaults for optional params
+- `test/components/send-operation.test.tsx` — Added 13 unit tests for `formatDefaultValue` and `isDefaultValueTypeMatch`
+- `prd.json` — Marked SA-C26 as done
+
+### Note for next contributor
+- `getBaseTypeKind()` helper unwraps nullable, enum, and constant types to their base scalar kind
+- `isNumericTypeKind()` covers all TCGC numeric scalar kinds (int32, int64, float32, float64, decimal, safeint, uint*, int*, etc.)
+- The `applyClientDefault` function is only called for `SdkMethodParameter` (not property types) — spread body properties find their method param before applying defaults

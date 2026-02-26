@@ -1758,3 +1758,10 @@ This affected additional properties scenarios and property type scenarios that u
 
 **Related:** Same pattern exists for `getUnionName()` — use `getUnionDisplayName()` for plain-string contexts.
 
+
+## Client Default Value Application (SA-C26)
+
+- **TCGC only populates `clientDefaultValue` from the `@clientDefaultValue` decorator**, NOT from TypeSpec server defaults (e.g., `param?: int32 = 100`). Don't assume TypeSpec defaults flow to `clientDefaultValue`.
+- **API version parameters must be excluded** from `applyClientDefault` via `isApiVersionParam` check. They have `clientDefaultValue` set (from versioned enum) but are managed by client infrastructure, not operation defaults.
+- **Required params with `@clientDefaultValue` go to options bag** (via `isRequiredSignatureParameter` returning false) **but do NOT get `??` fallback**. Only `param.optional === true` triggers the `??` default.
+- **Type validation is critical**: `isDefaultValueTypeMatch` prevents generating type-mismatched defaults (e.g., `?? "mismatch"` on an int32 param). Always validate before emitting `??`.
