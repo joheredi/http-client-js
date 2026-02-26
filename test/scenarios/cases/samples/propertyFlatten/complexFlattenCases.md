@@ -108,12 +108,12 @@ import { areAllPropsUndefined } from "../helpers/serializationHelpers.js";
 export interface BodyParameter {
   baz: string;
   bar?: A[];
-  baz: A[];
+  bazPropertiesBaz: A[];
   properties?: ChildFlattenModel;
   description?: string;
-  baz?: number;
-  description?: string;
-  baz?: number;
+  bazProperties2Baz?: number;
+  descriptionEmptyFlattenDescription?: string;
+  bazEmptyFlattenBaz?: number;
 }
 
 /**
@@ -123,7 +123,7 @@ export interface FooProperties {
   bar?: A[];
   baz: A[];
   description?: string;
-  baz?: number;
+  bazPropertiesBaz?: number;
 }
 
 /**
@@ -200,7 +200,7 @@ export function _bodyParameterPropertiesSerializer(item: BodyParameter): any {
       : item["bar"].map((p: any) => {
           return aSerializer(p);
         }),
-    baz: item["baz"].map((p: any) => {
+    baz: item["bazPropertiesBaz"].map((p: any) => {
       return aSerializer(p);
     }),
     properties: !item["properties"]
@@ -212,21 +212,21 @@ export function _bodyParameterPropertiesSerializer(item: BodyParameter): any {
 export function _bodyParameterProperties2Serializer(item: BodyParameter): any {
   return {
     description: item["description"],
-    baz: item["baz"],
+    baz: item["bazProperties2Baz"],
   };
 }
 
 export function _bodyParameterEmptyFlattenSerializer(item: BodyParameter): any {
   return {
-    description: item["description"],
-    baz: item["baz"],
+    description: item["descriptionEmptyFlattenDescription"],
+    baz: item["bazEmptyFlattenBaz"],
   };
 }
 
 export function _fooPropertiesPropertiesSerializer(item: FooProperties): any {
   return {
     description: item["description"],
-    baz: item["baz"],
+    baz: item["bazPropertiesBaz"],
   };
 }
 ```

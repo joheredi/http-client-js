@@ -9,6 +9,7 @@ import type {
   SdkType,
 } from "@azure-tools/typespec-client-generator-core";
 import { Visibility } from "@typespec/http";
+import { computeFlattenCollisionMap } from "../utils/flatten-collision.js";
 import { getModelName } from "../utils/model-name.js";
 import { typeRefkey } from "../utils/refkeys.js";
 import { getOptionalAwareTypeExpression, getTypeExpression } from "./type-expression.js";
@@ -335,6 +336,12 @@ function getModelDisplayName(model: SdkModelType): string {
  * nested properties inherit the outer property's optionality — if the
  * flattened property is optional, all its expanded children become optional.
  *
+ * When a nested property name collides with an existing property on the model
+ * (from the model's own properties, non-model flatten properties, or earlier
+ * flatten expansions), the nested property is renamed using the legacy emitter's
+ * convention: `${propName}${capitalize(flattenPropName)}${capitalize(propName)}`.
+ * For example, `bar` from flatten property `properties` becomes `barPropertiesBar`.
+ *
  * Non-flattened properties are passed through unchanged.
  *
  * @param model - The TCGC model type whose properties to collect.
@@ -342,15 +349,20 @@ function getModelDisplayName(model: SdkModelType): string {
  */
 function getExpandedProperties(model: SdkModelType): SdkModelPropertyType[] {
   const result: SdkModelPropertyType[] = [];
+  const collisionMap = computeFlattenCollisionMap(model);
 
   for (const prop of model.properties) {
     if (prop.flatten && prop.type.kind === "model") {
+      const renames = collisionMap.get(prop.serializedName);
       // Expand flattened model's properties inline
       for (const nestedProp of prop.type.properties) {
+        const renamedName = renames?.get(nestedProp.name);
         result.push({
           ...nestedProp,
           // If the flattened wrapper is optional, children inherit that
           optional: prop.optional ? true : nestedProp.optional,
+          // Apply collision rename if needed
+          ...(renamedName ? { name: renamedName } : {}),
         });
       }
     } else {

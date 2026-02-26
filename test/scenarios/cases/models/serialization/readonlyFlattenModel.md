@@ -51,9 +51,9 @@ export interface Solution {
   readonly solutionId?: string;
   readonly title?: string;
   readonly content?: string;
-  readonly solutionId?: string;
-  readonly title?: string;
-  readonly content?: string;
+  readonly solutionIdPropertiesOptionalSolutionId?: string;
+  readonly titlePropertiesOptionalTitle?: string;
+  readonly contentPropertiesOptionalContent?: string;
 }
 
 /**
@@ -96,9 +96,9 @@ export function _solutionPropertiesSerializer(item: Solution): any {
 
 export function _solutionPropertiesOptionalSerializer(item: Solution): any {
   return {
-    solutionId: item["solutionId"],
-    title: item["title"],
-    content: item["content"],
+    solutionId: item["solutionIdPropertiesOptionalSolutionId"],
+    title: item["titlePropertiesOptionalTitle"],
+    content: item["contentPropertiesOptionalContent"],
   };
 }
 ```

@@ -1433,7 +1433,7 @@
       "id": "SA-C25b",
       "title": "Fix flatten property name collision handling with prefix renaming",
       "description": "When flattened property names collide with parent model property names, the legacy emitter renames the colliding properties with a prefix pattern (e.g. barPropertiesBar). The new emitter currently produces duplicate property names in interfaces and serializers, which is invalid TypeScript. Implement property renaming for colliding flatten properties in model-interface.tsx, json-serializer.tsx, and json-deserializer.tsx. Update nameCollision.md test expected outputs to match legacy pattern.",
-      "status": "not-started",
+      "status": "done",
       "category": "scenario-audit/Serialization",
       "priority": "P0-CRITICAL",
       "dependencies": [

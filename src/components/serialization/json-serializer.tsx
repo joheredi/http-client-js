@@ -13,6 +13,7 @@ import type {
 import { UsageFlags } from "@azure-tools/typespec-client-generator-core";
 import { getModelFunctionName } from "../../utils/model-name.js";
 import { flattenSerializerRefkey, serializationHelperRefkey, serializerRefkey, typeRefkey } from "../../utils/refkeys.js";
+import { computeFlattenCollisionMap, getEffectiveClientName } from "../../utils/flatten-collision.js";
 import { useRuntimeLib } from "../../context/flavor-context.js";
 
 /**
@@ -465,6 +466,10 @@ export interface FlattenSerializerHelperProps {
  * the flattened model type are serialized using their model type's own serializer, not
  * expanded further.
  *
+ * When flatten property names collide with existing properties on the parent model,
+ * the helper reads from the collision-renamed client names (e.g., `item["barPropertiesBar"]`
+ * instead of `item["bar"]`).
+ *
  * @param props - The component props containing the parent model and flatten property.
  * @returns An Alloy JSX tree representing the flatten helper function declaration.
  */
@@ -474,6 +479,7 @@ export function FlattenSerializerHelper(props: FlattenSerializerHelperProps) {
   const properties = getFlattenHelperProperties(flatModel, flattenProp.optional);
   const funcName = getFlattenHelperFunctionName(parentModel, flattenProp, "Serializer");
   const refkeyVal = flattenSerializerRefkey(parentModel, flattenProp.serializedName);
+  const collisionMap = computeFlattenCollisionMap(parentModel);
 
   return (
     <FunctionDeclaration
@@ -487,7 +493,12 @@ export function FlattenSerializerHelper(props: FlattenSerializerHelperProps) {
       <ObjectExpression>
         <For each={properties} comma softline enderPunctuation>
           {(prop) => {
-            const accessor = `item["${prop.name}"]`;
+            const effectiveName = getEffectiveClientName(
+              collisionMap,
+              flattenProp.serializedName,
+              prop.name,
+            );
+            const accessor = `item["${effectiveName}"]`;
             let valueExpr = getSerializationExpression(prop.type, accessor);
             valueExpr = wrapWithArrayEncoding(valueExpr, accessor, prop);
             const wrapped = wrapWithNullCheck(valueExpr, accessor, prop);

@@ -49,8 +49,8 @@ Model generated.
 export interface Test {
   bar?: string;
   baz: string;
-  bar?: string;
-  baz: string;
+  barPropertiesBar?: string;
+  bazPropertiesBaz: string;
 }
 
 /**
@@ -110,15 +110,15 @@ export function fooPropertiesDeserializer(item: any): FooProperties {
 
 export function _testPropertiesSerializer(item: Test): any {
   return {
-    bar: item["bar"],
-    baz: item["baz"],
+    bar: item["barPropertiesBar"],
+    baz: item["bazPropertiesBaz"],
   };
 }
 
 export function _testPropertiesDeserializer(item: any) {
   return {
-    bar: item["bar"],
-    baz: item["baz"],
+    barPropertiesBar: item["bar"],
+    bazPropertiesBaz: item["baz"],
   };
 }
 ```
@@ -185,8 +185,8 @@ export interface Test {
   result: string;
   bar?: string;
   baz: string;
-  bar?: string;
-  baz?: string;
+  barAnotherPropertiesBar?: string;
+  bazAnotherPropertiesBaz?: string;
   x?: string;
 }
 
@@ -290,16 +290,16 @@ export function _testPropertiesDeserializer(item: any) {
 
 export function _testAnotherPropertiesSerializer(item: Test): any {
   return {
-    bar: item["bar"],
-    baz: item["baz"],
+    bar: item["barAnotherPropertiesBar"],
+    baz: item["bazAnotherPropertiesBaz"],
     x: item["x"],
   };
 }
 
 export function _testAnotherPropertiesDeserializer(item: any) {
   return {
-    bar: item["bar"],
-    baz: item["baz"],
+    barAnotherPropertiesBar: item["bar"],
+    bazAnotherPropertiesBaz: item["baz"],
     x: item["x"],
   };
 }
@@ -369,11 +369,11 @@ export interface Test {
   result: string;
   bar?: string;
   baz: string;
-  bar?: string;
-  baz: string;
-  bar?: string;
-  baz?: string;
-  result?: string;
+  barPropertiesBar?: string;
+  bazPropertiesBaz: string;
+  barAnotherPropertiesBar?: string;
+  bazAnotherPropertiesBaz?: string;
+  resultAnotherPropertiesResult?: string;
 }
 
 /**
@@ -466,31 +466,31 @@ export function xPropertiesDeserializer(item: any): XProperties {
 
 export function _testPropertiesSerializer(item: Test): any {
   return {
-    bar: item["bar"],
-    baz: item["baz"],
+    bar: item["barPropertiesBar"],
+    baz: item["bazPropertiesBaz"],
   };
 }
 
 export function _testPropertiesDeserializer(item: any) {
   return {
-    bar: item["bar"],
-    baz: item["baz"],
+    barPropertiesBar: item["bar"],
+    bazPropertiesBaz: item["baz"],
   };
 }
 
 export function _testAnotherPropertiesSerializer(item: Test): any {
   return {
-    bar: item["bar"],
-    baz: item["baz"],
-    result: item["result"],
+    bar: item["barAnotherPropertiesBar"],
+    baz: item["bazAnotherPropertiesBaz"],
+    result: item["resultAnotherPropertiesResult"],
   };
 }
 
 export function _testAnotherPropertiesDeserializer(item: any) {
   return {
-    bar: item["bar"],
-    baz: item["baz"],
-    result: item["result"],
+    barAnotherPropertiesBar: item["bar"],
+    bazAnotherPropertiesBaz: item["baz"],
+    resultAnotherPropertiesResult: item["result"],
   };
 }
 ```
@@ -550,7 +550,7 @@ Model generated.
 export interface Test {
   result: string;
   name: string;
-  name: string;
+  namePropertiesName: string;
   prop1: string;
   prop2: string;
 }
@@ -615,7 +615,7 @@ export function fooPropertiesDeserializer(item: any): FooProperties {
 
 export function _testPropertiesSerializer(item: Test): any {
   return {
-    name: item["name"],
+    name: item["namePropertiesName"],
     prop1: item["prop1"],
     prop2: item["prop2"],
   };
@@ -623,7 +623,7 @@ export function _testPropertiesSerializer(item: Test): any {
 
 export function _testPropertiesDeserializer(item: any) {
   return {
-    name: item["name"],
+    namePropertiesName: item["name"],
     prop1: item["prop1"],
     prop2: item["prop2"],
   };

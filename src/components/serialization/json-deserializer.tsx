@@ -13,6 +13,7 @@ import type {
 import { UsageFlags } from "@azure-tools/typespec-client-generator-core";
 import { getModelFunctionName } from "../../utils/model-name.js";
 import { deserializerRefkey, flattenDeserializerRefkey, serializationHelperRefkey, typeRefkey } from "../../utils/refkeys.js";
+import { computeFlattenCollisionMap, getEffectiveClientName } from "../../utils/flatten-collision.js";
 import { useRuntimeLib } from "../../context/flavor-context.js";
 import { needsTransformation } from "./json-serializer.js";
 
@@ -395,6 +396,10 @@ export interface FlattenDeserializerHelperProps {
  * Unlike the regular deserializer, the flatten helper has NO explicit return type
  * annotation (implicit `any`), matching the legacy emitter's output.
  *
+ * When flatten property names collide with existing properties on the parent model,
+ * the helper writes to collision-renamed client names (e.g., `barPropertiesBar: item["bar"]`
+ * instead of `bar: item["bar"]`).
+ *
  * @param props - The component props containing the parent model and flatten property.
  * @returns An Alloy JSX tree representing the flatten helper function declaration.
  */
@@ -404,6 +409,7 @@ export function FlattenDeserializerHelper(props: FlattenDeserializerHelperProps)
   const properties = getFlattenHelperDeserializableProperties(flatModel, flattenProp.optional);
   const funcName = getFlattenHelperFunctionName(parentModel, flattenProp, "Deserializer");
   const refkeyVal = flattenDeserializerRefkey(parentModel, flattenProp.serializedName);
+  const collisionMap = computeFlattenCollisionMap(parentModel);
 
   return (
     <FunctionDeclaration
@@ -416,11 +422,16 @@ export function FlattenDeserializerHelper(props: FlattenDeserializerHelperProps)
       <ObjectExpression>
         <For each={properties} comma softline enderPunctuation>
           {(prop) => {
+            const effectiveName = getEffectiveClientName(
+              collisionMap,
+              flattenProp.serializedName,
+              prop.name,
+            );
             const accessor = `item["${prop.serializedName}"]`;
             let valueExpr = getDeserializationExpression(prop.type, accessor);
             valueExpr = wrapWithArrayDecoding(valueExpr, accessor, prop);
             const wrapped = wrapWithNullCheck(valueExpr, accessor, prop);
-            return <ObjectProperty name={prop.name} value={wrapped} />;
+            return <ObjectProperty name={effectiveName} value={wrapped} />;
           }}
         </For>
       </ObjectExpression>
