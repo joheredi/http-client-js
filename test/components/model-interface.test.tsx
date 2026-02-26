@@ -93,6 +93,9 @@ describe("Model Interface", () => {
       );
 
       expect(template).toRenderTo(`
+        /**
+         * model interface Widget
+         */
         export interface Widget {
           name: string;
           age: number;
@@ -117,6 +120,9 @@ describe("Model Interface", () => {
       );
 
       expect(template).toRenderTo(`
+        /**
+         * model interface Config
+         */
         export interface Config {
           name: string;
           description?: string;
@@ -140,6 +146,9 @@ describe("Model Interface", () => {
       );
 
       expect(template).toRenderTo(`
+        /**
+         * model interface Resource
+         */
         export interface Resource {
           readonly id: string;
           name: string;
@@ -187,10 +196,16 @@ describe("Model Interface", () => {
     );
 
     expect(template).toRenderTo(`
+      /**
+       * model interface BaseEntity
+       */
       export interface BaseEntity {
         id: string;
       }
 
+      /**
+       * model interface User
+       */
       export interface User extends BaseEntity {
         email: string;
       }
@@ -255,6 +270,9 @@ describe("Model Interface", () => {
         kind: string; name: string
       }
 
+      /**
+       * model interface Cat
+       */
       export interface Cat extends Pet {
         kind: "cat";
         purrs: boolean;
@@ -290,6 +308,9 @@ describe("Model Interface", () => {
     );
 
     expect(template).toRenderTo(`
+      /**
+       * model interface Metadata
+       */
       export interface Metadata {
         name: string;
         /**
@@ -329,6 +350,9 @@ describe("Model Interface", () => {
     );
 
     expect(template).toRenderTo(`
+      /**
+       * model interface Metadata
+       */
       export interface Metadata {
         additionalProperties: Record<string, number>;
         name: string;
@@ -410,6 +434,9 @@ describe("Model Interface", () => {
       );
 
       expect(template).toRenderTo(`
+        /**
+         * model interface Item
+         */
         export interface Item {
           /**
            * The unique identifier of the item.
@@ -421,6 +448,33 @@ describe("Model Interface", () => {
           name: string;
         }
       `);
+    });
+
+    /**
+     * Tests that models without explicit `@doc` or `summary` documentation
+     * receive a default JSDoc comment of `"model interface <Name>"`.
+     *
+     * This is important because the legacy emitter always produces a JSDoc
+     * comment on every model interface — when no explicit documentation is
+     * provided, it falls back to `"model interface <Name>"` for consistency.
+     * Consumers expect every interface to have at least a minimal JSDoc
+     * tooltip in their IDE.
+     */
+    it("should render fallback JSDoc 'model interface <Name>' when no doc exists", () => {
+      const model = sdkContext.sdkPackage.models.find((m) => m.name === "Item")!;
+      // Item has no @doc on the model itself, only on its properties
+      expect(model.doc).toBeUndefined();
+      expect(model.summary).toBeUndefined();
+
+      const template = (
+        <SdkTestFile sdkContext={sdkContext}>
+          <ModelInterface model={model} />
+        </SdkTestFile>
+      );
+
+      // The interface should have the fallback "model interface Item" JSDoc
+      const result = renderToString(template);
+      expect(result).toContain("model interface Item");
     });
   });
 
@@ -465,11 +519,17 @@ describe("Model Interface", () => {
     );
 
     expect(template).toRenderTo(`
+      /**
+       * model interface Address
+       */
       export interface Address {
         street: string;
         city: string;
       }
 
+      /**
+       * model interface Person
+       */
       export interface Person {
         name: string;
         address: Address;
@@ -546,6 +606,9 @@ describe("Model Interface", () => {
     );
 
     expect(template).toRenderTo(`
+      /**
+       * model interface TestModel
+       */
       export interface TestModel {
         optNullable?: string;
         reqNullable: string | null;
@@ -581,6 +644,9 @@ describe("Model Interface", () => {
     );
 
     expect(template).toRenderTo(`
+      /**
+       * model interface TestModel
+       */
       export interface TestModel {
         optNullable?: string | null;
         reqNullable: string | null;

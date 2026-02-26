@@ -39,6 +39,9 @@ Model generated.
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
+/**
+ * model interface Test
+ */
 export interface Test {
   bar?: string;
   baz: string;
@@ -46,11 +49,17 @@ export interface Test {
   baz: string;
 }
 
+/**
+ * model interface FooProperties
+ */
 export interface FooProperties {
   bar?: string;
   baz: string;
 }
 
+/**
+ * model interface _FooRequest
+ */
 export interface _FooRequest {
   body: Test;
 }
@@ -147,6 +156,9 @@ Model generated.
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
+/**
+ * model interface Test
+ */
 export interface Test {
   result: string;
   bar?: string;
@@ -156,17 +168,26 @@ export interface Test {
   x?: string;
 }
 
+/**
+ * model interface FooProperties
+ */
 export interface FooProperties {
   bar?: string;
   baz: string;
 }
 
+/**
+ * model interface XProperties
+ */
 export interface XProperties {
   bar?: string;
   baz: string;
   x: string;
 }
 
+/**
+ * model interface _FooRequest
+ */
 export interface _FooRequest {
   body: Test;
 }
@@ -285,6 +306,9 @@ Model generated.
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
+/**
+ * model interface Test
+ */
 export interface Test {
   result: string;
   bar?: string;
@@ -296,17 +320,26 @@ export interface Test {
   result?: string;
 }
 
+/**
+ * model interface FooProperties
+ */
 export interface FooProperties {
   bar?: string;
   baz: string;
 }
 
+/**
+ * model interface XProperties
+ */
 export interface XProperties {
   bar?: string;
   baz: string;
   result: string;
 }
 
+/**
+ * model interface _FooRequest
+ */
 export interface _FooRequest {
   body: Test;
 }
@@ -423,6 +456,9 @@ Model generated.
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
+/**
+ * model interface Test
+ */
 export interface Test {
   result: string;
   name: string;
@@ -431,12 +467,18 @@ export interface Test {
   prop2: string;
 }
 
+/**
+ * model interface FooProperties
+ */
 export interface FooProperties {
   name: string;
   prop1: string;
   prop2: string;
 }
 
+/**
+ * model interface _FooRequest
+ */
 export interface _FooRequest {
   body: Test;
 }

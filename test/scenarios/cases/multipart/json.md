@@ -23,10 +23,16 @@ The part should get generated correctly. The generated serializer should be used
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
+/**
+ * model interface RequestBody
+ */
 export interface RequestBody {
   person: Person;
 }
 
+/**
+ * model interface Person
+ */
 export interface Person {
   firstName: string;
   lastName: string;
@@ -73,10 +79,16 @@ In this case one part is constructed from the serialized array.
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
+/**
+ * model interface RequestBody
+ */
 export interface RequestBody {
   people: Person[];
 }
 
+/**
+ * model interface Person
+ */
 export interface Person {
   firstName: string;
   lastName: string;
@@ -123,10 +135,16 @@ In this case each element in the serialized array is converted to a part descrip
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
+/**
+ * model interface RequestBody
+ */
 export interface RequestBody {
   people: Person[];
 }
 
+/**
+ * model interface Person
+ */
 export interface Person {
   firstName: string;
   lastName: string;

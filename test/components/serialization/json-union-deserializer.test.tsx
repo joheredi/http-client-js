@@ -73,10 +73,16 @@ describe("JsonUnionDeserializer", () => {
     );
 
     expect(template).toRenderTo(`
+      /**
+       * model interface Cat
+       */
       export interface Cat {
         meow: boolean;
       }
 
+      /**
+       * model interface Dog
+       */
       export interface Dog {
         bark: boolean;
       }

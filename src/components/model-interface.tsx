@@ -195,14 +195,35 @@ function getExtendsClause(model: SdkModelType): Children | undefined {
  * Constructs JSDoc documentation for a model interface.
  *
  * Prefers the model's `doc` field (detailed documentation), falling back to
- * `summary` (brief description). Returns undefined if neither is available,
- * which suppresses JSDoc output on the interface.
+ * `summary` (brief description). When neither is available, produces a default
+ * comment of the form `"model interface <Name>"` to match legacy emitter output.
+ *
+ * This fallback ensures every generated interface has a JSDoc comment, which is
+ * important for IDE tooltip consistency and matches the autorest.typescript
+ * convention established in `buildModelInterface()`.
  *
  * @param model - The TCGC model type.
- * @returns The documentation string, or undefined.
+ * @returns The documentation string — always non-undefined.
  */
-function getModelDoc(model: SdkModelType): string | undefined {
-  return model.doc ?? model.summary;
+function getModelDoc(model: SdkModelType): string {
+  return model.doc ?? model.summary ?? `model interface ${getModelDisplayName(model)}`;
+}
+
+/**
+ * Returns the display name for a model as a plain string.
+ *
+ * Unlike {@link getModelName} which returns a `Namekey` for generated names,
+ * this returns a plain string suitable for embedding in JSDoc comments.
+ * For generated names, prepends `_` to match the rendered type name.
+ *
+ * @param model - The TCGC model type.
+ * @returns A plain string name for use in documentation.
+ */
+function getModelDisplayName(model: SdkModelType): string {
+  if (model.isGeneratedName) {
+    return `_${model.name}`;
+  }
+  return model.name;
 }
 
 /**

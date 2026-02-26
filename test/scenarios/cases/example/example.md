@@ -41,6 +41,9 @@ the test host that the content of the code block represents the entire generated
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
+/**
+ * model interface Example
+ */
 export interface Example {
   id: string;
 }

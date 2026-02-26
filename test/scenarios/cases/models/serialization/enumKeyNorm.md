@@ -85,6 +85,9 @@ Generated Models.
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
+/**
+ * model interface Foo
+ */
 export interface Foo {
   extensibleString: ExtensibleString;
   extensibleNumber: ExtensibleNumber;

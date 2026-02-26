@@ -31,6 +31,9 @@ Generated Models.
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
+/**
+ * model interface SimpleModel
+ */
 export interface SimpleModel {
   propA: string;
   propB: string;
@@ -116,6 +119,9 @@ Generated Models.
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
+/**
+ * model interface SimpleModel
+ */
 export interface SimpleModel {
   propA: string;
   propB: string;
@@ -125,6 +131,9 @@ export interface SimpleModel {
   additionalProperties?: Record<string, string>;
 }
 
+/**
+ * model interface EmptyModel
+ */
 export interface EmptyModel {
   /**
    * Additional properties
@@ -132,6 +141,9 @@ export interface EmptyModel {
   additionalProperties?: Record<string, string>;
 }
 
+/**
+ * model interface UnionModel
+ */
 export interface UnionModel {
   propA: string;
   propB: string;
@@ -141,6 +153,9 @@ export interface UnionModel {
   additionalProperties?: Record<string, _UnionModelAdditionalProperty>;
 }
 
+/**
+ * model interface NameConflictModel
+ */
 export interface NameConflictModel {
   additionalProperties: Record<string, number>;
   propA: string;
@@ -151,6 +166,9 @@ export interface NameConflictModel {
   additionalPropertiesBag?: Record<string, string>;
 }
 
+/**
+ * model interface ObjectAdditionalPropsModel
+ */
 export interface ObjectAdditionalPropsModel {
   additionalProperties: _ObjectAdditionalPropsModelAdditionalProperties;
   propA: string;
@@ -161,6 +179,9 @@ export interface ObjectAdditionalPropsModel {
   additionalPropertiesBag?: Record<string, string>;
 }
 
+/**
+ * model interface _ObjectAdditionalPropsModelAdditionalProperties
+ */
 export interface _ObjectAdditionalPropsModelAdditionalProperties {}
 
 /**

@@ -126,6 +126,9 @@ describe("DeserializeOperation", () => {
     expect(template).toRenderTo(d`
       import { createRestError, type PathUncheckedResponse } from "@typespec/ts-http-runtime";
 
+      /**
+       * model interface Item
+       */
       export interface Item {
         name: string;
         value: number;
@@ -274,6 +277,9 @@ describe("DeserializeOperation", () => {
     expect(template).toRenderTo(d`
       import { createRestError, type PathUncheckedResponse } from "@typespec/ts-http-runtime";
 
+      /**
+       * model interface Item
+       */
       export interface Item {
         name: string;
       }
@@ -333,6 +339,9 @@ describe("DeserializeOperation", () => {
     expect(template).toRenderTo(d`
       import { createRestError, type PathUncheckedResponse } from "@typespec/ts-http-runtime";
 
+      /**
+       * model interface Item
+       */
       export interface Item {
         name: string;
         createdAt: Date;
@@ -394,6 +403,9 @@ describe("DeserializeOperation", () => {
     expect(template).toRenderTo(d`
       import { createRestError, type PathUncheckedResponse } from "@typespec/ts-http-runtime";
 
+      /**
+       * model interface User
+       */
       export interface User {
         id: string;
         email: string;
@@ -508,11 +520,17 @@ describe("DeserializeOperation", () => {
     expect(template).toRenderTo(d`
       import { createRestError, type PathUncheckedResponse } from "@typespec/ts-http-runtime";
 
+      /**
+       * model interface Widget
+       */
       export interface Widget {
         id: string;
         name: string;
       }
 
+      /**
+       * model interface ApiError
+       */
       export interface ApiError {
         code: string;
         message: string;
@@ -602,11 +620,17 @@ describe("DeserializeOperation", () => {
     expect(template).toRenderTo(d`
       import { createRestError, type PathUncheckedResponse } from "@typespec/ts-http-runtime";
 
+      /**
+       * model interface Widget
+       */
       export interface Widget {
         id: string;
         name: string;
       }
 
+      /**
+       * model interface ApiError
+       */
       export interface ApiError {
         code: string;
         message: string;
@@ -696,6 +720,9 @@ describe("DeserializeOperation", () => {
     expect(template).toRenderTo(d`
       import { createRestError, type PathUncheckedResponse } from "@typespec/ts-http-runtime";
 
+      /**
+       * model interface Widget
+       */
       export interface Widget {
         id: string;
       }

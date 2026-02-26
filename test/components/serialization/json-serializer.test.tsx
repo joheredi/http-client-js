@@ -115,6 +115,9 @@ describe("JsonSerializer", () => {
       );
 
       expect(template).toRenderTo(d`
+        /**
+         * model interface Widget
+         */
         export interface Widget {
           name: string;
           age: number;
@@ -147,6 +150,9 @@ describe("JsonSerializer", () => {
 
       // The refkey reference should resolve to the serializer function name
       expect(template).toRenderTo(d`
+        /**
+         * model interface Simple
+         */
         export interface Simple {
           id: string;
         }
@@ -178,6 +184,9 @@ describe("JsonSerializer", () => {
 
       // No null check for optional string — simple passthrough
       expect(template).toRenderTo(d`
+        /**
+         * model interface Opts
+         */
         export interface Opts {
           required: string;
           optional?: string;
@@ -229,6 +238,9 @@ describe("JsonSerializer", () => {
     // The serializer output keys should use wire names (serializedName)
     // while the input accessors use client names (property.name)
     expect(template).toRenderTo(d`
+      /**
+       * model interface User
+       */
       export interface User {
         userName: string;
         emailAddress: string;
@@ -304,10 +316,16 @@ describe("JsonSerializer", () => {
 
       // The address property is optional and a model type, so it gets a null check
       expect(template).toRenderTo(d`
+        /**
+         * model interface Address
+         */
         export interface Address {
           street: string;
         }
 
+        /**
+         * model interface Person
+         */
         export interface Person {
           name: string;
           address?: Address;
@@ -348,10 +366,16 @@ describe("JsonSerializer", () => {
 
       // Required nested model: no null check, just call child serializer directly
       expect(template).toRenderTo(d`
+        /**
+         * model interface Inner
+         */
         export interface Inner {
           value: string;
         }
 
+        /**
+         * model interface Outer
+         */
         export interface Outer {
           inner: Inner;
         }
@@ -424,10 +448,16 @@ describe("JsonSerializer", () => {
 
       // Array of models uses .map() with child serializer
       expect(template).toRenderTo(d`
+        /**
+         * model interface Tag
+         */
         export interface Tag {
           label: string;
         }
 
+        /**
+         * model interface Item
+         */
         export interface Item {
           tags: (Tag)[];
         }
@@ -461,6 +491,9 @@ describe("JsonSerializer", () => {
       );
 
       expect(template).toRenderTo(d`
+        /**
+         * model interface Config
+         */
         export interface Config {
           values: (string)[];
         }
@@ -575,6 +608,9 @@ describe("JsonSerializer", () => {
 
       // plainDate must use .toISOString().split("T")[0] for YYYY-MM-DD format
       expect(template).toRenderTo(d`
+        /**
+         * model interface Event
+         */
         export interface Event {
           name: string;
           eventDate: Date;
@@ -608,6 +644,9 @@ describe("JsonSerializer", () => {
 
       // utcDateTime must use full .toISOString() (not truncated)
       expect(template).toRenderTo(d`
+        /**
+         * model interface Log
+         */
         export interface Log {
           message: string;
           timestamp: Date;
@@ -641,6 +680,9 @@ describe("JsonSerializer", () => {
 
       // Optional plainDate gets null check + date-only format
       expect(template).toRenderTo(d`
+        /**
+         * model interface Task
+         */
         export interface Task {
           title: string;
           dueDate?: Date;
@@ -695,6 +737,9 @@ describe("JsonSerializer", () => {
 
     // unixTimestamp must divide by 1000 and truncate to integer seconds
     expect(template).toRenderTo(d`
+      /**
+       * model interface Event
+       */
       export interface Event {
         name: string;
         createdAt: Date;
@@ -741,6 +786,9 @@ describe("JsonSerializer", () => {
 
     // Optional unixTimestamp gets null check + seconds conversion
     expect(template).toRenderTo(d`
+      /**
+       * model interface Event
+       */
       export interface Event {
         name: string;
         deletedAt?: Date;
@@ -793,6 +841,9 @@ describe("JsonSerializer", () => {
 
     // rfc7231 encoding must use .toUTCString() for HTTP-date format
     expect(template).toRenderTo(d`
+      /**
+       * model interface Request
+       */
       export interface Request {
         name: string;
         retryAfter: Date;
@@ -839,6 +890,9 @@ describe("JsonSerializer", () => {
 
     // Optional rfc7231 gets null check + toUTCString
     expect(template).toRenderTo(d`
+      /**
+       * model interface Request
+       */
       export interface Request {
         name: string;
         retryAfter?: Date;
@@ -974,11 +1028,17 @@ describe("JsonSerializer", () => {
 
     // catSerializer must include name and weight from Pet parent
     expect(template).toRenderTo(d`
+      /**
+       * model interface Pet
+       */
       export interface Pet {
         name: string;
         weight?: number;
       }
 
+      /**
+       * model interface Cat
+       */
       export interface Cat extends Pet {
         kind: "cat";
         meow: number;

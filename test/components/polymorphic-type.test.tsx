@@ -83,16 +83,25 @@ describe("Polymorphic Type", () => {
     );
 
     expect(template).toRenderTo(`
+      /**
+       * model interface Pet
+       */
       export interface Pet {
         kind: string;
         name: string;
       }
 
+      /**
+       * model interface Cat
+       */
       export interface Cat extends Pet {
         kind: "cat";
         meow: boolean;
       }
 
+      /**
+       * model interface Dog
+       */
       export interface Dog extends Pet {
         kind: "dog";
         bark: boolean;
@@ -203,6 +212,9 @@ describe("Polymorphic Type", () => {
         type: string;
       }
 
+      /**
+       * model interface Car
+       */
       export interface Car extends Vehicle {
         type: "car";
         doors: number;
@@ -295,15 +307,24 @@ describe("Polymorphic Type", () => {
     );
 
     expect(template).toRenderTo(`
+      /**
+       * model interface Shape
+       */
       export interface Shape {
         kind: string;
       }
 
+      /**
+       * model interface Circle
+       */
       export interface Circle extends Shape {
         kind: "circle";
         radius: number;
       }
 
+      /**
+       * model interface Square
+       */
       export interface Square extends Shape {
         kind: "square";
         side: number;
@@ -357,10 +378,16 @@ describe("Polymorphic Type", () => {
     );
 
     expect(template).toRenderTo(`
+      /**
+       * model interface Base
+       */
       export interface Base {
         kind: string;
       }
 
+      /**
+       * model interface OnlyChild
+       */
       export interface OnlyChild extends Base {
         kind: "only";
         value: string;

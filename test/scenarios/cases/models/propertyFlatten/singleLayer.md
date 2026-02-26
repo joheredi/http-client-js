@@ -41,21 +41,33 @@ Model generated.
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
+/**
+ * model interface Test
+ */
 export interface Test {
   result: string;
   bar?: A[];
   baz: A[];
 }
 
+/**
+ * model interface FooProperties
+ */
 export interface FooProperties {
   bar?: A[];
   baz: A[];
 }
 
+/**
+ * model interface A
+ */
 export interface A {
   x: string;
 }
 
+/**
+ * model interface _FooRequest
+ */
 export interface _FooRequest {
   body: Test;
 }
@@ -180,21 +192,33 @@ Model generated.
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
+/**
+ * model interface Test
+ */
 export interface Test {
   result: string;
   bar?: A[];
   baz?: A[];
 }
 
+/**
+ * model interface FooProperties
+ */
 export interface FooProperties {
   bar?: A[];
   baz: A[];
 }
 
+/**
+ * model interface A
+ */
 export interface A {
   x: string;
 }
 
+/**
+ * model interface _FooRequest
+ */
 export interface _FooRequest {
   body: Test;
 }
@@ -323,21 +347,33 @@ Model generated.
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
+/**
+ * model interface Test
+ */
 export interface Test {
   result: string;
   foo: TestFoo;
 }
 
+/**
+ * model interface TestFoo
+ */
 export interface TestFoo {
   bar?: string;
   baz: string;
 }
 
+/**
+ * model interface FooProperties
+ */
 export interface FooProperties {
   bar?: string;
   baz: string;
 }
 
+/**
+ * model interface _FooRequest
+ */
 export interface _FooRequest {
   body: Test;
 }
@@ -421,22 +457,34 @@ Model generated.
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
+/**
+ * model interface Test
+ */
 export interface Test {
   result: string;
   bar?: string;
   baz?: "baz";
 }
 
+/**
+ * model interface FooProperties
+ */
 export interface FooProperties extends Baz {
   bar?: string;
   baz: "baz";
 }
 
+/**
+ * model interface Baz
+ */
 export interface Baz {
   readonly readOnlyProp: string;
   baz: string;
 }
 
+/**
+ * model interface _FooRequest
+ */
 export interface _FooRequest {
   body: Test;
 }
@@ -553,6 +601,9 @@ Model generated.
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
+/**
+ * model interface Test
+ */
 export interface Test {
   result: string;
   bar?: string;
@@ -561,21 +612,33 @@ export interface Test {
   location?: string;
 }
 
+/**
+ * model interface FooProperties
+ */
 export interface FooProperties extends Baz {
   bar?: string;
   baz: "baz";
 }
 
+/**
+ * model interface Baz
+ */
 export interface Baz {
   readonly readOnlyProp: string;
   baz: string;
 }
 
+/**
+ * model interface TestIdentifiers
+ */
 export interface TestIdentifiers {
   id: string;
   location?: string;
 }
 
+/**
+ * model interface _FooRequest
+ */
 export interface _FooRequest {
   body: Test;
 }
@@ -700,6 +763,9 @@ Model generated.
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
+/**
+ * model interface Test
+ */
 export interface Test {
   result: string;
   name: string;
@@ -707,11 +773,17 @@ export interface Test {
   prop2: string;
 }
 
+/**
+ * model interface FooProperties
+ */
 export interface FooProperties {
   prop1: string;
   prop2: string;
 }
 
+/**
+ * model interface _FooRequest
+ */
 export interface _FooRequest {
   body: Test;
 }

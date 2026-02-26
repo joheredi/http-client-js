@@ -19,6 +19,9 @@ op read(@path id: string; @body body: StreamingChatCompletionOptions): {
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
+/**
+ * model interface StreamingChatCompletionOptions
+ */
 export interface StreamingChatCompletionOptions {
   stream: true;
   messages: "aaaaa";
@@ -129,6 +132,9 @@ op read(...StreamingChatCompletionOptions): {
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
+/**
+ * model interface StreamingChatCompletionOptions
+ */
 export interface StreamingChatCompletionOptions {
   stream: true;
   messages: "aaaaa";

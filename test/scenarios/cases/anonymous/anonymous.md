@@ -515,6 +515,9 @@ op read(@path pathParam: string, @query queryParam: string, @body body: {}): OkR
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
+/**
+ * model interface _ReadRequest
+ */
 export interface _ReadRequest {}
 
 export function _readRequestSerializer(item: _ReadRequest): any {
@@ -835,6 +838,9 @@ op read(): { @body _: {}; };
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
+/**
+ * model interface _ReadResponse
+ */
 export interface _ReadResponse {}
 
 export function _readResponseDeserializer(item: any): _ReadResponse {
@@ -907,6 +913,9 @@ op read(): {@body _: PublishResult};
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
+/**
+ * model interface PublishResult
+ */
 export interface PublishResult {}
 
 export function publishResultDeserializer(item: any): PublishResult {
@@ -979,10 +988,16 @@ op read(): { foo?: {bar: string | null}};
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
+/**
+ * model interface _ReadResponse
+ */
 export interface _ReadResponse {
   foo?: _ReadResponseFoo;
 }
 
+/**
+ * model interface _ReadResponseFoo
+ */
 export interface _ReadResponseFoo {
   bar: string | null;
 }
@@ -1075,6 +1090,9 @@ op read(): ReturnBody;
 
 import { deserializeRecord } from "../helpers/serializationHelpers.js";
 
+/**
+ * model interface ReturnBody
+ */
 export interface ReturnBody {
   emptyAnomyous: _ReturnBodyEmptyAnomyous;
   emptyAnomyousArray: _ReturnBodyEmptyAnomyousArray[];
@@ -1084,12 +1102,24 @@ export interface ReturnBody {
   emptyModelDict: Record<string, EmptyModel>;
 }
 
+/**
+ * model interface _ReturnBodyEmptyAnomyous
+ */
 export interface _ReturnBodyEmptyAnomyous {}
 
+/**
+ * model interface _ReturnBodyEmptyAnomyousArray
+ */
 export interface _ReturnBodyEmptyAnomyousArray {}
 
+/**
+ * model interface _ReturnBodyEmptyAnomyousDict
+ */
 export interface _ReturnBodyEmptyAnomyousDict {}
 
+/**
+ * model interface EmptyModel
+ */
 export interface EmptyModel {}
 
 export function returnBodyDeserializer(item: any): ReturnBody {
@@ -1211,10 +1241,16 @@ op read(): Foz;
 
 import { deserializeRecord } from "../helpers/serializationHelpers.js";
 
+/**
+ * model interface Foz
+ */
 export interface Foz {
   baz: _FozBaz;
 }
 
+/**
+ * model interface _FozBaz
+ */
 export interface _FozBaz {
   foo: number[];
   bas: string;
@@ -1224,18 +1260,30 @@ export interface _FozBaz {
   nonemptyAnomyousDict: Record<string, _FozBazNonemptyAnomyousDict>;
 }
 
+/**
+ * model interface SimpleModel
+ */
 export interface SimpleModel {
   test: string;
 }
 
+/**
+ * model interface _FozBazNonemptyAnomyous
+ */
 export interface _FozBazNonemptyAnomyous {
   a: string;
 }
 
+/**
+ * model interface _FozBazNonemptyAnomyousArray
+ */
 export interface _FozBazNonemptyAnomyousArray {
   b?: Record<string, string>;
 }
 
+/**
+ * model interface _FozBazNonemptyAnomyousDict
+ */
 export interface _FozBazNonemptyAnomyousDict {
   c: number[];
 }

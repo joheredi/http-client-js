@@ -112,6 +112,9 @@ describe("JsonDeserializer", () => {
       );
 
       expect(template).toRenderTo(d`
+        /**
+         * model interface Widget
+         */
         export interface Widget {
           name: string;
           age: number;
@@ -143,6 +146,9 @@ describe("JsonDeserializer", () => {
       );
 
       expect(template).toRenderTo(d`
+        /**
+         * model interface Simple
+         */
         export interface Simple {
           id: string;
         }
@@ -173,6 +179,9 @@ describe("JsonDeserializer", () => {
 
       // The return type should be the model name (resolved from typeRefkey)
       expect(template).toRenderTo(d`
+        /**
+         * model interface Result
+         */
         export interface Result {
           value: string;
         }
@@ -221,6 +230,9 @@ describe("JsonDeserializer", () => {
     // The deserializer output keys should use client names (property.name)
     // while the input accessors use wire names (serializedName)
     expect(template).toRenderTo(d`
+      /**
+       * model interface User
+       */
       export interface User {
         userName: string;
         emailAddress: string;
@@ -307,10 +319,16 @@ describe("JsonDeserializer", () => {
       );
 
       expect(template).toRenderTo(d`
+        /**
+         * model interface Address
+         */
         export interface Address {
           street: string;
         }
 
+        /**
+         * model interface Person
+         */
         export interface Person {
           name: string;
           address?: Address;
@@ -349,10 +367,16 @@ describe("JsonDeserializer", () => {
       );
 
       expect(template).toRenderTo(d`
+        /**
+         * model interface Inner
+         */
         export interface Inner {
           value: string;
         }
 
+        /**
+         * model interface Outer
+         */
         export interface Outer {
           inner: Inner;
         }
@@ -390,10 +414,16 @@ describe("JsonDeserializer", () => {
       );
 
       expect(template).toRenderTo(d`
+        /**
+         * model interface Tag
+         */
         export interface Tag {
           label: string;
         }
 
+        /**
+         * model interface Item
+         */
         export interface Item {
           tags: (Tag)[];
         }
@@ -493,6 +523,9 @@ describe("JsonDeserializer", () => {
 
     // plainDate deserializes with new Date() — same as utcDateTime
     expect(template).toRenderTo(d`
+      /**
+       * model interface Event
+       */
       export interface Event {
         name: string;
         eventDate: Date;
@@ -541,6 +574,9 @@ describe("JsonDeserializer", () => {
 
     // unixTimestamp deserialization must multiply by 1000 to convert seconds to ms
     expect(template).toRenderTo(d`
+      /**
+       * model interface Event
+       */
       export interface Event {
         name: string;
         createdAt: Date;
@@ -599,11 +635,17 @@ describe("JsonDeserializer", () => {
 
     // catDeserializer must include name and weight from Pet parent
     expect(template).toRenderTo(d`
+      /**
+       * model interface Pet
+       */
       export interface Pet {
         name: string;
         weight?: number;
       }
 
+      /**
+       * model interface Cat
+       */
       export interface Cat extends Pet {
         kind: "cat";
         meow: number;
@@ -659,6 +701,9 @@ describe("JsonDeserializer", () => {
       expect(template).toRenderTo(d`
         import { stringToUint8Array } from "@typespec/ts-http-runtime";
 
+        /**
+         * model interface Document
+         */
         export interface Document {
           content: Uint8Array;
         }
@@ -706,6 +751,9 @@ describe("JsonDeserializer", () => {
       expect(template).toRenderTo(d`
         import { stringToUint8Array } from "@typespec/ts-http-runtime";
 
+        /**
+         * model interface Token
+         */
         export interface Token {
           data: Uint8Array;
         }

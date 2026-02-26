@@ -75,6 +75,9 @@ Generated Models.
 
 import { deserializeRecord } from "../helpers/serializationHelpers.js";
 
+/**
+ * model interface SimpleModel
+ */
 export interface SimpleModel {
   proNumeric: number;
   proNumericArray: number[];

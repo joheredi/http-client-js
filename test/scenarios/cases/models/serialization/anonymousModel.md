@@ -31,15 +31,24 @@ Generated Models.
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
+/**
+ * model interface SimpleModel
+ */
 export interface SimpleModel {
   prop: _SimpleModelProp;
 }
 
+/**
+ * model interface _SimpleModelProp
+ */
 export interface _SimpleModelProp {
   propA: string;
   propB: _SimpleModelPropPropB;
 }
 
+/**
+ * model interface _SimpleModelPropPropB
+ */
 export interface _SimpleModelPropPropB {
   propAa: string;
   propBb: boolean;

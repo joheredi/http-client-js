@@ -98,16 +98,25 @@ describe("JsonPolymorphicDeserializer", () => {
     );
 
     expect(template).toRenderTo(d`
+      /**
+       * model interface Pet
+       */
       export interface Pet {
         kind: string;
         name: string;
       }
 
+      /**
+       * model interface Cat
+       */
       export interface Cat extends Pet {
         kind: "cat";
         meow: boolean;
       }
 
+      /**
+       * model interface Dog
+       */
       export interface Dog extends Pet {
         kind: "dog";
         bark: boolean;
@@ -206,10 +215,16 @@ describe("JsonPolymorphicDeserializer", () => {
 
     // Verify the switch uses the wire name "shape_type", not the client name "type"
     expect(template).toRenderTo(d`
+      /**
+       * model interface Shape
+       */
       export interface Shape {
         type: string;
       }
 
+      /**
+       * model interface Circle
+       */
       export interface Circle extends Shape {
         type: "circle";
         radius: number;
@@ -294,10 +309,16 @@ describe("JsonPolymorphicDeserializer", () => {
 
     // Verify the return type is VehicleUnion
     expect(template).toRenderTo(d`
+      /**
+       * model interface Vehicle
+       */
       export interface Vehicle {
         kind: string;
       }
 
+      /**
+       * model interface Car
+       */
       export interface Car extends Vehicle {
         kind: "car";
         doors: number;
@@ -384,10 +405,16 @@ describe("JsonPolymorphicDeserializer", () => {
 
     // The refkey reference should resolve to the polymorphic deserializer name
     expect(template).toRenderTo(d`
+      /**
+       * model interface Animal
+       */
       export interface Animal {
         kind: string;
       }
 
+      /**
+       * model interface Bird
+       */
       export interface Bird extends Animal {
         kind: "bird";
         canFly: boolean;
@@ -473,10 +500,16 @@ describe("JsonPolymorphicDeserializer", () => {
     );
 
     expect(template).toRenderTo(d`
+      /**
+       * model interface Base
+       */
       export interface Base {
         kind: string;
       }
 
+      /**
+       * model interface Sub
+       */
       export interface Sub extends Base {
         kind: "sub";
         value: string;

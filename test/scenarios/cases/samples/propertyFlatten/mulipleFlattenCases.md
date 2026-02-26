@@ -81,12 +81,18 @@ export interface BodyParameter {
   baz?: string;
 }
 
+/**
+ * model interface FooProperties
+ */
 export interface FooProperties {
   x?: string;
   y?: string;
   baz?: string;
 }
 
+/**
+ * model interface A
+ */
 export interface A {
   x: string;
   y: string;

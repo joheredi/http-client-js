@@ -3069,8 +3069,8 @@
         "priority": "P2",
         "description": "The expected output includes `/** model interface <Name> */` JSDoc comments above each exported interface declaration. The actual output omits these comments entirely.\n\nACTUAL (`test/scenarios/cases/modelsGenerator/modelsGenerator.md`, line 47):\n```ts\nexport interface Test {\n```\n\nEXPECTED (`submodules/autorest.typescript/packages/typespec-ts/test/modularUnit/scenarios/modelsGenerator/modelsGenerator.md`, lines 50-51):\n```ts\n/** model interface Test */\nexport interface Test {\n```\n\nThis pattern is consistent across all interface declarations in the expected file. Found at expected lines: 50, 115, 179, 242, 312, 413, 570, 655, 738, 819, 893, 969, 1043, 1138, 1233, 1336, 1351, 1364, 1416, 1431, and more. Zero occurrences in the actual file. Related to SA6 which was marked done, but this specific aspect is still missing.",
         "affected_scenarios": "modelsGenerator.md \u2014 All model interface declarations",
-        "status": "pending",
-        "resolution": null,
+        "status": "done",
+        "resolution": "Modified getModelDoc() in src/components/model-interface.tsx to fall back to \"model interface <Name>\" when no explicit @doc or summary exists. Added getModelDisplayName() helper to produce plain-string names for JSDoc text. Added dedicated unit test for fallback behavior. Updated all test expectations (unit tests and scenario .md files) to include the new JSDoc comments.",
         "references": {
           "actual_file": "test/scenarios/cases/modelsGenerator/modelsGenerator.md",
           "actual_lines": "None (pattern absent)",

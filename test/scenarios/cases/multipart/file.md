@@ -19,6 +19,9 @@ This basic case uses TypeSpec's `Http.File`, which specifies an optional `filena
 import { createFilePartDescriptor } from "../helpers/multipartHelpers.js";
 import { uint8ArrayToString } from "@typespec/ts-http-runtime";
 
+/**
+ * model interface RequestBody
+ */
 export interface RequestBody {
   basicFile: File;
 }
@@ -178,10 +181,16 @@ The filename must be provided _somehow_. This can either be done by passing a `F
 import { createFilePartDescriptor } from "../helpers/multipartHelpers.js";
 import { uint8ArrayToString } from "@typespec/ts-http-runtime";
 
+/**
+ * model interface RequestBody
+ */
 export interface RequestBody {
   nameRequired: FileRequiredName;
 }
 
+/**
+ * model interface FileRequiredName
+ */
 export interface FileRequiredName extends File {
   filename: string;
 }
@@ -300,10 +309,16 @@ op doThing(@header contentType: "multipart/form-data", @multipartBody bodyParam:
 import { createFilePartDescriptor } from "../helpers/multipartHelpers.js";
 import { uint8ArrayToString } from "@typespec/ts-http-runtime";
 
+/**
+ * model interface RequestBody
+ */
 export interface RequestBody {
   image: PngFile;
 }
 
+/**
+ * model interface PngFile
+ */
 export interface PngFile extends File {
   contentType: "image/png";
 }
@@ -420,6 +435,9 @@ Each provided file in the input corresponds to one part in the multipart request
 import { createFilePartDescriptor } from "../helpers/multipartHelpers.js";
 import { uint8ArrayToString } from "@typespec/ts-http-runtime";
 
+/**
+ * model interface RequestBody
+ */
 export interface RequestBody {
   files: File[];
 }

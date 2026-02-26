@@ -4045,3 +4045,28 @@ All union types with `isGeneratedName: true` now get `_` prefix. This affected:
 ### Test results
 - All 922 tests pass (919 passed + 3 skipped), up from 909 (10 new tests added)
 - Build passes with no type errors
+
+## SA28: JSDoc Model Interface Comments Missing — DONE (2026-02-26)
+
+### What was done
+- Modified `getModelDoc()` in `src/components/model-interface.tsx` to always return a non-undefined doc string
+- When no explicit `@doc` or `summary` exists, falls back to `"model interface <Name>"` matching legacy emitter behavior
+- Added `getModelDisplayName()` helper to produce plain-string names for JSDoc text (handles `isGeneratedName` models that return `Namekey` objects from `getModelName()`)
+- Added dedicated unit test `"should render fallback JSDoc 'model interface <Name>' when no doc exists"` in `test/components/model-interface.test.tsx`
+- Updated all test expectations across unit tests and scenario `.md` files
+
+### Key decisions
+- The JSDoc uses the TCGC model name (pre-normalization), not the Alloy-normalized interface name. For example, `model interface PSDog` even though the interface renders as `PsDog`. This is because the doc string is set before Alloy's name policy runs.
+- Only model interfaces (from `ModelInterface` component) get the fallback JSDoc — client context, options, and other non-model interfaces are unaffected
+- The snippet extractor (tree-sitter) doesn't include JSDoc when extracting individual interfaces, so only full-file test blocks needed updating
+
+### Files changed
+- `src/components/model-interface.tsx` — core change
+- `test/components/model-interface.test.tsx` — updated expectations + new test
+- `test/components/*.test.tsx` — updated expectations for model interfaces
+- `test/scenarios/cases/**/*.md` — added JSDoc to full-file model code blocks
+
+### Gotcha for next person
+- `getModelName()` returns `Namekey` (an object) for generated names, NOT a string. If you use it in a template literal, you'll get `[object Object]`. Use `getModelDisplayName()` for plain-string contexts like JSDoc.
+- The scenario `.md` file expectations must distinguish between full-file blocks (e.g., `\`\`\`ts models`) which include JSDoc, and interface-specific blocks (e.g., `\`\`\`ts models interface Foo`) which don't include JSDoc because the snippet extractor doesn't extract leading comments.
+

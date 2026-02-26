@@ -1749,3 +1749,12 @@ and no deserializer was generated for union types.
 2. A pass-through deserializer function
 3. Deserialization expressions that call the union deserializer
 This affected additional properties scenarios and property type scenarios that use unions.
+
+## getModelName() returns Namekey for generated names — not a string
+
+**Problem:** When using `getModelName(model)` inside a template literal for documentation text (e.g., JSDoc), models with `isGeneratedName: true` produce `[object Object]` instead of the expected name string. This is because `getModelName()` returns a `Namekey` object (not a string) for generated names to preserve the `_` prefix through Alloy's name policy.
+
+**Fix:** Use `getModelDisplayName(model)` (private helper in `model-interface.tsx`) or compute the display name directly as `model.isGeneratedName ? "_" + model.name : model.name` when you need a plain string. The `getModelName()` function should only be used as the `name` prop on Alloy declaration components where `Namekey` is expected.
+
+**Related:** Same pattern exists for `getUnionName()` — use `getUnionDisplayName()` for plain-string contexts.
+

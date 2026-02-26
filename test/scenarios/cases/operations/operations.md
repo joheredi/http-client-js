@@ -848,10 +848,16 @@ op get(): TestArrayModel;
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
+/**
+ * model interface TestArrayModel
+ */
 export interface TestArrayModel {
   prop: Test[];
 }
 
+/**
+ * model interface Test
+ */
 export interface Test {
   prop?: Test[];
 }
@@ -947,10 +953,16 @@ op get(): TestDictionary;
 
 import { deserializeRecord } from "../helpers/serializationHelpers.js";
 
+/**
+ * model interface TestDictionary
+ */
 export interface TestDictionary {
   prop: Record<string, Test>;
 }
 
+/**
+ * model interface Test
+ */
 export interface Test {
   prop?: Record<string, Test>;
 }
@@ -1044,6 +1056,9 @@ op createOrUpdateEndpoint(
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
+/**
+ * model interface Endpoint
+ */
 export interface Endpoint {
   name: string;
   description?: string;
@@ -1182,11 +1197,17 @@ withRawContent: true
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
+/**
+ * model interface ListTestResult
+ */
 export interface ListTestResult {
   tests: Test[];
   next: string;
 }
 
+/**
+ * model interface Test
+ */
 export interface Test {
   id: string;
 }

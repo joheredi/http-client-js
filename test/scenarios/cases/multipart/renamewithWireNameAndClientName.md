@@ -21,6 +21,9 @@ op withWireName(
 
 import { createFilePartDescriptor } from "../helpers/multipartHelpers.js";
 
+/**
+ * model interface MultiPartRequestWithWireName
+ */
 export interface MultiPartRequestWithWireName {
   identifier: string;
   image: Uint8Array;
@@ -71,6 +74,9 @@ needTCGC: true
 
 import { createFilePartDescriptor } from "../helpers/multipartHelpers.js";
 
+/**
+ * model interface MultiPartRequest
+ */
 export interface MultiPartRequest {
   identifier: string;
   image: Uint8Array;

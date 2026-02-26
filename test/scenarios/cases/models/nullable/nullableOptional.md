@@ -18,6 +18,9 @@ op test(): { @body body: TestModel };
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
+/**
+ * model interface TestModel
+ */
 export interface TestModel {
   optionalNullableBoolean?: boolean;
   requiredNullableBoolean: boolean | null;
@@ -61,6 +64,9 @@ ignore-nullable-on-optional: false
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
+/**
+ * model interface TestModel
+ */
 export interface TestModel {
   optionalNullableBoolean?: boolean | null;
   requiredNullableBoolean: boolean | null;

@@ -342,6 +342,9 @@ describe("OperationOptions", () => {
     expect(template).toRenderTo(d`
       import type { OperationOptions } from "@typespec/ts-http-runtime";
 
+      /**
+       * model interface PatchData
+       */
       export interface PatchData {
         name?: string;
       }

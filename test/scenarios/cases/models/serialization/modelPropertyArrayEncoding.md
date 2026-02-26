@@ -45,6 +45,9 @@ import {
   parseSsvCollection,
 } from "../helpers/serializationHelpers.js";
 
+/**
+ * model interface Widget
+ */
 export interface Widget {
   colors: string[];
   optionalColors?: string[];
@@ -120,12 +123,18 @@ import {
   parsePipeCollection,
 } from "../helpers/serializationHelpers.js";
 
+/**
+ * model interface ContainerWidget
+ */
 export interface ContainerWidget {
   name: string;
   nested: NestedWidget;
   optionalNested?: NestedWidget;
 }
 
+/**
+ * model interface NestedWidget
+ */
 export interface NestedWidget {
   tags: string[];
   categories?: string[];
@@ -230,6 +239,9 @@ import {
   parseSsvCollection,
 } from "../helpers/serializationHelpers.js";
 
+/**
+ * model interface Widget
+ */
 export interface Widget {
   requiredCsvColors: Color[];
   optionalPipeColors?: ColorsUnion[];

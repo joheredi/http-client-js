@@ -29,10 +29,16 @@ Generated Models.
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
+/**
+ * model interface Foo
+ */
 export interface Foo {
   name: string;
 }
 
+/**
+ * model interface ApiError
+ */
 export interface ApiError {
   /**
    * A machine readable error code
@@ -41,6 +47,9 @@ export interface ApiError {
   detail?: ErrorDetail;
 }
 
+/**
+ * model interface ErrorDetail
+ */
 export interface ErrorDetail {
   /**
    * A human readable message
@@ -102,11 +111,17 @@ Generated Models.
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
+/**
+ * model interface Foo
+ */
 export interface Foo {
   name: string;
   options: ErrorDetail;
 }
 
+/**
+ * model interface ErrorDetail
+ */
 export interface ErrorDetail {
   /**
    * A human readable message
@@ -114,6 +129,9 @@ export interface ErrorDetail {
   message: string;
 }
 
+/**
+ * model interface ApiError
+ */
 export interface ApiError {
   /**
    * A machine readable error code

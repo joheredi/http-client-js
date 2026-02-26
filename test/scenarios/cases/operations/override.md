@@ -154,6 +154,9 @@ withRawContent: true
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
+/**
+ * model interface GroupParametersOptions
+ */
 export interface GroupParametersOptions {
   param1: string;
   param2: string;

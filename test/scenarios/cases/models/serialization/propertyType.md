@@ -94,6 +94,9 @@ Generated Models.
 
 import { serializeRecord } from "../helpers/serializationHelpers.js";
 
+/**
+ * model interface SimpleModel
+ */
 export interface SimpleModel {
   propString: string;
   propboolean: boolean;
@@ -149,14 +152,23 @@ export interface SimpleModel {
   propRecordOfUnionNotNormalize: Record<string, NfvIs>;
 }
 
+/**
+ * model interface FOO
+ */
 export interface Foo {
   param?: Foobar;
 }
 
+/**
+ * model interface FOOBAR
+ */
 export interface Foobar {
   name?: Record<string, NfvIs[]>;
 }
 
+/**
+ * model interface NFVIs
+ */
 export interface NfvIs {
   name?: string;
   nfviType: string;
@@ -170,11 +182,17 @@ export type NfvIsUnion =
   | AzureArcK8sClusterNfviDetails
   | NfvIs;
 
+/**
+ * model interface AzureCoreNFVIDetails
+ */
 export interface AzureCoreNfviDetails extends NfvIs {
   location?: string;
   nfviType: "AzureCore";
 }
 
+/**
+ * model interface AzureArcK8sClusterNFVIDetails
+ */
 export interface AzureArcK8sClusterNfviDetails extends NfvIs {
   customLocationId?: string;
   nfviType: "AzureArcKubernetes";

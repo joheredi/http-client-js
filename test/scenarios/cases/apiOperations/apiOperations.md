@@ -227,6 +227,9 @@ op uploadFiles(
 
 import { createFilePartDescriptor } from "../helpers/multipartHelpers.js";
 
+/**
+ * model interface _UploadFilesRequest
+ */
 export interface _UploadFilesRequest {
   files: Uint8Array[];
 }

@@ -51,11 +51,17 @@ withRawContent: true
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
+/**
+ * model interface ListTestResult
+ */
 export interface ListTestResult {
   tests: Test[];
   next: string;
 }
 
+/**
+ * model interface Test
+ */
 export interface Test {
   id: string;
 }

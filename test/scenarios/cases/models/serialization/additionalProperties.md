@@ -42,6 +42,9 @@ Generated Models.
 
 import { serializeRecord } from "../helpers/serializationHelpers.js";
 
+/**
+ * model interface SimpleModel
+ */
 export interface SimpleModel {
   propA: string;
   propB: string;
@@ -51,6 +54,9 @@ export interface SimpleModel {
   additionalProperties?: Record<string, _SimpleModelAdditionalProperty>;
 }
 
+/**
+ * model interface ComplexModel
+ */
 export interface ComplexModel {
   propA: SimpleModel;
   /**
@@ -115,6 +121,9 @@ Generated Models.
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
+/**
+ * model interface SimpleModel
+ */
 export interface SimpleModel {
   additionalProperties: string;
   propA: string;
@@ -173,6 +182,9 @@ Generated Models.
 
 import { serializeRecord } from "../helpers/serializationHelpers.js";
 
+/**
+ * model interface SimpleModel
+ */
 export interface SimpleModel {
   propA: string;
   propB: string;
@@ -182,6 +194,9 @@ export interface SimpleModel {
   additionalProperties?: Record<string, string>;
 }
 
+/**
+ * model interface ComplexModel
+ */
 export interface ComplexModel {
   propA: SimpleModel;
   /**
@@ -309,6 +324,9 @@ Generated Models.
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
+/**
+ * model interface SimpleModel
+ */
 export interface SimpleModel {
   propA: string;
   propB: string;
@@ -380,6 +398,9 @@ Generated Models.
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
+/**
+ * model interface SimpleModel
+ */
 export interface SimpleModel {
   additionalProperties: Record<string, number>;
   propA: string;
@@ -390,6 +411,9 @@ export interface SimpleModel {
   additionalPropertiesBag?: Record<string, string>;
 }
 
+/**
+ * model interface FooModel
+ */
 export interface FooModel extends BarModel {
   propA: string;
   propB: string;
@@ -399,6 +423,9 @@ export interface FooModel extends BarModel {
   additionalProperties?: Record<string, string>;
 }
 
+/**
+ * model interface BarModel
+ */
 export interface BarModel {
   additionalProperties: Record<string, number>;
 }

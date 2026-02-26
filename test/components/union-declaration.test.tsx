@@ -261,10 +261,16 @@ describe("Union Declaration", () => {
     );
 
     expect(template).toRenderTo(`
+      /**
+       * model interface Cat
+       */
       export interface Cat {
         meow: boolean;
       }
 
+      /**
+       * model interface Dog
+       */
       export interface Dog {
         bark: boolean;
       }
@@ -366,10 +372,16 @@ describe("Union Declaration", () => {
     );
 
     expect(template).toRenderTo(`
+      /**
+       * model interface Cat
+       */
       export interface Cat {
         meow: boolean;
       }
 
+      /**
+       * model interface Dog
+       */
       export interface Dog {
         bark: boolean;
       }

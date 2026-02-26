@@ -69,10 +69,16 @@ Model generated.
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
+/**
+ * model interface _FooRequestBody
+ */
 export interface _FooRequestBody {
   status: ProvisioningState;
 }
 
+/**
+ * model interface _FooRequest
+ */
 export interface _FooRequest {
   body: _FooRequestBody;
 }

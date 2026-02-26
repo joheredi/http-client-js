@@ -37,6 +37,9 @@ Generated Models.
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
+/**
+ * model interface AWidgetData
+ */
 export interface AWidgetData {
   kind: string;
 }
@@ -46,11 +49,17 @@ export interface AWidgetData {
  */
 export type AWidgetDataUnion = AoaiModelConfig | MaasModelConfig | AWidgetData;
 
+/**
+ * model interface AOAIModelConfig
+ */
 export interface AoaiModelConfig extends AWidgetData {
   kind: "kind0";
   fooProp: string;
 }
 
+/**
+ * model interface MAASModelConfig
+ */
 export interface MaasModelConfig extends AWidgetData {
   kind: "kind1";
   start: Date;
@@ -168,6 +177,9 @@ Generated Models.
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
+/**
+ * model interface DiscountTypeProperties
+ */
 export interface DiscountTypeProperties {
   discountType: DiscountType;
   discountPercentage?: number;
@@ -182,17 +194,26 @@ export type DiscountTypePropertiesUnion =
   | DiscountTypeProductSku
   | DiscountTypeProperties;
 
+/**
+ * model interface DiscountTypeProductFamily
+ */
 export interface DiscountTypeProductFamily extends DiscountTypeProperties {
   productFamilyName?: string;
   discountType: "ProductFamily";
 }
 
+/**
+ * model interface DiscountTypeProduct
+ */
 export interface DiscountTypeProduct extends DiscountTypeProperties {
   productFamilyName?: string;
   productId?: string;
   discountType: "Product";
 }
 
+/**
+ * model interface DiscountTypeProductSku
+ */
 export interface DiscountTypeProductSku extends DiscountTypeProperties {
   productFamilyName?: string;
   productId?: string;
@@ -329,6 +350,9 @@ Generated Models.
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
+/**
+ * model interface DocumentIngress
+ */
 export interface DocumentIngress {
   documentType: DocumentType;
   documentStreamIds?: string[];
@@ -340,12 +364,18 @@ export interface DocumentIngress {
  */
 export type DocumentIngressUnion = Request | Exception | DocumentIngress;
 
+/**
+ * model interface Request
+ */
 export interface Request extends DocumentIngress {
   documentType: "Request";
   name?: string;
   url?: string;
 }
 
+/**
+ * model interface Exception
+ */
 export interface Exception extends DocumentIngress {
   documentType: "Exception";
   exceptionType?: string;
@@ -528,6 +558,9 @@ Generated Models.
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
+/**
+ * model interface Animal
+ */
 export interface Animal {
   /**
    * The kind of animal
@@ -544,6 +577,9 @@ export interface Animal {
  */
 export type AnimalUnion = Pet | Animal;
 
+/**
+ * model interface Pet
+ */
 export interface Pet extends Animal {
   kind: "pet";
   /**
@@ -557,6 +593,9 @@ export interface Pet extends Animal {
  */
 export type PetUnion = Dog | Pet;
 
+/**
+ * model interface Dog
+ */
 export interface Dog extends Pet {
   kind: "dog";
   /**

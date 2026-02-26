@@ -103,6 +103,9 @@ describe("Unresolved Symbol Prevention", () => {
         /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
 
+        /**
+         * model interface TestModel
+         */
         export interface TestModel {
           normalUnion: TestModelNormalUnion;
           nullableUnion: TestModelNullableUnion | null;
@@ -176,6 +179,9 @@ describe("Unresolved Symbol Prevention", () => {
 
     // Verify the User model gets a JSON deserializer with proper function signature
     expect(template).toRenderTo(d`
+      /**
+       * model interface User
+       */
       export interface User {
         name: string;
         email: string;

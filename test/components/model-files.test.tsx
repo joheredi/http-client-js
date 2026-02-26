@@ -92,6 +92,9 @@ describe("ModelFiles", () => {
         /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
 
+        /**
+         * model interface Widget
+         */
         export interface Widget {
           name: string;
           age: number;
@@ -185,6 +188,9 @@ describe("ModelFiles", () => {
         /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
 
+        /**
+         * model interface Widget
+         */
         export interface Widget {
           name: string;
           status: Status;
@@ -371,10 +377,16 @@ describe("ModelFiles", () => {
         /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
 
+        /**
+         * model interface Foo
+         */
         export interface Foo {
           x: string;
         }
 
+        /**
+         * model interface Bar
+         */
         export interface Bar {
           y: number;
         }

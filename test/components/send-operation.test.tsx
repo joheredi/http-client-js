@@ -272,6 +272,9 @@ describe("SendOperation", () => {
     expect(template).toRenderTo(d`
       import { type Client, type OperationOptions, operationOptionsToRequestParameters, type StreamableMethod } from "@typespec/ts-http-runtime";
 
+      /**
+       * model interface Item
+       */
       export interface Item {
         name: string;
         value: number;
@@ -542,6 +545,9 @@ describe("SendOperation", () => {
     expect(template).toRenderTo(d`
       import { type Client, expandUrlTemplate, type OperationOptions, operationOptionsToRequestParameters, type StreamableMethod } from "@typespec/ts-http-runtime";
 
+      /**
+       * model interface PatchData
+       */
       export interface PatchData {
         name?: string;
       }

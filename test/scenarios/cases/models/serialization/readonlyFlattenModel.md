@@ -38,6 +38,9 @@ needTCGC: true
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
+/**
+ * model interface Solution
+ */
 export interface Solution {
   readonly solutionId?: string;
   readonly title?: string;
@@ -47,6 +50,9 @@ export interface Solution {
   readonly content?: string;
 }
 
+/**
+ * model interface SolutionProperties
+ */
 export interface SolutionProperties {
   readonly solutionId?: string;
   readonly title?: string;

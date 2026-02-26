@@ -45,23 +45,35 @@ Model generated.
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
+/**
+ * model interface NestedFlattenModel
+ */
 export interface NestedFlattenModel {
   name: string;
   summary: string;
   properties: ChildModel;
 }
 
+/**
+ * model interface ChildFlattenModel
+ */
 export interface ChildFlattenModel {
   summary: string;
   description: string;
   age: number;
 }
 
+/**
+ * model interface ChildModel
+ */
 export interface ChildModel {
   description: string;
   age: number;
 }
 
+/**
+ * model interface _FooRequest
+ */
 export interface _FooRequest {
   body: NestedFlattenModel;
 }
@@ -173,27 +185,42 @@ Model generated.
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
+/**
+ * model interface NestedFlattenModel
+ */
 export interface NestedFlattenModel {
   name: string;
   summary: string;
   foo: Foo;
 }
 
+/**
+ * model interface ChildFlattenModel
+ */
 export interface ChildFlattenModel {
   summary: string;
   foo: Foo;
 }
 
+/**
+ * model interface Foo
+ */
 export interface Foo {
   description: string;
   age: number;
 }
 
+/**
+ * model interface ChildModel
+ */
 export interface ChildModel {
   description: string;
   age: number;
 }
 
+/**
+ * model interface _FooRequest
+ */
 export interface _FooRequest {
   body: NestedFlattenModel;
 }

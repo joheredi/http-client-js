@@ -20,6 +20,9 @@ op post(@body body: A): { @body body: A };
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
+/**
+ * model interface _PostRequest
+ */
 export interface _PostRequest {
   code?: string;
   message?: string;

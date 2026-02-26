@@ -34,10 +34,16 @@ op getModel(@bodyRoot input: InputOutputModel): InputOutputModel;
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
+/**
+ * model interface InputOutputModel
+ */
 export interface InputOutputModel {
   prop: Foo;
 }
 
+/**
+ * model interface Foo
+ */
 export interface Foo {
   x: TemplatedBase;
   y: Templated;
@@ -46,24 +52,42 @@ export interface Foo {
   j: Templated3;
 }
 
+/**
+ * model interface TemplatedBase
+ */
 export interface TemplatedBase {
   prop: Base;
 }
 
+/**
+ * model interface Base
+ */
 export interface Base {}
 
+/**
+ * model interface Templated
+ */
 export interface Templated {
   prop: string;
 }
 
+/**
+ * model interface Templated1
+ */
 export interface Templated1 {
   prop: "cat";
 }
 
+/**
+ * model interface Templated2
+ */
 export interface Templated2 {
   prop: true;
 }
 
+/**
+ * model interface Templated3
+ */
 export interface Templated3 {
   prop: 1;
 }

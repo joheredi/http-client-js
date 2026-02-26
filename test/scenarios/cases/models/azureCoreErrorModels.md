@@ -194,10 +194,16 @@ export interface AvsSummary extends ProxyResource {
   readonly name: string;
 }
 
+/**
+ * model interface AvsSummaryProperties
+ */
 export interface AvsSummaryProperties {
   error: ErrorDetail_1;
 }
 
+/**
+ * model interface ErrorDetail
+ */
 export interface ErrorDetail_1 {
   code: string;
   message: string;

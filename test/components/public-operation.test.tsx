@@ -168,6 +168,9 @@ describe("PublicOperation", () => {
     expect(template).toRenderTo(d`
       import { type Client, createRestError, type OperationOptions, operationOptionsToRequestParameters, type PathUncheckedResponse, type StreamableMethod } from "@typespec/ts-http-runtime";
 
+      /**
+       * model interface Item
+       */
       export interface Item {
         name: string;
         value: number;
@@ -551,6 +554,9 @@ describe("PublicOperation", () => {
     expect(template).toRenderTo(d`
       import { type Client, createRestError, expandUrlTemplate, type OperationOptions, operationOptionsToRequestParameters, type PathUncheckedResponse, type StreamableMethod } from "@typespec/ts-http-runtime";
 
+      /**
+       * model interface Item
+       */
       export interface Item {
         name: string;
       }
@@ -734,6 +740,9 @@ describe("PublicOperation", () => {
       expect(template).toRenderTo(d`
         import { type Client, createRestError, type OperationOptions, operationOptionsToRequestParameters, type PathUncheckedResponse, type StreamableMethod } from "@typespec/ts-http-runtime";
 
+        /**
+         * model interface User
+         */
         export interface User {
           name: string;
         }
@@ -815,6 +824,9 @@ describe("PublicOperation", () => {
       expect(template).toRenderTo(d`
         import { type Client, createRestError, type OperationOptions, operationOptionsToRequestParameters, type PathUncheckedResponse, type StreamableMethod } from "@typespec/ts-http-runtime";
 
+        /**
+         * model interface User
+         */
         export interface User {
           name: string;
         }

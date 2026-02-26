@@ -44,6 +44,9 @@ needTCGC: true
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
+/**
+ * model interface Test
+ */
 export interface Test {
   prop: string;
 }
@@ -105,6 +108,9 @@ withRawContent: true
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
+/**
+ * model interface InputOutputModel
+ */
 export interface InputOutputModel {
   prop: true;
 }
@@ -167,6 +173,9 @@ withRawContent: true
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
+/**
+ * model interface InputOutputModel
+ */
 export interface InputOutputModel {
   prop: 1;
 }
@@ -228,6 +237,9 @@ withRawContent: true
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
+/**
+ * model interface InputOutputModel
+ */
 export interface InputOutputModel {
   prop: "foo";
 }
@@ -296,6 +308,9 @@ withRawContent: true
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
+/**
+ * model interface InputOutputModel
+ */
 export interface InputOutputModel {
   prop: "English";
 }
@@ -1294,16 +1309,25 @@ op read(): { @body body: Cat | Dog };
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
+/**
+ * model interface Cat
+ */
 export interface Cat extends Pet {
   kind: "cat";
   meow: number;
 }
 
+/**
+ * model interface Pet
+ */
 export interface Pet {
   name: string;
   weight?: number;
 }
 
+/**
+ * model interface Dog
+ */
 export interface Dog extends Pet {
   kind: "dog";
   bark: string;
@@ -1370,11 +1394,17 @@ op read(): { @body body: Cat };
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
+/**
+ * model interface Cat
+ */
 export interface Cat extends Pet {
   kind: "cat";
   meow: number;
 }
 
+/**
+ * model interface Pet
+ */
 export interface Pet {
   name: string;
   weight?: number;
@@ -1467,15 +1497,24 @@ op read(): { @body body: Cat };
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
+/**
+ * model interface Cat
+ */
 export interface Cat extends Pet {
   kind: "cat";
   meow: number;
 }
 
+/**
+ * model interface Pet
+ */
 export interface Pet extends Animal {
   weight?: number;
 }
 
+/**
+ * model interface Animal
+ */
 export interface Animal {
   name: string;
 }
@@ -1577,11 +1616,17 @@ op read(@body body: PSDog): { @body body: PSDog };
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
+/**
+ * model interface PSDog
+ */
 export interface PsDog extends Pet {
   kind: "dog";
   bark: string;
 }
 
+/**
+ * model interface Pet
+ */
 export interface Pet {
   kind: string;
   name: string;
@@ -1728,6 +1773,9 @@ op read(): { @body body: Pet };
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
+/**
+ * model interface Pet
+ */
 export interface Pet {
   kind: string;
   name: string;
@@ -1739,11 +1787,17 @@ export interface Pet {
  */
 export type PetUnion = Cat | Dog | Pet;
 
+/**
+ * model interface Cat
+ */
 export interface Cat extends Pet {
   kind: "cat";
   meow: number;
 }
 
+/**
+ * model interface Dog
+ */
 export interface Dog extends Pet {
   kind: "dog";
   bark: string;
@@ -1867,6 +1921,9 @@ op read(): { @body body: Pet };
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
+/**
+ * model interface Pet
+ */
 export interface Pet {
   kind: string;
   name: string;
@@ -1878,11 +1935,17 @@ export interface Pet {
  */
 export type PetUnion = Cat | Dog | Pet;
 
+/**
+ * model interface Cat
+ */
 export interface Cat extends Pet {
   kind: "cat";
   meow: number;
 }
 
+/**
+ * model interface Dog
+ */
 export interface Dog extends Pet {
   kind: "dog";
   type: "dog";
@@ -1894,6 +1957,9 @@ export interface Dog extends Pet {
  */
 export type DogUnion = Gold | Dog;
 
+/**
+ * model interface Gold
+ */
 export interface Gold extends Dog {
   type: "gold";
   friends: Pet[];
@@ -2028,12 +2094,18 @@ op read(): { @body body: Foo };
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
+/**
+ * model interface Foo
+ */
 export interface Foo {
   name: string;
   weight?: number;
   bar: Bar;
 }
 
+/**
+ * model interface Bar
+ */
 export interface Bar {
   foo: Foo;
 }
@@ -2465,6 +2537,9 @@ op read(@body body: A): void;
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
+/**
+ * model interface A
+ */
 export interface A {
   readonly exactVersion?: string;
 }
@@ -2580,6 +2655,9 @@ mustEmptyDiagnostic: true
 
 import { serializeRecord } from "../helpers/serializationHelpers.js";
 
+/**
+ * model interface Vegetables
+ */
 export interface Vegetables {
   carrots: number;
   beans: number;
@@ -2716,15 +2794,24 @@ op createService(@body body: ServiceResourceProperties): ServiceResourceProperti
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
+/**
+ * model interface ServiceResourceProperties
+ */
 export interface ServiceResourceProperties {
   servicePlacementPolicies?: ServicePlacementPolicyDescription[];
 }
 
+/**
+ * model interface ServicePlacementPolicyDescription
+ */
 export interface ServicePlacementPolicyDescription extends Pet {
   kind: "dog";
   type: "dog";
 }
 
+/**
+ * model interface Pet
+ */
 export interface Pet {
   kind: string;
   name: string;
@@ -2840,6 +2927,9 @@ op read(@body body: Client): Client;
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
+/**
+ * model interface Client
+ */
 export interface Client {
   id: string;
   email: string;

@@ -110,6 +110,9 @@ export interface BodyParameter {
   baz?: number;
 }
 
+/**
+ * model interface FooProperties
+ */
 export interface FooProperties {
   bar?: A[];
   baz: A[];
@@ -117,10 +120,16 @@ export interface FooProperties {
   baz?: number;
 }
 
+/**
+ * model interface A
+ */
 export interface A {
   x: string;
 }
 
+/**
+ * model interface ChildFlattenModel
+ */
 export interface ChildFlattenModel {
   description: string;
   baz: number;

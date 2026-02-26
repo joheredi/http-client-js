@@ -99,16 +99,25 @@ describe("JsonPolymorphicSerializer", () => {
     );
 
     expect(template).toRenderTo(d`
+      /**
+       * model interface Pet
+       */
       export interface Pet {
         kind: string;
         name: string;
       }
 
+      /**
+       * model interface Cat
+       */
       export interface Cat extends Pet {
         kind: "cat";
         meow: boolean;
       }
 
+      /**
+       * model interface Dog
+       */
       export interface Dog extends Pet {
         kind: "dog";
         bark: boolean;
@@ -208,10 +217,16 @@ describe("JsonPolymorphicSerializer", () => {
     const result = template;
     // Verify the switch uses the client name "type", not the wire name "shape_type"
     expect(result).toRenderTo(d`
+      /**
+       * model interface Shape
+       */
       export interface Shape {
         type: string;
       }
 
+      /**
+       * model interface Circle
+       */
       export interface Circle extends Shape {
         type: "circle";
         radius: number;
@@ -297,10 +312,16 @@ describe("JsonPolymorphicSerializer", () => {
 
     // Verify the parameter type is VehicleUnion, not Vehicle
     expect(template).toRenderTo(d`
+      /**
+       * model interface Vehicle
+       */
       export interface Vehicle {
         kind: string;
       }
 
+      /**
+       * model interface Car
+       */
       export interface Car extends Vehicle {
         kind: "car";
         doors: number;
@@ -387,10 +408,16 @@ describe("JsonPolymorphicSerializer", () => {
 
     // The refkey reference should resolve to the polymorphic serializer name
     expect(template).toRenderTo(d`
+      /**
+       * model interface Animal
+       */
       export interface Animal {
         kind: string;
       }
 
+      /**
+       * model interface Bird
+       */
       export interface Bird extends Animal {
         kind: "bird";
         canFly: boolean;
@@ -477,10 +504,16 @@ describe("JsonPolymorphicSerializer", () => {
 
     // Verify "default: return baseSerializer(item);" is present
     expect(template).toRenderTo(d`
+      /**
+       * model interface Base
+       */
       export interface Base {
         kind: string;
       }
 
+      /**
+       * model interface Sub
+       */
       export interface Sub extends Base {
         kind: "sub";
         value: string;
