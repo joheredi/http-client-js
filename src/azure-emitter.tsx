@@ -1,10 +1,6 @@
 import { Children, For, SourceDirectory } from "@alloy-js/core";
-import { createEmitterNamePolicy } from "./utils/name-policy.js";
-import { nameConflictResolver } from "./utils/name-conflict-resolver.js";
 import type { EmitContext } from "@typespec/compiler";
-import { createSdkContext } from "@azure-tools/typespec-client-generator-core";
 import type { SdkContext, SdkHttpOperation } from "@azure-tools/typespec-client-generator-core";
-import { Output, writeOutput } from "@typespec/emitter-framework";
 import { SdkContextProvider } from "./context/sdk-context.js";
 import { FlavorProvider } from "./context/flavor-context.js";
 import { ModelFiles } from "./components/model-files.js";
@@ -13,40 +9,12 @@ import { OperationOptionsFiles } from "./components/operation-options-files.js";
 import { ClientContextFile } from "./components/client-context.js";
 import { ClassicalClientFile } from "./components/classical-client.js";
 import { ClassicalOperationGroupFiles } from "./components/classical-operation-groups.js";
-import {
-  httpRuntimeLib,
-  azureCoreLroLib,
-  azureCoreClientLib,
-  azureCorePipelineLib,
-  azureCoreAuthLib,
-  azureCoreUtilLib,
-  azureAbortControllerLib,
-  azureLoggerLib,
-} from "./utils/external-packages.js";
 import { IndexFiles } from "./components/index-file.js";
 import { StaticHelpers } from "./components/static-helpers/index.js";
 import { RestorePollerFile } from "./components/restore-poller.js";
 import { SampleFiles } from "./components/sample-files.js";
 import { LoggerFile } from "./components/logger-file.js";
-
-/**
- * All external packages needed for Azure-flavored SDK generation.
- *
- * Azure SDKs split runtime symbols across multiple packages, so all
- * must be registered as externals for Alloy's import resolution to work.
- * The `httpRuntimeLib` is still included because `expandUrlTemplate`
- * has no Azure equivalent.
- */
-const azureExternals = [
-  httpRuntimeLib,
-  azureCoreClientLib,
-  azureCorePipelineLib,
-  azureCoreAuthLib,
-  azureCoreUtilLib,
-  azureAbortControllerLib,
-  azureCoreLroLib,
-  azureLoggerLib,
-];
+import { $onEmit } from "./emitter.js";
 
 /**
  * Props for the {@link AzureCoreEmitter} component.
@@ -115,34 +83,28 @@ export function AzureCoreEmitter(props: AzureCoreEmitterProps) {
  * TypeSpec emitter entry point for generating Azure-flavored TypeScript
  * HTTP client libraries.
  *
- * This is the Azure counterpart to the core `$onEmit`. It produces
- * the same file structure but with Azure-specific additions:
- * - Runtime imports from `@azure-rest/core-client`, `@azure/core-auth`, etc.
- * - A `src/logger.ts` file using `@azure/logger`
- * - Azure external package declarations for import resolution
+ * This is a convenience entry point that delegates to `$onEmit` with the
+ * `flavor` option forced to `"azure"`. It provides backward compatibility
+ * for consumers that reference the Azure entry point directly.
  *
- * The composition pattern ensures that no core component is modified —
- * all Azure behavior comes from the `FlavorProvider` context and
- * the additional `<LoggerFile />` component.
+ * Equivalent to configuring the core emitter with `flavor: "azure"` in
+ * tspconfig.yaml. The composition pattern ensures that no core component
+ * is modified — all Azure behavior comes from the `FlavorProvider` context
+ * and the additional `<LoggerFile />` component.
  *
  * @param context - The TypeSpec emit context containing the compiled program,
  *                  emitter options, and output directory path.
  */
 export async function $onEmitAzure(context: EmitContext) {
-  const sdkContext = await createSdkContext(context);
-
-  const output = (
-    <Output
-      program={context.program}
-      namePolicy={createEmitterNamePolicy()}
-      nameConflictResolver={nameConflictResolver}
-      externals={azureExternals}
-    >
-      <AzureCoreEmitter sdkContext={sdkContext} />
-    </Output>
-  );
-
-  await writeOutput(context.program, output, context.emitterOutputDir);
+  // Force flavor to "azure" in options, preserving any other options.
+  // This ensures $onEmit uses Azure externals, FlavorProvider="azure",
+  // and includes the LoggerFile component.
+  const azureOptions = { ...(context.options as Record<string, unknown>), flavor: "azure" };
+  const azureContext = {
+    ...context,
+    options: azureOptions as unknown as EmitContext["options"],
+  };
+  return $onEmit(azureContext);
 }
 
 /**

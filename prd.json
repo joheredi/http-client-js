@@ -3088,8 +3088,8 @@
         "priority": "P1",
         "description": "The 'flavor' setting (Azure vs generic) should be an emitter configuration option that can be set in tspconfig.yaml or in test scenarios via a yaml code fence. Currently the flavor detection affects import sources (@azure-rest/core-client vs @typespec/ts-http-runtime) and other Azure-specific behaviors. The expected file uses `@azure-rest/core-client` imports throughout (16+ occurrences), while the actual file uses `@typespec/ts-http-runtime`.\n\nEXPECTED (`submodules/autorest.typescript/packages/typespec-ts/test/modularUnit/scenarios/modelsGenerator/modelsGenerator.md`, line 358):\n```ts\n} from \"@azure-rest/core-client\";\n```\n\nACTUAL (`test/scenarios/cases/modelsGenerator/modelsGenerator.md`, line 347):\n```ts\n} from \"@typespec/ts-http-runtime\";\n```\n\nBoth test files use yaml code fences with `needTCGC: true` and `needAzureCore: false` but neither specifies a `flavor` config key. The flavor should be configurable per-test via yaml code fences so tests can explicitly set `flavor: azure` or `flavor: generic`. Related to SA1 which was marked done, but this is a request for the configuration mechanism itself.",
         "affected_scenarios": "modelsGenerator.md \u2014 All operation sections with imports",
-        "status": "pending",
-        "resolution": null,
+        "status": "done",
+        "resolution": "Implemented flavor as an emitter configuration option. The $onEmit entry point now reads context.options[\"flavor\"] (\"azure\" or \"core\", default \"core\") to determine which runtime packages and components to use. $onEmitAzure delegates to $onEmit with flavor forced to \"azure\" for backward compatibility. Added resolveEmitterFlavor() function, 6 unit tests, and 4 integration tests.",
         "references": {
           "actual_file": "test/scenarios/cases/modelsGenerator/modelsGenerator.md",
           "expected_file": "submodules/autorest.typescript/packages/typespec-ts/test/modularUnit/scenarios/modelsGenerator/modelsGenerator.md",

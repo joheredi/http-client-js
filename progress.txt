@@ -4018,3 +4018,30 @@ All union types with `isGeneratedName: true` now get `_` prefix. This affected:
 
 ### Test Results
 909 passed | 3 skipped (912 total) — all green (+3 new tests)
+
+## SA29: Flavor Should Be Emitter Config Not Hardcoded (2026-02-26)
+
+### What was done
+- Made `flavor` a configurable emitter option readable from `context.options["flavor"]` in `$onEmit`
+- Added `resolveEmitterFlavor()` function to `src/emitter.tsx` that reads the flavor option (defaults to "core", supports "azure")
+- When `flavor: "azure"` is set, `$onEmit` now uses Azure externals, `FlavorProvider` with "azure", and includes `LoggerFile`
+- Refactored `$onEmitAzure` in `src/azure-emitter.tsx` to delegate to `$onEmit` with `flavor: "azure"` forced in options
+- Cleaned up unused imports in `azure-emitter.tsx`
+- Exported `resolveEmitterFlavor` and `applyClientRenames` from `src/index.ts`
+- Added `getPackageName` helper to `emitter.tsx` for Azure logger file creation
+
+### Tests added
+- `test/context/resolve-emitter-flavor.test.tsx` — 6 unit tests for `resolveEmitterFlavor()` function
+  - Tests undefined options, empty options, "azure", "core", invalid values, and coexistence with other options
+- `test/context/flavor-config-integration.test.tsx` — 4 integration tests
+  - Tests Azure imports when flavor="azure", core imports when flavor="core", logger.ts inclusion for azure, default core behavior
+
+### Files modified
+- `src/emitter.tsx` — Added `resolveEmitterFlavor()`, `getPackageName()`, Azure externals; `$onEmit` now reads flavor from config
+- `src/azure-emitter.tsx` — `$onEmitAzure` now delegates to `$onEmit`; cleaned up unused imports
+- `src/index.ts` — Export `resolveEmitterFlavor` and `applyClientRenames`
+- `prd.json` — SA29 marked as done
+
+### Test results
+- All 922 tests pass (919 passed + 3 skipped), up from 909 (10 new tests added)
+- Build passes with no type errors

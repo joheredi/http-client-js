@@ -6,6 +6,7 @@ import { createSdkContext } from "@azure-tools/typespec-client-generator-core";
 import { Output, writeOutput } from "@typespec/emitter-framework";
 import { SdkContextProvider } from "./context/sdk-context.js";
 import { FlavorProvider } from "./context/flavor-context.js";
+import type { FlavorKind } from "./context/flavor-context.js";
 import { EmitterOptionsProvider } from "./context/emitter-options-context.js";
 import { ModelFiles } from "./components/model-files.js";
 import { OperationFiles } from "./components/operation-files.js";
@@ -13,13 +14,90 @@ import { OperationOptionsFiles } from "./components/operation-options-files.js";
 import { ClientContextFile } from "./components/client-context.js";
 import { ClassicalClientFile } from "./components/classical-client.js";
 import { ClassicalOperationGroupFiles } from "./components/classical-operation-groups.js";
-import { httpRuntimeLib, azureCoreLroLib } from "./utils/external-packages.js";
+import {
+  httpRuntimeLib,
+  azureCoreLroLib,
+  azureCoreClientLib,
+  azureCorePipelineLib,
+  azureCoreAuthLib,
+  azureCoreUtilLib,
+  azureAbortControllerLib,
+  azureLoggerLib,
+} from "./utils/external-packages.js";
 import { IndexFiles } from "./components/index-file.js";
 import { StaticHelpers } from "./components/static-helpers/index.js";
 import { RestorePollerFile } from "./components/restore-poller.js";
 import { SampleFiles } from "./components/sample-files.js";
+import { LoggerFile } from "./components/logger-file.js";
 
 import type { SdkClientType, SdkHttpOperation } from "@azure-tools/typespec-client-generator-core";
+
+/**
+ * All external packages needed for Azure-flavored SDK generation.
+ *
+ * Azure SDKs split runtime symbols across multiple packages, so all
+ * must be registered as externals for Alloy's import resolution to work.
+ * The `httpRuntimeLib` is still included because `expandUrlTemplate`
+ * has no Azure equivalent.
+ */
+const azureExternals = [
+  httpRuntimeLib,
+  azureCoreClientLib,
+  azureCorePipelineLib,
+  azureCoreAuthLib,
+  azureCoreUtilLib,
+  azureAbortControllerLib,
+  azureCoreLroLib,
+  azureLoggerLib,
+];
+
+/**
+ * External packages for core (non-Azure) SDK generation.
+ *
+ * Core flavor uses a single runtime package plus the LRO package
+ * for long-running operation support.
+ */
+const coreExternals = [httpRuntimeLib, azureCoreLroLib];
+
+/**
+ * Resolves the SDK flavor from emitter configuration options.
+ *
+ * Reads the `flavor` option from the TypeSpec emitter config (tspconfig.yaml)
+ * and returns the corresponding FlavorKind. Only `"azure"` is recognized as
+ * a non-default flavor; all other values (including undefined) resolve to `"core"`.
+ *
+ * This enables a single `$onEmit` entry point to generate either core or
+ * Azure-flavored output based on configuration, matching the legacy emitter's
+ * `flavor` option in its emitter options schema.
+ *
+ * @param options - The raw emitter options from `context.options`
+ * @returns The resolved flavor kind ("core" or "azure")
+ */
+export function resolveEmitterFlavor(
+  options: Record<string, unknown> | undefined,
+): FlavorKind {
+  const flavor = options?.["flavor"];
+  if (flavor === "azure") {
+    return "azure";
+  }
+  return "core";
+}
+
+/**
+ * Extracts a short package name from the first client for logger creation.
+ *
+ * Used in Azure-flavored generation to create a namespaced logger via
+ * `createClientLogger("name")` in the generated `src/logger.ts` file.
+ *
+ * @param sdkContext - Object with sdkPackage.clients array
+ * @returns A lowercase package identifier string
+ */
+function getPackageName(
+  sdkContext: { sdkPackage: { clients: Array<{ name?: string }> } },
+): string {
+  const firstClient = sdkContext.sdkPackage.clients[0];
+  return firstClient?.name?.replace(/Client$/, "").toLowerCase() ?? "unknown";
+}
 
 /**
  * Applies client name overrides from the `typespec-title-map` configuration.
@@ -51,9 +129,22 @@ export function applyClientRenames(
  * phase. It orchestrates the full code generation pipeline:
  *
  * 1. Initializes the TCGC SDK context from the compiled TypeSpec program
- * 2. Builds a declarative JSX component tree representing the output file structure
- * 3. Renders the tree to an in-memory directory via Alloy's rendering engine
- * 4. Writes the rendered files to disk at the emitter output directory
+ * 2. Resolves the SDK flavor from the `flavor` emitter option (defaults to "core")
+ * 3. Builds a declarative JSX component tree representing the output file structure
+ * 4. Renders the tree to an in-memory directory via Alloy's rendering engine
+ * 5. Writes the rendered files to disk at the emitter output directory
+ *
+ * The `flavor` option controls which runtime packages are used in generated imports:
+ * - `"core"` (default) — Uses `@typespec/ts-http-runtime` for all runtime symbols
+ * - `"azure"` — Uses Azure SDK packages (`@azure-rest/core-client`, `@azure/core-auth`, etc.)
+ *   and adds an Azure logger file (`src/logger.ts`)
+ *
+ * This can be configured in tspconfig.yaml:
+ * ```yaml
+ * options:
+ *   "@microsoft/http-client-js":
+ *     flavor: "azure"
+ * ```
  *
  * The generated output follows this directory structure:
  * ```
@@ -65,6 +156,7 @@ export function applyClientRenames(
  *     operations.ts          — Operation functions (send, deserialize, public)
  *     {group}/operations.ts  — Grouped operation functions
  *   {client}Client.ts        — Classical class-based client wrapper
+ *   logger.ts                — (Azure flavor only) Namespaced logger via @azure/logger
  * ```
  *
  * @param context - The TypeSpec emit context containing the compiled program,
@@ -81,6 +173,11 @@ export async function $onEmit(context: EmitContext) {
     applyClientRenames(sdkContext.sdkPackage.clients, titleMap);
   }
 
+  // Resolve flavor from emitter config. This allows a single entry point
+  // to generate either core or Azure-flavored output based on tspconfig.yaml.
+  const flavor = resolveEmitterFlavor(context.options);
+  const externals = flavor === "azure" ? azureExternals : coreExternals;
+
   const emitterOptions = {
     includeHeadersInResponse: context.options?.["include-headers-in-response"] === true,
     experimentalExtensibleEnums: context.options?.["experimental-extensible-enums"] === true,
@@ -93,12 +190,15 @@ export async function $onEmit(context: EmitContext) {
       program={context.program}
       namePolicy={createEmitterNamePolicy()}
       nameConflictResolver={nameConflictResolver}
-      externals={[httpRuntimeLib, azureCoreLroLib]}
+      externals={externals}
     >
-      <FlavorProvider flavor="core">
+      <FlavorProvider flavor={flavor}>
         <EmitterOptionsProvider options={emitterOptions}>
           <SdkContextProvider sdkContext={sdkContext}>
             <SourceDirectory path="src">
+              {flavor === "azure" && (
+                <LoggerFile packageName={getPackageName(sdkContext)} />
+              )}
               <ModelFiles />
               <OperationFiles />
               <OperationOptionsFiles />
