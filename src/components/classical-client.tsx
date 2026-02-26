@@ -24,7 +24,7 @@ import {
   operationOptionsRefkey,
   publicOperationRefkey,
 } from "../utils/refkeys.js";
-import { getClientName } from "./client-context.js";
+import { getClientName, getRequiredMethodParams } from "./client-context.js";
 import { getOptionsParamName, isRequiredSignatureParameter } from "./send-operation.js";
 import { getTypeExpression } from "./type-expression.js";
 
@@ -107,10 +107,9 @@ export function ClassicalClientDeclaration(
 ) {
   const { client } = props;
   const className = client.name;
-  const constructorParams = buildConstructorParameters(client);
-  const constructorBody = buildConstructorBody(client);
   const methods = collectClientMethods(client);
   const childClients = client.children ?? [];
+  const needsOverloads = needsConstructorOverloads(client);
 
   return (
     <ClassDeclaration
@@ -137,9 +136,13 @@ export function ClassicalClientDeclaration(
         </>
       )}
       {"\n\n"}
-      <ClassMethod name="constructor" parameters={constructorParams}>
-        {constructorBody}
-      </ClassMethod>
+      {needsOverloads ? (
+        <OverloadedConstructor client={client} />
+      ) : (
+        <ClassMethod name="constructor" parameters={buildConstructorParameters(client)}>
+          {buildConstructorBody(client)}
+        </ClassMethod>
+      )}
       {methods.length > 0 && (
         <>
           {"\n\n"}
@@ -247,6 +250,14 @@ function buildConstructorParameters(
     });
   }
 
+  // Add required method parameters (e.g., subscriptionId for ARM services)
+  for (const methodParam of getRequiredMethodParams(client)) {
+    params.push({
+      name: methodParam.name,
+      type: getTypeExpression(methodParam.type),
+    });
+  }
+
   // Add options parameter (always last)
   params.push({
     name: "options",
@@ -320,6 +331,11 @@ function buildFactoryCallArguments(
   );
   if (credentialParam) {
     args.push("credential");
+  }
+
+  // Forward required method parameters (e.g., subscriptionId)
+  for (const methodParam of getRequiredMethodParams(client)) {
+    args.push(methodParam.name);
   }
 
   // Always forward options
@@ -528,6 +544,241 @@ function addCredentialSchemeType(
       types.add("TokenCredential");
       break;
   }
+}
+
+/**
+ * Determines whether the classical client constructor needs overloads
+ * for optional subscriptionId handling.
+ *
+ * Constructor overloads are needed when an ARM service has both:
+ * 1. A `subscriptionId` client initialization parameter (indicating some operations
+ *    are subscription-scoped)
+ * 2. Tenant-level operations that don't require subscriptionId
+ *
+ * In this scenario, the constructor generates two overloads:
+ * - One without subscriptionId (for consumers only using tenant-level operations)
+ * - One with subscriptionId (for consumers using subscription-level operations)
+ * Plus an implementation signature with a `subscriptionIdOrOptions` discriminator.
+ *
+ * @param client - The TCGC client type.
+ * @returns True if constructor overloads are needed.
+ */
+function needsConstructorOverloads(
+  client: SdkClientType<SdkHttpOperation>,
+): boolean {
+  const requiredMethodParams = getRequiredMethodParams(client);
+  const hasSubscriptionId = requiredMethodParams.some(
+    (p) => p.name.toLowerCase() === "subscriptionid",
+  );
+
+  if (!hasSubscriptionId) return false;
+
+  return hasTenantLevelOperations(client);
+}
+
+/**
+ * Checks whether the client has any tenant-level operations — operations
+ * that don't require subscriptionId in their HTTP path.
+ *
+ * ARM services can have a mix of:
+ * - Subscription-level operations (e.g., resource CRUD under /subscriptions/{subscriptionId}/...)
+ * - Tenant-level operations (e.g., listing SKUs at /providers/Namespace/skus)
+ *
+ * Standard ARM boilerplate operations are excluded from the check:
+ * - `Azure.ResourceManager.Operations.list` (the standard operations list endpoint)
+ * - Provider-level `checkNameAvailability` actions
+ *
+ * These exclusions match the legacy emitter's `isTenantLevelOperation()` behavior
+ * to ensure the same services get constructor overloads.
+ *
+ * @param client - The TCGC client type.
+ * @returns True if at least one non-boilerplate tenant-level operation exists.
+ */
+function hasTenantLevelOperations(
+  client: SdkClientType<SdkHttpOperation>,
+): boolean {
+  const allMethods = collectAllMethods(client);
+
+  for (const method of allMethods) {
+    if (isTenantLevelOperation(method, client)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+/**
+ * Recursively collects all service methods from a client and its children.
+ *
+ * @param client - The TCGC client type.
+ * @returns A flat array of all service methods across the client hierarchy.
+ */
+function collectAllMethods(
+  client: SdkClientType<SdkHttpOperation>,
+): SdkServiceMethod<SdkHttpOperation>[] {
+  const methods: SdkServiceMethod<SdkHttpOperation>[] = [...client.methods];
+  for (const child of client.children ?? []) {
+    methods.push(...collectAllMethods(child));
+  }
+  return methods;
+}
+
+/**
+ * Determines whether a single operation is tenant-level (doesn't use
+ * the client's subscriptionId).
+ *
+ * An operation is considered tenant-level if:
+ * - It has NO subscriptionId path parameter marked as `onClient`
+ * - AND it is not a standard ARM boilerplate operation (Operations.list,
+ *   checkNameAvailability) which are excluded from the tenant-level check
+ *
+ * @param method - The TCGC service method to check.
+ * @param client - The parent client type (used for namespace-based exclusions).
+ * @returns True if the operation is a non-boilerplate tenant-level operation.
+ */
+function isTenantLevelOperation(
+  method: SdkServiceMethod<SdkHttpOperation>,
+  client: SdkClientType<SdkHttpOperation>,
+): boolean {
+  const operation = method.operation;
+
+  // Check if this operation has a client-level subscriptionId path parameter
+  const subscriptionIdParam = operation.parameters.find(
+    (param) =>
+      param.name.toLowerCase() === "subscriptionid" && param.kind === "path",
+  );
+
+  if (subscriptionIdParam && subscriptionIdParam.onClient) {
+    // Operation uses the client's subscriptionId → NOT tenant-level
+    return false;
+  }
+
+  if (!subscriptionIdParam) {
+    // No subscriptionId param — check if this is a standard ARM boilerplate operation
+    // that should be excluded from the tenant-level detection
+
+    // Exclude Azure.ResourceManager.Operations.list
+    if (
+      method.crossLanguageDefinitionId
+        ?.toLowerCase()
+        .includes("azure.resourcemanager.operations.list")
+    ) {
+      return false;
+    }
+
+    // Exclude provider-level checkNameAvailability actions
+    const pathLower = operation.path.toLowerCase();
+    const namespaceLower = (client.namespace ?? "").toLowerCase();
+    if (
+      namespaceLower &&
+      pathLower.includes(`${namespaceLower}/checknameavailability`)
+    ) {
+      return false;
+    }
+  }
+
+  // Operation is tenant-level (no client subscriptionId usage, not boilerplate)
+  return true;
+}
+
+/**
+ * Renders constructor overload signatures and implementation for mixed
+ * tenant/subscription-level ARM services.
+ *
+ * Generates three constructor forms:
+ * 1. Overload signature without subscriptionId: `constructor(credential, options?)`
+ * 2. Overload signature with subscriptionId: `constructor(credential, subscriptionId, options?)`
+ * 3. Implementation with discriminator: `constructor(credential, subscriptionIdOrOptions?, options?)`
+ *
+ * The implementation body uses `typeof` checks to determine whether the second
+ * parameter is a string (subscriptionId) or an object (options), matching the
+ * legacy emitter's polymorphic constructor pattern.
+ *
+ * Uses raw `code` templates for overload signatures because Alloy's ClassMethod
+ * component doesn't support body-less declarations.
+ *
+ * @param props - Component props containing the TCGC client type.
+ * @returns Alloy JSX tree for the overloaded constructor.
+ */
+function OverloadedConstructor(props: { client: SdkClientType<SdkHttpOperation> }) {
+  const { client } = props;
+  const initParams = client.clientInitialization.parameters;
+
+  // Build prefix parameter fragments (before subscriptionId) using proper refkeys
+  const prefixParamFragments: Children[] = [];
+  const prefixArgNames: string[] = [];
+
+  const endpointParam = initParams.find(
+    (p): p is SdkEndpointParameter => p.kind === "endpoint",
+  );
+  if (endpointParam) {
+    for (const arg of getRequiredEndpointArgs(endpointParam)) {
+      prefixParamFragments.push(code`${arg.name}: ${getTypeExpression(arg.type)}`);
+      prefixArgNames.push(arg.name);
+    }
+  }
+
+  const credentialParam = initParams.find(
+    (p): p is SdkCredentialParameter => p.kind === "credential",
+  );
+  if (credentialParam) {
+    prefixParamFragments.push(code`credential: ${getCredentialTypeExpression(credentialParam)}`);
+    prefixArgNames.push("credential");
+  }
+
+  // Build the factory call arguments, using subscriptionId ?? "" for the overload case
+  const factoryCallArgs = [...prefixArgNames, 'subscriptionId ?? ""', "options"].join(", ");
+
+  const childClients = client.children ?? [];
+  const optionsRef = clientOptionsRefkey(client);
+
+  // Construct the prefix param string for use in overload signatures
+  // Each overload signature is a single code template with refkey interpolation
+  return (
+    <>
+      {code`constructor(`}
+      {prefixParamFragments.map((f, i) => <>{i > 0 && ", "}{f}</>)}
+      {prefixParamFragments.length > 0 && ", "}
+      {code`options?: ${optionsRef});`}
+      {"\n"}
+      {code`constructor(`}
+      {prefixParamFragments.map((f, i) => <>{i > 0 && ", "}{f}</>)}
+      {prefixParamFragments.length > 0 && ", "}
+      {code`subscriptionId: string, options?: ${optionsRef});`}
+      {"\n"}
+      {code`constructor(`}
+      {prefixParamFragments.map((f, i) => <>{i > 0 && ", "}{f}</>)}
+      {prefixParamFragments.length > 0 && ", "}
+      {code`subscriptionIdOrOptions?: string | ${optionsRef}, options?: ${optionsRef}) {`}
+      {"\n"}
+      {code`  let subscriptionId: string | undefined;`}
+      {"\n\n"}
+      {code`  if (typeof subscriptionIdOrOptions === "string") {`}
+      {"\n"}
+      {code`    subscriptionId = subscriptionIdOrOptions;`}
+      {"\n"}
+      {code`  } else if (typeof subscriptionIdOrOptions === "object") {`}
+      {"\n"}
+      {code`    options = subscriptionIdOrOptions;`}
+      {"\n"}
+      {code`  }`}
+      {"\n\n"}
+      {code`  options = options ?? {};`}
+      {"\n"}
+      {code`  this._client = ${createClientRefkey(client)}(${factoryCallArgs});`}
+      {"\n"}
+      {code`  this.pipeline = this._client.pipeline;`}
+      {childClients.map((child) => (
+        <>
+          {"\n"}
+          {code`  this.${camelCase(child.name)} = ${operationGroupFactoryRefkey(child)}(this._client);`}
+        </>
+      ))}
+      {"\n"}
+      {code`}`}
+    </>
+  );
 }
 
 /**

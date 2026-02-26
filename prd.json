@@ -2523,7 +2523,7 @@
           "id": "RC22",
           "title": "Classical client missing constructor overloads for subscription handling",
           "priority": "P1",
-          "status": "not_started",
+          "status": "done",
           "root_cause": "classical-client.tsx generates a single constructor. Legacy generates overloaded constructors when a service has mixed tenant-level and subscription-level operations, with polymorphic subscriptionIdOrOptions parameter handling.",
           "file": "src/components/classical-client.tsx (~line 140)",
           "description": "No constructor overloads generated for mixed subscription/tenant operations. Missing subscriptionId parameter, operation group properties, and delegating methods.",

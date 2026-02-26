@@ -52,7 +52,7 @@ import {
   classicalClientRefkey,
 } from "../../src/utils/refkeys.js";
 import { httpRuntimeLib } from "../../src/utils/external-packages.js";
-import { TesterWithService, createSdkContextForTest } from "../test-host.js";
+import { TesterWithService, RawTester, createSdkContextForTest } from "../test-host.js";
 import { SdkTestFile } from "../utils.jsx";
 import { SdkContextProvider } from "../../src/context/sdk-context.js";
 
@@ -370,5 +370,238 @@ describe("ClassicalClient", () => {
     expect(result).toContain("getItem(");
     expect(result).toContain("id: string");
     expect(result).toContain("return getItem(this._client, id, options)");
+  });
+});
+
+/**
+ * Test suite for ARM constructor overloads (RC22).
+ *
+ * ARM services require special constructor handling for subscriptionId:
+ * - Subscription-level services: subscriptionId is a required parameter
+ * - Mixed services (both tenant and subscription ops): constructor overloads
+ *   make subscriptionId optional via a polymorphic parameter
+ * - Tenant-only services: no subscriptionId at all
+ *
+ * What is tested:
+ * - Subscription-level ARM service includes subscriptionId as required constructor param
+ * - Mixed ARM service generates constructor overloads with subscriptionIdOrOptions
+ * - Tenant-only ARM service has no subscriptionId in constructor
+ * - Factory function receives subscriptionId in the correct position
+ *
+ * Why this matters:
+ * ARM (Azure Resource Manager) services use subscriptionId to scope operations to a
+ * user's Azure subscription. Without correct constructor parameter handling, consumers
+ * cannot use the generated client for subscription-level operations. The overload pattern
+ * for mixed services ensures backward-compatible API surfaces — consumers using only
+ * tenant-level operations don't need to provide subscriptionId.
+ */
+describe("ClassicalClient ARM constructor", () => {
+  /**
+   * Tests that an ARM service with subscription-level operations (TrackedResource)
+   * includes subscriptionId as a required constructor parameter. This ensures
+   * the subscriptionId is forwarded to the factory function for URL template resolution.
+   *
+   * Without this, ARM resource operations would fail because the endpoint URL
+   * contains {subscriptionId} but no value is provided.
+   */
+  it("should include subscriptionId as required constructor param for subscription-level services", async () => {
+    const runner = await RawTester.createInstance();
+    const { program } = await runner.compile(`
+      import "@typespec/http";
+      import "@typespec/rest";
+      import "@typespec/versioning";
+      import "@azure-tools/typespec-azure-core";
+      import "@azure-tools/typespec-azure-resource-manager";
+
+      using TypeSpec.Http;
+      using TypeSpec.Rest;
+      using TypeSpec.Versioning;
+      using Azure.Core;
+      using Azure.ResourceManager;
+
+      @armProviderNamespace
+      @service(#{ title: "Client.StandardService management service" })
+      @versioned(Client.StandardService.Versions)
+      namespace Client.StandardService;
+
+      enum Versions {
+        @armCommonTypesVersion(Azure.ResourceManager.CommonTypes.Versions.v5)
+        v2021_10_01_preview: "2021-10-01-preview",
+      }
+
+      interface Operations extends Azure.ResourceManager.Operations {}
+
+      model StandardResource is TrackedResource<StandardProperties> {
+        ...ResourceNameParameter<StandardResource>;
+      }
+      model StandardProperties {
+        displayName?: string;
+        @visibility(Lifecycle.Read)
+        provisioningState?: ProvisioningState;
+      }
+      @lroStatus union ProvisioningState {
+        ResourceProvisioningState, Provisioning: "Provisioning", string,
+      }
+      @armResourceOperations
+      interface StandardResources { get is ArmResourceRead<StandardResource>; }
+    `);
+
+    const sdkContext = await createSdkContextForTest(program);
+    const client = getFirstClient(sdkContext);
+
+    const template = (
+      <ClassicalClientTestWrapper sdkContext={sdkContext}>
+        <SourceFile path="standardServiceClient.ts">
+          <ClassicalClientDeclaration client={client} />
+        </SourceFile>
+      </ClassicalClientTestWrapper>
+    );
+
+    const result = renderToString(template);
+
+    // Should include subscriptionId as a required constructor parameter
+    expect(result).toContain("subscriptionId: string");
+    // Should forward subscriptionId to the factory function
+    expect(result).toContain("createStandardService(credential, subscriptionId, options)");
+    // Should NOT have constructor overloads
+    expect(result).not.toContain("subscriptionIdOrOptions");
+  });
+
+  /**
+   * Tests that a tenant-only ARM service (no TrackedResource, no subscription ops)
+   * does NOT include subscriptionId in the constructor. The global service only
+   * has ARM Operations.list which is a standard boilerplate endpoint.
+   *
+   * This verifies the negative case — subscriptionId should only appear when
+   * the client initialization parameters include it.
+   */
+  it("should not include subscriptionId for tenant-only services", async () => {
+    const runner = await RawTester.createInstance();
+    const { program } = await runner.compile(`
+      import "@typespec/http";
+      import "@typespec/rest";
+      import "@typespec/versioning";
+      import "@azure-tools/typespec-azure-core";
+      import "@azure-tools/typespec-azure-resource-manager";
+
+      using TypeSpec.Http;
+      using TypeSpec.Rest;
+      using TypeSpec.Versioning;
+      using Azure.Core;
+      using Azure.ResourceManager;
+
+      @armProviderNamespace
+      @service(#{ title: "Client.GlobalService management service" })
+      @versioned(Client.GlobalService.Versions)
+      namespace Client.GlobalService;
+
+      enum Versions {
+        @armCommonTypesVersion(Azure.ResourceManager.CommonTypes.Versions.v5)
+        v2021_10_01_preview: "2021-10-01-preview",
+      }
+
+      interface Operations extends Azure.ResourceManager.Operations {}
+    `);
+
+    const sdkContext = await createSdkContextForTest(program);
+    const client = getFirstClient(sdkContext);
+
+    const template = (
+      <ClassicalClientTestWrapper sdkContext={sdkContext}>
+        <SourceFile path="globalServiceClient.ts">
+          <ClassicalClientDeclaration client={client} />
+        </SourceFile>
+      </ClassicalClientTestWrapper>
+    );
+
+    const result = renderToString(template);
+
+    // Should NOT include subscriptionId
+    expect(result).not.toContain("subscriptionId");
+    // Should have a simple constructor with credential
+    expect(result).toContain("credential");
+    expect(result).toContain("GlobalServiceClientOptionalParams");
+  });
+
+  /**
+   * Tests that a mixed ARM service (both tenant-level and subscription-level ops)
+   * generates constructor overloads. The mixed service has:
+   * - listSkus: a tenant-level operation (no subscriptionId in path)
+   * - MixedResources.get: a subscription-level operation
+   *
+   * The overloaded constructor allows consumers to use the client without
+   * subscriptionId for tenant-level operations, or with subscriptionId for
+   * subscription-level operations. This matches the legacy emitter's behavior.
+   *
+   * The overload pattern uses a `subscriptionIdOrOptions` discriminator parameter
+   * that is resolved at runtime via `typeof` checks.
+   */
+  it("should generate constructor overloads for mixed tenant/subscription services", async () => {
+    const runner = await RawTester.createInstance();
+    const { program } = await runner.compile(`
+      import "@typespec/http";
+      import "@typespec/rest";
+      import "@typespec/versioning";
+      import "@azure-tools/typespec-azure-core";
+      import "@azure-tools/typespec-azure-resource-manager";
+
+      using TypeSpec.Http;
+      using TypeSpec.Rest;
+      using TypeSpec.Versioning;
+      using Azure.Core;
+      using Azure.ResourceManager;
+
+      @armProviderNamespace
+      @service(#{ title: "Client.MixedService management service" })
+      @versioned(Client.MixedService.Versions)
+      namespace Client.MixedService;
+
+      enum Versions {
+        @armCommonTypesVersion(Azure.ResourceManager.CommonTypes.Versions.v5)
+        v2021_10_01_preview: "2021-10-01-preview",
+      }
+
+      interface Operations extends Azure.ResourceManager.Operations {}
+
+      model MixedResource is TrackedResource<MixedProperties> {
+        ...ResourceNameParameter<MixedResource>;
+      }
+      model MixedProperties {
+        displayName?: string;
+        @visibility(Lifecycle.Read) provisioningState?: ProvisioningState;
+      }
+      @lroStatus union ProvisioningState {
+        ResourceProvisioningState, Provisioning: "Provisioning", string,
+      }
+      @armResourceOperations
+      interface MixedResources { get is ArmResourceRead<MixedResource>; }
+
+      @route("/providers/Client.MixedService/skus") @get
+      op listSkus(): { value: Sku[] };
+      model Sku { name?: string; tier?: string; capacity?: int32; }
+    `);
+
+    const sdkContext = await createSdkContextForTest(program);
+    const client = getFirstClient(sdkContext);
+
+    const template = (
+      <ClassicalClientTestWrapper sdkContext={sdkContext}>
+        <SourceFile path="mixedServiceClient.ts">
+          <ClassicalClientDeclaration client={client} />
+        </SourceFile>
+      </ClassicalClientTestWrapper>
+    );
+
+    const result = renderToString(template);
+
+    // Should have the discriminator parameter in the implementation signature
+    expect(result).toContain("subscriptionIdOrOptions");
+    // Should have the typeof discriminator logic
+    expect(result).toContain('typeof subscriptionIdOrOptions === "string"');
+    expect(result).toContain('typeof subscriptionIdOrOptions === "object"');
+    // Should pass subscriptionId ?? "" to the factory
+    expect(result).toContain('subscriptionId ?? ""');
+    // Should have options fallback
+    expect(result).toContain("options = options ?? {}");
   });
 });

@@ -1522,3 +1522,21 @@ libraries per worker.
 **Fix:** Filter out groups in `extractSubEnums` whose name matches `enumType.name`. These are "self-reference" groups representing the parent union itself, not a distinct nested enum.
 
 **Date:** 2026-02-25
+
+## ARM subscriptionId handling in TCGC
+
+**Discovery (RC22, 2026-02-25):** TCGC exposes `subscriptionId` for ARM services as a `kind: "method"` client initialization parameter with `optional: false` and no `clientDefaultValue`. It does NOT come from the endpoint template arguments — the ARM endpoint is `{endpoint}` with `defaultValue: "https://management.azure.com"`, and subscriptionId is a separate init param.
+
+This means any code that only processes `kind: "endpoint"` and `kind: "credential"` parameters will miss subscriptionId. Both factory functions and classical client constructors need to include required method params.
+
+## Alloy ClassMethod doesn't support overloads
+
+`ClassMethod` in `@alloy-js/typescript` always generates a method body (wrapped in `<Block>`). There is no way to emit body-less overload signatures using `ClassMethod`. Workaround: use `code` templates for overload declarations and the implementation body directly inside `ClassDeclaration`. Refkeys resolve correctly in `code` templates for cross-file imports.
+
+## ARM boilerplate operation exclusions for tenant-level detection
+
+When detecting tenant-level operations for constructor overloads, these ARM boilerplate operations must be excluded:
+1. `Azure.ResourceManager.Operations.list` — check via `crossLanguageDefinitionId`
+2. Provider-level `checkNameAvailability` — check via `operation.path` containing `{namespace}/checknameavailability`
+
+Without these exclusions, Standard ARM services (which have Operations.list) would incorrectly trigger overload generation.

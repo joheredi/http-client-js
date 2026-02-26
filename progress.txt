@@ -3582,3 +3582,46 @@ When `@@override` groups individual query/header parameters into a model paramet
 
 ### Test results: 867 passed, 3 skipped (all green)
 
+
+## RC22: Classical client missing constructor overloads for subscription handling — DONE (2026-02-25)
+
+### Problem
+ARM services expose `subscriptionId` as a `kind: "method"` client initialization parameter in TCGC, but neither the factory function (`createXxx()`) nor the classical client constructor included it. This affected:
+1. Standard ARM services: missing `subscriptionId` as a required constructor parameter
+2. Mixed ARM services (both tenant-level and subscription-level ops): missing constructor overloads
+
+### Root Cause
+`buildFactoryParameters` in `client-context.tsx` and `buildConstructorParameters` in `classical-client.tsx` only handled `kind: "endpoint"` and `kind: "credential"` parameters, ignoring `kind: "method"` parameters like `subscriptionId`.
+
+### Changes Made
+**src/components/client-context.tsx:**
+- Added `getRequiredMethodParams()` exported helper to extract required, non-optional, non-defaulted method params from client init
+- Updated `buildFactoryParameters()` to include required method params between credential and options
+
+**src/components/classical-client.tsx:**
+- Updated `buildConstructorParameters()` to include required method params
+- Updated `buildFactoryCallArguments()` to forward required method params
+- Added `needsConstructorOverloads()` to detect when overloads are needed
+- Added `hasTenantLevelOperations()` to check for tenant-level operations (matching legacy behavior)
+- Added `collectAllMethods()` to recursively gather all service methods
+- Added `isTenantLevelOperation()` to classify individual operations (with ARM boilerplate exclusions)
+- Added `OverloadedConstructor` component for generating overload signatures and discriminator body
+
+**test/components/classical-client.test.tsx:**
+- Added 3 new tests: subscription-level, tenant-only, and mixed ARM constructor scenarios
+
+**test/scenarios/cases/classicClient/clientConstructorOverloads.md:**
+- Updated expectations: Standard service now includes subscriptionId, Mixed service has overloads
+
+**test/scenarios/cases/operations/ (headerParam + queryParam clientInitialization):**
+- Updated expectations: factory functions now correctly include required method params
+
+### Side-effect Fix
+Also fixed a pre-existing bug where required client init method params (like `$expand` in BillingBenefits) were referenced in the factory function body without being a parameter — the factory would have generated code with undefined variable references.
+
+### Tenant-Level Detection Algorithm
+Matches legacy emitter behavior:
+- Operations with `subscriptionId` path param (`onClient: true`) → NOT tenant-level
+- `Azure.ResourceManager.Operations.list` (by crossLanguageDefinitionId) → excluded
+- Provider-level `checkNameAvailability` actions (by path match) → excluded
+- Everything else without subscriptionId → tenant-level

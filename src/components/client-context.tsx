@@ -446,6 +446,14 @@ function buildFactoryParameters(
     });
   }
 
+  // Add required method parameters (e.g., subscriptionId for ARM services)
+  for (const param of getRequiredMethodParams(client)) {
+    params.push({
+      name: param.name,
+      type: getTypeExpression(param.type),
+    });
+  }
+
   // Add options parameter (always last)
   params.push({
     name: "options",
@@ -868,4 +876,35 @@ function getContextMemberValue(
   }
 
   return name;
+}
+
+/**
+ * Extracts required (non-optional, non-defaulted) method-level client initialization
+ * parameters that must appear as explicit function parameters.
+ *
+ * In ARM services, TCGC exposes `subscriptionId` as a `kind: "method"` init parameter
+ * with `optional: false` and no `clientDefaultValue`. These parameters must be forwarded
+ * as required function parameters — they cannot live in the options bag because they have
+ * no default and are not optional.
+ *
+ * This function filters out:
+ * - Endpoint parameters (handled separately as template args)
+ * - Credential parameters (handled separately)
+ * - API version parameters (always optional with default)
+ * - Optional parameters (go into the options interface)
+ * - Parameters with defaults (go into the options interface)
+ *
+ * @param client - The TCGC client type.
+ * @returns An array of required SdkMethodParameter objects.
+ */
+export function getRequiredMethodParams(
+  client: SdkClientType<SdkHttpOperation>,
+): SdkMethodParameter[] {
+  return client.clientInitialization.parameters.filter(
+    (p): p is SdkMethodParameter =>
+      p.kind === "method" &&
+      !p.isApiVersionParam &&
+      !p.optional &&
+      p.clientDefaultValue === undefined,
+  );
 }

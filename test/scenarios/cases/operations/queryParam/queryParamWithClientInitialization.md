@@ -372,6 +372,7 @@ export interface BillingBenefitsClientOptionalParams extends ClientOptions {}
 
 export function createBillingBenefits(
   endpointParam: string,
+  $expand: string,
   options: BillingBenefitsClientOptionalParams = {},
 ): BillingBenefitsContext {
   const endpointUrl = options.endpoint ?? endpoint;

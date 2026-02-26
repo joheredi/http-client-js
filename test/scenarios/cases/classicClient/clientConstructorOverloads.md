@@ -192,9 +192,10 @@ export class StandardServiceClient {
 
   constructor(
     credential: TokenCredential,
+    subscriptionId: string,
     options: StandardServiceClientOptionalParams = {},
   ) {
-    this._client = createStandardService(credential, options);
+    this._client = createStandardService(credential, subscriptionId, options);
     this.pipeline = this._client.pipeline;
     this.operations = _getOperationsOperations(this._client);
     this.standardResources = _getStandardResourcesOperations(this._client);
@@ -302,11 +303,11 @@ import {
 } from "./classic/operations/index.js";
 import {
   createMixedService,
-  type MixedServiceClientOptionalParams,
+  MixedServiceClientOptionalParams,
   type MixedServiceContext,
 } from "./mixedServiceClientContext.js";
 import type { SkuListResult } from "./models/models.js";
-import { Pipeline, type TokenCredential } from "@typespec/ts-http-runtime";
+import { Pipeline, TokenCredential } from "@typespec/ts-http-runtime";
 
 export class MixedServiceClient {
   private _client: MixedServiceContext;
@@ -320,9 +321,32 @@ export class MixedServiceClient {
 
   constructor(
     credential: TokenCredential,
-    options: MixedServiceClientOptionalParams = {},
+    options?: MixedServiceClientOptionalParams,
+  );
+  constructor(
+    credential: TokenCredential,
+    subscriptionId: string,
+    options?: MixedServiceClientOptionalParams,
+  );
+  constructor(
+    credential: TokenCredential,
+    subscriptionIdOrOptions?: string | MixedServiceClientOptionalParams,
+    options?: MixedServiceClientOptionalParams,
   ) {
-    this._client = createMixedService(credential, options);
+    let subscriptionId: string | undefined;
+
+    if (typeof subscriptionIdOrOptions === "string") {
+      subscriptionId = subscriptionIdOrOptions;
+    } else if (typeof subscriptionIdOrOptions === "object") {
+      options = subscriptionIdOrOptions;
+    }
+
+    options = options ?? {};
+    this._client = createMixedService(
+      credential,
+      subscriptionId ?? "",
+      options,
+    );
     this.pipeline = this._client.pipeline;
     this.operations = _getOperationsOperations(this._client);
     this.mixedResources = _getMixedResourcesOperations(this._client);
