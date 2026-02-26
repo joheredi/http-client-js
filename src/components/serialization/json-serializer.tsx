@@ -251,8 +251,13 @@ export function getSerializationExpression(
     case "duration":
       return accessor;
 
-    case "bytes":
-      return code`${useRuntimeLib().uint8ArrayToString}(${accessor}, "base64")`;
+    case "bytes": {
+      // Use the type's encoding, but fall back to "base64" for binary wire formats
+      // since uint8ArrayToString always needs a string encoding format.
+      const rawEncoding = type.encode ?? "base64";
+      const encoding = rawEncoding === "binary" || rawEncoding === "bytes" ? "base64" : rawEncoding;
+      return code`${useRuntimeLib().uint8ArrayToString}(${accessor}, "${encoding}")`;
+    }
 
     case "nullable":
       return getSerializationExpression(type.type, accessor);

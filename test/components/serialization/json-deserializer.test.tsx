@@ -13,6 +13,8 @@
  * - Array properties with model elements use .map() with child deserializer.
  * - Date properties deserialize via new Date().
  * - utcDateTime with unixTimestamp encoding deserializes via new Date(value * 1000).
+ * - Bytes properties deserialize with typeof guard to handle already-decoded Uint8Array.
+ * - Bytes with base64url encoding use correct encoding string.
  * - Deserializer return type references the model interface via refkey.
  * - Deserializer refkey is correctly assigned for cross-referencing.
  *
@@ -34,6 +36,7 @@ import { ModelInterface } from "../../../src/components/model-interface.js";
 import { SerializationHelpersFile } from "../../../src/components/static-helpers/serialization-helpers.js";
 import { deserializerRefkey } from "../../../src/utils/refkeys.js";
 import { SdkContextProvider } from "../../../src/context/sdk-context.js";
+import { httpRuntimeLib } from "../../../src/utils/external-packages.js";
 import { SdkTestFile } from "../../utils.js";
 import { TesterWithService, createSdkContextForTest } from "../../test-host.js";
 
@@ -615,5 +618,106 @@ describe("JsonDeserializer", () => {
         };
       }
     `);
+  });
+
+  describe("bytes deserialization", () => {
+    /**
+     * Tests that bytes properties with default encoding (base64) are deserialized
+     * with a typeof guard that checks if the value is a string before calling
+     * stringToUint8Array. This guard is essential for robustness — in round-trip
+     * scenarios the value may already be a Uint8Array, and calling stringToUint8Array
+     * on a non-string would produce incorrect results or crash.
+     *
+     * Expected pattern:
+     *   typeof item["prop"] === "string"
+     *     ? stringToUint8Array(item["prop"], "base64")
+     *     : item["prop"]
+     */
+    it("should deserialize bytes with typeof guard and base64 encoding", async () => {
+      const runner = await TesterWithService.createInstance();
+      const { program } = await runner.compile(
+        t.code`
+          model ${t.model("Document")} {
+            content: bytes;
+          }
+
+          op getDocument(): Document;
+        `,
+      );
+
+      const sdkContext = await createSdkContextForTest(program);
+      const model = sdkContext.sdkPackage.models[0];
+
+      const template = (
+        <SdkTestFile sdkContext={sdkContext} externals={[httpRuntimeLib]}>
+          <ModelInterface model={model} />
+          {"\n\n"}
+          <JsonDeserializer model={model} />
+        </SdkTestFile>
+      );
+
+      expect(template).toRenderTo(d`
+        import { stringToUint8Array } from "@typespec/ts-http-runtime";
+
+        export interface Document {
+          content: Uint8Array;
+        }
+
+        export function documentDeserializer(item: any): Document {
+          return {
+            content: typeof item["content"] === "string"
+            ? stringToUint8Array(item["content"], "base64")
+            : item["content"],
+          };
+        }
+      `);
+    });
+
+    /**
+     * Tests that bytes properties with explicit base64url encoding use "base64url"
+     * in the stringToUint8Array call instead of the default "base64". The typeof
+     * guard must still be present. This validates that the type's encode field
+     * is respected for non-default encodings.
+     */
+    it("should deserialize bytes with base64url encoding", async () => {
+      const runner = await TesterWithService.createInstance();
+      const { program } = await runner.compile(
+        t.code`
+          model ${t.model("Token")} {
+            @encode(BytesKnownEncoding.base64url)
+            data: bytes;
+          }
+
+          op getToken(): Token;
+        `,
+      );
+
+      const sdkContext = await createSdkContextForTest(program);
+      const model = sdkContext.sdkPackage.models[0];
+
+      const template = (
+        <SdkTestFile sdkContext={sdkContext} externals={[httpRuntimeLib]}>
+          <ModelInterface model={model} />
+          {"\n\n"}
+          <JsonDeserializer model={model} />
+        </SdkTestFile>
+      );
+
+      expect(template).toRenderTo(d`
+        import { stringToUint8Array } from "@typespec/ts-http-runtime";
+
+        export interface Token {
+          data: Uint8Array;
+        }
+
+        export function tokenDeserializer(item: any): Token {
+          return {
+            data: typeof item["data"] === "string"
+            ? stringToUint8Array(item["data"], "base64url")
+            : item["data"],
+          };
+        }
+      `);
+    });
   });
 });

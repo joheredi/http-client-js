@@ -191,7 +191,7 @@ function collectAncestorProperties(
  * - Arrays: uses `.map()` with recursive element deserialization
  * - Dictionaries: iterates entries with child deserializer
  * - Dates: wraps with `new Date()`
- * - Bytes: calls `stringToUint8Array()` from the runtime library
+ * - Bytes: calls `stringToUint8Array()` with a `typeof` guard to handle values that may already be Uint8Array
  * - Nullable: unwraps and deserializes the inner type
  * - Simple types: returns the accessor unchanged (passthrough)
  *
@@ -245,8 +245,20 @@ export function getDeserializationExpression(
     case "duration":
       return accessor;
 
-    case "bytes":
-      return code`${useRuntimeLib().stringToUint8Array}(${accessor}, "base64")`;
+    case "bytes": {
+      const encoding = type.encode ?? "base64";
+      // Binary-encoded bytes (e.g., application/octet-stream responses) don't need
+      // a typeof guard since the value always arrives as a string from HTTP.
+      // Use "base64" as the encoding format for binary wire formats.
+      if (encoding === "binary" || encoding === "bytes") {
+        return code`${useRuntimeLib().stringToUint8Array}(${accessor}, "base64")`;
+      }
+      // For base64/base64url JSON properties, wrap with a typeof guard for robustness.
+      // The value may already be a Uint8Array in round-trip scenarios.
+      return code`typeof ${accessor} === "string"
+    ? ${useRuntimeLib().stringToUint8Array}(${accessor}, "${encoding}")
+    : ${accessor}`;
+    }
 
     case "nullable":
       return getDeserializationExpression(type.type, accessor);

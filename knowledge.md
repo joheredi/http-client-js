@@ -1648,3 +1648,28 @@ not just the child's own properties. This applies to ALL inheritance (discrimina
 **Key insight**: In TypeScript, `interface Cat extends Pet` declares that Cat HAS Pet's properties,
 but the (de)serializer creates a plain object — it must explicitly map every field. If inherited
 fields are omitted, the returned object silently lacks them despite the type assertion.
+
+---
+
+### Bytes Deserialization typeof Guard and Encoding
+
+**Problem**: The `getDeserializationExpression` for `case "bytes"` called `stringToUint8Array(accessor, "base64")`
+directly — no typeof guard and hardcoded encoding.
+
+**Root cause**: The legacy emitter checks `typeof restValue === 'string'` before calling `stringToUint8Array`
+to handle round-trip scenarios where the value may already be a Uint8Array. It also respects `type.encode`
+for the encoding format (base64 vs base64url).
+
+**Fix**: In `json-deserializer.tsx`, the bytes case now:
+1. Uses `type.encode ?? "base64"` for the encoding format
+2. For `encode === "binary" || "bytes"` (HTTP binary responses): no typeof guard, uses "base64" fallback
+3. For `encode === "base64" || "base64url"`: wraps with `typeof accessor === "string" ? stringToUint8Array(...) : accessor`
+
+**Key insight**: TCGC sets `type.encode = "bytes"` for binary content types (e.g., application/octet-stream)
+and `"base64"` or `"base64url"` for JSON-encoded bytes. The legacy emitter treats "bytes" and "binary"
+as passthrough formats (no typeof guard needed since HTTP responses are always strings). Only JSON-embedded
+bytes need the typeof guard.
+
+**Test insight**: When unit testing components that use `useRuntimeLib()` (which provides refkeys like
+`stringToUint8Array`), the `SdkTestFile` wrapper must receive `externals={[httpRuntimeLib]}` to register
+the external package so refkeys resolve instead of showing `<Unresolved Symbol>`.

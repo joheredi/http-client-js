@@ -3124,8 +3124,8 @@
         "priority": "P1",
         "description": "When deserializing bytes (Uint8Array) properties, the expected output wraps the conversion in a `typeof` check to handle cases where the value might already be a Uint8Array. The actual output directly calls `stringToUint8Array` without checking.\n\nACTUAL (`test/scenarios/cases/modelsGenerator/modelsGenerator.md`, lines 1027-1029):\n```ts\nexport function fooDeserializer(item: any): Foo {\n  return {\n    prop1: stringToUint8Array(item[\"prop1\"], \"base64\"),\n  };\n}\n```\n\nEXPECTED (`submodules/autorest.typescript/packages/typespec-ts/test/modularUnit/scenarios/modelsGenerator/modelsGenerator.md`, lines 1060-1067):\n```ts\nexport function fooDeserializer(item: any): Foo {\n  return {\n    prop1:\n      typeof item[\"prop1\"] === \"string\"\n        ? stringToUint8Array(item[\"prop1\"], \"base64\")\n        : item[\"prop1\"]\n  };\n}\n```\n\nThis pattern repeats for all bytes deserializations:\n- base64 at actual lines 1029, 1119 (expected lines 1063-1065, 1158-1160)\n- base64url at actual line 1209 (expected lines 1253-1255)\n\nThe typeof guard is important for robustness \u2014 the value may already be deserialized as Uint8Array in certain runtime contexts (e.g., round-trip scenarios).",
         "affected_scenarios": "modelsGenerator.md \u2014 bytes base64, bytes base64url, bytes base64 encoding sections",
-        "status": "pending",
-        "resolution": null,
+        "status": "done",
+        "resolution": "Added typeof guard to bytes deserialization in json-deserializer.tsx. For base64/base64url-encoded bytes, the expression now checks typeof === \"string\" before calling stringToUint8Array, falling back to the raw value if already a Uint8Array. Also fixed encoding format to use type.encode (e.g., base64url) instead of hardcoding base64. Binary/bytes wire formats skip the typeof guard and use base64. Updated scenario tests and added 2 unit tests.",
         "references": {
           "actual_file": "test/scenarios/cases/modelsGenerator/modelsGenerator.md",
           "actual_lines": "1029, 1119, 1209",

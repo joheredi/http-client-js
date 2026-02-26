@@ -3878,3 +3878,29 @@ returned `true` when an ancestor had `discriminatorProperty`, missing the simple
 ### Test Results
 892 passed | 3 skipped (895 total) — all green
 
+
+---
+
+## Session: 2026-02-26 — SA31: Bytes Deserialization Missing typeof Guard
+
+### Problem
+When deserializing bytes (Uint8Array) properties from JSON responses, the emitter called `stringToUint8Array()` directly without checking if the value was already a Uint8Array. The legacy emitter wraps this in a `typeof` guard. Additionally, both serializer and deserializer hardcoded "base64" encoding instead of using the type's actual encode setting (e.g., "base64url").
+
+### Fix
+- **json-deserializer.tsx**: Added typeof guard for bytes deserialization. For base64/base64url encodings, the expression now generates:
+  `typeof item["prop"] === "string" ? stringToUint8Array(item["prop"], "base64") : item["prop"]`
+  For binary/bytes wire formats (e.g., application/octet-stream), no typeof guard is added (value is always a string from HTTP).
+- **json-serializer.tsx**: Now uses `type.encode` for the encoding format instead of hardcoding "base64". Falls back to "base64" for binary/bytes wire formats.
+- Updated 3 scenario test expectations in modelsGenerator.md (bytes default, base64, base64url)
+- Added 2 new unit tests in json-deserializer.test.tsx:
+  - bytes with default base64 encoding + typeof guard
+  - bytes with base64url encoding + typeof guard
+
+### Files Changed
+- `src/components/serialization/json-deserializer.tsx` — bytes case: typeof guard + type.encode
+- `src/components/serialization/json-serializer.tsx` — bytes case: type.encode encoding
+- `test/components/serialization/json-deserializer.test.tsx` — 2 new bytes tests
+- `test/scenarios/cases/modelsGenerator/modelsGenerator.md` — updated 3 bytes scenario expectations
+
+### Test Results
+894 passed | 3 skipped (897 total) — all green (+2 new tests)
