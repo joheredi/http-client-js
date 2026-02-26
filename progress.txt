@@ -595,3 +595,38 @@ This was the last remaining pending task (SA27) in the PRD. All implementation p
 ### Notes for next iteration
 - Scenarios with `withRawContent: true` that define their own service and use `typespec-title-map` had their rename targets also updated from TestServiceClient to TestingClient. This is consistent but arbitrary — the rename target is user-specified.
 - Tests that explicitly define their own `namespace TestService` in TypeSpec code were NOT changed — they still use TestServiceClient since their namespace is TestService.
+
+---
+## SA-C25 Split — Property Flatten Task Decomposition (2026-02-26)
+
+**What was done:**
+- Analyzed SA-C25 "Property Flatten: Helper Removal and Duplicate Property Bug"
+- Compared legacy emitter output with new emitter output for flatten properties
+- Found significant gap: new emitter expands flatten properties inline on wire (flat), legacy keeps nested wire format with helper functions
+- Legacy uses `_modelPropertySerializer()` helper functions + `areAllPropsUndefined()` for optional flatten
+- Legacy deserializer uses spread: `...(!item["properties"] ? {} : _helperDeserializer(item["properties"]))`
+- New emitter incorrectly produces flat wire format and duplicate properties for name collisions
+
+**Split into 3 sub-tasks:**
+- SA-C25a (P0-CRITICAL): Fix flatten ser/deser to nested wire format with helper functions
+- SA-C25b (P0-CRITICAL, depends on SA-C25a): Fix flatten name collision handling with prefix renaming
+- SA-C25c (P1, depends on SA-C25a): Fix flatten in multipart-serializer
+
+**Key files to modify:**
+- src/components/serialization/json-serializer.tsx — getSerializableProperties() + helper function generation
+- src/components/serialization/json-deserializer.tsx — getDeserializableProperties() + helper function generation
+- src/components/model-interface.tsx — name collision handling (SA-C25b)
+- test/scenarios/cases/models/propertyFlatten/*.md — update expected outputs
+
+**Legacy pattern reference:**
+- Required flatten: `serializedName: _helperSerializer(item)`
+- Optional flatten: `serializedName: areAllPropsUndefined(item, [...props]) ? undefined : _helperSerializer(item)`
+- Deserialize: `...(!item["serializedName"] ? {} : _helperDeserializer(item["serializedName"]))`
+- Helper function name: `_${modelName}${PropertyName}Serializer/Deserializer`
+
+**Important for next iteration:**
+- The areAllPropsUndefined helper already exists in static-helpers/serialization-helpers.tsx with proper refkey
+- The helper is never referenced from json-serializer.tsx or json-deserializer.tsx currently
+- Name collision legacy pattern: `{fieldName}{PropertyName}{FieldName}` prefix for colliding fields
+- TCGC does NOT handle name collision — emitter must detect and resolve
+- See legacy files at submodules/autorest.typescript/packages/typespec-ts/test/modularUnit/scenarios/models/propertyFlatten/ for reference

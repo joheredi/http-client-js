@@ -1414,25 +1414,42 @@
     {
       "id": "SA-C25",
       "title": "Property Flatten: Helper Removal and Duplicate Property Bug",
+      "description": "Split into SA-C25a, SA-C25b, SA-C25c. See sub-tasks.",
+      "status": "done",
       "category": "scenario-audit/Serialization",
       "priority": "P0-CRITICAL",
+      "dependencies": []
+    },
+    {
+      "id": "SA-C25a",
+      "title": "Fix flatten ser/deser to use nested wire format with helper functions",
+      "description": "The new emitter incorrectly expands flatten properties inline on the wire (e.g. { bar: ..., baz: ... }) instead of keeping them nested (e.g. { properties: { bar: ..., baz: ... } }). Fix json-serializer.tsx to generate _helperSerializer() functions that read from flat client properties and produce nested wire objects. Fix json-deserializer.tsx to generate _helperDeserializer() functions with spread syntax that read from nested wire objects. Integrate areAllPropsUndefined for optional flatten properties. Update singleLayer.md, multipleLayers.md, readonlyFlattenModel.md test expected outputs to match legacy pattern. Scope: non-collision cases only.",
       "status": "not-started",
-      "description": "The new emitter removes areAllPropsUndefined helper and property flatten serializer functions, potentially producing duplicate property assignments in serialized output. Legacy flatten pattern with helpers is the expected output.",
-      "legacy_behavior": "Uses areAllPropsUndefined() guard and dedicated helper functions for nested property serialization.",
-      "new_behavior": "Removes helpers, direct property assignment, may produce duplicate property keys.",
-      "affected_scenarios": [
-        "models/propertyFlatten/mulipleLayers",
-        "models/propertyFlatten/nameCollision",
-        "models/propertyFlatten/singleLayer",
-        "models/serialization/readonlyFlattenModel",
-        "samples/propertyFlatten/complexFlattenCases",
-        "samples/propertyFlatten/mulipleFlattenCases",
-        "samples/propertyFlatten/simpleFlattenCases"
-      ],
-      "reference_legacy_tests": "submodules/autorest.typescript/packages/typespec-ts/test/modularUnit/scenarios/models/propertyFlatten/singleLayer.md",
-      "reference_new_tests": "test/scenarios/cases/models/propertyFlatten/singleLayer.md",
-      "kind": "regression",
-      "source": "scenario-audit"
+      "category": "scenario-audit/Serialization",
+      "priority": "P0-CRITICAL",
+      "dependencies": []
+    },
+    {
+      "id": "SA-C25b",
+      "title": "Fix flatten property name collision handling with prefix renaming",
+      "description": "When flattened property names collide with parent model property names, the legacy emitter renames the colliding properties with a prefix pattern (e.g. barPropertiesBar). The new emitter currently produces duplicate property names in interfaces and serializers, which is invalid TypeScript. Implement property renaming for colliding flatten properties in model-interface.tsx, json-serializer.tsx, and json-deserializer.tsx. Update nameCollision.md test expected outputs to match legacy pattern.",
+      "status": "not-started",
+      "category": "scenario-audit/Serialization",
+      "priority": "P0-CRITICAL",
+      "dependencies": [
+        "SA-C25a"
+      ]
+    },
+    {
+      "id": "SA-C25c",
+      "title": "Fix flatten in multipart-serializer to use nested wire format",
+      "description": "Apply the same nested wire format pattern from SA-C25a to multipart serialization in multipart-serializer.tsx. Ensure flatten properties in multipart form-data contexts use helper functions and maintain the nested wire structure.",
+      "status": "not-started",
+      "category": "scenario-audit/Serialization",
+      "priority": "P1",
+      "dependencies": [
+        "SA-C25a"
+      ]
     },
     {
       "id": "SA-C26",
