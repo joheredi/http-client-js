@@ -458,13 +458,14 @@ export function suspend(
   const initialPagingPoller = getLongRunningPoller(
     context,
     async (result: PathUncheckedResponse) => result,
-    ["200"],
+    ["200", "202", "201"],
     {
       updateIntervalInMs: options?.updateIntervalInMs,
       abortSignal: options?.abortSignal,
       getInitialResponse: () =>
         _suspendSend(context, resourceGroupName, name, options),
       resourceLocationConfig: "location",
+      apiVersion: context.apiVersion ?? "2023-12-01",
     },
   ) as PollerLike<OperationState<PathUncheckedResponse>, PathUncheckedResponse>;
 
@@ -472,7 +473,7 @@ export function suspend(
     context,
     async () => await initialPagingPoller,
     _suspendDeserialize,
-    ["200"],
+    ["200", "202", "201"],
     {
       itemName: "value",
       nextLinkName: "nextLink",

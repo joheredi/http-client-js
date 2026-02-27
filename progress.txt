@@ -813,3 +813,22 @@ Added full paging configuration to `buildPagedAsyncIterator` calls to match the 
 - TCGC has TWO different fields: `nextLinkSegments` (next page URL path) and `continuationTokenResponseSegments` (opaque token path). The legacy emitter uses `nextLinkSegments` for `nextLinkName`. Use `nextLinkSegments` preferentially, with `continuationTokenResponseSegments` as fallback.
 - The `apiVersion` in paging options is a JavaScript expression (not a string literal): `context.apiVersion ?? "2023-12-01"`. The paging helper uses it to append `api-version` query parameter to next-page URLs via `addApiVersionToUrl`.
 - The `SdkQueryParameter` type (imported from TCGC) is needed to properly filter and type-check API version parameters.
+
+---
+
+Task: SA-C34 — LRO Poller Status Codes Reduced and apiVersion Removed
+Date: 2026-02-27
+
+## What was done
+Fixed `buildExpectedStatusArray()` in `public-operation.tsx` to add LRO polling status codes (200, 202, and 201 for non-DELETE) for LRO operations, matching the legacy emitter. Also added `apiVersion` to `getLongRunningPoller()` options in both `LroOperation` and `LroPagingOperation` components using the existing `getApiVersionExpression()` helper.
+
+## Files changed
+- `src/components/public-operation.tsx` — Added LRO polling codes to `buildExpectedStatusArray()`, added `isLroMethod()` helper, added apiVersion to poller options in `LroOperation` and `LroPagingOperation`
+- `test/scenarios/cases/operations/lroPaging.md` — Updated expected status codes from `["200"]` to `["200", "202", "201"]` in both poller and paging calls, added apiVersion to poller options
+- `test/scenarios/cases/samples/parameters/bodyOptionalParameterName.md` — Updated expected status codes from `["202", "200"]` to `["202", "200", "201"]`, added apiVersion to poller options
+- `test/components/public-operation.test.tsx` — Added unit test for LRO status codes and apiVersion
+
+## Key learnings
+- `deserialize-operation.tsx` already had the correct LRO status code logic (`getExpectedStatuses()`) but `public-operation.tsx` had a separate `buildExpectedStatusArray()` that was missing it. Both need the same logic since both the deserializer and the poller receive the expected status codes.
+- The apiVersion is passed as a runtime expression (e.g., `context.apiVersion ?? "2024-01-01"`) to the poller options so polling requests carry the correct api-version query parameter.
+- For LRO+Paging operations, BOTH the poller call and the paging call use the same expanded status codes (since they share the same `expectedStatuses` variable in the component).

@@ -219,12 +219,13 @@ export function backup(
   cloudHsmClusterName: string,
   options: BackupOptionalParams = { requestOptions: {} },
 ): PollerLike<OperationState<BackupResult>, BackupResult> {
-  return getLongRunningPoller(context, _backupDeserialize, ["202", "200"], {
+  return getLongRunningPoller(context, _backupDeserialize, ["202", "200", "201"], {
     updateIntervalInMs: options?.updateIntervalInMs,
     abortSignal: options?.abortSignal,
     getInitialResponse: () =>
       _backupSend(context, resourceGroupName, cloudHsmClusterName, options),
     resourceLocationConfig: "azure-async-operation",
+    apiVersion: context.apiVersion ?? "2021-10-01-preview",
   }) as PollerLike<OperationState<BackupResult>, BackupResult>;
 }
 ```

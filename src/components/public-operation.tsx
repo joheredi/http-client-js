@@ -244,6 +244,12 @@ function LroOperation(props: {
     ? `, resourceLocationConfig: "${resourceLocationConfig}"`
     : "";
 
+  // Include apiVersion in poller options so polling requests carry the correct api-version query param.
+  const apiVersionExpr = getApiVersionExpression(method);
+  const apiVersionPart = apiVersionExpr
+    ? `, apiVersion: ${apiVersionExpr}`
+    : "";
+
   return (
     <FunctionDeclaration
       name={method.name}
@@ -253,7 +259,7 @@ function LroOperation(props: {
       parameters={parameters}
       doc={getOperationDoc(method)}
     >
-      {code`return ${pollingHelperRefkey("getLongRunningPoller")}(context, ${deserializeOperationRefkey(method)}, ${expectedStatuses}, { updateIntervalInMs: ${getOptionsParamName(method)}?.updateIntervalInMs, abortSignal: ${getOptionsParamName(method)}?.abortSignal, getInitialResponse: () => ${sendOperationRefkey(method)}(${callArgs})${resourceConfigPart} }) as ${castExpr};`}
+      {code`return ${pollingHelperRefkey("getLongRunningPoller")}(context, ${deserializeOperationRefkey(method)}, ${expectedStatuses}, { updateIntervalInMs: ${getOptionsParamName(method)}?.updateIntervalInMs, abortSignal: ${getOptionsParamName(method)}?.abortSignal, getInitialResponse: () => ${sendOperationRefkey(method)}(${callArgs})${resourceConfigPart}${apiVersionPart} }) as ${castExpr};`}
     </FunctionDeclaration>
   );
 }
@@ -354,6 +360,12 @@ function LroPagingOperation(props: {
     ? `, resourceLocationConfig: "${resourceLocationConfig}"`
     : "";
 
+  // Include apiVersion in poller options so polling requests carry the correct api-version query param.
+  const apiVersionExpr = getApiVersionExpression(method);
+  const apiVersionPart = apiVersionExpr
+    ? `, apiVersion: ${apiVersionExpr}`
+    : "";
+
   return (
     <FunctionDeclaration
       name={method.name}
@@ -363,7 +375,7 @@ function LroPagingOperation(props: {
       parameters={parameters}
       doc={getOperationDoc(method)}
     >
-      {code`const initialPagingPoller = ${pollingHelperRefkey("getLongRunningPoller")}(context, async (result: ${useRuntimeLib().PathUncheckedResponse}) => result, ${expectedStatuses}, { updateIntervalInMs: ${getOptionsParamName(method)}?.updateIntervalInMs, abortSignal: ${getOptionsParamName(method)}?.abortSignal, getInitialResponse: () => ${sendOperationRefkey(method)}(${callArgs})${resourceConfigPart} }) as ${pollerCast};`}
+      {code`const initialPagingPoller = ${pollingHelperRefkey("getLongRunningPoller")}(context, async (result: ${useRuntimeLib().PathUncheckedResponse}) => result, ${expectedStatuses}, { updateIntervalInMs: ${getOptionsParamName(method)}?.updateIntervalInMs, abortSignal: ${getOptionsParamName(method)}?.abortSignal, getInitialResponse: () => ${sendOperationRefkey(method)}(${callArgs})${resourceConfigPart}${apiVersionPart} }) as ${pollerCast};`}
       {"\n\n"}
       {code`return ${pagingHelperRefkey("buildPagedAsyncIterator")}(context, async () => await initialPagingPoller, ${deserializeOperationRefkey(method)}, ${expectedStatuses}${pagingOptions});`}
     </FunctionDeclaration>
@@ -539,6 +551,11 @@ function getPagingItemType(
  * Collects status codes from the operation's HTTP responses and formats
  * them as a JavaScript array literal: `["200", "201"]`.
  *
+ * For LRO operations with non-GET verbs, adds polling status codes (200, 202,
+ * and 201 for non-DELETE operations) to match the legacy emitter behavior.
+ * LRO polling may call the same path with GET to check operation status,
+ * so these additional codes are needed for status validation.
+ *
  * @param method - The TCGC service method.
  * @returns A string representing the status code array expression.
  */
@@ -560,7 +577,30 @@ function buildExpectedStatusArray(
     }
   }
 
+  // LRO operations need additional polling status codes.
+  // When polling via GET on the same path, the service may return
+  // 200 (completed), 202 (still running), or 201 (created).
+  if (isLroMethod(method) && method.operation.verb !== "get") {
+    statusCodes.add(`"200"`);
+    statusCodes.add(`"202"`);
+    if (method.operation.verb !== "delete") {
+      statusCodes.add(`"201"`);
+    }
+  }
+
   return `[${Array.from(statusCodes).join(", ")}]`;
+}
+
+/**
+ * Checks whether a service method is a long-running operation (LRO).
+ *
+ * @param method - The TCGC service method.
+ * @returns `true` if the method is an LRO or LRO+paging operation.
+ */
+function isLroMethod(
+  method: SdkServiceMethod<SdkHttpOperation>,
+): boolean {
+  return method.kind === "lro" || method.kind === "lropaging";
 }
 
 /**

@@ -1610,7 +1610,7 @@
       "title": "LRO Poller Status Codes Reduced and apiVersion Removed",
       "category": "scenario-audit/Operations",
       "priority": "P1",
-      "status": "not-started",
+      "status": "done",
       "description": "The new emitter reduces expected status codes for LRO operations (e.g., ['202','200','201'] \u2192 ['202','200']) and removes apiVersion from poller options. Legacy configuration is the expected output.",
       "legacy_behavior": "Status codes include all expected codes, getLongRunningPoller includes apiVersion parameter.",
       "new_behavior": "Status codes reduced, apiVersion removed from poller options.",

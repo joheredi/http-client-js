@@ -21,9 +21,11 @@
  * - @@override parameter grouping uses optionalParams and forwards correctly.
  */
 import "@alloy-js/core/testing";
-import { code } from "@alloy-js/core";
+import { code, SourceDirectory } from "@alloy-js/core";
 import { d } from "@alloy-js/core/testing";
+import { createTSNamePolicy, SourceFile } from "@alloy-js/typescript";
 import { t } from "@typespec/compiler/testing";
+import { Output } from "@typespec/emitter-framework";
 import { beforeAll, describe, expect, it } from "vitest";
 import type {
   SdkHttpOperation,
@@ -38,10 +40,14 @@ import { ModelInterface } from "../../src/components/model-interface.js";
 import { JsonSerializer } from "../../src/components/serialization/json-serializer.js";
 import { JsonDeserializer } from "../../src/components/serialization/json-deserializer.js";
 import { publicOperationRefkey } from "../../src/utils/refkeys.js";
-import { httpRuntimeLib } from "../../src/utils/external-packages.js";
+import { httpRuntimeLib, azureCoreLroLib } from "../../src/utils/external-packages.js";
 import { TesterWithService, RawTester, createSdkContextForTest } from "../test-host.js";
 import { SdkTestFile } from "../utils.jsx";
 import { renderToString } from "@alloy-js/core/testing";
+import { PollingHelpersFile } from "../../src/components/static-helpers/polling-helpers.js";
+import { FlavorProvider } from "../../src/context/flavor-context.js";
+import { EmitterOptionsProvider } from "../../src/context/emitter-options-context.js";
+import { SdkContextProvider } from "../../src/context/sdk-context.js";
 
 /**
  * Helper to extract the first method from the first client in an SDK context.
@@ -1052,5 +1058,98 @@ op groupCustomized(
     expect(rendered).not.toMatch(/createStreaming\(\s*context: Client,\s*stream: true/);
     // Call to send function should only pass context and options
     expect(rendered).toContain("_createStreamingSend(context, options)");
+  });
+
+  /**
+   * Tests that an LRO (Long Running Operation) public function includes
+   * polling status codes (200, 201, 202) in the expected statuses array
+   * and passes apiVersion to the getLongRunningPoller options.
+   *
+   * The legacy emitter adds polling status codes for non-GET LRO operations:
+   * - 200 (completed), 202 (accepted/in-progress) for all
+   * - 201 (created) for non-DELETE operations
+   *
+   * Without these extra codes, the poller rejects valid polling responses.
+   * The apiVersion is needed so polling requests carry the correct
+   * api-version query parameter. (SA-C34)
+   */
+  it("should include LRO polling status codes and apiVersion in poller options", async () => {
+    const runner = await RawTester.createInstance();
+    const { program } = await runner.compile(`
+import "@typespec/http";
+import "@typespec/rest";
+import "@typespec/versioning";
+import "@azure-tools/typespec-azure-core";
+import "@azure-tools/typespec-azure-resource-manager";
+import "@azure-tools/typespec-client-generator-core";
+using TypeSpec.Http;
+using TypeSpec.Rest;
+using TypeSpec.Versioning;
+using Azure.Core;
+using Azure.ResourceManager;
+
+@armProviderNamespace
+@service
+@versioned(Versions)
+@armCommonTypesVersion(Azure.ResourceManager.CommonTypes.Versions.v5)
+namespace Microsoft.TestLro;
+
+enum Versions { v2024_01_01: "2024-01-01" }
+
+model TestResource is TrackedResource<TestResourceProperties> {
+  @key("testResourceName") @path @segment("testResources") name: string;
+}
+model TestResourceProperties { state?: string; }
+
+@armResourceOperations
+interface TestResources {
+  createOrUpdate is ArmResourceCreateOrReplaceAsync<TestResource>;
+}
+    `);
+
+    const sdkContext = await createSdkContextForTest(program);
+    // ARM clients have nested operation groups — find the LRO method
+    const allMethods = sdkContext.sdkPackage.clients.flatMap((c: any) =>
+      [...c.methods, ...c.children.flatMap((child: any) => child.methods)]
+    );
+    const lroMethod = allMethods.find((m: any) => m.kind === "lro");
+    expect(lroMethod).toBeDefined();
+
+    // Use custom Output with SourceDirectory to allow PollingHelpersFile
+    // (which has its own SourceFile) alongside the operation code.
+    const template = (
+      <Output
+        program={sdkContext.emitContext.program}
+        namePolicy={createTSNamePolicy()}
+        externals={[httpRuntimeLib, azureCoreLroLib]}
+      >
+        <FlavorProvider flavor="azure">
+          <EmitterOptionsProvider options={{}}>
+            <SdkContextProvider sdkContext={sdkContext}>
+              <SourceDirectory path="src">
+                <PollingHelpersFile />
+                <SourceFile path="operations.ts">
+                  <OperationOptionsDeclaration method={lroMethod} />
+                  {"\n\n"}
+                  <SendOperation method={lroMethod} />
+                  {"\n\n"}
+                  <DeserializeOperation method={lroMethod} />
+                  {"\n\n"}
+                  <PublicOperation method={lroMethod} />
+                </SourceFile>
+              </SourceDirectory>
+            </SdkContextProvider>
+          </EmitterOptionsProvider>
+        </FlavorProvider>
+      </Output>
+    );
+
+    const rendered = renderToString(template);
+    // LRO PUT operation should include polling codes: 200, 201, 202
+    // The base status code from the PUT response is 200,201. With polling codes added,
+    // the array should also contain "202".
+    expect(rendered).toContain('"202"');
+    // Verify apiVersion is present in poller options
+    expect(rendered).toContain('apiVersion: context.apiVersion');
   });
 });
