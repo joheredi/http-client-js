@@ -1,14 +1,14 @@
 import { code, For } from "@alloy-js/core";
-import {
-  InterfaceDeclaration,
-  InterfaceMember,
-} from "@alloy-js/typescript";
+import { InterfaceDeclaration, InterfaceMember } from "@alloy-js/typescript";
 import type {
   SdkHttpOperation,
   SdkMethodParameter,
   SdkServiceMethod,
 } from "@azure-tools/typespec-client-generator-core";
-import { useFlavorContext, type FlavorKind } from "../context/flavor-context.js";
+import {
+  useFlavorContext,
+  type FlavorKind,
+} from "../context/flavor-context.js";
 import { useEmitterOptions } from "../context/emitter-options-context.js";
 import { operationOptionsRefkey } from "../utils/refkeys.js";
 import { getOptionalAwareTypeExpression } from "./type-expression.js";
@@ -59,7 +59,12 @@ export function OperationOptionsDeclaration(props: OperationOptionsProps) {
       extends={code`${runtimeLib.OperationOptions}`}
       doc={`Optional parameters for the ${method.name} operation.`}
     >
-      <For each={[...additionalMembers, ...optionalParams]} semicolon hardline enderPunctuation>
+      <For
+        each={[...additionalMembers, ...optionalParams]}
+        semicolon
+        hardline
+        enderPunctuation
+      >
         {(param) => (
           <InterfaceMember
             name={param.name}
@@ -128,7 +133,11 @@ function getOptionalParameters(
     .filter((p) => isOptionalParameter(p))
     .map((p) => ({
       name: p.name,
-      type: getOptionalAwareTypeExpression(p.type, true, ignoreNullableOnOptional) as string,
+      type: getOptionalAwareTypeExpression(
+        p.type,
+        true,
+        ignoreNullableOnOptional,
+      ) as string,
       doc: p.doc ?? p.summary,
     }));
 }
@@ -234,9 +243,7 @@ function getAdditionalMembers(
  * @param method - The TCGC service method to check.
  * @returns `true` if the method is an LRO or LRO+paging operation.
  */
-function isLroOperation(
-  method: SdkServiceMethod<SdkHttpOperation>,
-): boolean {
+function isLroOperation(method: SdkServiceMethod<SdkHttpOperation>): boolean {
   return method.kind === "lro" || method.kind === "lropaging";
 }
 

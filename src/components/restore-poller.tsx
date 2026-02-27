@@ -10,9 +10,7 @@ import type {
   SdkHttpOperation,
   SdkServiceMethod,
 } from "@azure-tools/typespec-client-generator-core";
-import {
-  azureCoreLroLib,
-} from "../utils/external-packages.js";
+import { azureCoreLroLib } from "../utils/external-packages.js";
 import { useRuntimeLib } from "../context/flavor-context.js";
 import {
   classicalClientRefkey,

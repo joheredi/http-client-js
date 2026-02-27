@@ -57,11 +57,18 @@ function OperationStateInterface() {
       export
       typeParameters={["TResult"]}
     >
-      <InterfaceMember name="status" type={code`"notStarted" | "running" | "succeeded" | "failed" | "canceled"`} />
+      <InterfaceMember
+        name="status"
+        type={code`"notStarted" | "running" | "succeeded" | "failed" | "canceled"`}
+      />
       {"\n"}
       <InterfaceMember name="result" type="TResult" optional />
       {"\n"}
-      <InterfaceMember name="error" type={code`${runtimeLib.RestError}`} optional />
+      <InterfaceMember
+        name="error"
+        type={code`${runtimeLib.RestError}`}
+        optional
+      />
     </InterfaceDeclaration>
   );
 }
@@ -78,7 +85,13 @@ function PollerLikeInterface() {
       name="PollerLike"
       refkey={pollingHelperRefkey("PollerLike")}
       export
-      typeParameters={[{name: "TState", extends: code`${pollingHelperRefkey("OperationState")}<TResult>`}, {name: "TResult"}]}
+      typeParameters={[
+        {
+          name: "TState",
+          extends: code`${pollingHelperRefkey("OperationState")}<TResult>`,
+        },
+        { name: "TResult" },
+      ]}
     >
       <InterfaceMember name="getOperationState" type={code`() => TState`} />
       {"\n"}
@@ -86,7 +99,10 @@ function PollerLikeInterface() {
       {"\n"}
       <InterfaceMember name="poll" type={code`() => Promise<TState>`} />
       {"\n"}
-      <InterfaceMember name="pollUntilDone" type={code`() => Promise<TResult>`} />
+      <InterfaceMember
+        name="pollUntilDone"
+        type={code`() => Promise<TResult>`}
+      />
       {"\n"}
       <InterfaceMember name="serialize" type={code`() => string`} />
     </InterfaceDeclaration>
@@ -111,9 +127,16 @@ function GetLongRunningPollerOptionsInterface() {
     >
       <InterfaceMember name="updateIntervalInMs" type="number" optional />
       {"\n"}
-      <InterfaceMember name="abortSignal" type={code`${runtimeLib.AbortSignalLike}`} optional />
+      <InterfaceMember
+        name="abortSignal"
+        type={code`${runtimeLib.AbortSignalLike}`}
+        optional
+      />
       {"\n"}
-      <InterfaceMember name="getInitialResponse" type={code`() => Promise<TResponse>`} />
+      <InterfaceMember
+        name="getInitialResponse"
+        type={code`() => Promise<TResponse>`}
+      />
       {"\n"}
       <InterfaceMember name="resourceLocationConfig" type="string" optional />
       {"\n"}
@@ -149,9 +172,15 @@ function GetLongRunningPollerFunction() {
       typeParameters={["TResponse"]}
       parameters={[
         { name: "client", type: runtimeLib.Client },
-        { name: "processResponseBody", type: code`(result: ${runtimeLib.PathUncheckedResponse}) => Promise<TResponse>` },
+        {
+          name: "processResponseBody",
+          type: code`(result: ${runtimeLib.PathUncheckedResponse}) => Promise<TResponse>`,
+        },
         { name: "expectedStatuses", type: "string[]" },
-        { name: "options", type: code`${pollingHelperRefkey("GetLongRunningPollerOptions")}<${runtimeLib.PathUncheckedResponse}>` },
+        {
+          name: "options",
+          type: code`${pollingHelperRefkey("GetLongRunningPollerOptions")}<${runtimeLib.PathUncheckedResponse}>`,
+        },
       ]}
     >
       {code`const initialResponse = await options.getInitialResponse();

@@ -125,7 +125,9 @@ describe("XmlDeserializer", () => {
     expect(result).toContain("xmlString: string");
     expect(result).toContain('primitiveSubtype: "string"');
     expect(result).toContain('primitiveSubtype: "boolean"');
-    expect(result).toContain('deserializeFromXml<Logging>(xmlString, properties, "Logging")');
+    expect(result).toContain(
+      'deserializeFromXml<Logging>(xmlString, properties, "Logging")',
+    );
   });
 
   /**
@@ -251,14 +253,20 @@ describe("XmlDeserializer", () => {
         name: "timestamps",
         serializedName: "timestamps",
         xmlName: "Timestamps",
-        type: { kind: "array", valueType: { kind: "utcDateTime", encode: "rfc3339" } },
+        type: {
+          kind: "array",
+          valueType: { kind: "utcDateTime", encode: "rfc3339" },
+        },
         itemsName: "utcDateTime",
       },
       {
         name: "httpDates",
         serializedName: "httpDates",
         xmlName: "HttpDates",
-        type: { kind: "array", valueType: { kind: "utcDateTime", encode: "rfc7231" } },
+        type: {
+          kind: "array",
+          valueType: { kind: "utcDateTime", encode: "rfc7231" },
+        },
         itemsName: "rfc7231DateTime",
       },
     ]);

@@ -40,10 +40,7 @@ import { OperationFiles } from "../../src/components/operation-files.js";
 import { OperationOptionsFiles } from "../../src/components/operation-options-files.js";
 import { ModelFiles } from "../../src/components/model-files.js";
 import { httpRuntimeLib } from "../../src/utils/external-packages.js";
-import {
-  TesterWithService,
-  createSdkContextForTest,
-} from "../test-host.js";
+import { TesterWithService, createSdkContextForTest } from "../test-host.js";
 
 /**
  * Test wrapper for OperationFiles that provides Output and SdkContext but NO
@@ -96,7 +93,9 @@ describe("OperationFiles", () => {
 
     // Should have send, deserialize, and public function in api/operations.ts
     expect(template).toRenderTo({
-      "api/operations.ts": expect.stringContaining("export async function ping"),
+      "api/operations.ts": expect.stringContaining(
+        "export async function ping",
+      ),
     });
     // Options interface is no longer declared in operations.ts — it's in options.ts
     // but operations.ts imports it via refkey
@@ -134,7 +133,9 @@ describe("OperationFiles", () => {
 
     // Both operations should be in the same file
     expect(template).toRenderTo({
-      "api/operations.ts": expect.stringContaining("export async function ping"),
+      "api/operations.ts": expect.stringContaining(
+        "export async function ping",
+      ),
     });
     expect(template).toRenderTo({
       "api/operations.ts": expect.stringContaining(
@@ -306,9 +307,8 @@ describe("OperationFiles", () => {
       const normalizedName =
         childName.charAt(0).toLowerCase() + childName.slice(1);
       expect(template).toRenderTo({
-        [`api/${normalizedName}/operations.ts`]: expect.stringContaining(
-          "listWidgets",
-        ),
+        [`api/${normalizedName}/operations.ts`]:
+          expect.stringContaining("listWidgets"),
       });
     } else if (hasRootMethods) {
       // If TCGC flattens them to root, they should be in api/operations.ts

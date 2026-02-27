@@ -14,8 +14,18 @@ import type {
 import { UsageFlags } from "@azure-tools/typespec-client-generator-core";
 import { useEmitterOptions } from "../../context/emitter-options-context.js";
 import { getModelFunctionName } from "../../utils/model-name.js";
-import { flattenSerializerRefkey, serializationHelperRefkey, serializerRefkey, typeRefkey, arraySerializerRefkey, recordSerializerRefkey } from "../../utils/refkeys.js";
-import { computeFlattenCollisionMap, getEffectiveClientName } from "../../utils/flatten-collision.js";
+import {
+  flattenSerializerRefkey,
+  serializationHelperRefkey,
+  serializerRefkey,
+  typeRefkey,
+  arraySerializerRefkey,
+  recordSerializerRefkey,
+} from "../../utils/refkeys.js";
+import {
+  computeFlattenCollisionMap,
+  getEffectiveClientName,
+} from "../../utils/flatten-collision.js";
 import { useRuntimeLib } from "../../context/flavor-context.js";
 import { isAzureCoreErrorType } from "../../utils/azure-core-error-types.js";
 
@@ -93,51 +103,76 @@ export function JsonSerializer(props: JsonSerializerProps) {
       returnType="any"
       parameters={[{ name: "item", type: typeRefkey(model) }]}
     >
-      {isEmpty ? code`return item;` : <>
-        {code`return `}
-        <ObjectExpression>
-          {hasAdditional ? (
-            <>
-              <ObjectSpreadProperty value="item" />
-              {properties.length > 0 ? code`, ` : undefined}
-            </>
-          ) : undefined}
-          <For each={properties} comma softline enderPunctuation>
-            {(prop) => {
-              // Flatten properties emit a helper function call instead of inline expansion.
-              // Required: `properties: _testPropertiesSerializer(item)`
-              // Optional: `properties: areAllPropsUndefined(item, [...]) ? undefined : _testPropertiesSerializer(item)`
-              if (prop.flatten && prop.type.kind === "model") {
-                const helperRef = flattenSerializerRefkey(model, prop.serializedName);
-                if (prop.optional) {
-                  const clientNames = getFlattenClientNames(prop);
-                  const namesList = clientNames.map((n) => `"${n}"`).join(", ");
+      {isEmpty ? (
+        code`return item;`
+      ) : (
+        <>
+          {code`return `}
+          <ObjectExpression>
+            {hasAdditional ? (
+              <>
+                <ObjectSpreadProperty value="item" />
+                {properties.length > 0 ? code`, ` : undefined}
+              </>
+            ) : undefined}
+            <For each={properties} comma softline enderPunctuation>
+              {(prop) => {
+                // Flatten properties emit a helper function call instead of inline expansion.
+                // Required: `properties: _testPropertiesSerializer(item)`
+                // Optional: `properties: areAllPropsUndefined(item, [...]) ? undefined : _testPropertiesSerializer(item)`
+                if (prop.flatten && prop.type.kind === "model") {
+                  const helperRef = flattenSerializerRefkey(
+                    model,
+                    prop.serializedName,
+                  );
+                  if (prop.optional) {
+                    const clientNames = getFlattenClientNames(prop);
+                    const namesList = clientNames
+                      .map((n) => `"${n}"`)
+                      .join(", ");
+                    return (
+                      <ObjectProperty
+                        name={prop.serializedName}
+                        value={code`${serializationHelperRefkey("areAllPropsUndefined")}(item, [${namesList}])\n? undefined\n: ${helperRef}(item)`}
+                      />
+                    );
+                  }
                   return (
                     <ObjectProperty
                       name={prop.serializedName}
-                      value={code`${serializationHelperRefkey("areAllPropsUndefined")}(item, [${namesList}])\n? undefined\n: ${helperRef}(item)`}
+                      value={code`${helperRef}(item)`}
                     />
                   );
                 }
-                return (
-                  <ObjectProperty
-                    name={prop.serializedName}
-                    value={code`${helperRef}(item)`}
-                  />
+                const accessor = `item["${prop.name}"]`;
+                let valueExpr = getSerializationExpression(
+                  prop.type,
+                  accessor,
+                  serOpts,
                 );
-              }
-              const accessor = `item["${prop.name}"]`;
-              let valueExpr = getSerializationExpression(prop.type, accessor, serOpts);
-              // Apply array encoding if the property has @encode(ArrayEncoding.xxx).
-              // This converts arrays to delimited strings on the wire (e.g., ["a","b"] → "a,b").
-              valueExpr = wrapWithArrayEncoding(valueExpr, accessor, prop, serOpts);
-              const wrapped = wrapWithNullCheck(valueExpr, accessor, prop, serOpts);
-              return <ObjectProperty name={prop.serializedName} value={wrapped} />;
-            }}
-          </For>
-        </ObjectExpression>
-        {code`;`}
-      </>}
+                // Apply array encoding if the property has @encode(ArrayEncoding.xxx).
+                // This converts arrays to delimited strings on the wire (e.g., ["a","b"] → "a,b").
+                valueExpr = wrapWithArrayEncoding(
+                  valueExpr,
+                  accessor,
+                  prop,
+                  serOpts,
+                );
+                const wrapped = wrapWithNullCheck(
+                  valueExpr,
+                  accessor,
+                  prop,
+                  serOpts,
+                );
+                return (
+                  <ObjectProperty name={prop.serializedName} value={wrapped} />
+                );
+              }}
+            </For>
+          </ObjectExpression>
+          {code`;`}
+        </>
+      )}
     </FunctionDeclaration>
   );
 }
@@ -280,7 +315,11 @@ export function getSerializationExpression(
         if (valueTypeHasNamedSerializerFn(type.valueType, options)) {
           return code`${arraySerializerRefkey(type.valueType)}(${accessor})`;
         }
-        const elementExpr = getSerializationExpression(type.valueType, "p", options);
+        const elementExpr = getSerializationExpression(
+          type.valueType,
+          "p",
+          options,
+        );
         return code`${accessor}.map((p: any) => { return ${elementExpr}; })`;
       }
       return accessor;
@@ -293,7 +332,11 @@ export function getSerializationExpression(
         if (valueTypeHasNamedSerializerFn(type.valueType, options)) {
           return code`${recordSerializerRefkey(type.valueType)}(${accessor} as any)`;
         }
-        const valueExpr = getSerializationExpression(type.valueType, "v", options);
+        const valueExpr = getSerializationExpression(
+          type.valueType,
+          "v",
+          options,
+        );
         return code`${serializationHelperRefkey("serializeRecord")}(${accessor} as any, (v: any) => ${valueExpr})`;
       }
       return accessor;
@@ -324,7 +367,10 @@ export function getSerializationExpression(
       // Use the type's encoding, but fall back to "base64" for binary wire formats
       // since uint8ArrayToString always needs a string encoding format.
       const rawEncoding = type.encode ?? "base64";
-      const encoding = rawEncoding === "binary" || rawEncoding === "bytes" ? "base64" : rawEncoding;
+      const encoding =
+        rawEncoding === "binary" || rawEncoding === "bytes"
+          ? "base64"
+          : rawEncoding;
       return code`${useRuntimeLib().uint8ArrayToString}(${accessor}, "${encoding}")`;
     }
 
@@ -379,7 +425,10 @@ export function getSerializationExpression(
  * @param options - Optional serialization options controlling enum behavior.
  * @returns `true` if the type requires a serialization transformation.
  */
-export function needsTransformation(type: SdkType, options?: SerializationOptions): boolean {
+export function needsTransformation(
+  type: SdkType,
+  options?: SerializationOptions,
+): boolean {
   switch (type.kind) {
     case "model":
       return true;
@@ -433,7 +482,10 @@ export function needsTransformation(type: SdkType, options?: SerializationOption
  * @param options - Optional serialization options controlling enum behavior.
  * @returns True if the type has a named serializer function.
  */
-function valueTypeHasNamedSerializerFn(type: SdkType, options?: SerializationOptions): boolean {
+function valueTypeHasNamedSerializerFn(
+  type: SdkType,
+  options?: SerializationOptions,
+): boolean {
   switch (type.kind) {
     case "model":
       // Azure Core error types don't have local serializer functions
@@ -492,9 +544,7 @@ function wrapWithNullCheck(
   property: SdkModelPropertyType,
   options?: SerializationOptions,
 ): Children {
-  const isNullable =
-    property.type.kind === "nullable" ||
-    property.optional;
+  const isNullable = property.type.kind === "nullable" || property.optional;
 
   if (isNullable && needsTransformation(property.type, options)) {
     return code`!${accessor} ? ${accessor} : ${expression}`;
@@ -564,9 +614,7 @@ function wrapWithArrayEncoding(
  * @param encode - The TCGC array encoding string.
  * @returns The helper function name, or undefined if no encoding is needed.
  */
-function getArrayEncodingBuilderName(
-  encode: string,
-): string | undefined {
+function getArrayEncodingBuilderName(encode: string): string | undefined {
   switch (encode) {
     case "commaDelimited":
       return "buildCsvCollection";
@@ -616,9 +664,19 @@ export function FlattenSerializerHelper(props: FlattenSerializerHelperProps) {
   const { experimentalExtensibleEnums } = useEmitterOptions();
   const serOpts: SerializationOptions = { experimentalExtensibleEnums };
   const flatModel = flattenProp.type as SdkModelType;
-  const properties = getFlattenHelperProperties(flatModel, flattenProp.optional);
-  const funcName = getFlattenHelperFunctionName(parentModel, flattenProp, "Serializer");
-  const refkeyVal = flattenSerializerRefkey(parentModel, flattenProp.serializedName);
+  const properties = getFlattenHelperProperties(
+    flatModel,
+    flattenProp.optional,
+  );
+  const funcName = getFlattenHelperFunctionName(
+    parentModel,
+    flattenProp,
+    "Serializer",
+  );
+  const refkeyVal = flattenSerializerRefkey(
+    parentModel,
+    flattenProp.serializedName,
+  );
   const collisionMap = computeFlattenCollisionMap(parentModel);
 
   return (
@@ -639,10 +697,26 @@ export function FlattenSerializerHelper(props: FlattenSerializerHelperProps) {
               prop.name,
             );
             const accessor = `item["${effectiveName}"]`;
-            let valueExpr = getSerializationExpression(prop.type, accessor, serOpts);
-            valueExpr = wrapWithArrayEncoding(valueExpr, accessor, prop, serOpts);
-            const wrapped = wrapWithNullCheck(valueExpr, accessor, prop, serOpts);
-            return <ObjectProperty name={prop.serializedName} value={wrapped} />;
+            let valueExpr = getSerializationExpression(
+              prop.type,
+              accessor,
+              serOpts,
+            );
+            valueExpr = wrapWithArrayEncoding(
+              valueExpr,
+              accessor,
+              prop,
+              serOpts,
+            );
+            const wrapped = wrapWithNullCheck(
+              valueExpr,
+              accessor,
+              prop,
+              serOpts,
+            );
+            return (
+              <ObjectProperty name={prop.serializedName} value={wrapped} />
+            );
           }}
         </For>
       </ObjectExpression>
@@ -739,8 +813,12 @@ function getFlattenHelperFunctionName(
   flattenProp: SdkModelPropertyType,
   suffix: string,
 ) {
-  const modelName = parentModel.name.charAt(0).toLowerCase() + parentModel.name.slice(1);
+  const modelName =
+    parentModel.name.charAt(0).toLowerCase() + parentModel.name.slice(1);
   const propName =
-    flattenProp.serializedName.charAt(0).toUpperCase() + flattenProp.serializedName.slice(1);
-  return namekey(`_${modelName}${propName}${suffix}`, { ignoreNamePolicy: true });
+    flattenProp.serializedName.charAt(0).toUpperCase() +
+    flattenProp.serializedName.slice(1);
+  return namekey(`_${modelName}${propName}${suffix}`, {
+    ignoreNamePolicy: true,
+  });
 }

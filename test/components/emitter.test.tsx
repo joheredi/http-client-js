@@ -26,7 +26,10 @@
 import "@alloy-js/core/testing";
 import { renderToString } from "@alloy-js/core/testing";
 import { Children, For, SourceDirectory } from "@alloy-js/core";
-import { createTSNamePolicy, tsNameConflictResolver } from "@alloy-js/typescript";
+import {
+  createTSNamePolicy,
+  tsNameConflictResolver,
+} from "@alloy-js/typescript";
 import { t } from "@typespec/compiler/testing";
 import { Output } from "@typespec/emitter-framework";
 import type {

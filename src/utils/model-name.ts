@@ -27,7 +27,9 @@ import { normalizePascalCaseName } from "./name-policy.js";
  * @returns The model name (plain string or namekey), suitable for use as the
  *          `name` prop on Alloy declaration components.
  */
-export function getModelName(model: SdkModelType): string | Namekey<NamekeyOptions> {
+export function getModelName(
+  model: SdkModelType,
+): string | Namekey<NamekeyOptions> {
   if (model.isGeneratedName) {
     const prefixedName = `_${model.name}`;
     return namekey(prefixedName, { ignoreNamePolicy: true });
@@ -87,7 +89,9 @@ export function getModelFunctionName(
  * @returns The union name (plain string or namekey), suitable for use as the
  *          `name` prop on Alloy declaration components.
  */
-export function getUnionName(union: SdkUnionType): string | Namekey<NamekeyOptions> {
+export function getUnionName(
+  union: SdkUnionType,
+): string | Namekey<NamekeyOptions> {
   if (union.isGeneratedName) {
     const prefixedName = `_${union.name}`;
     return namekey(prefixedName, { ignoreNamePolicy: true });

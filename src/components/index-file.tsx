@@ -80,11 +80,11 @@ export function RootIndexFile() {
   return (
     <SourceFile path="index.ts">
       {modelExportNames.length > 0 && (
-        <>
-          {buildExportStatement(modelExportNames, "./models/index.js")}
-        </>
+        <>{buildExportStatement(modelExportNames, "./models/index.js")}</>
       )}
-      {modelExportNames.length > 0 && clientExports.length > 0 ? "\n" : undefined}
+      {modelExportNames.length > 0 && clientExports.length > 0
+        ? "\n"
+        : undefined}
       <For each={clientExports} joiner={"\n"}>
         {(ce) => (
           <>
@@ -121,12 +121,7 @@ export function RootIndexFile() {
         <>
           {"\n"}
           <For each={allOperationExports} joiner={"\n"}>
-            {(oe) =>
-              buildExportStatement(
-                oe.names,
-                `./api/${oe.filePath}`,
-              )
-            }
+            {(oe) => buildExportStatement(oe.names, `./api/${oe.filePath}`)}
           </For>
         </>
       ) : undefined}
@@ -220,7 +215,9 @@ export function ApiIndexFile() {
       <For each={contextExports} joiner={"\n"}>
         {(ce) => buildExportStatement(ce.names, ce.filePath)}
       </For>
-      {contextExports.length > 0 && operationExports.length > 0 ? "\n" : undefined}
+      {contextExports.length > 0 && operationExports.length > 0
+        ? "\n"
+        : undefined}
       <For each={operationExports} joiner={"\n"}>
         {(oe) => buildExportStatement(oe.names, `./${oe.filePath}`)}
       </For>
@@ -416,10 +413,7 @@ function collectAllOperationExports(
 
     if (client.children) {
       for (const child of client.children) {
-        queue.push([
-          [...prefixes, normalizeName(child.name)],
-          child,
-        ]);
+        queue.push([[...prefixes, normalizeName(child.name)], child]);
       }
     }
   }

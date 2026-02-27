@@ -148,7 +148,9 @@ describe("MultipartHelpersFile", () => {
           <FunctionDeclaration
             name="processFile"
             returnType="void"
-            parameters={[{ name: "contents", type: multipartHelperRefkey("FileContents") }]}
+            parameters={[
+              { name: "contents", type: multipartHelperRefkey("FileContents") },
+            ]}
           >
             {code`console.log(contents);`}
           </FunctionDeclaration>

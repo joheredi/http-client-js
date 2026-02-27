@@ -74,7 +74,9 @@ describe("JsonEnumSerializer", () => {
 
     const result = renderToString(template);
     // Verify the serializer function exists and is a pass-through
-    expect(result).toContain("export function statusSerializer(item: Status): any");
+    expect(result).toContain(
+      "export function statusSerializer(item: Status): any",
+    );
     expect(result).toContain("return item;");
     // Verify no unresolved symbols
     expect(result).not.toContain("Unresolved Symbol");
@@ -120,7 +122,9 @@ describe("JsonEnumSerializer", () => {
 
     const result = renderToString(template);
     // Verify the function name follows camelCase convention
-    expect(result).toContain("export function colorSerializer(item: Color): any");
+    expect(result).toContain(
+      "export function colorSerializer(item: Color): any",
+    );
     // Verify pass-through body
     expect(result).toContain("return item;");
     // Verify no unresolved symbols

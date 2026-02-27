@@ -36,7 +36,11 @@ import { httpRuntimeLib } from "../../src/utils/external-packages.js";
 import { FlavorProvider } from "../../src/context/flavor-context.js";
 import { EmitterOptionsProvider } from "../../src/context/emitter-options-context.js";
 import { SdkContextProvider } from "../../src/context/sdk-context.js";
-import { TesterWithService, RawTester, createSdkContextForTest } from "../test-host.js";
+import {
+  TesterWithService,
+  RawTester,
+  createSdkContextForTest,
+} from "../test-host.js";
 import { SdkTestFile } from "../utils.jsx";
 
 /**
@@ -45,9 +49,11 @@ import { SdkTestFile } from "../utils.jsx";
  * Most tests define a single operation, so this helper avoids repeated
  * boilerplate for navigating the client → methods hierarchy.
  */
-function getFirstMethod(
-  sdkContext: { sdkPackage: { clients: Array<{ methods: SdkServiceMethod<SdkHttpOperation>[] }> } },
-): SdkServiceMethod<SdkHttpOperation> {
+function getFirstMethod(sdkContext: {
+  sdkPackage: {
+    clients: Array<{ methods: SdkServiceMethod<SdkHttpOperation>[] }>;
+  };
+}): SdkServiceMethod<SdkHttpOperation> {
   return sdkContext.sdkPackage.clients[0].methods[0];
 }
 
@@ -332,7 +338,9 @@ describe("OperationOptions", () => {
 
     const sdkContext = await createSdkContextForTest(program);
     const method = getFirstMethod(sdkContext);
-    const patchModel = sdkContext.sdkPackage.models.find((m) => m.name === "PatchData")!;
+    const patchModel = sdkContext.sdkPackage.models.find(
+      (m) => m.name === "PatchData",
+    )!;
 
     const template = (
       <SdkTestFile sdkContext={sdkContext} externals={[httpRuntimeLib]}>
@@ -410,9 +418,10 @@ interface TestResources {
     `);
 
     const sdkContext = await createSdkContextForTest(program);
-    const allMethods = sdkContext.sdkPackage.clients.flatMap((c: any) =>
-      [...c.methods, ...c.children.flatMap((child: any) => child.methods)]
-    );
+    const allMethods = sdkContext.sdkPackage.clients.flatMap((c: any) => [
+      ...c.methods,
+      ...c.children.flatMap((child: any) => child.methods),
+    ]);
     const lroMethod = allMethods.find((m: any) => m.kind === "lro");
     expect(lroMethod).toBeDefined();
 
@@ -436,7 +445,9 @@ interface TestResources {
 
     const rendered = renderToString(template);
     expect(rendered).toContain("updateIntervalInMs");
-    expect(rendered).toContain("Delay to wait until next poll, in milliseconds.");
+    expect(rendered).toContain(
+      "Delay to wait until next poll, in milliseconds.",
+    );
   });
 
   /**
@@ -485,9 +496,10 @@ interface TestResources {
     `);
 
     const sdkContext = await createSdkContextForTest(program);
-    const allMethods = sdkContext.sdkPackage.clients.flatMap((c: any) =>
-      [...c.methods, ...c.children.flatMap((child: any) => child.methods)]
-    );
+    const allMethods = sdkContext.sdkPackage.clients.flatMap((c: any) => [
+      ...c.methods,
+      ...c.children.flatMap((child: any) => child.methods),
+    ]);
     const lroMethod = allMethods.find((m: any) => m.kind === "lro");
     expect(lroMethod).toBeDefined();
 

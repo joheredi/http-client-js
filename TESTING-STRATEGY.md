@@ -30,12 +30,12 @@ The flight-instructor tests fall into **3 distinct categories**:
 
 ### Test Infrastructure Components
 
-| Component | Purpose | Location |
-|-----------|---------|----------|
-| `test-host.ts` | Creates TypeSpec compiler `Tester` instance with library imports | `test/test-host.ts` |
-| `utils.tsx` | Test wrappers: `TestFile`, `DeclarationTestFile`, `ReferenceTestFile`, `testHelper()` | `test/utils.tsx` |
-| `vitest.d.ts` | Custom matcher types (`toRenderTo`, `toRenderToAsync`) | `test/vitest.d.ts` |
-| `vitest.config.ts` | Vitest config with `alloyPlugin()` and JSX preserve | Root |
+| Component          | Purpose                                                                               | Location            |
+| ------------------ | ------------------------------------------------------------------------------------- | ------------------- |
+| `test-host.ts`     | Creates TypeSpec compiler `Tester` instance with library imports                      | `test/test-host.ts` |
+| `utils.tsx`        | Test wrappers: `TestFile`, `DeclarationTestFile`, `ReferenceTestFile`, `testHelper()` | `test/utils.tsx`    |
+| `vitest.d.ts`      | Custom matcher types (`toRenderTo`, `toRenderToAsync`)                                | `test/vitest.d.ts`  |
+| `vitest.config.ts` | Vitest config with `alloyPlugin()` and JSX preserve                                   | Root                |
 
 ### Key Patterns
 
@@ -50,21 +50,25 @@ The flight-instructor tests fall into **3 distinct categories**:
 ### Phase 1: Test Infrastructure Setup
 
 #### 1.1 Create Test Host (`test/test-host.ts`)
+
 - Mirror flight-instructor's pattern
 - Create a `Tester` instance configured with the TypeSpec libraries this repo uses (`@typespec/http`, `@typespec/versioning`)
 - This is the foundation for all component tests
 
 #### 1.2 Create Test Utilities (`test/utils.tsx`)
+
 - **`TestFile`** wrapper — renders Alloy output with `createTSNamePolicy()` and a single `SourceFile`
 - **`DeclarationTestFile`** wrapper — adds `DeclarationProviderContext`
 - **`testHelper()`** function — compiles TypeSpec code, sets up context chains, returns context + render helper
 - Keep it lean initially; add utilities as needed
 
 #### 1.3 Add Custom Matcher Types (`test/vitest.d.ts`)
+
 - Declare `toRenderTo` and `toRenderToAsync` matchers (provided by `@alloy-js/core/testing`)
 - Ensures TypeScript knows about these custom matchers
 
 #### 1.4 Verify vitest.config.ts
+
 - Already configured with `alloyPlugin()` and JSX preserve ✅
 - Verify it picks up `.test.tsx` files correctly
 
@@ -73,6 +77,7 @@ The flight-instructor tests fall into **3 distinct categories**:
 Create one example test for each category to serve as templates:
 
 #### 2.1 Component Render Test Template
+
 ```tsx
 // src/components/ExampleComponent.test.tsx
 import "@alloy-js/core/testing";
@@ -99,6 +104,7 @@ it("renders expected output", async () => {
 ```
 
 #### 2.2 Pure Unit Test Template
+
 ```ts
 // src/helpers/someHelper.test.ts
 import { describe, expect, it, vi } from "vitest";
@@ -114,6 +120,7 @@ describe("someHelper", () => {
 ### Phase 3: Dependency Verification
 
 Ensure these test dependencies are available in `package.json`:
+
 - `vitest` ✅ (already present)
 - `@alloy-js/core/testing` — custom matchers (check if available via `@alloy-js/core`)
 - `@typespec/compiler/testing` — `createTester`, `t.code` template tags

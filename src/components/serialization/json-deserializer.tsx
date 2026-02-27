@@ -12,8 +12,18 @@ import type {
 } from "@azure-tools/typespec-client-generator-core";
 import { UsageFlags } from "@azure-tools/typespec-client-generator-core";
 import { getModelFunctionName } from "../../utils/model-name.js";
-import { deserializerRefkey, flattenDeserializerRefkey, serializationHelperRefkey, typeRefkey, arrayDeserializerRefkey, recordDeserializerRefkey } from "../../utils/refkeys.js";
-import { computeFlattenCollisionMap, getEffectiveClientName } from "../../utils/flatten-collision.js";
+import {
+  deserializerRefkey,
+  flattenDeserializerRefkey,
+  serializationHelperRefkey,
+  typeRefkey,
+  arrayDeserializerRefkey,
+  recordDeserializerRefkey,
+} from "../../utils/refkeys.js";
+import {
+  computeFlattenCollisionMap,
+  getEffectiveClientName,
+} from "../../utils/flatten-collision.js";
 import { useRuntimeLib } from "../../context/flavor-context.js";
 import { needsTransformation } from "./json-serializer.js";
 import { isAzureCoreErrorType } from "../../utils/azure-core-error-types.js";
@@ -74,7 +84,10 @@ export interface JsonDeserializerProps {
  */
 export function JsonDeserializer(props: JsonDeserializerProps) {
   const { model, refkeyOverride, nameSuffix, includeParentProperties } = props;
-  const properties = getDeserializableProperties(model, includeParentProperties);
+  const properties = getDeserializableProperties(
+    model,
+    includeParentProperties,
+  );
   const hasAdditional = model.additionalProperties !== undefined;
   // Empty models (no properties and no additionalProperties) pass through the
   // input unchanged — `return item;` — preserving any extra properties on the
@@ -89,39 +102,49 @@ export function JsonDeserializer(props: JsonDeserializerProps) {
       returnType={code`${typeRefkey(model)}`}
       parameters={[{ name: "item", type: "any" }]}
     >
-      {isEmpty ? code`return item;` : <>
-        {code`return `}
-        <ObjectExpression>
-          {hasAdditional ? (
-            <>
-              <ObjectSpreadProperty value="item" />
-              {properties.length > 0 ? code`, ` : undefined}
-            </>
-          ) : undefined}
-          <For each={properties} comma softline enderPunctuation>
-            {(prop) => {
-              // Flatten properties emit a spread with a helper function call.
-              // Required: `..._testPropertiesDeserializer(item["properties"])`
-              // Optional: `...(!item["properties"] ? item["properties"] : _testPropertiesDeserializer(item["properties"]))`
-              if (prop.flatten && prop.type.kind === "model") {
-                const helperRef = flattenDeserializerRefkey(model, prop.serializedName);
-                if (prop.optional) {
-                  return code`...(!item["${prop.serializedName}"] ? item["${prop.serializedName}"] : ${helperRef}(item["${prop.serializedName}"]))`;
+      {isEmpty ? (
+        code`return item;`
+      ) : (
+        <>
+          {code`return `}
+          <ObjectExpression>
+            {hasAdditional ? (
+              <>
+                <ObjectSpreadProperty value="item" />
+                {properties.length > 0 ? code`, ` : undefined}
+              </>
+            ) : undefined}
+            <For each={properties} comma softline enderPunctuation>
+              {(prop) => {
+                // Flatten properties emit a spread with a helper function call.
+                // Required: `..._testPropertiesDeserializer(item["properties"])`
+                // Optional: `...(!item["properties"] ? item["properties"] : _testPropertiesDeserializer(item["properties"]))`
+                if (prop.flatten && prop.type.kind === "model") {
+                  const helperRef = flattenDeserializerRefkey(
+                    model,
+                    prop.serializedName,
+                  );
+                  if (prop.optional) {
+                    return code`...(!item["${prop.serializedName}"] ? item["${prop.serializedName}"] : ${helperRef}(item["${prop.serializedName}"]))`;
+                  }
+                  return code`...${helperRef}(item["${prop.serializedName}"])`;
                 }
-                return code`...${helperRef}(item["${prop.serializedName}"])`;
-              }
-              const accessor = `item["${prop.serializedName}"]`;
-              let valueExpr = getDeserializationExpression(prop.type, accessor);
-              // Apply array decoding if the property has @encode(ArrayEncoding.xxx).
-              // This parses delimited strings back into arrays (e.g., "a,b" → ["a","b"]).
-              valueExpr = wrapWithArrayDecoding(valueExpr, accessor, prop);
-              const wrapped = wrapWithNullCheck(valueExpr, accessor, prop);
-              return <ObjectProperty name={prop.name} value={wrapped} />;
-            }}
-          </For>
-        </ObjectExpression>
-        {code`;`}
-      </>}
+                const accessor = `item["${prop.serializedName}"]`;
+                let valueExpr = getDeserializationExpression(
+                  prop.type,
+                  accessor,
+                );
+                // Apply array decoding if the property has @encode(ArrayEncoding.xxx).
+                // This parses delimited strings back into arrays (e.g., "a,b" → ["a","b"]).
+                valueExpr = wrapWithArrayDecoding(valueExpr, accessor, prop);
+                const wrapped = wrapWithNullCheck(valueExpr, accessor, prop);
+                return <ObjectProperty name={prop.name} value={wrapped} />;
+              }}
+            </For>
+          </ObjectExpression>
+          {code`;`}
+        </>
+      )}
     </FunctionDeclaration>
   );
 }
@@ -230,7 +253,10 @@ export function getDeserializationExpression(
       // Models without Output/Exception usage don't have deserializer functions.
       // This can happen for Input-only types referenced in response models.
       // Pass through as-is.
-      if ((type.usage & UsageFlags.Output) === 0 && (type.usage & UsageFlags.Exception) === 0) {
+      if (
+        (type.usage & UsageFlags.Output) === 0 &&
+        (type.usage & UsageFlags.Exception) === 0
+      ) {
         return accessor;
       }
       return code`${deserializerRefkey(type)}(${accessor})`;
@@ -242,10 +268,7 @@ export function getDeserializationExpression(
         if (valueTypeHasNamedDeserializerFn(type.valueType)) {
           return code`${arrayDeserializerRefkey(type.valueType)}(${accessor})`;
         }
-        const elementExpr = getDeserializationExpression(
-          type.valueType,
-          "p",
-        );
+        const elementExpr = getDeserializationExpression(type.valueType, "p");
         return code`${accessor}.map((p: any) => { return ${elementExpr}; })`;
       }
       return accessor;
@@ -258,10 +281,7 @@ export function getDeserializationExpression(
         if (valueTypeHasNamedDeserializerFn(type.valueType)) {
           return code`${recordDeserializerRefkey(type.valueType)}(${accessor} as any)`;
         }
-        const valueExpr = getDeserializationExpression(
-          type.valueType,
-          "v",
-        );
+        const valueExpr = getDeserializationExpression(type.valueType, "v");
         return code`${serializationHelperRefkey("deserializeRecord")}(${accessor} as any, (v: any) => ${valueExpr})`;
       }
       return accessor;
@@ -332,9 +352,7 @@ function wrapWithNullCheck(
   accessor: string,
   property: SdkModelPropertyType,
 ): Children {
-  const isNullable =
-    property.type.kind === "nullable" ||
-    property.optional;
+  const isNullable = property.type.kind === "nullable" || property.optional;
 
   if (isNullable && needsTransformation(property.type)) {
     return code`!${accessor} ? ${accessor} : ${expression}`;
@@ -378,9 +396,7 @@ function wrapWithArrayDecoding(
  * @param encode - The TCGC array encoding string.
  * @returns The helper function name, or undefined if no decoding is needed.
  */
-function getArrayEncodingParserName(
-  encode: string,
-): string | undefined {
+function getArrayEncodingParserName(encode: string): string | undefined {
   switch (encode) {
     case "commaDelimited":
       return "parseCsvCollection";
@@ -425,12 +441,24 @@ export interface FlattenDeserializerHelperProps {
  * @param props - The component props containing the parent model and flatten property.
  * @returns An Alloy JSX tree representing the flatten helper function declaration.
  */
-export function FlattenDeserializerHelper(props: FlattenDeserializerHelperProps) {
+export function FlattenDeserializerHelper(
+  props: FlattenDeserializerHelperProps,
+) {
   const { parentModel, flattenProp } = props;
   const flatModel = flattenProp.type as SdkModelType;
-  const properties = getFlattenHelperDeserializableProperties(flatModel, flattenProp.optional);
-  const funcName = getFlattenHelperFunctionName(parentModel, flattenProp, "Deserializer");
-  const refkeyVal = flattenDeserializerRefkey(parentModel, flattenProp.serializedName);
+  const properties = getFlattenHelperDeserializableProperties(
+    flatModel,
+    flattenProp.optional,
+  );
+  const funcName = getFlattenHelperFunctionName(
+    parentModel,
+    flattenProp,
+    "Deserializer",
+  );
+  const refkeyVal = flattenDeserializerRefkey(
+    parentModel,
+    flattenProp.serializedName,
+  );
   const collisionMap = computeFlattenCollisionMap(parentModel);
 
   return (
@@ -504,10 +532,14 @@ function getFlattenHelperFunctionName(
   flattenProp: SdkModelPropertyType,
   suffix: string,
 ) {
-  const modelName = parentModel.name.charAt(0).toLowerCase() + parentModel.name.slice(1);
+  const modelName =
+    parentModel.name.charAt(0).toLowerCase() + parentModel.name.slice(1);
   const propName =
-    flattenProp.serializedName.charAt(0).toUpperCase() + flattenProp.serializedName.slice(1);
-  return namekey(`_${modelName}${propName}${suffix}`, { ignoreNamePolicy: true });
+    flattenProp.serializedName.charAt(0).toUpperCase() +
+    flattenProp.serializedName.slice(1);
+  return namekey(`_${modelName}${propName}${suffix}`, {
+    ignoreNamePolicy: true,
+  });
 }
 
 /**

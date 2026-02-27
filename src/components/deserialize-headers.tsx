@@ -192,7 +192,9 @@ export function collectExceptionResponseHeaders(
  * @param headers - The response headers to include in the return type.
  * @returns A string representing the inline object type literal.
  */
-export function buildHeaderReturnType(headers: SdkServiceResponseHeader[]): string {
+export function buildHeaderReturnType(
+  headers: SdkServiceResponseHeader[],
+): string {
   const properties = headers.map((header) => {
     const typeExpr = getHeaderTypeExpression(header.type);
     const optionalMark = header.optional ? "?" : "";
@@ -224,7 +226,11 @@ function buildHeaderReturnExpression(
 ): Children {
   const properties = headers.map((header) => {
     const headerAccess = `result.headers["${header.serializedName}"]`;
-    const valueExpr = buildHeaderValueExpression(header.type, headerAccess, header.optional);
+    const valueExpr = buildHeaderValueExpression(
+      header.type,
+      headerAccess,
+      header.optional,
+    );
     return `${header.name}: ${valueExpr}`;
   });
 

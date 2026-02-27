@@ -1,8 +1,5 @@
 import { Children, code, For } from "@alloy-js/core";
-import {
-  InterfaceDeclaration,
-  InterfaceMember,
-} from "@alloy-js/typescript";
+import { InterfaceDeclaration, InterfaceMember } from "@alloy-js/typescript";
 import type {
   SdkModelPropertyType,
   SdkModelType,
@@ -12,7 +9,10 @@ import { Visibility } from "@typespec/http";
 import { computeFlattenCollisionMap } from "../utils/flatten-collision.js";
 import { getModelName } from "../utils/model-name.js";
 import { typeRefkey } from "../utils/refkeys.js";
-import { getOptionalAwareTypeExpression, getTypeExpression } from "./type-expression.js";
+import {
+  getOptionalAwareTypeExpression,
+  getTypeExpression,
+} from "./type-expression.js";
 import { useEmitterOptions } from "../context/emitter-options-context.js";
 
 /**
@@ -308,7 +308,11 @@ function collectAllModelProperties(
  * @returns The documentation string — always non-undefined.
  */
 function getModelDoc(model: SdkModelType): string {
-  return model.doc ?? model.summary ?? `model interface ${getModelDisplayName(model)}`;
+  return (
+    model.doc ??
+    model.summary ??
+    `model interface ${getModelDisplayName(model)}`
+  );
 }
 
 /**
@@ -396,7 +400,11 @@ function getPropertyTypeExpression(
   }
 
   const { ignoreNullableOnOptional } = useEmitterOptions();
-  return getOptionalAwareTypeExpression(property.type, property.optional, ignoreNullableOnOptional);
+  return getOptionalAwareTypeExpression(
+    property.type,
+    property.optional,
+    ignoreNullableOnOptional,
+  );
 }
 
 /**

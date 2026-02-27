@@ -216,7 +216,11 @@ describe("XmlObjectSerializer", () => {
     ]);
 
     const template = (
-      <Output program={program} namePolicy={createTSNamePolicy()} externals={[httpRuntimeLib]}>
+      <Output
+        program={program}
+        namePolicy={createTSNamePolicy()}
+        externals={[httpRuntimeLib]}
+      >
         <FlavorProvider flavor="core">
           <XmlHelpersFile />
           <SourceFile path="test.ts">
@@ -230,7 +234,7 @@ describe("XmlObjectSerializer", () => {
 
     const result = renderToString(template);
     expect(result).toContain("uint8ArrayToString(i");
-    expect(result).toContain('?.map(');
+    expect(result).toContain("?.map(");
     expect(result).not.toContain("Unresolved Symbol");
   });
 
@@ -249,12 +253,19 @@ describe("XmlObjectSerializer", () => {
         name: "timestamps",
         serializedName: "timestamps",
         xmlName: "Timestamps",
-        type: { kind: "array", valueType: { kind: "utcDateTime", encode: "rfc3339" } },
+        type: {
+          kind: "array",
+          valueType: { kind: "utcDateTime", encode: "rfc3339" },
+        },
       },
     ]);
 
     const template = (
-      <Output program={program} namePolicy={createTSNamePolicy()} externals={[httpRuntimeLib]}>
+      <Output
+        program={program}
+        namePolicy={createTSNamePolicy()}
+        externals={[httpRuntimeLib]}
+      >
         <FlavorProvider flavor="core">
           <XmlHelpersFile />
           <SourceFile path="test.ts">

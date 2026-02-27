@@ -201,10 +201,7 @@ function toReservedContext(
 /**
  * Check if a name is reserved in the given context.
  */
-function isReservedInContext(
-  name: string,
-  context: ReservedContext,
-): boolean {
+function isReservedInContext(name: string, context: ReservedContext): boolean {
   const contexts = RESERVED_LOOKUP.get(name.toLowerCase());
   return contexts !== undefined && contexts.has(context);
 }
@@ -412,7 +409,10 @@ function isFullyUpperCase(
 ): boolean {
   const len = identifier.length;
   if (len > 1) {
-    if (len <= maxUppercasePreserve && identifier === identifier.toUpperCase()) {
+    if (
+      len <= maxUppercasePreserve &&
+      identifier === identifier.toUpperCase()
+    ) {
       return true;
     }
     // Plural forms like "MBs"

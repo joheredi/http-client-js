@@ -92,7 +92,9 @@ export function SdkContextProvider(props: SdkContextProviderProps) {
     unions: sdkPackage.unions,
   };
 
-  return <SdkContext.Provider value={value}>{props.children}</SdkContext.Provider>;
+  return (
+    <SdkContext.Provider value={value}>{props.children}</SdkContext.Provider>
+  );
 }
 
 /**

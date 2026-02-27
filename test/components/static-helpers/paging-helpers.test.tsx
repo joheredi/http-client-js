@@ -52,7 +52,11 @@ describe("PagingHelpersFile", () => {
    */
   it("should render PageSettings interface", async () => {
     const template = (
-      <Output program={program} namePolicy={createTSNamePolicy()} externals={[httpRuntimeLib]}>
+      <Output
+        program={program}
+        namePolicy={createTSNamePolicy()}
+        externals={[httpRuntimeLib]}
+      >
         <PagingHelpersFile />
       </Output>
     );
@@ -69,13 +73,19 @@ describe("PagingHelpersFile", () => {
    */
   it("should render PagedAsyncIterableIterator interface", async () => {
     const template = (
-      <Output program={program} namePolicy={createTSNamePolicy()} externals={[httpRuntimeLib]}>
+      <Output
+        program={program}
+        namePolicy={createTSNamePolicy()}
+        externals={[httpRuntimeLib]}
+      >
         <PagingHelpersFile />
       </Output>
     );
 
     const result = renderToString(template);
-    expect(result).toContain("export interface PagedAsyncIterableIterator<tElement>");
+    expect(result).toContain(
+      "export interface PagedAsyncIterableIterator<tElement>",
+    );
     expect(result).toContain("next");
     expect(result).toContain("byPage");
   });
@@ -88,7 +98,11 @@ describe("PagingHelpersFile", () => {
    */
   it("should render BuildPagedAsyncIteratorOptions interface", async () => {
     const template = (
-      <Output program={program} namePolicy={createTSNamePolicy()} externals={[httpRuntimeLib]}>
+      <Output
+        program={program}
+        namePolicy={createTSNamePolicy()}
+        externals={[httpRuntimeLib]}
+      >
         <PagingHelpersFile />
       </Output>
     );
@@ -112,7 +126,11 @@ describe("PagingHelpersFile", () => {
    */
   it("should render buildPagedAsyncIterator function", async () => {
     const template = (
-      <Output program={program} namePolicy={createTSNamePolicy()} externals={[httpRuntimeLib]}>
+      <Output
+        program={program}
+        namePolicy={createTSNamePolicy()}
+        externals={[httpRuntimeLib]}
+      >
         <PagingHelpersFile />
       </Output>
     );
@@ -121,12 +139,12 @@ describe("PagingHelpersFile", () => {
     expect(result).toContain("export function buildPagedAsyncIterator");
     expect(result).toContain("expectedStatuses");
     // Verify nextLinkMethod support — the function should check whether to use POST or GET
-    expect(result).toContain('nextLinkMethod');
-    expect(result).toContain('.post()');
-    expect(result).toContain('.get()');
+    expect(result).toContain("nextLinkMethod");
+    expect(result).toContain(".post()");
+    expect(result).toContain(".get()");
     // Verify apiVersion support — the function should inject api-version into next page URLs
-    expect(result).toContain('addApiVersionToUrl');
-    expect(result).toContain('api-version');
+    expect(result).toContain("addApiVersionToUrl");
+    expect(result).toContain("api-version");
   });
 
   /**
@@ -137,7 +155,11 @@ describe("PagingHelpersFile", () => {
    */
   it("should enable cross-file import via PagedAsyncIterableIterator refkey", async () => {
     const template = (
-      <Output program={program} namePolicy={createTSNamePolicy()} externals={[httpRuntimeLib]}>
+      <Output
+        program={program}
+        namePolicy={createTSNamePolicy()}
+        externals={[httpRuntimeLib]}
+      >
         <SourceFile path="operations.ts">
           <FunctionDeclaration
             name="listItems"
@@ -164,7 +186,11 @@ describe("PagingHelpersFile", () => {
    */
   it("should enable cross-file import via buildPagedAsyncIterator refkey", async () => {
     const template = (
-      <Output program={program} namePolicy={createTSNamePolicy()} externals={[httpRuntimeLib]}>
+      <Output
+        program={program}
+        namePolicy={createTSNamePolicy()}
+        externals={[httpRuntimeLib]}
+      >
         <SourceFile path="consumer.ts">
           <FunctionDeclaration name="test" export>
             {code`${pagingHelperRefkey("buildPagedAsyncIterator")}(null as any, null as any, null as any, []);`}

@@ -7,7 +7,10 @@ import type {
 } from "@azure-tools/typespec-client-generator-core";
 import { useSdkContext } from "../context/sdk-context.js";
 import { useEmitterOptions } from "../context/emitter-options-context.js";
-import { DeserializeHeaders, DeserializeExceptionHeaders } from "./deserialize-headers.js";
+import {
+  DeserializeHeaders,
+  DeserializeExceptionHeaders,
+} from "./deserialize-headers.js";
 import { DeserializeOperation } from "./deserialize-operation.js";
 import { PublicOperation } from "./public-operation.js";
 import { SendOperation } from "./send-operation.js";
@@ -71,9 +74,7 @@ export function OperationFiles() {
 
   return (
     <SourceDirectory path="api">
-      <For each={groups}>
-        {(group) => <OperationGroupFile group={group} />}
-      </For>
+      <For each={groups}>{(group) => <OperationGroupFile group={group} />}</For>
     </SourceDirectory>
   );
 }
@@ -181,8 +182,12 @@ function HeaderDeserializationBlock(props: OperationDeclarationsProps) {
   if (!includeHeadersInResponse) return undefined;
 
   const operation = method.operation;
-  const hasSuccessHeaders = operation.responses.some((r) => r.headers.length > 0);
-  const hasExceptionHeaders = operation.exceptions.some((e) => e.headers.length > 0);
+  const hasSuccessHeaders = operation.responses.some(
+    (r) => r.headers.length > 0,
+  );
+  const hasExceptionHeaders = operation.exceptions.some(
+    (e) => e.headers.length > 0,
+  );
 
   if (!hasSuccessHeaders && !hasExceptionHeaders) return undefined;
 

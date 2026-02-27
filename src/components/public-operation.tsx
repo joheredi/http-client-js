@@ -1,5 +1,8 @@
 import { Children, code } from "@alloy-js/core";
-import { FunctionDeclaration, type ParameterDescriptor } from "@alloy-js/typescript";
+import {
+  FunctionDeclaration,
+  type ParameterDescriptor,
+} from "@alloy-js/typescript";
 import type {
   SdkHttpOperation,
   SdkLroPagingServiceMethod,
@@ -12,9 +15,7 @@ import type {
   SdkServiceMethod,
   SdkServiceResponseHeader,
 } from "@azure-tools/typespec-client-generator-core";
-import {
-  azureCoreLroLib,
-} from "../utils/external-packages.js";
+import { azureCoreLroLib } from "../utils/external-packages.js";
 import { useEmitterOptions } from "../context/emitter-options-context.js";
 import { useFlavorContext, useRuntimeLib } from "../context/flavor-context.js";
 import {
@@ -31,16 +32,24 @@ import {
   publicOperationRefkey,
   sendOperationRefkey,
 } from "../utils/refkeys.js";
-import { getOptionsParamName, isRequiredSignatureParameter } from "./send-operation.js";
+import {
+  getOptionsParamName,
+  isRequiredSignatureParameter,
+} from "./send-operation.js";
 import { getTypeExpression } from "./type-expression.js";
-import { isReservedOperationName, getEscapedParameterName } from "../utils/name-policy.js";
+import {
+  isReservedOperationName,
+  getEscapedParameterName,
+} from "../utils/name-policy.js";
 import { isBinaryBytesResponse } from "./deserialize-operation.js";
 
 /**
  * Builds the JSDoc string for a public operation function, adding a @fixme
  * warning when the operation name is a reserved word.
  */
-function getOperationDoc(method: SdkServiceMethod<SdkHttpOperation>): string | undefined {
+function getOperationDoc(
+  method: SdkServiceMethod<SdkHttpOperation>,
+): string | undefined {
   const fixmeNote = isReservedOperationName(method.name)
     ? ` @fixme ${method.name} is a reserved word that cannot be used as an operation name.\n        Please add @clientName("clientName") or @clientName("<JS-Specific-Name>", "javascript")\n        to the operation to override the generated name.`
     : undefined;
@@ -97,7 +106,9 @@ export function PublicOperation(props: PublicOperationProps) {
   // functions that return the deserialized response directly (Promise<T>).
   if (
     flavor === "core" &&
-    (method.kind === "lro" || method.kind === "lropaging" || method.kind === "paging")
+    (method.kind === "lro" ||
+      method.kind === "lropaging" ||
+      method.kind === "paging")
   ) {
     return <BasicOperation method={method} />;
   }
@@ -165,7 +176,8 @@ function BasicOperation(props: { method: SdkServiceMethod<SdkHttpOperation> }) {
   // Check if this operation returns binary bytes (encode="bytes"/"binary").
   // Binary responses use the getBinaryResponse helper to read the HTTP stream
   // as raw bytes instead of the standard `await send()` pattern.
-  const isBinaryResponse = hasBody && isBinaryBytesResponse(method.response.type!);
+  const isBinaryResponse =
+    hasBody && isBinaryBytesResponse(method.response.type!);
 
   // Build return type: model & headers intersection when both exist
   const returnType = getCompositeReturnType(method, headers);
@@ -718,9 +730,7 @@ function buildExpectedStatusArray(
  * @param method - The TCGC service method.
  * @returns `true` if the method is an LRO or LRO+paging operation.
  */
-function isLroMethod(
-  method: SdkServiceMethod<SdkHttpOperation>,
-): boolean {
+function isLroMethod(method: SdkServiceMethod<SdkHttpOperation>): boolean {
   return method.kind === "lro" || method.kind === "lropaging";
 }
 

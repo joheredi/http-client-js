@@ -53,10 +53,7 @@ import { ClientContextFile } from "../../src/components/client-context.js";
 import { ClassicalClientFile } from "../../src/components/classical-client.js";
 import { ClassicalOperationGroupFiles } from "../../src/components/classical-operation-groups.js";
 import { httpRuntimeLib } from "../../src/utils/external-packages.js";
-import {
-  TesterWithService,
-  createSdkContextForTest,
-} from "../test-host.js";
+import { TesterWithService, createSdkContextForTest } from "../test-host.js";
 
 /**
  * Test wrapper that provides the full emitter component tree including
@@ -111,9 +108,7 @@ function MinimalIndexWrapper(props: {
       externals={[httpRuntimeLib]}
     >
       <SdkContextProvider sdkContext={props.sdkContext}>
-        <SourceDirectory path="src">
-          {props.children}
-        </SourceDirectory>
+        <SourceDirectory path="src">{props.children}</SourceDirectory>
       </SdkContextProvider>
     </Output>
   );

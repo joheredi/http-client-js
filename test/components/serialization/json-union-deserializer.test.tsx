@@ -54,8 +54,12 @@ describe("JsonUnionDeserializer", () => {
 
     const sdkContext = await createSdkContextForTest(program);
     const unionType = sdkContext.sdkPackage.unions[0] as SdkUnionType;
-    const catModel = sdkContext.sdkPackage.models.find((m) => m.name === "Cat")!;
-    const dogModel = sdkContext.sdkPackage.models.find((m) => m.name === "Dog")!;
+    const catModel = sdkContext.sdkPackage.models.find(
+      (m) => m.name === "Cat",
+    )!;
+    const dogModel = sdkContext.sdkPackage.models.find(
+      (m) => m.name === "Dog",
+    )!;
 
     // Verify TCGC marks this as a generated name
     expect(unionType.isGeneratedName).toBe(true);

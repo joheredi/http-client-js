@@ -1,4 +1,7 @@
-import type { SdkModelType, SdkType } from "@azure-tools/typespec-client-generator-core";
+import type {
+  SdkModelType,
+  SdkType,
+} from "@azure-tools/typespec-client-generator-core";
 
 /**
  * Checks whether a model type requires XML serialization by inspecting
@@ -24,7 +27,5 @@ export function hasXmlSerialization(type: SdkType): boolean {
   }
 
   // Check if any property has XML serialization options
-  return (
-    type.properties?.some((p) => p.serializationOptions?.xml) ?? false
-  );
+  return type.properties?.some((p) => p.serializationOptions?.xml) ?? false;
 }

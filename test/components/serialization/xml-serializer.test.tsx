@@ -132,7 +132,9 @@ describe("XmlSerializer", () => {
 
     const result = renderToString(template);
     // Check function signature
-    expect(result).toContain("export function loggingXmlSerializer(item: Logging): string");
+    expect(result).toContain(
+      "export function loggingXmlSerializer(item: Logging): string",
+    );
     // Check metadata array entries
     expect(result).toContain('propertyName: "version"');
     expect(result).toContain('name: "Version"');
@@ -283,7 +285,10 @@ describe("XmlSerializer", () => {
           name: "committed",
           serializedName: "committed",
           xmlName: "Committed",
-          type: { kind: "array", valueType: { kind: "bytes", encode: "base64" } },
+          type: {
+            kind: "array",
+            valueType: { kind: "bytes", encode: "base64" },
+          },
           unwrapped: true,
           itemsName: "Committed",
         },
@@ -322,14 +327,20 @@ describe("XmlSerializer", () => {
         name: "timestamps",
         serializedName: "timestamps",
         xmlName: "Timestamps",
-        type: { kind: "array", valueType: { kind: "utcDateTime", encode: "rfc3339" } },
+        type: {
+          kind: "array",
+          valueType: { kind: "utcDateTime", encode: "rfc3339" },
+        },
         itemsName: "utcDateTime",
       },
       {
         name: "httpDates",
         serializedName: "httpDates",
         xmlName: "HttpDates",
-        type: { kind: "array", valueType: { kind: "utcDateTime", encode: "rfc7231" } },
+        type: {
+          kind: "array",
+          valueType: { kind: "utcDateTime", encode: "rfc7231" },
+        },
         itemsName: "rfc7231DateTime",
       },
     ]);

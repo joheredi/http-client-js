@@ -18,7 +18,11 @@ import { code, useContext } from "@alloy-js/core";
 import { renderToString } from "@alloy-js/core/testing";
 import { t } from "@typespec/compiler/testing";
 import { beforeAll, describe, expect, it } from "vitest";
-import { SdkContext, SdkContextProvider, useSdkContext } from "../../src/context/sdk-context.js";
+import {
+  SdkContext,
+  SdkContextProvider,
+  useSdkContext,
+} from "../../src/context/sdk-context.js";
 import { TesterWithService, createSdkContextForTest } from "../test-host.js";
 import { SdkTestFile, TestFile } from "../utils.jsx";
 
@@ -123,7 +127,11 @@ describe("SDK Context Provider", () => {
 
   describe("with a void operation", () => {
     let sdkContext: Awaited<ReturnType<typeof createSdkContextForTest>>;
-    let program: Awaited<ReturnType<Awaited<ReturnType<typeof TesterWithService.createInstance>>["compile"]>>["program"];
+    let program: Awaited<
+      ReturnType<
+        Awaited<ReturnType<typeof TesterWithService.createInstance>>["compile"]
+      >
+    >["program"];
 
     beforeAll(async () => {
       const runner = await TesterWithService.createInstance();

@@ -1,14 +1,18 @@
 import { Children, code, For } from "@alloy-js/core";
-import {
-  FunctionDeclaration,
-} from "@alloy-js/typescript";
+import { FunctionDeclaration } from "@alloy-js/typescript";
 import type {
   SdkModelPropertyType,
   SdkModelType,
 } from "@azure-tools/typespec-client-generator-core";
 import { computeFlattenCollisionMap } from "../../utils/flatten-collision.js";
 import { getModelFunctionName } from "../../utils/model-name.js";
-import { flattenSerializerRefkey, serializationHelperRefkey, serializerRefkey, typeRefkey, multipartHelperRefkey } from "../../utils/refkeys.js";
+import {
+  flattenSerializerRefkey,
+  serializationHelperRefkey,
+  serializerRefkey,
+  typeRefkey,
+  multipartHelperRefkey,
+} from "../../utils/refkeys.js";
 
 /**
  * Props for the {@link MultipartSerializer} component.
@@ -159,9 +163,17 @@ function buildPartExpression(prop: SdkModelPropertyType): Children {
 
   if (multipart?.isFilePart) {
     if (multipart.isMulti) {
-      partExpr = buildMultiFilePartExpression(partName, accessor, multipart.defaultContentTypes);
+      partExpr = buildMultiFilePartExpression(
+        partName,
+        accessor,
+        multipart.defaultContentTypes,
+      );
     } else {
-      partExpr = buildFilePartExpression(partName, accessor, multipart.defaultContentTypes);
+      partExpr = buildFilePartExpression(
+        partName,
+        accessor,
+        multipart.defaultContentTypes,
+      );
     }
   } else if (multipart?.isMulti) {
     partExpr = buildMultiPartExpression(partName, accessor);
@@ -322,8 +334,11 @@ function getFlattenClientNames(flattenProp: SdkModelPropertyType): string[] {
  * @param defaultContentTypes - Array of default content type strings from TCGC.
  * @returns The first non-wildcard content type, or undefined.
  */
-function getDefaultContentType(defaultContentTypes?: string[]): string | undefined {
-  if (!defaultContentTypes || defaultContentTypes.length === 0) return undefined;
+function getDefaultContentType(
+  defaultContentTypes?: string[],
+): string | undefined {
+  if (!defaultContentTypes || defaultContentTypes.length === 0)
+    return undefined;
   const ct = defaultContentTypes[0];
   if (ct === "*/*") return undefined;
   return ct;

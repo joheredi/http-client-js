@@ -5,12 +5,14 @@
 Rewrite the legacy TypeSpec-to-TypeScript emitter (`autorest.typescript/packages/typespec-ts`) using the **Alloy Framework** (`@alloy-js/core` + `@alloy-js/typescript`). The legacy emitter uses ts-morph with imperative AST manipulation and manual import management. The new emitter will use declarative JSX components with automatic symbol resolution, producing **output-identical** TypeScript client SDKs.
 
 ### Current State
+
 - **Skeleton project** at `http-client-js/` with empty `ExampleComponent.tsx`
 - Dependencies: `@alloy-js/core@0.22.0`, `@alloy-js/typescript@0.22.0`
 - Build: `alloy build`, Test: `vitest run`
 - No TCGC or TypeSpec dependencies yet
 
 ### Target State
+
 - Full Alloy JSX emitter consuming TCGC `SdkPackage`
 - 101 scenario tests ported and passing
 - Core emitter extensible for Azure flavor via JSX composition
@@ -20,11 +22,13 @@ Rewrite the legacy TypeSpec-to-TypeScript emitter (`autorest.typescript/packages
 ## 2. Architecture Overview
 
 ### Data Flow
+
 ```
 TypeSpec Input → Compiler → TCGC SdkPackage → Alloy JSX Components → Symbol Tree → TypeScript Files
 ```
 
 ### Component Tree (Target)
+
 ```
 <Output namePolicy={createTSNamePolicy()} externals={[httpRuntimeLib, ...]}>
   <SdkContextProvider sdkPackage={sdkPackage} options={options}>
@@ -47,6 +51,7 @@ TypeSpec Input → Compiler → TCGC SdkPackage → Alloy JSX Components → Sym
 ```
 
 ### Key Principles
+
 1. **Pure Alloy** — No ts-morph, no string concatenation for imports, no manual path calculation
 2. **Refkeys everywhere** — Every declaration gets a refkey, every reference uses refkeys
 3. **Component composition** — Top (orchestrators) → Middle (source files) → Leaf (declarations)
@@ -62,18 +67,22 @@ TypeSpec Input → Compiler → TCGC SdkPackage → Alloy JSX Components → Sym
 **Goal:** Set up dependencies, emitter entry point, context system, and test infrastructure.
 
 #### 0.1 — Add Dependencies
+
 - Add `@azure-tools/typespec-client-generator-core` (TCGC)
 - Add `@typespec/compiler`, `@typespec/http`, `@typespec/rest`, `@typespec/versioning`
 - Add `@typespec/emitter-framework` (for `writeOutput`, `useTsp`)
 - Verify `@alloy-js/core/testing` is available for test matchers
 
 **Pass Criteria:**
+
 - [ ] package.json includes all required dependencies
 - [ ] `pnpm install` completes without errors
 - [ ] TypeScript can resolve all new package imports without type errors
 
 #### 0.2 — Emitter Entry Point
+
 Create `src/emitter.tsx` with `$onEmit()` function:
+
 - Initialize TCGC context via `createSdkContext()`
 - Extract `sdkPackage` from context
 - Build the Alloy JSX component tree
@@ -82,6 +91,7 @@ Create `src/emitter.tsx` with `$onEmit()` function:
 Reference: flight-instructor's `typescript-renderer.tsx`, http-client-js emitter's `emitter.tsx`
 
 **Pass Criteria:**
+
 - [ ] src/emitter.tsx exists with exported $onEmit function
 - [ ] $onEmit calls createSdkContext() and extracts sdkPackage
 - [ ] JSX component tree renders via writeOutput() without runtime errors
@@ -89,13 +99,16 @@ Reference: flight-instructor's `typescript-renderer.tsx`, http-client-js emitter
 - [ ] Uses idiomatic Alloy Output component with namePolicy and externals
 
 #### 0.3 — SDK Context Provider
+
 Create `src/context/sdk-context.tsx`:
+
 - `SdkContext` named context via `createNamedContext()`
 - `SdkContextProvider` component wrapping children
 - `useSdkContext()` hook for consumer access
 - Expose: `sdkPackage`, `program`, `emitterOptions`, `clients`, `models`, `enums`
 
 **Pass Criteria:**
+
 - [ ] SdkContext created via createNamedContext() from @alloy-js/core
 - [ ] SdkContextProvider component wraps children and provides sdkPackage, program, options
 - [ ] useSdkContext() hook returns typed context value
@@ -103,21 +116,30 @@ Create `src/context/sdk-context.tsx`:
 - [ ] TypeScript types are correct (no any casts)
 
 #### 0.4 — Refkey Helpers
+
 Create `src/utils/refkeys.ts`:
+
 ```typescript
 export const typeRefkey = (type: SdkType) => refkey(type);
 export const serializerRefkey = (type: SdkType) => refkey(type, "serializer");
-export const deserializerRefkey = (type: SdkType) => refkey(type, "deserializer");
-export const polymorphicTypeRefkey = (type: SdkType) => refkey(type, "polymorphicType");
+export const deserializerRefkey = (type: SdkType) =>
+  refkey(type, "deserializer");
+export const polymorphicTypeRefkey = (type: SdkType) =>
+  refkey(type, "polymorphicType");
 export const knownValuesRefkey = (type: SdkType) => refkey(type, "knownValues");
-export const operationOptionsRefkey = (method: SdkServiceMethod) => refkey(method, "operationOptions");
-export const clientContextRefkey = (client: SdkClientType) => refkey(client, "context");
-export const createClientRefkey = (client: SdkClientType) => refkey(client, "createClient");
-export const classicalClientRefkey = (client: SdkClientType) => refkey(client, "classicalClient");
+export const operationOptionsRefkey = (method: SdkServiceMethod) =>
+  refkey(method, "operationOptions");
+export const clientContextRefkey = (client: SdkClientType) =>
+  refkey(client, "context");
+export const createClientRefkey = (client: SdkClientType) =>
+  refkey(client, "createClient");
+export const classicalClientRefkey = (client: SdkClientType) =>
+  refkey(client, "classicalClient");
 // XML, static helpers, etc.
 ```
 
 **Pass Criteria:**
+
 - [ ] All refkey helpers use refkey() from @alloy-js/core (NOT legacy framework refkey)
 - [ ] Same entity + discriminator always returns the same refkey (deterministic)
 - [ ] Different discriminators return different refkeys for the same entity
@@ -125,7 +147,9 @@ export const classicalClientRefkey = (client: SdkClientType) => refkey(client, "
 - [ ] Unit test validates refkey identity and uniqueness
 
 #### 0.5 — External Package Definitions
+
 Create `src/utils/external-packages.ts`:
+
 - `httpRuntimeLib` — `@typespec/ts-http-runtime` exports (Client, getClient, Pipeline, etc.)
 - `azureCoreDeps` — Azure-specific packages (for Azure flavor extension)
 - `azurePollingDeps` — `@azure/core-lro` exports
@@ -134,6 +158,7 @@ Create `src/utils/external-packages.ts`:
 Reference: legacy `external-dependencies.ts`
 
 **Pass Criteria:**
+
 - [ ] httpRuntimeLib defined via createPackage() with all @typespec/ts-http-runtime exports
 - [ ] Package symbols accessible as typed refkeys (e.g., httpRuntimeLib.Client)
 - [ ] Azure package definitions prepared (azureCoreDeps, azurePollingDeps, azureIdentityDeps)
@@ -141,7 +166,9 @@ Reference: legacy `external-dependencies.ts`
 - [ ] code templates with package symbols resolve correctly in a test render
 
 #### 0.6 — Test Infrastructure
+
 Create test foundation:
+
 - `test/test-host.ts` — Tester instance with TypeSpec library imports
 - `test/utils.tsx` — `TestFile`, `DeclarationTestFile` wrappers, `testHelper()`
 - `test/vitest.d.ts` — Custom matcher types (`toRenderTo`)
@@ -149,6 +176,7 @@ Create test foundation:
 - Copy all 101 `.md` scenario files
 
 **Pass Criteria:**
+
 - [ ] test/test-host.ts creates Tester instance with @typespec/http and @typespec/versioning
 - [ ] test/utils.tsx provides TestFile and DeclarationTestFile wrapper components
 - [ ] test/vitest.d.ts declares toRenderTo and toRenderToAsync custom matchers
@@ -157,6 +185,7 @@ Create test foundation:
 - [ ] `vitest run` executes without configuration errors
 
 **Dependencies for this phase:**
+
 - None (foundation work)
 
 ---
@@ -166,7 +195,9 @@ Create test foundation:
 **Goal:** Generate TypeScript interfaces, enums, type aliases, and union types from TCGC types.
 
 #### 1.1 — Type Expression Component
+
 Create `src/components/TypeExpression.tsx`:
+
 - Map `SdkType` to TypeScript type strings/refkeys
 - Handle: `model` → interface refkey, `enum` → type alias refkey, `array` → `T[]`
 - Handle: `dict` → `Record<K, V>`, `nullable` → `T | null`, `union` → pipe-separated
@@ -174,6 +205,7 @@ Create `src/components/TypeExpression.tsx`:
 - Handle: `utcDateTime` → `Date`, `duration` → `string`, `bytes` → `Uint8Array`
 
 **Pass Criteria:**
+
 - [ ] Handles all SdkType kinds: model, enum, union, array, dict, nullable, built-in scalars, datetime, duration, bytes
 - [ ] Model types return typeRefkey(type) for cross-file reference
 - [ ] Scalar mappings match legacy: string→string, int32→number, int64→bigint, float→number, boolean→boolean, utcDateTime→Date, bytes→Uint8Array, duration→string
@@ -183,7 +215,9 @@ Create `src/components/TypeExpression.tsx`:
 - [ ] Component render test validates each type kind
 
 #### 1.2 — Model Interface Component
+
 Create `src/components/ModelDeclaration.tsx`:
+
 - Input: `SdkModelType`
 - Output: `<ts.InterfaceDeclaration>` with properties
 - Handle: base model inheritance via `extends`
@@ -194,6 +228,7 @@ Create `src/components/ModelDeclaration.tsx`:
 - Handle: JSDoc documentation from SDK model
 
 **Pass Criteria:**
+
 - [ ] Produces `<ts.InterfaceDeclaration>` with correct name, refkey, and export
 - [ ] Properties rendered as `<ts.InterfaceMember>` with correct name, type, optional, readonly
 - [ ] Base model inheritance via extends prop
@@ -204,26 +239,32 @@ Create `src/components/ModelDeclaration.tsx`:
 - [ ] Scenario tests pass: models/models.md model interfaces match legacy output
 
 #### 1.3 — Enum Declaration Component
+
 Create `src/components/EnumDeclaration.tsx`:
+
 - Input: `SdkEnumType`
 - Output: `KnownXXX` enum + extensible type alias pattern
 - Fixed enums → plain enum
 - Extensible enums → `KnownXXX` enum + `type XXX = string` alias
 
 **Pass Criteria:**
+
 - [ ] Fixed enums (isFixed=true) produce standard TypeScript enum
 - [ ] Extensible enums produce KnownXXX enum + type XXX = string alias
 - [ ] Enum members have correct name and value
 - [ ] JSDoc documentation on enum and members
 - [ ] Refkey set on both enum and type alias declarations
-- [ ] Scenario tests pass: enumUnion/enumUnion.md, models/apiVersion/*.md
+- [ ] Scenario tests pass: enumUnion/enumUnion.md, models/apiVersion/\*.md
 
 #### 1.4 — Union Type Component
+
 Create `src/components/UnionDeclaration.tsx`:
+
 - Input: `SdkUnionType`
 - Output: `type XXX = A | B | C` type alias
 
 **Pass Criteria:**
+
 - [ ] Produces type XXX = A | B | C with correct variant type references
 - [ ] Variant types use refkeys for cross-file reference when they are models
 - [ ] String/number literal union variants rendered correctly
@@ -231,24 +272,30 @@ Create `src/components/UnionDeclaration.tsx`:
 - [ ] Refkey set on type alias declaration
 
 #### 1.5 — Polymorphic Type Component
+
 Create `src/components/PolymorphicType.tsx`:
+
 - Input: `SdkModelType` with discriminated subtypes
 - Output: Union type alias of all subtypes
 - Refkey: `polymorphicTypeRefkey(type)`
 
 **Pass Criteria:**
+
 - [ ] Produces type XXX = SubA | SubB | SubC from discriminatedSubtypes
 - [ ] Uses polymorphicTypeRefkey(type) as declaration refkey
 - [ ] Each subtype referenced via typeRefkey(subtype)
 - [ ] Only generated for models with discriminatedSubtypes
 
 #### 1.6 — ModelFiles Orchestrator
+
 Create `src/components/ModelFiles.tsx`:
+
 - Organize models by namespace into `src/models/{namespace}/models.ts`
 - **Unify** type declarations and serializers in the same `<ts.SourceFile>` (prevents self-imports)
 - Sort: model declarations (0) → serializers (1) → XML serializers (2)
 
 **Pass Criteria:**
+
 - [ ] Models organized into src/models/{namespace}/models.ts per namespace
 - [ ] Type declarations and serializers unified in same `<ts.SourceFile>` (no self-imports)
 - [ ] Ordering: model declarations first, then serializers, then XML serializers
@@ -256,6 +303,7 @@ Create `src/components/ModelFiles.tsx`:
 - [ ] Cross-namespace references resolved via refkeys (auto-imports between model files)
 
 **Scenario tests to validate:**
+
 - `models/models.md`, `models/deserialization/*.md`, `models/nullable/*.md`
 - `models/template/template.md`, `enumUnion/enumUnion.md`
 - `models/apiVersion/*.md`, `models/nestedEnum/**/*.md`
@@ -267,7 +315,9 @@ Create `src/components/ModelFiles.tsx`:
 **Goal:** Generate JSON and XML serializer/deserializer functions for all model types.
 
 #### 2.1 — JSON Serializer Component
+
 Create `src/components/serialization/JsonSerializer.tsx`:
+
 - Input: `SdkModelType` (with `Usage.Input` flag)
 - Output: `function xxxSerializer(item: Xxx): any { ... }`
 - Property mapping: `item.propName` → `result["wireName"]`
@@ -277,6 +327,7 @@ Create `src/components/serialization/JsonSerializer.tsx`:
 - Handle: flatten properties, additional properties, null checks
 
 **Pass Criteria:**
+
 - [ ] Produces function xxxSerializer(item: Xxx): any with correct refkey
 - [ ] Property mapping: item.propName → result['wireName'] for each property
 - [ ] Nested model properties call child serializerRefkey via code template
@@ -289,13 +340,16 @@ Create `src/components/serialization/JsonSerializer.tsx`:
 - [ ] Scenario tests pass: models/serialization/propertyType.md
 
 #### 2.2 — JSON Deserializer Component
+
 Create `src/components/serialization/JsonDeserializer.tsx`:
+
 - Input: `SdkModelType` (with `Usage.Output` or `Usage.Exception` flag)
 - Output: `function xxxDeserializer(item: any): Xxx { ... }`
 - Property mapping: `item["wireName"]` → `result.propName`
 - Mirror serializer structure for nested/array/dict types
 
 **Pass Criteria:**
+
 - [ ] Produces function xxxDeserializer(item: any): Xxx with correct refkey
 - [ ] Property mapping: item['wireName'] → result.propName (reverse of serializer)
 - [ ] Nested model properties call child deserializerRefkey
@@ -305,12 +359,15 @@ Create `src/components/serialization/JsonDeserializer.tsx`:
 - [ ] Scenario tests pass: models/deserialization/propertyType.md
 
 #### 2.3 — Polymorphic Serialization
+
 Create `src/components/serialization/PolymorphicSerializer.tsx`:
+
 - Discriminated unions → switch on discriminator property
 - Route to appropriate subtype serializer/deserializer
 - Parameter type uses `polymorphicTypeRefkey(type)`
 
 **Pass Criteria:**
+
 - [ ] Switch statement on discriminator property value
 - [ ] Each case routes to subtype-specific serializer/deserializer refkey
 - [ ] Parameter type uses polymorphicTypeRefkey (union type, not base interface)
@@ -319,25 +376,31 @@ Create `src/components/serialization/PolymorphicSerializer.tsx`:
 - [ ] All subtypes in discriminatedSubtypes have corresponding cases
 
 #### 2.4 — XML Serializer Components
+
 Create `src/components/serialization/XmlSerializer.tsx`:
+
 - 4 functions per type: serializer, objectSerializer, deserializer, objectDeserializer
 - Metadata-driven: builds property descriptors, calls `serializeToXml()`/`deserializeFromXml()`
 
 **Pass Criteria:**
+
 - [ ] Generates 4 functions per type: serializer, objectSerializer, deserializer, objectDeserializer
 - [ ] Uses metadata arrays with XML property descriptors
 - [ ] Calls serializeToXml/deserializeFromXml static helper refkeys
 - [ ] Handles XML namespaces, attributes, and element names
 - [ ] Correct refkeys: xmlSerializerRefkey, xmlObjectSerializerRefkey, xmlDeserializerRefkey, xmlObjectDeserializerRefkey
-- [ ] Scenario tests pass: payload/xml/*.md
+- [ ] Scenario tests pass: payload/xml/\*.md
 
 #### 2.5 — Static Serialization Helpers
+
 Create `src/components/StaticHelpers.tsx`:
+
 - Declare refkeys for all static helpers (collection builders, parsers, serializers)
 - Load helper source files and emit as `<ts.SourceFile>` with proper refkey declarations
 - Categories: serialization, paging, polling, URL template, multipart, cloud settings
 
 **Pass Criteria:**
+
 - [ ] Refkey declarations for all static helpers: collection builders (csv, multi, newline, pipe, ssv, tsv), collection parsers, serializers, serialize-record, check-prop-undefined, xml-helpers, get-binary-response
 - [ ] Helper source files loaded and emitted as `<ts.SourceFile>` with proper declarations
 - [ ] Each helper function has a refkey that can be referenced from other components
@@ -346,6 +409,7 @@ Create `src/components/StaticHelpers.tsx`:
 - [ ] Also covers: pagingHelpers, pollingHelpers, simplePollerHelpers, urlTemplate, multipartHelpers, cloudSettingHelpers
 
 **Scenario tests to validate:**
+
 - `models/serialization/*.md`, `models/deserialization/*.md`
 - `models/propertyFlatten/*.md`, `payload/xml/*.md`
 
@@ -356,7 +420,9 @@ Create `src/components/StaticHelpers.tsx`:
 **Goal:** Generate operation functions with send/deserialize pattern for each API operation.
 
 #### 3.1 — Operation Options Component
+
 Create `src/components/OperationOptions.tsx`:
+
 - Input: `SdkServiceMethod`
 - Output: `interface XxxOptions extends OperationOptions { ... }`
 - Include optional method parameters
@@ -364,6 +430,7 @@ Create `src/components/OperationOptions.tsx`:
 - Add `contentType` for dual-format (JSON/XML) operations
 
 **Pass Criteria:**
+
 - [ ] Interface extends OperationOptions from runtime package (via refkey)
 - [ ] Optional method parameters included with correct types
 - [ ] LRO operations include updateIntervalInMs?: number
@@ -373,7 +440,9 @@ Create `src/components/OperationOptions.tsx`:
 - [ ] Auto-generated contentType/accept headers excluded from options
 
 #### 3.2 — Send Function Component
+
 Create `src/components/operations/SendFunction.tsx`:
+
 - Input: `SdkServiceMethod` with `SdkHttpOperation`
 - Output: `async function _xxxSend(context, ...params): StreamableMethod { ... }`
 - Build: URL path with parameter substitution
@@ -383,7 +452,8 @@ Create `src/components/operations/SendFunction.tsx`:
 - Return: `context.path(...).method(options)`
 
 **Pass Criteria:**
-- [ ] Async function _xxxSend(context: XxxContext, ...params): StreamableMethod
+
+- [ ] Async function \_xxxSend(context: XxxContext, ...params): StreamableMethod
 - [ ] URL path built with parameter substitution (using urlTemplate helper or template literals)
 - [ ] Request headers constructed (Content-Type, Accept, custom headers)
 - [ ] Query parameters assembled correctly (collection formats, explode)
@@ -393,7 +463,9 @@ Create `src/components/operations/SendFunction.tsx`:
 - [ ] Scenario tests pass: operations/operations.md send functions match
 
 #### 3.3 — Deserialize Function Component
+
 Create `src/components/operations/DeserializeFunction.tsx`:
+
 - Input: `SdkServiceMethod` with response types
 - Output: `async function _xxxDeserialize(result): Promise<T> { ... }`
 - Handle: status code checking and error throwing
@@ -402,7 +474,8 @@ Create `src/components/operations/DeserializeFunction.tsx`:
 - Handle: binary/stream responses
 
 **Pass Criteria:**
-- [ ] Async function _xxxDeserialize(result: PathUncheckedResponse): Promise<T>
+
+- [ ] Async function \_xxxDeserialize(result: PathUncheckedResponse): Promise<T>
 - [ ] Expected status codes checked; unexpected throws createRestError
 - [ ] Response body deserialized using deserializer refkeys
 - [ ] Response headers extracted when needed
@@ -412,7 +485,9 @@ Create `src/components/operations/DeserializeFunction.tsx`:
 - [ ] Scenario tests pass: operations/operations.md deserialize functions match
 
 #### 3.4 — Public Operation Function Component
+
 Create `src/components/operations/OperationFunction.tsx`:
+
 - Input: `SdkServiceMethod`
 - Output: `async function xxx(context, ...params): Promise<T> { ... }`
 - Standard: call `_send()` → `_deserialize()`
@@ -421,7 +496,8 @@ Create `src/components/operations/OperationFunction.tsx`:
 - LRO+Paging: combined handling
 
 **Pass Criteria:**
-- [ ] Standard: async function xxx(context, ...params) calls _send() then _deserialize()
+
+- [ ] Standard: async function xxx(context, ...params) calls \_send() then \_deserialize()
 - [ ] LRO: wraps with getLongRunningPoller() from polling helpers
 - [ ] Paging: wraps with buildPagedAsyncIterator() from paging helpers
 - [ ] LRO+Paging: combined handling
@@ -430,12 +506,15 @@ Create `src/components/operations/OperationFunction.tsx`:
 - [ ] Scenario tests pass: operations/lroPaging.md
 
 #### 3.5 — Operations Orchestrator
+
 Create `src/components/Operations.tsx`:
+
 - Group operations by operation group path
 - Create `src/api/{group}/operations.ts` per group
 - Render send + deserialize + public function per operation
 
 **Pass Criteria:**
+
 - [ ] Operations grouped by operation group hierarchy
 - [ ] Each group emits src/api/{group}/operations.ts
 - [ ] Each file contains: send + deserialize + public function per operation
@@ -444,6 +523,7 @@ Create `src/components/Operations.tsx`:
 - [ ] Scenario tests pass: apiOperations/apiOperations.md
 
 **Scenario tests to validate:**
+
 - `operations/operations.md`, `apiOperations/apiOperations.md`
 - `operations/pathParam/*.md`, `operations/queryParam/*.md`
 - `operations/headerParam/*.md`, `operations/cookieParam/*.md`
@@ -458,7 +538,9 @@ Create `src/components/Operations.tsx`:
 **Goal:** Generate client context interface, factory function, and supporting infrastructure.
 
 #### 4.1 — Client Context Component
+
 Create `src/components/ClientContext.tsx`:
+
 - Output file: `src/api/{clientName}Context.ts`
 - Generate interface: `interface XxxContext extends Client { ... }`
   - Required properties from `clientInitialization`
@@ -470,6 +552,7 @@ Create `src/components/ClientContext.tsx`:
   - API version defaults
 
 **Pass Criteria:**
+
 - [ ] Interface XxxContext extends Client with required properties from clientInitialization
 - [ ] API version property included for versioned services
 - [ ] Factory function createXxx(endpoint, credentials?, options?) exported
@@ -480,11 +563,14 @@ Create `src/components/ClientContext.tsx`:
 - [ ] Scenario tests pass: clientContext/clientContext.md, clientContext/optionalApiVersion.md
 
 #### 4.2 — Logger Component
+
 Create `src/components/LoggerFile.tsx`:
+
 - Only for Azure flavor
 - Output: `src/logger.ts` with `createClientLogger(packageName)`
 
 **Pass Criteria:**
+
 - [ ] Only emitted when Azure flavor is active
 - [ ] Produces src/logger.ts with createClientLogger(packageName)
 - [ ] Import from @azure/logger via external package refkey
@@ -492,6 +578,7 @@ Create `src/components/LoggerFile.tsx`:
 - [ ] Not emitted for non-Azure (core) flavor
 
 **Scenario tests to validate:**
+
 - `clientContext/clientContext.md`, `clientContext/optionalApiVersion.md`
 
 ---
@@ -501,7 +588,9 @@ Create `src/components/LoggerFile.tsx`:
 **Goal:** Generate the user-facing client class that wraps the operation-level API.
 
 #### 5.1 — Classical Client Component
+
 Create `src/components/ClassicalClient.tsx`:
+
 - Output: `src/{clientName}.ts`
 - Generate class with:
   - Private `_client` field (context type)
@@ -513,7 +602,8 @@ Create `src/components/ClassicalClient.tsx`:
   - Child client getters
 
 **Pass Criteria:**
-- [ ] Class with private _client: XxxContext field
+
+- [ ] Class with private \_client: XxxContext field
 - [ ] Public pipeline: Pipeline readonly property
 - [ ] Constructor calls createXxx() factory via refkey
 - [ ] Constructor overloads for subscriptionId (ARM scenarios)
@@ -523,7 +613,9 @@ Create `src/components/ClassicalClient.tsx`:
 - [ ] Scenario tests pass: classicClient/classicClient.md, classicClient/clientConstructorOverloads.md
 
 #### 5.2 — Classical Operation Groups
+
 Create `src/components/ClassicalOperationGroups.tsx`:
+
 - Output: `src/classic/{group}/index.ts` per group
 - Generate: `interface XxxOperations { ... }` per group level
 - Generate: `function _getXxxOperations(context): XxxOperations`
@@ -531,15 +623,17 @@ Create `src/components/ClassicalOperationGroups.tsx`:
 - Handle: LRO wrapper methods (`begin_*`, `begin_*_andWait`)
 
 **Pass Criteria:**
+
 - [ ] Interface XxxOperations per operation group level
-- [ ] Factory function _getXxxOperations(context) returning operation methods
+- [ ] Factory function \_getXxxOperations(context) returning operation methods
 - [ ] Nested group properties for hierarchical operation groups
-- [ ] LRO helper methods: begin_*(params) and begin_*_andWait(params)
+- [ ] LRO helper methods: begin*\*(params) and begin*\*\_andWait(params)
 - [ ] Operation method signatures match legacy output exactly
 - [ ] Classic files emitted under src/classic/{group}/index.ts
 - [ ] Scenario tests pass: classicClient/reservedWordOperations.md
 
 **Scenario tests to validate:**
+
 - `classicClient/classicClient.md`, `classicClient/clientConstructorOverloads.md`
 - `classicClient/reservedWordOperations.md`
 
@@ -550,13 +644,16 @@ Create `src/components/ClassicalOperationGroups.tsx`:
 **Goal:** Implement LRO, paging, multipart, and sample generation.
 
 #### 6.1 — RestorePoller Component
+
 Create `src/components/RestorePoller.tsx`:
+
 - Output: `src/api/restorePollerHelpers.ts`
 - Generate `restorePoller()` function
 - Build operation-to-deserializer mapping
 - URL template matching for operation routing
 
 **Pass Criteria:**
+
 - [ ] Produces src/api/restorePollerHelpers.ts
 - [ ] RestorePollerOptions<TResult> interface exported
 - [ ] restorePoller() function exported with correct signature
@@ -566,12 +663,15 @@ Create `src/components/RestorePoller.tsx`:
 - [ ] Only generated when client has LRO operations
 
 #### 6.2 — Multipart Support
+
 Integrate into operation send functions:
+
 - Detect multipart body parameters
 - Generate file part descriptors
 - Build multipart form data
 
 **Pass Criteria:**
+
 - [ ] Multipart body parameters detected from SdkHttpOperation
 - [ ] File part descriptors generated using createFilePartDescriptor helper refkey
 - [ ] Multipart form data assembled correctly
@@ -579,20 +679,24 @@ Integrate into operation send functions:
 - [ ] Scenario tests pass: multipart/file.md, multipart/json.md, multipart/text.md, multipart/renamewithWireNameAndClientName.md
 
 #### 6.3 — Sample Generation
+
 Create `src/components/Samples.tsx`:
+
 - Generate per-operation sample files
 - Extract example data from TCGC examples
 - Build client construction, parameter setup, and API calls
 
 **Pass Criteria:**
+
 - [ ] Sample file per operation with executable TypeScript code
 - [ ] Client construction with correct parameters
 - [ ] Parameter setup from TCGC examples (when available)
 - [ ] Credential setup (Azure credentials, API keys)
 - [ ] API call invocation with correct arguments
-- [ ] Scenario tests pass: samples/client/*.md, samples/operations/*.md, samples/parameters/*.md
+- [ ] Scenario tests pass: samples/client/_.md, samples/operations/_.md, samples/parameters/\*.md
 
 **Scenario tests to validate:**
+
 - `samples/client/*.md`, `samples/operations/*.md`
 - `samples/parameters/*.md`, `samples/propertyFlatten/*.md`
 
@@ -603,15 +707,18 @@ Create `src/components/Samples.tsx`:
 **Goal:** Generate proper export structure for the SDK package.
 
 #### 7.1 — Root Index Component
+
 Create `src/components/RootIndex.tsx`:
+
 - Output: `src/index.ts`
 - Export: client classes, models, operation options, helper types
 - Filter: exclude internal symbols (prefixed with `_`)
 - Filter: exclude serializer/deserializer functions
 
 **Pass Criteria:**
+
 - [ ] Root src/index.ts exports client classes, models, operation options, helper types
-- [ ] Internal symbols (_prefixed) excluded from exports
+- [ ] Internal symbols (\_prefixed) excluded from exports
 - [ ] Serializer/deserializer functions excluded from public exports
 - [ ] PagedAsyncIterableIterator, PageSettings, ContinuablePage exported for paging
 - [ ] SimplePollerLike exported for LRO
@@ -619,7 +726,9 @@ Create `src/components/RootIndex.tsx`:
 - [ ] No duplicate exports
 
 #### 7.2 — Subpath Index Component
+
 Create `src/components/SubpathIndex.tsx`:
+
 - Generate `index.ts` in: `api/`, `models/`, `classic/`
 - Re-export from child modules
 - Support: recursive index generation for nested groups
@@ -628,6 +737,7 @@ Create `src/components/SubpathIndex.tsx`:
 Note: Alloy's `<ts.BarrelFile>` may handle some of this automatically.
 
 **Pass Criteria:**
+
 - [ ] api/index.ts re-exports from operation group files
 - [ ] models/index.ts re-exports from model namespace files
 - [ ] classic/index.ts re-exports from operation group interfaces (interfaces only)
@@ -636,6 +746,7 @@ Note: Alloy's `<ts.BarrelFile>` may handle some of this automatically.
 - [ ] Correct relative paths in export declarations
 
 **Scenario tests to validate:**
+
 - `emptyProject/emptyProject.md`, root index assertions in various tests
 
 ---
@@ -645,6 +756,7 @@ Note: Alloy's `<ts.BarrelFile>` may handle some of this automatically.
 **Goal:** Design and implement Azure-specific extensions via composition.
 
 #### 8.1 — Azure Extension Points
+
 - Swap `httpRuntimeLib` → Azure package references
 - Add Azure auth policies (Bearer challenge, custom headers)
 - Add Azure polling dependencies
@@ -653,6 +765,7 @@ Note: Alloy's `<ts.BarrelFile>` may handle some of this automatically.
 - Add Logger with `@azure/logger`
 
 **Pass Criteria:**
+
 - [ ] httpRuntimeLib swappable to Azure package references (@azure-rest/core-client, etc.)
 - [ ] Azure auth policies (Bearer challenge, custom headers) injectable
 - [ ] Azure polling dependencies (@azure/core-lro) usable via refkeys
@@ -662,6 +775,7 @@ Note: Alloy's `<ts.BarrelFile>` may handle some of this automatically.
 - [ ] All Azure-specific scenario tests pass
 
 #### 8.2 — Composition Pattern
+
 ```tsx
 // Core emitter output
 <CoreOutput sdkPackage={sdkPackage}>
@@ -677,6 +791,7 @@ Note: Alloy's `<ts.BarrelFile>` may handle some of this automatically.
 ```
 
 **Pass Criteria:**
+
 - [ ] Core emitter generates valid non-Azure SDK with @typespec/ts-http-runtime
 - [ ] Azure wrapper composes core components with Azure-specific additions
 - [ ] No if-else Azure checks inside core components
@@ -690,6 +805,7 @@ Note: Alloy's `<ts.BarrelFile>` may handle some of this automatically.
 **Goal:** Port all 101 scenario tests and validate output parity.
 
 #### 9.1 — Test Harness
+
 - Adapt `scenarios.spec.ts` for vitest
 - Implement MD file parser for scenario format
 - Support all 14 output block types (models, operations, clientContext, etc.)
@@ -697,8 +813,9 @@ Note: Alloy's `<ts.BarrelFile>` may handle some of this automatically.
 - Support `SCENARIOS_UPDATE` for snapshot regeneration
 
 **Pass Criteria:**
+
 - [ ] Scenario harness reads .md files recursively from test/scenarios/
-- [ ] MD parser extracts TypeSpec input (```tsp) and expected output (```typescript <type>) blocks
+- [ ] MD parser extracts TypeSpec input (`tsp) and expected output (`typescript <type>) blocks
 - [ ] All 14 output block types supported
 - [ ] assertEqualContent normalizes formatting before comparison
 - [ ] SCENARIOS_UPDATE=true regenerates snapshots
@@ -707,26 +824,27 @@ Note: Alloy's `<ts.BarrelFile>` may handle some of this automatically.
 
 #### 9.2 — Scenario Categories (101 tests)
 
-| Category | Count | Tests |
-|----------|-------|-------|
-| Models (core) | 3 | models, azureCoreErrorModels, missingErrorResponseModel |
-| Models (serialization) | 8 | propertyType, additionalProperties, anonymousModel, encodeIntAsString, enumKeyNorm, errorModels, modelPropertyArrayEncoding, readonlyFlattenModel |
-| Models (deserialization) | 4 | additionalProperties, anonymousModel, extends, propertyType |
-| Models (other) | 12 | nullable (2), propertyFlatten (3), apiVersion (2), nestedEnum (3), template, response (4) |
-| Operations | 6+ | operations, override, overrideReservedkeywords, clientDefaultValue, armPatchWithUnionResponse, lroPaging |
-| Operations (params) | 14 | pathParam (8), queryParam (5), headerParam (1), cookieParam (1) |
-| Operations (error) | 2 | errorHeaderDeserialization, xmlErrorDeserialization |
-| Operations (pagination) | 1 | disablePagination |
-| API Operations | 3 | apiOperations, azureCoreOperations, reservedWordOperations |
-| Client Context | 2 | clientContext, optionalApiVersion |
-| Classical Client | 3 | classicClient, clientConstructorOverloads, reservedWordOperations |
-| Enum/Union | 1 | enumUnion |
-| Multipart | 4 | file, json, text, renamewithWireNameAndClientName |
-| Payload/XML | 3 | xmlArrayItemTypes, xmlArrayItemsNameWrapping, xmlName |
-| Samples | 24 | client (8), operations (4), parameters (12), propertyFlatten (3) |
-| Other | 3 | anonymous, emptyProject, example |
+| Category                 | Count | Tests                                                                                                                                             |
+| ------------------------ | ----- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Models (core)            | 3     | models, azureCoreErrorModels, missingErrorResponseModel                                                                                           |
+| Models (serialization)   | 8     | propertyType, additionalProperties, anonymousModel, encodeIntAsString, enumKeyNorm, errorModels, modelPropertyArrayEncoding, readonlyFlattenModel |
+| Models (deserialization) | 4     | additionalProperties, anonymousModel, extends, propertyType                                                                                       |
+| Models (other)           | 12    | nullable (2), propertyFlatten (3), apiVersion (2), nestedEnum (3), template, response (4)                                                         |
+| Operations               | 6+    | operations, override, overrideReservedkeywords, clientDefaultValue, armPatchWithUnionResponse, lroPaging                                          |
+| Operations (params)      | 14    | pathParam (8), queryParam (5), headerParam (1), cookieParam (1)                                                                                   |
+| Operations (error)       | 2     | errorHeaderDeserialization, xmlErrorDeserialization                                                                                               |
+| Operations (pagination)  | 1     | disablePagination                                                                                                                                 |
+| API Operations           | 3     | apiOperations, azureCoreOperations, reservedWordOperations                                                                                        |
+| Client Context           | 2     | clientContext, optionalApiVersion                                                                                                                 |
+| Classical Client         | 3     | classicClient, clientConstructorOverloads, reservedWordOperations                                                                                 |
+| Enum/Union               | 1     | enumUnion                                                                                                                                         |
+| Multipart                | 4     | file, json, text, renamewithWireNameAndClientName                                                                                                 |
+| Payload/XML              | 3     | xmlArrayItemTypes, xmlArrayItemsNameWrapping, xmlName                                                                                             |
+| Samples                  | 24    | client (8), operations (4), parameters (12), propertyFlatten (3)                                                                                  |
+| Other                    | 3     | anonymous, emptyProject, example                                                                                                                  |
 
 **Pass Criteria for Scenario Porting:**
+
 - [ ] All 101 .md scenario files copied to test/scenarios/
 - [ ] Directory structure preserved
 - [ ] Each .md file parseable by the test harness without errors
@@ -734,12 +852,14 @@ Note: Alloy's `<ts.BarrelFile>` may handle some of this automatically.
 - [ ] No modifications to expected output blocks
 
 #### 9.3 — Validation Strategy
+
 1. Run each scenario through legacy emitter → capture baseline output
 2. Run each scenario through new Alloy emitter → compare
 3. Acceptable differences: import ordering, whitespace, trailing commas
 4. Unacceptable differences: public API surface changes, type changes, missing exports
 
 **Pass Criteria:**
+
 - [ ] All 101 scenario tests pass (vitest run reports 0 failures)
 - [ ] Public API surface identical to legacy emitter output
 - [ ] Only acceptable differences present
@@ -871,14 +991,14 @@ Phase 9 (Testing) ← runs alongside all phases
 
 ## 6. Risk Analysis
 
-| Risk | Impact | Mitigation |
-|------|--------|------------|
-| Output parity failures | High — breaking changes to Azure SDK users | Run scenario tests incrementally; accept only cosmetic differences |
-| Alloy version incompatibilities | Medium — API changes between versions | Pin to @alloy-js/*@0.22.0; update deliberately |
-| TCGC API surface changes | Medium — model structure changes | Pin TCGC version; adapt incrementally |
-| Performance regression | Low — Alloy is optimized for codegen | Benchmark against legacy emitter on large specs |
-| Static helper loading complexity | Medium — 21 helper files with varied formats | Start with refkey declarations; load sources as-is |
-| Self-import bugs | High — well-known Alloy pitfall | Unify declarations + serializers in same SourceFile (ModelFiles pattern) |
+| Risk                             | Impact                                       | Mitigation                                                               |
+| -------------------------------- | -------------------------------------------- | ------------------------------------------------------------------------ |
+| Output parity failures           | High — breaking changes to Azure SDK users   | Run scenario tests incrementally; accept only cosmetic differences       |
+| Alloy version incompatibilities  | Medium — API changes between versions        | Pin to @alloy-js/\*@0.22.0; update deliberately                          |
+| TCGC API surface changes         | Medium — model structure changes             | Pin TCGC version; adapt incrementally                                    |
+| Performance regression           | Low — Alloy is optimized for codegen         | Benchmark against legacy emitter on large specs                          |
+| Static helper loading complexity | Medium — 21 helper files with varied formats | Start with refkey declarations; load sources as-is                       |
+| Self-import bugs                 | High — well-known Alloy pitfall              | Unify declarations + serializers in same SourceFile (ModelFiles pattern) |
 
 ---
 
@@ -897,41 +1017,41 @@ Phase 9 (Testing) ← runs alongside all phases
 
 ### Legacy → New Component Mapping
 
-| Legacy File | New Component | Notes |
-|-------------|--------------|-------|
-| `emitModels.ts` | `ModelFiles.tsx`, `ModelDeclaration.tsx`, `EnumDeclaration.tsx` | Split by responsibility |
-| `buildOperations.ts` | `Operations.tsx`, `SendFunction.tsx`, `DeserializeFunction.tsx`, `OperationFunction.tsx` | Decomposed into operation lifecycle |
-| `buildClientContext.ts` | `ClientContext.tsx` | Interface + factory in one component |
-| `buildClassicalClient.ts` | `ClassicalClient.tsx` | Class generation |
-| `buildClassicalOperationGroups.ts` | `ClassicalOperationGroups.tsx` | Group interfaces |
-| `buildRestorePoller.ts` | `RestorePoller.tsx` | LRO restore helper |
-| `buildRootIndex.ts` | `RootIndex.tsx` | Barrel file |
-| `buildSubpathIndex.ts` | `SubpathIndex.tsx` | Subpath barrel files |
-| `emitLoggerFile.ts` | `LoggerFile.tsx` | Logger module |
-| `emitSamples.ts` | `Samples.tsx` | Sample generation |
-| `external-dependencies.ts` | `external-packages.ts` | `createPackage()` pattern |
-| `serialization/buildSerializerFunction.ts` | `JsonSerializer.tsx` | JSX serializer component |
-| `serialization/buildDeserializerFunction.ts` | `JsonDeserializer.tsx` | JSX deserializer component |
-| `serialization/buildXmlSerializerFunction.ts` | `XmlSerializer.tsx` | XML serializer component |
-| `operationHelpers.ts` | Distributed across operation components | Break up 2700-line file |
-| `contextManager.ts` | `sdk-context.tsx` | Alloy named contexts replace singleton |
-| `framework/refkey.ts` | `utils/refkeys.ts` | Alloy refkeys replace string-based keys |
+| Legacy File                                   | New Component                                                                            | Notes                                   |
+| --------------------------------------------- | ---------------------------------------------------------------------------------------- | --------------------------------------- |
+| `emitModels.ts`                               | `ModelFiles.tsx`, `ModelDeclaration.tsx`, `EnumDeclaration.tsx`                          | Split by responsibility                 |
+| `buildOperations.ts`                          | `Operations.tsx`, `SendFunction.tsx`, `DeserializeFunction.tsx`, `OperationFunction.tsx` | Decomposed into operation lifecycle     |
+| `buildClientContext.ts`                       | `ClientContext.tsx`                                                                      | Interface + factory in one component    |
+| `buildClassicalClient.ts`                     | `ClassicalClient.tsx`                                                                    | Class generation                        |
+| `buildClassicalOperationGroups.ts`            | `ClassicalOperationGroups.tsx`                                                           | Group interfaces                        |
+| `buildRestorePoller.ts`                       | `RestorePoller.tsx`                                                                      | LRO restore helper                      |
+| `buildRootIndex.ts`                           | `RootIndex.tsx`                                                                          | Barrel file                             |
+| `buildSubpathIndex.ts`                        | `SubpathIndex.tsx`                                                                       | Subpath barrel files                    |
+| `emitLoggerFile.ts`                           | `LoggerFile.tsx`                                                                         | Logger module                           |
+| `emitSamples.ts`                              | `Samples.tsx`                                                                            | Sample generation                       |
+| `external-dependencies.ts`                    | `external-packages.ts`                                                                   | `createPackage()` pattern               |
+| `serialization/buildSerializerFunction.ts`    | `JsonSerializer.tsx`                                                                     | JSX serializer component                |
+| `serialization/buildDeserializerFunction.ts`  | `JsonDeserializer.tsx`                                                                   | JSX deserializer component              |
+| `serialization/buildXmlSerializerFunction.ts` | `XmlSerializer.tsx`                                                                      | XML serializer component                |
+| `operationHelpers.ts`                         | Distributed across operation components                                                  | Break up 2700-line file                 |
+| `contextManager.ts`                           | `sdk-context.tsx`                                                                        | Alloy named contexts replace singleton  |
+| `framework/refkey.ts`                         | `utils/refkeys.ts`                                                                       | Alloy refkeys replace string-based keys |
 
 ---
 
 ## 9. Glossary
 
-| Term | Definition |
-|------|-----------|
-| **Alloy** | JSX-based code generation framework (`@alloy-js/core` + language packages) |
-| **TCGC** | TypeSpec Client Generator Core — provides `SdkPackage` object model |
-| **Refkey** | Symbolic reference key that Alloy resolves to declarations + auto-imports |
-| **SdkPackage** | Root TCGC type containing clients, models, enums, unions |
-| **SdkClientType** | TCGC client with methods, initialization, API versions |
-| **SdkServiceMethod** | TCGC operation method (basic, paging, LRO, LRO+paging) |
-| **SdkModelType** | TCGC model with properties, inheritance, discriminators |
-| **Classical Client** | User-facing class wrapping operation-level API |
-| **Client Context** | Internal client interface + factory function |
-| **Modular** | The SDK architecture pattern being generated (vs. RLC) |
-| **RLC** | Rest Level Client — NOT being rewritten |
-| **flight-instructor** | Priority-1 reference emitter for Alloy patterns |
+| Term                  | Definition                                                                 |
+| --------------------- | -------------------------------------------------------------------------- |
+| **Alloy**             | JSX-based code generation framework (`@alloy-js/core` + language packages) |
+| **TCGC**              | TypeSpec Client Generator Core — provides `SdkPackage` object model        |
+| **Refkey**            | Symbolic reference key that Alloy resolves to declarations + auto-imports  |
+| **SdkPackage**        | Root TCGC type containing clients, models, enums, unions                   |
+| **SdkClientType**     | TCGC client with methods, initialization, API versions                     |
+| **SdkServiceMethod**  | TCGC operation method (basic, paging, LRO, LRO+paging)                     |
+| **SdkModelType**      | TCGC model with properties, inheritance, discriminators                    |
+| **Classical Client**  | User-facing class wrapping operation-level API                             |
+| **Client Context**    | Internal client interface + factory function                               |
+| **Modular**           | The SDK architecture pattern being generated (vs. RLC)                     |
+| **RLC**               | Rest Level Client — NOT being rewritten                                    |
+| **flight-instructor** | Priority-1 reference emitter for Alloy patterns                            |

@@ -87,7 +87,9 @@ describe("XmlHelpersFile", () => {
     const result = renderXmlHelpers();
     expect(result).toContain("export interface XmlPropertyDeserializeMetadata");
     expect(result).toContain("deserializer?: (value: any) => any;");
-    expect(result).toContain('primitiveSubtype?: "string" | "number" | "boolean";');
+    expect(result).toContain(
+      'primitiveSubtype?: "string" | "number" | "boolean";',
+    );
   });
 
   /**
@@ -97,7 +99,9 @@ describe("XmlHelpersFile", () => {
    */
   it("should render XmlSerializedObject type alias", async () => {
     const result = renderXmlHelpers();
-    expect(result).toContain("export type XmlSerializedObject = Record<string, any>;");
+    expect(result).toContain(
+      "export type XmlSerializedObject = Record<string, any>;",
+    );
   });
 
   /**

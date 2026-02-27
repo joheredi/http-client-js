@@ -59,7 +59,11 @@ ignoreWeirdLine: false
 ## clientContext
 
 ```ts clientContext
-import { type Client, type ClientOptions, getClient } from "@azure-rest/core-client";
+import {
+  type Client,
+  type ClientOptions,
+  getClient,
+} from "@azure-rest/core-client";
 import { logger } from "./logger.js";
 import type { ClientType } from "./models/models.js";
 
@@ -77,21 +81,25 @@ export function createService(
   options: ServiceClientOptionalParams = {},
 ): ServiceContext {
   const client = options.client ?? "default";
-  const endpointUrl = options.endpoint ?? `${endpoint}/client/structure/${client}`;
+  const endpointUrl =
+    options.endpoint ?? `${endpoint}/client/structure/${client}`;
   const prefixFromOptions = options?.userAgentOptions?.userAgentPrefix;
-  const userAgentPrefix = prefixFromOptions ? `${prefixFromOptions} azsdk-js-api` : `azsdk-js-api`;
+  const userAgentPrefix = prefixFromOptions
+    ? `${prefixFromOptions} azsdk-js-api`
+    : `azsdk-js-api`;
   const { apiVersion: _, ...updatedOptions } = {
-  ...options,
-  userAgentOptions: { userAgentPrefix },
-  loggingOptions: { logger: options.loggingOptions?.logger ?? logger.info },
+    ...options,
+    userAgentOptions: { userAgentPrefix },
+    loggingOptions: { logger: options.loggingOptions?.logger ?? logger.info },
   };
   const clientContext = getClient(endpointUrl, updatedOptions);
   if (options.apiVersion) {
-  logger.warning("This client does not support client api-version, please change it at the operation level");
+    logger.warning(
+      "This client does not support client api-version, please change it at the operation level",
+    );
   }
   return clientContext;
 }
-
 ```
 
 # handle with default values in server
@@ -155,7 +163,11 @@ ignoreWeirdLine: false
 ## clientContext
 
 ```ts clientContext
-import { type Client, type ClientOptions, getClient } from "@azure-rest/core-client";
+import {
+  type Client,
+  type ClientOptions,
+  getClient,
+} from "@azure-rest/core-client";
 import { logger } from "./logger.js";
 import type { ClientType } from "./models/models.js";
 
@@ -177,21 +189,25 @@ export function createService(
 ): ServiceContext {
   const endpoint = options.endpoint ?? "http://localhost:3000";
   const client = options.client ?? "default";
-  const endpointUrl = options.endpoint ?? `${endpoint}/client/structure/${client}`;
+  const endpointUrl =
+    options.endpoint ?? `${endpoint}/client/structure/${client}`;
   const prefixFromOptions = options?.userAgentOptions?.userAgentPrefix;
-  const userAgentPrefix = prefixFromOptions ? `${prefixFromOptions} azsdk-js-api` : `azsdk-js-api`;
+  const userAgentPrefix = prefixFromOptions
+    ? `${prefixFromOptions} azsdk-js-api`
+    : `azsdk-js-api`;
   const { apiVersion: _, ...updatedOptions } = {
-  ...options,
-  userAgentOptions: { userAgentPrefix },
-  loggingOptions: { logger: options.loggingOptions?.logger ?? logger.info },
+    ...options,
+    userAgentOptions: { userAgentPrefix },
+    loggingOptions: { logger: options.loggingOptions?.logger ?? logger.info },
   };
   const clientContext = getClient(endpointUrl, updatedOptions);
   if (options.apiVersion) {
-  logger.warning("This client does not support client api-version, please change it at the operation level");
+    logger.warning(
+      "This client does not support client api-version, please change it at the operation level",
+    );
   }
   return clientContext;
 }
-
 ```
 
 # handle with title config for client Context
@@ -257,7 +273,11 @@ ignoreWeirdLine: false
 ## clientContext
 
 ```ts clientContext
-import { type Client, type ClientOptions, getClient } from "@azure-rest/core-client";
+import {
+  type Client,
+  type ClientOptions,
+  getClient,
+} from "@azure-rest/core-client";
 import { logger } from "./logger.js";
 import type { ClientType } from "./models/models.js";
 
@@ -275,19 +295,23 @@ export function createTesting(
   options: TestingClientOptionalParams = {},
 ): TestingContext {
   const client = options.client ?? "default";
-  const endpointUrl = options.endpoint ?? `${endpoint}/client/structure/${client}`;
+  const endpointUrl =
+    options.endpoint ?? `${endpoint}/client/structure/${client}`;
   const prefixFromOptions = options?.userAgentOptions?.userAgentPrefix;
-  const userAgentPrefix = prefixFromOptions ? `${prefixFromOptions} azsdk-js-api` : `azsdk-js-api`;
+  const userAgentPrefix = prefixFromOptions
+    ? `${prefixFromOptions} azsdk-js-api`
+    : `azsdk-js-api`;
   const { apiVersion: _, ...updatedOptions } = {
-  ...options,
-  userAgentOptions: { userAgentPrefix },
-  loggingOptions: { logger: options.loggingOptions?.logger ?? logger.info },
+    ...options,
+    userAgentOptions: { userAgentPrefix },
+    loggingOptions: { logger: options.loggingOptions?.logger ?? logger.info },
   };
   const clientContext = getClient(endpointUrl, updatedOptions);
   if (options.apiVersion) {
-  logger.warning("This client does not support client api-version, please change it at the operation level");
+    logger.warning(
+      "This client does not support client api-version, please change it at the operation level",
+    );
   }
   return clientContext;
 }
-
 ```

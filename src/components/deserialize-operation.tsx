@@ -6,10 +6,12 @@ import type {
   SdkType,
 } from "@azure-tools/typespec-client-generator-core";
 import type { HttpStatusCodeRange } from "@typespec/http";
-import { useFlavorContext, type FlavorKind, type RuntimeLib } from "../context/flavor-context.js";
 import {
-  deserializeOperationRefkey,
-} from "../utils/refkeys.js";
+  useFlavorContext,
+  type FlavorKind,
+  type RuntimeLib,
+} from "../context/flavor-context.js";
+import { deserializeOperationRefkey } from "../utils/refkeys.js";
 import { getTypeExpression } from "./type-expression.js";
 import {
   getDeserializationExpression,
@@ -55,7 +57,10 @@ export interface DeserializeOperationProps {
 export function DeserializeOperation(props: DeserializeOperationProps) {
   const { flavor, runtimeLib } = useFlavorContext();
   const { method } = props;
-  const functionName = namekey(`_${getEscapedOperationName(method.name)}Deserialize`, { ignoreNamePolicy: true });
+  const functionName = namekey(
+    `_${getEscapedOperationName(method.name)}Deserialize`,
+    { ignoreNamePolicy: true },
+  );
   const returnTypeExpr = getReturnType(method);
   const expectedStatuses = getExpectedStatuses(method, flavor);
   const bodyExpression = getResponseBodyExpression(method);
@@ -156,7 +161,11 @@ function getExpectedStatuses(
   // LRO operations need additional polling status codes for Azure flavor only.
   // Core flavor treats LRO operations as regular async functions (no poller),
   // so these extra polling codes are not needed.
-  if (flavor === "azure" && isLroOperation(method) && operation.verb !== "get") {
+  if (
+    flavor === "azure" &&
+    isLroOperation(method) &&
+    operation.verb !== "get"
+  ) {
     statusCodes.add(`"200"`);
     statusCodes.add(`"202"`);
     if (operation.verb !== "delete") {
@@ -176,9 +185,7 @@ function getExpectedStatuses(
  * @param method - The TCGC service method.
  * @returns `true` if the method is an LRO or LRO+paging operation.
  */
-function isLroOperation(
-  method: SdkServiceMethod<SdkHttpOperation>,
-): boolean {
+function isLroOperation(method: SdkServiceMethod<SdkHttpOperation>): boolean {
   return method.kind === "lro" || method.kind === "lropaging";
 }
 
@@ -210,7 +217,7 @@ function getResponseBodyExpression(
   // For paging operations, use the HTTP-level response type (wrapper model)
   // instead of the TCGC-normalized element type
   const responseType = isPagingOperation(method)
-    ? getSuccessResponseType(method) ?? method.response.type
+    ? (getSuccessResponseType(method) ?? method.response.type)
     : method.response.type;
 
   // Void response — no body to deserialize
@@ -245,9 +252,7 @@ function getResponseBodyExpression(
  * @param runtimeLib - The runtime library providing `createRestError`.
  * @returns Alloy Children representing the error handling code block.
  */
-function buildErrorHandlingBlock(
-  runtimeLib: RuntimeLib,
-): Children {
+function buildErrorHandlingBlock(runtimeLib: RuntimeLib): Children {
   return code`  throw ${runtimeLib.createRestError}(result);`;
 }
 

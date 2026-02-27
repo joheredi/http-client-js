@@ -27,12 +27,14 @@ import { format } from "prettier";
  */
 async function createTsExtractorConfig(): Promise<LanguageConfiguration> {
   const require = createRequire(import.meta.url);
-  const wasmPath = require.resolve("tree-sitter-typescript/tree-sitter-typescript.wasm");
+  const wasmPath =
+    require.resolve("tree-sitter-typescript/tree-sitter-typescript.wasm");
   await Parser.init();
   return {
     codeBlockTypes: ["ts", "typescript"],
     language: await Language.load(wasmPath),
-    format: async (content: string) => format(content, { parser: "typescript" }),
+    format: async (content: string) =>
+      format(content, { parser: "typescript" }),
     nodeKindMapping: {
       classNodeType: "class_declaration",
       functionNodeType: "function_declaration",

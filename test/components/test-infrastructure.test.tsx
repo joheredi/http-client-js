@@ -51,11 +51,7 @@ describe("Test Infrastructure", () => {
      * This tests the simplest rendering path: string content inside the wrapper.
      */
     it("should render plain text via TestFile", async () => {
-      const template = (
-        <TestFile program={program}>
-          hello world
-        </TestFile>
-      );
+      const template = <TestFile program={program}>hello world</TestFile>;
 
       expect(template).toRenderTo(`
         hello world
@@ -107,11 +103,7 @@ describe("Test Infrastructure", () => {
      * compare content.
      */
     it("should fail when output does not match", async () => {
-      const template = (
-        <TestFile program={program}>
-          hello world
-        </TestFile>
-      );
+      const template = <TestFile program={program}>hello world</TestFile>;
 
       expect(template).not.toRenderTo(`
         goodbye world

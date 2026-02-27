@@ -31,7 +31,12 @@ import { createTSNamePolicy, SourceFile } from "@alloy-js/typescript";
 import { Output } from "@typespec/emitter-framework";
 import { t } from "@typespec/compiler/testing";
 import { beforeAll, describe, expect, it } from "vitest";
-import type { SdkArrayType, SdkContext, SdkHttpOperation, SdkModelType } from "@azure-tools/typespec-client-generator-core";
+import type {
+  SdkArrayType,
+  SdkContext,
+  SdkHttpOperation,
+  SdkModelType,
+} from "@azure-tools/typespec-client-generator-core";
 import { UsageFlags } from "@azure-tools/typespec-client-generator-core";
 import { JsonSerializer } from "../../../src/components/serialization/json-serializer.js";
 import { JsonArraySerializer } from "../../../src/components/serialization/json-array-record-helpers.js";
@@ -95,8 +100,12 @@ describe("JsonSerializer", () => {
       );
 
       sdkContext = await createSdkContextForTest(program);
-      widgetModel = sdkContext.sdkPackage.models.find((m) => m.name === "Widget")!;
-      simpleModel = sdkContext.sdkPackage.models.find((m) => m.name === "Simple")!;
+      widgetModel = sdkContext.sdkPackage.models.find(
+        (m) => m.name === "Widget",
+      )!;
+      simpleModel = sdkContext.sdkPackage.models.find(
+        (m) => m.name === "Simple",
+      )!;
       optsModel = sdkContext.sdkPackage.models.find((m) => m.name === "Opts")!;
     });
 
@@ -290,10 +299,18 @@ describe("JsonSerializer", () => {
       );
 
       sdkContext = await createSdkContextForTest(program);
-      addressModel = sdkContext.sdkPackage.models.find((m) => m.name === "Address")!;
-      personModel = sdkContext.sdkPackage.models.find((m) => m.name === "Person")!;
-      innerModel = sdkContext.sdkPackage.models.find((m) => m.name === "Inner")!;
-      outerModel = sdkContext.sdkPackage.models.find((m) => m.name === "Outer")!;
+      addressModel = sdkContext.sdkPackage.models.find(
+        (m) => m.name === "Address",
+      )!;
+      personModel = sdkContext.sdkPackage.models.find(
+        (m) => m.name === "Person",
+      )!;
+      innerModel = sdkContext.sdkPackage.models.find(
+        (m) => m.name === "Inner",
+      )!;
+      outerModel = sdkContext.sdkPackage.models.find(
+        (m) => m.name === "Outer",
+      )!;
     });
 
     /**
@@ -426,7 +443,9 @@ describe("JsonSerializer", () => {
       sdkContext = await createSdkContextForTest(program);
       tagModel = sdkContext.sdkPackage.models.find((m) => m.name === "Tag")!;
       itemModel = sdkContext.sdkPackage.models.find((m) => m.name === "Item")!;
-      configModel = sdkContext.sdkPackage.models.find((m) => m.name === "Config")!;
+      configModel = sdkContext.sdkPackage.models.find(
+        (m) => m.name === "Config",
+      )!;
     });
 
     /**
@@ -436,7 +455,8 @@ describe("JsonSerializer", () => {
      * functions like `tagArraySerializer(items)`.
      */
     it("should serialize array of models with .map()", () => {
-      const tagsArrayType = itemModel.properties.find((p) => p.name === "tags")!.type as SdkArrayType;
+      const tagsArrayType = itemModel.properties.find((p) => p.name === "tags")!
+        .type as SdkArrayType;
       const template = (
         <SdkTestFile sdkContext={sdkContext}>
           <ModelInterface model={tagModel} />
@@ -550,12 +570,12 @@ describe("JsonSerializer", () => {
 
     const result = renderToString(template);
     // CSV-encoded property should use buildCsvCollection
-    expect(result).toContain("buildCsvCollection(item[\"csvColors\"])");
+    expect(result).toContain('buildCsvCollection(item["csvColors"])');
     // Pipe-encoded property should use buildPipeCollection
-    expect(result).toContain("buildPipeCollection(item[\"pipeColors\"])");
+    expect(result).toContain('buildPipeCollection(item["pipeColors"])');
     // Non-encoded array property should pass through as-is
-    expect(result).toContain("normalColors: item[\"normalColors\"]");
-    expect(result).not.toContain("buildCsvCollection(item[\"normalColors\"])");
+    expect(result).toContain('normalColors: item["normalColors"]');
+    expect(result).not.toContain('buildCsvCollection(item["normalColors"])');
   });
 
   describe("date serialization", () => {
@@ -590,7 +610,9 @@ describe("JsonSerializer", () => {
       );
 
       sdkContext = await createSdkContextForTest(program);
-      eventModel = sdkContext.sdkPackage.models.find((m) => m.name === "Event")!;
+      eventModel = sdkContext.sdkPackage.models.find(
+        (m) => m.name === "Event",
+      )!;
       logModel = sdkContext.sdkPackage.models.find((m) => m.name === "Log")!;
       taskModel = sdkContext.sdkPackage.models.find((m) => m.name === "Task")!;
     });
@@ -991,7 +1013,9 @@ describe("JsonSerializer", () => {
 
     const result = renderToString(template);
     expect(result).toContain(`...item`);
-    expect(result).toContain(`additionalProperties: item["additionalProperties"]`);
+    expect(result).toContain(
+      `additionalProperties: item["additionalProperties"]`,
+    );
   });
 
   /**
@@ -1023,8 +1047,12 @@ describe("JsonSerializer", () => {
     );
 
     const sdkContext = await createSdkContextForTest(program);
-    const petModel = sdkContext.sdkPackage.models.find((m) => m.name === "Pet")!;
-    const catModel = sdkContext.sdkPackage.models.find((m) => m.name === "Cat")!;
+    const petModel = sdkContext.sdkPackage.models.find(
+      (m) => m.name === "Pet",
+    )!;
+    const catModel = sdkContext.sdkPackage.models.find(
+      (m) => m.name === "Cat",
+    )!;
 
     const template = (
       <SdkTestFile sdkContext={sdkContext}>
@@ -1090,7 +1118,9 @@ describe("JsonSerializer", () => {
       );
 
       sdkContext = await createSdkContextForTest(program);
-      emptyModel = sdkContext.sdkPackage.models.find((m) => m.name === "EmptyInput")!;
+      emptyModel = sdkContext.sdkPackage.models.find(
+        (m) => m.name === "EmptyInput",
+      )!;
     });
 
     it("should return item for empty model serializer", () => {

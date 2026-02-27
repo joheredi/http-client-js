@@ -47,8 +47,20 @@ import {
   clientOptionsRefkey,
   createClientRefkey,
 } from "../../src/utils/refkeys.js";
-import { httpRuntimeLib, azureCoreClientLib, azureCorePipelineLib, azureCoreAuthLib, azureCoreUtilLib, azureAbortControllerLib, azureLoggerLib } from "../../src/utils/external-packages.js";
-import { Tester, TesterWithService, createSdkContextForTest } from "../test-host.js";
+import {
+  httpRuntimeLib,
+  azureCoreClientLib,
+  azureCorePipelineLib,
+  azureCoreAuthLib,
+  azureCoreUtilLib,
+  azureAbortControllerLib,
+  azureLoggerLib,
+} from "../../src/utils/external-packages.js";
+import {
+  Tester,
+  TesterWithService,
+  createSdkContextForTest,
+} from "../test-host.js";
 import { SdkTestFile } from "../utils.jsx";
 import { SdkContextProvider } from "../../src/context/sdk-context.js";
 import { FlavorProvider } from "../../src/context/flavor-context.js";
@@ -61,9 +73,7 @@ import { SourceFile } from "@alloy-js/typescript";
  * Most tests define a single service, so this helper avoids repeated
  * boilerplate for navigating the SDK package structure.
  */
-function getFirstClient(sdkContext: {
-  sdkPackage: { clients: Array<any> };
-}) {
+function getFirstClient(sdkContext: { sdkPackage: { clients: Array<any> } }) {
   return sdkContext.sdkPackage.clients[0];
 }
 

@@ -14,7 +14,10 @@ import type {
 import { UsageFlags } from "@azure-tools/typespec-client-generator-core";
 import { useSdkContext } from "../context/sdk-context.js";
 import { useEmitterOptions } from "../context/emitter-options-context.js";
-import { baseSerializerRefkey, baseDeserializerRefkey } from "../utils/refkeys.js";
+import {
+  baseSerializerRefkey,
+  baseDeserializerRefkey,
+} from "../utils/refkeys.js";
 import { EnumDeclaration } from "./enum-declaration.js";
 import { ModelInterface } from "./model-interface.js";
 import { getDirectSubtypes, PolymorphicType } from "./polymorphic-type.js";
@@ -33,7 +36,10 @@ import { UnionDeclaration } from "./union-declaration.js";
 import { JsonUnionDeserializer } from "./serialization/json-union-deserializer.js";
 import { JsonUnionSerializer } from "./serialization/json-union-serializer.js";
 import { JsonEnumSerializer } from "./serialization/json-enum-serializer.js";
-import { extractSubEnums, SubEnumDeclarations } from "./sub-enum-declaration.js";
+import {
+  extractSubEnums,
+  SubEnumDeclarations,
+} from "./sub-enum-declaration.js";
 import { hasXmlSerialization } from "../utils/xml-detection.js";
 import {
   JsonArraySerializer,
@@ -113,8 +119,10 @@ export function ModelFiles() {
   // We must render an `EnumDeclaration` for these inner enums so their refkeys resolve
   // when `getTypeExpression()` renders `SomeEnum | null`.
   const nullableEnums = unions
-    .filter((u): u is SdkNullableType =>
-      u.kind === "nullable" && u.type.kind === "enum")
+    .filter(
+      (u): u is SdkNullableType =>
+        u.kind === "nullable" && u.type.kind === "enum",
+    )
     .map((u) => u.type as SdkEnumType);
 
   // Extract sub-enums from union-as-enum types. When TCGC flattens union-of-enum
@@ -133,8 +141,7 @@ export function ModelFiles() {
 
   // Separate discriminated (polymorphic) models from regular models
   const isDiscriminated = (m: SdkModelType) =>
-    m.discriminatorProperty !== undefined &&
-    getDirectSubtypes(m).length > 0;
+    m.discriminatorProperty !== undefined && getDirectSubtypes(m).length > 0;
 
   // Check if a model is used in multipart/form-data context
   const isMultipartFormData = (m: SdkModelType) =>
@@ -147,9 +154,7 @@ export function ModelFiles() {
   const isXml = (m: SdkModelType) => hasXmlSerialization(m);
 
   // Filter models by usage flags for serialization/deserialization
-  const inputModels = models.filter(
-    (m) => (m.usage & UsageFlags.Input) !== 0,
-  );
+  const inputModels = models.filter((m) => (m.usage & UsageFlags.Input) !== 0);
   const outputModels = models.filter(
     (m) =>
       (m.usage & UsageFlags.Output) !== 0 ||
@@ -176,11 +181,9 @@ export function ModelFiles() {
   // always references JSON deserializer refkeys because the HTTP runtime parses both
   // JSON and XML response bodies into plain objects before they reach the deserializer.
   // Without JSON deserializers for XML models, their refkeys would be unresolved.
-  const regularOutputModels = outputModels.filter(
-    (m) => !isDiscriminated(m),
-  );
-  const polymorphicOutputModels = outputModels.filter(
-    (m) => isDiscriminated(m),
+  const regularOutputModels = outputModels.filter((m) => !isDiscriminated(m));
+  const polymorphicOutputModels = outputModels.filter((m) =>
+    isDiscriminated(m),
   );
 
   // Filter unions that appear in Input context — they need serializers.
@@ -230,10 +233,19 @@ export function ModelFiles() {
   const allPropertyTypes = collectAllPropertyAndOperationTypes(models, clients);
 
   // Collect unique array/dict types needing serialization helpers
-  const inputArrayTypes = collectArrayTypes(allPropertyTypes.inputTypes, "input");
-  const outputArrayTypes = collectArrayTypes(allPropertyTypes.outputTypes, "output");
+  const inputArrayTypes = collectArrayTypes(
+    allPropertyTypes.inputTypes,
+    "input",
+  );
+  const outputArrayTypes = collectArrayTypes(
+    allPropertyTypes.outputTypes,
+    "output",
+  );
   const inputDictTypes = collectDictTypes(allPropertyTypes.inputTypes, "input");
-  const outputDictTypes = collectDictTypes(allPropertyTypes.outputTypes, "output");
+  const outputDictTypes = collectDictTypes(
+    allPropertyTypes.outputTypes,
+    "output",
+  );
 
   const hasArrayRecordSerializers =
     inputArrayTypes.length > 0 || inputDictTypes.length > 0;
@@ -241,7 +253,12 @@ export function ModelFiles() {
     outputArrayTypes.length > 0 || outputDictTypes.length > 0;
 
   // Skip rendering entirely if there are no type declarations to emit
-  if (models.length === 0 && enums.length === 0 && namedUnions.length === 0 && nullableEnums.length === 0) {
+  if (
+    models.length === 0 &&
+    enums.length === 0 &&
+    namedUnions.length === 0 &&
+    nullableEnums.length === 0
+  ) {
     return undefined;
   }
 
@@ -249,18 +266,32 @@ export function ModelFiles() {
     <SourceDirectory path="models">
       <SourceFile path="models.ts" header={MODEL_FILE_ESLINT_DIRECTIVES}>
         <ModelDeclarations models={models} />
-        {models.length > 0 && (enums.length > 0 || nullableEnums.length > 0) ? "\n\n" : undefined}
+        {models.length > 0 && (enums.length > 0 || nullableEnums.length > 0)
+          ? "\n\n"
+          : undefined}
         <EnumDeclarations enums={enums} />
         {enums.length > 0 && nullableEnums.length > 0 ? "\n\n" : undefined}
         <EnumDeclarations enums={nullableEnums} />
-        {(enums.length > 0 || nullableEnums.length > 0) && allSubEnums.length > 0 ? "\n\n" : undefined}
+        {(enums.length > 0 || nullableEnums.length > 0) &&
+        allSubEnums.length > 0
+          ? "\n\n"
+          : undefined}
         <AllSubEnumDeclarations groups={allSubEnums} />
-        {(models.length > 0 || enums.length > 0 || allSubEnums.length > 0) && namedUnions.length > 0
+        {(models.length > 0 || enums.length > 0 || allSubEnums.length > 0) &&
+        namedUnions.length > 0
           ? "\n\n"
           : undefined}
         <UnionDeclarations unions={namedUnions} />
-        {(models.length > 0 || enums.length > 0 || allSubEnums.length > 0 || namedUnions.length > 0) &&
-        (hasSerializers || hasUnionSerializers || hasEnumSerializers || hasDeserializers || hasXmlSerializers || hasXmlDeserializers)
+        {(models.length > 0 ||
+          enums.length > 0 ||
+          allSubEnums.length > 0 ||
+          namedUnions.length > 0) &&
+        (hasSerializers ||
+          hasUnionSerializers ||
+          hasEnumSerializers ||
+          hasDeserializers ||
+          hasXmlSerializers ||
+          hasXmlDeserializers)
           ? "\n\n"
           : undefined}
         <SerializerDeclarations models={regularInputModels} />
@@ -275,30 +306,76 @@ export function ModelFiles() {
         <MultipartSerializerDeclarations models={multipartInputModels} />
         {hasSerializers && hasUnionSerializers ? "\n\n" : undefined}
         <UnionSerializerDeclarations unions={inputUnions} />
-        {(hasSerializers || hasUnionSerializers) && hasEnumSerializers ? "\n\n" : undefined}
+        {(hasSerializers || hasUnionSerializers) && hasEnumSerializers
+          ? "\n\n"
+          : undefined}
         <EnumSerializerDeclarations enums={inputEnumSerializers} />
-        {(hasSerializers || hasUnionSerializers || hasEnumSerializers) && hasArrayRecordSerializers ? "\n\n" : undefined}
-        <ArrayRecordSerializerDeclarations arrayTypes={inputArrayTypes} dictTypes={inputDictTypes} />
-        {(hasSerializers || hasUnionSerializers || hasEnumSerializers || hasArrayRecordSerializers) && hasDeserializers ? "\n\n" : undefined}
+        {(hasSerializers || hasUnionSerializers || hasEnumSerializers) &&
+        hasArrayRecordSerializers
+          ? "\n\n"
+          : undefined}
+        <ArrayRecordSerializerDeclarations
+          arrayTypes={inputArrayTypes}
+          dictTypes={inputDictTypes}
+        />
+        {(hasSerializers ||
+          hasUnionSerializers ||
+          hasEnumSerializers ||
+          hasArrayRecordSerializers) &&
+        hasDeserializers
+          ? "\n\n"
+          : undefined}
         <DeserializerDeclarations models={regularOutputModels} />
         {regularOutputModels.length > 0 && polymorphicOutputModels.length > 0
           ? "\n\n"
           : undefined}
         <PolymorphicDeserializerDeclarations models={polymorphicOutputModels} />
-        {(hasDeserializers || hasSerializers || hasUnionSerializers || hasEnumSerializers) && hasUnionDeserializers
+        {(hasDeserializers ||
+          hasSerializers ||
+          hasUnionSerializers ||
+          hasEnumSerializers) &&
+        hasUnionDeserializers
           ? "\n\n"
           : undefined}
         <UnionDeserializerDeclarations unions={outputUnions} />
-        {(hasDeserializers || hasSerializers || hasUnionSerializers || hasEnumSerializers || hasUnionDeserializers) && hasArrayRecordDeserializers ? "\n\n" : undefined}
-        <ArrayRecordDeserializerDeclarations arrayTypes={outputArrayTypes} dictTypes={outputDictTypes} />
-        {(hasSerializers || hasUnionSerializers || hasEnumSerializers || hasDeserializers || hasUnionDeserializers || hasArrayRecordSerializers || hasArrayRecordDeserializers) && hasXmlSerializers
+        {(hasDeserializers ||
+          hasSerializers ||
+          hasUnionSerializers ||
+          hasEnumSerializers ||
+          hasUnionDeserializers) &&
+        hasArrayRecordDeserializers
+          ? "\n\n"
+          : undefined}
+        <ArrayRecordDeserializerDeclarations
+          arrayTypes={outputArrayTypes}
+          dictTypes={outputDictTypes}
+        />
+        {(hasSerializers ||
+          hasUnionSerializers ||
+          hasEnumSerializers ||
+          hasDeserializers ||
+          hasUnionDeserializers ||
+          hasArrayRecordSerializers ||
+          hasArrayRecordDeserializers) &&
+        hasXmlSerializers
           ? "\n\n"
           : undefined}
         <XmlSerializerDeclarations models={xmlInputModels} />
         {hasXmlSerializers && hasXmlDeserializers ? "\n\n" : undefined}
         <XmlDeserializerDeclarations models={xmlOutputModels} />
-        {(hasSerializers || hasUnionSerializers || hasEnumSerializers || hasDeserializers || hasUnionDeserializers || hasArrayRecordSerializers || hasArrayRecordDeserializers || hasXmlSerializers || hasXmlDeserializers) ? (
-          <FlattenHelperDeclarations inputModels={[...regularInputModels, ...multipartInputModels]} outputModels={regularOutputModels} />
+        {hasSerializers ||
+        hasUnionSerializers ||
+        hasEnumSerializers ||
+        hasDeserializers ||
+        hasUnionDeserializers ||
+        hasArrayRecordSerializers ||
+        hasArrayRecordDeserializers ||
+        hasXmlSerializers ||
+        hasXmlDeserializers ? (
+          <FlattenHelperDeclarations
+            inputModels={[...regularInputModels, ...multipartInputModels]}
+            outputModels={regularOutputModels}
+          />
         ) : undefined}
       </SourceFile>
     </SourceDirectory>
@@ -428,7 +505,10 @@ function UnionDeclarations(props: UnionDeclarationsProps) {
  */
 interface AllSubEnumDeclarationsProps {
   /** Groups of sub-enums, each with a parent enum and its extracted sub-enums. */
-  groups: { parentEnum: import("@azure-tools/typespec-client-generator-core").SdkEnumType; subEnums: import("./sub-enum-declaration.js").SubEnumInfo[] }[];
+  groups: {
+    parentEnum: import("@azure-tools/typespec-client-generator-core").SdkEnumType;
+    subEnums: import("./sub-enum-declaration.js").SubEnumInfo[];
+  }[];
 }
 
 /**
@@ -448,7 +528,10 @@ function AllSubEnumDeclarations(props: AllSubEnumDeclarationsProps) {
   return (
     <For each={props.groups} doubleHardline>
       {(group) => (
-        <SubEnumDeclarations parentEnum={group.parentEnum} subEnums={group.subEnums} />
+        <SubEnumDeclarations
+          parentEnum={group.parentEnum}
+          subEnums={group.subEnums}
+        />
       )}
     </For>
   );
@@ -719,7 +802,9 @@ interface UnionDeserializerDeclarationsProps {
  * @param props - Component props containing the list of output/exception union types.
  * @returns Alloy JSX tree with union deserializer declarations, or undefined if empty.
  */
-function UnionDeserializerDeclarations(props: UnionDeserializerDeclarationsProps) {
+function UnionDeserializerDeclarations(
+  props: UnionDeserializerDeclarationsProps,
+) {
   if (props.unions.length === 0) return undefined;
 
   return (
@@ -849,7 +934,10 @@ interface FlattenHelperDeclarationsProps {
  * @returns An array of { model, flattenProp } pairs.
  */
 function collectFlattenPairs(models: SdkModelType[]) {
-  const pairs: { model: SdkModelType; flattenProp: import("@azure-tools/typespec-client-generator-core").SdkModelPropertyType }[] = [];
+  const pairs: {
+    model: SdkModelType;
+    flattenProp: import("@azure-tools/typespec-client-generator-core").SdkModelPropertyType;
+  }[] = [];
   for (const model of models) {
     for (const prop of model.properties) {
       if (prop.flatten && prop.type.kind === "model") {
@@ -893,7 +981,12 @@ function FlattenHelperDeclarations(props: FlattenHelperDeclarationsProps) {
         const needsSer = props.inputModels.includes(model);
         const needsDeser = props.outputModels.includes(model);
         if (needsSer || needsDeser) {
-          combinedPairs.push({ model, flattenProp: prop, needsSer, needsDeser });
+          combinedPairs.push({
+            model,
+            flattenProp: prop,
+            needsSer,
+            needsDeser,
+          });
         }
       }
     }
@@ -908,11 +1001,17 @@ function FlattenHelperDeclarations(props: FlattenHelperDeclarationsProps) {
         {({ model, flattenProp, needsSer, needsDeser }) => (
           <>
             {needsSer ? (
-              <FlattenSerializerHelper parentModel={model} flattenProp={flattenProp} />
+              <FlattenSerializerHelper
+                parentModel={model}
+                flattenProp={flattenProp}
+              />
             ) : undefined}
             {needsSer && needsDeser ? "\n\n" : undefined}
             {needsDeser ? (
-              <FlattenDeserializerHelper parentModel={model} flattenProp={flattenProp} />
+              <FlattenDeserializerHelper
+                parentModel={model}
+                flattenProp={flattenProp}
+              />
             ) : undefined}
           </>
         )}
@@ -941,7 +1040,9 @@ interface ArrayRecordSerializerDeclarationsProps {
  * @param props - Component props with array and dict types.
  * @returns Alloy JSX tree with array/record serializer declarations, or undefined if empty.
  */
-function ArrayRecordSerializerDeclarations(props: ArrayRecordSerializerDeclarationsProps) {
+function ArrayRecordSerializerDeclarations(
+  props: ArrayRecordSerializerDeclarationsProps,
+) {
   const all = [
     ...props.arrayTypes.map((t) => ({ kind: "array" as const, type: t })),
     ...props.dictTypes.map((t) => ({ kind: "dict" as const, type: t })),
@@ -977,7 +1078,9 @@ interface ArrayRecordDeserializerDeclarationsProps {
  * @param props - Component props with array and dict types.
  * @returns Alloy JSX tree with array/record deserializer declarations, or undefined if empty.
  */
-function ArrayRecordDeserializerDeclarations(props: ArrayRecordDeserializerDeclarationsProps) {
+function ArrayRecordDeserializerDeclarations(
+  props: ArrayRecordDeserializerDeclarationsProps,
+) {
   const all = [
     ...props.arrayTypes.map((t) => ({ kind: "array" as const, type: t })),
     ...props.dictTypes.map((t) => ({ kind: "dict" as const, type: t })),

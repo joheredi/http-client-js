@@ -93,8 +93,8 @@ export function createSdkContextForTest(program: Program) {
   // A no-op perf reporter for testing — EmitContext requires this property
   const perf = {
     startTimer: (label: string) => ({ end: () => 0 }),
-    time: <T,>(label: string, cb: () => T) => cb(),
-    timeAsync: <T,>(label: string, cb: () => Promise<T>) => cb(),
+    time: <T>(label: string, cb: () => T) => cb(),
+    timeAsync: <T>(label: string, cb: () => Promise<T>) => cb(),
     report: () => {},
   };
 

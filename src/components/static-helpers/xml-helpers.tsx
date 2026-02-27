@@ -104,7 +104,10 @@ function XmlPropertyMetadataInterface() {
     >
       <InterfaceMember name="propertyName" type="string" />
       {code`;\n`}
-      <InterfaceMember name="xmlOptions" type={serializationHelperRefkey("XmlSerializationOptions")} />
+      <InterfaceMember
+        name="xmlOptions"
+        type={serializationHelperRefkey("XmlSerializationOptions")}
+      />
       {code`;\n`}
       <InterfaceMember name="serializer" type="(value: any) => any" optional />
       {code`;\n`}
@@ -151,9 +154,16 @@ function XmlPropertyDeserializeMetadataInterface() {
     >
       <InterfaceMember name="propertyName" type="string" />
       {code`;\n`}
-      <InterfaceMember name="xmlOptions" type={serializationHelperRefkey("XmlSerializationOptions")} />
+      <InterfaceMember
+        name="xmlOptions"
+        type={serializationHelperRefkey("XmlSerializationOptions")}
+      />
       {code`;\n`}
-      <InterfaceMember name="deserializer" type="(value: any) => any" optional />
+      <InterfaceMember
+        name="deserializer"
+        type="(value: any) => any"
+        optional
+      />
       {code`;\n`}
       <InterfaceMember
         name="type"

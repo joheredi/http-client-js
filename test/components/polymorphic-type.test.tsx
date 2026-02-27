@@ -24,7 +24,10 @@ import { code } from "@alloy-js/core";
 import type { SdkModelType } from "@azure-tools/typespec-client-generator-core";
 import { t } from "@typespec/compiler/testing";
 import { describe, expect, it } from "vitest";
-import { PolymorphicType, getDirectSubtypes } from "../../src/components/polymorphic-type.js";
+import {
+  PolymorphicType,
+  getDirectSubtypes,
+} from "../../src/components/polymorphic-type.js";
 import { ModelInterface } from "../../src/components/model-interface.js";
 import { polymorphicTypeRefkey } from "../../src/utils/refkeys.js";
 import { TesterWithService, createSdkContextForTest } from "../test-host.js";
@@ -66,9 +69,15 @@ describe("Polymorphic Type", () => {
     );
 
     const sdkContext = await createSdkContextForTest(program);
-    const petModel = sdkContext.sdkPackage.models.find((m) => m.name === "Pet")!;
-    const catModel = sdkContext.sdkPackage.models.find((m) => m.name === "Cat")!;
-    const dogModel = sdkContext.sdkPackage.models.find((m) => m.name === "Dog")!;
+    const petModel = sdkContext.sdkPackage.models.find(
+      (m) => m.name === "Pet",
+    )!;
+    const catModel = sdkContext.sdkPackage.models.find(
+      (m) => m.name === "Cat",
+    )!;
+    const dogModel = sdkContext.sdkPackage.models.find(
+      (m) => m.name === "Dog",
+    )!;
 
     const template = (
       <SdkTestFile sdkContext={sdkContext}>
@@ -155,7 +164,9 @@ describe("Polymorphic Type", () => {
     );
 
     const sdkContext = await createSdkContextForTest(program);
-    const animalModel = sdkContext.sdkPackage.models.find((m) => m.name === "Animal")!;
+    const animalModel = sdkContext.sdkPackage.models.find(
+      (m) => m.name === "Animal",
+    )!;
 
     // Verify only direct subtypes are returned
     const directSubtypes = getDirectSubtypes(animalModel);
@@ -191,8 +202,12 @@ describe("Polymorphic Type", () => {
     );
 
     const sdkContext = await createSdkContextForTest(program);
-    const vehicleModel = sdkContext.sdkPackage.models.find((m) => m.name === "Vehicle")!;
-    const carModel = sdkContext.sdkPackage.models.find((m) => m.name === "Car")!;
+    const vehicleModel = sdkContext.sdkPackage.models.find(
+      (m) => m.name === "Vehicle",
+    )!;
+    const carModel = sdkContext.sdkPackage.models.find(
+      (m) => m.name === "Car",
+    )!;
 
     const template = (
       <SdkTestFile sdkContext={sdkContext}>
@@ -288,9 +303,15 @@ describe("Polymorphic Type", () => {
     );
 
     const sdkContext = await createSdkContextForTest(program);
-    const shapeModel = sdkContext.sdkPackage.models.find((m) => m.name === "Shape")!;
-    const circleModel = sdkContext.sdkPackage.models.find((m) => m.name === "Circle")!;
-    const squareModel = sdkContext.sdkPackage.models.find((m) => m.name === "Square")!;
+    const shapeModel = sdkContext.sdkPackage.models.find(
+      (m) => m.name === "Shape",
+    )!;
+    const circleModel = sdkContext.sdkPackage.models.find(
+      (m) => m.name === "Circle",
+    )!;
+    const squareModel = sdkContext.sdkPackage.models.find(
+      (m) => m.name === "Square",
+    )!;
 
     const template = (
       <SdkTestFile sdkContext={sdkContext}>
@@ -364,8 +385,12 @@ describe("Polymorphic Type", () => {
     );
 
     const sdkContext = await createSdkContextForTest(program);
-    const baseModel = sdkContext.sdkPackage.models.find((m) => m.name === "Base")!;
-    const childModel = sdkContext.sdkPackage.models.find((m) => m.name === "OnlyChild")!;
+    const baseModel = sdkContext.sdkPackage.models.find(
+      (m) => m.name === "Base",
+    )!;
+    const childModel = sdkContext.sdkPackage.models.find(
+      (m) => m.name === "OnlyChild",
+    )!;
 
     const template = (
       <SdkTestFile sdkContext={sdkContext}>

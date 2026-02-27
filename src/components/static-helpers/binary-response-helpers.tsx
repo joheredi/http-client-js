@@ -1,8 +1,5 @@
 import { code } from "@alloy-js/core";
-import {
-  FunctionDeclaration,
-  SourceFile,
-} from "@alloy-js/typescript";
+import { FunctionDeclaration, SourceFile } from "@alloy-js/typescript";
 import { binaryResponseHelperRefkey } from "../../utils/refkeys.js";
 import { useRuntimeLib } from "../../context/flavor-context.js";
 

@@ -7,7 +7,10 @@ The emitter used **ts-morph** — a TypeScript AST manipulation library. Code ge
 ```typescript
 // Old: Build AST nodes imperatively
 const sourceFile = project.createSourceFile("models.ts");
-const interfaceDecl = sourceFile.addInterface({ name: "Foo", isExported: true });
+const interfaceDecl = sourceFile.addInterface({
+  name: "Foo",
+  isExported: true,
+});
 interfaceDecl.addProperty({ name: "bar", type: "string" });
 
 // Old: Two-phase placeholder resolution
@@ -29,10 +32,10 @@ binder.resolveAllReferences();
   <ts.InterfaceDeclaration name="Foo" refkey={typeRefkey(fooType)} export>
     <ts.InterfaceMember name="bar" type="string" />
   </ts.InterfaceDeclaration>
-</ts.SourceFile>
+</ts.SourceFile>;
 
 // New: Refkeys resolve automatically — imports computed by framework
-code`return ${serializerRefkey(type)}(input);`
+code`return ${serializerRefkey(type)}(input);`;
 // Alloy finds the declaration, computes the path, generates the import
 ```
 
@@ -80,6 +83,7 @@ $onEmit (compiler hook)
 ### Key Alloy Elements
 
 From `@alloy-js/typescript`:
+
 - `<ts.SourceFile path="models.ts">` — defines an output file
 - `<ts.FunctionDeclaration>` — a function with name, params, return type
 - `<ts.InterfaceDeclaration>` — a TypeScript interface
@@ -88,6 +92,7 @@ From `@alloy-js/typescript`:
 - `<ts.ClassDeclaration>` — a TypeScript class
 
 From `@alloy-js/core`:
+
 - `<For each={items}>` — iteration (replaces `.map()`)
 - `<Show when={condition}>` — conditional rendering
 - `` code`...` `` — tagged template for inline code with embedded refkeys
@@ -100,7 +105,7 @@ From `@alloy-js/core`:
 import { code } from "@alloy-js/core";
 
 // Refkeys interpolated directly — Alloy resolves them
-code`return ${serializerRefkey}(${paramRefkey});`
+code`return ${serializerRefkey}(${paramRefkey});`;
 // Produces: return fooSerializer(item);
 // AND: import { fooSerializer } from "./models/models.js";
 ```
@@ -108,7 +113,6 @@ code`return ${serializerRefkey}(${paramRefkey});`
 **Critical property:** `code` templates treat interpolated refkeys as live symbolic references, not string concatenation. Alloy tracks them and resolves imports.
 
 ---
-
 
 ## 5. The Refkey System — Deep Dive
 
@@ -120,10 +124,10 @@ This is the **single most important concept** in Alloy. Refkeys replace ALL manu
 import { refkey, Refkey } from "@alloy-js/core";
 
 // Entity-bound refkey — same entity always returns same refkey
-const key3 = refkey(sdkType);                    // stable per sdkType instance
-const key4 = refkey(sdkType, "serializer");      // different discriminator = different key
-const key5 = refkey(sdkType, "deserializer");    // yet another distinct key
-const key6 = refkey(sdkType, "serializer");      // SAME as key4 (same entity + discriminator)
+const key3 = refkey(sdkType); // stable per sdkType instance
+const key4 = refkey(sdkType, "serializer"); // different discriminator = different key
+const key5 = refkey(sdkType, "deserializer"); // yet another distinct key
+const key6 = refkey(sdkType, "serializer"); // SAME as key4 (same entity + discriminator)
 ```
 
 ### The `refkey(entity, discriminator)` Pattern
@@ -189,6 +193,7 @@ When a `<ts.FunctionDeclaration>` receives a `refkey` prop, it registers that re
 ```
 
 Resolution chain:
+
 1. `serializerRefkey(bodyType)` appears as interpolated value in `code` template
 2. Alloy looks up which declaration owns that refkey → finds it in `models.ts`
 3. Current file is `operations.ts` → different file → needs import
@@ -220,11 +225,11 @@ code`const client: ${httpRuntimeLib.Client} = ${httpRuntimeLib.getClient}(endpoi
 
 ```typescript
 // OLD framework (NEVER use in Alloy components):
-import { refkey } from "../../framework/refkey.js";  // returns string
-const key = refkey("MyModel", "serializer");  // "refkey_MyModel_serializer"
+import { refkey } from "../../framework/refkey.js"; // returns string
+const key = refkey("MyModel", "serializer"); // "refkey_MyModel_serializer"
 
 // Alloy (ALWAYS use in components):
-import { refkey } from "@alloy-js/core";  // returns Refkey object
+import { refkey } from "@alloy-js/core"; // returns Refkey object
 const key = refkey(sdkType, "serializer");
 ```
 
@@ -240,7 +245,8 @@ These patterns cause real bugs, gate rejections, and multi-round remediation cyc
 
 ```tsx
 // ❌ DO NOT DO THIS — from Operations.tsx before remediation
-const staticHelperNamePattern = /\b(serializeRecord|buildMultiCollection|...)\b/g;
+const staticHelperNamePattern =
+  /\b(serializeRecord|buildMultiCollection|...)\b/g;
 
 function resolveStaticHelperRefs(text: string): Children {
   const parts: Children[] = [];
@@ -255,7 +261,7 @@ function resolveStaticHelperRefs(text: string): Children {
 
 ```tsx
 // ✅ CORRECT — refkey used directly where the helper is needed
-code`return ${serializationHelperRefkey("serializeRecord")}(obj, serializer);`
+code`return ${serializationHelperRefkey("serializeRecord")}(obj, serializer);`;
 ```
 
 ### Anti-Pattern 2: Manual Import-String Calculation/Assembly
@@ -270,7 +276,11 @@ const lroImports = `import { getSimplePoller } from "./static-helpers/simplePoll
 
 ```tsx
 // ✅ CORRECT — use refkeys, let Alloy resolve imports
-<ts.ClassDeclaration name={clientName} export refkey={classicalClientRefkey(client)}>
+<ts.ClassDeclaration
+  name={clientName}
+  export
+  refkey={classicalClientRefkey(client)}
+>
   {code`this._client = ${createClientRefkey(client)}(endpoint, options);`}
 </ts.ClassDeclaration>
 ```
@@ -287,7 +297,7 @@ imports.push(`import { ${rlcClientType} } from "${prefix}api/index.js";`);
 
 ```tsx
 // ✅ CORRECT — reference the refkey directly, Alloy computes the path
-code`${serializationHelperRefkey("serializeRecord")}(obj, serializer)`
+code`${serializationHelperRefkey("serializeRecord")}(obj, serializer)`;
 ```
 
 ### Anti-Pattern 4: Post-Render String Scanning (`resolveReference`)
@@ -305,7 +315,7 @@ function resolveLegacyExpressionReferences(expression: string): Children {
 
 ```tsx
 // ✅ CORRECT — build the expression with refs from the start
-code`${serializationHelperRefkey("buildCsvCollection")}(${items})`
+code`${serializationHelperRefkey("buildCsvCollection")}(${items})`;
 ```
 
 ### Anti-Pattern 5: Monolithic String Blocks
@@ -328,7 +338,11 @@ code`${serializationHelperRefkey("buildCsvCollection")}(${items})`
 ```tsx
 // ✅ CORRECT — compose with structural components
 <ts.SourceFile path="client.ts">
-  <ts.ClassDeclaration name={clientName} refkey={classicalClientRefkey(client)} export>
+  <ts.ClassDeclaration
+    name={clientName}
+    refkey={classicalClientRefkey(client)}
+    export
+  >
     <ts.FunctionDeclaration name="constructor" parameters={params}>
       {code`this._client = ${createClientRefkey(client)}(endpoint, options);`}
     </ts.FunctionDeclaration>
@@ -344,19 +358,21 @@ code`${serializationHelperRefkey("buildCsvCollection")}(${items})`
 **Why it's bad:** Impossible to attribute regressions, review burden multiplied, rollback granularity lost.
 
 **Correct:** Phase-gated isolated changes:
+
 - **Slice A:** Structural refkey/architecture-only migration (output should be byte-identical)
 - **Slice B:** Behavioral changes with dedicated verification
 
 ---
+
 ## 7. Idiomatic Alloy Patterns
 
 ### Pattern 1: Refkeys as Children in `code` Templates
 
 ```tsx
-code`const result = ${deserializerRefkey(responseType)}(response.body);`
+code`const result = ${deserializerRefkey(responseType)}(response.body);`;
 
 // Multiple refkeys in one template
-code`const client = ${httpRuntimeLib.getClient}(endpoint, ${clientOptionsRefkey});`
+code`const client = ${httpRuntimeLib.getClient}(endpoint, ${clientOptionsRefkey});`;
 ```
 
 ### Pattern 2: Typed Declaration Components
@@ -367,8 +383,8 @@ code`const client = ${httpRuntimeLib.getClient}(endpoint, ${clientOptionsRefkey}
   refkey={serializerRefkey(fooType)}
   export
   parameters={[
-    { name: "item", type: typeRefkey(fooType) },  // type is a refkey → auto-import
-    { name: "options", type: "SerializerOptions", optional: true }
+    { name: "item", type: typeRefkey(fooType) }, // type is a refkey → auto-import
+    { name: "options", type: "SerializerOptions", optional: true },
   ]}
   returnType="Record<string, unknown>"
 >
@@ -434,6 +450,7 @@ code`const client: ${httpRuntimeLib.Client} = ${httpRuntimeLib.getClient}(endpoi
 ```
 
 Note: Alloy uses `default` not `initializer` for default values:
+
 ```tsx
 // ❌ ts-morph shape: { name: "options", initializer: "{ requestOptions: {} }" }
 // ✅ Alloy shape:    { name: "options", default: "{ requestOptions: {} }" }
@@ -461,7 +478,8 @@ Note: Alloy uses `default` not `initializer` for default values:
 
 ```tsx
 // DEFINE
-export const SdkContextAlloy = createNamedContext<SdkContextValue>("SdkContext");
+export const SdkContextAlloy =
+  createNamedContext<SdkContextValue>("SdkContext");
 export function useSdkContext(): SdkContext {
   return useContext(SdkContextAlloy).sdkContext;
 }
@@ -470,7 +488,7 @@ export function useSdkContext(): SdkContext {
 <SdkContextAlloy.Provider value={contextValue}>
   <ModelFiles />
   <Operations />
-</SdkContextAlloy.Provider>
+</SdkContextAlloy.Provider>;
 
 // CONSUME (any depth — no prop threading)
 function SomeLeafComponent() {
@@ -500,9 +518,9 @@ function preservedName(name: string) {
 return (
   <>
     <VarDeclaration refkey={nameKey("result")}>
-       {code`await ${sendRef}(${parameterList});`}
+      {code`await ${sendRef}(${parameterList});`}
     </VarDeclaration>
-    <hbr /> 
+    <hbr />
     {code`return ${deserializeRef}(${nameKey("result")});`}
   </>
 );
@@ -546,16 +564,17 @@ Sorting order: `model (0)` → `serializer (1)` → `xml (2)`, so type declarati
 
 ### JSON vs XML Differences
 
-| Aspect | JSON | XML |
-|--------|------|-----|
-| Functions per type | 2 (serializer, deserializer) | 4 (serializer, objectSerializer, deserializer, objectDeserializer) |
-| Return type (serializer) | `any` | `string` or `XmlSerializedObject` |
-| Body generation | Inline property mapping via `code` templates | Metadata-driven: `serializeToXml()` / `deserializeFromXml()` static helpers |
-| Type coverage | model, union, enum, dict, array, flatten | model only |
+| Aspect                   | JSON                                         | XML                                                                         |
+| ------------------------ | -------------------------------------------- | --------------------------------------------------------------------------- |
+| Functions per type       | 2 (serializer, deserializer)                 | 4 (serializer, objectSerializer, deserializer, objectDeserializer)          |
+| Return type (serializer) | `any`                                        | `string` or `XmlSerializedObject`                                           |
+| Body generation          | Inline property mapping via `code` templates | Metadata-driven: `serializeToXml()` / `deserializeFromXml()` static helpers |
+| Type coverage            | model, union, enum, dict, array, flatten     | model only                                                                  |
 
 ### Serializer Migration Order Recommendation
 
 If starting fresh:
+
 1. **Static helper refkeys FIRST** — every serializer depends on these
 2. **XML serializers BEFORE JSON** — simpler (model-only, metadata-driven, no unions/arrays/flatten), serves as authoritative pattern
 3. **JSON serializers** — follow XML patterns + add dict/array/union/flatten/multipart
@@ -617,7 +636,9 @@ const deserializerName = `${exceptionModelName}Deserializer`;
 return code`error.details = ${deserializerName}(result.body);`;
 
 // ✅ CORRECT — find exception type for refkey
-const defaultException = operation.operation.exceptions.find(ex => ex.statusCodes === "*");
+const defaultException = operation.operation.exceptions.find(
+  (ex) => ex.statusCodes === "*",
+);
 return code`error.details = ${deserializerRefkey(defaultException.type)}(result.body);`;
 ```
 
@@ -625,31 +646,30 @@ return code`error.details = ${deserializerRefkey(defaultException.type)}(result.
 
 If you add a new static helper that other components reference, you MUST add a refkey declaration in `StaticHelpers.tsx`. Otherwise, consumers fall back to explicit import management.
 
-
 ## 12. Key File Paths
 
 ### Production Code
 
-| File | Role |
-|------|------|
-| `@submodules/autorest.typescript/packages/typespec-ts/src/index.ts` | Production entry point — all pipeline wiring |
-| `@submodules/autorest.typescript/packages/typespec-ts/src/alloy-emitter.tsx` | Alloy component tree root |
-| `@submodules/autorest.typescript/packages/typespec-ts/src/modular/components/` | 22 Alloy JSX components |
-| `@submodules/autorest.typescript/packages/typespec-ts/src/modular/components/StaticHelpers.tsx` | Refkey accessors for static helpers |
-| `@submodules/autorest.typescript/packages/typespec-ts/src/modular/components/ExternalPackages.tsx` | npm package definitions |
-| `@submodules/autorest.typescript/packages/typespec-ts/src/modular/helpers/operationHelpers.ts` | Shared utilities (~2700 lines) |
-| `@submodules/autorest.typescript/packages/typespec-ts/src/modular/model-utils.ts` | Pure utilities extracted from emitModels.ts |
-| `@submodules/autorest.typescript/packages/typespec-ts/src/modular/emitModels.ts` | OLD ts-morph generation (being deprecated) |
-| `@submodules/autorest.typescript/packages/typespec-ts/src/framework/hooks/binder.ts` | OLD resolveReference system |
-| `@submodules/autorest.typescript/packages/typespec-ts/src/framework/load-static-helpers-alloy.ts` | New string-based static helper loader |
-| `@submodules/autorest.typescript/packages/typespec-ts/static/static-helpers/` | 21 runtime helper source files |
+| File                                                                                               | Role                                         |
+| -------------------------------------------------------------------------------------------------- | -------------------------------------------- |
+| `@submodules/autorest.typescript/packages/typespec-ts/src/index.ts`                                | Production entry point — all pipeline wiring |
+| `@submodules/autorest.typescript/packages/typespec-ts/src/alloy-emitter.tsx`                       | Alloy component tree root                    |
+| `@submodules/autorest.typescript/packages/typespec-ts/src/modular/components/`                     | 22 Alloy JSX components                      |
+| `@submodules/autorest.typescript/packages/typespec-ts/src/modular/components/StaticHelpers.tsx`    | Refkey accessors for static helpers          |
+| `@submodules/autorest.typescript/packages/typespec-ts/src/modular/components/ExternalPackages.tsx` | npm package definitions                      |
+| `@submodules/autorest.typescript/packages/typespec-ts/src/modular/helpers/operationHelpers.ts`     | Shared utilities (~2700 lines)               |
+| `@submodules/autorest.typescript/packages/typespec-ts/src/modular/model-utils.ts`                  | Pure utilities extracted from emitModels.ts  |
+| `@submodules/autorest.typescript/packages/typespec-ts/src/modular/emitModels.ts`                   | OLD ts-morph generation (being deprecated)   |
+| `@submodules/autorest.typescript/packages/typespec-ts/src/framework/hooks/binder.ts`               | OLD resolveReference system                  |
+| `@submodules/autorest.typescript/packages/typespec-ts/src/framework/load-static-helpers-alloy.ts`  | New string-based static helper loader        |
+| `@submodules/autorest.typescript/packages/typespec-ts/static/static-helpers/`                      | 21 runtime helper source files               |
 
 ### Reference Implementation
 
-| File | Role |
-|------|------|
-| `@submodules/alloy/` | Alloy framework source (submodule) |
-| `@submodules/alloy/packages/core` | Alloy framework Core source |
-| `@submodules/alloy/packages/typescript` | Alloy framework TypeScript language package |
-| `@submodules/flight-instructor/src/typescript/` | Reference Alloy emitter with idiomatic patterns |
-| `@submodules/typespec-azure/packages/typespec-client-generator-core` | TCGC source |
+| File                                                                 | Role                                            |
+| -------------------------------------------------------------------- | ----------------------------------------------- |
+| `@submodules/alloy/`                                                 | Alloy framework source (submodule)              |
+| `@submodules/alloy/packages/core`                                    | Alloy framework Core source                     |
+| `@submodules/alloy/packages/typescript`                              | Alloy framework TypeScript language package     |
+| `@submodules/flight-instructor/src/typescript/`                      | Reference Alloy emitter with idiomatic patterns |
+| `@submodules/typespec-azure/packages/typespec-client-generator-core` | TCGC source                                     |

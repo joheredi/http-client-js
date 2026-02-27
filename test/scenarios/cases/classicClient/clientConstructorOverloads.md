@@ -363,14 +363,10 @@ export class MixedServiceClient {
     const userAgentPrefix = prefixFromOptions
       ? `${prefixFromOptions} azsdk-js-client`
       : `azsdk-js-client`;
-    this._client = createMixedService(
-      credential,
-      subscriptionId ?? "",
-      {
-        ...options,
-        userAgentOptions: { userAgentPrefix },
-      },
-    );
+    this._client = createMixedService(credential, subscriptionId ?? "", {
+      ...options,
+      userAgentOptions: { userAgentPrefix },
+    });
     this.pipeline = this._client.pipeline;
     this.operations = _getOperationsOperations(this._client);
     this.mixedResources = _getMixedResourcesOperations(this._client);

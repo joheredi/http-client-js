@@ -30,7 +30,11 @@ import { RestorePollerFile } from "./components/restore-poller.js";
 import { SampleFiles } from "./components/sample-files.js";
 import { LoggerFile } from "./components/logger-file.js";
 
-import type { SdkClientType, SdkContext, SdkHttpOperation } from "@azure-tools/typespec-client-generator-core";
+import type {
+  SdkClientType,
+  SdkContext,
+  SdkHttpOperation,
+} from "@azure-tools/typespec-client-generator-core";
 
 /**
  * All external packages needed for Azure-flavored SDK generation.
@@ -92,9 +96,9 @@ export function resolveEmitterFlavor(
  * @param sdkContext - Object with sdkPackage.clients array
  * @returns A lowercase package identifier string
  */
-function getPackageName(
-  sdkContext: { sdkPackage: { clients: Array<{ name?: string }> } },
-): string {
+function getPackageName(sdkContext: {
+  sdkPackage: { clients: Array<{ name?: string }> };
+}): string {
   const firstClient = sdkContext.sdkPackage.clients[0];
   return firstClient?.name?.replace(/Client$/, "").toLowerCase() ?? "unknown";
 }
@@ -225,7 +229,9 @@ export async function $onEmit(context: EmitContext) {
   // Apply typespec-title-map renames to client names before rendering.
   // This matches the legacy emitter's renameClientName() behavior where
   // client.name is mutated in-place before the rendering pipeline runs.
-  const titleMap = context.options?.["typespec-title-map"] as Record<string, string> | undefined;
+  const titleMap = context.options?.["typespec-title-map"] as
+    | Record<string, string>
+    | undefined;
   if (titleMap) {
     applyClientRenames(sdkContext.sdkPackage.clients, titleMap);
   }
@@ -236,10 +242,12 @@ export async function $onEmit(context: EmitContext) {
   const externals = flavor === "azure" ? azureExternals : coreExternals;
 
   const emitterOptions = {
-    includeHeadersInResponse: context.options?.["include-headers-in-response"] === true,
-    experimentalExtensibleEnums: context.options?.["experimental-extensible-enums"] === true,
+    includeHeadersInResponse:
+      context.options?.["include-headers-in-response"] === true,
+    experimentalExtensibleEnums:
+      context.options?.["experimental-extensible-enums"] === true,
     ignoreNullableOnOptional:
-      context.options?.["ignore-nullable-on-optional"] ?? (flavor === "azure"),
+      context.options?.["ignore-nullable-on-optional"] ?? flavor === "azure",
     typespecTitleMap: titleMap,
   };
 

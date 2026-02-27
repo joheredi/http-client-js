@@ -18,10 +18,7 @@ import { tsNameConflictResolver } from "@alloy-js/typescript";
  * @param name - The original name shared by all conflicting symbols.
  * @param symbols - The array of symbols that share this name in the same scope.
  */
-export function nameConflictResolver(
-  name: string,
-  symbols: unknown[],
-): void {
+export function nameConflictResolver(name: string, symbols: unknown[]): void {
   if (symbols.length <= 1) return;
   tsNameConflictResolver(name, symbols as any);
 }

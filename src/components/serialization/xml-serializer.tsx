@@ -213,9 +213,7 @@ function getDateEncoding(
  * @param type - The TCGC type to check.
  * @returns The bytes encoding string or undefined.
  */
-function getBytesEncoding(
-  type: SdkType,
-): "base64" | "base64url" | undefined {
+function getBytesEncoding(type: SdkType): "base64" | "base64url" | undefined {
   if (type.kind === "bytes") {
     return (type as any).encode === "base64url" ? "base64url" : "base64";
   }

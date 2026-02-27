@@ -11,7 +11,10 @@ import type {
   SdkServiceMethod,
 } from "@azure-tools/typespec-client-generator-core";
 import { useSdkContext } from "../context/sdk-context.js";
-import { type FlavorKind, useFlavorContext } from "../context/flavor-context.js";
+import {
+  type FlavorKind,
+  useFlavorContext,
+} from "../context/flavor-context.js";
 import { getClientName } from "./client-context.js";
 import { isRequiredSignatureParameter } from "./send-operation.js";
 import { getExampleValueCode } from "../utils/example-values.js";
@@ -44,9 +47,7 @@ export function SampleFiles() {
 
   return (
     <SourceDirectory path="samples-dev">
-      <For each={sampleInfos}>
-        {(info) => <SampleFile info={info} />}
-      </For>
+      <For each={sampleInfos}>{(info) => <SampleFile info={info} />}</For>
     </SourceDirectory>
   );
 }
@@ -118,7 +119,11 @@ function SampleFile(props: SampleFileProps) {
 
   // Build import line — uses package name placeholder since samples
   // import the SDK as an external package dependency
-  const importLines = buildSampleImports(topLevelClient, clientClassName, flavor);
+  const importLines = buildSampleImports(
+    topLevelClient,
+    clientClassName,
+    flavor,
+  );
 
   // Build main function
   const mainBody = functionNames.map((name) => `  await ${name}();`).join("\n");
@@ -279,12 +284,15 @@ function buildExampleFunction(
   const constructorArgs = clientParams
     .map((p) => p.name)
     .concat(credentialCode ? ["credential"] : []);
-  lines.push(`  const client = new ${topLevelClient.name}(${constructorArgs.join(", ")});`);
+  lines.push(
+    `  const client = new ${topLevelClient.name}(${constructorArgs.join(", ")});`,
+  );
 
   // 4. Build operation call
-  const methodCallChain = callChainPrefixes.length > 0
-    ? `client.${callChainPrefixes.join(".")}.${method.name}`
-    : `client.${method.name}`;
+  const methodCallChain =
+    callChainPrefixes.length > 0
+      ? `client.${callChainPrefixes.join(".")}.${method.name}`
+      : `client.${method.name}`;
 
   const clientParamNames = new Set(
     buildClientConstructorParams(topLevelClient).map((p) => p.name),
@@ -423,7 +431,8 @@ function buildClientConstructorParams(
         if (!arg.optional && arg.clientDefaultValue === undefined) {
           params.push({
             name: arg.name,
-            envVar: toUpperSnakeCase(clientName) + "_" + toUpperSnakeCase(arg.name),
+            envVar:
+              toUpperSnakeCase(clientName) + "_" + toUpperSnakeCase(arg.name),
           });
         }
       }
@@ -434,7 +443,10 @@ function buildClientConstructorParams(
             if (!arg.optional && arg.clientDefaultValue === undefined) {
               params.push({
                 name: arg.name,
-                envVar: toUpperSnakeCase(clientName) + "_" + toUpperSnakeCase(arg.name),
+                envVar:
+                  toUpperSnakeCase(clientName) +
+                  "_" +
+                  toUpperSnakeCase(arg.name),
               });
             }
           }
@@ -447,10 +459,15 @@ function buildClientConstructorParams(
   // Add non-credential, non-endpoint required params
   for (const param of initParams) {
     if (param.kind === "endpoint" || param.kind === "credential") continue;
-    if (param.kind === "method" && !param.optional && param.clientDefaultValue === undefined) {
+    if (
+      param.kind === "method" &&
+      !param.optional &&
+      param.clientDefaultValue === undefined
+    ) {
       params.push({
         name: param.name,
-        envVar: toUpperSnakeCase(clientName) + "_" + toUpperSnakeCase(param.name),
+        envVar:
+          toUpperSnakeCase(clientName) + "_" + toUpperSnakeCase(param.name),
       });
     }
   }
@@ -510,7 +527,10 @@ function getCredentialSetupCode(
  * @param flavor - The emitter flavor ("azure" or "core").
  * @returns A TypeScript expression string for the credential.
  */
-function getCredentialCodeForScheme(scheme: { type: string }, flavor: FlavorKind): string {
+function getCredentialCodeForScheme(
+  scheme: { type: string },
+  flavor: FlavorKind,
+): string {
   switch (scheme.type) {
     case "oauth2":
     case "openIdConnect":
@@ -545,7 +565,10 @@ function hasOAuth2Auth(client: SdkClientType<SdkHttpOperation>): boolean {
 
   const credType = credentialParam.type;
   if (credType.kind === "credential") {
-    return credType.scheme.type === "oauth2" || credType.scheme.type === "openIdConnect";
+    return (
+      credType.scheme.type === "oauth2" ||
+      credType.scheme.type === "openIdConnect"
+    );
   }
 
   if (credType.kind === "union") {
@@ -605,14 +628,19 @@ function buildOperationCallArgs(
   // Collect optional parameters into an options object
   const optionalEntries: string[] = [];
   for (const param of method.parameters) {
-    if (!isRequiredSignatureParameter(param, method) && param.name !== "options") {
+    if (
+      !isRequiredSignatureParameter(param, method) &&
+      param.name !== "options"
+    ) {
       // Skip apiVersion params — they are handled by the client/runtime, not in samples
       if (param.isApiVersionParam) continue;
       // Skip client-level params — they are set in the client constructor
       if (param.onClient) continue;
       const exampleValue = findExampleValue(param, exampleValueMap);
       if (exampleValue) {
-        optionalEntries.push(`${param.name}: ${getExampleValueCode(exampleValue)}`);
+        optionalEntries.push(
+          `${param.name}: ${getExampleValueCode(exampleValue)}`,
+        );
       }
     }
   }
@@ -624,7 +652,11 @@ function buildOperationCallArgs(
     if (httpParam.kind === "body") continue;
     // Skip apiVersion params
     if ((httpParam as any).isApiVersionParam) continue;
-    if (httpParam.serializedName === "api-version" || httpParam.name === "apiVersion") continue;
+    if (
+      httpParam.serializedName === "api-version" ||
+      httpParam.name === "apiVersion"
+    )
+      continue;
 
     const alreadyHandled = method.parameters.some(
       (p) =>
@@ -636,7 +668,9 @@ function buildOperationCallArgs(
       // Skip params that are handled at the client level (e.g., subscriptionId)
       const propName = httpParam.name;
       if (clientParamNames.has(propName)) continue;
-      optionalEntries.push(`${propName}: ${getExampleValueCode(exParam.value)}`);
+      optionalEntries.push(
+        `${propName}: ${getExampleValueCode(exParam.value)}`,
+      );
     }
   }
 
@@ -663,7 +697,10 @@ function buildExampleValueMap(
 
   for (const ep of exampleParams) {
     map.set(ep.parameter.name, ep);
-    if (ep.parameter.serializedName && ep.parameter.serializedName !== ep.parameter.name) {
+    if (
+      ep.parameter.serializedName &&
+      ep.parameter.serializedName !== ep.parameter.name
+    ) {
       map.set(ep.parameter.serializedName, ep);
     }
   }
@@ -689,7 +726,9 @@ function buildExampleValueMap(
 function findExampleValue(
   param: SdkMethodParameter,
   map: Map<string, SdkHttpParameterExampleValue>,
-): import("@azure-tools/typespec-client-generator-core").SdkExampleValue | undefined {
+):
+  | import("@azure-tools/typespec-client-generator-core").SdkExampleValue
+  | undefined {
   // Try client-side name first
   const byName = map.get(param.name);
   if (byName) return byName.value;
@@ -720,10 +759,15 @@ function findExampleValue(
     if (ep.parameter.kind === "body" && ep.value.kind === "model") {
       const bodyParam = ep.parameter as any;
       // Only use spread lookup when TCGC indicates spread (multiple corresponding method params)
-      if (bodyParam.correspondingMethodParams && bodyParam.correspondingMethodParams.length > 1) {
+      if (
+        bodyParam.correspondingMethodParams &&
+        bodyParam.correspondingMethodParams.length > 1
+      ) {
         const modelValue = ep.value as any;
         if (modelValue.value) {
-          for (const [propName, propValue] of Object.entries(modelValue.value)) {
+          for (const [propName, propValue] of Object.entries(
+            modelValue.value,
+          )) {
             if (propName === param.name || propName === serialized) {
               return propValue as import("@azure-tools/typespec-client-generator-core").SdkExampleValue;
             }

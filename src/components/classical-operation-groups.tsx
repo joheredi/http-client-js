@@ -19,7 +19,10 @@ import {
   publicOperationRefkey,
 } from "../utils/refkeys.js";
 import { getTypeExpression } from "./type-expression.js";
-import { getOptionsParamName, isRequiredSignatureParameter } from "./send-operation.js";
+import {
+  getOptionsParamName,
+  isRequiredSignatureParameter,
+} from "./send-operation.js";
 
 /**
  * Represents a child client (operation group) along with its accumulated
@@ -109,9 +112,7 @@ interface ClassicalOperationGroupFileProps {
  * @param props - Component props containing the operation group info.
  * @returns An Alloy JSX tree for the operation group source file.
  */
-function ClassicalOperationGroupFile(
-  props: ClassicalOperationGroupFileProps,
-) {
+function ClassicalOperationGroupFile(props: ClassicalOperationGroupFileProps) {
   const { group } = props;
   const filePath = `${group.prefixes.join("/")}/index.ts`;
 
@@ -151,9 +152,7 @@ export interface OperationGroupInterfaceProps {
  * @param props - Component props containing the operation group info.
  * @returns An Alloy JSX tree for the interface declaration.
  */
-export function OperationGroupInterface(
-  props: OperationGroupInterfaceProps,
-) {
+export function OperationGroupInterface(props: OperationGroupInterfaceProps) {
   const { group } = props;
   const interfaceName = buildInterfaceName(group.client);
   const methods = group.client.methods;
@@ -247,9 +246,7 @@ export interface OperationGroupFactoryProps {
  * @param props - Component props containing the operation group info.
  * @returns An Alloy JSX tree for the factory function declaration.
  */
-export function OperationGroupFactory(
-  props: OperationGroupFactoryProps,
-) {
+export function OperationGroupFactory(props: OperationGroupFactoryProps) {
   const { group } = props;
   const functionName = buildFactoryName(group.client);
   const methods = group.client.methods;
@@ -293,9 +290,7 @@ export function OperationGroupFactory(
  * @param client - The TCGC child client representing the operation group.
  * @returns The interface name string.
  */
-function buildInterfaceName(
-  client: SdkClientType<SdkHttpOperation>,
-): string {
+function buildInterfaceName(client: SdkClientType<SdkHttpOperation>): string {
   return `${client.name}Operations`;
 }
 
@@ -308,9 +303,7 @@ function buildInterfaceName(
  * @param client - The TCGC child client representing the operation group.
  * @returns The factory function name string.
  */
-function buildFactoryName(
-  client: SdkClientType<SdkHttpOperation>,
-): string {
+function buildFactoryName(client: SdkClientType<SdkHttpOperation>): string {
   return `_get${client.name}Operations`;
 }
 

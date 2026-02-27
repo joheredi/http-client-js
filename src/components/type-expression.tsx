@@ -1,5 +1,8 @@
 import { Children, code } from "@alloy-js/core";
-import type { SdkModelType, SdkType } from "@azure-tools/typespec-client-generator-core";
+import type {
+  SdkModelType,
+  SdkType,
+} from "@azure-tools/typespec-client-generator-core";
 import { typeRefkey } from "../utils/refkeys.js";
 import { isAzureCoreErrorType } from "../utils/azure-core-error-types.js";
 import { azureCoreClientLib } from "../utils/external-packages.js";

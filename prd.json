@@ -4,9 +4,7 @@
     "version": "1.0.0",
     "status": "complete",
     "created": "2026-02-24",
-    "authors": [
-      "@joheredi"
-    ]
+    "authors": ["@joheredi"]
   },
   "product_overview": {
     "name": "@microsoft/http-client-js",
@@ -398,10 +396,7 @@
   "technical_architecture": {
     "framework": {
       "name": "Alloy Framework",
-      "packages": [
-        "@alloy-js/core@0.22.0",
-        "@alloy-js/typescript@0.22.0"
-      ],
+      "packages": ["@alloy-js/core@0.22.0", "@alloy-js/typescript@0.22.0"],
       "description": "JSX-based code generation framework. NOT React. Uses JSX purely as structural description language for code output. Provides automatic symbol resolution, cross-file import management, and naming policies."
     },
     "sdk_model": {
@@ -417,10 +412,7 @@
       "external_packages": "NPM packages defined via createPackage() with typed symbol accessors. Used in code templates for auto-import from runtime libraries."
     },
     "component_hierarchy": {
-      "top_level": [
-        "Output",
-        "SdkContextProvider"
-      ],
+      "top_level": ["Output", "SdkContextProvider"],
       "orchestrators": [
         "ModelFiles",
         "Operations",
@@ -590,9 +582,7 @@
       },
       "models_template": {
         "count": 1,
-        "tests": [
-          "models/template/template.md"
-        ]
+        "tests": ["models/template/template.md"]
       },
       "operations_core": {
         "count": 6,
@@ -636,9 +626,7 @@
       },
       "operations_cookie_param": {
         "count": 1,
-        "tests": [
-          "operations/cookieParam/ignoreCookieParam.md"
-        ]
+        "tests": ["operations/cookieParam/ignoreCookieParam.md"]
       },
       "operations_error_deserialization": {
         "count": 2,
@@ -649,9 +637,7 @@
       },
       "operations_pagination": {
         "count": 1,
-        "tests": [
-          "operations/pagination/disablePagination.md"
-        ]
+        "tests": ["operations/pagination/disablePagination.md"]
       },
       "api_operations": {
         "count": 3,
@@ -678,9 +664,7 @@
       },
       "enum_union": {
         "count": 1,
-        "tests": [
-          "enumUnion/enumUnion.md"
-        ]
+        "tests": ["enumUnion/enumUnion.md"]
       },
       "multipart": {
         "count": 4,
@@ -1107,9 +1091,7 @@
       "description": "The new emitter does not re-export TestServiceClientOptionalParams from the package index. Legacy does re-export it. Legacy behavior is the expected output.",
       "legacy_behavior": "export { TestServiceClientOptionalParams } from './api/testServiceContext.js';",
       "new_behavior": "No re-export of client optional params type.",
-      "affected_scenarios": [
-        "classicClient/classicClient"
-      ],
+      "affected_scenarios": ["classicClient/classicClient"],
       "reference_legacy_tests": "submodules/autorest.typescript/packages/typespec-ts/test/modularUnit/scenarios/classicClient/classicClient.md",
       "reference_new_tests": "test/scenarios/cases/classicClient/classicClient.md",
       "kind": "regression",
@@ -1309,9 +1291,7 @@
       "description": "The new emitter uses stringToUint8Array(result.body, 'base64') instead of direct body return for binary responses. Review if legacy direct-return or new conversion is correct.",
       "legacy_behavior": "Direct return of response body or getBinaryResponse wrapper.",
       "new_behavior": "Explicit stringToUint8Array(result.body, 'base64') conversion.",
-      "affected_scenarios": [
-        "apiOperations/apiOperations"
-      ],
+      "affected_scenarios": ["apiOperations/apiOperations"],
       "reference_legacy_tests": "submodules/autorest.typescript/packages/typespec-ts/test/modularUnit/scenarios/apiOperations/apiOperations.md",
       "reference_new_tests": "test/scenarios/cases/apiOperations/apiOperations.md",
       "decision": "Match legacy. Use getBinaryResponse helper or return body directly for binary responses. Do not use stringToUint8Array conversion on response bodies.",
@@ -1437,9 +1417,7 @@
       "status": "done",
       "category": "scenario-audit/Serialization",
       "priority": "P0-CRITICAL",
-      "dependencies": [
-        "SA-C25a"
-      ]
+      "dependencies": ["SA-C25a"]
     },
     {
       "id": "SA-C25c",
@@ -1448,9 +1426,7 @@
       "status": "done",
       "category": "scenario-audit/Serialization",
       "priority": "P1",
-      "dependencies": [
-        "SA-C25a"
-      ]
+      "dependencies": ["SA-C25a"]
     },
     {
       "id": "SA-C26",
@@ -1461,9 +1437,7 @@
       "description": "The new emitter does not emit default values for optional query parameters and headers that have defaults in the TypeSpec definition. Legacy applies defaults with ?? operator. Legacy default-value behavior is the expected output.",
       "legacy_behavior": "queryParam: options?.queryParam ?? 'defaultValue', header: options?.header ?? 'application/json'",
       "new_behavior": "queryParam: options?.queryParam (no default), header: options?.header (no default).",
-      "affected_scenarios": [
-        "operations/clientDefaultValue"
-      ],
+      "affected_scenarios": ["operations/clientDefaultValue"],
       "reference_legacy_tests": "submodules/autorest.typescript/packages/typespec-ts/test/modularUnit/scenarios/operations/clientDefaultValue.md",
       "reference_new_tests": "test/scenarios/cases/operations/clientDefaultValue.md",
       "kind": "regression",
@@ -1478,9 +1452,7 @@
       "description": "The new emitter adds a token parameter to operation function signatures that was not present in the legacy output. Legacy does not expose cookie/token params. Legacy behavior (no token param) is the expected output.",
       "legacy_behavior": "function read(context: Client, options?: ReadOptions)",
       "new_behavior": "function read(context: Client, token: string, options?: ReadOptions)",
-      "affected_scenarios": [
-        "operations/cookieParam/ignoreCookieParam"
-      ],
+      "affected_scenarios": ["operations/cookieParam/ignoreCookieParam"],
       "reference_legacy_tests": "submodules/autorest.typescript/packages/typespec-ts/test/modularUnit/scenarios/operations/cookieParam/ignoreCookieParam.md",
       "reference_new_tests": "test/scenarios/cases/operations/cookieParam/ignoreCookieParam.md",
       "kind": "regression",
@@ -1728,81 +1700,63 @@
       "phase": 1,
       "name": "Models & Type Declarations",
       "description": "Generate TypeScript interfaces, enums, type aliases, and union types from TCGC types.",
-      "dependencies": [
-        0
-      ],
+      "dependencies": [0],
       "status": "done"
     },
     {
       "phase": 2,
       "name": "Serialization & Deserialization",
       "description": "Generate JSON and XML serializer/deserializer functions for all model types.",
-      "dependencies": [
-        1
-      ],
+      "dependencies": [1],
       "status": "done"
     },
     {
       "phase": 3,
       "name": "Operations",
       "description": "Generate operation functions with send/deserialize pattern.",
-      "dependencies": [
-        2
-      ],
+      "dependencies": [2],
       "status": "done"
     },
     {
       "phase": 4,
       "name": "Client Infrastructure",
       "description": "Generate client context interface, factory function, and logger.",
-      "dependencies": [
-        3
-      ],
+      "dependencies": [3],
       "status": "done"
     },
     {
       "phase": 5,
       "name": "Classical Client",
       "description": "Generate user-facing client class and operation groups.",
-      "dependencies": [
-        4
-      ],
+      "dependencies": [4],
       "status": "done"
     },
     {
       "phase": 6,
       "name": "Advanced Features",
       "description": "Implement LRO restore, multipart, and sample generation.",
-      "dependencies": [
-        5
-      ],
+      "dependencies": [5],
       "status": "done"
     },
     {
       "phase": 7,
       "name": "Index & Barrel Files",
       "description": "Generate proper export structure.",
-      "dependencies": [
-        6
-      ],
+      "dependencies": [6],
       "status": "done"
     },
     {
       "phase": 8,
       "name": "Azure Flavor Extension",
       "description": "Design and implement Azure-specific extensions via composition.",
-      "dependencies": [
-        7
-      ],
+      "dependencies": [7],
       "status": "done"
     },
     {
       "phase": 9,
       "name": "Test Porting & Validation",
       "description": "Port all 101 scenario tests and validate output parity.",
-      "dependencies": [
-        0
-      ],
+      "dependencies": [0],
       "status": "done"
     },
     {
@@ -1828,10 +1782,7 @@
       "phase": 10,
       "name": "Flavor Parity \u2014 Match Legacy Emitter Flavor Behavior",
       "description": "Ensure the new emitter correctly handles the 'flavor' option ('core' vs 'azure') with full parity to the legacy emitter. Core flavor should use @typespec/ts-http-runtime and NOT generate Azure-specific features (LRO, paging, logger, DefaultAzureCredential). Azure flavor should use Azure SDK packages. No 'branded' option support. Flavor must be set explicitly or not at all (defaulting to 'core').",
-      "dependencies": [
-        8,
-        9
-      ],
+      "dependencies": [8, 9],
       "status": "pending"
     }
   ],
@@ -1877,9 +1828,7 @@
         "description": "The new emitter targets @typespec/ts-http-runtime instead of @azure-rest/core-client. This is the intended design direction. No action needed unless Azure flavor detection requires @azure-rest/core-client.",
         "legacy_behavior": "Imports from @azure-rest/core-client and @azure/core-rest-pipeline.",
         "new_behavior": "Imports from @typespec/ts-http-runtime.",
-        "affected_scenarios": [
-          "Nearly all scenarios"
-        ]
+        "affected_scenarios": ["Nearly all scenarios"]
       },
       {
         "id": "SA-INT2",
@@ -1890,9 +1839,7 @@
         "description": "The new emitter adds the type keyword to type-only imports per TypeScript best practices. This is correct behavior.",
         "legacy_behavior": "import { SomeType } from './models.js';",
         "new_behavior": "import type { SomeType } from './models.js';",
-        "affected_scenarios": [
-          "Nearly all scenarios"
-        ]
+        "affected_scenarios": ["Nearly all scenarios"]
       },
       {
         "id": "SA-INT3",
@@ -1903,9 +1850,7 @@
         "description": "expandUrlTemplate utility is now imported from the runtime package instead of a static-helpers path. This is part of the runtime consolidation.",
         "legacy_behavior": "import { expandUrlTemplate } from '../static-helpers/urlTemplate.js';",
         "new_behavior": "import { expandUrlTemplate } from '@typespec/ts-http-runtime';",
-        "affected_scenarios": [
-          "Scenarios using URL templates"
-        ]
+        "affected_scenarios": ["Scenarios using URL templates"]
       }
     ],
     "total_root_cause_tasks": 34

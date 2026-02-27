@@ -33,7 +33,11 @@ import { createTSNamePolicy } from "@alloy-js/typescript";
 import { t } from "@typespec/compiler/testing";
 import { Output } from "@typespec/emitter-framework";
 import { describe, expect, it } from "vitest";
-import type { SdkContext, SdkHttpOperation, SdkModelType } from "@azure-tools/typespec-client-generator-core";
+import type {
+  SdkContext,
+  SdkHttpOperation,
+  SdkModelType,
+} from "@azure-tools/typespec-client-generator-core";
 import { UsageFlags } from "@azure-tools/typespec-client-generator-core";
 import { SdkContextProvider } from "../../src/context/sdk-context.js";
 import { ModelFiles } from "../../src/components/model-files.js";
@@ -168,12 +172,13 @@ describe("Unresolved Symbol Prevention", () => {
     // Find the User model — it should have XML serialization options due to
     // the XML content type header, but we want to verify it ALSO gets a
     // JSON deserializer function alongside its XML deserializer.
-    const user = sdkContext.sdkPackage.models.find(m => m.name === "User")!;
+    const user = sdkContext.sdkPackage.models.find((m) => m.name === "User")!;
     expect(user).toBeDefined();
 
     // Render just the JSON deserializer component to verify it works
     // without producing unresolved symbols.
-    const { JsonDeserializer } = await import("../../src/components/serialization/json-deserializer.js");
+    const { JsonDeserializer } =
+      await import("../../src/components/serialization/json-deserializer.js");
     const template = (
       <SdkTestFile sdkContext={sdkContext}>
         <ModelInterface model={user} />
@@ -215,9 +220,8 @@ describe("Unresolved Symbol Prevention", () => {
    * `SystemData` type that is read-only.
    */
   it("should passthrough output-only model properties in serializers", async () => {
-    const { getSerializationExpression } = await import(
-      "../../src/components/serialization/json-serializer.js"
-    );
+    const { getSerializationExpression } =
+      await import("../../src/components/serialization/json-serializer.js");
 
     // Create a mock model type with only Output usage (no Input).
     // This simulates types like Azure.ResourceManager.SystemData.
@@ -244,9 +248,8 @@ describe("Unresolved Symbol Prevention", () => {
    * serializer references.
    */
   it("should call serializer for input model properties", async () => {
-    const { getSerializationExpression, needsTransformation } = await import(
-      "../../src/components/serialization/json-serializer.js"
-    );
+    const { getSerializationExpression, needsTransformation } =
+      await import("../../src/components/serialization/json-serializer.js");
 
     const inputModel = {
       kind: "model" as const,

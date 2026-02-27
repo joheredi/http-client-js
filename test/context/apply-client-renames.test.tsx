@@ -21,7 +21,10 @@
  */
 import { describe, expect, it } from "vitest";
 import { applyClientRenames } from "../../src/emitter.js";
-import type { SdkClientType, SdkHttpOperation } from "@azure-tools/typespec-client-generator-core";
+import type {
+  SdkClientType,
+  SdkHttpOperation,
+} from "@azure-tools/typespec-client-generator-core";
 
 /**
  * Creates a minimal mock SdkClientType with the given name.
@@ -49,10 +52,7 @@ describe("applyClientRenames", () => {
    * several clients at once.
    */
   it("should rename multiple clients from the title map", () => {
-    const clients = [
-      mockClient("ClientA"),
-      mockClient("ClientB"),
-    ];
+    const clients = [mockClient("ClientA"), mockClient("ClientB")];
     applyClientRenames(clients, {
       ClientA: "RenamedA",
       ClientB: "RenamedB",

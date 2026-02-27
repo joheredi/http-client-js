@@ -50,13 +50,19 @@ describe("LoggerFile", () => {
    */
   it("should import createClientLogger from @azure/logger", async () => {
     const template = (
-      <Output program={program} namePolicy={createTSNamePolicy()} externals={[azureLoggerLib]}>
+      <Output
+        program={program}
+        namePolicy={createTSNamePolicy()}
+        externals={[azureLoggerLib]}
+      >
         <LoggerFile packageName="confidential-ledger" />
       </Output>
     );
 
     const result = renderToString(template);
-    expect(result).toContain('import { createClientLogger } from "@azure/logger"');
+    expect(result).toContain(
+      'import { createClientLogger } from "@azure/logger"',
+    );
   });
 
   /**
@@ -66,7 +72,11 @@ describe("LoggerFile", () => {
    */
   it("should export the logger constant", async () => {
     const template = (
-      <Output program={program} namePolicy={createTSNamePolicy()} externals={[azureLoggerLib]}>
+      <Output
+        program={program}
+        namePolicy={createTSNamePolicy()}
+        externals={[azureLoggerLib]}
+      >
         <LoggerFile packageName="confidential-ledger" />
       </Output>
     );
@@ -82,7 +92,11 @@ describe("LoggerFile", () => {
    */
   it("should use the provided package name", async () => {
     const template = (
-      <Output program={program} namePolicy={createTSNamePolicy()} externals={[azureLoggerLib]}>
+      <Output
+        program={program}
+        namePolicy={createTSNamePolicy()}
+        externals={[azureLoggerLib]}
+      >
         <LoggerFile packageName="confidential-ledger" />
       </Output>
     );
@@ -98,7 +112,11 @@ describe("LoggerFile", () => {
    */
   it("should work with different package names", async () => {
     const template = (
-      <Output program={program} namePolicy={createTSNamePolicy()} externals={[azureLoggerLib]}>
+      <Output
+        program={program}
+        namePolicy={createTSNamePolicy()}
+        externals={[azureLoggerLib]}
+      >
         <LoggerFile packageName="keyvault-secrets" />
       </Output>
     );
@@ -115,7 +133,11 @@ describe("LoggerFile", () => {
    */
   it("should declare logger as const", async () => {
     const template = (
-      <Output program={program} namePolicy={createTSNamePolicy()} externals={[azureLoggerLib]}>
+      <Output
+        program={program}
+        namePolicy={createTSNamePolicy()}
+        externals={[azureLoggerLib]}
+      >
         <LoggerFile packageName="my-service" />
       </Output>
     );
@@ -131,7 +153,11 @@ describe("LoggerFile", () => {
    */
   it("should be referenceable via loggerRefkey", async () => {
     const template = (
-      <Output program={program} namePolicy={createTSNamePolicy()} externals={[azureLoggerLib]}>
+      <Output
+        program={program}
+        namePolicy={createTSNamePolicy()}
+        externals={[azureLoggerLib]}
+      >
         <LoggerFile packageName="my-service" />
         <SourceFile path="consumer.ts">
           <FunctionDeclaration name="doSomething">
@@ -157,14 +183,22 @@ describe("LoggerFile", () => {
    */
   it("should produce output matching legacy emitter format", async () => {
     const template = (
-      <Output program={program} namePolicy={createTSNamePolicy()} externals={[azureLoggerLib]}>
+      <Output
+        program={program}
+        namePolicy={createTSNamePolicy()}
+        externals={[azureLoggerLib]}
+      >
         <LoggerFile packageName="confidential-ledger" />
       </Output>
     );
 
     const result = renderToString(template);
     // Verify the file has the import and the export statement
-    expect(result).toContain('import { createClientLogger } from "@azure/logger"');
-    expect(result).toContain('export const logger = createClientLogger("confidential-ledger")');
+    expect(result).toContain(
+      'import { createClientLogger } from "@azure/logger"',
+    );
+    expect(result).toContain(
+      'export const logger = createClientLogger("confidential-ledger")',
+    );
   });
 });

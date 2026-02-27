@@ -20,13 +20,13 @@
  */
 import { describe, expect, it } from "vitest";
 import type { SdkModelType } from "@azure-tools/typespec-client-generator-core";
-import { getModelName, getModelFunctionName } from "../../src/utils/model-name.js";
+import {
+  getModelName,
+  getModelFunctionName,
+} from "../../src/utils/model-name.js";
 
 /** Creates a minimal mock SdkModelType for testing name generation. */
-function createMockModel(
-  name: string,
-  isGeneratedName: boolean,
-): SdkModelType {
+function createMockModel(name: string, isGeneratedName: boolean): SdkModelType {
   return {
     kind: "model",
     name,

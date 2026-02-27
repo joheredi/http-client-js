@@ -47,7 +47,10 @@ describe("MultipartSerializer", () => {
     const model = sdkContext.sdkPackage.models[0];
 
     const template = (
-      <Output program={sdkContext.emitContext.program} namePolicy={createTSNamePolicy()}>
+      <Output
+        program={sdkContext.emitContext.program}
+        namePolicy={createTSNamePolicy()}
+      >
         <SdkContextProvider sdkContext={sdkContext}>
           <MultipartHelpersFile />
           <SourceFile path="test.ts">
@@ -179,7 +182,9 @@ describe("MultipartSerializer", () => {
     );
 
     // Multi-file part should use map with spread
-    expect(result).toContain('.map((x: unknown) => createFilePartDescriptor("files", x');
+    expect(result).toContain(
+      '.map((x: unknown) => createFilePartDescriptor("files", x',
+    );
     expect(result).toContain("...(");
   });
 
@@ -202,7 +207,9 @@ describe("MultipartSerializer", () => {
     );
 
     // Multi non-file part should use map with spread
-    expect(result).toContain('.map((x: unknown) => ({ name: "tags", body: x }))');
+    expect(result).toContain(
+      '.map((x: unknown) => ({ name: "tags", body: x }))',
+    );
     expect(result).toContain("...(");
   });
 

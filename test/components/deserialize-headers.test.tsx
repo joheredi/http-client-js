@@ -22,7 +22,10 @@ import type {
   SdkHttpOperation,
   SdkServiceMethod,
 } from "@azure-tools/typespec-client-generator-core";
-import { DeserializeHeaders, DeserializeExceptionHeaders } from "../../src/components/deserialize-headers.js";
+import {
+  DeserializeHeaders,
+  DeserializeExceptionHeaders,
+} from "../../src/components/deserialize-headers.js";
 import { httpRuntimeLib } from "../../src/utils/external-packages.js";
 import { TesterWithService, createSdkContextForTest } from "../test-host.js";
 import { SdkTestFile } from "../utils.jsx";
@@ -30,13 +33,11 @@ import { SdkTestFile } from "../utils.jsx";
 /**
  * Helper to extract the first method from the first client in an SDK context.
  */
-function getFirstMethod(
-  sdkContext: {
-    sdkPackage: {
-      clients: Array<{ methods: SdkServiceMethod<SdkHttpOperation>[] }>;
-    };
-  },
-): SdkServiceMethod<SdkHttpOperation> {
+function getFirstMethod(sdkContext: {
+  sdkPackage: {
+    clients: Array<{ methods: SdkServiceMethod<SdkHttpOperation>[] }>;
+  };
+}): SdkServiceMethod<SdkHttpOperation> {
   return sdkContext.sdkPackage.clients[0].methods[0];
 }
 

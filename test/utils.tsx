@@ -2,10 +2,19 @@ import { Children, type SymbolCreator } from "@alloy-js/core";
 import { createTSNamePolicy, SourceFile } from "@alloy-js/typescript";
 import { Program } from "@typespec/compiler";
 import { Output } from "@typespec/emitter-framework";
-import type { SdkContext, SdkHttpOperation } from "@azure-tools/typespec-client-generator-core";
+import type {
+  SdkContext,
+  SdkHttpOperation,
+} from "@azure-tools/typespec-client-generator-core";
 import { SdkContextProvider } from "../src/context/sdk-context.js";
-import { FlavorProvider, type FlavorKind } from "../src/context/flavor-context.js";
-import { EmitterOptionsProvider, type EmitterOptionsValue } from "../src/context/emitter-options-context.js";
+import {
+  FlavorProvider,
+  type FlavorKind,
+} from "../src/context/flavor-context.js";
+import {
+  EmitterOptionsProvider,
+  type EmitterOptionsValue,
+} from "../src/context/emitter-options-context.js";
 
 /**
  * Props for the TestFile wrapper component.
@@ -47,7 +56,11 @@ export interface TestFileProps {
  */
 export function TestFile(props: TestFileProps) {
   return (
-    <Output program={props.program} namePolicy={createTSNamePolicy()} externals={props.externals}>
+    <Output
+      program={props.program}
+      namePolicy={createTSNamePolicy()}
+      externals={props.externals}
+    >
       <FlavorProvider flavor={props.flavor ?? "core"}>
         <EmitterOptionsProvider options={props.emitterOptions ?? {}}>
           <SourceFile path="test.ts">{props.children}</SourceFile>
@@ -98,7 +111,11 @@ export interface SdkTestFileProps {
  */
 export function SdkTestFile(props: SdkTestFileProps) {
   return (
-    <Output program={props.sdkContext.emitContext.program} namePolicy={createTSNamePolicy()} externals={props.externals}>
+    <Output
+      program={props.sdkContext.emitContext.program}
+      namePolicy={createTSNamePolicy()}
+      externals={props.externals}
+    >
       <FlavorProvider flavor={props.flavor ?? "core"}>
         <EmitterOptionsProvider options={props.emitterOptions ?? {}}>
           <SdkContextProvider sdkContext={props.sdkContext}>

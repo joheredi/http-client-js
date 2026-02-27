@@ -63,14 +63,14 @@ When resolving questions about how to write Alloy code:
 
 ## Tech Stack
 
-| Tool | Purpose |
-|------|---------|
-| `@alloy-js/core` | Alloy rendering engine, refkeys, contexts, reactivity |
-| `@alloy-js/typescript` | TypeScript-specific components (declarations, imports, source files) |
-| TCGC (`@azure-tools/typespec-client-generator-core`) | SDK type model consumed by the emitter |
-| TypeSpec Compiler | Compiles `.tsp` files |
-| Vitest | Test runner |
-| JSX (preserve mode, `jsxImportSource: @alloy-js/core`) | Component syntax |
+| Tool                                                   | Purpose                                                              |
+| ------------------------------------------------------ | -------------------------------------------------------------------- |
+| `@alloy-js/core`                                       | Alloy rendering engine, refkeys, contexts, reactivity                |
+| `@alloy-js/typescript`                                 | TypeScript-specific components (declarations, imports, source files) |
+| TCGC (`@azure-tools/typespec-client-generator-core`)   | SDK type model consumed by the emitter                               |
+| TypeSpec Compiler                                      | Compiles `.tsp` files                                                |
+| Vitest                                                 | Test runner                                                          |
+| JSX (preserve mode, `jsxImportSource: @alloy-js/core`) | Component syntax                                                     |
 
 ---
 
@@ -88,16 +88,16 @@ Refkeys are unique identifiers for declarations that enable automatic cross-file
 import { refkey } from "@alloy-js/core";
 
 // Create refkeys — memoized: same args → same refkey
-const typeKey = refkey(sdkType);                    // key tied to entity
-const serKey = refkey(sdkType, "serializer");       // discriminated key (different artifact, same entity)
+const typeKey = refkey(sdkType); // key tied to entity
+const serKey = refkey(sdkType, "serializer"); // discriminated key (different artifact, same entity)
 
 // Declare — register a refkey as owned by a declaration
 <ts.InterfaceDeclaration name="Foo" refkey={typeKey} export>
   {/* members */}
-</ts.InterfaceDeclaration>
+</ts.InterfaceDeclaration>;
 
 // Reference — use in code templates, Alloy resolves imports automatically
-code`const result = ${serKey}(input);`
+code`const result = ${serKey}(input);`;
 // If serKey's declaration is in a different file, Alloy auto-generates the import
 ```
 
@@ -107,14 +107,14 @@ code`const result = ${serKey}(input);`
 import { code } from "@alloy-js/core";
 
 // Refkeys in code templates are live symbolic references (NOT strings)
-code`return ${deserializerRefkey}(response.body);`
+code`return ${deserializerRefkey}(response.body);`;
 
 // Multi-line with automatic indentation
 code`
   if (condition) {
     ${someRefkey}(value);
   }
-`
+`;
 ```
 
 **NEVER use string concatenation to build code — always use `code` templates.**
@@ -128,14 +128,14 @@ export const httpRuntime = createPackage({
   name: "@typespec/ts-http-runtime",
   version: "0.1.0",
   descriptor: {
-    ".": { named: ["Client", "getClient", "RestError", "Pipeline"] }
-  }
+    ".": { named: ["Client", "getClient", "RestError", "Pipeline"] },
+  },
 });
 
 // Register in Output, use anywhere — imports auto-generated
 <Output externals={[httpRuntime]}>
   {code`const client: ${httpRuntime.Client} = ${httpRuntime.getClient}(endpoint);`}
-</Output>
+</Output>;
 ```
 
 #### 4. Context System (Dependency Injection)
@@ -153,8 +153,8 @@ export function useSdkContext() {
 
 // Provide at top level
 <SdkCtx.Provider value={contextValue}>
-  <ChildComponents />  {/* Any depth can consume without prop threading */}
-</SdkCtx.Provider>
+  <ChildComponents /> {/* Any depth can consume without prop threading */}
+</SdkCtx.Provider>;
 ```
 
 #### 5. Component Composition
@@ -165,7 +165,10 @@ Structure components hierarchically: **Top (orchestrators) → Middle (files) �
 // Top — full output
 function MyEmitter() {
   return (
-    <Output namePolicy={createEmitterNamePolicy()} nameConflictResolver={nameConflictResolver}>
+    <Output
+      namePolicy={createEmitterNamePolicy()}
+      nameConflictResolver={nameConflictResolver}
+    >
       <SourceDirectory path="src">
         <ModelsFile />
         <OperationsFile />
@@ -188,7 +191,12 @@ function OperationsFile() {
 // Leaf — one declaration
 function OperationFunction(props: { operation: Operation }) {
   return (
-    <ts.FunctionDeclaration name={props.operation.name} refkey={refkey(props.operation)} export async>
+    <ts.FunctionDeclaration
+      name={props.operation.name}
+      refkey={refkey(props.operation)}
+      export
+      async
+    >
       {code`const response = await fetch(url);`}
     </ts.FunctionDeclaration>
   );
@@ -236,10 +244,11 @@ import { namekey } from "@alloy-js/core";
 
 // The naming policy applies automatically via Alloy declaration components.
 // To preserve exact names (e.g., from @clientName), bypass the policy:
-namekey("LROPoller", { ignoreNamePolicy: true })
+namekey("LROPoller", { ignoreNamePolicy: true });
 ```
 
 Helpers exported from `src/utils/name-policy.ts`:
+
 - `isReservedOperationName(name)` — check if a name would be escaped as a function
 - `getEscapedOperationName(name)` — get the `$`-prefixed name for composing send/deserialize names
 - `getEscapedParameterName(name)` — get the `Param`-suffixed name for body accessors
@@ -255,10 +264,12 @@ These have caused real bugs and repeated review rejections. Every agent MUST avo
 ```tsx
 // ❌ FORBIDDEN
 const pattern = /\b(serializeRecord|buildCsvCollection)\b/g;
-for (const match of text.matchAll(pattern)) { parts.push(helperRefkey(match[0])); }
+for (const match of text.matchAll(pattern)) {
+  parts.push(helperRefkey(match[0]));
+}
 
 // ✅ Use refkeys directly
-code`return ${helperRefkey("serializeRecord")}(obj, serializer);`
+code`return ${helperRefkey("serializeRecord")}(obj, serializer);`;
 ```
 
 ### ❌ 2. Manual Import Strings
@@ -268,7 +279,7 @@ code`return ${helperRefkey("serializeRecord")}(obj, serializer);`
 const apiImport = `import { create${name} } from "./api/index.js";`;
 
 // ✅ Let Alloy handle imports via refkeys
-code`this._client = ${createClientRefkey}(endpoint, options);`
+code`this._client = ${createClientRefkey}(endpoint, options);`;
 ```
 
 ### ❌ 3. Manual Import Path Calculation
@@ -279,7 +290,7 @@ const prefix = "../".repeat(depth);
 imports.push(`import { ${type} } from "${prefix}api/index.js";`);
 
 // ✅ Reference refkeys — Alloy computes paths
-code`${someRefkey}`
+code`${someRefkey}`;
 ```
 
 ### ❌ 4. Post-Render String Scanning
@@ -329,12 +340,14 @@ code`${helperRefkey("buildCsvCollection")}(${items})`
 
 ```tsx
 // ❌ BAD — not reactive, no separator support
-{items.map(item => <Item data={item} />)}
+{
+  items.map((item) => <Item data={item} />);
+}
 
 // ✅ GOOD
 <For each={items} comma hardline>
   {(item) => <Item data={item} />}
-</For>
+</For>;
 ```
 
 ### ❌ 8. Wrong `refkey` Import
@@ -352,12 +365,14 @@ import { refkey } from "@alloy-js/core";
 Generated code must **NEVER** contain `<Unresolved Symbol: refkey[...]>` placeholders. These indicate a refkey that was referenced but never declared (i.e., no component registered ownership of that refkey via a `refkey` prop). This is a **critical bug** — the output is broken TypeScript that cannot compile.
 
 **Common causes:**
+
 - A refkey is created for an entity but the corresponding declaration component is never rendered (e.g., a serializer refkey exists but no `<ts.FunctionDeclaration refkey={serializerRefkey}>` is emitted)
 - A refkey discriminator mismatch (e.g., `refkey(type, "serializer")` vs `refkey(type, "serialize")`)
 - A component conditionally skips rendering but the refkey is still referenced elsewhere
 - Using a refkey from a different render pass or context that isn't connected
 
 **How to prevent:**
+
 - When adding a new refkey reference, always verify the corresponding declaration component exists and will be rendered
 - After making changes, run scenario tests and grep output for `Unresolved Symbol` — if any appear, the change is broken
 - In CI, assert that no emitted file contains the string `<Unresolved Symbol`
@@ -380,12 +395,14 @@ code`return ${mySerializerKey}(input);`  // renders as mySerializer(input)
 ## Gotchas
 
 1. **`returnType` prop** — Accepts `string | Children`. Bare refkeys render their internal ID. Wrap in `code`:
+
    ```tsx
    // ❌ <ts.FunctionDeclaration returnType={someRefkey}>
    // ✅ <ts.FunctionDeclaration returnType={code`Promise<${someRefkey}>`}>
    ```
 
 2. **String concatenation loses refkeys** — Always use `code` templates:
+
    ```tsx
    // ❌ `${getReturnType(type)}[]`  → "[object Object][]"
    // ✅ code`${getReturnType(type)}[]`
@@ -411,11 +428,11 @@ code`return ${mySerializerKey}(input);`  // renders as mySerializer(input)
 
 ### Test Infrastructure (in `test/`)
 
-| File | Purpose |
-|------|---------|
+| File                | Purpose                                                          |
+| ------------------- | ---------------------------------------------------------------- |
 | `test/test-host.ts` | Creates TypeSpec compiler `Tester` instance with library imports |
-| `test/utils.tsx` | Test wrappers: `TestFile`, `DeclarationTestFile`, `testHelper()` |
-| `test/vitest.d.ts` | Custom matcher type declarations |
+| `test/utils.tsx`    | Test wrappers: `TestFile`, `DeclarationTestFile`, `testHelper()` |
+| `test/vitest.d.ts`  | Custom matcher type declarations                                 |
 
 ### Test Categories
 
@@ -433,22 +450,32 @@ describe("basic model", () => {
   let sdkContext: SdkContext;
   beforeAll(async () => {
     const runner = await TesterWithService.createInstance();
-    const { program } = await runner.compile(t.code`model Foo { bar: string; } op get(): Foo;`);
+    const { program } = await runner.compile(
+      t.code`model Foo { bar: string; } op get(): Foo;`,
+    );
     sdkContext = await createSdkContextForTest(program);
   });
-  it("test A", () => { /* use sdkContext */ });
-  it("test B", () => { /* use sdkContext */ });
+  it("test A", () => {
+    /* use sdkContext */
+  });
+  it("test B", () => {
+    /* use sdkContext */
+  });
 });
 
 // ❌ BAD — compiles the same TypeSpec twice
 it("test A", async () => {
   const runner = await TesterWithService.createInstance();
-  const { program } = await runner.compile(t.code`model Foo { bar: string; } op get(): Foo;`);
+  const { program } = await runner.compile(
+    t.code`model Foo { bar: string; } op get(): Foo;`,
+  );
   // ...
 });
 it("test B", async () => {
   const runner = await TesterWithService.createInstance();
-  const { program } = await runner.compile(t.code`model Foo { bar: string; } op get(): Foo;`);
+  const { program } = await runner.compile(
+    t.code`model Foo { bar: string; } op get(): Foo;`,
+  );
   // ...
 });
 ```
@@ -489,7 +516,7 @@ describe("MyComponent", () => {
 
 ### Scenario Tests (Ported from Legacy)
 
-The legacy emitter has scenario tests under `unitTestModular/scenarios/**/*.md`. These use Markdown format with `` ```tsp `` (TypeSpec input) and `` ```typescript `` (expected output) sections. These tests must be ported as-is to validate output parity. Only non-breaking differences (e.g., import ordering) are acceptable.
+The legacy emitter has scenario tests under `unitTestModular/scenarios/**/*.md`. These use Markdown format with ` ```tsp ` (TypeSpec input) and ` ```typescript ` (expected output) sections. These tests must be ported as-is to validate output parity. Only non-breaking differences (e.g., import ordering) are acceptable.
 
 ---
 
@@ -509,45 +536,45 @@ The legacy emitter has scenario tests under `unitTestModular/scenarios/**/*.md`.
 
 ### Core (`@alloy-js/core`)
 
-| Component | Purpose |
-|-----------|---------|
-| `Output` | Root component. Sets up binder, name policy, externals. |
-| `SourceDirectory` | Directory in output |
-| `SourceFile` | File in output |
-| `For` | Iteration with separators (`comma`, `hardline`, `doubleHardline`, `joiner`) |
-| `Show` | Conditional rendering (`when`, `fallback`) |
-| `Switch`/`Match` | Multi-branch conditional |
-| `StatementList` | Joins children with semicolons + hardlines |
-| `Block` | Indented block with braces |
-| `code` | Tagged template for code with refkey interpolation |
+| Component         | Purpose                                                                     |
+| ----------------- | --------------------------------------------------------------------------- |
+| `Output`          | Root component. Sets up binder, name policy, externals.                     |
+| `SourceDirectory` | Directory in output                                                         |
+| `SourceFile`      | File in output                                                              |
+| `For`             | Iteration with separators (`comma`, `hardline`, `doubleHardline`, `joiner`) |
+| `Show`            | Conditional rendering (`when`, `fallback`)                                  |
+| `Switch`/`Match`  | Multi-branch conditional                                                    |
+| `StatementList`   | Joins children with semicolons + hardlines                                  |
+| `Block`           | Indented block with braces                                                  |
+| `code`            | Tagged template for code with refkey interpolation                          |
 
 ### TypeScript (`@alloy-js/typescript`, imported as `ts`)
 
-| Component | Generates |
-|-----------|-----------|
-| `ts.SourceFile` | TypeScript source file with auto-imports |
-| `ts.FunctionDeclaration` | `function name(params): ReturnType { body }` |
-| `ts.InterfaceDeclaration` | `interface Name { members }` |
-| `ts.ClassDeclaration` | `class Name { members }` |
-| `ts.TypeDeclaration` | `type Name = ...` |
-| `ts.EnumDeclaration` | `enum Name { ... }` |
-| `ts.VarDeclaration` | `const/let/var name: Type = init` |
-| `ts.InterfaceMember` | `name?: type` |
-| `ts.ClassField` | Class field with access modifiers |
-| `ts.ClassMethod` | Class method |
-| `ts.EnumMember` | Enum member |
-| `ts.ObjectExpression` | `{ key: value }` |
-| `ts.ArrayExpression` | `[items]` |
-| `ts.BarrelFile` | Re-export barrel (index.ts) |
+| Component                 | Generates                                    |
+| ------------------------- | -------------------------------------------- |
+| `ts.SourceFile`           | TypeScript source file with auto-imports     |
+| `ts.FunctionDeclaration`  | `function name(params): ReturnType { body }` |
+| `ts.InterfaceDeclaration` | `interface Name { members }`                 |
+| `ts.ClassDeclaration`     | `class Name { members }`                     |
+| `ts.TypeDeclaration`      | `type Name = ...`                            |
+| `ts.EnumDeclaration`      | `enum Name { ... }`                          |
+| `ts.VarDeclaration`       | `const/let/var name: Type = init`            |
+| `ts.InterfaceMember`      | `name?: type`                                |
+| `ts.ClassField`           | Class field with access modifiers            |
+| `ts.ClassMethod`          | Class method                                 |
+| `ts.EnumMember`           | Enum member                                  |
+| `ts.ObjectExpression`     | `{ key: value }`                             |
+| `ts.ArrayExpression`      | `[items]`                                    |
+| `ts.BarrelFile`           | Re-export barrel (index.ts)                  |
 
 ### Formatting Intrinsics
 
-| Element | Purpose |
-|---------|---------|
-| `<hbr />` | Hard line break (always breaks) |
-| `<sbr />` | Soft line break (breaks if group doesn't fit) |
-| `<indent>` | Indent content |
-| `<group>` | Group content for line-breaking decisions |
+| Element    | Purpose                                       |
+| ---------- | --------------------------------------------- |
+| `<hbr />`  | Hard line break (always breaks)               |
+| `<sbr />`  | Soft line break (breaks if group doesn't fit) |
+| `<indent>` | Indent content                                |
+| `<group>`  | Group content for line-breaking decisions     |
 
 ---
 
@@ -555,12 +582,27 @@ The legacy emitter has scenario tests under `unitTestModular/scenarios/**/*.md`.
 
 ```typescript
 // Core
-import { Output, SourceDirectory, For, Show, code, refkey, namekey,
-         createNamedContext, useContext, render, writeOutput } from "@alloy-js/core";
+import {
+  Output,
+  SourceDirectory,
+  For,
+  Show,
+  code,
+  refkey,
+  namekey,
+  createNamedContext,
+  useContext,
+  render,
+  writeOutput,
+} from "@alloy-js/core";
 
 // TypeScript components
 import * as ts from "@alloy-js/typescript";
-import { createTSNamePolicy, tsNameConflictResolver, createPackage } from "@alloy-js/typescript";
+import {
+  createTSNamePolicy,
+  tsNameConflictResolver,
+  createPackage,
+} from "@alloy-js/typescript";
 
 // Testing
 import "@alloy-js/core/testing/extend-expect";

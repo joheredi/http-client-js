@@ -67,6 +67,7 @@ Alloy is a **declarative, JSX-based code generation framework**. It uses a compo
 - **`@alloy-js/typescript`** — Language-specific components for generating TypeScript code (`FunctionDeclaration`, `InterfaceDeclaration`, `ClassDeclaration`, `VarDeclaration`, etc.).
 
 Key characteristics:
+
 - JSX describes **code structure**, not UI
 - A **reactive system** (built on Vue 3 reactivity) tracks dependencies and re-renders when inputs change
 - A **symbol system** with refkeys enables automatic cross-file reference resolution and import generation
@@ -93,6 +94,7 @@ Key characteristics:
 ```
 
 This produces a file `src/models.ts`:
+
 ```typescript
 export interface User {
   id: string;
@@ -152,17 +154,18 @@ The `code` tagged template literal is the primary way to emit code strings with 
 import { code } from "@alloy-js/core";
 
 // Simple code emission
-code`return ${someRefkey}(${paramRefkey});`
+code`return ${someRefkey}(${paramRefkey});`;
 
 // Multi-line with automatic indentation
 code`
   if (${conditionRef}) {
     return ${serializerRef}(value);
   }
-`
+`;
 ```
 
 **Critical properties of `code`:**
+
 - Interpolated refkeys are **live symbolic references**, not strings
 - Alloy automatically generates imports for cross-file refkey resolution
 - Indentation in the template is preserved and converted to `<indent>` components
@@ -172,8 +175,15 @@ code`
 The `Children` type is broad:
 
 ```typescript
-type Child = string | number | boolean | null
-  | (() => Children) | Ref | ComponentCreator | IntrinsicElement;
+type Child =
+  | string
+  | number
+  | boolean
+  | null
+  | (() => Children)
+  | Ref
+  | ComponentCreator
+  | IntrinsicElement;
 type Children = Child | Children[];
 ```
 
@@ -189,15 +199,15 @@ Refkeys are **unique identifiers for declarations** that enable Alloy's automati
 import { refkey, namekey, memberRefkey } from "@alloy-js/core";
 
 // Base refkey — memoized: same args → same refkey
-const myKey = refkey();                     // unique key
-const typeKey = refkey(someEntity);         // key tied to entity
-const serKey = refkey(someEntity, "ser");   // discriminated key
+const myKey = refkey(); // unique key
+const typeKey = refkey(someEntity); // key tied to entity
+const serKey = refkey(someEntity, "ser"); // discriminated key
 
 // Namekey — refkey with a name and naming options
 const classKey = namekey("MyClass");
 
 // Member refkey — for member access chains
-const memberKey = memberRefkey(classKey, "method");  // MyClass.method
+const memberKey = memberRefkey(classKey, "method"); // MyClass.method
 ```
 
 **Memoization guarantee:** `refkey(entity, discriminator)` always returns the same refkey for the same arguments.
@@ -232,6 +242,7 @@ parameters={[{ name: "item", type: typeRefkey }]}
 #### Cross-File Resolution
 
 When a refkey is referenced from a different file than where it's declared:
+
 1. Alloy finds the declaration that owns the refkey
 2. Computes the relative import path
 3. Automatically generates the import statement
@@ -249,21 +260,19 @@ export const httpRuntime = createPackage({
   version: "0.1.0",
   descriptor: {
     ".": {
-      named: ["Client", "getClient", "RestError", "Pipeline"]
-    }
-  }
+      named: ["Client", "getClient", "RestError", "Pipeline"],
+    },
+  },
 });
 
 // Use anywhere — auto-imports from npm package
-code`const client: ${httpRuntime.Client} = ${httpRuntime.getClient}(endpoint);`
+code`const client: ${httpRuntime.Client} = ${httpRuntime.getClient}(endpoint);`;
 ```
 
 Register external packages in the `<Output>` component:
 
 ```tsx
-<Output externals={[httpRuntime]}>
-  {/* ... */}
-</Output>
+<Output externals={[httpRuntime]}>{/* ... */}</Output>
 ```
 
 ### 4.3 The Context System
@@ -285,7 +294,9 @@ const MyContext = createNamedContext<MyContextValue>("MyContext");
 #### Providing Context
 
 ```tsx
-<MyContext.Provider value={{ endpoint: "https://api.example.com", authSchemes: ["bearer"] }}>
+<MyContext.Provider
+  value={{ endpoint: "https://api.example.com", authSchemes: ["bearer"] }}
+>
   <ChildComponents />
 </MyContext.Provider>
 ```
@@ -317,17 +328,17 @@ Context walks **up the owner chain** (parent scopes) to find the nearest provide
 
 #### Built-in Contexts
 
-| Context | Package | Purpose |
-|---------|---------|---------|
-| `BinderContext` | core | Access the symbol binder |
-| `ScopeContext` | core | Current output scope |
-| `DeclarationContext` | core | Symbol being declared |
-| `SourceFileContext` | core | Current source file |
-| `SourceDirectoryContext` | core | Current directory |
-| `NamePolicyContext` | core | Naming transformation policy |
-| `FormatOptions` | core | Code formatting options |
-| `MemberDeclarationContext` | core | Current member symbol being declared |
-| `MemberContext` | core | Owner symbol for new members |
+| Context                    | Package | Purpose                              |
+| -------------------------- | ------- | ------------------------------------ |
+| `BinderContext`            | core    | Access the symbol binder             |
+| `ScopeContext`             | core    | Current output scope                 |
+| `DeclarationContext`       | core    | Symbol being declared                |
+| `SourceFileContext`        | core    | Current source file                  |
+| `SourceDirectoryContext`   | core    | Current directory                    |
+| `NamePolicyContext`        | core    | Naming transformation policy         |
+| `FormatOptions`            | core    | Code formatting options              |
+| `MemberDeclarationContext` | core    | Current member symbol being declared |
+| `MemberContext`            | core    | Owner symbol for new members         |
 
 ### 4.4 Reactivity
 
@@ -347,6 +358,7 @@ count.value = 5; // effect re-runs automatically
 ```
 
 In the rendering pipeline:
+
 - Components wrapped in effects automatically re-render when reactive dependencies change
 - `flushJobs()` batches updates for efficiency
 - Reactive sets (`ReactiveUnionSet`) track collections with derived sets and indexes
@@ -360,7 +372,10 @@ In the rendering pipeline:
 Name policies transform declaration names to follow language conventions:
 
 ```typescript
-import { createTSNamePolicy, tsNameConflictResolver } from "@alloy-js/typescript";
+import {
+  createTSNamePolicy,
+  tsNameConflictResolver,
+} from "@alloy-js/typescript";
 
 const policy = createTSNamePolicy();
 // "my_function" → "myFunction" (camelCase for functions)
@@ -369,6 +384,7 @@ const policy = createTSNamePolicy();
 ```
 
 **TypeScript naming conventions applied automatically:**
+
 - **PascalCase:** Classes, types, interfaces, enums, enum members
 - **camelCase:** Functions, parameters, variables, object/class members
 - **Reserved word handling:** Appends `_` suffix for global reserved words; context-safe words (delete, super, typeof) are allowed as properties
@@ -378,7 +394,10 @@ const policy = createTSNamePolicy();
 Register at the `<Output>` level:
 
 ```tsx
-<Output namePolicy={createTSNamePolicy()} nameConflictResolver={tsNameConflictResolver}>
+<Output
+  namePolicy={createTSNamePolicy()}
+  nameConflictResolver={tsNameConflictResolver}
+>
   {/* ... */}
 </Output>
 ```
@@ -406,150 +425,151 @@ Useful for optional sections in templates — render fallback content when the s
 
 ### Structural Components
 
-| Component | Purpose | Key Props |
-|-----------|---------|-----------|
-| `Output` | Root of all output. Sets up binder, name policy, format options. | `externals`, `namePolicy`, `nameConflictResolver`, `basePath`, `printWidth`, `tabWidth` |
-| `SourceDirectory` | Declares a directory in output. | `path`, `children` |
-| `SourceFile` | Declares a file in output with content. | `path`, `filetype`, `reference`, `header`, `printWidth`, `tabWidth` |
-| `Declaration` | Declares a symbol in current scope. | `name`, `refkey`, `symbol`, `metadata`, `children` |
-| `MemberDeclaration` | Declares a member symbol. | `name`, `refkey`, `metadata`, `static`, `children` |
-| `Scope` | Creates a lexical scope. | `value` or `name`, `metadata`, `children` |
-| `MemberScope` | Creates a member scope. | `ownerSymbol`, `children` |
+| Component           | Purpose                                                          | Key Props                                                                               |
+| ------------------- | ---------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| `Output`            | Root of all output. Sets up binder, name policy, format options. | `externals`, `namePolicy`, `nameConflictResolver`, `basePath`, `printWidth`, `tabWidth` |
+| `SourceDirectory`   | Declares a directory in output.                                  | `path`, `children`                                                                      |
+| `SourceFile`        | Declares a file in output with content.                          | `path`, `filetype`, `reference`, `header`, `printWidth`, `tabWidth`                     |
+| `Declaration`       | Declares a symbol in current scope.                              | `name`, `refkey`, `symbol`, `metadata`, `children`                                      |
+| `MemberDeclaration` | Declares a member symbol.                                        | `name`, `refkey`, `metadata`, `static`, `children`                                      |
+| `Scope`             | Creates a lexical scope.                                         | `value` or `name`, `metadata`, `children`                                               |
+| `MemberScope`       | Creates a member scope.                                          | `ownerSymbol`, `children`                                                               |
 
 ### Rendering Control
 
-| Component | Purpose | Key Props |
-|-----------|---------|-----------|
-| `For` | Iterates collections, rendering per item. | `each`, `children` (callback), `joiner`, `comma`, `semicolon`, `hardline`, `ender` |
-| `Show` | Conditional rendering. | `when`, `children`, `fallback` |
-| `Switch` / `Match` | Multi-branch conditional. | `when`, `else`, `children` |
-| `Wrap` | Conditionally wraps children. | `when`, `with`, `props`, `children` |
-| `List` | Renders children with separators. | `joiner`, `comma`, `semicolon`, `line`, `hardline`, `ender` |
-| `StatementList` | Joins children with semicolons + hardlines. | `children` |
+| Component          | Purpose                                     | Key Props                                                                          |
+| ------------------ | ------------------------------------------- | ---------------------------------------------------------------------------------- |
+| `For`              | Iterates collections, rendering per item.   | `each`, `children` (callback), `joiner`, `comma`, `semicolon`, `hardline`, `ender` |
+| `Show`             | Conditional rendering.                      | `when`, `children`, `fallback`                                                     |
+| `Switch` / `Match` | Multi-branch conditional.                   | `when`, `else`, `children`                                                         |
+| `Wrap`             | Conditionally wraps children.               | `when`, `with`, `props`, `children`                                                |
+| `List`             | Renders children with separators.           | `joiner`, `comma`, `semicolon`, `line`, `hardline`, `ender`                        |
+| `StatementList`    | Joins children with semicolons + hardlines. | `children`                                                                         |
 
 ### Content & Formatting
 
-| Component | Purpose | Key Props |
-|-----------|---------|-----------|
-| `Block` | Indented block with braces. | `opener`, `closer`, `newline`, `inline`, `children` |
-| `Indent` | Increases indentation. | `nobreak`, `line`, `softline`, `hardline`, `trailingBreak` |
-| `Prose` | Text that breaks at word boundaries. | `children` |
-| `Name` | Renders current declaration's name. | (none — uses context) |
-| `MemberName` | Renders current member declaration's name. | (none — uses context) |
-| `ReferenceOrContent` | Reference if symbol exists, else fallback. | `refkey`, `children` (fallback) |
+| Component            | Purpose                                    | Key Props                                                  |
+| -------------------- | ------------------------------------------ | ---------------------------------------------------------- |
+| `Block`              | Indented block with braces.                | `opener`, `closer`, `newline`, `inline`, `children`        |
+| `Indent`             | Increases indentation.                     | `nobreak`, `line`, `softline`, `hardline`, `trailingBreak` |
+| `Prose`              | Text that breaks at word boundaries.       | `children`                                                 |
+| `Name`               | Renders current declaration's name.        | (none — uses context)                                      |
+| `MemberName`         | Renders current member declaration's name. | (none — uses context)                                      |
+| `ReferenceOrContent` | Reference if symbol exists, else fallback. | `refkey`, `children` (fallback)                            |
 
 ### File Operations
 
-| Component | Purpose | Key Props |
-|-----------|---------|-----------|
-| `CopyFile` | Copies a file to output. | `path`, `src` |
-| `TemplateFile` | Template file with variable substitution. | `path`, `src`, `children` (TemplateVariable) |
-| `TemplateVariable` | Provides variable value for TemplateFile. | `name`, `value` or `children` |
-| `AppendFile` | Appends content to a file at marked regions. | `path`, `regions`, `children` |
-| `UpdateFile` | Updates or creates a file using current contents. | `path`, `defaultContent`, `children` (callback) |
+| Component          | Purpose                                           | Key Props                                       |
+| ------------------ | ------------------------------------------------- | ----------------------------------------------- |
+| `CopyFile`         | Copies a file to output.                          | `path`, `src`                                   |
+| `TemplateFile`     | Template file with variable substitution.         | `path`, `src`, `children` (TemplateVariable)    |
+| `TemplateVariable` | Provides variable value for TemplateFile.         | `name`, `value` or `children`                   |
+| `AppendFile`       | Appends content to a file at marked regions.      | `path`, `regions`, `children`                   |
+| `UpdateFile`       | Updates or creates a file using current contents. | `path`, `defaultContent`, `children` (callback) |
 
 ---
 
 ## 6. TypeScript Components Reference
 
 Import TypeScript components as:
+
 ```typescript
 import * as ts from "@alloy-js/typescript";
 ```
 
 ### Declarations
 
-| Component | Generates | Key Props |
-|-----------|-----------|-----------|
-| `ts.FunctionDeclaration` | `[async] function name<T>(params): ReturnType { body }` | `name`, `refkey`, `export`, `async`, `parameters`, `typeParameters`, `returnType`, `children` (body) |
-| `ts.InterfaceDeclaration` | `interface Name<T> extends Base { members }` | `name`, `refkey`, `export`, `extends`, `typeParameters`, `children` |
-| `ts.ClassDeclaration` | `class Name extends Base implements I { members }` | `name`, `refkey`, `export`, `extends`, `implements`, `children` |
-| `ts.TypeDeclaration` | `type Name = Type;` | `name`, `refkey`, `export`, `children` |
-| `ts.EnumDeclaration` | `enum Name { MEMBER = value }` | `name`, `refkey`, `export`, `jsValue`, `children` |
-| `ts.VarDeclaration` | `const\|let\|var name: Type = init;` | `name`, `refkey`, `export`, `const`/`let`/`var`, `type`, `initializer` or `children` |
+| Component                 | Generates                                               | Key Props                                                                                            |
+| ------------------------- | ------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| `ts.FunctionDeclaration`  | `[async] function name<T>(params): ReturnType { body }` | `name`, `refkey`, `export`, `async`, `parameters`, `typeParameters`, `returnType`, `children` (body) |
+| `ts.InterfaceDeclaration` | `interface Name<T> extends Base { members }`            | `name`, `refkey`, `export`, `extends`, `typeParameters`, `children`                                  |
+| `ts.ClassDeclaration`     | `class Name extends Base implements I { members }`      | `name`, `refkey`, `export`, `extends`, `implements`, `children`                                      |
+| `ts.TypeDeclaration`      | `type Name = Type;`                                     | `name`, `refkey`, `export`, `children`                                                               |
+| `ts.EnumDeclaration`      | `enum Name { MEMBER = value }`                          | `name`, `refkey`, `export`, `jsValue`, `children`                                                    |
+| `ts.VarDeclaration`       | `const\|let\|var name: Type = init;`                    | `name`, `refkey`, `export`, `const`/`let`/`var`, `type`, `initializer` or `children`                 |
 
 ### Declaration Members
 
-| Component | Generates | Key Props |
-|-----------|-----------|-----------|
-| `ts.InterfaceMember` | `[readonly] name[?]: type` | `name`, `type`, `optional`, `readonly`, `indexer`, `refkey` |
-| `ts.InterfaceMethod` | `name<T>(params): ReturnType` | `name`, `refkey`, `async`, `parameters`, `typeParameters`, `returnType` |
-| `ts.ClassField` | `[access] [static] name[?]: type [= init]` | `name`, `type`, `optional`, `public`/`private`/`protected`/`static`/`jsPrivate`, `children` (initializer) |
-| `ts.ClassMethod` | `[access] [static] [async] name(params): ReturnType { body }` | Same access modifiers + `async`, `parameters`, `returnType`, `children` (body) |
-| `ts.EnumMember` | `NAME = value` | `name`, `refkey`, `jsValue` or `value` |
+| Component            | Generates                                                     | Key Props                                                                                                 |
+| -------------------- | ------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| `ts.InterfaceMember` | `[readonly] name[?]: type`                                    | `name`, `type`, `optional`, `readonly`, `indexer`, `refkey`                                               |
+| `ts.InterfaceMethod` | `name<T>(params): ReturnType`                                 | `name`, `refkey`, `async`, `parameters`, `typeParameters`, `returnType`                                   |
+| `ts.ClassField`      | `[access] [static] name[?]: type [= init]`                    | `name`, `type`, `optional`, `public`/`private`/`protected`/`static`/`jsPrivate`, `children` (initializer) |
+| `ts.ClassMethod`     | `[access] [static] [async] name(params): ReturnType { body }` | Same access modifiers + `async`, `parameters`, `returnType`, `children` (body)                            |
+| `ts.EnumMember`      | `NAME = value`                                                | `name`, `refkey`, `jsValue` or `value`                                                                    |
 
 ### Functions & Types
 
-| Component | Generates | Key Props |
-|-----------|-----------|-----------|
+| Component               | Generates                           | Key Props                                                         |
+| ----------------------- | ----------------------------------- | ----------------------------------------------------------------- |
 | `ts.FunctionExpression` | `[async] function(params) { body }` | `async`, `parameters`, `typeParameters`, `returnType`, `children` |
-| `ts.ArrowFunction` | `[async] (params) => { body }` | `async`, `parameters`, `typeParameters`, `returnType`, `children` |
-| `ts.FunctionType` | `(params) => ReturnType` | `parameters`, `typeParameters`, `returnType` |
-| `ts.CallSignature` | `<T>(params): ReturnType` | `parameters`, `typeParameters`, `returnType` |
+| `ts.ArrowFunction`      | `[async] (params) => { body }`      | `async`, `parameters`, `typeParameters`, `returnType`, `children` |
+| `ts.FunctionType`       | `(params) => ReturnType`            | `parameters`, `typeParameters`, `returnType`                      |
+| `ts.CallSignature`      | `<T>(params): ReturnType`           | `parameters`, `typeParameters`, `returnType`                      |
 
 ### Expressions
 
-| Component | Generates | Key Props |
-|-----------|-----------|-----------|
-| `ts.ObjectExpression` | `{ key: value }` | `jsValue`, `children` |
-| `ts.ObjectProperty` | `key: value` | `name` or `nameExpression`, `value` or `jsValue` or `children` |
-| `ts.ObjectSpreadProperty` | `...expr` | `value` or `children` |
-| `ts.ArrayExpression` | `[item1, item2]` | `jsValue`, `children` |
-| `ts.FunctionCallExpression` | `target(args)` | `target`, `args` |
-| `ts.NewExpression` | `new Target(args)` | `target`, `args` |
-| `ts.MemberExpression` | `obj.prop?.method()` | `children` (MemberExpression.Part) |
-| `ts.ValueExpression` | Serialized JS value | `jsValue` |
+| Component                   | Generates            | Key Props                                                      |
+| --------------------------- | -------------------- | -------------------------------------------------------------- |
+| `ts.ObjectExpression`       | `{ key: value }`     | `jsValue`, `children`                                          |
+| `ts.ObjectProperty`         | `key: value`         | `name` or `nameExpression`, `value` or `jsValue` or `children` |
+| `ts.ObjectSpreadProperty`   | `...expr`            | `value` or `children`                                          |
+| `ts.ArrayExpression`        | `[item1, item2]`     | `jsValue`, `children`                                          |
+| `ts.FunctionCallExpression` | `target(args)`       | `target`, `args`                                               |
+| `ts.NewExpression`          | `new Target(args)`   | `target`, `args`                                               |
+| `ts.MemberExpression`       | `obj.prop?.method()` | `children` (MemberExpression.Part)                             |
+| `ts.ValueExpression`        | Serialized JS value  | `jsValue`                                                      |
 
 ### Control Flow
 
-| Component | Generates | Key Props |
-|-----------|-----------|-----------|
-| `ts.IfStatement` | `if (cond) { body }` | `condition`, `children` |
-| `ts.ElseIfClause` | `else if (cond) { body }` | `condition`, `children` |
-| `ts.ElseClause` | `else { body }` | `children` |
-| `ts.SwitchStatement` | `switch (expr) { cases }` | `expression`, `children` |
-| `ts.CaseClause` | `case expr: body` | `expression` or `jsValue` or `default`, `children`, `break` |
-| `ts.TryStatement` | `try { body }` | `children` |
-| `ts.CatchClause` | `catch (err) { body }` | `parameter`, `children` |
-| `ts.FinallyClause` | `finally { body }` | `children` |
+| Component            | Generates                 | Key Props                                                   |
+| -------------------- | ------------------------- | ----------------------------------------------------------- |
+| `ts.IfStatement`     | `if (cond) { body }`      | `condition`, `children`                                     |
+| `ts.ElseIfClause`    | `else if (cond) { body }` | `condition`, `children`                                     |
+| `ts.ElseClause`      | `else { body }`           | `children`                                                  |
+| `ts.SwitchStatement` | `switch (expr) { cases }` | `expression`, `children`                                    |
+| `ts.CaseClause`      | `case expr: body`         | `expression` or `jsValue` or `default`, `children`, `break` |
+| `ts.TryStatement`    | `try { body }`            | `children`                                                  |
+| `ts.CatchClause`     | `catch (err) { body }`    | `parameter`, `children`                                     |
+| `ts.FinallyClause`   | `finally { body }`        | `children`                                                  |
 
 ### Scopes & References
 
-| Component | Generates | Key Props |
-|-----------|-----------|-----------|
-| `ts.LexicalScope` | Scope for type/value declarations | `value` or `name` |
-| `ts.BlockScope` | `{ block }` with scope | `value` or `name`, `children` |
-| `ts.MemberScope` | Member scope for class/interface | `ownerSymbol`, `children` |
-| `ts.Reference` | Reference to a declared symbol | `refkey`, `type` (boolean for type-only) |
-| `ts.TypeRefContext` | Marks region as type-only references | `children` |
+| Component           | Generates                            | Key Props                                |
+| ------------------- | ------------------------------------ | ---------------------------------------- |
+| `ts.LexicalScope`   | Scope for type/value declarations    | `value` or `name`                        |
+| `ts.BlockScope`     | `{ block }` with scope               | `value` or `name`, `children`            |
+| `ts.MemberScope`    | Member scope for class/interface     | `ownerSymbol`, `children`                |
+| `ts.Reference`      | Reference to a declared symbol       | `refkey`, `type` (boolean for type-only) |
+| `ts.TypeRefContext` | Marks region as type-only references | `children`                               |
 
 ### Package & File
 
-| Component | Generates | Key Props |
-|-----------|-----------|-----------|
-| `ts.SourceFile` | TypeScript source file with auto-imports | `path`, `export` (boolean or string), `header`, `headerComment` |
-| `ts.PackageDirectory` | Package with package.json + tsconfig | `name`, `version`, `path`, `tsConfig`, `packages` |
-| `ts.PackageJsonFile` | package.json | `name`, `version`, `dependencies`, `scripts`, `exports` |
-| `ts.TsConfigJson` | tsconfig.json | `outDir` |
-| `ts.BarrelFile` | Re-export barrel (index.ts) | `path`, `export` |
+| Component             | Generates                                | Key Props                                                       |
+| --------------------- | ---------------------------------------- | --------------------------------------------------------------- |
+| `ts.SourceFile`       | TypeScript source file with auto-imports | `path`, `export` (boolean or string), `header`, `headerComment` |
+| `ts.PackageDirectory` | Package with package.json + tsconfig     | `name`, `version`, `path`, `tsConfig`, `packages`               |
+| `ts.PackageJsonFile`  | package.json                             | `name`, `version`, `dependencies`, `scripts`, `exports`         |
+| `ts.TsConfigJson`     | tsconfig.json                            | `outDir`                                                        |
+| `ts.BarrelFile`       | Re-export barrel (index.ts)              | `path`, `export`                                                |
 
 ### Documentation
 
-| Component | Generates | Key Props |
-|-----------|-----------|-----------|
-| `ts.JSDoc` | `/** multi-paragraph */` | `children` (array of paragraphs) |
-| `ts.JSDocComment` | `/** raw */` | `children` |
-| `ts.JSDocExample` | `@example` block | `fenced`, `language`, `children` |
-| `ts.JSDocParams` | `@param` tags from array | `parameters` |
-| `ts.JSDocParam` | Single `@param` tag | `name`, `type`, `optional`, `defaultValue`, `children` |
+| Component         | Generates                | Key Props                                              |
+| ----------------- | ------------------------ | ------------------------------------------------------ |
+| `ts.JSDoc`        | `/** multi-paragraph */` | `children` (array of paragraphs)                       |
+| `ts.JSDocComment` | `/** raw */`             | `children`                                             |
+| `ts.JSDocExample` | `@example` block         | `fenced`, `language`, `children`                       |
+| `ts.JSDocParams`  | `@param` tags from array | `parameters`                                           |
+| `ts.JSDocParam`   | Single `@param` tag      | `name`, `type`, `optional`, `defaultValue`, `children` |
 
 ### Utilities
 
-| Component | Generates | Key Props |
-|-----------|-----------|-----------|
-| `ts.CommaList` | Comma-separated items | `children`, `hardline`, `softline` |
-| `ts.PropertyName` | Quoted-if-needed property name | `name`, `private` |
-| `ts.SingleLineCommentBlock` | `// comment` | `children` |
+| Component                   | Generates                      | Key Props                          |
+| --------------------------- | ------------------------------ | ---------------------------------- |
+| `ts.CommaList`              | Comma-separated items          | `children`, `hardline`, `softline` |
+| `ts.PropertyName`           | Quoted-if-needed property name | `name`, `private`                  |
+| `ts.SingleLineCommentBlock` | `// comment`                   | `children`                         |
 
 ---
 
@@ -559,16 +579,16 @@ Alloy uses Prettier-like formatting primitives via intrinsic elements:
 
 ### Intrinsic Elements
 
-| Element | Purpose |
-|---------|---------|
-| `<indent>` | Indent content |
-| `<group>` | Group content for line-breaking decisions |
-| `<br />` | Line break (may be flattened to space) |
-| `<hbr />` | Hard line break (always breaks) |
-| `<sbr />` | Soft line break (breaks if group doesn't fit) |
-| `<lbr />` | Literal line break (no indentation after break) |
-| `<ifBreak>` | Content shown only when group breaks |
-| `<dedentToRoot>` | Dedent to the root level |
+| Element          | Purpose                                         |
+| ---------------- | ----------------------------------------------- |
+| `<indent>`       | Indent content                                  |
+| `<group>`        | Group content for line-breaking decisions       |
+| `<br />`         | Line break (may be flattened to space)          |
+| `<hbr />`        | Hard line break (always breaks)                 |
+| `<sbr />`        | Soft line break (breaks if group doesn't fit)   |
+| `<lbr />`        | Literal line break (no indentation after break) |
+| `<ifBreak>`      | Content shown only when group breaks            |
+| `<dedentToRoot>` | Dedent to the root level                        |
 
 ### The `code` Template Tag
 
@@ -581,10 +601,11 @@ code`
   if (condition) {
     ${someRefkey}(value);
   }
-`
+`;
 ```
 
 The `code` tag:
+
 - Preserves line breaks
 - Auto-indents based on nesting level
 - Supports refkey interpolation for auto-import
@@ -596,7 +617,7 @@ Use `text` for inline text that normalizes whitespace to single spaces:
 ```tsx
 import { text } from "@alloy-js/core";
 
-text`Hello ${name}, you have ${count} messages.`
+text`Hello ${name}, you have ${count} messages.`;
 ```
 
 ---
@@ -611,7 +632,10 @@ Structure components hierarchically from top-level orchestrators to leaf rendere
 // TOP LEVEL — orchestrates the full output
 function MyEmitter(props: { operations: Operation[] }) {
   return (
-    <Output namePolicy={createTSNamePolicy()} nameConflictResolver={tsNameConflictResolver}>
+    <Output
+      namePolicy={createTSNamePolicy()}
+      nameConflictResolver={tsNameConflictResolver}
+    >
       <SourceDirectory path="src">
         <ModelsFile types={props.types} />
         <OperationsFile operations={props.operations} />
@@ -653,6 +677,7 @@ function OperationFunction(props: { operation: Operation }) {
 ```
 
 **Follow flight-instructor decomposition for file organization:**
+
 - `models.ts` — type declarations
 - `serialization.ts` — serializer/deserializer functions
 - `rest-code.ts` — operation call code
@@ -664,11 +689,10 @@ Always embed refkeys directly in `code` templates. Never stringify them.
 
 ```tsx
 // ✅ CORRECT — refkeys are live symbolic references
-code`const result = ${deserializerRefkey}(response.body);`
+code`const result = ${deserializerRefkey}(response.body);`;
 code`const client: ${httpRuntime.Client} = ${httpRuntime.getClient}(endpoint);`
-
 // ❌ WRONG — string interpolation loses the symbolic reference
-`const result = ${deserializerRefkey.toString()}(response.body);`
+`const result = ${deserializerRefkey.toString()}(response.body);`;
 ```
 
 Multiple refkeys compose naturally:
@@ -677,7 +701,7 @@ Multiple refkeys compose naturally:
 code`
   const client = ${createClientRef}(endpoint, ${optionsRef});
   return ${deserializerRef}(await client.${methodRef}(${paramsRef}));
-`
+`;
 ```
 
 ### 8.3 Typed Declaration Components
@@ -691,8 +715,8 @@ Use declaration components with refkeys for all declarations:
   export
   async
   parameters={[
-    { name: "user", type: userTypeRefkey },          // refkey → auto-import
-    { name: "options", type: "RequestOptions", optional: true }
+    { name: "user", type: userTypeRefkey }, // refkey → auto-import
+    { name: "options", type: "RequestOptions", optional: true },
   ]}
   returnType={code`Promise<${userTypeRefkey}>`}
 >
@@ -724,13 +748,13 @@ Always use `ParameterDescriptor[]` arrays for function parameters:
 const params: ParameterDescriptor[] = [
   { name: "endpoint", type: "string" },
   { name: "id", type: "string" },
-  { name: "body", type: requestTypeRefkey },              // refkey for auto-import
+  { name: "body", type: requestTypeRefkey }, // refkey for auto-import
   { name: "options", type: optionsTypeRefkey, optional: true },
-  { name: "args", type: "unknown[]", rest: true },         // ...args: unknown[]
-  { name: "retries", type: "number", default: "3" },       // retries: number = 3
+  { name: "args", type: "unknown[]", rest: true }, // ...args: unknown[]
+  { name: "retries", type: "number", default: "3" }, // retries: number = 3
 ];
 
-<ts.FunctionDeclaration name="doRequest" parameters={params} />
+<ts.FunctionDeclaration name="doRequest" parameters={params} />;
 ```
 
 **Important:** Alloy uses `default` for default values, NOT `initializer`:
@@ -831,7 +855,7 @@ export function useSdkContext(): SdkContext {
 <SdkContextAlloy.Provider value={{ sdkContext, types }}>
   <ModelFiles />
   <Operations />
-</SdkContextAlloy.Provider>
+</SdkContextAlloy.Provider>;
 
 // Consume (any depth — no prop threading needed)
 function SomeLeafComponent() {
@@ -852,28 +876,26 @@ export const httpRuntime = createPackage({
   version: "0.1.0",
   descriptor: {
     ".": {
-      named: ["Client", "getClient", "RestError", "Pipeline", "ClientOptions"]
+      named: ["Client", "getClient", "RestError", "Pipeline", "ClientOptions"],
     },
     "./api": {
-      named: ["createRestError"]
-    }
-  }
+      named: ["createRestError"],
+    },
+  },
 });
 ```
 
 Use anywhere — imports are auto-generated:
 
 ```tsx
-code`const client: ${httpRuntime.Client} = ${httpRuntime.getClient}(endpoint);`
+code`const client: ${httpRuntime.Client} = ${httpRuntime.getClient}(endpoint);`;
 // Generates: import { Client, getClient } from "@typespec/ts-http-runtime";
 ```
 
 Register in `<Output>`:
 
 ```tsx
-<Output externals={[httpRuntime]}>
-  {/* ... */}
-</Output>
+<Output externals={[httpRuntime]}>{/* ... */}</Output>
 ```
 
 ### 8.9 The `stc` and `sti` Patterns
@@ -903,15 +925,18 @@ Use `namekey` when you need to control how a name is represented or when the aut
 import { namekey } from "@alloy-js/core";
 
 // Preserve exact name (bypass name policy)
-<ts.InterfaceDeclaration name={namekey("LROPoller", { ignoreNamePolicy: true })} export>
+<ts.InterfaceDeclaration
+  name={namekey("LROPoller", { ignoreNamePolicy: true })}
+  export
+>
   {/* "LROPoller" stays as-is, NOT transformed to "lroPoller" */}
-</ts.InterfaceDeclaration>
+</ts.InterfaceDeclaration>;
 ```
 
 **For protocol-fixed names** (e.g., HTTP headers, wire-format keys), always use `ignoreNamePolicy: true`:
 
 ```tsx
-namekey("Content-Type", { ignoreNamePolicy: true })
+namekey("Content-Type", { ignoreNamePolicy: true });
 ```
 
 ### 8.11 NoNamePolicy for Verbatim Names
@@ -933,7 +958,7 @@ function NoNamePolicy(props: { children: Children }) {
   <ts.InterfaceDeclaration name="snake_case_name" export>
     <ts.InterfaceMember name="my_property" type="string" />
   </ts.InterfaceDeclaration>
-</NoNamePolicy>
+</NoNamePolicy>;
 ```
 
 This pattern is used in flight-instructor when rendering TypeSpec model declarations where the original casing must be preserved.
@@ -975,7 +1000,7 @@ Use factory functions to create components with associated mutable state:
 ```tsx
 function createInstructionsBlock() {
   const instructions = shallowReactive<string[]>([]);
-  
+
   function InstructionsBlock() {
     return (
       <Show when={instructions.length > 0}>
@@ -987,7 +1012,7 @@ function createInstructionsBlock() {
       </Show>
     );
   }
-  
+
   return { instructions, InstructionsBlock };
 }
 
@@ -1002,11 +1027,15 @@ instructions.push("Remember to handle auth before calling this function.");
 Generate conditional code only when a property is optional:
 
 ```tsx
-function MaybeOptional(props: { property: Property; variable: string; children: Children }) {
+function MaybeOptional(props: {
+  property: Property;
+  variable: string;
+  children: Children;
+}) {
   if (!props.property.optional) {
-    return props.children;  // Required — emit children directly
+    return props.children; // Required — emit children directly
   }
-  
+
   return (
     <ts.IfStatement condition={code`${props.variable} !== undefined`}>
       {props.children}
@@ -1017,7 +1046,7 @@ function MaybeOptional(props: { property: Property; variable: string; children: 
 // Usage — wraps in `if` only when property is optional
 <MaybeOptional property={param} variable="options.limit">
   {code`queryParams.set("limit", String(options.limit));`}
-</MaybeOptional>
+</MaybeOptional>;
 ```
 
 ### 8.15 If/Else and Ternary Expression Chains
@@ -1034,12 +1063,10 @@ interface Condition {
 function IfElseChain(props: { conditions: Condition[]; whenFalse?: Children }) {
   const [first, ...rest] = props.conditions;
   if (!first) return props.whenFalse;
-  
+
   return (
     <>
-      <ts.IfStatement condition={first.test}>
-        {first.whenTrue}
-      </ts.IfStatement>
+      <ts.IfStatement condition={first.test}>{first.whenTrue}</ts.IfStatement>
       <For each={rest}>
         {(cond) => (
           <ts.ElseIfClause condition={cond.test}>
@@ -1048,9 +1075,7 @@ function IfElseChain(props: { conditions: Condition[]; whenFalse?: Children }) {
         )}
       </For>
       <Show when={props.whenFalse !== undefined}>
-        <ts.ElseClause>
-          {props.whenFalse}
-        </ts.ElseClause>
+        <ts.ElseClause>{props.whenFalse}</ts.ElseClause>
       </Show>
     </>
   );
@@ -1071,12 +1096,12 @@ interface SerializationProps {
 
 function SerializationExpression(props: SerializationProps) {
   const { direction, type, value } = props;
-  
+
   // Dispatch based on type kind
   if (isScalar(type)) return <ScalarSerialization {...props} />;
   if (isModel(type)) return <ModelSerialization {...props} />;
   if (isUnion(type)) return <UnionSerialization {...props} />;
-  
+
   // Identity — no transformation needed
   return value;
 }
@@ -1085,7 +1110,7 @@ function SerializationExpression(props: SerializationProps) {
 function ScalarSerialization(props: SerializationProps) {
   const { direction, type, value } = props;
   const codec = getCodec(type);
-  
+
   switch (codec.type) {
     case "rfc3339":
       return direction === "toWire"
@@ -1110,13 +1135,18 @@ interface DeclarationProvider {
   allTypes: Map<Type, Refkey>;
   allSerializationFunctions: Map<Type, { toWire?: Refkey; fromWire?: Refkey }>;
   typeRegistry: TypeRegistry;
-  
-  typeDeclarationRefkey(type: Type): Refkey;       // Get or create type refkey
-  serializationFunctionRefkey(type: Type, direction: "toWire" | "fromWire"): Refkey;
-  shouldDeclareType(type: Type): boolean;           // Should this type get a declaration?
+
+  typeDeclarationRefkey(type: Type): Refkey; // Get or create type refkey
+  serializationFunctionRefkey(
+    type: Type,
+    direction: "toWire" | "fromWire",
+  ): Refkey;
+  shouldDeclareType(type: Type): boolean; // Should this type get a declaration?
 }
 
-const DeclarationProviderContext = createNamedContext<DeclarationProvider>("DeclarationProvider");
+const DeclarationProviderContext = createNamedContext<DeclarationProvider>(
+  "DeclarationProvider",
+);
 
 function useDeclarationProvider(): DeclarationProvider {
   const ctx = useContext(DeclarationProviderContext);
@@ -1140,13 +1170,13 @@ interface TypeRegistryEntry {
 
 class TypeRegistry {
   private entries: TypeRegistryEntry[] = [];
-  
+
   register(entry: TypeRegistryEntry) {
     this.entries.push(entry);
   }
-  
+
   detect(type: Type): TypeRegistryEntry | undefined {
-    return this.entries.find(e => e.detect(type));
+    return this.entries.find((e) => e.detect(type));
   }
 }
 
@@ -1202,7 +1232,7 @@ for (const match of text.matchAll(pattern)) {
 }
 
 // ✅ CORRECT — direct refkey usage
-code`return ${helperRefkey("serializeRecord")}(obj, serializer);`
+code`return ${helperRefkey("serializeRecord")}(obj, serializer);`;
 ```
 
 **Why it's wrong:** Token-collision bugs, silent misses, defeats Alloy's symbolic system.
@@ -1215,7 +1245,7 @@ const apiImport = `import { create${name} } from "./api/index.js";`;
 const lroImports = `import { getSimplePoller } from "./static-helpers/simplePollerHelpers.js";`;
 
 // ✅ CORRECT — let Alloy handle imports via refkeys
-code`this._client = ${createClientRefkey}(endpoint, options);`
+code`this._client = ${createClientRefkey}(endpoint, options);`;
 ```
 
 **Why it's wrong:** Alloy can't track symbols, results in self-import bugs and stale paths.
@@ -1228,7 +1258,7 @@ const prefix = "../".repeat(maxLayer + 2);
 imports.push(`import { ${type} } from "${prefix}api/index.js";`);
 
 // ✅ CORRECT — Alloy computes paths automatically
-code`${someRefkey}`
+code`${someRefkey}`;
 ```
 
 **Why it's wrong:** Relative paths change with nesting depth, manual math is error-prone.
@@ -1239,11 +1269,12 @@ code`${someRefkey}`
 // ❌ FORBIDDEN — scanning rendered output for patterns
 function resolveLegacyReferences(expression: string): Children {
   return expression.replace(/buildCsvCollection/g, () =>
-    resolveReference(context, refkey("buildCsvCollection")));
+    resolveReference(context, refkey("buildCsvCollection")),
+  );
 }
 
 // ✅ CORRECT — embed refkeys during rendering
-code`${helperRefkey("buildCsvCollection")}(${items})`
+code`${helperRefkey("buildCsvCollection")}(${items})`;
 ```
 
 **Why it's wrong:** Post-render scanning happens after Alloy's tree is finalized; imports can't be generated.
@@ -1283,11 +1314,11 @@ code`${helperRefkey("buildCsvCollection")}(${items})`
 ```tsx
 // ❌ WRONG — old framework refkey (returns string)
 import { refkey } from "../../framework/refkey.js";
-refkey("MyModel", "serializer");  // → "refkey_MyModel_serializer"
+refkey("MyModel", "serializer"); // → "refkey_MyModel_serializer"
 
 // ✅ CORRECT — Alloy refkey (returns Refkey object)
 import { refkey } from "@alloy-js/core";
-refkey(sdkType, "serializer");    // → Refkey object with auto-resolution
+refkey(sdkType, "serializer"); // → Refkey object with auto-resolution
 ```
 
 **VS Code autocomplete may pick the wrong import.** Always verify the import path.
@@ -1314,12 +1345,14 @@ refkey(sdkType, "serializer");    // → Refkey object with auto-resolution
 
 ```tsx
 // ❌ BAD — not reactive, no separator support
-{items.map(item => <Item data={item} />)}
+{
+  items.map((item) => <Item data={item} />);
+}
 
 // ✅ GOOD — reactive, with built-in joining
 <For each={items} comma hardline>
   {(item) => <Item data={item} />}
-</For>
+</For>;
 ```
 
 ### ❌ Anti-Pattern 9: Emitting Entire Files as Giant `code` Blocks
@@ -1352,7 +1385,7 @@ it("renders interface correctly", () => {
           <ts.InterfaceMember name="bar" type="string" />
         </ts.InterfaceDeclaration>
       </ts.SourceFile>
-    </Output>
+    </Output>,
   );
   expect(printTree(tree)).toContain("interface Foo");
 });
@@ -1365,19 +1398,19 @@ it("renders interface correctly", () => {
 expect(
   <Output>
     <ts.SourceFile path="test.ts">hello world</ts.SourceFile>
-  </Output>
+  </Output>,
 ).toRenderTo({ "test.ts": "hello world" });
 
 // toRenderToAsync — for async rendering
 await expect(
   <Output>
     <ts.SourceFile path="test.ts">{asyncContent}</ts.SourceFile>
-  </Output>
+  </Output>,
 ).toRenderToAsync({ "test.ts": "expected" });
 
 // toHaveDiagnostics — validate warnings/errors
 expect(element).toHaveDiagnostics([
-  { message: /some pattern/, severity: "warning" }
+  { message: /some pattern/, severity: "warning" },
 ]);
 ```
 
@@ -1408,7 +1441,7 @@ d`
   interface Foo {
     bar: string;
   }
-`
+`;
 // Equivalent to: "interface Foo {\n  bar: string;\n}"
 ```
 
@@ -1420,10 +1453,10 @@ import { ref, flushJobs } from "@alloy-js/core";
 it("re-renders when reactive value changes", () => {
   const name = ref("Foo");
   const tree = renderTree(<ts.InterfaceDeclaration name={name.value} />);
-  
+
   name.value = "Bar";
   flushJobs();  // Process batched updates
-  
+
   expect(printTree(tree)).toContain("interface Bar");
 });
 ```
@@ -1451,7 +1484,7 @@ it("re-renders when reactive value changes", () => {
 
 ```tsx
 // ❌ WRONG — string concatenation loses refkey object
-return `${getReturnType(context, type.valueType)}[]`;  // → "[object Object][]"
+return `${getReturnType(context, type.valueType)}[]`; // → "[object Object][]"
 
 // ✅ CORRECT — code template preserves refkey
 return code`${getReturnType(context, type.valueType)}[]`;
@@ -1477,7 +1510,11 @@ parameters={[
 
 ```tsx
 <For each={myMap}>
-  {([key, value], index) => <>{key}: {value}</>}
+  {([key, value], index) => (
+    <>
+      {key}: {value}
+    </>
+  )}
 </For>
 ```
 
@@ -1491,13 +1528,14 @@ code`
   if (condition) {
     doSomething();
   }
-`
+`;
 // Equivalent to: "if (condition) {\n  doSomething();\n}"
 ```
 
 ### Gotcha 7: Don't Mix Structural and Behavioral Changes
 
 When migrating code to Alloy, separate:
+
 - **Slice A:** Structural migration (byte-identical output) — only change architecture
 - **Slice B:** Behavioral changes — dedicated verification
 
@@ -1539,23 +1577,53 @@ When generating Alloy code, follow these rules:
 ```typescript
 // Core imports
 import {
-  Output, SourceDirectory, SourceFile, Declaration,
-  For, Show, Switch, Match, List, StatementList,
-  Block, Indent, Scope, Wrap, Prose,
-  code, text, refkey, namekey, memberRefkey,
-  createContext, createNamedContext, useContext,
-  ref, computed, effect, shallowRef, shallowReactive,
-  render, renderAsync, writeOutput,
-  children, mapJoin, join,
-  stc, sti,
+  Output,
+  SourceDirectory,
+  SourceFile,
+  Declaration,
+  For,
+  Show,
+  Switch,
+  Match,
+  List,
+  StatementList,
+  Block,
+  Indent,
+  Scope,
+  Wrap,
+  Prose,
+  code,
+  text,
+  refkey,
+  namekey,
+  memberRefkey,
+  createContext,
+  createNamedContext,
+  useContext,
+  ref,
+  computed,
+  effect,
+  shallowRef,
+  shallowReactive,
+  render,
+  renderAsync,
+  writeOutput,
+  children,
+  mapJoin,
+  join,
+  stc,
+  sti,
   createContentSlot,
-  mergeProps, splitProps, defaultProps,
+  mergeProps,
+  splitProps,
+  defaultProps,
 } from "@alloy-js/core";
 
 // TypeScript imports
 import * as ts from "@alloy-js/typescript";
 import {
-  createTSNamePolicy, tsNameConflictResolver,
+  createTSNamePolicy,
+  tsNameConflictResolver,
   createPackage,
 } from "@alloy-js/typescript";
 
@@ -1568,20 +1636,39 @@ import { createTSTestWrapper } from "@alloy-js/typescript/testing";
 ### Minimal Complete Example
 
 ```tsx
-import { Output, SourceDirectory, For, code, refkey, render, writeOutput } from "@alloy-js/core";
+import {
+  Output,
+  SourceDirectory,
+  For,
+  code,
+  refkey,
+  render,
+  writeOutput,
+} from "@alloy-js/core";
 import * as ts from "@alloy-js/typescript";
-import { createTSNamePolicy, tsNameConflictResolver, createPackage } from "@alloy-js/typescript";
+import {
+  createTSNamePolicy,
+  tsNameConflictResolver,
+  createPackage,
+} from "@alloy-js/typescript";
 
 // Define external package
 const myLib = createPackage({
   name: "my-lib",
   version: "1.0.0",
-  descriptor: { ".": { named: ["helper"] } }
+  descriptor: { ".": { named: ["helper"] } },
 });
 
 // Define types
-interface Model { name: string; properties: Property[] }
-interface Property { name: string; type: string; optional?: boolean }
+interface Model {
+  name: string;
+  properties: Property[];
+}
+interface Property {
+  name: string;
+  type: string;
+  optional?: boolean;
+}
 
 function generateCode(models: Model[]) {
   return (
@@ -1596,8 +1683,17 @@ function generateCode(models: Model[]) {
             {(model) => {
               const modelKey = refkey(model);
               return (
-                <ts.InterfaceDeclaration name={model.name} refkey={modelKey} export>
-                  <For each={model.properties} semicolon hardline enderPunctuation>
+                <ts.InterfaceDeclaration
+                  name={model.name}
+                  refkey={modelKey}
+                  export
+                >
+                  <For
+                    each={model.properties}
+                    semicolon
+                    hardline
+                    enderPunctuation
+                  >
                     {(prop) => (
                       <ts.InterfaceMember
                         name={prop.name}
@@ -1638,7 +1734,9 @@ await writeOutput(output);
 <Output program={program} namePolicy={createTSNamePolicy()}>
   <SomeContext.Provider value={ctx}>
     <SourceFile path="models.ts">{/* declarations with refkeys */}</SourceFile>
-    <SourceFile path="serialization.ts">{/* serializer functions */}</SourceFile>
+    <SourceFile path="serialization.ts">
+      {/* serializer functions */}
+    </SourceFile>
     <SourceFile path="rest-code.ts">{/* operation call code */}</SourceFile>
   </SomeContext.Provider>
 </Output>

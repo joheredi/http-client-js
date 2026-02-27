@@ -177,9 +177,11 @@ function ApiVersionEnumDeclaration(props: { type: SdkEnumType }) {
  * @returns True if the enum is used only for API versioning.
  */
 export function isApiVersionEnumOnly(type: SdkEnumType): boolean {
-  return (type.usage & UsageFlags.ApiVersionEnum) !== 0
-    && (type.usage & UsageFlags.Input) === 0
-    && (type.usage & UsageFlags.Output) === 0;
+  return (
+    (type.usage & UsageFlags.ApiVersionEnum) !== 0 &&
+    (type.usage & UsageFlags.Input) === 0 &&
+    (type.usage & UsageFlags.Output) === 0
+  );
 }
 
 /**
@@ -318,12 +320,22 @@ function buildPartsFromRawVariants(
     for (const [, variant] of raw.variants) {
       // Check if this variant references a named type (enum or union)
       const variantType = variant.type;
-      if (variantType && (variantType.kind === "Enum" || variantType.kind === "Union") && variantType.name) {
-        if (subEnumNames.has(variantType.name) && !emittedSubEnums.has(variantType.name)) {
+      if (
+        variantType &&
+        (variantType.kind === "Enum" || variantType.kind === "Union") &&
+        variantType.name
+      ) {
+        if (
+          subEnumNames.has(variantType.name) &&
+          !emittedSubEnums.has(variantType.name)
+        ) {
           emittedSubEnums.add(variantType.name);
           parts.push({ kind: "ref", subName: variantType.name });
         }
-      } else if (variantType?.kind === "Scalar" && variantType.name === "string") {
+      } else if (
+        variantType?.kind === "Scalar" &&
+        variantType.name === "string"
+      ) {
         // Skip 'string' base type — handled separately via isFixed
       } else if (variantType?.kind === "String") {
         // String literal variant — emit as literal
@@ -414,8 +426,7 @@ function getTypeAliasDoc(type: SdkEnumType): string {
  */
 function getKnownEnumDoc(type: SdkEnumType): string {
   return (
-    type.doc ??
-    `Known values of {@link ${type.name}} that the service accepts.`
+    type.doc ?? `Known values of {@link ${type.name}} that the service accepts.`
   );
 }
 

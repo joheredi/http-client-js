@@ -1,5 +1,3 @@
 export interface ExampleComponentProps {}
 
-export function ExampleComponent(props: ExampleComponentProps) {
-
-}
+export function ExampleComponent(props: ExampleComponentProps) {}

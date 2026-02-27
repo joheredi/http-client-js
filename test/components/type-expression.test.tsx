@@ -25,7 +25,11 @@ import type {
   SdkModelType,
   SdkType,
 } from "@azure-tools/typespec-client-generator-core";
-import { getTypeExpression, getOptionalAwareTypeExpression, isEmptyAnonymousModel } from "../../src/components/type-expression.js";
+import {
+  getTypeExpression,
+  getOptionalAwareTypeExpression,
+  isEmptyAnonymousModel,
+} from "../../src/components/type-expression.js";
 import { typeRefkey } from "../../src/utils/refkeys.js";
 import { TesterWithService, createSdkContextForTest } from "../test-host.js";
 import { SdkTestFile } from "../utils.jsx";
@@ -533,7 +537,10 @@ describe("Type Expression", () => {
       // Verify it renders as the named type
       const template = (
         <SdkTestFile sdkContext={sdkContext}>
-          <InterfaceDeclaration name="EmptyModel" refkey={typeRefkey(emptyModel)} />
+          <InterfaceDeclaration
+            name="EmptyModel"
+            refkey={typeRefkey(emptyModel)}
+          />
           {"\n\n"}
           {code`type Test = ${getTypeExpression(childType)}`}
         </SdkTestFile>

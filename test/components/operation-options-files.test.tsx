@@ -38,10 +38,7 @@ import { OperationOptionsFiles } from "../../src/components/operation-options-fi
 import { OperationFiles } from "../../src/components/operation-files.js";
 import { ModelFiles } from "../../src/components/model-files.js";
 import { httpRuntimeLib } from "../../src/utils/external-packages.js";
-import {
-  TesterWithService,
-  createSdkContextForTest,
-} from "../test-host.js";
+import { TesterWithService, createSdkContextForTest } from "../test-host.js";
 
 /**
  * Test wrapper that provides Output and SdkContext without a SourceFile,
@@ -133,7 +130,7 @@ describe("OperationOptionsFiles", () => {
       // Both files should exist: options.ts with the declaration, operations.ts importing it
       expect(template).toRenderTo({
         "api/options.ts": expect.stringContaining("PingOptionalParams"),
-        "api/operations.ts": expect.stringContaining('./options.js'),
+        "api/operations.ts": expect.stringContaining("./options.js"),
       });
     });
   });

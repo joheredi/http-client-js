@@ -84,7 +84,9 @@ describe("Model Interface", () => {
      * nothing else can work.
      */
     it("should render a basic model with properties", () => {
-      const model = sdkContext.sdkPackage.models.find((m) => m.name === "Widget")!;
+      const model = sdkContext.sdkPackage.models.find(
+        (m) => m.name === "Widget",
+      )!;
 
       const template = (
         <SdkTestFile sdkContext={sdkContext}>
@@ -111,7 +113,9 @@ describe("Model Interface", () => {
      * required from optional members.
      */
     it("should render optional properties with question mark", () => {
-      const model = sdkContext.sdkPackage.models.find((m) => m.name === "Config")!;
+      const model = sdkContext.sdkPackage.models.find(
+        (m) => m.name === "Config",
+      )!;
 
       const template = (
         <SdkTestFile sdkContext={sdkContext}>
@@ -137,7 +141,9 @@ describe("Model Interface", () => {
      * server-generated IDs and timestamps that consumers should not set.
      */
     it("should render readonly properties", () => {
-      const model = sdkContext.sdkPackage.models.find((m) => m.name === "Resource")!;
+      const model = sdkContext.sdkPackage.models.find(
+        (m) => m.name === "Resource",
+      )!;
 
       const template = (
         <SdkTestFile sdkContext={sdkContext}>
@@ -406,7 +412,9 @@ describe("Model Interface", () => {
      * the purpose of each model.
      */
     it("should render JSDoc on interface from model doc", () => {
-      const model = sdkContext.sdkPackage.models.find((m) => m.name === "Widget")!;
+      const model = sdkContext.sdkPackage.models.find(
+        (m) => m.name === "Widget",
+      )!;
 
       const template = (
         <SdkTestFile sdkContext={sdkContext}>
@@ -430,7 +438,9 @@ describe("Model Interface", () => {
      * understand the purpose and constraints of individual fields.
      */
     it("should render JSDoc on members from property doc", () => {
-      const model = sdkContext.sdkPackage.models.find((m) => m.name === "Item")!;
+      const model = sdkContext.sdkPackage.models.find(
+        (m) => m.name === "Item",
+      )!;
 
       const template = (
         <SdkTestFile sdkContext={sdkContext}>
@@ -466,7 +476,9 @@ describe("Model Interface", () => {
      * tooltip in their IDE.
      */
     it("should render fallback JSDoc 'model interface <Name>' when no doc exists", () => {
-      const model = sdkContext.sdkPackage.models.find((m) => m.name === "Item")!;
+      const model = sdkContext.sdkPackage.models.find(
+        (m) => m.name === "Item",
+      )!;
       // Item has no @doc on the model itself, only on its properties
       expect(model.doc).toBeUndefined();
       expect(model.summary).toBeUndefined();
@@ -564,9 +576,7 @@ describe("Model Interface", () => {
 
     const sdkContext = await createSdkContextForTest(program);
     // The anonymous body type should have isGeneratedName = true
-    const model = sdkContext.sdkPackage.models.find(
-      (m) => m.isGeneratedName,
-    );
+    const model = sdkContext.sdkPackage.models.find((m) => m.isGeneratedName);
     expect(model).toBeDefined();
 
     const template = (
@@ -643,7 +653,10 @@ describe("Model Interface", () => {
     const model = sdkContext.sdkPackage.models[0];
 
     const template = (
-      <SdkTestFile sdkContext={sdkContext} emitterOptions={{ ignoreNullableOnOptional: false }}>
+      <SdkTestFile
+        sdkContext={sdkContext}
+        emitterOptions={{ ignoreNullableOnOptional: false }}
+      >
         <ModelInterface model={model} />
       </SdkTestFile>
     );

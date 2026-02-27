@@ -1,4 +1,7 @@
-import type { SdkModelType, SdkType } from "@azure-tools/typespec-client-generator-core";
+import type {
+  SdkModelType,
+  SdkType,
+} from "@azure-tools/typespec-client-generator-core";
 
 /**
  * Azure Core error type cross-language definition IDs.

@@ -79,11 +79,20 @@ function PagedAsyncIterableIteratorInterface() {
       export
       typeParameters={["TElement"]}
     >
-      <InterfaceMember name="next" type={code`() => Promise<IteratorResult<TElement>>`} />
+      <InterfaceMember
+        name="next"
+        type={code`() => Promise<IteratorResult<TElement>>`}
+      />
       {"\n"}
-      <InterfaceMember name="[Symbol.asyncIterator]" type={code`() => PagedAsyncIterableIterator<TElement>`} />
+      <InterfaceMember
+        name="[Symbol.asyncIterator]"
+        type={code`() => PagedAsyncIterableIterator<TElement>`}
+      />
       {"\n"}
-      <InterfaceMember name="byPage" type={code`(settings?: ${pagingHelperRefkey("PageSettings")}) => AsyncIterableIterator<TElement[]>`} />
+      <InterfaceMember
+        name="byPage"
+        type={code`(settings?: ${pagingHelperRefkey("PageSettings")}) => AsyncIterableIterator<TElement[]>`}
+      />
     </InterfaceDeclaration>
   );
 }
@@ -109,7 +118,11 @@ function BuildPagedAsyncIteratorOptionsInterface() {
       {"\n"}
       <InterfaceMember name="nextLinkName" type="string" optional />
       {"\n"}
-      <InterfaceMember name="nextLinkMethod" type={code`"GET" | "POST"`} optional />
+      <InterfaceMember
+        name="nextLinkMethod"
+        type={code`"GET" | "POST"`}
+        optional
+      />
       {"\n"}
       <InterfaceMember name="apiVersion" type="string" optional />
     </InterfaceDeclaration>
@@ -139,10 +152,20 @@ function BuildPagedAsyncIteratorFunction() {
       typeParameters={["TElement"]}
       parameters={[
         { name: "client", type: runtimeLib.Client },
-        { name: "getInitialResponse", type: code`() => Promise<${runtimeLib.PathUncheckedResponse}>` },
-        { name: "processResponseBody", type: code`(result: ${runtimeLib.PathUncheckedResponse}) => Promise<unknown>` },
+        {
+          name: "getInitialResponse",
+          type: code`() => Promise<${runtimeLib.PathUncheckedResponse}>`,
+        },
+        {
+          name: "processResponseBody",
+          type: code`(result: ${runtimeLib.PathUncheckedResponse}) => Promise<unknown>`,
+        },
         { name: "expectedStatuses", type: "string[]" },
-        { name: "options", type: code`${pagingHelperRefkey("BuildPagedAsyncIteratorOptions")}`, optional: true },
+        {
+          name: "options",
+          type: code`${pagingHelperRefkey("BuildPagedAsyncIteratorOptions")}`,
+          optional: true,
+        },
       ]}
     >
       {code`const itemName = options?.itemName ?? "value";

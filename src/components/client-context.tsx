@@ -261,9 +261,7 @@ interface ContextMember {
  * @param client - The TCGC client type.
  * @returns The client name without the "Client" suffix.
  */
-export function getClientName(
-  client: SdkClientType<SdkHttpOperation>,
-): string {
+export function getClientName(client: SdkClientType<SdkHttpOperation>): string {
   return client.name.replace(/Client$/, "");
 }
 
@@ -623,8 +621,7 @@ function buildFactoryBody(client: SdkClientType<SdkHttpOperation>): Children {
   const hasApiVersionInContext = initParams.some(
     (p) => p.kind === "method" && p.isApiVersionParam,
   );
-  const shouldWarnApiVersion =
-    flavor === "azure" && !hasApiVersionInContext;
+  const shouldWarnApiVersion = flavor === "azure" && !hasApiVersionInContext;
 
   // 5. Build return statement with optional context member spreading
   if (contextMembers.length > 0) {
@@ -726,10 +723,7 @@ function buildEndpointFromType(endpointType: {
   // Build the template URL by replacing {paramName} with ${paramName}
   let templateUrl = serverUrl;
   for (const arg of templateArguments) {
-    templateUrl = templateUrl.replace(
-      `{${arg.name}}`,
-      `\${${arg.name}}`,
-    );
+    templateUrl = templateUrl.replace(`{${arg.name}}`, `\${${arg.name}}`);
   }
 
   // If the template is just `{endpoint}` with no other params,

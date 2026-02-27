@@ -33,7 +33,15 @@ import type {
   SdkHttpOperation,
   SdkServiceMethod,
 } from "@azure-tools/typespec-client-generator-core";
-import { SendOperation, escapeUriTemplateParamName, isRequiredSignatureParameter, isConstantType, getConstantLiteral, formatDefaultValue, isDefaultValueTypeMatch } from "../../src/components/send-operation.js";
+import {
+  SendOperation,
+  escapeUriTemplateParamName,
+  isRequiredSignatureParameter,
+  isConstantType,
+  getConstantLiteral,
+  formatDefaultValue,
+  isDefaultValueTypeMatch,
+} from "../../src/components/send-operation.js";
 import { getOptionsParamName } from "../../src/components/send-operation.js";
 import { OperationOptionsDeclaration } from "../../src/components/operation-options.js";
 import { ModelInterface } from "../../src/components/model-interface.js";
@@ -44,7 +52,11 @@ import { httpRuntimeLib } from "../../src/utils/external-packages.js";
 import { SdkContextProvider } from "../../src/context/sdk-context.js";
 import { FlavorProvider } from "../../src/context/flavor-context.js";
 import { EmitterOptionsProvider } from "../../src/context/emitter-options-context.js";
-import { TesterWithService, RawTester, createSdkContextForTest } from "../test-host.js";
+import {
+  TesterWithService,
+  RawTester,
+  createSdkContextForTest,
+} from "../test-host.js";
 import { SdkTestFile } from "../utils.jsx";
 import { renderToString } from "@alloy-js/core/testing";
 
@@ -79,13 +91,11 @@ function MultiFileTestWrapper(props: {
 /**
  * Helper to extract the first method from the first client in an SDK context.
  */
-function getFirstMethod(
-  sdkContext: {
-    sdkPackage: {
-      clients: Array<{ methods: SdkServiceMethod<SdkHttpOperation>[] }>;
-    };
-  },
-): SdkServiceMethod<SdkHttpOperation> {
+function getFirstMethod(sdkContext: {
+  sdkPackage: {
+    clients: Array<{ methods: SdkServiceMethod<SdkHttpOperation>[] }>;
+  };
+}): SdkServiceMethod<SdkHttpOperation> {
   return sdkContext.sdkPackage.clients[0].methods[0];
 }
 
@@ -255,7 +265,9 @@ describe("SendOperation", () => {
 
     const sdkContext = await createSdkContextForTest(program);
     const method = getFirstMethod(sdkContext);
-    const itemModel = sdkContext.sdkPackage.models.find((m) => m.name === "Item")!;
+    const itemModel = sdkContext.sdkPackage.models.find(
+      (m) => m.name === "Item",
+    )!;
 
     const template = (
       <SdkTestFile sdkContext={sdkContext} externals={[httpRuntimeLib]}>
@@ -427,7 +439,7 @@ describe("SendOperation", () => {
 
     const result = renderToString(template);
     // Header value should be encoded with toUTCString for rfc7231 date format
-    expect(result).toContain('(prop).toUTCString()');
+    expect(result).toContain("(prop).toUTCString()");
   });
 
   /**
@@ -460,7 +472,9 @@ describe("SendOperation", () => {
 
     const result = renderToString(template);
     // Optional date header uses conditional spread with date encoding inside
-    expect(result).toContain('...(options?.prop !== undefined ? { "x-date": (options?.prop).toUTCString() } : {})');
+    expect(result).toContain(
+      '...(options?.prop !== undefined ? { "x-date": (options?.prop).toUTCString() } : {})',
+    );
   });
 
   /**
@@ -530,7 +544,9 @@ describe("SendOperation", () => {
 
     const sdkContext = await createSdkContextForTest(program);
     const method = getFirstMethod(sdkContext);
-    const patchModel = sdkContext.sdkPackage.models.find((m) => m.name === "PatchData")!;
+    const patchModel = sdkContext.sdkPackage.models.find(
+      (m) => m.name === "PatchData",
+    )!;
 
     const template = (
       <SdkTestFile sdkContext={sdkContext} externals={[httpRuntimeLib]}>
@@ -695,8 +711,12 @@ op groupCustomized(
       expect(rendered).toContain("options.param1");
       expect(rendered).toContain("options.param2");
       // Verify optionalParams is used for requestOptions
-      expect(rendered).toContain("optionalParams?.requestOptions?.skipUrlEncoding");
-      expect(rendered).toContain("operationOptionsToRequestParameters(optionalParams)");
+      expect(rendered).toContain(
+        "optionalParams?.requestOptions?.skipUrlEncoding",
+      );
+      expect(rendered).toContain(
+        "operationOptionsToRequestParameters(optionalParams)",
+      );
     });
 
     /**
@@ -843,7 +863,9 @@ op groupCustomized(
 
       const result = renderToString(template);
       // Constant param should NOT appear in function signature as a parameter
-      expect(result).not.toMatch(/createStreamingSend\(\s*context: Client,\s*stream: true/);
+      expect(result).not.toMatch(
+        /createStreamingSend\(\s*context: Client,\s*stream: true/,
+      );
       // Constant value should be hardcoded in the body (keys are quoted in spread bodies)
       expect(result).toContain('"stream": true');
     });
@@ -879,7 +901,9 @@ op groupCustomized(
 
       const result = renderToString(template);
       // contentType constant should NOT be a positional parameter before body
-      expect(result).not.toMatch(/uploadFileSend\(\s*context: Client,\s*contentType:/);
+      expect(result).not.toMatch(
+        /uploadFileSend\(\s*context: Client,\s*contentType:/,
+      );
       // But contentType should still be in the request options
       expect(result).toContain('contentType: "application/octet-stream"');
       // body should still be a parameter
@@ -961,7 +985,9 @@ op groupCustomized(
 
       const result = renderToString(template);
       // contentType should be a positional parameter
-      expect(result).toMatch(/uploadFileSend\(\s*context: Client,\s*contentType:/);
+      expect(result).toMatch(
+        /uploadFileSend\(\s*context: Client,\s*contentType:/,
+      );
       // contentType in request options should use the variable reference
       expect(result).toContain("contentType: contentType");
       // Should NOT hardcode */* or any other literal
@@ -996,7 +1022,9 @@ op groupCustomized(
 
       const result = renderToString(template);
       // Constant path param should NOT be in function signature
-      expect(result).not.toMatch(/readItemSend\(\s*context: Client,\s*strDefault:/);
+      expect(result).not.toMatch(
+        /readItemSend\(\s*context: Client,\s*strDefault:/,
+      );
       // Literal should be hardcoded in URL expansion (key is quoted in expansion object)
       expect(result).toContain('"strDefault": "foobar"');
     });
@@ -1121,7 +1149,9 @@ describe("escapeUriTemplateParamName", () => {
    * Multiple hyphens in a single name should all be encoded.
    */
   it("should encode multiple hyphens", () => {
-    expect(escapeUriTemplateParamName("key-name-version")).toBe("key%2Dname%2Dversion");
+    expect(escapeUriTemplateParamName("key-name-version")).toBe(
+      "key%2Dname%2Dversion",
+    );
   });
 });
 
@@ -1190,7 +1220,9 @@ describe("isDefaultValueTypeMatch", () => {
    * String default should match string parameter type.
    */
   it("should match string default with string type", () => {
-    expect(isDefaultValueTypeMatch({ kind: "string" } as any, "hello")).toBe(true);
+    expect(isDefaultValueTypeMatch({ kind: "string" } as any, "hello")).toBe(
+      true,
+    );
   });
 
   /**
@@ -1198,7 +1230,9 @@ describe("isDefaultValueTypeMatch", () => {
    * This is the `typeMismatch` scenario — a string default on int32.
    */
   it("should reject string default with numeric type", () => {
-    expect(isDefaultValueTypeMatch({ kind: "int32" } as any, "mismatch")).toBe(false);
+    expect(isDefaultValueTypeMatch({ kind: "int32" } as any, "mismatch")).toBe(
+      false,
+    );
   });
 
   /**
@@ -1212,7 +1246,9 @@ describe("isDefaultValueTypeMatch", () => {
    * Numeric default should match float64 parameter type.
    */
   it("should match numeric default with float64 type", () => {
-    expect(isDefaultValueTypeMatch({ kind: "float64" } as any, 3.14)).toBe(true);
+    expect(isDefaultValueTypeMatch({ kind: "float64" } as any, 3.14)).toBe(
+      true,
+    );
   });
 
   /**
@@ -1226,14 +1262,18 @@ describe("isDefaultValueTypeMatch", () => {
    * Boolean default should match boolean parameter type.
    */
   it("should match boolean default with boolean type", () => {
-    expect(isDefaultValueTypeMatch({ kind: "boolean" } as any, true)).toBe(true);
+    expect(isDefaultValueTypeMatch({ kind: "boolean" } as any, true)).toBe(
+      true,
+    );
   });
 
   /**
    * Boolean default should NOT match string parameter type.
    */
   it("should reject boolean default with string type", () => {
-    expect(isDefaultValueTypeMatch({ kind: "string" } as any, false)).toBe(false);
+    expect(isDefaultValueTypeMatch({ kind: "string" } as any, false)).toBe(
+      false,
+    );
   });
 
   /**
@@ -1242,7 +1282,10 @@ describe("isDefaultValueTypeMatch", () => {
    * correctly matches.
    */
   it("should unwrap nullable types to match inner type", () => {
-    const nullableString = { kind: "nullable", type: { kind: "string" } } as any;
+    const nullableString = {
+      kind: "nullable",
+      type: { kind: "string" },
+    } as any;
     expect(isDefaultValueTypeMatch(nullableString, "default")).toBe(true);
     expect(isDefaultValueTypeMatch(nullableString, 42)).toBe(false);
   });
@@ -1261,7 +1304,10 @@ describe("isDefaultValueTypeMatch", () => {
    * Constant types should match based on their valueType kind.
    */
   it("should match defaults against constant valueType", () => {
-    const intConstant = { kind: "constant", valueType: { kind: "int32" } } as any;
+    const intConstant = {
+      kind: "constant",
+      valueType: { kind: "int32" },
+    } as any;
     expect(isDefaultValueTypeMatch(intConstant, 10)).toBe(true);
     expect(isDefaultValueTypeMatch(intConstant, "ten")).toBe(false);
   });

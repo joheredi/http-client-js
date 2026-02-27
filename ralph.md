@@ -9,6 +9,7 @@ IMPORTANT: Complete ONE task per loop. After completion, exit the copilot CLI. N
 Use a subagent to read the last entry in `progress.txt` for context on what was done last.
 
 List pending tasks:
+
 ```bash
 python3 -c "
 import json
@@ -76,6 +77,7 @@ If tests unrelated to your work fail, it is **your job** to resolve them as part
 ## Phase 6: RECORD — Document and commit
 
 1. Update `prd.json` — mark your task as done:
+
 ```bash
 python3 -c "
 import json
@@ -91,6 +93,7 @@ with open('prd.json', 'w') as f:
 print(f'Marked {TASK_ID} as done')
 "
 ```
+
 2. Append your progress to `progress.txt` — leave a note for the next iteration describing what was done, patterns used, and anything the next person should know.
 3. If you discovered a failure mode, gotcha, or learning, record it in `knowledge.md`.
 4. If `progress.txt` or `knowledge.md` are becoming very large (>200 entries), use a subagent to summarize old entries and keep only the last 20 detailed entries.

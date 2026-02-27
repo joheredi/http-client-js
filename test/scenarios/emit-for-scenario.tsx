@@ -17,8 +17,18 @@ import { nameConflictResolver } from "../../src/utils/name-conflict-resolver.js"
 import { Output } from "@typespec/emitter-framework";
 import { FlavorProvider } from "../../src/context/flavor-context.js";
 import { EmitterOptionsProvider } from "../../src/context/emitter-options-context.js";
-import { EmitterTree, applyClientRenames, azureExternals, coreExternals } from "../../src/emitter.js";
-import { Tester, RawTester, TesterWithService, createSdkContextForTest } from "../test-host.js";
+import {
+  EmitterTree,
+  applyClientRenames,
+  azureExternals,
+  coreExternals,
+} from "../../src/emitter.js";
+import {
+  Tester,
+  RawTester,
+  TesterWithService,
+  createSdkContextForTest,
+} from "../test-host.js";
 import type { FlavorKind } from "../../src/context/flavor-context.js";
 
 /**
@@ -80,12 +90,20 @@ function buildExtraUsings(code: string): string {
   }
 
   // Check if the code uses Azure Core features
-  if (/\b(Azure\.Core|@resource|ResourceRead|ResourceList|LongRunningResourceDelete|ResourceCreateOrReplace|GetResourceOperationStatus|StandardResourceOperations|StandardListQueryParameters|ResourceOperations)\b/.test(code)) {
+  if (
+    /\b(Azure\.Core|@resource|ResourceRead|ResourceList|LongRunningResourceDelete|ResourceCreateOrReplace|GetResourceOperationStatus|StandardResourceOperations|StandardListQueryParameters|ResourceOperations)\b/.test(
+      code,
+    )
+  ) {
     addUsing("using Azure.Core;");
   }
 
   // Check if the code uses Azure Core Traits
-  if (/\b(Azure\.Core\.Traits|ServiceTraits|RequestHeadersTrait|NoRepeatableRequests|NoConditionalRequests|SupportsClientRequestId)\b/.test(code)) {
+  if (
+    /\b(Azure\.Core\.Traits|ServiceTraits|RequestHeadersTrait|NoRepeatableRequests|NoConditionalRequests|SupportsClientRequestId)\b/.test(
+      code,
+    )
+  ) {
     addUsing("using Azure.Core;");
     addUsing("using Azure.Core.Traits;");
   }
@@ -102,7 +120,11 @@ function buildExtraUsings(code: string): string {
   }
 
   // Check if the code uses ARM features
-  if (/\b(Azure\.ResourceManager|@armProviderNamespace|@armCommonTypesVersion)\b/.test(code)) {
+  if (
+    /\b(Azure\.ResourceManager|@armProviderNamespace|@armCommonTypesVersion)\b/.test(
+      code,
+    )
+  ) {
     addUsing("using Azure.ResourceManager;");
   }
 
@@ -183,7 +205,8 @@ export async function emitForScenario(
   // and a Versions enum to simulate a versioned API. This causes TCGC to mark
   // api-version parameters as client-level (onClient=true, isApiVersionParam=true),
   // matching the legacy test infrastructure behavior.
-  const withVersionedApiVersion = yamlConfig["withVersionedApiVersion"] === true;
+  const withVersionedApiVersion =
+    yamlConfig["withVersionedApiVersion"] === true;
 
   let tester;
   if (useRaw) {
@@ -193,20 +216,21 @@ export async function emitForScenario(
     // Build extra using statements based on code content analysis
     const extraUsing = buildExtraUsings(code);
 
-    const versionedDecorator = withVersionedApiVersion ? "@versioned(Versions)" : "";
+    const versionedDecorator = withVersionedApiVersion
+      ? "@versioned(Versions)"
+      : "";
     const versionsEnum = withVersionedApiVersion
       ? 'enum Versions { v2022_05_15_preview: "2022-05-15-preview"}'
       : "";
 
     if (ownService) {
       // Scenario defines its own @service — just add extra usings before code
-      tester = extraUsing
-        ? Tester.wrap((x) => `${extraUsing}\n${x}`)
-        : Tester;
+      tester = extraUsing ? Tester.wrap((x) => `${extraUsing}\n${x}`) : Tester;
     } else {
       // No @service — wrap with service namespace, putting extra usings BEFORE namespace
       if (extraUsing || withVersionedApiVersion) {
-        tester = Tester.wrap((x) => `
+        tester = Tester.wrap(
+          (x) => `
 ${extraUsing}
 #suppress "@azure-tools/typespec-azure-core/auth-required" "for test"
 ${versionedDecorator}
@@ -216,7 +240,8 @@ namespace Azure.TypeScript.Testing;
 ${versionsEnum}
 
 ${x}
-`);
+`,
+        );
       } else {
         tester = TesterWithService;
       }
@@ -244,7 +269,9 @@ ${x}
   // Apply typespec-title-map renames to client names before rendering.
   // This mirrors the $onEmit behavior where client names are mutated
   // in-place before the rendering pipeline runs.
-  const titleMap = yamlConfig["typespec-title-map"] as Record<string, string> | undefined;
+  const titleMap = yamlConfig["typespec-title-map"] as
+    | Record<string, string>
+    | undefined;
   if (titleMap) {
     applyClientRenames(sdkContext.sdkPackage.clients, titleMap);
   }
@@ -257,10 +284,13 @@ ${x}
 
   // Extract emitter options from YAML config
   const emitterOptions = {
-    includeHeadersInResponse: yamlConfig["include-headers-in-response"] === true,
-    experimentalExtensibleEnums: yamlConfig["experimental-extensible-enums"] === true,
+    includeHeadersInResponse:
+      yamlConfig["include-headers-in-response"] === true,
+    experimentalExtensibleEnums:
+      yamlConfig["experimental-extensible-enums"] === true,
     ignoreNullableOnOptional:
-      (yamlConfig["ignore-nullable-on-optional"] as boolean | undefined) ?? (flavor === "azure"),
+      (yamlConfig["ignore-nullable-on-optional"] as boolean | undefined) ??
+      flavor === "azure",
   };
 
   const output = (
@@ -354,9 +384,7 @@ function addExamplesToFs(
   code: string,
 ): void {
   const apiVersion = extractApiVersion(code);
-  const baseDir = apiVersion
-    ? `./examples/${apiVersion}`
-    : "./examples";
+  const baseDir = apiVersion ? `./examples/${apiVersion}` : "./examples";
 
   for (const example of examples) {
     const filePath = `${baseDir}/${example.filename}.json`;

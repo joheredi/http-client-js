@@ -40,9 +40,7 @@ import {
   OperationGroupInterface,
   OperationGroupFactory,
 } from "../../src/components/classical-operation-groups.js";
-import {
-  ClassicalClientDeclaration,
-} from "../../src/components/classical-client.js";
+import { ClassicalClientDeclaration } from "../../src/components/classical-client.js";
 import {
   ClientContextDeclaration,
   ClientContextFactory,
@@ -63,18 +61,16 @@ import { SdkContextProvider } from "../../src/context/sdk-context.js";
 /**
  * Helper to extract the first client from an SDK context.
  */
-function getFirstClient(sdkContext: {
-  sdkPackage: { clients: Array<any> };
-}) {
+function getFirstClient(sdkContext: { sdkPackage: { clients: Array<any> } }) {
   return sdkContext.sdkPackage.clients[0];
 }
 
 /**
  * Helper to get the first child client (operation group) of the root client.
  */
-function getFirstChildClient(
-  sdkContext: { sdkPackage: { clients: Array<any> } },
-): SdkClientType<SdkHttpOperation> {
+function getFirstChildClient(sdkContext: {
+  sdkPackage: { clients: Array<any> };
+}): SdkClientType<SdkHttpOperation> {
   const root = getFirstClient(sdkContext);
   return root.children![0];
 }
@@ -89,7 +85,9 @@ function buildGroupInfo(
 ) {
   return {
     client,
-    prefixes: prefixes ?? [client.name.charAt(0).toLowerCase() + client.name.slice(1)],
+    prefixes: prefixes ?? [
+      client.name.charAt(0).toLowerCase() + client.name.slice(1),
+    ],
     rootClient,
   };
 }
@@ -146,9 +144,7 @@ function OperationGroupTestWrapper(props: {
 /**
  * Collects all methods from a client and all its children recursively.
  */
-function collectAllMethods(
-  client: SdkClientType<SdkHttpOperation>,
-): any[] {
+function collectAllMethods(client: SdkClientType<SdkHttpOperation>): any[] {
   const methods: any[] = [...client.methods];
   if (client.children) {
     for (const child of client.children) {
@@ -305,7 +301,9 @@ describe("ClassicalOperationGroups", () => {
       expect(result).toContain("public readonly widgets");
       expect(result).toContain("WidgetsOperations");
       // Constructor should initialize via factory
-      expect(result).toContain("this.widgets = _getWidgetsOperations(this._client)");
+      expect(result).toContain(
+        "this.widgets = _getWidgetsOperations(this._client)",
+      );
     });
 
     /**
@@ -324,7 +322,8 @@ describe("ClassicalOperationGroups", () => {
 
       // The output should contain a file at classic/widgets/index.ts
       expect(template).toRenderTo({
-        "classic/widgets/index.ts": expect.stringContaining("WidgetsOperations"),
+        "classic/widgets/index.ts":
+          expect.stringContaining("WidgetsOperations"),
         "api/testingContext.ts": expect.stringContaining("Testing"),
         "api/operations.ts": expect.stringContaining("getWidget"),
       });
@@ -430,7 +429,10 @@ describe("ClassicalOperationGroups", () => {
         <OperationGroupTestWrapper sdkContext={sdkContext}>
           {/* Render child group declarations so refkeys resolve */}
           {widgetsChild.children?.map((grandchild) => {
-            const childGroup = buildGroupInfo(grandchild, root, ["widgets", "parts"]);
+            const childGroup = buildGroupInfo(grandchild, root, [
+              "widgets",
+              "parts",
+            ]);
             return (
               <SourceFile path="classic/widgets/parts/index.ts">
                 <OperationGroupInterface group={childGroup} />
@@ -464,7 +466,10 @@ describe("ClassicalOperationGroups", () => {
         <OperationGroupTestWrapper sdkContext={sdkContext}>
           {/* Render child group declarations so refkeys resolve */}
           {widgetsChild.children?.map((grandchild) => {
-            const childGroup = buildGroupInfo(grandchild, root, ["widgets", "parts"]);
+            const childGroup = buildGroupInfo(grandchild, root, [
+              "widgets",
+              "parts",
+            ]);
             return (
               <SourceFile path="classic/widgets/parts/index.ts">
                 <OperationGroupInterface group={childGroup} />

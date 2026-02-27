@@ -58,13 +58,13 @@ describe("normalizeImports", () => {
    */
   it("should preserve multi-file structure in concatenated sample output", () => {
     const input = [
-      '/** This file path is /samples-dev/file1.ts */',
+      "/** This file path is /samples-dev/file1.ts */",
       'import { B } from "pkg";',
       'import { A } from "@azure/identity";',
       "",
       "async function file1Func() {}",
       "",
-      '/** This file path is /samples-dev/file2.ts */',
+      "/** This file path is /samples-dev/file2.ts */",
       'import { D } from "pkg";',
       'import { C } from "@azure/identity";',
       "",
@@ -82,11 +82,15 @@ describe("normalizeImports", () => {
     expect(result).toContain("file2Func");
 
     // Imports should be sorted within each file section
-    const file1Section = result.split("/** This file path is /samples-dev/file2.ts */")[0];
+    const file1Section = result.split(
+      "/** This file path is /samples-dev/file2.ts */",
+    )[0];
     expect(file1Section).toContain('import { A } from "@azure/identity";');
     expect(file1Section).toContain('import { B } from "pkg";');
 
-    const file2Section = result.split("/** This file path is /samples-dev/file2.ts */")[1];
+    const file2Section = result.split(
+      "/** This file path is /samples-dev/file2.ts */",
+    )[1];
     expect(file2Section).toContain('import { C } from "@azure/identity";');
     expect(file2Section).toContain('import { D } from "pkg";');
   });

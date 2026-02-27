@@ -159,7 +159,7 @@ describe("SerializationHelpersFile", () => {
 
       const result = renderToString(template);
       // The consumer file should have an import from the helpers file
-      expect(result).toContain('import { serializeRecord } from');
+      expect(result).toContain("import { serializeRecord } from");
     });
 
     /**
@@ -179,7 +179,7 @@ describe("SerializationHelpersFile", () => {
       );
 
       const result = renderToString(template);
-      expect(result).toContain('import { deserializeRecord } from');
+      expect(result).toContain("import { deserializeRecord } from");
     });
   });
 
@@ -202,16 +202,17 @@ describe("SerializationHelpersFile", () => {
     );
 
     const sdkContext = await createSdkContextForTest(program);
-    const { JsonSerializer } = await import(
-      "../../../src/components/serialization/json-serializer.js"
-    );
-    const { ModelInterface } = await import(
-      "../../../src/components/model-interface.js"
-    );
+    const { JsonSerializer } =
+      await import("../../../src/components/serialization/json-serializer.js");
+    const { ModelInterface } =
+      await import("../../../src/components/model-interface.js");
     const model = sdkContext.sdkPackage.models[0];
 
     const template = (
-      <Output program={sdkContext.emitContext.program} namePolicy={createTSNamePolicy()}>
+      <Output
+        program={sdkContext.emitContext.program}
+        namePolicy={createTSNamePolicy()}
+      >
         <SourceFile path="models.ts">
           <ModelInterface model={model} />
           <JsonSerializer model={model} />

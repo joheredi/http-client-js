@@ -104,7 +104,10 @@ export function extractSubEnums(enumType: SdkEnumType): SubEnumInfo[] {
  * @param subEnumName - The original sub-enum name (e.g., "LR").
  * @returns A stable refkey for the sub-enum type alias.
  */
-export function subEnumRefkey(parentEnum: SdkEnumType, subEnumName: string): Refkey {
+export function subEnumRefkey(
+  parentEnum: SdkEnumType,
+  subEnumName: string,
+): Refkey {
   return refkey(parentEnum, "subEnum", subEnumName);
 }
 
@@ -237,6 +240,9 @@ function extractDocFromNode(tspType: any): string | undefined {
   const content = docs[0]?.content;
   if (!Array.isArray(content) || content.length === 0) return undefined;
 
-  const text = content.map((c: any) => c.text ?? "").join("").trim();
+  const text = content
+    .map((c: any) => c.text ?? "")
+    .join("")
+    .trim();
   return text || undefined;
 }

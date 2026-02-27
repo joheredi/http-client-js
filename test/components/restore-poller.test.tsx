@@ -109,11 +109,7 @@ function createMockClient(
  * for refkey resolution. Includes stub declarations for the classical client
  * and deserialize functions so Alloy can resolve cross-file references.
  */
-function renderWithContext(
-  program: any,
-  client: any,
-  methods: any[],
-): string {
+function renderWithContext(program: any, client: any, methods: any[]): string {
   const template = (
     <Output
       program={program}
@@ -122,7 +118,9 @@ function renderWithContext(
     >
       <SourceDirectory path="src">
         {/* Stub classical client declaration for refkey resolution */}
-        <SourceFile path={`${client.name.charAt(0).toLowerCase() + client.name.slice(1)}.ts`}>
+        <SourceFile
+          path={`${client.name.charAt(0).toLowerCase() + client.name.slice(1)}.ts`}
+        >
           <ClassDeclaration
             name={client.name}
             refkey={classicalClientRefkey(client)}
@@ -175,7 +173,9 @@ describe("RestorePollerFile", () => {
    */
   it("should return undefined when client has no LRO operations", async () => {
     const runner = await TesterWithService.createInstance();
-    const { program } = await runner.compile(t.code`@get op listItems(): string[];`);
+    const { program } = await runner.compile(
+      t.code`@get op listItems(): string[];`,
+    );
     const sdkContext = await createSdkContextForTest(program);
     const client = sdkContext.sdkPackage.clients[0];
 
@@ -200,7 +200,9 @@ describe("RestorePollerFile", () => {
 
     beforeAll(async () => {
       const runner = await TesterWithService.createInstance();
-      const { program: compiledProgram } = await runner.compile(t.code`@get op test(): void;`);
+      const { program: compiledProgram } = await runner.compile(
+        t.code`@get op test(): void;`,
+      );
       program = compiledProgram;
     });
 
@@ -210,7 +212,12 @@ describe("RestorePollerFile", () => {
       let client: any;
 
       beforeAll(() => {
-        method = createMockLroMethod("createResource", "put", "/resources/{id}", [200, 201]);
+        method = createMockLroMethod(
+          "createResource",
+          "put",
+          "/resources/{id}",
+          [200, 201],
+        );
         client = createMockClient("TestingClient", [method]);
         result = renderWithContext(program, client, [method]);
       });
@@ -250,7 +257,9 @@ describe("RestorePollerFile", () => {
         expect(result).toContain("initialRequestUrl");
         expect(result).toContain("requestMethod");
         // Should call getDeserializationHelper
-        expect(result).toContain("getDeserializationHelper(initialRequestUrl, requestMethod)");
+        expect(result).toContain(
+          "getDeserializationHelper(initialRequestUrl, requestMethod)",
+        );
         // Should call getLongRunningPoller
         expect(result).toContain("getLongRunningPoller");
         // Should pass restoreFrom
@@ -292,7 +301,7 @@ describe("RestorePollerFile", () => {
       it("should render utility functions", () => {
         expect(result).toContain("function getPathFromMapKey");
         expect(result).toContain("function getApiVersionFromUrl");
-        expect(result).toContain('api-version');
+        expect(result).toContain("api-version");
       });
 
       /**
@@ -315,8 +324,18 @@ describe("RestorePollerFile", () => {
      * when restoring a poller.
      */
     it("should handle multiple LRO operations in deserialize map", () => {
-      const method1 = createMockLroMethod("createResource", "put", "/resources/{id}", [200, 201]);
-      const method2 = createMockLroMethod("deleteResource", "delete", "/resources/{id}", [200, 202]);
+      const method1 = createMockLroMethod(
+        "createResource",
+        "put",
+        "/resources/{id}",
+        [200, 201],
+      );
+      const method2 = createMockLroMethod(
+        "deleteResource",
+        "delete",
+        "/resources/{id}",
+        [200, 202],
+      );
       const client = createMockClient("TestingClient", [method1, method2]);
 
       const result = renderWithContext(program, client, [method1, method2]);
@@ -332,12 +351,29 @@ describe("RestorePollerFile", () => {
      * operations from all levels of the client hierarchy.
      */
     it("should collect LRO operations from child clients", () => {
-      const childMethod = createMockLroMethod("provisionWidget", "put", "/widgets/{id}", [200, 201]);
+      const childMethod = createMockLroMethod(
+        "provisionWidget",
+        "put",
+        "/widgets/{id}",
+        [200, 201],
+      );
       const childClient = createMockClient("Widgets", [childMethod]);
-      const rootMethod = createMockLroMethod("createResource", "put", "/resources/{id}", [200, 201]);
-      const client = createMockClient("TestingClient", [rootMethod], [childClient]);
+      const rootMethod = createMockLroMethod(
+        "createResource",
+        "put",
+        "/resources/{id}",
+        [200, 201],
+      );
+      const client = createMockClient(
+        "TestingClient",
+        [rootMethod],
+        [childClient],
+      );
 
-      const result = renderWithContext(program, client, [rootMethod, childMethod]);
+      const result = renderWithContext(program, client, [
+        rootMethod,
+        childMethod,
+      ]);
       // Both operations should be in the map
       expect(result).toContain('"PUT /resources/{id}"');
       expect(result).toContain('"PUT /widgets/{id}"');
@@ -349,7 +385,12 @@ describe("RestorePollerFile", () => {
      * generation via Alloy's refkey system.
      */
     it("should make RestorePollerOptions referenceable via refkey", () => {
-      const method = createMockLroMethod("createResource", "put", "/resources/{id}", [200, 201]);
+      const method = createMockLroMethod(
+        "createResource",
+        "put",
+        "/resources/{id}",
+        [200, 201],
+      );
       const client = createMockClient("TestingClient", [method]);
 
       const template = (
@@ -361,7 +402,11 @@ describe("RestorePollerFile", () => {
           <SourceDirectory path="src">
             {/* Stub for classical client */}
             <SourceFile path="testingClient.ts">
-              <ClassDeclaration name="TestingClient" refkey={classicalClientRefkey(client)} export>
+              <ClassDeclaration
+                name="TestingClient"
+                refkey={classicalClientRefkey(client)}
+                export
+              >
                 {code`private _client: any;`}
               </ClassDeclaration>
             </SourceFile>
@@ -374,7 +419,12 @@ describe("RestorePollerFile", () => {
                   export
                   async
                   returnType="Promise<void>"
-                  parameters={[{ name: "result", type: httpRuntimeLib.PathUncheckedResponse }]}
+                  parameters={[
+                    {
+                      name: "result",
+                      type: httpRuntimeLib.PathUncheckedResponse,
+                    },
+                  ]}
                 >
                   {code`return;`}
                 </FunctionDeclaration>
@@ -384,7 +434,15 @@ describe("RestorePollerFile", () => {
             <RestorePollerFile client={client} />
             {/* Reference the RestorePollerOptions refkey from another file */}
             <SourceFile path="consumer.ts">
-              <FunctionDeclaration name="consume" parameters={[{ name: "opts", type: code`${pollingHelperRefkey("RestorePollerOptions")}<string>` }]}>
+              <FunctionDeclaration
+                name="consume"
+                parameters={[
+                  {
+                    name: "opts",
+                    type: code`${pollingHelperRefkey("RestorePollerOptions")}<string>`,
+                  },
+                ]}
+              >
                 {code`return opts;`}
               </FunctionDeclaration>
             </SourceFile>

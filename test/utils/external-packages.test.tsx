@@ -150,7 +150,9 @@ describe("External Package Definitions", () => {
     expect(azureCoreClientLib.OperationOptions).toBeDefined();
     expect(azureCoreClientLib.StreamableMethod).toBeDefined();
     expect(azureCoreClientLib.PathUncheckedResponse).toBeDefined();
-    expect(azureCoreClientLib.operationOptionsToRequestParameters).toBeDefined();
+    expect(
+      azureCoreClientLib.operationOptionsToRequestParameters,
+    ).toBeDefined();
     expect(azureCoreClientLib.ErrorModel).toBeDefined();
     expect(azureCoreClientLib.ErrorResponse).toBeDefined();
   });
@@ -208,7 +210,12 @@ describe("External Package Definitions", () => {
   it("Azure supplementary packages generate imports from correct packages", () => {
     const template = (
       <Output
-        externals={[azureCorePipelineLib, azureAbortControllerLib, azureCoreUtilLib, azureCoreAuthLib]}
+        externals={[
+          azureCorePipelineLib,
+          azureAbortControllerLib,
+          azureCoreUtilLib,
+          azureCoreAuthLib,
+        ]}
       >
         <SourceFile path="test.ts">
           {code`

@@ -121,12 +121,16 @@ function getModelExampleCode(exampleValue: SdkModelExampleValue): string {
     }
 
     // Use the client-side name (which is the key in the value record)
-    entries.push(`${safePropertyName(propName)}: ${getExampleValueCode(propValue)}`);
+    entries.push(
+      `${safePropertyName(propName)}: ${getExampleValueCode(propValue)}`,
+    );
   }
 
   // Also include additionalProperties if present
   if (exampleValue.additionalPropertiesValue) {
-    for (const [key, value] of Object.entries(exampleValue.additionalPropertiesValue)) {
+    for (const [key, value] of Object.entries(
+      exampleValue.additionalPropertiesValue,
+    )) {
       entries.push(`${safePropertyName(key)}: ${getExampleValueCode(value)}`);
     }
   }

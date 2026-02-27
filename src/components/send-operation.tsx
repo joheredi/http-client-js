@@ -1,5 +1,8 @@
 import { Children, code, namekey } from "@alloy-js/core";
-import { FunctionDeclaration, type ParameterDescriptor } from "@alloy-js/typescript";
+import {
+  FunctionDeclaration,
+  type ParameterDescriptor,
+} from "@alloy-js/typescript";
 import type {
   SdkBodyParameter,
   SdkConstantType,
@@ -19,8 +22,14 @@ import {
   serializationHelperRefkey,
 } from "../utils/refkeys.js";
 import { getTypeExpression } from "./type-expression.js";
-import { getSerializationExpression, needsTransformation } from "./serialization/index.js";
-import { getEscapedOperationName, getEscapedParameterName } from "../utils/name-policy.js";
+import {
+  getSerializationExpression,
+  needsTransformation,
+} from "./serialization/index.js";
+import {
+  getEscapedOperationName,
+  getEscapedParameterName,
+} from "../utils/name-policy.js";
 
 /**
  * Props for the {@link SendOperation} component.
@@ -64,7 +73,9 @@ export function SendOperation(props: SendOperationProps) {
   const runtimeLib = useRuntimeLib();
   const { method } = props;
   const operation = method.operation;
-  const functionName = namekey(`_${getEscapedOperationName(method.name)}Send`, { ignoreNamePolicy: true });
+  const functionName = namekey(`_${getEscapedOperationName(method.name)}Send`, {
+    ignoreNamePolicy: true,
+  });
   const parameters = buildFunctionParameters(method);
   const verb = operation.verb;
 
@@ -85,7 +96,17 @@ export function SendOperation(props: SendOperationProps) {
 
   // Build the return statement
   const pathExpr = hasUrlParams ? "path" : `"${operation.uriTemplate}"`;
-  bodyParts.push(buildReturnStatement(pathExpr, verb, contentTypeExpr, headerParams, bodyParam, acceptHeader, method));
+  bodyParts.push(
+    buildReturnStatement(
+      pathExpr,
+      verb,
+      contentTypeExpr,
+      headerParams,
+      bodyParam,
+      acceptHeader,
+      method,
+    ),
+  );
 
   return (
     <FunctionDeclaration
@@ -95,7 +116,9 @@ export function SendOperation(props: SendOperationProps) {
       returnType={code`${runtimeLib.StreamableMethod}`}
       parameters={parameters}
     >
-      {bodyParts.length > 1 ? bodyParts.map((p, i) => i > 0 ? ["\n", p] : p) : bodyParts}
+      {bodyParts.length > 1
+        ? bodyParts.map((p, i) => (i > 0 ? ["\n", p] : p))
+        : bodyParts}
     </FunctionDeclaration>
   );
 }
@@ -368,12 +391,17 @@ function getParameterAccessor(
   }
 
   // Constant-type params are hardcoded with their literal value
-  if (correspondingParam.kind === "method" && isConstantType(correspondingParam.type)) {
+  if (
+    correspondingParam.kind === "method" &&
+    isConstantType(correspondingParam.type)
+  ) {
     return getConstantLiteral(correspondingParam.type);
   }
 
   // Required params are direct function arguments
-  const isRequired = isRequiredSignatureParameter(correspondingParam as SdkMethodParameter);
+  const isRequired = isRequiredSignatureParameter(
+    correspondingParam as SdkMethodParameter,
+  );
   if (isRequired) {
     return getEscapedParameterName(correspondingParam.name);
   }
@@ -470,9 +498,7 @@ function getHeaderParameters(
 ): SdkHeaderParameter[] {
   return operation.parameters.filter(
     (p): p is SdkHeaderParameter =>
-      p.kind === "header" &&
-      !isAcceptHeader(p) &&
-      !isContentTypeHeader(p),
+      p.kind === "header" && !isAcceptHeader(p) && !isContentTypeHeader(p),
   );
 }
 
@@ -543,7 +569,8 @@ function getContentTypeExpression(
 
   // Find the content-type header parameter from the HTTP operation
   const ctHeader = method.operation.parameters.find(
-    (p): p is SdkHeaderParameter => p.kind === "header" && isContentTypeHeader(p),
+    (p): p is SdkHeaderParameter =>
+      p.kind === "header" && isContentTypeHeader(p),
   );
 
   if (ctHeader) {
@@ -648,9 +675,10 @@ function buildHeaderEntries(
     // Apply date encoding for Date-typed headers (e.g., utcDateTime → toUTCString),
     // or collection format wrapping for array headers (e.g., CSV).
     const encodedAccessor = applyHeaderDateEncoding(accessor, header);
-    const wrappedAccessor = encodedAccessor !== accessor
-      ? encodedAccessor
-      : wrapWithCollectionFormat(accessor, header.collectionFormat);
+    const wrappedAccessor =
+      encodedAccessor !== accessor
+        ? encodedAccessor
+        : wrapWithCollectionFormat(accessor, header.collectionFormat);
 
     // Build conditional spread for optional/nullable headers to avoid passing
     // undefined/null values into the headers object (matches legacy emitter pattern).
@@ -664,7 +692,9 @@ function buildHeaderEntries(
 
     if (conditions.length > 0) {
       const condition = conditions.join(" && ");
-      entries.push(code`...(${condition} ? { "${header.serializedName}": ${wrappedAccessor} } : {})`);
+      entries.push(
+        code`...(${condition} ? { "${header.serializedName}": ${wrappedAccessor} } : {})`,
+      );
     } else {
       entries.push(code`"${header.serializedName}": ${wrappedAccessor}`);
     }

@@ -94,7 +94,10 @@ const defaultOptions: EmitterOptionsValue = {
  * when no provider is present.
  */
 export const EmitterOptionsContext: ComponentContext<EmitterOptionsValue> =
-  createNamedContext<EmitterOptionsValue>("EmitterOptionsContext", defaultOptions);
+  createNamedContext<EmitterOptionsValue>(
+    "EmitterOptionsContext",
+    defaultOptions,
+  );
 
 /**
  * Props accepted by the EmitterOptionsProvider component.

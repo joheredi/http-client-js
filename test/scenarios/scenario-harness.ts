@@ -70,7 +70,8 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { emitForScenario } from "./emit-for-scenario.js";
 
 const SCENARIOS_UPDATE =
-  process.env["RECORD"] === "true" || process.env["SCENARIOS_UPDATE"] === "true";
+  process.env["RECORD"] === "true" ||
+  process.env["SCENARIOS_UPDATE"] === "true";
 
 // ─── Import Normalization ───────────────────────────────────────────────
 
@@ -128,7 +129,12 @@ function normalizeImportsInSection(code: string): string {
   const importRegex = /import\s+(type\s+)?\{([^}]*)\}\s+from\s+"([^"]+)";/gs;
 
   // Collect all imports and their positions
-  const replacements: { start: number; end: number; module: string; normalized: string }[] = [];
+  const replacements: {
+    start: number;
+    end: number;
+    module: string;
+    normalized: string;
+  }[] = [];
 
   let match;
   while ((match = importRegex.exec(code)) !== null) {
@@ -143,8 +149,14 @@ function normalizeImportsInSection(code: string): string {
       .filter((s) => s.length > 0)
       .sort((a, b) => {
         // Sort by the binding name (ignoring "type " prefix and " as X" suffix)
-        const nameA = a.replace(/^type\s+/, "").replace(/\s+as\s+.*/, "").trim();
-        const nameB = b.replace(/^type\s+/, "").replace(/\s+as\s+.*/, "").trim();
+        const nameA = a
+          .replace(/^type\s+/, "")
+          .replace(/\s+as\s+.*/, "")
+          .trim();
+        const nameB = b
+          .replace(/^type\s+/, "")
+          .replace(/\s+as\s+.*/, "")
+          .trim();
         return nameA.localeCompare(nameB);
       });
 
@@ -160,7 +172,9 @@ function normalizeImportsInSection(code: string): string {
   if (replacements.length === 0) return code;
 
   // Sort imports by module path
-  const sortedImports = [...replacements].sort((a, b) => a.module.localeCompare(b.module));
+  const sortedImports = [...replacements].sort((a, b) =>
+    a.module.localeCompare(b.module),
+  );
 
   // Replace each import with its normalized version (maintaining original positions
   // but with sorted specifiers and sorted import order)
@@ -240,9 +254,13 @@ type ScenarioCodeBlock =
  * These are short names like "models", "operations", etc. that map to
  * actual file paths in the emitter output.
  */
-const LEGACY_CATEGORIES: Record<string, (outputs: Record<string, string>) => string | undefined> = {
+const LEGACY_CATEGORIES: Record<
+  string,
+  (outputs: Record<string, string>) => string | undefined
+> = {
   models: (outputs) => findOutputFile(outputs, /models\/models\.ts$/),
-  "models:withOptions": (outputs) => findOutputFile(outputs, /api\/.*options\.ts$/),
+  "models:withOptions": (outputs) =>
+    findOutputFile(outputs, /api\/.*options\.ts$/),
   operations: (outputs) => findOutputFile(outputs, /api\/.*operations\.ts$/),
   clientContext: (outputs) => findOutputFile(outputs, /Context\.ts$/),
   classicClient: (outputs) =>
@@ -267,7 +285,9 @@ function findOutputFile(
   pattern: RegExp,
   filter?: (path: string) => boolean,
 ): string | undefined {
-  return Object.keys(outputs).find((p) => pattern.test(p) && (!filter || filter(p)));
+  return Object.keys(outputs).find(
+    (p) => pattern.test(p) && (!filter || filter(p)),
+  );
 }
 
 /**
@@ -289,7 +309,10 @@ function isLegacyCategory(file: string): boolean {
  * @returns The resolved file path
  * @throws If the category is unknown or no matching file is found
  */
-function resolveLegacyCategory(category: string, outputs: Record<string, string>): string {
+function resolveLegacyCategory(
+  category: string,
+  outputs: Record<string, string>,
+): string {
   const resolver = LEGACY_CATEGORIES[category];
   if (!resolver) {
     throw new Error(
@@ -361,7 +384,10 @@ interface CodeBlockExpectation extends CodeBlockQuery {
  * @param content - The code block content (expected output)
  * @returns Parsed expectation with file path and optional element query
  */
-function parseCodeblockExpectation(heading: string, content: string): CodeBlockExpectation {
+function parseCodeblockExpectation(
+  heading: string,
+  content: string,
+): CodeBlockExpectation {
   const parts = heading.split(" ");
   const lang = parts[0];
 
@@ -491,9 +517,7 @@ function getExcerptForQuery(
   }
 
   if (!excerpt) {
-    throw new Error(
-      `Could not find ${type} "${name}" in file "${filePath}".`,
-    );
+    throw new Error(`Could not find ${type} "${name}" in file "${filePath}".`);
   }
 
   return excerpt;
@@ -777,7 +801,9 @@ async function updateFile(scenarioFile: ScenarioFile) {
     }
   }
 
-  const formattedContent = await format(newContent.join("\n"), { parser: "markdown" });
+  const formattedContent = await format(newContent.join("\n"), {
+    parser: "markdown",
+  });
   writeFileSync(scenarioFile.path, formattedContent, { encoding: "utf-8" });
 }
 
@@ -812,7 +838,11 @@ export function executeScenarios(
       for (const scenario of scenarioFile.scenarios) {
         const isOnly = scenario.title.includes("only:");
         const isSkip = scenario.title.includes("skip:");
-        const describeFn = isSkip ? describe.skip : isOnly ? describe.only : describe;
+        const describeFn = isSkip
+          ? describe.skip
+          : isOnly
+            ? describe.only
+            : describe;
 
         describeFn(`Scenario: ${scenario.title}`, () => {
           let outputFiles: Record<string, string>;
@@ -827,7 +857,11 @@ export function executeScenarios(
 
           for (const testBlock of scenario.content.testBlocks) {
             it(`Test: ${testBlock.heading}`, async () => {
-              const result = getExcerptForQuery(extractor, testBlock.expectation, outputFiles);
+              const result = getExcerptForQuery(
+                extractor,
+                testBlock.expectation,
+                outputFiles,
+              );
 
               if (SCENARIOS_UPDATE) {
                 try {
@@ -835,7 +869,9 @@ export function executeScenarios(
                   // fully idempotent for certain chain expressions — formatting raw
                   // single-line code can produce different output than formatting
                   // already-broken code. Double-formatting ensures consistent output.
-                  const firstPass = await languageConfig.format(normalizeImports(result));
+                  const firstPass = await languageConfig.format(
+                    normalizeImports(result),
+                  );
                   testBlock.content = await languageConfig.format(firstPass);
                 } catch {
                   testBlock.content = result;
@@ -860,10 +896,17 @@ export function executeScenarios(
                   // recording). It's already at prettier's stable state — we only
                   // need to normalize imports and re-format for consistent comparison.
                   const normalizedResult = normalizeImports(result);
-                  const normalizedExpected = normalizeImports(testBlock.content);
-                  const firstPassResult = await languageConfig.format(normalizedResult);
-                  actual = (await languageConfig.format(firstPassResult)).trim();
-                  expected = (await languageConfig.format(normalizedExpected)).trim();
+                  const normalizedExpected = normalizeImports(
+                    testBlock.content,
+                  );
+                  const firstPassResult =
+                    await languageConfig.format(normalizedResult);
+                  actual = (
+                    await languageConfig.format(firstPassResult)
+                  ).trim();
+                  expected = (
+                    await languageConfig.format(normalizedExpected)
+                  ).trim();
                 } catch {
                   // If formatting fails (e.g., invalid TypeScript), compare raw strings
                   expected = normalizeImports(testBlock.content).trim();

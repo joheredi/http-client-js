@@ -37,9 +37,13 @@ export interface User {
 export async function getUser(
   context: Client,
   options: GetUserOptionalParams = { requestOptions: {} },
-): Promise<
-  { name: string; email: string; userId?: string; createdAt?: Date; contentType: "application/xml" }
-> {
+): Promise<{
+  name: string;
+  email: string;
+  userId?: string;
+  createdAt?: Date;
+  contentType: "application/xml";
+}> {
   const result = await _getUserSend(context, options);
   const headers = _getUserDeserializeHeaders(result);
   const payload = await _getUserDeserialize(result);

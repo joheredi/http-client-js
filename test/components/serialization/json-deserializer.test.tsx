@@ -30,7 +30,11 @@ import { createTSNamePolicy, SourceFile } from "@alloy-js/typescript";
 import { Output } from "@typespec/emitter-framework";
 import { t } from "@typespec/compiler/testing";
 import { beforeAll, describe, expect, it } from "vitest";
-import type { SdkArrayType, SdkContext, SdkHttpOperation } from "@azure-tools/typespec-client-generator-core";
+import type {
+  SdkArrayType,
+  SdkContext,
+  SdkHttpOperation,
+} from "@azure-tools/typespec-client-generator-core";
 import { JsonDeserializer } from "../../../src/components/serialization/json-deserializer.js";
 import { JsonArrayDeserializer } from "../../../src/components/serialization/json-array-record-helpers.js";
 import { ModelInterface } from "../../../src/components/model-interface.js";
@@ -93,9 +97,15 @@ describe("JsonDeserializer", () => {
       );
 
       sdkContext = await createSdkContextForTest(program);
-      widgetModel = sdkContext.sdkPackage.models.find((m) => m.name === "Widget")!;
-      simpleModel = sdkContext.sdkPackage.models.find((m) => m.name === "Simple")!;
-      resultModel = sdkContext.sdkPackage.models.find((m) => m.name === "Result")!;
+      widgetModel = sdkContext.sdkPackage.models.find(
+        (m) => m.name === "Widget",
+      )!;
+      simpleModel = sdkContext.sdkPackage.models.find(
+        (m) => m.name === "Simple",
+      )!;
+      resultModel = sdkContext.sdkPackage.models.find(
+        (m) => m.name === "Result",
+      )!;
     });
 
     /**
@@ -293,10 +303,18 @@ describe("JsonDeserializer", () => {
       );
 
       sdkContext = await createSdkContextForTest(program);
-      addressModel = sdkContext.sdkPackage.models.find((m) => m.name === "Address")!;
-      personModel = sdkContext.sdkPackage.models.find((m) => m.name === "Person")!;
-      innerModel = sdkContext.sdkPackage.models.find((m) => m.name === "Inner")!;
-      outerModel = sdkContext.sdkPackage.models.find((m) => m.name === "Outer")!;
+      addressModel = sdkContext.sdkPackage.models.find(
+        (m) => m.name === "Address",
+      )!;
+      personModel = sdkContext.sdkPackage.models.find(
+        (m) => m.name === "Person",
+      )!;
+      innerModel = sdkContext.sdkPackage.models.find(
+        (m) => m.name === "Inner",
+      )!;
+      outerModel = sdkContext.sdkPackage.models.find(
+        (m) => m.name === "Outer",
+      )!;
       tagModel = sdkContext.sdkPackage.models.find((m) => m.name === "Tag")!;
       itemModel = sdkContext.sdkPackage.models.find((m) => m.name === "Item")!;
     });
@@ -403,7 +421,8 @@ describe("JsonDeserializer", () => {
      * functions like `tagArrayDeserializer(items)`.
      */
     it("should deserialize array of models with .map()", () => {
-      const tagsArrayType = itemModel.properties.find((p) => p.name === "tags")!.type as SdkArrayType;
+      const tagsArrayType = itemModel.properties.find((p) => p.name === "tags")!
+        .type as SdkArrayType;
       const template = (
         <SdkTestFile sdkContext={sdkContext}>
           <ModelInterface model={tagModel} />
@@ -486,12 +505,12 @@ describe("JsonDeserializer", () => {
 
     const result = renderToString(template);
     // CSV-encoded property should use parseCsvCollection
-    expect(result).toContain("parseCsvCollection(item[\"csvColors\"])");
+    expect(result).toContain('parseCsvCollection(item["csvColors"])');
     // Pipe-encoded property should use parsePipeCollection
-    expect(result).toContain("parsePipeCollection(item[\"pipeColors\"])");
+    expect(result).toContain('parsePipeCollection(item["pipeColors"])');
     // Non-encoded array property should pass through as-is
-    expect(result).toContain("normalColors: item[\"normalColors\"]");
-    expect(result).not.toContain("parseCsvCollection(item[\"normalColors\"])");
+    expect(result).toContain('normalColors: item["normalColors"]');
+    expect(result).not.toContain('parseCsvCollection(item["normalColors"])');
   });
 
   /**
@@ -629,8 +648,12 @@ describe("JsonDeserializer", () => {
     );
 
     const sdkContext = await createSdkContextForTest(program);
-    const petModel = sdkContext.sdkPackage.models.find((m) => m.name === "Pet")!;
-    const catModel = sdkContext.sdkPackage.models.find((m) => m.name === "Cat")!;
+    const petModel = sdkContext.sdkPackage.models.find(
+      (m) => m.name === "Pet",
+    )!;
+    const catModel = sdkContext.sdkPackage.models.find(
+      (m) => m.name === "Cat",
+    )!;
 
     const template = (
       <SdkTestFile sdkContext={sdkContext}>
@@ -803,7 +826,9 @@ describe("JsonDeserializer", () => {
       );
 
       sdkContext = await createSdkContextForTest(program);
-      emptyModel = sdkContext.sdkPackage.models.find((m) => m.name === "EmptyResult")!;
+      emptyModel = sdkContext.sdkPackage.models.find(
+        (m) => m.name === "EmptyResult",
+      )!;
     });
 
     it("should return item for empty model deserializer", () => {

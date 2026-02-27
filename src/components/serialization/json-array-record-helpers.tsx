@@ -6,7 +6,10 @@ import type {
   SdkType,
 } from "@azure-tools/typespec-client-generator-core";
 import { UsageFlags } from "@azure-tools/typespec-client-generator-core";
-import { getArrayFunctionName, getRecordFunctionName } from "../../utils/model-name.js";
+import {
+  getArrayFunctionName,
+  getRecordFunctionName,
+} from "../../utils/model-name.js";
 import {
   arraySerializerRefkey,
   arrayDeserializerRefkey,
@@ -15,7 +18,10 @@ import {
   typeRefkey,
   serializationHelperRefkey,
 } from "../../utils/refkeys.js";
-import { getSerializationExpression, needsTransformation } from "./json-serializer.js";
+import {
+  getSerializationExpression,
+  needsTransformation,
+} from "./json-serializer.js";
 import { getDeserializationExpression } from "./json-deserializer.js";
 import { isAzureCoreErrorType } from "../../utils/azure-core-error-types.js";
 
@@ -58,7 +64,10 @@ export function JsonArraySerializer(props: JsonArraySerializerProps) {
       export
       returnType="any[]"
       parameters={[
-        { name: "result", type: code`Array<${getParameterTypeExpression(type.valueType)}>` },
+        {
+          name: "result",
+          type: code`Array<${getParameterTypeExpression(type.valueType)}>`,
+        },
       ]}
     >
       {code`return result.map((item) => { return ${elementExpr}; });`}
@@ -104,7 +113,10 @@ export function JsonArrayDeserializer(props: JsonArrayDeserializerProps) {
       export
       returnType="any[]"
       parameters={[
-        { name: "result", type: code`Array<${getParameterTypeExpression(type.valueType)}>` },
+        {
+          name: "result",
+          type: code`Array<${getParameterTypeExpression(type.valueType)}>`,
+        },
       ]}
     >
       {code`return result.map((item) => { return ${elementExpr}; });`}

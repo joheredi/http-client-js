@@ -29,7 +29,10 @@ import { createTSNamePolicy } from "@alloy-js/typescript";
 import { t } from "@typespec/compiler/testing";
 import { Output } from "@typespec/emitter-framework";
 import { describe, expect, it } from "vitest";
-import type { SdkContext, SdkHttpOperation } from "@azure-tools/typespec-client-generator-core";
+import type {
+  SdkContext,
+  SdkHttpOperation,
+} from "@azure-tools/typespec-client-generator-core";
 import { SdkContextProvider } from "../../src/context/sdk-context.js";
 import { ModelFiles } from "../../src/components/model-files.js";
 import { TesterWithService, createSdkContextForTest } from "../test-host.js";

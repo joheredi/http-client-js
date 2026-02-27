@@ -32,7 +32,10 @@ import { JsonPolymorphicDeserializer } from "../../../src/components/serializati
 import { JsonDeserializer } from "../../../src/components/serialization/json-deserializer.js";
 import { ModelInterface } from "../../../src/components/model-interface.js";
 import { PolymorphicType } from "../../../src/components/polymorphic-type.js";
-import { deserializerRefkey, baseDeserializerRefkey } from "../../../src/utils/refkeys.js";
+import {
+  deserializerRefkey,
+  baseDeserializerRefkey,
+} from "../../../src/utils/refkeys.js";
 import { SdkTestFile } from "../../utils.js";
 import { TesterWithService, createSdkContextForTest } from "../../test-host.js";
 
@@ -91,7 +94,11 @@ describe("JsonPolymorphicDeserializer", () => {
         {"\n\n"}
         <JsonDeserializer model={dogModel} includeParentProperties />
         {"\n\n"}
-        <JsonDeserializer model={petModel} refkeyOverride={baseDeserializerRefkey(petModel)} nameSuffix="Deserializer" />
+        <JsonDeserializer
+          model={petModel}
+          refkeyOverride={baseDeserializerRefkey(petModel)}
+          nameSuffix="Deserializer"
+        />
         {"\n\n"}
         <JsonPolymorphicDeserializer model={petModel} />
       </SdkTestFile>
@@ -207,7 +214,11 @@ describe("JsonPolymorphicDeserializer", () => {
         {"\n\n"}
         <JsonDeserializer model={circleModel} includeParentProperties />
         {"\n\n"}
-        <JsonDeserializer model={shapeModel} refkeyOverride={baseDeserializerRefkey(shapeModel)} nameSuffix="Deserializer" />
+        <JsonDeserializer
+          model={shapeModel}
+          refkeyOverride={baseDeserializerRefkey(shapeModel)}
+          nameSuffix="Deserializer"
+        />
         {"\n\n"}
         <JsonPolymorphicDeserializer model={shapeModel} />
       </SdkTestFile>
@@ -301,7 +312,11 @@ describe("JsonPolymorphicDeserializer", () => {
         {"\n\n"}
         <JsonDeserializer model={carModel} includeParentProperties />
         {"\n\n"}
-        <JsonDeserializer model={vehicleModel} refkeyOverride={baseDeserializerRefkey(vehicleModel)} nameSuffix="Deserializer" />
+        <JsonDeserializer
+          model={vehicleModel}
+          refkeyOverride={baseDeserializerRefkey(vehicleModel)}
+          nameSuffix="Deserializer"
+        />
         {"\n\n"}
         <JsonPolymorphicDeserializer model={vehicleModel} />
       </SdkTestFile>
@@ -395,7 +410,11 @@ describe("JsonPolymorphicDeserializer", () => {
         {"\n\n"}
         <JsonDeserializer model={birdModel} includeParentProperties />
         {"\n\n"}
-        <JsonDeserializer model={animalModel} refkeyOverride={baseDeserializerRefkey(animalModel)} nameSuffix="Deserializer" />
+        <JsonDeserializer
+          model={animalModel}
+          refkeyOverride={baseDeserializerRefkey(animalModel)}
+          nameSuffix="Deserializer"
+        />
         {"\n\n"}
         <JsonPolymorphicDeserializer model={animalModel} />
         {"\n\n"}
@@ -493,7 +512,11 @@ describe("JsonPolymorphicDeserializer", () => {
         {"\n\n"}
         <JsonDeserializer model={subModel} includeParentProperties />
         {"\n\n"}
-        <JsonDeserializer model={baseModel} refkeyOverride={baseDeserializerRefkey(baseModel)} nameSuffix="Deserializer" />
+        <JsonDeserializer
+          model={baseModel}
+          refkeyOverride={baseDeserializerRefkey(baseModel)}
+          nameSuffix="Deserializer"
+        />
         {"\n\n"}
         <JsonPolymorphicDeserializer model={baseModel} />
       </SdkTestFile>

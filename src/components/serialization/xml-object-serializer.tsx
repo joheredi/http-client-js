@@ -154,7 +154,9 @@ function getXmlObjectSerializationExpression(
  * @param type - The TCGC type of the array's value type.
  * @returns Alloy Children for the `.map()` callback body, or undefined if no conversion needed.
  */
-function getArrayItemSerializationExpression(type: SdkType): Children | undefined {
+function getArrayItemSerializationExpression(
+  type: SdkType,
+): Children | undefined {
   switch (type.kind) {
     case "bytes":
       return code`i !== undefined ? ${useRuntimeLib().uint8ArrayToString}(i, "base64") : undefined`;

@@ -36,7 +36,12 @@ import { JsonDeserializer } from "../../src/components/serialization/json-deseri
 import { JsonArrayDeserializer } from "../../src/components/serialization/json-array-record-helpers.js";
 import { deserializeOperationRefkey } from "../../src/utils/refkeys.js";
 import { httpRuntimeLib } from "../../src/utils/external-packages.js";
-import { RawTester, Tester, TesterWithService, createSdkContextForTest } from "../test-host.js";
+import {
+  RawTester,
+  Tester,
+  TesterWithService,
+  createSdkContextForTest,
+} from "../test-host.js";
 import { SdkTestFile } from "../utils.jsx";
 import { SdkContextProvider } from "../../src/context/sdk-context.js";
 import { FlavorProvider } from "../../src/context/flavor-context.js";
@@ -45,13 +50,11 @@ import { EmitterOptionsProvider } from "../../src/context/emitter-options-contex
 /**
  * Helper to extract the first method from the first client in an SDK context.
  */
-function getFirstMethod(
-  sdkContext: {
-    sdkPackage: {
-      clients: Array<{ methods: SdkServiceMethod<SdkHttpOperation>[] }>;
-    };
-  },
-): SdkServiceMethod<SdkHttpOperation> {
+function getFirstMethod(sdkContext: {
+  sdkPackage: {
+    clients: Array<{ methods: SdkServiceMethod<SdkHttpOperation>[] }>;
+  };
+}): SdkServiceMethod<SdkHttpOperation> {
   return sdkContext.sdkPackage.clients[0].methods[0];
 }
 
@@ -116,7 +119,9 @@ describe("DeserializeOperation", () => {
 
     const sdkContext = await createSdkContextForTest(program);
     const method = getFirstMethod(sdkContext);
-    const itemModel = sdkContext.sdkPackage.models.find((m) => m.name === "Item")!;
+    const itemModel = sdkContext.sdkPackage.models.find(
+      (m) => m.name === "Item",
+    )!;
 
     const template = (
       <SdkTestFile sdkContext={sdkContext} externals={[httpRuntimeLib]}>
@@ -267,7 +272,9 @@ describe("DeserializeOperation", () => {
 
     const sdkContext = await createSdkContextForTest(program);
     const method = getFirstMethod(sdkContext);
-    const itemModel = sdkContext.sdkPackage.models.find((m) => m.name === "Item")!;
+    const itemModel = sdkContext.sdkPackage.models.find(
+      (m) => m.name === "Item",
+    )!;
 
     const template = (
       <SdkTestFile sdkContext={sdkContext} externals={[httpRuntimeLib]}>
@@ -329,7 +336,9 @@ describe("DeserializeOperation", () => {
 
     const sdkContext = await createSdkContextForTest(program);
     const method = getFirstMethod(sdkContext);
-    const itemModel = sdkContext.sdkPackage.models.find((m) => m.name === "Item")!;
+    const itemModel = sdkContext.sdkPackage.models.find(
+      (m) => m.name === "Item",
+    )!;
     const itemArrayType = method.response.type as SdkArrayType;
 
     const template = (
@@ -400,7 +409,9 @@ describe("DeserializeOperation", () => {
 
     const sdkContext = await createSdkContextForTest(program);
     const method = getFirstMethod(sdkContext);
-    const userModel = sdkContext.sdkPackage.models.find((m) => m.name === "User")!;
+    const userModel = sdkContext.sdkPackage.models.find(
+      (m) => m.name === "User",
+    )!;
 
     const template = (
       <SdkTestFile sdkContext={sdkContext} externals={[httpRuntimeLib]}>
@@ -519,7 +530,9 @@ describe("DeserializeOperation", () => {
 
     const sdkContext = await createSdkContextForTest(program);
     const method = getFirstMethod(sdkContext);
-    const widgetModel = sdkContext.sdkPackage.models.find((m) => m.name === "Widget")!;
+    const widgetModel = sdkContext.sdkPackage.models.find(
+      (m) => m.name === "Widget",
+    )!;
 
     const template = (
       <SdkTestFile sdkContext={sdkContext} externals={[httpRuntimeLib]}>
@@ -590,7 +603,9 @@ describe("DeserializeOperation", () => {
 
     const sdkContext = await createSdkContextForTest(program);
     const method = getFirstMethod(sdkContext);
-    const widgetModel = sdkContext.sdkPackage.models.find((m) => m.name === "Widget")!;
+    const widgetModel = sdkContext.sdkPackage.models.find(
+      (m) => m.name === "Widget",
+    )!;
 
     const template = (
       <SdkTestFile
@@ -669,9 +684,15 @@ describe("DeserializeOperation", () => {
 
     const sdkContext = await createSdkContextForTest(program);
     const method = getFirstMethod(sdkContext);
-    const itemModel = sdkContext.sdkPackage.models.find((m) => m.name === "Item")!;
-    const itemListModel = sdkContext.sdkPackage.models.find((m) => m.name === "ItemList")!;
-    const itemsArrayType = itemListModel.properties.find((p) => p.name === "items")!.type as SdkArrayType;
+    const itemModel = sdkContext.sdkPackage.models.find(
+      (m) => m.name === "Item",
+    )!;
+    const itemListModel = sdkContext.sdkPackage.models.find(
+      (m) => m.name === "ItemList",
+    )!;
+    const itemsArrayType = itemListModel.properties.find(
+      (p) => p.name === "items",
+    )!.type as SdkArrayType;
 
     const template = (
       <SdkTestFile sdkContext={sdkContext} externals={[httpRuntimeLib]}>
@@ -767,7 +788,9 @@ describe("DeserializeOperation", () => {
 
     const sdkContext = await createSdkContextForTest(program);
     const method = getFirstMethod(sdkContext);
-    const widgetModel = sdkContext.sdkPackage.models.find((m) => m.name === "Widget")!;
+    const widgetModel = sdkContext.sdkPackage.models.find(
+      (m) => m.name === "Widget",
+    )!;
 
     const template = (
       <SdkTestFile
@@ -851,7 +874,11 @@ describe("DeserializeOperation", () => {
     const method = getFirstMethod(sdkContext);
 
     const template = (
-      <Output program={program} namePolicy={createTSNamePolicy()} externals={[httpRuntimeLib]}>
+      <Output
+        program={program}
+        namePolicy={createTSNamePolicy()}
+        externals={[httpRuntimeLib]}
+      >
         <FlavorProvider flavor="core">
           <EmitterOptionsProvider options={{}}>
             <SdkContextProvider sdkContext={sdkContext}>
@@ -914,7 +941,11 @@ describe("DeserializeOperation", () => {
     const method = getFirstMethod(sdkContext);
 
     const template = (
-      <Output program={program} namePolicy={createTSNamePolicy()} externals={[httpRuntimeLib]}>
+      <Output
+        program={program}
+        namePolicy={createTSNamePolicy()}
+        externals={[httpRuntimeLib]}
+      >
         <FlavorProvider flavor="core">
           <EmitterOptionsProvider options={{}}>
             <SdkContextProvider sdkContext={sdkContext}>
@@ -979,9 +1010,10 @@ interface TestResources {
     `);
 
     const sdkContext = await createSdkContextForTest(program);
-    const allMethods = sdkContext.sdkPackage.clients.flatMap((c: any) =>
-      [...c.methods, ...c.children.flatMap((child: any) => child.methods)],
-    );
+    const allMethods = sdkContext.sdkPackage.clients.flatMap((c: any) => [
+      ...c.methods,
+      ...c.children.flatMap((child: any) => child.methods),
+    ]);
     const lroMethod = allMethods.find((m: any) => m.kind === "lro");
     expect(lroMethod).toBeDefined();
 
@@ -1052,9 +1084,10 @@ interface TestResources {
     `);
 
     const sdkContext = await createSdkContextForTest(program);
-    const allMethods = sdkContext.sdkPackage.clients.flatMap((c: any) =>
-      [...c.methods, ...c.children.flatMap((child: any) => child.methods)],
-    );
+    const allMethods = sdkContext.sdkPackage.clients.flatMap((c: any) => [
+      ...c.methods,
+      ...c.children.flatMap((child: any) => child.methods),
+    ]);
     const lroMethod = allMethods.find((m: any) => m.kind === "lro");
     expect(lroMethod).toBeDefined();
 

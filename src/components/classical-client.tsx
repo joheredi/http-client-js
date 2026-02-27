@@ -25,7 +25,10 @@ import {
   publicOperationRefkey,
 } from "../utils/refkeys.js";
 import { getClientName, getRequiredMethodParams } from "./client-context.js";
-import { getOptionsParamName, isRequiredSignatureParameter } from "./send-operation.js";
+import {
+  getOptionsParamName,
+  isRequiredSignatureParameter,
+} from "./send-operation.js";
 import { getTypeExpression } from "./type-expression.js";
 
 /**
@@ -117,11 +120,7 @@ export function ClassicalClientDeclaration(
       refkey={classicalClientRefkey(client)}
       export
     >
-      <ClassField
-        name="_client"
-        private
-        type={clientContextRefkey(client)}
-      />
+      <ClassField name="_client" private type={clientContextRefkey(client)} />
       {"\n"}
       {code`/** The pipeline used by this client to make requests */\npublic readonly pipeline: ${useRuntimeLib().Pipeline};`}
       {childClients.length > 0 && (
@@ -139,7 +138,10 @@ export function ClassicalClientDeclaration(
       {needsOverloads ? (
         <OverloadedConstructor client={client} />
       ) : (
-        <ClassMethod name="constructor" parameters={buildConstructorParameters(client)}>
+        <ClassMethod
+          name="constructor"
+          parameters={buildConstructorParameters(client)}
+        >
           {buildConstructorBody(client)}
         </ClassMethod>
       )}
@@ -286,10 +288,13 @@ function buildConstructorParameters(
  * @param client - The TCGC client type.
  * @returns Alloy Children representing the constructor body statements.
  */
-function buildConstructorBody(client: SdkClientType<SdkHttpOperation>): Children {
+function buildConstructorBody(
+  client: SdkClientType<SdkHttpOperation>,
+): Children {
   const childClients = client.children ?? [];
   const nonOptionsArgs = buildNonOptionsArguments(client);
-  const argPrefix = nonOptionsArgs.length > 0 ? nonOptionsArgs.join(", ") + ", " : "";
+  const argPrefix =
+    nonOptionsArgs.length > 0 ? nonOptionsArgs.join(", ") + ", " : "";
 
   return (
     <>
@@ -726,7 +731,9 @@ function isTenantLevelOperation(
  * @param props - Component props containing the TCGC client type.
  * @returns Alloy JSX tree for the overloaded constructor.
  */
-function OverloadedConstructor(props: { client: SdkClientType<SdkHttpOperation> }) {
+function OverloadedConstructor(props: {
+  client: SdkClientType<SdkHttpOperation>;
+}) {
   const { client } = props;
   const initParams = client.clientInitialization.parameters;
 
@@ -739,7 +746,9 @@ function OverloadedConstructor(props: { client: SdkClientType<SdkHttpOperation> 
   );
   if (endpointParam) {
     for (const arg of getRequiredEndpointArgs(endpointParam)) {
-      prefixParamFragments.push(code`${arg.name}: ${getTypeExpression(arg.type)}`);
+      prefixParamFragments.push(
+        code`${arg.name}: ${getTypeExpression(arg.type)}`,
+      );
       prefixArgNames.push(arg.name);
     }
   }
@@ -748,12 +757,16 @@ function OverloadedConstructor(props: { client: SdkClientType<SdkHttpOperation> 
     (p): p is SdkCredentialParameter => p.kind === "credential",
   );
   if (credentialParam) {
-    prefixParamFragments.push(code`credential: ${getCredentialTypeExpression(credentialParam)}`);
+    prefixParamFragments.push(
+      code`credential: ${getCredentialTypeExpression(credentialParam)}`,
+    );
     prefixArgNames.push("credential");
   }
 
   // Build the factory call arguments without options — options will be wrapped with userAgentPrefix
-  const factoryCallPrefix = [...prefixArgNames, 'subscriptionId ?? ""'].join(", ");
+  const factoryCallPrefix = [...prefixArgNames, 'subscriptionId ?? ""'].join(
+    ", ",
+  );
 
   const childClients = client.children ?? [];
   const optionsRef = clientOptionsRefkey(client);
@@ -763,17 +776,32 @@ function OverloadedConstructor(props: { client: SdkClientType<SdkHttpOperation> 
   return (
     <>
       {code`constructor(`}
-      {prefixParamFragments.map((f, i) => <>{i > 0 && ", "}{f}</>)}
+      {prefixParamFragments.map((f, i) => (
+        <>
+          {i > 0 && ", "}
+          {f}
+        </>
+      ))}
       {prefixParamFragments.length > 0 && ", "}
       {code`options?: ${optionsRef});`}
       {"\n"}
       {code`constructor(`}
-      {prefixParamFragments.map((f, i) => <>{i > 0 && ", "}{f}</>)}
+      {prefixParamFragments.map((f, i) => (
+        <>
+          {i > 0 && ", "}
+          {f}
+        </>
+      ))}
       {prefixParamFragments.length > 0 && ", "}
       {code`subscriptionId: string, options?: ${optionsRef});`}
       {"\n"}
       {code`constructor(`}
-      {prefixParamFragments.map((f, i) => <>{i > 0 && ", "}{f}</>)}
+      {prefixParamFragments.map((f, i) => (
+        <>
+          {i > 0 && ", "}
+          {f}
+        </>
+      ))}
       {prefixParamFragments.length > 0 && ", "}
       {code`subscriptionIdOrOptions?: string | ${optionsRef}, options?: ${optionsRef}) {`}
       {"\n"}

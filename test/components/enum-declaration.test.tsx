@@ -27,11 +27,21 @@ import { code } from "@alloy-js/core";
 import { InterfaceDeclaration, InterfaceMember } from "@alloy-js/typescript";
 import { t } from "@typespec/compiler/testing";
 import { beforeAll, describe, expect, it } from "vitest";
-import { EnumDeclaration, isApiVersionEnumOnly } from "../../src/components/enum-declaration.js";
-import { extractSubEnums, SubEnumDeclarations } from "../../src/components/sub-enum-declaration.js";
+import {
+  EnumDeclaration,
+  isApiVersionEnumOnly,
+} from "../../src/components/enum-declaration.js";
+import {
+  extractSubEnums,
+  SubEnumDeclarations,
+} from "../../src/components/sub-enum-declaration.js";
 import { getTypeExpression } from "../../src/components/type-expression.js";
 import { typeRefkey } from "../../src/utils/refkeys.js";
-import { TesterWithService, RawTester, createSdkContextForTest } from "../test-host.js";
+import {
+  TesterWithService,
+  RawTester,
+  createSdkContextForTest,
+} from "../test-host.js";
 import { SdkTestFile } from "../utils.jsx";
 import { UsageFlags } from "@azure-tools/typespec-client-generator-core";
 
@@ -128,7 +138,10 @@ describe("Enum Declaration", () => {
       );
 
       sdkContext = await createSdkContextForTest(program);
-      enumType = { ...sdkContext.sdkPackage.enums[0], isFixed: false } as typeof sdkContext.sdkPackage.enums[0];
+      enumType = {
+        ...sdkContext.sdkPackage.enums[0],
+        isFixed: false,
+      } as (typeof sdkContext.sdkPackage.enums)[0];
     });
 
     /**
@@ -162,7 +175,10 @@ describe("Enum Declaration", () => {
      */
     it("should render extensible enum with flag as base type + Known enum", async () => {
       const template = (
-        <SdkTestFile sdkContext={sdkContext} emitterOptions={{ experimentalExtensibleEnums: true }}>
+        <SdkTestFile
+          sdkContext={sdkContext}
+          emitterOptions={{ experimentalExtensibleEnums: true }}
+        >
           <EnumDeclaration type={enumType} />
         </SdkTestFile>
       );
@@ -247,10 +263,16 @@ describe("Enum Declaration", () => {
     );
 
     const sdkContext = await createSdkContextForTest(program);
-    const enumType = { ...sdkContext.sdkPackage.enums[0], isFixed: false } as typeof sdkContext.sdkPackage.enums[0];
+    const enumType = {
+      ...sdkContext.sdkPackage.enums[0],
+      isFixed: false,
+    } as (typeof sdkContext.sdkPackage.enums)[0];
 
     const template = (
-      <SdkTestFile sdkContext={sdkContext} emitterOptions={{ experimentalExtensibleEnums: true }}>
+      <SdkTestFile
+        sdkContext={sdkContext}
+        emitterOptions={{ experimentalExtensibleEnums: true }}
+      >
         <EnumDeclaration type={enumType} />
       </SdkTestFile>
     );
@@ -528,11 +550,21 @@ describe("Enum Declaration", () => {
    * API-version-only enums from enums with mixed usage.
    */
   it("isApiVersionEnumOnly should detect API version enum usage correctly", () => {
-    const makeEnum = (usage: number) => ({ usage } as any);
+    const makeEnum = (usage: number) => ({ usage }) as any;
 
-    expect(isApiVersionEnumOnly(makeEnum(UsageFlags.ApiVersionEnum))).toBe(true);
-    expect(isApiVersionEnumOnly(makeEnum(UsageFlags.ApiVersionEnum | UsageFlags.Input))).toBe(false);
-    expect(isApiVersionEnumOnly(makeEnum(UsageFlags.ApiVersionEnum | UsageFlags.Output))).toBe(false);
+    expect(isApiVersionEnumOnly(makeEnum(UsageFlags.ApiVersionEnum))).toBe(
+      true,
+    );
+    expect(
+      isApiVersionEnumOnly(
+        makeEnum(UsageFlags.ApiVersionEnum | UsageFlags.Input),
+      ),
+    ).toBe(false);
+    expect(
+      isApiVersionEnumOnly(
+        makeEnum(UsageFlags.ApiVersionEnum | UsageFlags.Output),
+      ),
+    ).toBe(false);
     expect(isApiVersionEnumOnly(makeEnum(UsageFlags.Input))).toBe(false);
     expect(isApiVersionEnumOnly(makeEnum(UsageFlags.None))).toBe(false);
   });
@@ -565,7 +597,8 @@ describe("Enum Declaration", () => {
     );
     if (!unionEnum) return;
 
-    const { extractSubEnums, SubEnumDeclarations } = await import("../../src/components/sub-enum-declaration.js");
+    const { extractSubEnums, SubEnumDeclarations } =
+      await import("../../src/components/sub-enum-declaration.js");
     const subEnums = extractSubEnums(unionEnum);
 
     const template = (

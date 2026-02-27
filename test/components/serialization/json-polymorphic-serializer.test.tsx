@@ -32,7 +32,10 @@ import { JsonPolymorphicSerializer } from "../../../src/components/serialization
 import { JsonSerializer } from "../../../src/components/serialization/json-serializer.js";
 import { ModelInterface } from "../../../src/components/model-interface.js";
 import { PolymorphicType } from "../../../src/components/polymorphic-type.js";
-import { serializerRefkey, baseSerializerRefkey } from "../../../src/utils/refkeys.js";
+import {
+  serializerRefkey,
+  baseSerializerRefkey,
+} from "../../../src/utils/refkeys.js";
 import { SdkTestFile } from "../../utils.js";
 import { TesterWithService, createSdkContextForTest } from "../../test-host.js";
 
@@ -92,7 +95,11 @@ describe("JsonPolymorphicSerializer", () => {
         {"\n\n"}
         <JsonSerializer model={dogModel} includeParentProperties />
         {"\n\n"}
-        <JsonSerializer model={petModel} refkeyOverride={baseSerializerRefkey(petModel)} nameSuffix="Serializer" />
+        <JsonSerializer
+          model={petModel}
+          refkeyOverride={baseSerializerRefkey(petModel)}
+          nameSuffix="Serializer"
+        />
         {"\n\n"}
         <JsonPolymorphicSerializer model={petModel} />
       </SdkTestFile>
@@ -208,7 +215,11 @@ describe("JsonPolymorphicSerializer", () => {
         {"\n\n"}
         <JsonSerializer model={circleModel} includeParentProperties />
         {"\n\n"}
-        <JsonSerializer model={shapeModel} refkeyOverride={baseSerializerRefkey(shapeModel)} nameSuffix="Serializer" />
+        <JsonSerializer
+          model={shapeModel}
+          refkeyOverride={baseSerializerRefkey(shapeModel)}
+          nameSuffix="Serializer"
+        />
         {"\n\n"}
         <JsonPolymorphicSerializer model={shapeModel} />
       </SdkTestFile>
@@ -304,7 +315,11 @@ describe("JsonPolymorphicSerializer", () => {
         {"\n\n"}
         <JsonSerializer model={carModel} includeParentProperties />
         {"\n\n"}
-        <JsonSerializer model={vehicleModel} refkeyOverride={baseSerializerRefkey(vehicleModel)} nameSuffix="Serializer" />
+        <JsonSerializer
+          model={vehicleModel}
+          refkeyOverride={baseSerializerRefkey(vehicleModel)}
+          nameSuffix="Serializer"
+        />
         {"\n\n"}
         <JsonPolymorphicSerializer model={vehicleModel} />
       </SdkTestFile>
@@ -398,7 +413,11 @@ describe("JsonPolymorphicSerializer", () => {
         {"\n\n"}
         <JsonSerializer model={birdModel} includeParentProperties />
         {"\n\n"}
-        <JsonSerializer model={animalModel} refkeyOverride={baseSerializerRefkey(animalModel)} nameSuffix="Serializer" />
+        <JsonSerializer
+          model={animalModel}
+          refkeyOverride={baseSerializerRefkey(animalModel)}
+          nameSuffix="Serializer"
+        />
         {"\n\n"}
         <JsonPolymorphicSerializer model={animalModel} />
         {"\n\n"}
@@ -496,7 +515,11 @@ describe("JsonPolymorphicSerializer", () => {
         {"\n\n"}
         <JsonSerializer model={subModel} includeParentProperties />
         {"\n\n"}
-        <JsonSerializer model={baseModel} refkeyOverride={baseSerializerRefkey(baseModel)} nameSuffix="Serializer" />
+        <JsonSerializer
+          model={baseModel}
+          refkeyOverride={baseSerializerRefkey(baseModel)}
+          nameSuffix="Serializer"
+        />
         {"\n\n"}
         <JsonPolymorphicSerializer model={baseModel} />
       </SdkTestFile>

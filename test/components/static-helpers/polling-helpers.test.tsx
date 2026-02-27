@@ -49,7 +49,11 @@ describe("PollingHelpersFile", () => {
    */
   it("should render OperationState interface", async () => {
     const template = (
-      <Output program={program} namePolicy={createTSNamePolicy()} externals={[httpRuntimeLib]}>
+      <Output
+        program={program}
+        namePolicy={createTSNamePolicy()}
+        externals={[httpRuntimeLib]}
+      >
         <PollingHelpersFile />
       </Output>
     );
@@ -68,7 +72,11 @@ describe("PollingHelpersFile", () => {
    */
   it("should render PollerLike interface", async () => {
     const template = (
-      <Output program={program} namePolicy={createTSNamePolicy()} externals={[httpRuntimeLib]}>
+      <Output
+        program={program}
+        namePolicy={createTSNamePolicy()}
+        externals={[httpRuntimeLib]}
+      >
         <PollingHelpersFile />
       </Output>
     );
@@ -88,7 +96,11 @@ describe("PollingHelpersFile", () => {
    */
   it("should render GetLongRunningPollerOptions interface", async () => {
     const template = (
-      <Output program={program} namePolicy={createTSNamePolicy()} externals={[httpRuntimeLib]}>
+      <Output
+        program={program}
+        namePolicy={createTSNamePolicy()}
+        externals={[httpRuntimeLib]}
+      >
         <PollingHelpersFile />
       </Output>
     );
@@ -107,7 +119,11 @@ describe("PollingHelpersFile", () => {
    */
   it("should render getLongRunningPoller function", async () => {
     const template = (
-      <Output program={program} namePolicy={createTSNamePolicy()} externals={[httpRuntimeLib]}>
+      <Output
+        program={program}
+        namePolicy={createTSNamePolicy()}
+        externals={[httpRuntimeLib]}
+      >
         <PollingHelpersFile />
       </Output>
     );
@@ -126,7 +142,11 @@ describe("PollingHelpersFile", () => {
    */
   it("should enable cross-file import via getLongRunningPoller refkey", async () => {
     const template = (
-      <Output program={program} namePolicy={createTSNamePolicy()} externals={[httpRuntimeLib]}>
+      <Output
+        program={program}
+        namePolicy={createTSNamePolicy()}
+        externals={[httpRuntimeLib]}
+      >
         <SourceFile path="consumer.ts">
           <FunctionDeclaration name="test" export>
             {code`return ${pollingHelperRefkey("getLongRunningPoller")}(null as any, null as any, [], null as any);`}
@@ -146,7 +166,11 @@ describe("PollingHelpersFile", () => {
    */
   it("should enable cross-file import via PollerLike and OperationState refkeys", async () => {
     const template = (
-      <Output program={program} namePolicy={createTSNamePolicy()} externals={[httpRuntimeLib]}>
+      <Output
+        program={program}
+        namePolicy={createTSNamePolicy()}
+        externals={[httpRuntimeLib]}
+      >
         <SourceFile path="consumer.ts">
           <FunctionDeclaration
             name="test"

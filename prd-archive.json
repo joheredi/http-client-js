@@ -755,9 +755,7 @@
       "status": "done",
       "description": "4 tests fail because named union type aliases (LR, UD, LeftAndRight, UpAndDown) are not emitted in models.ts. The test scenario enumUnion/enumUnion.md expects type aliases like `export type LR = \"left\" | \"right\"`. The model-files.tsx correctly filters for `SdkUnionType` from `sdkPackage.unions`, and `UnionDeclaration` renders named unions. The issue is likely that these unions are either: (a) not being included in the `unions` array by TCGC, (b) being classified differently (e.g., as enum types), or (c) being filtered out by the `u.kind === \"union\"` check when they have enum members.",
       "failure_count": 4,
-      "affected_scenarios": [
-        "enumUnion/enumUnion.md"
-      ],
+      "affected_scenarios": ["enumUnion/enumUnion.md"],
       "error_pattern": "Could not find alias \"*\" in file \"src/models/models.ts\"",
       "component": "src/components/model-files.tsx, src/components/union.tsx",
       "source": "implementation-phase",
@@ -769,9 +767,7 @@
       "status": "done",
       "description": "3 tests fail because root index.ts is not generated for model-only packages (no operations, just models). In `index-file.tsx`, `RootIndexFile()` returns undefined when `clients.length === 0`. For model-only packages with `@usage` annotation, models.ts IS generated but root index.ts is not. The fix: modify `RootIndexFile()` to generate index.ts even without clients if models/enums/unions exist. Also handle the case where no models should be generated (without @usage) \u2014 the test expects an empty output with only helper files.",
       "failure_count": 3,
-      "affected_scenarios": [
-        "modelsGenerator/modelsGenerator.md"
-      ],
+      "affected_scenarios": ["modelsGenerator/modelsGenerator.md"],
       "error_pattern": "No output file found for legacy category \"root index\" / \"models\"",
       "component": "src/components/index-file.tsx (RootIndexFile, IndexFiles)",
       "notes": "Fixed by modifying RootIndexFile() and IndexFiles() to generate root index and models index for model-only packages (no clients). Also updated scenario harness to gracefully handle missing files with sentinel comment.",
@@ -784,9 +780,7 @@
       "status": "done",
       "description": "2 tests fail because the multipart request type `_UploadFileRequest` and its serializer `_uploadFileRequestSerializer` are generated without the underscore prefix. The test expects internal/anonymous types to have an underscore prefix (e.g., `_UploadFileRequest` instead of `UploadFileRequest`). The multipart model interface is generated in model-files.tsx and serialized via multipart-serializer.tsx. Need to detect when a model is an internal/anonymous request type and prefix its name with underscore.",
       "failure_count": 2,
-      "affected_scenarios": [
-        "apiOperations/apiOperations.md"
-      ],
+      "affected_scenarios": ["apiOperations/apiOperations.md"],
       "error_pattern": "Could not find interface/function \"_UploadFileRequest\" / \"_uploadFileRequestSerializer\"",
       "component": "src/components/model-files.tsx, src/components/serialization/multipart-serializer.tsx",
       "source": "implementation-phase",
@@ -798,9 +792,7 @@
       "status": "done",
       "description": "1 test fails because the empty project generates only helper files (no client file). The test `emptyProject/emptyProject.md` expects a `classicClient` category but the emitter only generates static helper files when `sdkPackage.clients` is empty. This may be a test expectation issue (the expected output is likely empty) rather than a real generation bug \u2014 the test harness throws when it can't resolve the 'classicClient' category. Fix: either update the harness to handle empty expected output for classicClient, or update the test expectation, or conditionally skip the classicClient assertion when no clients exist.",
       "failure_count": 1,
-      "affected_scenarios": [
-        "emptyProject/emptyProject.md"
-      ],
+      "affected_scenarios": ["emptyProject/emptyProject.md"],
       "error_pattern": "No output file found for legacy category \"classicClient\"",
       "component": "test/scenarios/scenario-harness.ts or test/scenarios/cases/emptyProject/emptyProject.md",
       "notes": "Fixed by updating scenario harness to return sentinel for missing files, and updating expected test output.",
@@ -1477,9 +1469,7 @@
       "severity": "high",
       "description": "Long-running operation and paging patterns have major structural changes including collection naming, deserialization logic, enum types, enhanced error handling, expanded status codes, and additional paging configuration.",
       "affected_file_count": 1,
-      "affected_files": [
-        "operations/lroPaging.md"
-      ],
+      "affected_files": ["operations/lroPaging.md"],
       "examples": [
         "Collection naming conventions changed",
         "OperationState type: string enum \u2192 literal union",
@@ -1501,9 +1491,7 @@
       "severity": "medium",
       "description": "Binary download responses use different conversion utilities. New emitter uses stringToUint8Array vs legacy getBinaryResponse pattern.",
       "affected_file_count": 1,
-      "affected_files": [
-        "apiOperations/apiOperations.md"
-      ],
+      "affected_files": ["apiOperations/apiOperations.md"],
       "examples": [
         "stringToUint8Array vs getBinaryResponse for download operations"
       ],

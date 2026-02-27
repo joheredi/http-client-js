@@ -78,9 +78,7 @@ export function XmlDeserializer(props: XmlDeserializerProps) {
  * @param prop - The TCGC model property to describe.
  * @returns Alloy Children representing the metadata object literal.
  */
-function renderDeserializeMetadataEntry(
-  prop: SdkModelPropertyType,
-): Children {
+function renderDeserializeMetadataEntry(prop: SdkModelPropertyType): Children {
   const xmlOpts = prop.serializationOptions?.xml;
   const xmlName = xmlOpts?.name ?? prop.serializedName;
   const propType = getXmlPropertyType(prop.type);
@@ -238,9 +236,7 @@ function getDateEncoding(
  * @param type - The TCGC type to check.
  * @returns The bytes encoding string or undefined.
  */
-function getBytesEncoding(
-  type: SdkType,
-): "base64" | "base64url" | undefined {
+function getBytesEncoding(type: SdkType): "base64" | "base64url" | undefined {
   if (type.kind === "bytes") {
     return (type as any).encode === "base64url" ? "base64url" : "base64";
   }

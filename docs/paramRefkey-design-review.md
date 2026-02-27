@@ -20,10 +20,10 @@
 
 Most parameter references in the codebase are **compound** (parameter + property access):
 
-| Pattern Type | Example | Frequency |
-|-------------|---------|-----------|
+| Pattern Type                  | Example                                                                   | Frequency        |
+| ----------------------------- | ------------------------------------------------------------------------- | ---------------- |
 | **Compound (param.property)** | `context.apiVersion`, `result.body`, `item["propName"]`, `options?.param` | ~80% of all refs |
-| **Simple (standalone param)** | `context, id, options` in call forwarding arguments | ~20% of all refs |
+| **Simple (standalone param)** | `context, id, options` in call forwarding arguments                       | ~20% of all refs |
 
 **Key insight:** A refkey on the parameter helps with BOTH patterns. For compound access, the refkey renders the parameter name and the property access is appended as a string suffix:
 
@@ -61,28 +61,45 @@ export function paramRefkey(param: object, discriminator?: string): Refkey {
 function buildFunctionParameters(method) {
   return [
     { name: "context", type: runtimeLib.Client },
-    ...requiredParams.map(p => ({ name: p.name, type: getTypeExpression(p.type) })),
-    { name: getOptionsParamName(method), type: optionsType, default: "{ requestOptions: {} }" },
+    ...requiredParams.map((p) => ({
+      name: p.name,
+      type: getTypeExpression(p.type),
+    })),
+    {
+      name: getOptionsParamName(method),
+      type: optionsType,
+      default: "{ requestOptions: {} }",
+    },
   ];
 }
 
 // Body references:
-code`return context.path(${pathExpr}).${verb}({ ...${runtimeLib.opToReqParams}(${optionsName}) });`
+code`return context.path(${pathExpr}).${verb}({ ...${runtimeLib.opToReqParams}(${optionsName}) });`;
 //         ^^^^^^^ string                                                       ^^^^^^^^^^^ string
 
 // AFTER
 function buildFunctionParameters(method) {
   const contextKey = paramRefkey(method, "context");
   const optionsKey = paramRefkey(method, "options");
-  const paramKeys = requiredParams.map(p => ({ param: p, key: paramRefkey(p) }));
+  const paramKeys = requiredParams.map((p) => ({
+    param: p,
+    key: paramRefkey(p),
+  }));
 
   return {
     descriptors: [
       { name: "context", type: runtimeLib.Client, refkey: contextKey },
       ...paramKeys.map(({ param, key }) => ({
-        name: param.name, type: getTypeExpression(param.type), refkey: key,
+        name: param.name,
+        type: getTypeExpression(param.type),
+        refkey: key,
       })),
-      { name: getOptionsParamName(method), type: optionsType, default: "{ requestOptions: {} }", refkey: optionsKey },
+      {
+        name: getOptionsParamName(method),
+        type: optionsType,
+        default: "{ requestOptions: {} }",
+        refkey: optionsKey,
+      },
     ],
     contextKey,
     optionsKey,
@@ -91,7 +108,7 @@ function buildFunctionParameters(method) {
 }
 
 // Body references:
-code`return ${contextKey}.path(${pathExpr}).${verb}({ ...${runtimeLib.opToReqParams}(${optionsKey}) });`
+code`return ${contextKey}.path(${pathExpr}).${verb}({ ...${runtimeLib.opToReqParams}(${optionsKey}) });`;
 //         ^^^^^^^^^^^^ refkey                                                       ^^^^^^^^^^^^ refkey
 ```
 
@@ -130,7 +147,7 @@ function buildCallArguments(method) {
 
 // AFTER
 function buildCallArguments(method, contextKey, paramKeys, optionsKey) {
-  return [contextKey, ...paramKeys.map(pk => pk.key), optionsKey];
+  return [contextKey, ...paramKeys.map((pk) => pk.key), optionsKey];
 }
 // Used as: code`await ${sendRef}(${callArgs})`
 // Alloy renders the array as comma-separated values
@@ -170,14 +187,14 @@ Same utility as Approach A, but applied selectively.
 
 ### Migration Scope
 
-| Parameter | Files | Migrate? | Rationale |
-|-----------|-------|----------|-----------|
-| `options`/`optionalParams` | send-operation, public-operation, classical-client, classical-operation-groups | **YES** | Name varies dynamically via `getOptionsParamName()` |
-| `context` | send-operation, public-operation, classical-operation-groups | **YES** | Referenced ~15 times as string; could conflict with user-defined params |
-| `item` | json-serializer, json-deserializer, polymorphic-*, xml-*, multipart | No | Fully controlled by us, never conflicts |
-| `result` | deserialize-operation, deserialize-headers | No | Fully controlled, never conflicts |
-| `credential` | classical-client, client-context | No | Low frequency, stable name |
-| Required method params | send-operation, public-operation | **YES** | Forwarded in call arguments; eliminates `getEscapedParameterName()` |
+| Parameter                  | Files                                                                          | Migrate? | Rationale                                                               |
+| -------------------------- | ------------------------------------------------------------------------------ | -------- | ----------------------------------------------------------------------- |
+| `options`/`optionalParams` | send-operation, public-operation, classical-client, classical-operation-groups | **YES**  | Name varies dynamically via `getOptionsParamName()`                     |
+| `context`                  | send-operation, public-operation, classical-operation-groups                   | **YES**  | Referenced ~15 times as string; could conflict with user-defined params |
+| `item`                     | json-serializer, json-deserializer, polymorphic-_, xml-_, multipart            | No       | Fully controlled by us, never conflicts                                 |
+| `result`                   | deserialize-operation, deserialize-headers                                     | No       | Fully controlled, never conflicts                                       |
+| `credential`               | classical-client, client-context                                               | No       | Low frequency, stable name                                              |
+| Required method params     | send-operation, public-operation                                               | **YES**  | Forwarded in call arguments; eliminates `getEscapedParameterName()`     |
 
 ### Example — Only options + context
 
@@ -260,18 +277,18 @@ code`return ${PARAM_CONTEXT}.path(${pathExpr}).${verb}({ ...${runtimeLib.opToReq
 
 ## Comparison Matrix
 
-| Criterion | Approach A (Full Refkey) | Approach B (Targeted Refkey) | Approach C (Constants) |
-|-----------|------------------------|----------------------------|----------------------|
-| **Safety against name policy changes** | ✅ Full | ⚠️ Partial (high-risk only) | ❌ None |
-| **Catches unresolved references** | ✅ Yes (`<Unresolved Symbol>`) | ⚠️ Partial | ❌ No |
-| **Flight-instructor alignment** | ✅ Full | ⚠️ Partial | ❌ None |
-| **Eliminates `getEscapedParameterName()`** | ✅ Fully | ⚠️ Partially | ❌ No |
-| **Eliminates `.join(", ")` arg building** | ✅ Yes | ⚠️ Partially | ❌ No |
-| **Refactoring effort** | ❌ Large (~50+ locations) | ⚠️ Medium (~25 locations) | ✅ Small (mechanical) |
-| **Regression risk** | ❌ High (many code paths) | ⚠️ Moderate | ✅ Low |
-| **Consistency** | ✅ Uniform pattern | ❌ Mixed patterns | ⚠️ Uniform but weak |
-| **Developer onboarding** | ⚠️ Must learn refkey pattern | ⚠️ Must learn which params use refkeys | ✅ Easy — just constants |
-| **Future-proofing** | ✅ Excellent | ⚠️ Good | ❌ Poor |
+| Criterion                                  | Approach A (Full Refkey)       | Approach B (Targeted Refkey)           | Approach C (Constants)   |
+| ------------------------------------------ | ------------------------------ | -------------------------------------- | ------------------------ |
+| **Safety against name policy changes**     | ✅ Full                        | ⚠️ Partial (high-risk only)            | ❌ None                  |
+| **Catches unresolved references**          | ✅ Yes (`<Unresolved Symbol>`) | ⚠️ Partial                             | ❌ No                    |
+| **Flight-instructor alignment**            | ✅ Full                        | ⚠️ Partial                             | ❌ None                  |
+| **Eliminates `getEscapedParameterName()`** | ✅ Fully                       | ⚠️ Partially                           | ❌ No                    |
+| **Eliminates `.join(", ")` arg building**  | ✅ Yes                         | ⚠️ Partially                           | ❌ No                    |
+| **Refactoring effort**                     | ❌ Large (~50+ locations)      | ⚠️ Medium (~25 locations)              | ✅ Small (mechanical)    |
+| **Regression risk**                        | ❌ High (many code paths)      | ⚠️ Moderate                            | ✅ Low                   |
+| **Consistency**                            | ✅ Uniform pattern             | ❌ Mixed patterns                      | ⚠️ Uniform but weak      |
+| **Developer onboarding**                   | ⚠️ Must learn refkey pattern   | ⚠️ Must learn which params use refkeys | ✅ Easy — just constants |
+| **Future-proofing**                        | ✅ Excellent                   | ⚠️ Good                                | ❌ Poor                  |
 
 ---
 
@@ -292,29 +309,34 @@ code`return ${PARAM_CONTEXT}.path(${pathExpr}).${verb}({ ...${runtimeLib.opToReq
 ### Phased Rollout Plan
 
 **Phase 1 — Foundation**
+
 - Create `src/utils/param-refkey.ts` utility
 - Add to `src/utils/index.ts` exports
 - Write unit tests for the utility
 
 **Phase 2 — High-Risk Parameters (options + context)**
+
 - Migrate `send-operation.tsx` (context + options params)
 - Migrate `public-operation.tsx` (context + options forwarding)
 - Migrate `classical-operation-groups.tsx` (context + method forwarding)
 - This phase eliminates `getOptionsParamName()` duplication and `getEscapedParameterName()` for forwarded args
 
 **Phase 3 — Serialization Parameters (item)**
+
 - Migrate `json-serializer.tsx` / `json-deserializer.tsx`
 - Migrate `json-polymorphic-serializer.tsx` / `json-polymorphic-deserializer.tsx`
 - Migrate `xml-object-serializer.tsx` / `multipart-serializer.tsx`
 - Requires changing accessor string building to use `code` templates with refkeys
 
 **Phase 4 — Remaining Parameters (result, credential, factory params)**
+
 - Migrate `deserialize-operation.tsx` (result param)
 - Migrate `deserialize-headers.tsx` (result param)
 - Migrate `classical-client.tsx` (constructor params)
 - Migrate `client-context.tsx` (factory params)
 
 **Phase 5 — Cleanup**
+
 - Remove `getEscapedParameterName()` if no longer needed
 - Remove `getOptionsParamName()` string-based approach if fully replaced
 - Update documentation and alloy-guide-final.md

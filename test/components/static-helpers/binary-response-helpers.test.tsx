@@ -52,7 +52,11 @@ describe("BinaryResponseHelpersFile", () => {
    */
   it("should render getBinaryResponse as async exported function", async () => {
     const template = (
-      <Output program={program} namePolicy={createTSNamePolicy()} externals={[httpRuntimeLib]}>
+      <Output
+        program={program}
+        namePolicy={createTSNamePolicy()}
+        externals={[httpRuntimeLib]}
+      >
         <FlavorProvider flavor="core">
           <BinaryResponseHelpersFile />
         </FlavorProvider>
@@ -70,7 +74,11 @@ describe("BinaryResponseHelpersFile", () => {
    */
   it("should accept StreamableMethod parameter", async () => {
     const template = (
-      <Output program={program} namePolicy={createTSNamePolicy()} externals={[httpRuntimeLib]}>
+      <Output
+        program={program}
+        namePolicy={createTSNamePolicy()}
+        externals={[httpRuntimeLib]}
+      >
         <FlavorProvider flavor="core">
           <BinaryResponseHelpersFile />
         </FlavorProvider>
@@ -87,7 +95,11 @@ describe("BinaryResponseHelpersFile", () => {
    */
   it("should use asNodeStream() to read binary stream", async () => {
     const template = (
-      <Output program={program} namePolicy={createTSNamePolicy()} externals={[httpRuntimeLib]}>
+      <Output
+        program={program}
+        namePolicy={createTSNamePolicy()}
+        externals={[httpRuntimeLib]}
+      >
         <FlavorProvider flavor="core">
           <BinaryResponseHelpersFile />
         </FlavorProvider>
@@ -105,7 +117,11 @@ describe("BinaryResponseHelpersFile", () => {
    */
   it("should handle undefined body gracefully", async () => {
     const template = (
-      <Output program={program} namePolicy={createTSNamePolicy()} externals={[httpRuntimeLib]}>
+      <Output
+        program={program}
+        namePolicy={createTSNamePolicy()}
+        externals={[httpRuntimeLib]}
+      >
         <FlavorProvider flavor="core">
           <BinaryResponseHelpersFile />
         </FlavorProvider>
@@ -122,7 +138,11 @@ describe("BinaryResponseHelpersFile", () => {
    */
   it("should read stream chunks into Buffer and concatenate", async () => {
     const template = (
-      <Output program={program} namePolicy={createTSNamePolicy()} externals={[httpRuntimeLib]}>
+      <Output
+        program={program}
+        namePolicy={createTSNamePolicy()}
+        externals={[httpRuntimeLib]}
+      >
         <FlavorProvider flavor="core">
           <BinaryResponseHelpersFile />
         </FlavorProvider>
@@ -142,7 +162,11 @@ describe("BinaryResponseHelpersFile", () => {
    */
   it("should be referenceable via binaryResponseHelperRefkey", async () => {
     const template = (
-      <Output program={program} namePolicy={createTSNamePolicy()} externals={[httpRuntimeLib]}>
+      <Output
+        program={program}
+        namePolicy={createTSNamePolicy()}
+        externals={[httpRuntimeLib]}
+      >
         <FlavorProvider flavor="core">
           <BinaryResponseHelpersFile />
           <SourceFile path="consumer.ts">

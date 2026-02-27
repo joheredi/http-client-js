@@ -1,0 +1,27 @@
+**/dist/
+**/dist-dev/
+**/test/output/
+**/bin/
+**/out/
+**/obj/
+**/.vs/
+**/.chronus/changes/
+submodules
+# Pnpm lock file
+**/pnpm-lock.yaml
+
+# Coverage report directory
+**/coverage/
+
+# These are standard and should not be edited
+SECURITY.md
+CODE_OF_CONDUCT.md
+
+# Those files are copied from spec repo and should remain unformatted
+**/azure-specs/**
+
+# Ignore the files under demo
+**/demo/**
+
+# Ignore sample files
+**/samples/**

@@ -48,11 +48,13 @@ import { OperationOptionsDeclaration } from "../../src/components/operation-opti
 import { PublicOperation } from "../../src/components/public-operation.js";
 import { SendOperation } from "../../src/components/send-operation.js";
 import { DeserializeOperation } from "../../src/components/deserialize-operation.js";
-import {
-  classicalClientRefkey,
-} from "../../src/utils/refkeys.js";
+import { classicalClientRefkey } from "../../src/utils/refkeys.js";
 import { httpRuntimeLib } from "../../src/utils/external-packages.js";
-import { TesterWithService, RawTester, createSdkContextForTest } from "../test-host.js";
+import {
+  TesterWithService,
+  RawTester,
+  createSdkContextForTest,
+} from "../test-host.js";
 import { SdkTestFile } from "../utils.jsx";
 import { SdkContextProvider } from "../../src/context/sdk-context.js";
 
@@ -62,9 +64,7 @@ import { SdkContextProvider } from "../../src/context/sdk-context.js";
  * Most tests define a single service, so this helper avoids repeated
  * boilerplate for navigating the SDK package structure.
  */
-function getFirstClient(sdkContext: {
-  sdkPackage: { clients: Array<any> };
-}) {
+function getFirstClient(sdkContext: { sdkPackage: { clients: Array<any> } }) {
   return sdkContext.sdkPackage.clients[0];
 }
 
@@ -305,8 +305,11 @@ describe("ClassicalClient", () => {
 
       // The file should be rendered with the camelCase client name
       expect(template).toRenderTo({
-        "testingClient.ts": expect.stringContaining("export class TestingClient"),
-        "api/testingClientContext.ts": expect.stringContaining("TestingContext"),
+        "testingClient.ts": expect.stringContaining(
+          "export class TestingClient",
+        ),
+        "api/testingClientContext.ts":
+          expect.stringContaining("TestingContext"),
         "api/operations.ts": expect.stringContaining("getItem"),
       });
     });
@@ -498,7 +501,9 @@ describe("ClassicalClient ARM constructor", () => {
     // Should include subscriptionId as a required constructor parameter
     expect(result).toContain("subscriptionId: string");
     // Should forward subscriptionId to the factory function with wrapped options
-    expect(result).toContain("createStandardService(credential, subscriptionId, {");
+    expect(result).toContain(
+      "createStandardService(credential, subscriptionId, {",
+    );
     expect(result).toContain("...options,");
     expect(result).toContain("userAgentOptions: { userAgentPrefix },");
     // Should NOT have constructor overloads

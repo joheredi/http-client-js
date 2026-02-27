@@ -65,9 +65,13 @@ describe("Refkey Helpers", () => {
     expect(xmlDeserializerRefkey(entity)).toBe(xmlDeserializerRefkey(entity));
 
     // String-based helpers
-    expect(serializationHelperRefkey("buildCsv")).toBe(serializationHelperRefkey("buildCsv"));
+    expect(serializationHelperRefkey("buildCsv")).toBe(
+      serializationHelperRefkey("buildCsv"),
+    );
     expect(pagingHelperRefkey("paginate")).toBe(pagingHelperRefkey("paginate"));
-    expect(pollingHelperRefkey("createPoller")).toBe(pollingHelperRefkey("createPoller"));
+    expect(pollingHelperRefkey("createPoller")).toBe(
+      pollingHelperRefkey("createPoller"),
+    );
   });
 
   /**
@@ -130,8 +134,12 @@ describe("Refkey Helpers", () => {
     expect(serializationHelperRefkey("buildCsv")).not.toBe(
       serializationHelperRefkey("serializeRecord"),
     );
-    expect(pagingHelperRefkey("paginate")).not.toBe(pagingHelperRefkey("getElements"));
-    expect(pollingHelperRefkey("createPoller")).not.toBe(pollingHelperRefkey("restorePoller"));
+    expect(pagingHelperRefkey("paginate")).not.toBe(
+      pagingHelperRefkey("getElements"),
+    );
+    expect(pollingHelperRefkey("createPoller")).not.toBe(
+      pollingHelperRefkey("restorePoller"),
+    );
   });
 
   /**
@@ -143,9 +151,15 @@ describe("Refkey Helpers", () => {
    * different refkeys because they're entirely different functions.
    */
   it("returns different refkeys for different helper categories with the same name", () => {
-    expect(serializationHelperRefkey("convert")).not.toBe(pagingHelperRefkey("convert"));
-    expect(pagingHelperRefkey("convert")).not.toBe(pollingHelperRefkey("convert"));
-    expect(serializationHelperRefkey("convert")).not.toBe(pollingHelperRefkey("convert"));
+    expect(serializationHelperRefkey("convert")).not.toBe(
+      pagingHelperRefkey("convert"),
+    );
+    expect(pagingHelperRefkey("convert")).not.toBe(
+      pollingHelperRefkey("convert"),
+    );
+    expect(serializationHelperRefkey("convert")).not.toBe(
+      pollingHelperRefkey("convert"),
+    );
   });
 
   /**

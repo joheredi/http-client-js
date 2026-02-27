@@ -536,7 +536,10 @@ export function recordDeserializerRefkey(valueType: unknown): Refkey {
  * @param propSerializedName - The wire name of the flatten property (e.g., "properties").
  * @returns A stable refkey for the flatten serializer helper function declaration.
  */
-export function flattenSerializerRefkey(parentModel: unknown, propSerializedName: string): Refkey {
+export function flattenSerializerRefkey(
+  parentModel: unknown,
+  propSerializedName: string,
+): Refkey {
   return refkey(parentModel, "flattenSerializer", propSerializedName);
 }
 
@@ -553,6 +556,9 @@ export function flattenSerializerRefkey(parentModel: unknown, propSerializedName
  * @param propSerializedName - The wire name of the flatten property (e.g., "properties").
  * @returns A stable refkey for the flatten deserializer helper function declaration.
  */
-export function flattenDeserializerRefkey(parentModel: unknown, propSerializedName: string): Refkey {
+export function flattenDeserializerRefkey(
+  parentModel: unknown,
+  propSerializedName: string,
+): Refkey {
   return refkey(parentModel, "flattenDeserializer", propSerializedName);
 }

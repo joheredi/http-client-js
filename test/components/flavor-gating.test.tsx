@@ -131,7 +131,11 @@ function CoreEmitterTestWrapper(props: {
 /**
  * Helper to compile TypeSpec and get SDK context for testing.
  */
-async function compileForTest(tspCode: Parameters<Awaited<ReturnType<typeof TesterWithService.createInstance>>["compile"]>[0]) {
+async function compileForTest(
+  tspCode: Parameters<
+    Awaited<ReturnType<typeof TesterWithService.createInstance>>["compile"]
+  >[0],
+) {
   const runner = await TesterWithService.createInstance();
   const { program } = await runner.compile(tspCode);
   const sdkContext = await createSdkContextForTest(program);
@@ -164,7 +168,9 @@ describe("Azure Extension", () => {
      * references via the RuntimeLib abstraction.
      */
     it("should use @azure-rest/core-client instead of @typespec/ts-http-runtime for core types", () => {
-      const result = renderToString(<AzureEmitterTestWrapper sdkContext={sdkContext} />);
+      const result = renderToString(
+        <AzureEmitterTestWrapper sdkContext={sdkContext} />,
+      );
 
       // Azure SDK should import from @azure-rest/core-client
       expect(result).toContain("@azure-rest/core-client");
@@ -173,7 +179,9 @@ describe("Azure Extension", () => {
       // (expandUrlTemplate is OK to come from there)
       const lines = result.split("\n");
       const httpRuntimeImports = lines.filter(
-        (l) => l.includes("@typespec/ts-http-runtime") && !l.includes("expandUrlTemplate"),
+        (l) =>
+          l.includes("@typespec/ts-http-runtime") &&
+          !l.includes("expandUrlTemplate"),
       );
       // All runtime imports except expandUrlTemplate should be from Azure packages
       expect(httpRuntimeImports.length).toBe(0);
@@ -187,7 +195,9 @@ describe("Azure Extension", () => {
      * all symbols come from a single package.
      */
     it("should use @typespec/ts-http-runtime in core flavor", () => {
-      const result = renderToString(<CoreEmitterTestWrapper sdkContext={sdkContext} />);
+      const result = renderToString(
+        <CoreEmitterTestWrapper sdkContext={sdkContext} />,
+      );
 
       // Core should use the unified runtime package
       expect(result).toContain("@typespec/ts-http-runtime");
@@ -222,7 +232,9 @@ describe("Azure Extension", () => {
      * core flavor output.
      */
     it("should generate logger.ts file with @azure/logger", () => {
-      const result = renderToString(<AzureEmitterTestWrapper sdkContext={sdkContext} />);
+      const result = renderToString(
+        <AzureEmitterTestWrapper sdkContext={sdkContext} />,
+      );
 
       // Logger file should be present
       expect(result).toContain("createClientLogger");
@@ -237,7 +249,9 @@ describe("Azure Extension", () => {
      * are only present when the Azure wrapper is used.
      */
     it("should NOT generate logger in core flavor", () => {
-      const result = renderToString(<CoreEmitterTestWrapper sdkContext={sdkContext} />);
+      const result = renderToString(
+        <CoreEmitterTestWrapper sdkContext={sdkContext} />,
+      );
 
       // Core output should not have Azure logger
       expect(result).not.toContain("createClientLogger");
@@ -253,7 +267,9 @@ describe("Azure Extension", () => {
      * their Azure equivalents.
      */
     it("should use @azure/core-rest-pipeline for Pipeline type", () => {
-      const result = renderToString(<AzureEmitterTestWrapper sdkContext={sdkContext} />);
+      const result = renderToString(
+        <AzureEmitterTestWrapper sdkContext={sdkContext} />,
+      );
 
       // Classical client has a `pipeline` property
       expect(result).toContain("@azure/core-rest-pipeline");
@@ -278,8 +294,12 @@ describe("Azure Extension", () => {
       `,
     );
 
-    const azureResult = renderToString(<AzureEmitterTestWrapper sdkContext={sdkContext} />);
-    const coreResult = renderToString(<CoreEmitterTestWrapper sdkContext={sdkContext} />);
+    const azureResult = renderToString(
+      <AzureEmitterTestWrapper sdkContext={sdkContext} />,
+    );
+    const coreResult = renderToString(
+      <CoreEmitterTestWrapper sdkContext={sdkContext} />,
+    );
 
     // Both should have the same structural elements
     for (const element of [
@@ -356,7 +376,9 @@ describe("FlavorProvider", () => {
      * and injects the core RuntimeLib.
      */
     it("should provide core runtime lib references with core flavor", () => {
-      const result = renderToString(<CoreEmitterTestWrapper sdkContext={sdkContext} />);
+      const result = renderToString(
+        <CoreEmitterTestWrapper sdkContext={sdkContext} />,
+      );
 
       expect(result).toContain("@typespec/ts-http-runtime");
       expect(result).not.toContain("@azure-rest/core-client");
@@ -370,7 +392,9 @@ describe("FlavorProvider", () => {
      * and injects the Azure RuntimeLib.
      */
     it("should provide azure runtime lib references with azure flavor", () => {
-      const result = renderToString(<AzureEmitterTestWrapper sdkContext={sdkContext} />);
+      const result = renderToString(
+        <AzureEmitterTestWrapper sdkContext={sdkContext} />,
+      );
 
       expect(result).toContain("@azure-rest/core-client");
     });
@@ -482,7 +506,12 @@ describe("RestorePollerFile flavor gating", () => {
    * PollerLike, RestorePollerOptions, and deserializeMap.
    */
   it("should render RestorePollerFile for Azure flavor with LRO operations", () => {
-    const method = createMockLroMethod("createResource", "put", "/resources/{id}", [200, 201]);
+    const method = createMockLroMethod(
+      "createResource",
+      "put",
+      "/resources/{id}",
+      [200, 201],
+    );
     const client = createMockClient("TestingClient", [method]);
 
     const result = renderToString(
@@ -521,7 +550,12 @@ describe("RestorePollerFile flavor gating", () => {
                   export
                   async
                   returnType="Promise<void>"
-                  parameters={[{ name: "result", type: httpRuntimeLib.PathUncheckedResponse }]}
+                  parameters={[
+                    {
+                      name: "result",
+                      type: httpRuntimeLib.PathUncheckedResponse,
+                    },
+                  ]}
                 >
                   {code`return;`}
                 </FunctionDeclaration>
@@ -554,7 +588,12 @@ describe("RestorePollerFile flavor gating", () => {
    * behavior in emitter.tsx: `{flavor === "azure" && <RestorePollerFile />}`
    */
   it("should NOT render RestorePollerFile for core flavor", () => {
-    const method = createMockLroMethod("createResource", "put", "/resources/{id}", [200, 201]);
+    const method = createMockLroMethod(
+      "createResource",
+      "put",
+      "/resources/{id}",
+      [200, 201],
+    );
     const client = createMockClient("TestingClient", [method]);
 
     const result = renderToString(

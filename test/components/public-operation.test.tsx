@@ -40,8 +40,15 @@ import { ModelInterface } from "../../src/components/model-interface.js";
 import { JsonSerializer } from "../../src/components/serialization/json-serializer.js";
 import { JsonDeserializer } from "../../src/components/serialization/json-deserializer.js";
 import { publicOperationRefkey } from "../../src/utils/refkeys.js";
-import { httpRuntimeLib, azureCoreLroLib } from "../../src/utils/external-packages.js";
-import { TesterWithService, RawTester, createSdkContextForTest } from "../test-host.js";
+import {
+  httpRuntimeLib,
+  azureCoreLroLib,
+} from "../../src/utils/external-packages.js";
+import {
+  TesterWithService,
+  RawTester,
+  createSdkContextForTest,
+} from "../test-host.js";
 import { SdkTestFile } from "../utils.jsx";
 import { renderToString } from "@alloy-js/core/testing";
 import { PollingHelpersFile } from "../../src/components/static-helpers/polling-helpers.js";
@@ -52,13 +59,11 @@ import { SdkContextProvider } from "../../src/context/sdk-context.js";
 /**
  * Helper to extract the first method from the first client in an SDK context.
  */
-function getFirstMethod(
-  sdkContext: {
-    sdkPackage: {
-      clients: Array<{ methods: SdkServiceMethod<SdkHttpOperation>[] }>;
-    };
-  },
-): SdkServiceMethod<SdkHttpOperation> {
+function getFirstMethod(sdkContext: {
+  sdkPackage: {
+    clients: Array<{ methods: SdkServiceMethod<SdkHttpOperation>[] }>;
+  };
+}): SdkServiceMethod<SdkHttpOperation> {
   return sdkContext.sdkPackage.clients[0].methods[0];
 }
 
@@ -705,9 +710,7 @@ describe("PublicOperation", () => {
 
       sdkContext = await createSdkContextForTest(program);
       method = getFirstMethod(sdkContext);
-      userModel = sdkContext.sdkPackage.models.find(
-        (m) => m.name === "User",
-      )!;
+      userModel = sdkContext.sdkPackage.models.find((m) => m.name === "User")!;
     });
 
     /**
@@ -999,7 +1002,8 @@ op groupCustomized(
     `);
 
     const sdkContext = await createSdkContextForTest(program);
-    const method = sdkContext.sdkPackage.clients[0].methods[0] as SdkServiceMethod<SdkHttpOperation>;
+    const method = sdkContext.sdkPackage.clients[0]
+      .methods[0] as SdkServiceMethod<SdkHttpOperation>;
 
     const template = (
       <SdkTestFile sdkContext={sdkContext} externals={[httpRuntimeLib]}>
@@ -1017,7 +1021,9 @@ op groupCustomized(
     // Verify the public function uses optionalParams
     expect(rendered).toContain("optionalParams");
     // Verify it forwards options and optionalParams correctly
-    expect(rendered).toContain("_groupOriginalSend(context, options, optionalParams)");
+    expect(rendered).toContain(
+      "_groupOriginalSend(context, options, optionalParams)",
+    );
     expect(rendered).toContain("_groupOriginalDeserialize(result)");
   });
 
@@ -1055,7 +1061,9 @@ op groupCustomized(
 
     const rendered = renderToString(template);
     // Constant param 'stream' should NOT appear in public function signature
-    expect(rendered).not.toMatch(/createStreaming\(\s*context: Client,\s*stream: true/);
+    expect(rendered).not.toMatch(
+      /createStreaming\(\s*context: Client,\s*stream: true/,
+    );
     // Call to send function should only pass context and options
     expect(rendered).toContain("_createStreamingSend(context, options)");
   });
@@ -1109,9 +1117,10 @@ interface TestResources {
 
     const sdkContext = await createSdkContextForTest(program);
     // ARM clients have nested operation groups — find the LRO method
-    const allMethods = sdkContext.sdkPackage.clients.flatMap((c: any) =>
-      [...c.methods, ...c.children.flatMap((child: any) => child.methods)]
-    );
+    const allMethods = sdkContext.sdkPackage.clients.flatMap((c: any) => [
+      ...c.methods,
+      ...c.children.flatMap((child: any) => child.methods),
+    ]);
     const lroMethod = allMethods.find((m: any) => m.kind === "lro");
     expect(lroMethod).toBeDefined();
 
@@ -1150,7 +1159,7 @@ interface TestResources {
     // the array should also contain "202".
     expect(rendered).toContain('"202"');
     // Verify apiVersion is present in poller options
-    expect(rendered).toContain('apiVersion: context.apiVersion');
+    expect(rendered).toContain("apiVersion: context.apiVersion");
   });
 
   /**
@@ -1203,9 +1212,10 @@ interface TestResources {
 
     const sdkContext = await createSdkContextForTest(program);
     // ARM clients have nested operation groups — find the LRO method
-    const allMethods = sdkContext.sdkPackage.clients.flatMap((c: any) =>
-      [...c.methods, ...c.children.flatMap((child: any) => child.methods)]
-    );
+    const allMethods = sdkContext.sdkPackage.clients.flatMap((c: any) => [
+      ...c.methods,
+      ...c.children.flatMap((child: any) => child.methods),
+    ]);
     const lroMethod = allMethods.find((m: any) => m.kind === "lro");
     expect(lroMethod).toBeDefined();
 

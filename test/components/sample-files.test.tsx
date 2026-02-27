@@ -58,16 +58,21 @@ import { SendOperation } from "../../src/components/send-operation.js";
 import { DeserializeOperation } from "../../src/components/deserialize-operation.js";
 import { httpRuntimeLib } from "../../src/utils/external-packages.js";
 import { getExampleValueCode } from "../../src/utils/example-values.js";
-import { TesterWithService, Tester, createSdkContextForTest } from "../test-host.js";
+import {
+  TesterWithService,
+  Tester,
+  createSdkContextForTest,
+} from "../test-host.js";
 import { SdkContextProvider } from "../../src/context/sdk-context.js";
-import { FlavorProvider, type FlavorKind } from "../../src/context/flavor-context.js";
+import {
+  FlavorProvider,
+  type FlavorKind,
+} from "../../src/context/flavor-context.js";
 
 /**
  * Helper to extract the first client from an SDK context.
  */
-function getFirstClient(sdkContext: {
-  sdkPackage: { clients: Array<any> };
-}) {
+function getFirstClient(sdkContext: { sdkPackage: { clients: Array<any> } }) {
   return sdkContext.sdkPackage.clients[0];
 }
 
@@ -223,7 +228,8 @@ describe("SampleFiles", () => {
       it("should generate sample file for operation with example", () => {
         // Check that the sample file appears in the rendered output
         expect(template).toRenderTo({
-          "samples-dev/getItemSample.ts": expect.stringContaining("async function"),
+          "samples-dev/getItemSample.ts":
+            expect.stringContaining("async function"),
           "src/api/testingClientContext.ts": expect.any(String),
           "src/api/operations.ts": expect.any(String),
           "src/testingClient.ts": expect.any(String),
@@ -236,7 +242,7 @@ describe("SampleFiles", () => {
        * the generated SDK in their own code.
        */
       it("should include client import in sample file", () => {
-        expect(sampleContent).toContain('import { TestingClient }');
+        expect(sampleContent).toContain("import { TestingClient }");
       });
 
       /**
@@ -348,7 +354,9 @@ describe("SampleFiles", () => {
     const sampleContent = extractSampleContent(result, "getItemSample.ts");
 
     expect(sampleContent).toContain("new DefaultAzureCredential()");
-    expect(sampleContent).toContain('import { DefaultAzureCredential } from "@azure/identity"');
+    expect(sampleContent).toContain(
+      'import { DefaultAzureCredential } from "@azure/identity"',
+    );
   });
 
   /**
@@ -479,9 +487,7 @@ describe("SampleFiles", () => {
     const operation = method.operation;
 
     // Create example with path parameter value
-    const pathParam = operation.parameters.find(
-      (p: any) => p.name === "id",
-    );
+    const pathParam = operation.parameters.find((p: any) => p.name === "id");
 
     operation.examples = [
       {
@@ -605,8 +611,16 @@ describe("getExampleValueCode", () => {
         ],
       } as any,
       value: {
-        name: { kind: "string", type: { kind: "string" } as any, value: "John" } as SdkExampleValue,
-        age: { kind: "number", type: { kind: "int32" } as any, value: 30 } as SdkExampleValue,
+        name: {
+          kind: "string",
+          type: { kind: "string" } as any,
+          value: "John",
+        } as SdkExampleValue,
+        age: {
+          kind: "number",
+          type: { kind: "int32" } as any,
+          value: 30,
+        } as SdkExampleValue,
       },
     };
 
@@ -638,8 +652,16 @@ describe("getExampleValueCode", () => {
       kind: "dict",
       type: { kind: "dict" } as any,
       value: {
-        key1: { kind: "string", type: { kind: "string" } as any, value: "val1" } as SdkExampleValue,
-        key2: { kind: "number", type: { kind: "int32" } as any, value: 2 } as SdkExampleValue,
+        key1: {
+          kind: "string",
+          type: { kind: "string" } as any,
+          value: "val1",
+        } as SdkExampleValue,
+        key2: {
+          kind: "number",
+          type: { kind: "int32" } as any,
+          value: 2,
+        } as SdkExampleValue,
       },
     };
 

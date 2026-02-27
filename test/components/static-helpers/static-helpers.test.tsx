@@ -70,7 +70,11 @@ describe("StaticHelpers", () => {
    */
   it("should render all helper files including paging and polling for Azure flavor", async () => {
     const template = (
-      <Output program={program} namePolicy={createTSNamePolicy()} externals={azureExternals}>
+      <Output
+        program={program}
+        namePolicy={createTSNamePolicy()}
+        externals={azureExternals}
+      >
         <FlavorProvider flavor="azure">
           <StaticHelpers />
         </FlavorProvider>
@@ -105,7 +109,11 @@ describe("StaticHelpers", () => {
    */
   it("should render helpers WITHOUT paging or polling for core flavor", async () => {
     const template = (
-      <Output program={program} namePolicy={createTSNamePolicy()} externals={[httpRuntimeLib]}>
+      <Output
+        program={program}
+        namePolicy={createTSNamePolicy()}
+        externals={[httpRuntimeLib]}
+      >
         <FlavorProvider flavor="core">
           <StaticHelpers />
         </FlavorProvider>
@@ -141,7 +149,11 @@ describe("StaticHelpers", () => {
    */
   it("should produce files at correct paths for Azure flavor", async () => {
     const template = (
-      <Output program={program} namePolicy={createTSNamePolicy()} externals={azureExternals}>
+      <Output
+        program={program}
+        namePolicy={createTSNamePolicy()}
+        externals={azureExternals}
+      >
         <FlavorProvider flavor="azure">
           <StaticHelpers />
         </FlavorProvider>
@@ -149,12 +161,20 @@ describe("StaticHelpers", () => {
     );
 
     expect(template).toRenderTo({
-      "static-helpers/serializationHelpers.ts": expect.stringContaining("serializeRecord"),
-      "static-helpers/pagingHelpers.ts": expect.stringContaining("buildPagedAsyncIterator"),
-      "static-helpers/pollingHelpers.ts": expect.stringContaining("getLongRunningPoller"),
-      "static-helpers/multipartHelpers.ts": expect.stringContaining("createFilePartDescriptor"),
+      "static-helpers/serializationHelpers.ts":
+        expect.stringContaining("serializeRecord"),
+      "static-helpers/pagingHelpers.ts": expect.stringContaining(
+        "buildPagedAsyncIterator",
+      ),
+      "static-helpers/pollingHelpers.ts": expect.stringContaining(
+        "getLongRunningPoller",
+      ),
+      "static-helpers/multipartHelpers.ts": expect.stringContaining(
+        "createFilePartDescriptor",
+      ),
       "static-helpers/xmlHelpers.ts": expect.stringContaining("serializeToXml"),
-      "static-helpers/getBinaryResponse.ts": expect.stringContaining("getBinaryResponse"),
+      "static-helpers/getBinaryResponse.ts":
+        expect.stringContaining("getBinaryResponse"),
     });
   });
 
@@ -165,7 +185,11 @@ describe("StaticHelpers", () => {
    */
   it("should produce files at correct paths for core flavor (no pagingHelpers.ts or pollingHelpers.ts)", async () => {
     const template = (
-      <Output program={program} namePolicy={createTSNamePolicy()} externals={[httpRuntimeLib]}>
+      <Output
+        program={program}
+        namePolicy={createTSNamePolicy()}
+        externals={[httpRuntimeLib]}
+      >
         <FlavorProvider flavor="core">
           <StaticHelpers />
         </FlavorProvider>
