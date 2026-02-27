@@ -5,7 +5,7 @@ import type { EmitContext } from "@typespec/compiler";
 import { createSdkContext } from "@azure-tools/typespec-client-generator-core";
 import { Output, writeOutput } from "@typespec/emitter-framework";
 import { SdkContextProvider } from "./context/sdk-context.js";
-import { FlavorProvider } from "./context/flavor-context.js";
+import { FlavorProvider, useFlavorContext } from "./context/flavor-context.js";
 import type { FlavorKind } from "./context/flavor-context.js";
 import { EmitterOptionsProvider } from "./context/emitter-options-context.js";
 import { ModelFiles } from "./components/model-files.js";
@@ -30,7 +30,7 @@ import { RestorePollerFile } from "./components/restore-poller.js";
 import { SampleFiles } from "./components/sample-files.js";
 import { LoggerFile } from "./components/logger-file.js";
 
-import type { SdkClientType, SdkHttpOperation } from "@azure-tools/typespec-client-generator-core";
+import type { SdkClientType, SdkContext, SdkHttpOperation } from "@azure-tools/typespec-client-generator-core";
 
 /**
  * All external packages needed for Azure-flavored SDK generation.
@@ -40,7 +40,7 @@ import type { SdkClientType, SdkHttpOperation } from "@azure-tools/typespec-clie
  * The `httpRuntimeLib` is still included because `expandUrlTemplate`
  * has no Azure equivalent.
  */
-const azureExternals = [
+export const azureExternals = [
   httpRuntimeLib,
   azureCoreClientLib,
   azureCorePipelineLib,
@@ -57,7 +57,7 @@ const azureExternals = [
  * Core flavor uses only the runtime package. Azure-specific packages like
  * `@azure/core-lro` are excluded — LRO/paging support is gated behind Azure flavor.
  */
-const coreExternals = [httpRuntimeLib];
+export const coreExternals = [httpRuntimeLib];
 
 /**
  * Resolves the SDK flavor from emitter configuration options.
@@ -120,6 +120,63 @@ export function applyClientRenames(
       client.name = titleMap[client.name];
     }
   }
+}
+
+/**
+ * Props for the {@link EmitterTree} component.
+ */
+export interface EmitterTreeProps {
+  /** The TCGC SDK context containing compiled service type information. */
+  sdkContext: SdkContext<Record<string, any>, SdkHttpOperation>;
+}
+
+/**
+ * Composable component that renders the complete emitter file tree.
+ *
+ * Encapsulates the full output structure — models, operations, clients,
+ * index files, static helpers, and samples — into a single reusable
+ * component. Reads the active flavor from `FlavorProvider` context to
+ * conditionally include Azure-specific files (logger, restore poller).
+ *
+ * Callers must provide the following context providers as ancestors:
+ * - `FlavorProvider` — determines core vs Azure output
+ * - `EmitterOptionsProvider` — emitter configuration flags
+ *
+ * The component owns the `SdkContextProvider` internally, so callers
+ * do NOT need to set up SDK context separately.
+ *
+ * @param props - Component props with the SDK context.
+ * @returns The complete file tree as a JSX subtree.
+ */
+export function EmitterTree(props: EmitterTreeProps) {
+  const { flavor } = useFlavorContext();
+  const { sdkContext } = props;
+
+  return (
+    <SdkContextProvider sdkContext={sdkContext}>
+      <SourceDirectory path="src">
+        {flavor === "azure" && (
+          <LoggerFile packageName={getPackageName(sdkContext)} />
+        )}
+        <ModelFiles />
+        <OperationFiles />
+        <OperationOptionsFiles />
+        <For each={sdkContext.sdkPackage.clients}>
+          {(client) => (
+            <>
+              <ClientContextFile client={client} />
+              <ClassicalClientFile client={client} />
+              <ClassicalOperationGroupFiles client={client} />
+              {flavor === "azure" && <RestorePollerFile client={client} />}
+            </>
+          )}
+        </For>
+        <IndexFiles />
+        <StaticHelpers />
+      </SourceDirectory>
+      <SampleFiles />
+    </SdkContextProvider>
+  );
 }
 
 /**
@@ -195,29 +252,7 @@ export async function $onEmit(context: EmitContext) {
     >
       <FlavorProvider flavor={flavor}>
         <EmitterOptionsProvider options={emitterOptions}>
-          <SdkContextProvider sdkContext={sdkContext}>
-            <SourceDirectory path="src">
-              {flavor === "azure" && (
-                <LoggerFile packageName={getPackageName(sdkContext)} />
-              )}
-              <ModelFiles />
-              <OperationFiles />
-              <OperationOptionsFiles />
-              <For each={sdkContext.sdkPackage.clients}>
-                {(client) => (
-                  <>
-                    <ClientContextFile client={client} />
-                    <ClassicalClientFile client={client} />
-                    <ClassicalOperationGroupFiles client={client} />
-                    {flavor === "azure" && <RestorePollerFile client={client} />}
-                  </>
-                )}
-              </For>
-              <IndexFiles />
-              <StaticHelpers />
-            </SourceDirectory>
-            <SampleFiles />
-          </SdkContextProvider>
+          <EmitterTree sdkContext={sdkContext} />
         </EmitterOptionsProvider>
       </FlavorProvider>
     </Output>

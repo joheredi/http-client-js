@@ -11,35 +11,13 @@
  *
  * @module
  */
-import { For, SourceDirectory, renderAsync, type OutputDirectory } from "@alloy-js/core";
+import { renderAsync, type OutputDirectory } from "@alloy-js/core";
 import { createEmitterNamePolicy } from "../../src/utils/name-policy.js";
 import { nameConflictResolver } from "../../src/utils/name-conflict-resolver.js";
 import { Output } from "@typespec/emitter-framework";
-import { SdkContextProvider } from "../../src/context/sdk-context.js";
 import { FlavorProvider } from "../../src/context/flavor-context.js";
 import { EmitterOptionsProvider } from "../../src/context/emitter-options-context.js";
-import { ModelFiles } from "../../src/components/model-files.js";
-import { OperationFiles } from "../../src/components/operation-files.js";
-import { OperationOptionsFiles } from "../../src/components/operation-options-files.js";
-import { ClientContextFile } from "../../src/components/client-context.js";
-import { ClassicalClientFile } from "../../src/components/classical-client.js";
-import { ClassicalOperationGroupFiles } from "../../src/components/classical-operation-groups.js";
-import {
-  httpRuntimeLib,
-  azureCoreLroLib,
-  azureCoreClientLib,
-  azureCorePipelineLib,
-  azureCoreAuthLib,
-  azureCoreUtilLib,
-  azureAbortControllerLib,
-  azureLoggerLib,
-} from "../../src/utils/external-packages.js";
-import { IndexFiles } from "../../src/components/index-file.js";
-import { StaticHelpers } from "../../src/components/static-helpers/index.js";
-import { RestorePollerFile } from "../../src/components/restore-poller.js";
-import { SampleFiles } from "../../src/components/sample-files.js";
-import { LoggerFile } from "../../src/components/logger-file.js";
-import { applyClientRenames } from "../../src/emitter.js";
+import { EmitterTree, applyClientRenames, azureExternals, coreExternals } from "../../src/emitter.js";
 import { Tester, RawTester, TesterWithService, createSdkContextForTest } from "../test-host.js";
 import type { FlavorKind } from "../../src/context/flavor-context.js";
 
@@ -132,33 +110,6 @@ function buildExtraUsings(code: string): string {
 }
 
 /**
- * All external packages needed for Azure-flavored SDK generation.
- *
- * Azure SDKs split runtime symbols across multiple packages, so all
- * must be registered as externals for Alloy's import resolution to work.
- * The `httpRuntimeLib` is still included because `expandUrlTemplate`
- * has no Azure equivalent.
- */
-const azureExternals = [
-  httpRuntimeLib,
-  azureCoreClientLib,
-  azureCorePipelineLib,
-  azureCoreAuthLib,
-  azureCoreUtilLib,
-  azureAbortControllerLib,
-  azureCoreLroLib,
-  azureLoggerLib,
-];
-
-/**
- * External packages for core (non-Azure) SDK generation.
- *
- * Core flavor uses only the runtime package. Azure-specific packages like
- * `@azure/core-lro` are excluded — LRO/paging support is gated behind Azure flavor.
- */
-const coreExternals = [httpRuntimeLib];
-
-/**
  * Detects whether TypeSpec code uses Azure-specific features, indicating
  * that Azure flavor should be used for SDK generation.
  *
@@ -199,22 +150,6 @@ export function resolveFlavor(
     return yamlConfig["flavor"] as FlavorKind;
   }
   return detectAzureFlavor(code) ? "azure" : "core";
-}
-
-/**
- * Extracts a short package name from the first client in the SDK context.
- *
- * Used to create a namespaced logger for Azure-flavored SDKs via
- * `createClientLogger("name")`.
- *
- * @param sdkContext - The TCGC SDK context
- * @returns A human-readable package identifier string
- */
-function getPackageName(
-  sdkContext: { sdkPackage: { clients: Array<{ name?: string }> } },
-): string {
-  const firstClient = sdkContext.sdkPackage.clients[0];
-  return firstClient?.name?.replace(/Client$/, "").toLowerCase() ?? "unknown";
 }
 
 /**
@@ -337,29 +272,7 @@ ${x}
     >
       <FlavorProvider flavor={flavor}>
         <EmitterOptionsProvider options={emitterOptions}>
-          <SdkContextProvider sdkContext={sdkContext}>
-            <SourceDirectory path="src">
-              {flavor === "azure" && (
-                <LoggerFile packageName={getPackageName(sdkContext)} />
-              )}
-              <ModelFiles />
-              <OperationFiles />
-              <OperationOptionsFiles />
-              <For each={sdkContext.sdkPackage.clients}>
-                {(client) => (
-                  <>
-                    <ClientContextFile client={client} />
-                    <ClassicalClientFile client={client} />
-                    <ClassicalOperationGroupFiles client={client} />
-                    {flavor === "azure" && <RestorePollerFile client={client} />}
-                  </>
-                )}
-              </For>
-              <IndexFiles />
-              <StaticHelpers />
-            </SourceDirectory>
-            <SampleFiles />
-          </SdkContextProvider>
+          <EmitterTree sdkContext={sdkContext} />
         </EmitterOptionsProvider>
       </FlavorProvider>
     </Output>

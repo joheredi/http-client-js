@@ -1,5 +1,5 @@
 /**
- * Test suite for the Azure flavor extension (Phase 8).
+ * Test suite for flavor gating and the FlavorProvider system.
  *
  * These tests validate the core architectural goal of the rewrite:
  * **composability via JSX composition**. The Azure extension pattern
@@ -41,7 +41,7 @@ import type {
 import { beforeAll, describe, expect, it } from "vitest";
 import { SdkContextProvider } from "../../src/context/sdk-context.js";
 import { FlavorProvider } from "../../src/context/flavor-context.js";
-import { AzureCoreEmitter } from "../../src/azure-emitter.js";
+import { EmitterTree, azureExternals } from "../../src/emitter.js";
 import { ModelFiles } from "../../src/components/model-files.js";
 import { OperationFiles } from "../../src/components/operation-files.js";
 import { ClientContextFile } from "../../src/components/client-context.js";
@@ -67,11 +67,11 @@ import {
 import { TesterWithService, createSdkContextForTest } from "../test-host.js";
 
 /**
- * Azure test wrapper that mirrors the AzureCoreEmitter's component tree.
+ * Azure test wrapper that renders the EmitterTree with Azure flavor.
  *
- * Uses the full set of Azure external packages and wraps components
- * with `FlavorProvider flavor="azure"`. Includes the LoggerFile to
- * validate Azure-specific additions.
+ * Uses the full set of Azure external packages and wraps EmitterTree
+ * with `FlavorProvider flavor="azure"`. This validates Azure-specific
+ * additions (logger, restore poller) and Azure package imports.
  */
 function AzureEmitterTestWrapper(props: {
   sdkContext: SdkContext<Record<string, any>, SdkHttpOperation>;
@@ -82,18 +82,11 @@ function AzureEmitterTestWrapper(props: {
       program={props.sdkContext.emitContext.program}
       namePolicy={createTSNamePolicy()}
       nameConflictResolver={tsNameConflictResolver}
-      externals={[
-        httpRuntimeLib,
-        azureCoreClientLib,
-        azureCorePipelineLib,
-        azureCoreAuthLib,
-        azureCoreUtilLib,
-        azureAbortControllerLib,
-        azureCoreLroLib,
-        azureLoggerLib,
-      ]}
+      externals={azureExternals}
     >
-      <AzureCoreEmitter sdkContext={props.sdkContext} />
+      <FlavorProvider flavor="azure">
+        <EmitterTree sdkContext={props.sdkContext} />
+      </FlavorProvider>
     </Output>
   );
 }
@@ -307,7 +300,7 @@ describe("Azure Extension", () => {
   });
 
   /**
-   * Tests that the AzureCoreEmitter component can be used
+   * Tests that the EmitterTree component can be used
    * standalone as a composable JSX element, validating the
    * composition pattern design.
    */
@@ -318,24 +311,17 @@ describe("Azure Extension", () => {
       `,
     );
 
-    // AzureCoreEmitter should render without errors when wrapped in Output
+    // EmitterTree should render without errors when wrapped in Output + FlavorProvider
     const template = (
       <Output
         program={sdkContext.emitContext.program}
         namePolicy={createTSNamePolicy()}
         nameConflictResolver={tsNameConflictResolver}
-        externals={[
-          httpRuntimeLib,
-          azureCoreClientLib,
-          azureCorePipelineLib,
-          azureCoreAuthLib,
-          azureCoreUtilLib,
-          azureAbortControllerLib,
-          azureCoreLroLib,
-          azureLoggerLib,
-        ]}
+        externals={azureExternals}
       >
-        <AzureCoreEmitter sdkContext={sdkContext} />
+        <FlavorProvider flavor="azure">
+          <EmitterTree sdkContext={sdkContext} />
+        </FlavorProvider>
       </Output>
     );
 
