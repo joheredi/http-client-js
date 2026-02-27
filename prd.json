@@ -1686,7 +1686,7 @@
       "title": "Conditional Header Logic: Spread Operator vs Direct Assignment",
       "category": "scenario-audit/Operations",
       "priority": "P2",
-      "status": "not-started",
+      "status": "done",
       "description": "The new emitter uses direct property assignment for headers instead of legacy conditional spread pattern. Legacy conditional spread with undefined check is the expected output.",
       "legacy_behavior": "...(options?.header !== undefined ? { header: options.header } : {})",
       "new_behavior": "header: options?.header (direct assignment, always present even if undefined).",

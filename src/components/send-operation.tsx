@@ -651,7 +651,23 @@ function buildHeaderEntries(
     const wrappedAccessor = encodedAccessor !== accessor
       ? encodedAccessor
       : wrapWithCollectionFormat(accessor, header.collectionFormat);
-    entries.push(code`"${header.serializedName}": ${wrappedAccessor}`);
+
+    // Build conditional spread for optional/nullable headers to avoid passing
+    // undefined/null values into the headers object (matches legacy emitter pattern).
+    const conditions: string[] = [];
+    if (header.optional) {
+      conditions.push(`${accessor} !== undefined`);
+    }
+    if (header.type.kind === "nullable") {
+      conditions.push(`${accessor} !== null`);
+    }
+
+    if (conditions.length > 0) {
+      const condition = conditions.join(" && ");
+      entries.push(code`...(${condition} ? { "${header.serializedName}": ${wrappedAccessor} } : {})`);
+    } else {
+      entries.push(code`"${header.serializedName}": ${wrappedAccessor}`);
+    }
   }
 
   if (entries.length === 0) return undefined;
@@ -711,8 +727,8 @@ function getHeaderAccessor(
  * - `utcDateTime` with `unixTimestamp` encoding → integer seconds
  * - `plainDate` → `.toISOString().split("T")[0]`
  *
- * For optional headers, a null guard is added so encoding is only applied
- * when the value is defined (prevents calling methods on `undefined`).
+ * Returns just the encoded expression without null guards — optional/nullable
+ * guards are handled by the conditional spread pattern in buildHeaderEntries.
  *
  * Non-date types are returned unchanged — they don't need encoding here.
  *
@@ -731,14 +747,7 @@ function applyHeaderDateEncoding(
     return accessor;
   }
 
-  const encoded = getSerializationExpression(type, accessor);
-
-  // Wrap optional or nullable headers with null guard to avoid calling methods on undefined
-  if (header.optional || header.type.kind === "nullable") {
-    return code`${accessor} !== undefined ? ${encoded} : undefined`;
-  }
-
-  return encoded;
+  return getSerializationExpression(type, accessor);
 }
 
 /**

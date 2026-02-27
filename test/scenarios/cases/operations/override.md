@@ -327,8 +327,8 @@ export function _removeOptionalOriginalSend(
   return context.path(path).get({
     ...operationOptionsToRequestParameters(options),
     headers: {
-      param4: options?.param4,
-      param5: "param5",
+      ...(options?.param4 !== undefined ? { param4: options?.param4 } : {}),
+      ...("param5" !== undefined ? { param5: "param5" } : {}),
       ...options.requestOptions?.headers,
     },
   });

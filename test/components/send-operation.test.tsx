@@ -389,7 +389,7 @@ describe("SendOperation", () => {
         context: Client,
         options: GetResourceOptionalParams = { requestOptions: {} },
       ): StreamableMethod {
-        return context.path("/").get({ ...operationOptionsToRequestParameters(options), headers: { accept: "text/plain", "if-match": options?.ifMatch, ...options.requestOptions?.headers } });
+        return context.path("/").get({ ...operationOptionsToRequestParameters(options), headers: { accept: "text/plain", ...(options?.ifMatch !== undefined ? { "if-match": options?.ifMatch } : {}), ...options.requestOptions?.headers } });
       }
     `);
   });
@@ -431,9 +431,11 @@ describe("SendOperation", () => {
   });
 
   /**
-   * Tests that optional utcDateTime header parameters get a null guard
-   * so that encoding is only applied when the value is defined. This prevents
-   * calling `.toUTCString()` on `undefined`, which would throw at runtime.
+   * Tests that optional utcDateTime header parameters use the conditional spread
+   * pattern with date encoding. The spread ensures the header is only included
+   * when the value is defined, and the date encoding is applied inside the spread.
+   * This prevents calling `.toUTCString()` on `undefined` and avoids passing
+   * undefined header values to the HTTP client.
    */
   it("should encode optional utcDateTime header parameters with null guard", async () => {
     const runner = await TesterWithService.createInstance();
@@ -457,8 +459,8 @@ describe("SendOperation", () => {
     );
 
     const result = renderToString(template);
-    // Optional header must have null guard before encoding
-    expect(result).toContain('options?.prop !== undefined ? (options?.prop).toUTCString() : undefined');
+    // Optional date header uses conditional spread with date encoding inside
+    expect(result).toContain('...(options?.prop !== undefined ? { "x-date": (options?.prop).toUTCString() } : {})');
   });
 
   /**

@@ -1082,3 +1082,35 @@ TypeSpec's `@multipartBody` validation requires ALL properties to be `HttpPart<T
 **Notes for next iteration:**
 - TCGC may not track empty models unless they're explicitly used via `@body` in operations. Unit tests need `@body _: ModelName` syntax.
 - The `hasAdditionalProperties` check is separate from `isEmpty` — models with only additionalProperties still use the spread pattern (`{...item}`), not the pass-through.
+
+---
+
+## Task SA-C38: Conditional Header Logic — Spread Operator vs Direct Assignment — DONE (2026-02-27)
+
+**What was done:**
+- Changed optional/nullable header parameters from direct property assignment to conditional spread pattern, matching legacy emitter behavior.
+- Old pattern: `"header-name": options?.value` (always includes header, even when undefined)
+- New pattern: `...(options?.value !== undefined ? { "header-name": options?.value } : {})` (only includes header when defined)
+- For nullable types, also adds `!== null` condition: `...(accessor !== undefined && accessor !== null ? { ... } : {})`
+- Modified `applyHeaderDateEncoding` to remove the optional ternary guard — the guard is now handled by the conditional spread at the entry level in `buildHeaderEntries`.
+
+**Files modified:**
+- `src/components/send-operation.tsx` — `buildHeaderEntries` (conditional spread logic) + `applyHeaderDateEncoding` (removed optional guard)
+- `test/components/send-operation.test.tsx` — Updated 2 unit tests for new conditional spread pattern
+- `test/scenarios/cases/operations/operations.md` — Updated expected output for optional/nullable headers
+- `test/scenarios/cases/operations/override.md` — Updated expected output for optional header
+- `test/scenarios/cases/operations/clientDefaultValue.md` — Updated expected output
+- `test/scenarios/cases/operations/headerParam/headerParamWithClientInitialization.md` — Updated expected output
+- `test/scenarios/cases/samples/parameters/parameterNormalization.md` — Updated expected output
+- `test/scenarios/cases/samples/parameters/parameterOrdering.md` — Updated expected output
+
+**Patterns used:**
+- Conditional spread: `...(condition ? { key: value } : {})` — includes property only when condition is true
+- Legacy ref: `submodules/autorest.typescript/packages/typespec-ts/src/modular/helpers/operationHelpers.ts` `buildHeaderParameter()` function (lines 1333-1357)
+- Three cases: (1) optional → `!== undefined`, (2) nullable → `!== null`, (3) optional+nullable → both conditions joined with `&&`
+
+**Notes for next iteration:**
+- The conditional spread pattern applies to ALL optional/nullable header params, including those with date encoding and collection format wrapping.
+- For date-encoded optional headers, the encoded expression (e.g., `.toUTCString()`) is now inside the spread's true branch instead of using a separate ternary guard.
+- The `applyHeaderDateEncoding` function no longer adds optional guards — it returns just the raw encoded expression.
+- Required non-nullable headers still use direct assignment (unchanged).

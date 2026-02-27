@@ -98,7 +98,9 @@ export function _verifySend(
     contentType: "application/json",
     headers: {
       accept: "application/json",
-      "x-ms-client-request-id": options?.clientRequestId,
+      ...(options?.clientRequestId !== undefined
+        ? { "x-ms-client-request-id": options?.clientRequestId }
+        : {}),
       "apc-gateway-id": apcGatewayId,
       ...options.requestOptions?.headers,
     },

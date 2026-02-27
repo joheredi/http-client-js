@@ -94,7 +94,9 @@ export function _testQuerySend(
     ...operationOptionsToRequestParameters(options),
     headers: {
       accept: "application/json",
-      "custom-header": options?.customHeader ?? "application/json",
+      ...((options?.customHeader ?? "application/json" !== undefined)
+        ? { "custom-header": options?.customHeader ?? "application/json" }
+        : {}),
       ...options.requestOptions?.headers,
     },
   });

@@ -160,23 +160,35 @@ export function _readSend(
     contentType: "application/json",
     headers: {
       "required-header": requiredHeader,
-      "optional-header": options?.optionalHeader,
-      "nullable-optional-header": options?.nullableOptionalHeader,
+      ...(options?.optionalHeader !== undefined
+        ? { "optional-header": options?.optionalHeader }
+        : {}),
+      ...(options?.nullableOptionalHeader !== undefined &&
+      options?.nullableOptionalHeader !== null
+        ? { "nullable-optional-header": options?.nullableOptionalHeader }
+        : {}),
       "bytes-header": bytesHeader,
       value: value,
       "csv-array-header": buildCsvCollection(csvArrayHeader),
-      "optional-csv-array-header": buildCsvCollection(
-        options?.optionalCsvArrayHeader,
-      ),
+      ...(options?.optionalCsvArrayHeader !== undefined
+        ? {
+            "optional-csv-array-header": buildCsvCollection(
+              options?.optionalCsvArrayHeader,
+            ),
+          }
+        : {}),
       "utc-date-header": utcDateHeader.toUTCString(),
-      "optional-date-header":
-        options?.optionalDateHeader !== undefined
-          ? (options?.optionalDateHeader).toUTCString()
-          : undefined,
-      "nullable-date-header":
-        options?.nullableDateHeader !== undefined
-          ? (options?.nullableDateHeader).toUTCString()
-          : undefined,
+      ...(options?.optionalDateHeader !== undefined
+        ? {
+            "optional-date-header": (options?.optionalDateHeader).toUTCString(),
+          }
+        : {}),
+      ...(options?.nullableDateHeader !== undefined &&
+      options?.nullableDateHeader !== null
+        ? {
+            "nullable-date-header": (options?.nullableDateHeader).toUTCString(),
+          }
+        : {}),
       ...options.requestOptions?.headers,
     },
     body: { prop1: prop1, prop2: prop2 },
@@ -254,7 +266,9 @@ export function _readSend(
   return context.path("/").get({
     ...operationOptionsToRequestParameters(options),
     headers: {
-      "nullable-required-header": nullableRequiredHeader,
+      ...(nullableRequiredHeader !== null
+        ? { "nullable-required-header": nullableRequiredHeader }
+        : {}),
       ...options.requestOptions?.headers,
     },
   });

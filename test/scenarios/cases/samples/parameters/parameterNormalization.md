@@ -70,7 +70,9 @@ export function _postSend(
     ...operationOptionsToRequestParameters(options),
     contentType: "application/json",
     headers: {
-      header_param: options?.HEADER_PARAM,
+      ...(options?.HEADER_PARAM !== undefined
+        ? { header_param: options?.HEADER_PARAM }
+        : {}),
       ...options.requestOptions?.headers,
     },
     body: !options?.ListCredentialsRequest
