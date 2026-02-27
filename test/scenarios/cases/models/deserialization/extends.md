@@ -427,7 +427,7 @@ export function exceptionSerializer(item: Exception): any {
 
 export function documentIngressSerializer(item: DocumentIngress): any {
   return {
-    DocumentType: item["DocumentType"],
+    DocumentType: documentTypeSerializer(item["DocumentType"]),
     DocumentStreamIds: item["DocumentStreamIds"],
     Properties: item["Properties"],
   };
@@ -444,6 +444,10 @@ export function documentIngressUnionSerializer(
     default:
       return documentIngressSerializer(item);
   }
+}
+
+export function documentTypeSerializer(item: DocumentType): any {
+  return item;
 }
 
 export function requestDeserializer(item: any): Request {

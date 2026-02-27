@@ -2278,6 +2278,12 @@ export type SchemaContentTypeValues =
   | "application/json; serialization=json"
   | "text/plain; charset=utf-8"
   | "text/vnd.ms.protobuf";
+
+export function schemaContentTypeValuesSerializer(
+  item: SchemaContentTypeValues,
+): any {
+  return item;
+}
 ```
 
 ## Operations
@@ -2382,6 +2388,12 @@ export type SchemaContentTypeValues =
   | "application/json; serialization=json"
   | "text/plain; charset=utf-8"
   | "text/vnd.ms.protobuf";
+
+export function schemaContentTypeValuesSerializer(
+  item: SchemaContentTypeValues,
+): any {
+  return item;
+}
 ```
 
 # anonymous union with string literals being used in regular headers
@@ -2435,6 +2447,12 @@ export type GetRequestTestHeader = "A" | "B";
  * Type of GetResponseTestHeader
  */
 export type GetResponseTestHeader = "A" | "B";
+
+export function getRequestTestHeaderSerializer(
+  item: GetRequestTestHeader,
+): any {
+  return item;
+}
 ```
 
 ## Operations

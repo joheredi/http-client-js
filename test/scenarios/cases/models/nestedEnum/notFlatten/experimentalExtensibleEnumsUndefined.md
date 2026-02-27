@@ -56,4 +56,8 @@ export type Foo = "bar" | Baz | string;
  * Type of Baz
  */
 export type Baz = "test" | "foo";
+
+export function fooSerializer(item: Foo): any {
+  return item;
+}
 ```

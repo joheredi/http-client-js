@@ -32,6 +32,7 @@ import { XmlObjectDeserializer } from "./serialization/xml-object-deserializer.j
 import { UnionDeclaration } from "./union-declaration.js";
 import { JsonUnionDeserializer } from "./serialization/json-union-deserializer.js";
 import { JsonUnionSerializer } from "./serialization/json-union-serializer.js";
+import { JsonEnumSerializer } from "./serialization/json-enum-serializer.js";
 import { extractSubEnums, SubEnumDeclarations } from "./sub-enum-declaration.js";
 import { hasXmlSerialization } from "../utils/xml-detection.js";
 import {
@@ -195,6 +196,17 @@ export function ModelFiles() {
       (u.usage & UsageFlags.Exception) !== 0,
   );
 
+  // Collect union-as-enum types that need pass-through serializers.
+  // When experimentalExtensibleEnums is NOT true, union-as-enum types
+  // (TypeSpec unions flattened by TCGC into SdkEnumType with isUnionAsEnum: true)
+  // generate pass-through serializer functions matching the legacy emitter's behavior.
+  const inputEnumSerializers = enums.filter(
+    (e) =>
+      e.isUnionAsEnum &&
+      !experimentalExtensibleEnums &&
+      (e.usage & UsageFlags.Input) !== 0,
+  );
+
   const hasSerializers =
     regularInputModels.length > 0 ||
     polymorphicInputModels.length > 0 ||
@@ -202,6 +214,7 @@ export function ModelFiles() {
   const hasDeserializers =
     regularOutputModels.length > 0 || polymorphicOutputModels.length > 0;
   const hasUnionSerializers = inputUnions.length > 0;
+  const hasEnumSerializers = inputEnumSerializers.length > 0;
   const hasUnionDeserializers = outputUnions.length > 0;
   const hasXmlSerializers = xmlInputModels.length > 0;
   const hasXmlDeserializers = xmlOutputModels.length > 0;
@@ -241,7 +254,7 @@ export function ModelFiles() {
           : undefined}
         <UnionDeclarations unions={namedUnions} />
         {(models.length > 0 || enums.length > 0 || allSubEnums.length > 0 || namedUnions.length > 0) &&
-        (hasSerializers || hasUnionSerializers || hasDeserializers || hasXmlSerializers || hasXmlDeserializers)
+        (hasSerializers || hasUnionSerializers || hasEnumSerializers || hasDeserializers || hasXmlSerializers || hasXmlDeserializers)
           ? "\n\n"
           : undefined}
         <SerializerDeclarations models={regularInputModels} />
@@ -256,27 +269,29 @@ export function ModelFiles() {
         <MultipartSerializerDeclarations models={multipartInputModels} />
         {hasSerializers && hasUnionSerializers ? "\n\n" : undefined}
         <UnionSerializerDeclarations unions={inputUnions} />
-        {(hasSerializers || hasUnionSerializers) && hasArrayRecordSerializers ? "\n\n" : undefined}
+        {(hasSerializers || hasUnionSerializers) && hasEnumSerializers ? "\n\n" : undefined}
+        <EnumSerializerDeclarations enums={inputEnumSerializers} />
+        {(hasSerializers || hasUnionSerializers || hasEnumSerializers) && hasArrayRecordSerializers ? "\n\n" : undefined}
         <ArrayRecordSerializerDeclarations arrayTypes={inputArrayTypes} dictTypes={inputDictTypes} />
-        {(hasSerializers || hasUnionSerializers || hasArrayRecordSerializers) && hasDeserializers ? "\n\n" : undefined}
+        {(hasSerializers || hasUnionSerializers || hasEnumSerializers || hasArrayRecordSerializers) && hasDeserializers ? "\n\n" : undefined}
         <DeserializerDeclarations models={regularOutputModels} />
         {regularOutputModels.length > 0 && polymorphicOutputModels.length > 0
           ? "\n\n"
           : undefined}
         <PolymorphicDeserializerDeclarations models={polymorphicOutputModels} />
-        {(hasDeserializers || hasSerializers || hasUnionSerializers) && hasUnionDeserializers
+        {(hasDeserializers || hasSerializers || hasUnionSerializers || hasEnumSerializers) && hasUnionDeserializers
           ? "\n\n"
           : undefined}
         <UnionDeserializerDeclarations unions={outputUnions} />
-        {(hasDeserializers || hasSerializers || hasUnionSerializers || hasUnionDeserializers) && hasArrayRecordDeserializers ? "\n\n" : undefined}
+        {(hasDeserializers || hasSerializers || hasUnionSerializers || hasEnumSerializers || hasUnionDeserializers) && hasArrayRecordDeserializers ? "\n\n" : undefined}
         <ArrayRecordDeserializerDeclarations arrayTypes={outputArrayTypes} dictTypes={outputDictTypes} />
-        {(hasSerializers || hasUnionSerializers || hasDeserializers || hasUnionDeserializers || hasArrayRecordSerializers || hasArrayRecordDeserializers) && hasXmlSerializers
+        {(hasSerializers || hasUnionSerializers || hasEnumSerializers || hasDeserializers || hasUnionDeserializers || hasArrayRecordSerializers || hasArrayRecordDeserializers) && hasXmlSerializers
           ? "\n\n"
           : undefined}
         <XmlSerializerDeclarations models={xmlInputModels} />
         {hasXmlSerializers && hasXmlDeserializers ? "\n\n" : undefined}
         <XmlDeserializerDeclarations models={xmlOutputModels} />
-        {(hasSerializers || hasUnionSerializers || hasDeserializers || hasUnionDeserializers || hasArrayRecordSerializers || hasArrayRecordDeserializers || hasXmlSerializers || hasXmlDeserializers) ? (
+        {(hasSerializers || hasUnionSerializers || hasEnumSerializers || hasDeserializers || hasUnionDeserializers || hasArrayRecordSerializers || hasArrayRecordDeserializers || hasXmlSerializers || hasXmlDeserializers) ? (
           <FlattenHelperDeclarations inputModels={[...regularInputModels, ...multipartInputModels]} outputModels={regularOutputModels} />
         ) : undefined}
       </SourceFile>
@@ -647,6 +662,34 @@ function UnionSerializerDeclarations(props: UnionSerializerDeclarationsProps) {
   return (
     <For each={props.unions} doubleHardline>
       {(unionType) => <JsonUnionSerializer type={unionType} />}
+    </For>
+  );
+}
+
+/**
+ * Props for the {@link EnumSerializerDeclarations} component.
+ */
+interface EnumSerializerDeclarationsProps {
+  /** The list of union-as-enum types that need pass-through serializers. */
+  enums: SdkEnumType[];
+}
+
+/**
+ * Renders all pass-through JSON serializer function declarations for union-as-enum types.
+ *
+ * When `experimentalExtensibleEnums` is NOT true, union-as-enum types (TypeSpec
+ * unions flattened by TCGC into `SdkEnumType` with `isUnionAsEnum: true`) get
+ * simple pass-through serializers matching the legacy emitter's behavior.
+ *
+ * @param props - Component props containing the list of union-as-enum types.
+ * @returns Alloy JSX tree with enum serializer declarations, or undefined if empty.
+ */
+function EnumSerializerDeclarations(props: EnumSerializerDeclarationsProps) {
+  if (props.enums.length === 0) return undefined;
+
+  return (
+    <For each={props.enums} doubleHardline>
+      {(enumType) => <JsonEnumSerializer type={enumType} />}
     </For>
   );
 }

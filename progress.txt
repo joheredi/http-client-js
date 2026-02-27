@@ -1491,3 +1491,36 @@ When gating a static helper file behind Azure flavor, ALL scenario tests that re
 - SA-C31-SER is the remaining work for union-as-enum serializers
 - The `experimentalExtensibleEnums` flag complicates serializer generation because it controls whether sub-enums are rendered, but `getSerializationExpression` doesn't have access to the flag
 - Property ordering in serializers/deserializers for inherited models (extends scenario) is still different from legacy — this is a separate issue from SA-C31
+
+## Task SA-C31-SER: Add missing pass-through serializers for union-as-enum types — DONE (2026-02-27)
+
+### What was done
+- Added pass-through serializer functions for union-as-enum types (SdkEnumType with `isUnionAsEnum: true`) when `experimentalExtensibleEnums` is NOT `true`
+- Legacy emitter generates these serializers (e.g., `provisioningStateSerializer(item: ProvisioningState): any { return item; }`) and model serializers call them for enum properties
+- The new emitter was missing these, causing output parity issues in 2 target scenarios + additional enumUnion/modelsGenerator/extends scenarios
+
+### Key changes
+1. **`src/components/serialization/json-enum-serializer.tsx`** (new): `JsonEnumSerializer` component generates pass-through serializer declarations for union-as-enum types. Mirrors `JsonUnionSerializer` pattern.
+2. **`src/utils/model-name.ts`**: Added `getEnumFunctionName(type, suffix)` for naming enum serializer functions (e.g., `ProvisioningState` → `provisioningStateSerializer`).
+3. **`src/components/serialization/json-serializer.tsx`**: 
+   - Added `SerializationOptions` interface with `experimentalExtensibleEnums` flag
+   - Added `enum` case to `getSerializationExpression()` — calls serializer refkey for union-as-enum types
+   - Added `enum` case to `needsTransformation()` — returns true for union-as-enum when flag is not true
+   - Added `enum` case to `valueTypeHasNamedSerializerFn()` — for array/dict element detection
+   - Updated `wrapWithNullCheck()` and `wrapWithArrayEncoding()` to accept options
+   - `JsonSerializer` and `FlattenSerializerHelper` now read `useEmitterOptions()` and pass options
+4. **`src/components/model-files.tsx`**: Collects union-as-enum types needing serializers, renders `EnumSerializerDeclarations` section
+5. **Updated 5 scenario test snapshots** and added 2 new unit tests
+
+### Patterns used
+- `SerializationOptions` optional parameter on `needsTransformation` and `getSerializationExpression` for backward-compatible flag threading
+- **Critical**: The `enum` case in `needsTransformation` requires `options` to be explicitly provided (not just truthy flag value) to prevent deserialization-side breakage. Without this guard, deserializers would wrap enum properties in unnecessary null checks
+- `serializerRefkey(type)` used for enum types just like models and unions — same refkey pattern
+- Alloy name policy handles camelCase conversion: `ProvisioningStateSerializer` → `provisioningStateSerializer`
+
+### What next person should know
+- **The `options` guard is critical**: `needsTransformation` and `getSerializationExpression` only activate the `enum` case when `options` is explicitly provided. Callers that don't pass options (deserialization side) get backward-compatible `false`/passthrough behavior. This prevents deserialization code from generating `!item["prop"] ? item["prop"] : item["prop"]` no-op null checks.
+- `send-operation.tsx` and `json-array-record-helpers.tsx` do NOT yet pass `SerializationOptions`. This means enum serializers are not called from those paths. For current scenarios this is fine because enum types are only used as model properties in the affected tests.
+- If a future scenario has an enum type as a direct body parameter in an operation (not wrapped in a model), `send-operation.tsx` would need to be updated to pass options.
+- Pre-existing snapshot drift exists in `propertyType.md`, `clientContext.md`, `classicClient/clientConstructorOverloads.md`, `headerInXmlResponse.md` — these were NOT included in this commit.
+- All 976 tests pass (974 existing + 2 new)

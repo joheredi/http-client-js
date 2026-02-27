@@ -116,7 +116,11 @@ export type ResourceProvisioningState = "Succeeded" | "Failed" | "Canceled";
 
 export function _fooRequestBodySerializer(item: _FooRequestBody): any {
   return {
-    status: item["status"],
+    status: provisioningStateSerializer(item["status"]),
   };
+}
+
+export function provisioningStateSerializer(item: ProvisioningState): any {
+  return item;
 }
 ```

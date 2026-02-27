@@ -6,11 +6,13 @@ import {
   ObjectSpreadProperty,
 } from "@alloy-js/typescript";
 import type {
+  SdkEnumType,
   SdkModelPropertyType,
   SdkModelType,
   SdkType,
 } from "@azure-tools/typespec-client-generator-core";
 import { UsageFlags } from "@azure-tools/typespec-client-generator-core";
+import { useEmitterOptions } from "../../context/emitter-options-context.js";
 import { getModelFunctionName } from "../../utils/model-name.js";
 import { flattenSerializerRefkey, serializationHelperRefkey, serializerRefkey, typeRefkey, arraySerializerRefkey, recordSerializerRefkey } from "../../utils/refkeys.js";
 import { computeFlattenCollisionMap, getEffectiveClientName } from "../../utils/flatten-collision.js";
@@ -73,6 +75,8 @@ export interface JsonSerializerProps {
  */
 export function JsonSerializer(props: JsonSerializerProps) {
   const { model, refkeyOverride, nameSuffix, includeParentProperties } = props;
+  const { experimentalExtensibleEnums } = useEmitterOptions();
+  const serOpts: SerializationOptions = { experimentalExtensibleEnums };
   const properties = getSerializableProperties(model, includeParentProperties);
   const hasAdditional = hasAdditionalProperties(model);
   // Empty models (no properties and no additionalProperties) pass through the
@@ -122,11 +126,11 @@ export function JsonSerializer(props: JsonSerializerProps) {
                 );
               }
               const accessor = `item["${prop.name}"]`;
-              let valueExpr = getSerializationExpression(prop.type, accessor);
+              let valueExpr = getSerializationExpression(prop.type, accessor, serOpts);
               // Apply array encoding if the property has @encode(ArrayEncoding.xxx).
               // This converts arrays to delimited strings on the wire (e.g., ["a","b"] → "a,b").
-              valueExpr = wrapWithArrayEncoding(valueExpr, accessor, prop);
-              const wrapped = wrapWithNullCheck(valueExpr, accessor, prop);
+              valueExpr = wrapWithArrayEncoding(valueExpr, accessor, prop, serOpts);
+              const wrapped = wrapWithNullCheck(valueExpr, accessor, prop, serOpts);
               return <ObjectProperty name={prop.serializedName} value={wrapped} />;
             }}
           </For>
@@ -213,6 +217,20 @@ function collectAncestorProperties(
 }
 
 /**
+ * Options that control serialization behavior for types that depend on
+ * emitter configuration, such as union-as-enum types whose serialization
+ * varies based on the `experimentalExtensibleEnums` flag.
+ */
+export interface SerializationOptions {
+  /**
+   * When NOT true, union-as-enum types generate pass-through serializer functions
+   * and model serializers call them. When true, union-as-enum types are rendered
+   * as simple string types and no serializer is generated.
+   */
+  experimentalExtensibleEnums?: boolean;
+}
+
+/**
  * Generates the serialization expression for a given type and value accessor.
  *
  * This function determines how to transform a typed value into its wire format
@@ -220,6 +238,7 @@ function collectAncestorProperties(
  * - Models: calls the child serializer function via refkey
  * - Arrays: uses `.map()` with recursive element serialization
  * - Dictionaries: iterates entries with child serializer
+ * - Enums: calls pass-through serializer for union-as-enum types (when experimentalExtensibleEnums is NOT true)
  * - utcDateTime: calls `.toISOString()` (or `(getTime() / 1000) | 0` for unixTimestamp encoding, integer seconds)
  * - plainDate: calls `.toISOString().split("T")[0]` for date-only (YYYY-MM-DD) format
  * - Bytes: calls `uint8ArrayToString()` from the runtime library
@@ -228,11 +247,13 @@ function collectAncestorProperties(
  *
  * @param type - The TCGC type to generate a serialization expression for.
  * @param accessor - The JavaScript expression that accesses the value (e.g., `item["name"]`).
+ * @param options - Optional serialization options controlling enum behavior.
  * @returns Alloy Children representing the serialization expression.
  */
 export function getSerializationExpression(
   type: SdkType,
   accessor: string,
+  options?: SerializationOptions,
 ): Children {
   switch (type.kind) {
     case "model":
@@ -245,28 +266,28 @@ export function getSerializationExpression(
       return code`${serializerRefkey(type)}(${accessor})`;
 
     case "array": {
-      if (needsTransformation(type.valueType)) {
+      if (needsTransformation(type.valueType, options)) {
         // If the value type has a named serializer (model, union, nested array/record),
         // reference the named array helper function instead of inlining .map().
         // This matches the legacy emitter's pattern of generating dedicated
         // array serializer functions like `petArraySerializer(items)`.
-        if (valueTypeHasNamedSerializerFn(type.valueType)) {
+        if (valueTypeHasNamedSerializerFn(type.valueType, options)) {
           return code`${arraySerializerRefkey(type.valueType)}(${accessor})`;
         }
-        const elementExpr = getSerializationExpression(type.valueType, "p");
+        const elementExpr = getSerializationExpression(type.valueType, "p", options);
         return code`${accessor}.map((p: any) => { return ${elementExpr}; })`;
       }
       return accessor;
     }
 
     case "dict": {
-      if (needsTransformation(type.valueType)) {
+      if (needsTransformation(type.valueType, options)) {
         // If the value type has a named serializer, reference the named record
         // helper function instead of using inline serializeRecord().
-        if (valueTypeHasNamedSerializerFn(type.valueType)) {
+        if (valueTypeHasNamedSerializerFn(type.valueType, options)) {
           return code`${recordSerializerRefkey(type.valueType)}(${accessor} as any)`;
         }
-        const valueExpr = getSerializationExpression(type.valueType, "v");
+        const valueExpr = getSerializationExpression(type.valueType, "v", options);
         return code`${serializationHelperRefkey("serializeRecord")}(${accessor} as any, (v: any) => ${valueExpr})`;
       }
       return accessor;
@@ -315,8 +336,22 @@ export function getSerializationExpression(
       }
       return accessor;
 
+    case "enum":
+      // Union-as-enum types (TypeSpec unions flattened by TCGC into SdkEnumType)
+      // have pass-through serializer functions when experimentalExtensibleEnums
+      // is NOT true. Call the serializer refkey so model serializers reference it.
+      // Only activates when options is explicitly provided (serialization context).
+      if (
+        options &&
+        (type as SdkEnumType).isUnionAsEnum &&
+        !options.experimentalExtensibleEnums
+      ) {
+        return code`${serializerRefkey(type)}(${accessor})`;
+      }
+      return accessor;
+
     case "nullable":
-      return getSerializationExpression(type.type, accessor);
+      return getSerializationExpression(type.type, accessor, options);
 
     default:
       return accessor;
@@ -328,24 +363,26 @@ export function getSerializationExpression(
  *
  * Types that need transformation include models (which call child serializers),
  * arrays and dictionaries with complex element types, date types (which need
- * `.toISOString()`), and bytes (which need base64 encoding).
+ * `.toISOString()`), bytes (which need base64 encoding), and union-as-enum
+ * types when `experimentalExtensibleEnums` is NOT true.
  *
- * Simple types (string, number, boolean, enums, constants) pass through
+ * Simple types (string, number, boolean, regular enums, constants) pass through
  * unchanged and don't need transformation.
  *
  * @param type - The TCGC type to check.
+ * @param options - Optional serialization options controlling enum behavior.
  * @returns `true` if the type requires a serialization transformation.
  */
-export function needsTransformation(type: SdkType): boolean {
+export function needsTransformation(type: SdkType, options?: SerializationOptions): boolean {
   switch (type.kind) {
     case "model":
       return true;
     case "array":
-      return needsTransformation(type.valueType);
+      return needsTransformation(type.valueType, options);
     case "dict":
-      return needsTransformation(type.valueType);
+      return needsTransformation(type.valueType, options);
     case "nullable":
-      return needsTransformation(type.type);
+      return needsTransformation(type.type, options);
     case "utcDateTime":
     case "plainDate":
       return true;
@@ -363,6 +400,17 @@ export function needsTransformation(type: SdkType): boolean {
           (type.usage & UsageFlags.Output) !== 0 ||
           (type.usage & UsageFlags.Exception) !== 0)
       );
+    case "enum":
+      // Union-as-enum types need pass-through serializers when
+      // experimentalExtensibleEnums is NOT true. When the flag is true,
+      // the enum renders as a simple string type with no serializer.
+      // Only returns true when options is explicitly provided (serialization
+      // context). Deserialization calls without options get backward-compatible false.
+      return !!(
+        options &&
+        (type as SdkEnumType).isUnionAsEnum &&
+        !options.experimentalExtensibleEnums
+      );
     default:
       return false;
   }
@@ -376,9 +424,10 @@ export function needsTransformation(type: SdkType): boolean {
  * Defined locally to avoid circular dependency with json-array-record-helpers.tsx.
  *
  * @param type - The SDK type to check.
+ * @param options - Optional serialization options controlling enum behavior.
  * @returns True if the type has a named serializer function.
  */
-function valueTypeHasNamedSerializerFn(type: SdkType): boolean {
+function valueTypeHasNamedSerializerFn(type: SdkType, options?: SerializationOptions): boolean {
   switch (type.kind) {
     case "model":
       return (type.usage & UsageFlags.Input) !== 0;
@@ -388,18 +437,24 @@ function valueTypeHasNamedSerializerFn(type: SdkType): boolean {
         !type.isGeneratedName &&
         (type.usage & UsageFlags.Input) !== 0
       );
+    case "enum":
+      return !!(
+        options &&
+        (type as SdkEnumType).isUnionAsEnum &&
+        !options.experimentalExtensibleEnums
+      );
     case "array":
       return (
-        needsTransformation(type.valueType) &&
-        valueTypeHasNamedSerializerFn(type.valueType)
+        needsTransformation(type.valueType, options) &&
+        valueTypeHasNamedSerializerFn(type.valueType, options)
       );
     case "dict":
       return (
-        needsTransformation(type.valueType) &&
-        valueTypeHasNamedSerializerFn(type.valueType)
+        needsTransformation(type.valueType, options) &&
+        valueTypeHasNamedSerializerFn(type.valueType, options)
       );
     case "nullable":
-      return valueTypeHasNamedSerializerFn(type.type);
+      return valueTypeHasNamedSerializerFn(type.type, options);
     default:
       return false;
   }
@@ -427,12 +482,13 @@ function wrapWithNullCheck(
   expression: Children,
   accessor: string,
   property: SdkModelPropertyType,
+  options?: SerializationOptions,
 ): Children {
   const isNullable =
     property.type.kind === "nullable" ||
     property.optional;
 
-  if (isNullable && needsTransformation(property.type)) {
+  if (isNullable && needsTransformation(property.type, options)) {
     return code`!${accessor} ? ${accessor} : ${expression}`;
   }
 
@@ -476,6 +532,7 @@ function wrapWithArrayEncoding(
   expression: Children,
   accessor: string,
   prop: SdkModelPropertyType,
+  options?: SerializationOptions,
 ): Children {
   if (!prop.encode) return expression;
 
@@ -485,7 +542,7 @@ function wrapWithArrayEncoding(
   // If the inner array elements need transformation (e.g., dates), the
   // expression is already a .map() call. Wrap that with the collection builder.
   // If no transformation is needed, the expression is the raw accessor.
-  if (needsTransformation(prop.type)) {
+  if (needsTransformation(prop.type, options)) {
     return code`${serializationHelperRefkey(helperName)}(${expression})`;
   }
 
@@ -548,6 +605,8 @@ export interface FlattenSerializerHelperProps {
  */
 export function FlattenSerializerHelper(props: FlattenSerializerHelperProps) {
   const { parentModel, flattenProp } = props;
+  const { experimentalExtensibleEnums } = useEmitterOptions();
+  const serOpts: SerializationOptions = { experimentalExtensibleEnums };
   const flatModel = flattenProp.type as SdkModelType;
   const properties = getFlattenHelperProperties(flatModel, flattenProp.optional);
   const funcName = getFlattenHelperFunctionName(parentModel, flattenProp, "Serializer");
@@ -572,9 +631,9 @@ export function FlattenSerializerHelper(props: FlattenSerializerHelperProps) {
               prop.name,
             );
             const accessor = `item["${effectiveName}"]`;
-            let valueExpr = getSerializationExpression(prop.type, accessor);
-            valueExpr = wrapWithArrayEncoding(valueExpr, accessor, prop);
-            const wrapped = wrapWithNullCheck(valueExpr, accessor, prop);
+            let valueExpr = getSerializationExpression(prop.type, accessor, serOpts);
+            valueExpr = wrapWithArrayEncoding(valueExpr, accessor, prop, serOpts);
+            const wrapped = wrapWithNullCheck(valueExpr, accessor, prop, serOpts);
             return <ObjectProperty name={prop.serializedName} value={wrapped} />;
           }}
         </For>

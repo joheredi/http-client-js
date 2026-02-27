@@ -2,6 +2,7 @@ import { namekey, type Namekey, type NamekeyOptions } from "@alloy-js/core";
 import type {
   SdkArrayType,
   SdkDictionaryType,
+  SdkEnumType,
   SdkModelType,
   SdkType,
   SdkUnionType,
@@ -241,4 +242,23 @@ function isGeneratedType(type: SdkType): boolean {
   if (type.kind === "model") return type.isGeneratedName;
   if (type.kind === "union") return (type as SdkUnionType).isGeneratedName;
   return false;
+}
+
+/**
+ * Returns a declaration name for a function derived from an enum type.
+ *
+ * Used for pass-through serializer function names for union-as-enum types
+ * (e.g., `ProvisioningState` → `provisioningStateSerializer`). The name is
+ * composed from the PascalCase-normalized enum name + suffix, and Alloy's
+ * name policy applies camelCase.
+ *
+ * @param type - The TCGC enum type.
+ * @param suffix - The suffix to append (e.g., `"Serializer"`).
+ * @returns The function name (plain string or namekey) for the `name` prop.
+ */
+export function getEnumFunctionName(
+  type: SdkEnumType,
+  suffix: string,
+): string | Namekey<NamekeyOptions> {
+  return `${normalizePascalCaseName(type.name)}${suffix}`;
 }

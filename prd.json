@@ -1705,7 +1705,7 @@
       "title": "Add missing pass-through serializers for union-as-enum types",
       "category": "scenario-audit/Serialization",
       "priority": "P2",
-      "status": "not-started",
+      "status": "done",
       "description": "The legacy emitter generates pass-through serializer functions for union-as-enum types (e.g., provisioningStateSerializer for ProvisioningState). The new emitter does not. This requires threading experimentalExtensibleEnums through getSerializationExpression/needsTransformation or handling it in the JsonSerializer component. Affects experimentalExtensibleEnumsFalse and experimentalExtensibleEnumsUndefined scenarios.",
       "affected_scenarios": [
         "models/nestedEnum/notFlatten/experimentalExtensibleEnumsFalse",

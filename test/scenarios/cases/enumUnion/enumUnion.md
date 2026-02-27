@@ -53,6 +53,12 @@ export type SchemaContentTypeValues =
   | "application/json; serialization=json"
   | "text/plain; charset=utf-8"
   | "text/vnd.ms.protobuf";
+
+export function schemaContentTypeValuesSerializer(
+  item: SchemaContentTypeValues,
+): any {
+  return item;
+}
 ```
 
 ## paramOutput
@@ -156,6 +162,12 @@ export type SchemaContentTypeValues =
   | "application/json; serialization=json"
   | "text/plain; charset=utf-8"
   | "text/vnd.ms.protobuf";
+
+export function schemaContentTypeValuesSerializer(
+  item: SchemaContentTypeValues,
+): any {
+  return item;
+}
 ```
 
 # union with string as extensible enum is exhaustive
@@ -208,6 +220,12 @@ withRawContent: true
 export type SchemaContentTypeValues =
   | "text/plain; charset=utf-8"
   | "text/vnd.ms.protobuf";
+
+export function schemaContentTypeValuesSerializer(
+  item: SchemaContentTypeValues,
+): any {
+  return item;
+}
 ```
 
 # union contains union with string element
@@ -275,6 +293,12 @@ export type SchemaContentTypeValues =
 export type JsonContentType =
   | "application/json; serialization=Avro"
   | "application/json; serialization=json";
+
+export function schemaContentTypeValuesSerializer(
+  item: SchemaContentTypeValues,
+): any {
+  return item;
+}
 ```
 
 # union contains enum with string element
@@ -342,6 +366,12 @@ export type SchemaContentTypeValues =
 export type JsonContentType =
   | "application/json; serialization=Avro"
   | "application/json; serialization=json";
+
+export function schemaContentTypeValuesSerializer(
+  item: SchemaContentTypeValues,
+): any {
+  return item;
+}
 ```
 
 # union with string as extensible enum
@@ -394,6 +424,12 @@ withRawContent: true
 export type SchemaContentTypeValues =
   | "text/plain; charset=utf-8"
   | "text/vnd.ms.protobuf";
+
+export function schemaContentTypeValuesSerializer(
+  item: SchemaContentTypeValues,
+): any {
+  return item;
+}
 ```
 
 # union contains union with string element
@@ -461,6 +497,12 @@ export type SchemaContentTypeValues =
 export type JsonContentType =
   | "application/json; serialization=Avro"
   | "application/json; serialization=json";
+
+export function schemaContentTypeValuesSerializer(
+  item: SchemaContentTypeValues,
+): any {
+  return item;
+}
 ```
 
 # union contains enum with string element
@@ -528,6 +570,12 @@ export type SchemaContentTypeValues =
 export type JsonContentType =
   | "application/json; serialization=Avro"
   | "application/json; serialization=json";
+
+export function schemaContentTypeValuesSerializer(
+  item: SchemaContentTypeValues,
+): any {
+  return item;
+}
 ```
 
 # anonymous union with "|" fixed in regular headers
@@ -580,6 +628,12 @@ export type GetRequestTestHeader = "A" | "B";
  * Type of GetResponseTestHeader
  */
 export type GetResponseTestHeader = "A" | "B";
+
+export function getRequestTestHeaderSerializer(
+  item: GetRequestTestHeader,
+): any {
+  return item;
+}
 ```
 
 ## Operations
@@ -936,6 +990,10 @@ withRawContent: true
  * Type of EnumTest
  */
 export type EnumTest = 1 | 2 | 3 | 4;
+
+export function enumTestSerializer(item: EnumTest): any {
+  return item;
+}
 ```
 
 # mixed union types should be generated correctly
@@ -1045,7 +1103,7 @@ export interface Test {
 ```ts models function testSerializer
 export function testSerializer(item: Test): any {
   return {
-    color: item["color"],
+    color: testColorSerializer(item["color"]),
   };
 }
 ```
@@ -1161,7 +1219,7 @@ export interface Test {
 ```ts models function testSerializer
 export function testSerializer(item: Test): any {
   return {
-    color: item["color"],
+    color: testColorSerializer(item["color"]),
   };
 }
 ```

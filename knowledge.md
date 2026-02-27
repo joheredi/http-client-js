@@ -1861,3 +1861,13 @@ When a `<SourceFile path="group/file.ts">` path contains subdirectory components
 ```
 
 This applies to ALL components that use SourceFile with computed paths including subdirectory prefixes.
+
+### SA-C31-SER: needsTransformation enum case requires explicit options
+**Problem:** When adding the `enum` case to `needsTransformation()`, it MUST require the `options` parameter to be explicitly provided (check `options &&`). Without this guard, deserialization code (which calls `needsTransformation` without options) would erroneously return `true` for union-as-enum types, causing deserializers to generate no-op null checks like `!item["prop"] ? item["prop"] : item["prop"]`.
+
+**Root cause:** `needsTransformation` is shared between serialization and deserialization paths. The deserialization side doesn't pass `SerializationOptions`. If the `enum` case checks `!options?.experimentalExtensibleEnums`, it evaluates to `true` when `options` is `undefined`, making ALL union-as-enum types "need transformation" in deserialization — breaking 23 tests.
+
+**Fix:** Use `options && (type as SdkEnumType).isUnionAsEnum && !options.experimentalExtensibleEnums` — the leading `options &&` ensures backward compatibility.
+
+### SA-C31-SER: send-operation.tsx and json-array-record-helpers.tsx don't pass SerializationOptions
+These files call `getSerializationExpression` and `needsTransformation` without passing `SerializationOptions`. This means if a union-as-enum type appears as a direct body parameter or array/dict element, the serializer won't be called. For current scenarios this is fine, but future scenarios with direct enum body params would need these callers updated.
