@@ -1,9 +1,14 @@
 import { For, SourceDirectory } from "@alloy-js/core";
 import { SourceFile } from "@alloy-js/typescript";
 import type {
+  SdkArrayType,
+  SdkClientType,
+  SdkDictionaryType,
   SdkEnumType,
+  SdkHttpOperation,
   SdkModelType,
   SdkNullableType,
+  SdkType,
   SdkUnionType,
 } from "@azure-tools/typespec-client-generator-core";
 import { UsageFlags } from "@azure-tools/typespec-client-generator-core";
@@ -29,6 +34,15 @@ import { JsonUnionDeserializer } from "./serialization/json-union-deserializer.j
 import { JsonUnionSerializer } from "./serialization/json-union-serializer.js";
 import { extractSubEnums, SubEnumDeclarations } from "./sub-enum-declaration.js";
 import { hasXmlSerialization } from "../utils/xml-detection.js";
+import {
+  JsonArraySerializer,
+  JsonArrayDeserializer,
+  JsonRecordSerializer,
+  JsonRecordDeserializer,
+  collectArrayTypes,
+  collectDictTypes,
+} from "./serialization/json-array-record-helpers.js";
+import { needsTransformation } from "./serialization/json-serializer.js";
 
 /**
  * ESLint disable directives placed at the top of generated model files.
@@ -74,7 +88,7 @@ const MODEL_FILE_ESLINT_DIRECTIVES = [
  *          source file, or `undefined` if no types need to be emitted.
  */
 export function ModelFiles() {
-  const { models, enums, unions } = useSdkContext();
+  const { models, enums, unions, clients } = useSdkContext();
 
   // Filter unions to include named SdkUnionType, including those wrapped in
   // SdkNullableType. When a union like `"A" | "B" | null` is defined, TCGC wraps
@@ -192,6 +206,21 @@ export function ModelFiles() {
   const hasXmlSerializers = xmlInputModels.length > 0;
   const hasXmlDeserializers = xmlOutputModels.length > 0;
 
+  // Collect all types that appear in model properties and operation signatures
+  // to find array/record types that need named helper functions.
+  const allPropertyTypes = collectAllPropertyAndOperationTypes(models, clients);
+
+  // Collect unique array/dict types needing serialization helpers
+  const inputArrayTypes = collectArrayTypes(allPropertyTypes.inputTypes, "input");
+  const outputArrayTypes = collectArrayTypes(allPropertyTypes.outputTypes, "output");
+  const inputDictTypes = collectDictTypes(allPropertyTypes.inputTypes, "input");
+  const outputDictTypes = collectDictTypes(allPropertyTypes.outputTypes, "output");
+
+  const hasArrayRecordSerializers =
+    inputArrayTypes.length > 0 || inputDictTypes.length > 0;
+  const hasArrayRecordDeserializers =
+    outputArrayTypes.length > 0 || outputDictTypes.length > 0;
+
   // Skip rendering entirely if there are no type declarations to emit
   if (models.length === 0 && enums.length === 0 && namedUnions.length === 0 && nullableEnums.length === 0) {
     return undefined;
@@ -227,7 +256,9 @@ export function ModelFiles() {
         <MultipartSerializerDeclarations models={multipartInputModels} />
         {hasSerializers && hasUnionSerializers ? "\n\n" : undefined}
         <UnionSerializerDeclarations unions={inputUnions} />
-        {(hasSerializers || hasUnionSerializers) && hasDeserializers ? "\n\n" : undefined}
+        {(hasSerializers || hasUnionSerializers) && hasArrayRecordSerializers ? "\n\n" : undefined}
+        <ArrayRecordSerializerDeclarations arrayTypes={inputArrayTypes} dictTypes={inputDictTypes} />
+        {(hasSerializers || hasUnionSerializers || hasArrayRecordSerializers) && hasDeserializers ? "\n\n" : undefined}
         <DeserializerDeclarations models={regularOutputModels} />
         {regularOutputModels.length > 0 && polymorphicOutputModels.length > 0
           ? "\n\n"
@@ -237,13 +268,15 @@ export function ModelFiles() {
           ? "\n\n"
           : undefined}
         <UnionDeserializerDeclarations unions={outputUnions} />
-        {(hasSerializers || hasUnionSerializers || hasDeserializers || hasUnionDeserializers) && hasXmlSerializers
+        {(hasDeserializers || hasSerializers || hasUnionSerializers || hasUnionDeserializers) && hasArrayRecordDeserializers ? "\n\n" : undefined}
+        <ArrayRecordDeserializerDeclarations arrayTypes={outputArrayTypes} dictTypes={outputDictTypes} />
+        {(hasSerializers || hasUnionSerializers || hasDeserializers || hasUnionDeserializers || hasArrayRecordSerializers || hasArrayRecordDeserializers) && hasXmlSerializers
           ? "\n\n"
           : undefined}
         <XmlSerializerDeclarations models={xmlInputModels} />
         {hasXmlSerializers && hasXmlDeserializers ? "\n\n" : undefined}
         <XmlDeserializerDeclarations models={xmlOutputModels} />
-        {(hasSerializers || hasUnionSerializers || hasDeserializers || hasUnionDeserializers || hasXmlSerializers || hasXmlDeserializers) ? (
+        {(hasSerializers || hasUnionSerializers || hasDeserializers || hasUnionDeserializers || hasArrayRecordSerializers || hasArrayRecordDeserializers || hasXmlSerializers || hasXmlDeserializers) ? (
           <FlattenHelperDeclarations inputModels={[...regularInputModels, ...multipartInputModels]} outputModels={regularOutputModels} />
         ) : undefined}
       </SourceFile>
@@ -837,4 +870,144 @@ function FlattenHelperDeclarations(props: FlattenHelperDeclarationsProps) {
       </For>
     </>
   );
+}
+
+/**
+ * Props for the {@link ArrayRecordSerializerDeclarations} component.
+ */
+interface ArrayRecordSerializerDeclarationsProps {
+  /** Unique array types that need serializer helper functions. */
+  arrayTypes: SdkArrayType[];
+  /** Unique dict types that need serializer helper functions. */
+  dictTypes: SdkDictionaryType[];
+}
+
+/**
+ * Renders all named array and record serializer helper functions.
+ *
+ * These functions wrap `.map()` or `serializeRecord()` calls in standalone
+ * exported functions, matching the legacy emitter's pattern. For example:
+ * `petArraySerializer(result: Array<Pet>): any[]`
+ *
+ * @param props - Component props with array and dict types.
+ * @returns Alloy JSX tree with array/record serializer declarations, or undefined if empty.
+ */
+function ArrayRecordSerializerDeclarations(props: ArrayRecordSerializerDeclarationsProps) {
+  const all = [
+    ...props.arrayTypes.map((t) => ({ kind: "array" as const, type: t })),
+    ...props.dictTypes.map((t) => ({ kind: "dict" as const, type: t })),
+  ];
+  if (all.length === 0) return undefined;
+
+  return (
+    <For each={all} doubleHardline>
+      {(item) =>
+        item.kind === "array" ? (
+          <JsonArraySerializer type={item.type as SdkArrayType} />
+        ) : (
+          <JsonRecordSerializer type={item.type as SdkDictionaryType} />
+        )
+      }
+    </For>
+  );
+}
+
+/**
+ * Props for the {@link ArrayRecordDeserializerDeclarations} component.
+ */
+interface ArrayRecordDeserializerDeclarationsProps {
+  /** Unique array types that need deserializer helper functions. */
+  arrayTypes: SdkArrayType[];
+  /** Unique dict types that need deserializer helper functions. */
+  dictTypes: SdkDictionaryType[];
+}
+
+/**
+ * Renders all named array and record deserializer helper functions.
+ *
+ * @param props - Component props with array and dict types.
+ * @returns Alloy JSX tree with array/record deserializer declarations, or undefined if empty.
+ */
+function ArrayRecordDeserializerDeclarations(props: ArrayRecordDeserializerDeclarationsProps) {
+  const all = [
+    ...props.arrayTypes.map((t) => ({ kind: "array" as const, type: t })),
+    ...props.dictTypes.map((t) => ({ kind: "dict" as const, type: t })),
+  ];
+  if (all.length === 0) return undefined;
+
+  return (
+    <For each={all} doubleHardline>
+      {(item) =>
+        item.kind === "array" ? (
+          <JsonArrayDeserializer type={item.type as SdkArrayType} />
+        ) : (
+          <JsonRecordDeserializer type={item.type as SdkDictionaryType} />
+        )
+      }
+    </For>
+  );
+}
+
+/**
+ * Collects all SDK types from model properties and operation signatures
+ * that need to be examined for array/record helper function generation.
+ *
+ * Walks all model properties and all operation method parameters/responses
+ * to find every SdkType that might contain array or record types needing
+ * named helper functions.
+ *
+ * @param models - All models in the SDK package.
+ * @param clients - All top-level clients in the SDK package.
+ * @returns Separate lists of input and output types to walk.
+ */
+function collectAllPropertyAndOperationTypes(
+  models: SdkModelType[],
+  clients: SdkClientType<SdkHttpOperation>[],
+): { inputTypes: SdkType[]; outputTypes: SdkType[] } {
+  const inputTypes: SdkType[] = [];
+  const outputTypes: SdkType[] = [];
+
+  // Walk model properties
+  for (const model of models) {
+    const isInput = (model.usage & UsageFlags.Input) !== 0;
+    const isOutput =
+      (model.usage & UsageFlags.Output) !== 0 ||
+      (model.usage & UsageFlags.Exception) !== 0;
+
+    for (const prop of model.properties) {
+      if (isInput) inputTypes.push(prop.type);
+      if (isOutput) outputTypes.push(prop.type);
+    }
+  }
+
+  // Walk operations from clients to find array/dict types in
+  // request bodies and response types not covered by model properties
+  function walkClient(client: SdkClientType<SdkHttpOperation>) {
+    for (const method of client.methods) {
+      if (method.kind === "basic") {
+        // Request body type
+        for (const param of method.parameters) {
+          if (param.kind === "method") {
+            inputTypes.push(param.type);
+          }
+        }
+        // Response type
+        if (method.response?.type) {
+          outputTypes.push(method.response.type);
+        }
+      }
+    }
+    // Recurse into child clients
+    if (client.children) {
+      for (const child of client.children) {
+        walkClient(child);
+      }
+    }
+  }
+
+  for (const client of clients) {
+    walkClient(client);
+  }
+
+  return { inputTypes, outputTypes };
 }

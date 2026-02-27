@@ -310,7 +310,7 @@ op read(@body bars?: Bar[]): OkResponse;
 ## Operations
 
 ```ts operations
-import { barSerializer } from "../models/models.js";
+import { barArraySerializer } from "../models/models.js";
 import type { ReadOptionalParams } from "./options.js";
 import {
   type Client,
@@ -327,11 +327,7 @@ export function _readSend(
   return context.path("/").post({
     ...operationOptionsToRequestParameters(options),
     contentType: "application/json",
-    body: !options?.bars
-      ? options?.bars
-      : options?.bars.map((p: any) => {
-          return barSerializer(p);
-        }),
+    body: !options?.bars ? options?.bars : barArraySerializer(options?.bars),
   });
 }
 
@@ -370,7 +366,7 @@ op read(@body bars: Bar[]): OkResponse;
 ## Operations
 
 ```ts operations
-import { type Bar, barSerializer } from "../models/models.js";
+import { type Bar, barArraySerializer } from "../models/models.js";
 import type { ReadOptionalParams } from "./options.js";
 import {
   type Client,
@@ -388,9 +384,7 @@ export function _readSend(
   return context.path("/").post({
     ...operationOptionsToRequestParameters(options),
     contentType: "application/json",
-    body: bars.map((p: any) => {
-      return barSerializer(p);
-    }),
+    body: barArraySerializer(bars),
   });
 }
 
@@ -432,7 +426,7 @@ op read(): { a: Bar}[] | null;
 ```ts operations
 import {
   type _ReadResponse,
-  _readResponseDeserializer,
+  _readResponseArrayDeserializer,
 } from "../models/models.js";
 import type { ReadOptionalParams } from "./options.js";
 import {
@@ -464,9 +458,7 @@ export async function _readDeserialize(
     throw createRestError(result);
   }
 
-  return result.body.map((p: any) => {
-    return _readResponseDeserializer(p);
-  });
+  return _readResponseArrayDeserializer(result.body);
 }
 
 export async function read(
@@ -493,7 +485,11 @@ op read(@body bars?: Bar[]): Bar[] | null;
 ## Operations
 
 ```ts operations
-import { type Bar, barDeserializer, barSerializer } from "../models/models.js";
+import {
+  type Bar,
+  barArrayDeserializer,
+  barArraySerializer,
+} from "../models/models.js";
 import type { ReadOptionalParams } from "./options.js";
 import {
   type Client,
@@ -510,12 +506,11 @@ export function _readSend(
   return context.path("/").post({
     ...operationOptionsToRequestParameters(options),
     contentType: "application/json",
-    headers: { accept: "application/json", ...options.requestOptions?.headers },
-    body: !options?.bars
-      ? options?.bars
-      : options?.bars.map((p: any) => {
-          return barSerializer(p);
-        }),
+    headers: {
+      accept: "application/json",
+      ...options.requestOptions?.headers,
+    },
+    body: !options?.bars ? options?.bars : barArraySerializer(options?.bars),
   });
 }
 
@@ -527,9 +522,7 @@ export async function _readDeserialize(
     throw createRestError(result);
   }
 
-  return result.body.map((p: any) => {
-    return barDeserializer(p);
-  });
+  return barArrayDeserializer(result.body);
 }
 
 export async function read(
@@ -880,20 +873,20 @@ export interface Test {
 
 export function testArrayModelDeserializer(item: any): TestArrayModel {
   return {
-    prop: item["prop"].map((p: any) => {
-      return testDeserializer(p);
-    }),
+    prop: testArrayDeserializer(item["prop"]),
   };
 }
 
 export function testDeserializer(item: any): Test {
   return {
-    prop: !item["prop"]
-      ? item["prop"]
-      : item["prop"].map((p: any) => {
-          return testDeserializer(p);
-        }),
+    prop: !item["prop"] ? item["prop"] : testArrayDeserializer(item["prop"]),
   };
+}
+
+export function testArrayDeserializer(result: Array<Test>): any[] {
+  return result.map((item) => {
+    return testDeserializer(item);
+  });
 }
 ```
 
@@ -989,9 +982,7 @@ export interface Test {
 
 export function testDictionaryDeserializer(item: any): TestDictionary {
   return {
-    prop: deserializeRecord(item["prop"] as any, (v: any) =>
-      testDeserializer(v),
-    ),
+    prop: testRecordDeserializer(item["prop"] as any),
   };
 }
 
@@ -999,8 +990,14 @@ export function testDeserializer(item: any): Test {
   return {
     prop: !item["prop"]
       ? item["prop"]
-      : deserializeRecord(item["prop"] as any, (v: any) => testDeserializer(v)),
+      : testRecordDeserializer(item["prop"] as any),
   };
+}
+
+export function testRecordDeserializer(
+  result: Record<string, Test>,
+): Record<string, any> {
+  return deserializeRecord(result as any, (v: any) => testDeserializer(v));
 }
 ```
 
@@ -1243,9 +1240,7 @@ export interface Test {
 
 export function listTestResultDeserializer(item: any): ListTestResult {
   return {
-    tests: item["tests"].map((p: any) => {
-      return testDeserializer(p);
-    }),
+    tests: testArrayDeserializer(item["tests"]),
     next: item["next"],
   };
 }
@@ -1254,6 +1249,12 @@ export function testDeserializer(item: any): Test {
   return {
     id: item["id"],
   };
+}
+
+export function testArrayDeserializer(result: Array<Test>): any[] {
+  return result.map((item) => {
+    return testDeserializer(item);
+  });
 }
 ```
 

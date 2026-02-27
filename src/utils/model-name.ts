@@ -1,6 +1,9 @@
 import { namekey, type Namekey, type NamekeyOptions } from "@alloy-js/core";
 import type {
+  SdkArrayType,
+  SdkDictionaryType,
   SdkModelType,
+  SdkType,
   SdkUnionType,
 } from "@azure-tools/typespec-client-generator-core";
 import { normalizePascalCaseName } from "./name-policy.js";
@@ -133,4 +136,109 @@ export function getUnionFunctionName(
   // Compose from the PascalCase-normalized union name so that camelCase
   // (applied by the name policy) preserves ALL-CAPS segments.
   return `${normalizePascalCaseName(union.name)}${suffix}`;
+}
+
+/**
+ * Recursively builds the PascalCase base name for an array or record type,
+ * following the legacy emitter's naming convention.
+ *
+ * Examples:
+ * - `Array<Pet>` → `"PetArray"`
+ * - `Array<Array<Pet>>` → `"PetArrayArray"`
+ * - `Record<string, Pet>` → `"PetRecord"`
+ * - `Array<Record<string, Pet>>` → `"PetRecordArray"`
+ *
+ * @param type - The SDK type to compute the name for.
+ * @returns The PascalCase base name string.
+ */
+function getArrayRecordTypeBaseName(type: SdkType): string {
+  switch (type.kind) {
+    case "model":
+      return normalizePascalCaseName(type.name);
+    case "array":
+      return getArrayRecordTypeBaseName(type.valueType) + "Array";
+    case "dict":
+      return getArrayRecordTypeBaseName(type.valueType) + "Record";
+    case "nullable":
+      return getArrayRecordTypeBaseName(type.type);
+    case "union":
+      return normalizePascalCaseName(type.name ?? "Unknown");
+    default:
+      return "Unknown";
+  }
+}
+
+/**
+ * Returns a declaration name for a serializer/deserializer function derived
+ * from an array type, following the legacy emitter's naming convention.
+ *
+ * For example, `Array<Pet>` with suffix `"Serializer"` produces
+ * `"PetArraySerializer"` which Alloy's name policy will camelCase to
+ * `petArraySerializer`.
+ *
+ * Handles generated (anonymous) types by using `namekey` with `ignoreNamePolicy`
+ * to preserve underscore prefixes, matching the legacy emitter's behavior.
+ *
+ * @param type - The SDK array type.
+ * @param suffix - The suffix to append (e.g., `"Serializer"`, `"Deserializer"`).
+ * @returns The function name (plain string or namekey) for the `name` prop.
+ */
+export function getArrayFunctionName(
+  type: SdkArrayType,
+  suffix: string,
+): string | Namekey<NamekeyOptions> {
+  const valueType = type.valueType;
+  // Check if the innermost non-array/non-dict type is a generated type
+  const innerType = getInnermostType(valueType);
+  if (innerType && isGeneratedType(innerType)) {
+    const baseName = getArrayRecordTypeBaseName(type);
+    const camelName = baseName.charAt(0).toLowerCase() + baseName.slice(1);
+    return namekey(`_${camelName}${suffix}`, { ignoreNamePolicy: true });
+  }
+  return `${getArrayRecordTypeBaseName(type)}${suffix}`;
+}
+
+/**
+ * Returns a declaration name for a serializer/deserializer function derived
+ * from a record (dictionary) type, following the legacy emitter's naming convention.
+ *
+ * For example, `Record<string, Pet>` with suffix `"Serializer"` produces
+ * `"PetRecordSerializer"` which Alloy's name policy will camelCase to
+ * `petRecordSerializer`.
+ *
+ * @param type - The SDK dictionary type.
+ * @param suffix - The suffix to append (e.g., `"Serializer"`, `"Deserializer"`).
+ * @returns The function name (plain string or namekey) for the `name` prop.
+ */
+export function getRecordFunctionName(
+  type: SdkDictionaryType,
+  suffix: string,
+): string | Namekey<NamekeyOptions> {
+  const valueType = type.valueType;
+  const innerType = getInnermostType(valueType);
+  if (innerType && isGeneratedType(innerType)) {
+    const baseName = getArrayRecordTypeBaseName(type);
+    const camelName = baseName.charAt(0).toLowerCase() + baseName.slice(1);
+    return namekey(`_${camelName}${suffix}`, { ignoreNamePolicy: true });
+  }
+  return `${getArrayRecordTypeBaseName(type)}${suffix}`;
+}
+
+/**
+ * Gets the innermost non-array/non-dict/non-nullable type from a nested type chain.
+ */
+function getInnermostType(type: SdkType): SdkType {
+  if (type.kind === "array") return getInnermostType(type.valueType);
+  if (type.kind === "dict") return getInnermostType(type.valueType);
+  if (type.kind === "nullable") return getInnermostType(type.type);
+  return type;
+}
+
+/**
+ * Checks if a type is a generated (anonymous) type that needs underscore prefix.
+ */
+function isGeneratedType(type: SdkType): boolean {
+  if (type.kind === "model") return type.isGeneratedName;
+  if (type.kind === "union") return (type as SdkUnionType).isGeneratedName;
+  return false;
 }

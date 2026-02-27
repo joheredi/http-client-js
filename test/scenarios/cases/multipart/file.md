@@ -541,5 +541,11 @@ export function requestBodySerializer(item: RequestBody): any {
   ];
 }
 
+export function fileArraySerializer(result: Array<File>): any[] {
+  return result.map((item) => {
+    return fileSerializer(item);
+  });
+}
+
 ```
 `````

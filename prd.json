@@ -1175,7 +1175,7 @@
       "title": "Array/Record Deserialization: Helper Functions vs Inline .map()",
       "category": "scenario-audit/Serialization",
       "priority": "P2",
-      "status": "not-started",
+      "status": "done",
       "description": "The new emitter replaces dedicated array/record deserializer helper functions with inline .map() calls and deserializeRecord() utility. The legacy pattern with named helper functions is the expected output.",
       "legacy_behavior": "Generates standalone helpers: testArrayDeserializer(items), serializeRecord(record, undefined, serializer).",
       "new_behavior": "Inlines: items.map((item) => deserialize(item)) or deserializeRecord(items, (v) => serializer(v)).",

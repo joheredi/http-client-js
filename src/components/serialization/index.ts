@@ -7,6 +7,22 @@ export {
 export { JsonDeserializer } from "./json-deserializer.js";
 export type { JsonDeserializerProps } from "./json-deserializer.js";
 export { getDeserializationExpression } from "./json-deserializer.js";
+export {
+  JsonArraySerializer,
+  JsonArrayDeserializer,
+  JsonRecordSerializer,
+  JsonRecordDeserializer,
+  valueTypeHasNamedSerializer,
+  valueTypeHasNamedDeserializer,
+  collectArrayTypes,
+  collectDictTypes,
+} from "./json-array-record-helpers.js";
+export type {
+  JsonArraySerializerProps,
+  JsonArrayDeserializerProps,
+  JsonRecordSerializerProps,
+  JsonRecordDeserializerProps,
+} from "./json-array-record-helpers.js";
 export { JsonPolymorphicSerializer } from "./json-polymorphic-serializer.js";
 export type { JsonPolymorphicSerializerProps } from "./json-polymorphic-serializer.js";
 export { buildPolymorphicSwitchBody } from "./json-polymorphic-serializer.js";

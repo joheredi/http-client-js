@@ -12,7 +12,7 @@ import type {
 } from "@azure-tools/typespec-client-generator-core";
 import { UsageFlags } from "@azure-tools/typespec-client-generator-core";
 import { getModelFunctionName } from "../../utils/model-name.js";
-import { deserializerRefkey, flattenDeserializerRefkey, serializationHelperRefkey, typeRefkey } from "../../utils/refkeys.js";
+import { deserializerRefkey, flattenDeserializerRefkey, serializationHelperRefkey, typeRefkey, arrayDeserializerRefkey, recordDeserializerRefkey } from "../../utils/refkeys.js";
 import { computeFlattenCollisionMap, getEffectiveClientName } from "../../utils/flatten-collision.js";
 import { useRuntimeLib } from "../../context/flavor-context.js";
 import { needsTransformation } from "./json-serializer.js";
@@ -231,6 +231,11 @@ export function getDeserializationExpression(
 
     case "array": {
       if (needsTransformation(type.valueType)) {
+        // If the value type has a named deserializer (model, union, nested array/record),
+        // reference the named array helper function instead of inlining .map().
+        if (valueTypeHasNamedDeserializerFn(type.valueType)) {
+          return code`${arrayDeserializerRefkey(type.valueType)}(${accessor})`;
+        }
         const elementExpr = getDeserializationExpression(
           type.valueType,
           "p",
@@ -242,6 +247,11 @@ export function getDeserializationExpression(
 
     case "dict": {
       if (needsTransformation(type.valueType)) {
+        // If the value type has a named deserializer, reference the named record
+        // helper function instead of using inline deserializeRecord().
+        if (valueTypeHasNamedDeserializerFn(type.valueType)) {
+          return code`${recordDeserializerRefkey(type.valueType)}(${accessor} as any)`;
+        }
         const valueExpr = getDeserializationExpression(
           type.valueType,
           "v",
@@ -492,4 +502,44 @@ function getFlattenHelperFunctionName(
   const propName =
     flattenProp.serializedName.charAt(0).toUpperCase() + flattenProp.serializedName.slice(1);
   return namekey(`_${modelName}${propName}${suffix}`, { ignoreNamePolicy: true });
+}
+
+/**
+ * Determines whether a type has a named deserializer function that can be
+ * called by reference. Used to decide whether array/dict deserialization
+ * should use a named helper function or stay inline.
+ *
+ * Defined locally to avoid circular dependency with json-array-record-helpers.tsx.
+ *
+ * @param type - The SDK type to check.
+ * @returns True if the type has a named deserializer function.
+ */
+function valueTypeHasNamedDeserializerFn(type: SdkType): boolean {
+  switch (type.kind) {
+    case "model":
+      return (
+        (type.usage & UsageFlags.Output) !== 0 ||
+        (type.usage & UsageFlags.Exception) !== 0
+      );
+    case "union":
+      return !!(
+        type.name &&
+        ((type.usage & UsageFlags.Output) !== 0 ||
+          (type.usage & UsageFlags.Exception) !== 0)
+      );
+    case "array":
+      return (
+        needsTransformation(type.valueType) &&
+        valueTypeHasNamedDeserializerFn(type.valueType)
+      );
+    case "dict":
+      return (
+        needsTransformation(type.valueType) &&
+        valueTypeHasNamedDeserializerFn(type.valueType)
+      );
+    case "nullable":
+      return valueTypeHasNamedDeserializerFn(type.type);
+    default:
+      return false;
+  }
 }

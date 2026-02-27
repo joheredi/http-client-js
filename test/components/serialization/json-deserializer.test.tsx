@@ -30,8 +30,9 @@ import { createTSNamePolicy, SourceFile } from "@alloy-js/typescript";
 import { Output } from "@typespec/emitter-framework";
 import { t } from "@typespec/compiler/testing";
 import { beforeAll, describe, expect, it } from "vitest";
-import type { SdkContext, SdkHttpOperation } from "@azure-tools/typespec-client-generator-core";
+import type { SdkArrayType, SdkContext, SdkHttpOperation } from "@azure-tools/typespec-client-generator-core";
 import { JsonDeserializer } from "../../../src/components/serialization/json-deserializer.js";
+import { JsonArrayDeserializer } from "../../../src/components/serialization/json-array-record-helpers.js";
 import { ModelInterface } from "../../../src/components/model-interface.js";
 import { SerializationHelpersFile } from "../../../src/components/static-helpers/serialization-helpers.js";
 import { deserializerRefkey } from "../../../src/utils/refkeys.js";
@@ -396,11 +397,13 @@ describe("JsonDeserializer", () => {
     });
 
     /**
-     * Tests that array properties with model elements use .map() with the
-     * child deserializer. This is essential for deserializing lists of complex
-     * objects from response bodies.
+     * Tests that array properties with model elements use a named array
+     * deserializer helper function instead of inline .map(). This matches
+     * the legacy emitter's pattern of generating dedicated array deserializer
+     * functions like `tagArrayDeserializer(items)`.
      */
     it("should deserialize array of models with .map()", () => {
+      const tagsArrayType = itemModel.properties.find((p) => p.name === "tags")!.type as SdkArrayType;
       const template = (
         <SdkTestFile sdkContext={sdkContext}>
           <ModelInterface model={tagModel} />
@@ -410,6 +413,8 @@ describe("JsonDeserializer", () => {
           <JsonDeserializer model={tagModel} />
           {"\n\n"}
           <JsonDeserializer model={itemModel} />
+          {"\n\n"}
+          <JsonArrayDeserializer type={tagsArrayType} />
         </SdkTestFile>
       );
 
@@ -436,8 +441,12 @@ describe("JsonDeserializer", () => {
 
         export function itemDeserializer(item: any): Item {
           return {
-            tags: item["tags"].map((p: any) => { return tagDeserializer(p); }),
+            tags: tagArrayDeserializer(item["tags"]),
           };
+        }
+
+        export function tagArrayDeserializer(result: Array<Tag>): any[] {
+          return result.map((item) => { return tagDeserializer(item); });
         }
       `);
     });

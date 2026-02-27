@@ -274,9 +274,7 @@ export function errorDeserializer(item: any): ErrorModel {
     target: item["target"],
     details: !item["details"]
       ? item["details"]
-      : item["details"].map((p: any) => {
-          return errorDeserializer(p);
-        }),
+      : errorArrayDeserializer(item["details"]),
     innererror: !item["innererror"]
       ? item["innererror"]
       : innerErrorDeserializer(item["innererror"]),
@@ -314,5 +312,11 @@ export function errorResponseDeserializer(item: any): ErrorResponse {
     error: errorDeserializer(item["error"]),
     errorCode: item["errorCode"],
   };
+}
+
+export function errorArrayDeserializer(result: Array<ErrorModel>): any[] {
+  return result.map((item) => {
+    return errorDeserializer(item);
+  });
 }
 ```

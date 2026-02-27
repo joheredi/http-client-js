@@ -114,6 +114,12 @@ export function personSerializer(item: Person): any {
 export function requestBodySerializer(item: RequestBody): any {
   return [{ name: "people", body: item["people"] }];
 }
+
+export function personArraySerializer(result: Array<Person>): any[] {
+  return result.map((item) => {
+    return personSerializer(item);
+  });
+}
 ```
 
 # Array of parts
@@ -173,5 +179,11 @@ export function personSerializer(item: Person): any {
 
 export function requestBodySerializer(item: RequestBody): any {
   return [...item["people"].map((x: unknown) => ({ name: "people", body: x }))];
+}
+
+export function personArraySerializer(result: Array<Person>): any[] {
+  return result.map((item) => {
+    return personSerializer(item);
+  });
 }
 ```

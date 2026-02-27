@@ -166,14 +166,8 @@ export function bodyParameterSerializer(item: BodyParameter): any {
 
 export function fooPropertiesSerializer(item: FooProperties): any {
   return {
-    bar: !item["bar"]
-      ? item["bar"]
-      : item["bar"].map((p: any) => {
-          return aSerializer(p);
-        }),
-    baz: item["baz"].map((p: any) => {
-      return aSerializer(p);
-    }),
+    bar: !item["bar"] ? item["bar"] : aArraySerializer(item["bar"]),
+    baz: aArraySerializer(item["baz"]),
     properties: areAllPropsUndefined(item, ["description", "baz"])
       ? undefined
       : _fooPropertiesPropertiesSerializer(item),
@@ -193,16 +187,16 @@ export function childFlattenModelSerializer(item: ChildFlattenModel): any {
   };
 }
 
+export function aArraySerializer(result: Array<A>): any[] {
+  return result.map((item) => {
+    return aSerializer(item);
+  });
+}
+
 export function _bodyParameterPropertiesSerializer(item: BodyParameter): any {
   return {
-    bar: !item["bar"]
-      ? item["bar"]
-      : item["bar"].map((p: any) => {
-          return aSerializer(p);
-        }),
-    baz: item["bazPropertiesBaz"].map((p: any) => {
-      return aSerializer(p);
-    }),
+    bar: !item["bar"] ? item["bar"] : aArraySerializer(item["bar"]),
+    baz: aArraySerializer(item["bazPropertiesBaz"]),
     properties: !item["properties"]
       ? item["properties"]
       : childFlattenModelSerializer(item["properties"]),

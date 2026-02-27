@@ -95,14 +95,8 @@ export function testSerializer(item: Test): any {
 
 export function fooPropertiesSerializer(item: FooProperties): any {
   return {
-    bar: !item["bar"]
-      ? item["bar"]
-      : item["bar"].map((p: any) => {
-          return aSerializer(p);
-        }),
-    baz: item["baz"].map((p: any) => {
-      return aSerializer(p);
-    }),
+    bar: !item["bar"] ? item["bar"] : aArraySerializer(item["bar"]),
+    baz: aArraySerializer(item["baz"]),
   };
 }
 
@@ -110,6 +104,12 @@ export function aSerializer(item: A): any {
   return {
     x: item["x"],
   };
+}
+
+export function aArraySerializer(result: Array<A>): any[] {
+  return result.map((item) => {
+    return aSerializer(item);
+  });
 }
 
 export function testDeserializer(item: any): Test {
@@ -121,14 +121,8 @@ export function testDeserializer(item: any): Test {
 
 export function fooPropertiesDeserializer(item: any): FooProperties {
   return {
-    bar: !item["bar"]
-      ? item["bar"]
-      : item["bar"].map((p: any) => {
-          return aDeserializer(p);
-        }),
-    baz: item["baz"].map((p: any) => {
-      return aDeserializer(p);
-    }),
+    bar: !item["bar"] ? item["bar"] : aArrayDeserializer(item["bar"]),
+    baz: aArrayDeserializer(item["baz"]),
   };
 }
 
@@ -138,29 +132,23 @@ export function aDeserializer(item: any): A {
   };
 }
 
+export function aArrayDeserializer(result: Array<A>): any[] {
+  return result.map((item) => {
+    return aDeserializer(item);
+  });
+}
+
 export function _testPropertiesSerializer(item: Test): any {
   return {
-    bar: !item["bar"]
-      ? item["bar"]
-      : item["bar"].map((p: any) => {
-          return aSerializer(p);
-        }),
-    baz: item["baz"].map((p: any) => {
-      return aSerializer(p);
-    }),
+    bar: !item["bar"] ? item["bar"] : aArraySerializer(item["bar"]),
+    baz: aArraySerializer(item["baz"]),
   };
 }
 
 export function _testPropertiesDeserializer(item: any) {
   return {
-    bar: !item["bar"]
-      ? item["bar"]
-      : item["bar"].map((p: any) => {
-          return aDeserializer(p);
-        }),
-    baz: item["baz"].map((p: any) => {
-      return aDeserializer(p);
-    }),
+    bar: !item["bar"] ? item["bar"] : aArrayDeserializer(item["bar"]),
+    baz: aArrayDeserializer(item["baz"]),
   };
 }
 ```
@@ -266,14 +254,8 @@ export function testSerializer(item: Test): any {
 
 export function fooPropertiesSerializer(item: FooProperties): any {
   return {
-    bar: !item["bar"]
-      ? item["bar"]
-      : item["bar"].map((p: any) => {
-          return aSerializer(p);
-        }),
-    baz: item["baz"].map((p: any) => {
-      return aSerializer(p);
-    }),
+    bar: !item["bar"] ? item["bar"] : aArraySerializer(item["bar"]),
+    baz: aArraySerializer(item["baz"]),
   };
 }
 
@@ -281,6 +263,12 @@ export function aSerializer(item: A): any {
   return {
     x: item["x"],
   };
+}
+
+export function aArraySerializer(result: Array<A>): any[] {
+  return result.map((item) => {
+    return aSerializer(item);
+  });
 }
 
 export function testDeserializer(item: any): Test {
@@ -294,14 +282,8 @@ export function testDeserializer(item: any): Test {
 
 export function fooPropertiesDeserializer(item: any): FooProperties {
   return {
-    bar: !item["bar"]
-      ? item["bar"]
-      : item["bar"].map((p: any) => {
-          return aDeserializer(p);
-        }),
-    baz: item["baz"].map((p: any) => {
-      return aDeserializer(p);
-    }),
+    bar: !item["bar"] ? item["bar"] : aArrayDeserializer(item["bar"]),
+    baz: aArrayDeserializer(item["baz"]),
   };
 }
 
@@ -311,33 +293,23 @@ export function aDeserializer(item: any): A {
   };
 }
 
+export function aArrayDeserializer(result: Array<A>): any[] {
+  return result.map((item) => {
+    return aDeserializer(item);
+  });
+}
+
 export function _testPropertiesSerializer(item: Test): any {
   return {
-    bar: !item["bar"]
-      ? item["bar"]
-      : item["bar"].map((p: any) => {
-          return aSerializer(p);
-        }),
-    baz: !item["baz"]
-      ? item["baz"]
-      : item["baz"].map((p: any) => {
-          return aSerializer(p);
-        }),
+    bar: !item["bar"] ? item["bar"] : aArraySerializer(item["bar"]),
+    baz: !item["baz"] ? item["baz"] : aArraySerializer(item["baz"]),
   };
 }
 
 export function _testPropertiesDeserializer(item: any) {
   return {
-    bar: !item["bar"]
-      ? item["bar"]
-      : item["bar"].map((p: any) => {
-          return aDeserializer(p);
-        }),
-    baz: !item["baz"]
-      ? item["baz"]
-      : item["baz"].map((p: any) => {
-          return aDeserializer(p);
-        }),
+    bar: !item["bar"] ? item["bar"] : aArrayDeserializer(item["bar"]),
+    baz: !item["baz"] ? item["baz"] : aArrayDeserializer(item["baz"]),
   };
 }
 ```

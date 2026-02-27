@@ -346,9 +346,7 @@ export function operationListResultDeserializer(
   item: any,
 ): OperationListResult {
   return {
-    value: item["value"].map((p: any) => {
-      return operationDeserializer(p);
-    }),
+    value: operationArrayDeserializer(item["value"]),
     nextLink: item["nextLink"],
   };
 }
@@ -389,14 +387,10 @@ export function errorDetailDeserializer(item: any): ErrorDetail {
     target: item["target"],
     details: !item["details"]
       ? item["details"]
-      : item["details"].map((p: any) => {
-          return errorDetailDeserializer(p);
-        }),
+      : errorDetailArrayDeserializer(item["details"]),
     additionalInfo: !item["additionalInfo"]
       ? item["additionalInfo"]
-      : item["additionalInfo"].map((p: any) => {
-          return errorAdditionalInfoDeserializer(p);
-        }),
+      : errorAdditionalInfoArrayDeserializer(item["additionalInfo"]),
   };
 }
 
@@ -474,6 +468,28 @@ export function systemDataDeserializer(item: any): SystemData {
       ? item["lastModifiedAt"]
       : new Date(item["lastModifiedAt"]),
   };
+}
+
+export function operationArrayDeserializer(result: Array<Operation>): any[] {
+  return result.map((item) => {
+    return operationDeserializer(item);
+  });
+}
+
+export function errorDetailArrayDeserializer(
+  result: Array<ErrorDetail>,
+): any[] {
+  return result.map((item) => {
+    return errorDetailDeserializer(item);
+  });
+}
+
+export function errorAdditionalInfoArrayDeserializer(
+  result: Array<ErrorAdditionalInfo>,
+): any[] {
+  return result.map((item) => {
+    return errorAdditionalInfoDeserializer(item);
+  });
 }
 ```
 

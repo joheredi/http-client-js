@@ -72,9 +72,7 @@ export interface Test {
 
 export function listTestResultDeserializer(item: any): ListTestResult {
   return {
-    tests: item["tests"].map((p: any) => {
-      return testDeserializer(p);
-    }),
+    tests: testArrayDeserializer(item["tests"]),
     next: item["next"],
   };
 }
@@ -83,6 +81,12 @@ export function testDeserializer(item: any): Test {
   return {
     id: item["id"],
   };
+}
+
+export function testArrayDeserializer(result: Array<Test>): any[] {
+  return result.map((item) => {
+    return testDeserializer(item);
+  });
 }
 ```
 

@@ -1142,20 +1142,15 @@ export interface EmptyModel {}
 export function returnBodyDeserializer(item: any): ReturnBody {
   return {
     emptyAnomyous: _returnBodyEmptyAnomyousDeserializer(item["emptyAnomyous"]),
-    emptyAnomyousArray: item["emptyAnomyousArray"].map((p: any) => {
-      return _returnBodyEmptyAnomyousArrayDeserializer(p);
-    }),
-    emptyAnomyousDict: deserializeRecord(
+    emptyAnomyousArray: _returnBodyEmptyAnomyousArrayArrayDeserializer(
+      item["emptyAnomyousArray"],
+    ),
+    emptyAnomyousDict: _returnBodyEmptyAnomyousDictRecordDeserializer(
       item["emptyAnomyousDict"] as any,
-      (v: any) => _returnBodyEmptyAnomyousDictDeserializer(v),
     ),
     emptyModel: emptyModelDeserializer(item["emptyModel"]),
-    emptyModelArray: item["emptyModelArray"].map((p: any) => {
-      return emptyModelDeserializer(p);
-    }),
-    emptyModelDict: deserializeRecord(item["emptyModelDict"] as any, (v: any) =>
-      emptyModelDeserializer(v),
-    ),
+    emptyModelArray: emptyModelArrayDeserializer(item["emptyModelArray"]),
+    emptyModelDict: emptyModelRecordDeserializer(item["emptyModelDict"] as any),
   };
 }
 
@@ -1179,6 +1174,36 @@ export function _returnBodyEmptyAnomyousDictDeserializer(
 
 export function emptyModelDeserializer(item: any): EmptyModel {
   return item;
+}
+
+export function _returnBodyEmptyAnomyousArrayArrayDeserializer(
+  result: Array<_ReturnBodyEmptyAnomyousArray>,
+): any[] {
+  return result.map((item) => {
+    return _returnBodyEmptyAnomyousArrayDeserializer(item);
+  });
+}
+
+export function emptyModelArrayDeserializer(result: Array<EmptyModel>): any[] {
+  return result.map((item) => {
+    return emptyModelDeserializer(item);
+  });
+}
+
+export function _returnBodyEmptyAnomyousDictRecordDeserializer(
+  result: Record<string, _ReturnBodyEmptyAnomyousDict>,
+): Record<string, any> {
+  return deserializeRecord(result as any, (v: any) =>
+    _returnBodyEmptyAnomyousDictDeserializer(v),
+  );
+}
+
+export function emptyModelRecordDeserializer(
+  result: Record<string, EmptyModel>,
+): Record<string, any> {
+  return deserializeRecord(result as any, (v: any) =>
+    emptyModelDeserializer(v),
+  );
 }
 ```
 
@@ -1321,18 +1346,15 @@ export function _fozBazDeserializer(item: any): _FozBaz {
     bas: item["bas"],
     bar: !item["test"]
       ? item["test"]
-      : item["test"].map((p: any) => {
-          return simpleModelDeserializer(p);
-        }),
+      : simpleModelArrayDeserializer(item["test"]),
     nonemptyAnomyous: _fozBazNonemptyAnomyousDeserializer(
       item["nonemptyAnomyous"],
     ),
-    nonemptyAnomyousArray: item["nonemptyAnomyousArray"].map((p: any) => {
-      return _fozBazNonemptyAnomyousArrayDeserializer(p);
-    }),
-    nonemptyAnomyousDict: deserializeRecord(
+    nonemptyAnomyousArray: _fozBazNonemptyAnomyousArrayArrayDeserializer(
+      item["nonemptyAnomyousArray"],
+    ),
+    nonemptyAnomyousDict: _fozBazNonemptyAnomyousDictRecordDeserializer(
       item["nonemptyAnomyousDict"] as any,
-      (v: any) => _fozBazNonemptyAnomyousDictDeserializer(v),
     ),
   };
 }
@@ -1365,6 +1387,30 @@ export function _fozBazNonemptyAnomyousDictDeserializer(
   return {
     c: item["c"],
   };
+}
+
+export function simpleModelArrayDeserializer(
+  result: Array<SimpleModel>,
+): any[] {
+  return result.map((item) => {
+    return simpleModelDeserializer(item);
+  });
+}
+
+export function _fozBazNonemptyAnomyousArrayArrayDeserializer(
+  result: Array<_FozBazNonemptyAnomyousArray>,
+): any[] {
+  return result.map((item) => {
+    return _fozBazNonemptyAnomyousArrayDeserializer(item);
+  });
+}
+
+export function _fozBazNonemptyAnomyousDictRecordDeserializer(
+  result: Record<string, _FozBazNonemptyAnomyousDict>,
+): Record<string, any> {
+  return deserializeRecord(result as any, (v: any) =>
+    _fozBazNonemptyAnomyousDictDeserializer(v),
+  );
 }
 ```
 

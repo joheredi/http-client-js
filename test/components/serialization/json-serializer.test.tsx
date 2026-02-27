@@ -31,9 +31,10 @@ import { createTSNamePolicy, SourceFile } from "@alloy-js/typescript";
 import { Output } from "@typespec/emitter-framework";
 import { t } from "@typespec/compiler/testing";
 import { beforeAll, describe, expect, it } from "vitest";
-import type { SdkContext, SdkHttpOperation, SdkModelType } from "@azure-tools/typespec-client-generator-core";
+import type { SdkArrayType, SdkContext, SdkHttpOperation, SdkModelType } from "@azure-tools/typespec-client-generator-core";
 import { UsageFlags } from "@azure-tools/typespec-client-generator-core";
 import { JsonSerializer } from "../../../src/components/serialization/json-serializer.js";
+import { JsonArraySerializer } from "../../../src/components/serialization/json-array-record-helpers.js";
 import { ModelInterface } from "../../../src/components/model-interface.js";
 import { SerializationHelpersFile } from "../../../src/components/static-helpers/serialization-helpers.js";
 import { serializerRefkey, typeRefkey } from "../../../src/utils/refkeys.js";
@@ -429,11 +430,13 @@ describe("JsonSerializer", () => {
     });
 
     /**
-     * Tests that array properties with model elements use .map() with the
-     * child serializer. This is essential for serializing lists of complex
-     * objects in request bodies.
+     * Tests that array properties with model elements use a named array
+     * serializer helper function instead of inline .map(). This matches
+     * the legacy emitter's pattern of generating dedicated array serializer
+     * functions like `tagArraySerializer(items)`.
      */
     it("should serialize array of models with .map()", () => {
+      const tagsArrayType = itemModel.properties.find((p) => p.name === "tags")!.type as SdkArrayType;
       const template = (
         <SdkTestFile sdkContext={sdkContext}>
           <ModelInterface model={tagModel} />
@@ -443,10 +446,12 @@ describe("JsonSerializer", () => {
           <JsonSerializer model={tagModel} />
           {"\n\n"}
           <JsonSerializer model={itemModel} />
+          {"\n\n"}
+          <JsonArraySerializer type={tagsArrayType} />
         </SdkTestFile>
       );
 
-      // Array of models uses .map() with child serializer
+      // Array of models uses a named array serializer helper function
       expect(template).toRenderTo(d`
         /**
          * model interface Tag
@@ -470,8 +475,12 @@ describe("JsonSerializer", () => {
 
         export function itemSerializer(item: Item): any {
           return {
-            tags: item["tags"].map((p: any) => { return tagSerializer(p); }),
+            tags: tagArraySerializer(item["tags"]),
           };
+        }
+
+        export function tagArraySerializer(result: Array<Tag>): any[] {
+          return result.map((item) => { return tagSerializer(item); });
         }
       `);
     });

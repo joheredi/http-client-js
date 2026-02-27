@@ -12,7 +12,7 @@ import type {
 } from "@azure-tools/typespec-client-generator-core";
 import { UsageFlags } from "@azure-tools/typespec-client-generator-core";
 import { getModelFunctionName } from "../../utils/model-name.js";
-import { flattenSerializerRefkey, serializationHelperRefkey, serializerRefkey, typeRefkey } from "../../utils/refkeys.js";
+import { flattenSerializerRefkey, serializationHelperRefkey, serializerRefkey, typeRefkey, arraySerializerRefkey, recordSerializerRefkey } from "../../utils/refkeys.js";
 import { computeFlattenCollisionMap, getEffectiveClientName } from "../../utils/flatten-collision.js";
 import { useRuntimeLib } from "../../context/flavor-context.js";
 
@@ -246,6 +246,13 @@ export function getSerializationExpression(
 
     case "array": {
       if (needsTransformation(type.valueType)) {
+        // If the value type has a named serializer (model, union, nested array/record),
+        // reference the named array helper function instead of inlining .map().
+        // This matches the legacy emitter's pattern of generating dedicated
+        // array serializer functions like `petArraySerializer(items)`.
+        if (valueTypeHasNamedSerializerFn(type.valueType)) {
+          return code`${arraySerializerRefkey(type.valueType)}(${accessor})`;
+        }
         const elementExpr = getSerializationExpression(type.valueType, "p");
         return code`${accessor}.map((p: any) => { return ${elementExpr}; })`;
       }
@@ -254,6 +261,11 @@ export function getSerializationExpression(
 
     case "dict": {
       if (needsTransformation(type.valueType)) {
+        // If the value type has a named serializer, reference the named record
+        // helper function instead of using inline serializeRecord().
+        if (valueTypeHasNamedSerializerFn(type.valueType)) {
+          return code`${recordSerializerRefkey(type.valueType)}(${accessor} as any)`;
+        }
         const valueExpr = getSerializationExpression(type.valueType, "v");
         return code`${serializationHelperRefkey("serializeRecord")}(${accessor} as any, (v: any) => ${valueExpr})`;
       }
@@ -351,6 +363,43 @@ export function needsTransformation(type: SdkType): boolean {
           (type.usage & UsageFlags.Output) !== 0 ||
           (type.usage & UsageFlags.Exception) !== 0)
       );
+    default:
+      return false;
+  }
+}
+
+/**
+ * Determines whether a type has a named serializer function that can be
+ * called by reference. Used to decide whether array/dict serialization
+ * should use a named helper function or stay inline.
+ *
+ * Defined locally to avoid circular dependency with json-array-record-helpers.tsx.
+ *
+ * @param type - The SDK type to check.
+ * @returns True if the type has a named serializer function.
+ */
+function valueTypeHasNamedSerializerFn(type: SdkType): boolean {
+  switch (type.kind) {
+    case "model":
+      return (type.usage & UsageFlags.Input) !== 0;
+    case "union":
+      return !!(
+        type.name &&
+        !type.isGeneratedName &&
+        (type.usage & UsageFlags.Input) !== 0
+      );
+    case "array":
+      return (
+        needsTransformation(type.valueType) &&
+        valueTypeHasNamedSerializerFn(type.valueType)
+      );
+    case "dict":
+      return (
+        needsTransformation(type.valueType) &&
+        valueTypeHasNamedSerializerFn(type.valueType)
+      );
+    case "nullable":
+      return valueTypeHasNamedSerializerFn(type.type);
     default:
       return false;
   }

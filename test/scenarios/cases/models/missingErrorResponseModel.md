@@ -151,9 +151,7 @@ export function assetChainSummaryResultDeserializer(
   return {
     errors: !item["errors"]
       ? item["errors"]
-      : item["errors"].map((p: any) => {
-          return errorResponseDeserializer(p);
-        }),
+      : errorResponseArrayDeserializer(item["errors"]),
   };
 }
 
@@ -171,9 +169,7 @@ export function errorDeserializer(item: any): ErrorModel {
     target: item["target"],
     details: !item["details"]
       ? item["details"]
-      : item["details"].map((p: any) => {
-          return errorDeserializer(p);
-        }),
+      : errorArrayDeserializer(item["details"]),
     innererror: !item["innererror"]
       ? item["innererror"]
       : innerErrorDeserializer(item["innererror"]),
@@ -187,6 +183,20 @@ export function innerErrorDeserializer(item: any): InnerError {
       ? item["innererror"]
       : innerErrorDeserializer(item["innererror"]),
   };
+}
+
+export function errorResponseArrayDeserializer(
+  result: Array<ErrorResponse>,
+): any[] {
+  return result.map((item) => {
+    return errorResponseDeserializer(item);
+  });
+}
+
+export function errorArrayDeserializer(result: Array<ErrorModel>): any[] {
+  return result.map((item) => {
+    return errorDeserializer(item);
+  });
 }
 ```
 

@@ -2025,9 +2025,7 @@ export function goldDeserializer(item: any): Gold {
     weight: item["weight"],
     bark: item["bark"],
     type: item["type"],
-    friends: item["friends"].map((p: any) => {
-      return petUnionDeserializer(p);
-    }),
+    friends: petArrayDeserializer(item["friends"]),
   };
 }
 
@@ -2067,6 +2065,12 @@ export function dogUnionDeserializer(item: any): DogUnion {
     default:
       return dogDeserializer(item);
   }
+}
+
+export function petArrayDeserializer(result: Array<Pet>): any[] {
+  return result.map((item) => {
+    return petUnionDeserializer(item);
+  });
 }
 ```
 
@@ -2888,9 +2892,9 @@ export function serviceResourcePropertiesSerializer(
   return {
     servicePlacementPolicies: !item["servicePlacementPolicies"]
       ? item["servicePlacementPolicies"]
-      : item["servicePlacementPolicies"].map((p: any) => {
-          return servicePlacementPolicyDescriptionSerializer(p);
-        }),
+      : servicePlacementPolicyDescriptionArraySerializer(
+          item["servicePlacementPolicies"],
+        ),
   };
 }
 
@@ -2924,15 +2928,23 @@ export function petUnionSerializer(item: PetUnion): any {
   }
 }
 
+export function servicePlacementPolicyDescriptionArraySerializer(
+  result: Array<ServicePlacementPolicyDescription>,
+): any[] {
+  return result.map((item) => {
+    return servicePlacementPolicyDescriptionSerializer(item);
+  });
+}
+
 export function serviceResourcePropertiesDeserializer(
   item: any,
 ): ServiceResourceProperties {
   return {
     servicePlacementPolicies: !item["servicePlacementPolicies"]
       ? item["servicePlacementPolicies"]
-      : item["servicePlacementPolicies"].map((p: any) => {
-          return servicePlacementPolicyDescriptionDeserializer(p);
-        }),
+      : servicePlacementPolicyDescriptionArrayDeserializer(
+          item["servicePlacementPolicies"],
+        ),
   };
 }
 
@@ -2964,6 +2976,14 @@ export function petUnionDeserializer(item: any): PetUnion {
     default:
       return petDeserializer(item);
   }
+}
+
+export function servicePlacementPolicyDescriptionArrayDeserializer(
+  result: Array<ServicePlacementPolicyDescription>,
+): any[] {
+  return result.map((item) => {
+    return servicePlacementPolicyDescriptionDeserializer(item);
+  });
 }
 ```
 

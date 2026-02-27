@@ -417,6 +417,98 @@ export function loggerRefkey(): Refkey {
 }
 
 /**
+ * Generates a deterministic string signature for an SDK type, used to create
+ * stable refkeys for array/record serializer/deserializer helper functions.
+ *
+ * Because TCGC may create separate SdkArrayType/SdkDictType instances for
+ * the same logical type (e.g., two properties both typed `Pet[]`), we cannot
+ * use the type instance directly as a refkey identity. Instead, we derive a
+ * string signature from the type structure that is stable and unique for each
+ * distinct type shape.
+ *
+ * @param type - The SDK type to generate a signature for.
+ * @returns A deterministic string signature for the type.
+ */
+function getTypeSignature(type: unknown): string {
+  const t = type as any;
+  if (!t || !t.kind) return "unknown";
+  switch (t.kind) {
+    case "model":
+      return `model:${t.name}`;
+    case "array":
+      return `array:${getTypeSignature(t.valueType)}`;
+    case "dict":
+      return `dict:${getTypeSignature(t.valueType)}`;
+    case "nullable":
+      return getTypeSignature(t.type);
+    case "union":
+      return `union:${t.name ?? "anon"}`;
+    default:
+      return t.kind;
+  }
+}
+
+/**
+ * Creates a refkey for a named array serializer helper function.
+ *
+ * Array serializer helpers are standalone functions that wrap `.map()` calls
+ * for serializing arrays of complex types (models, unions, nested arrays/records).
+ * For example, `petArraySerializer(result: Array<Pet>): any[]`.
+ *
+ * Uses a deterministic string signature derived from the value type to ensure
+ * that all references to the same array type (e.g., `Pet[]`) resolve to the
+ * same declaration, regardless of TCGC type instance identity.
+ *
+ * @param valueType - The element type of the array (e.g., `SdkModelType` for `Pet`).
+ * @returns A stable refkey for the array serializer function declaration.
+ */
+export function arraySerializerRefkey(valueType: unknown): Refkey {
+  return refkey("arraySerializer", getTypeSignature(valueType));
+}
+
+/**
+ * Creates a refkey for a named array deserializer helper function.
+ *
+ * Array deserializer helpers are standalone functions that wrap `.map()` calls
+ * for deserializing arrays of complex types. For example,
+ * `petArrayDeserializer(result: Array<Pet>): any[]`.
+ *
+ * @param valueType - The element type of the array.
+ * @returns A stable refkey for the array deserializer function declaration.
+ */
+export function arrayDeserializerRefkey(valueType: unknown): Refkey {
+  return refkey("arrayDeserializer", getTypeSignature(valueType));
+}
+
+/**
+ * Creates a refkey for a named record serializer helper function.
+ *
+ * Record serializer helpers are standalone functions that iterate over
+ * record entries and serialize each value. For example,
+ * `petRecordSerializer(result: Record<string, Pet>): Record<string, any>`.
+ *
+ * @param valueType - The value type of the record (e.g., `SdkModelType` for `Pet`).
+ * @returns A stable refkey for the record serializer function declaration.
+ */
+export function recordSerializerRefkey(valueType: unknown): Refkey {
+  return refkey("recordSerializer", getTypeSignature(valueType));
+}
+
+/**
+ * Creates a refkey for a named record deserializer helper function.
+ *
+ * Record deserializer helpers are standalone functions that iterate over
+ * record entries and deserialize each value. For example,
+ * `petRecordDeserializer(result: Record<string, any>): Record<string, Pet>`.
+ *
+ * @param valueType - The value type of the record.
+ * @returns A stable refkey for the record deserializer function declaration.
+ */
+export function recordDeserializerRefkey(valueType: unknown): Refkey {
+  return refkey("recordDeserializer", getTypeSignature(valueType));
+}
+
+/**
  * Creates a refkey for a flatten serializer helper function.
  *
  * Flatten helpers serialize the flattened properties of a nested model type,

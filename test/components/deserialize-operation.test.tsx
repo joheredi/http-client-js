@@ -25,6 +25,7 @@ import { Output } from "@typespec/emitter-framework";
 import { t } from "@typespec/compiler/testing";
 import { beforeAll, describe, expect, it } from "vitest";
 import type {
+  SdkArrayType,
   SdkContext,
   SdkHttpOperation,
   SdkServiceMethod,
@@ -32,6 +33,7 @@ import type {
 import { DeserializeOperation } from "../../src/components/deserialize-operation.js";
 import { ModelInterface } from "../../src/components/model-interface.js";
 import { JsonDeserializer } from "../../src/components/serialization/json-deserializer.js";
+import { JsonArrayDeserializer } from "../../src/components/serialization/json-array-record-helpers.js";
 import { deserializeOperationRefkey } from "../../src/utils/refkeys.js";
 import { httpRuntimeLib } from "../../src/utils/external-packages.js";
 import { RawTester, Tester, TesterWithService, createSdkContextForTest } from "../test-host.js";
@@ -328,12 +330,15 @@ describe("DeserializeOperation", () => {
     const sdkContext = await createSdkContextForTest(program);
     const method = getFirstMethod(sdkContext);
     const itemModel = sdkContext.sdkPackage.models.find((m) => m.name === "Item")!;
+    const itemArrayType = method.response.type as SdkArrayType;
 
     const template = (
       <SdkTestFile sdkContext={sdkContext} externals={[httpRuntimeLib]}>
         <ModelInterface model={itemModel} />
         {"\n\n"}
         <JsonDeserializer model={itemModel} />
+        {"\n\n"}
+        <JsonArrayDeserializer type={itemArrayType} />
         {"\n\n"}
         <DeserializeOperation method={method} />
       </SdkTestFile>
@@ -357,6 +362,10 @@ describe("DeserializeOperation", () => {
         };
       }
 
+      export function itemArrayDeserializer(result: Array<Item>): any[] {
+        return result.map((item) => { return itemDeserializer(item); });
+      }
+
       export async function _listItemsDeserialize(
         result: PathUncheckedResponse,
       ): Promise<(Item)[]> {
@@ -365,7 +374,7 @@ describe("DeserializeOperation", () => {
           throw createRestError(result);
         }
 
-        return result.body.map((p: any) => { return itemDeserializer(p); });
+        return itemArrayDeserializer(result.body);
       }
     `);
   });
@@ -662,6 +671,7 @@ describe("DeserializeOperation", () => {
     const method = getFirstMethod(sdkContext);
     const itemModel = sdkContext.sdkPackage.models.find((m) => m.name === "Item")!;
     const itemListModel = sdkContext.sdkPackage.models.find((m) => m.name === "ItemList")!;
+    const itemsArrayType = itemListModel.properties.find((p) => p.name === "items")!.type as SdkArrayType;
 
     const template = (
       <SdkTestFile sdkContext={sdkContext} externals={[httpRuntimeLib]}>
@@ -672,6 +682,8 @@ describe("DeserializeOperation", () => {
         <JsonDeserializer model={itemModel} />
         {"\n\n"}
         <JsonDeserializer model={itemListModel} />
+        {"\n\n"}
+        <JsonArrayDeserializer type={itemsArrayType} />
         {"\n\n"}
         <DeserializeOperation method={method} />
       </SdkTestFile>
@@ -704,8 +716,12 @@ describe("DeserializeOperation", () => {
 
       export function itemListDeserializer(item: any): ItemList {
         return {
-          items: item["items"].map((p: any) => { return itemDeserializer(p); }),
+          items: itemArrayDeserializer(item["items"]),
         };
+      }
+
+      export function itemArrayDeserializer(result: Array<Item>): any[] {
+        return result.map((item) => { return itemDeserializer(item); });
       }
 
       export async function _listItemsDeserialize(
