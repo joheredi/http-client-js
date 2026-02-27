@@ -13,7 +13,7 @@ import {
   azureCoreLroLib,
 } from "../utils/external-packages.js";
 import { useEmitterOptions } from "../context/emitter-options-context.js";
-import { useRuntimeLib } from "../context/flavor-context.js";
+import { useFlavorContext, useRuntimeLib } from "../context/flavor-context.js";
 import {
   collectSuccessResponseHeaders,
   buildHeaderReturnType,
@@ -85,6 +85,14 @@ export interface PublicOperationProps {
  */
 export function PublicOperation(props: PublicOperationProps) {
   const { method } = props;
+  const { flavor } = useFlavorContext();
+
+  // Core flavor does not support Azure-specific LRO/paging patterns.
+  // LRO and LRO+paging operations are rendered as regular async functions
+  // that return the deserialized response directly (Promise<T>).
+  if (flavor === "core" && (method.kind === "lro" || method.kind === "lropaging")) {
+    return <BasicOperation method={method} />;
+  }
 
   switch (method.kind) {
     case "basic":

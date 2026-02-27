@@ -1152,4 +1152,103 @@ interface TestResources {
     // Verify apiVersion is present in poller options
     expect(rendered).toContain('apiVersion: context.apiVersion');
   });
+
+  /**
+   * Tests that LRO operations in core flavor generate as regular async functions
+   * returning Promise<T> instead of Azure-specific PollerLike<OperationState<T>, T>.
+   *
+   * Core flavor does not support Azure-specific LRO patterns (@azure/core-lro),
+   * so LRO operations must fall back to basic async functions that call
+   * send + deserialize and return the deserialized result directly.
+   *
+   * This validates:
+   * - The function is async (not synchronous like the Azure LRO pattern)
+   * - The function calls _send then _deserialize (BasicOperation pattern)
+   * - No PollerLike or getLongRunningPoller references appear in the output
+   * - No @azure/core-lro imports are generated
+   */
+  it("should generate LRO as regular async function in core flavor", async () => {
+    const runner = await RawTester.createInstance();
+    const { program } = await runner.compile(`
+import "@typespec/http";
+import "@typespec/rest";
+import "@typespec/versioning";
+import "@azure-tools/typespec-azure-core";
+import "@azure-tools/typespec-azure-resource-manager";
+import "@azure-tools/typespec-client-generator-core";
+using TypeSpec.Http;
+using TypeSpec.Rest;
+using TypeSpec.Versioning;
+using Azure.Core;
+using Azure.ResourceManager;
+
+@armProviderNamespace
+@service
+@versioned(Versions)
+@armCommonTypesVersion(Azure.ResourceManager.CommonTypes.Versions.v5)
+namespace Microsoft.TestLroCore;
+
+enum Versions { v2024_01_01: "2024-01-01" }
+
+model TestResource is TrackedResource<TestResourceProperties> {
+  @key("testResourceName") @path @segment("testResources") name: string;
+}
+model TestResourceProperties { state?: string; }
+
+@armResourceOperations
+interface TestResources {
+  createOrUpdate is ArmResourceCreateOrReplaceAsync<TestResource>;
+}
+    `);
+
+    const sdkContext = await createSdkContextForTest(program);
+    // ARM clients have nested operation groups — find the LRO method
+    const allMethods = sdkContext.sdkPackage.clients.flatMap((c: any) =>
+      [...c.methods, ...c.children.flatMap((child: any) => child.methods)]
+    );
+    const lroMethod = allMethods.find((m: any) => m.kind === "lro");
+    expect(lroMethod).toBeDefined();
+
+    // Render with CORE flavor — LRO should become a basic async function
+    const template = (
+      <Output
+        program={sdkContext.emitContext.program}
+        namePolicy={createTSNamePolicy()}
+        externals={[httpRuntimeLib]}
+      >
+        <FlavorProvider flavor="core">
+          <EmitterOptionsProvider options={{}}>
+            <SdkContextProvider sdkContext={sdkContext}>
+              <SourceDirectory path="src">
+                <SourceFile path="operations.ts">
+                  <OperationOptionsDeclaration method={lroMethod} />
+                  {"\n\n"}
+                  <SendOperation method={lroMethod} />
+                  {"\n\n"}
+                  <DeserializeOperation method={lroMethod} />
+                  {"\n\n"}
+                  <PublicOperation method={lroMethod} />
+                </SourceFile>
+              </SourceDirectory>
+            </SdkContextProvider>
+          </EmitterOptionsProvider>
+        </FlavorProvider>
+      </Output>
+    );
+
+    const rendered = renderToString(template);
+
+    // Core flavor LRO should be async (BasicOperation pattern)
+    expect(rendered).toContain("export async function");
+
+    // Should NOT contain Azure LRO patterns
+    expect(rendered).not.toContain("PollerLike");
+    expect(rendered).not.toContain("OperationState");
+    expect(rendered).not.toContain("getLongRunningPoller");
+    expect(rendered).not.toContain("@azure/core-lro");
+
+    // Should contain standard send + deserialize pattern
+    expect(rendered).toContain("_createOrUpdateSend");
+    expect(rendered).toContain("_createOrUpdateDeserialize");
+  });
 });
