@@ -693,6 +693,7 @@ The config would be like:
 
 ```yaml
 needAzureCore: true
+flavor: azure
 ```
 
 ## Operations
@@ -714,7 +715,7 @@ import {
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
-} from "@typespec/ts-http-runtime";
+} from "@azure-rest/core-client";
 
 export function _testSend(
   context: Client,
@@ -787,6 +788,7 @@ The config would be like:
 
 ```yaml
 needAzureCore: true
+flavor: azure
 ```
 
 ## Operations
@@ -808,7 +810,7 @@ import {
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
-} from "@typespec/ts-http-runtime";
+} from "@azure-rest/core-client";
 
 export function _testSend(
   context: Client,
@@ -1223,6 +1225,7 @@ The config would be like:
 
 ```yaml
 withRawContent: true
+flavor: azure
 ```
 
 ## models
@@ -1285,7 +1288,7 @@ import {
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
-} from "@typespec/ts-http-runtime";
+} from "@azure-rest/core-client";
 
 export function _barSend(
   context: Client,

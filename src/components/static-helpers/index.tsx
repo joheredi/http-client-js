@@ -28,6 +28,10 @@ import { XmlHelpersFile } from "./xml-helpers.js";
  *   xmlHelpers.ts            — XML serialization/deserialization types and functions
  * ```
  *
+ * Paging helpers (`pagingHelpers.ts`) are gated behind Azure flavor because
+ * they depend on Azure-specific paging patterns. Core flavor does not emit
+ * paging helper types or functions.
+ *
  * Polling helpers (`pollingHelpers.ts`) are gated behind Azure flavor because
  * they depend on Azure-specific LRO patterns. Core flavor does not emit
  * polling helper types or functions.
@@ -39,7 +43,7 @@ export function StaticHelpers() {
   return (
     <>
       <SerializationHelpersFile />
-      <PagingHelpersFile />
+      {flavor === "azure" && <PagingHelpersFile />}
       {flavor === "azure" && <PollingHelpersFile />}
       <MultipartHelpersFile />
       <XmlHelpersFile />

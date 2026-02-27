@@ -5,15 +5,17 @@
  * paging helpers, polling helpers, multipart helpers, and XML helpers.
  *
  * What is tested:
- * - Azure flavor: StaticHelpers produces all five helper files (including polling)
- * - Core flavor: StaticHelpers produces four helper files (polling excluded)
+ * - Azure flavor: StaticHelpers produces all five helper files (including paging and polling)
+ * - Core flavor: StaticHelpers produces three helper files (paging and polling excluded)
  * - Helper files are placed in the static-helpers/ directory
  *
  * Why this matters:
  * The orchestrator ensures all helper files are rendered as part of the emitter
- * output. Polling helpers are gated behind Azure flavor because they depend on
+ * output. Paging helpers are gated behind Azure flavor because they depend on
+ * Azure-specific paging patterns (PagedAsyncIterableIterator, buildPagedAsyncIterator).
+ * Polling helpers are gated behind Azure flavor because they depend on
  * Azure-specific LRO patterns (PollerLike, getLongRunningPoller). Core flavor
- * must not emit polling helpers to avoid referencing unavailable Azure packages.
+ * must not emit paging or polling helpers to avoid referencing unavailable Azure packages.
  */
 import "@alloy-js/core/testing";
 import { renderToString } from "@alloy-js/core/testing";
@@ -63,10 +65,10 @@ describe("StaticHelpers", () => {
 
   /**
    * Tests that the StaticHelpers orchestrator renders all five helper
-   * files when Azure flavor is active. Polling helpers are Azure-only
-   * because they depend on LRO patterns that use Azure SDK packages.
+   * files when Azure flavor is active. Paging and polling helpers are
+   * Azure-only because they depend on patterns that use Azure SDK packages.
    */
-  it("should render all helper files including polling for Azure flavor", async () => {
+  it("should render all helper files including paging and polling for Azure flavor", async () => {
     const template = (
       <Output program={program} namePolicy={createTSNamePolicy()} externals={azureExternals}>
         <FlavorProvider flavor="azure">
@@ -82,7 +84,7 @@ describe("StaticHelpers", () => {
     expect(result).toContain("deserializeRecord");
     expect(result).toContain("buildCsvCollection");
 
-    // Paging helpers
+    // Paging helpers (Azure-only)
     expect(result).toContain("PagedAsyncIterableIterator");
     expect(result).toContain("buildPagedAsyncIterator");
 
@@ -96,12 +98,12 @@ describe("StaticHelpers", () => {
   });
 
   /**
-   * Tests that core flavor renders static helpers WITHOUT polling helpers.
-   * Core flavor does not support LRO polling patterns, so pollingHelpers.ts
-   * must not be emitted — its types reference Azure-specific packages that
-   * aren't available in core externals.
+   * Tests that core flavor renders static helpers WITHOUT paging or polling helpers.
+   * Core flavor does not support Azure-specific paging or LRO polling patterns,
+   * so pagingHelpers.ts and pollingHelpers.ts must not be emitted — their types
+   * reference Azure-specific packages that aren't available in core externals.
    */
-  it("should render helpers WITHOUT polling for core flavor", async () => {
+  it("should render helpers WITHOUT paging or polling for core flavor", async () => {
     const template = (
       <Output program={program} namePolicy={createTSNamePolicy()} externals={[httpRuntimeLib]}>
         <FlavorProvider flavor="core">
@@ -117,9 +119,9 @@ describe("StaticHelpers", () => {
     expect(result).toContain("deserializeRecord");
     expect(result).toContain("buildCsvCollection");
 
-    // Paging helpers — present for both flavors
-    expect(result).toContain("PagedAsyncIterableIterator");
-    expect(result).toContain("buildPagedAsyncIterator");
+    // Paging helpers — must NOT be present for core flavor
+    expect(result).not.toContain("PagedAsyncIterableIterator");
+    expect(result).not.toContain("buildPagedAsyncIterator");
 
     // Polling helpers — must NOT be present for core flavor
     expect(result).not.toContain("PollerLike");
@@ -134,7 +136,8 @@ describe("StaticHelpers", () => {
 
   /**
    * Tests that all helper files are output at the correct paths under
-   * the static-helpers/ directory for Azure flavor (includes pollingHelpers.ts).
+   * the static-helpers/ directory for Azure flavor (includes pagingHelpers.ts
+   * and pollingHelpers.ts).
    */
   it("should produce files at correct paths for Azure flavor", async () => {
     const template = (
@@ -156,10 +159,10 @@ describe("StaticHelpers", () => {
 
   /**
    * Tests that core flavor produces files at correct paths WITHOUT
-   * pollingHelpers.ts. This confirms the orchestrator omits the file
-   * entirely rather than emitting an empty file.
+   * pagingHelpers.ts or pollingHelpers.ts. This confirms the orchestrator
+   * omits these files entirely rather than emitting empty files.
    */
-  it("should produce files at correct paths for core flavor (no pollingHelpers.ts)", async () => {
+  it("should produce files at correct paths for core flavor (no pagingHelpers.ts or pollingHelpers.ts)", async () => {
     const template = (
       <Output program={program} namePolicy={createTSNamePolicy()} externals={[httpRuntimeLib]}>
         <FlavorProvider flavor="core">
@@ -172,9 +175,12 @@ describe("StaticHelpers", () => {
 
     // Files that should be present
     expect(result).toContain("serializeRecord");
-    expect(result).toContain("buildPagedAsyncIterator");
     expect(result).toContain("createFilePartDescriptor");
     expect(result).toContain("serializeToXml");
+
+    // pagingHelpers.ts should NOT be present
+    expect(result).not.toContain("buildPagedAsyncIterator");
+    expect(result).not.toContain("PagedAsyncIterableIterator");
 
     // pollingHelpers.ts should NOT be present
     expect(result).not.toContain("getLongRunningPoller");

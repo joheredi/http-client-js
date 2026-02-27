@@ -695,7 +695,110 @@ describe("PollingHelpersFile flavor gating", () => {
 
     // But other static helpers should still be present
     expect(result).toContain("serializeRecord");
+    expect(result).toContain("FileContents");
+  });
+});
+
+/**
+ * Tests that PagingHelpersFile is gated behind Azure flavor (task 10.5).
+ *
+ * PagingHelpersFile generates `static-helpers/pagingHelpers.ts` with types
+ * and functions for paginated API responses: PageSettings,
+ * PagedAsyncIterableIterator, BuildPagedAsyncIteratorOptions, and
+ * buildPagedAsyncIterator.
+ *
+ * These types depend on Azure-specific paging patterns. When flavor is "core",
+ * PagingHelpersFile must NOT be rendered by the StaticHelpers orchestrator.
+ * Otherwise, the output would reference patterns that don't apply to core SDKs.
+ *
+ * What is tested:
+ * - Azure flavor renders PagingHelpersFile via StaticHelpers (pagingHelpers.ts present)
+ * - Core flavor does NOT render PagingHelpersFile via StaticHelpers (pagingHelpers.ts absent)
+ * - Gating is flavor-based, not operation-based
+ */
+describe("PagingHelpersFile flavor gating", () => {
+  let program: any;
+
+  beforeAll(async () => {
+    const runner = await TesterWithService.createInstance();
+    const { program: compiledProgram } = await runner.compile(
+      t.code`@get op test(): void;`,
+    );
+    program = compiledProgram;
+  });
+
+  /**
+   * Tests that Azure flavor renders PagingHelpersFile via StaticHelpers.
+   *
+   * This verifies the positive case: the StaticHelpers orchestrator includes
+   * PagingHelpersFile when flavor is "azure", producing pagingHelpers.ts
+   * with PagedAsyncIterableIterator, buildPagedAsyncIterator, PageSettings,
+   * and BuildPagedAsyncIteratorOptions declarations.
+   */
+  it("should render PagingHelpersFile via StaticHelpers for Azure flavor", () => {
+    const result = renderToString(
+      <Output
+        program={program}
+        namePolicy={createTSNamePolicy()}
+        nameConflictResolver={tsNameConflictResolver}
+        externals={[
+          httpRuntimeLib,
+          azureCoreClientLib,
+          azureCorePipelineLib,
+          azureCoreAuthLib,
+          azureCoreUtilLib,
+          azureAbortControllerLib,
+          azureCoreLroLib,
+          azureLoggerLib,
+        ]}
+      >
+        <FlavorProvider flavor="azure">
+          <SourceDirectory path="src">
+            <StaticHelpers />
+          </SourceDirectory>
+        </FlavorProvider>
+      </Output>,
+    );
+
+    // Azure flavor should produce paging helper content
     expect(result).toContain("PagedAsyncIterableIterator");
+    expect(result).toContain("buildPagedAsyncIterator");
+    expect(result).toContain("PageSettings");
+    expect(result).toContain("BuildPagedAsyncIteratorOptions");
+  });
+
+  /**
+   * Tests that core flavor does NOT render PagingHelpersFile via StaticHelpers.
+   *
+   * This is the critical gating test: StaticHelpers checks the flavor context
+   * and skips PagingHelpersFile for core flavor. Without this gating, core
+   * SDKs would emit paging infrastructure that references Azure-specific
+   * patterns, producing unnecessary (and potentially broken) output.
+   */
+  it("should NOT render PagingHelpersFile via StaticHelpers for core flavor", () => {
+    const result = renderToString(
+      <Output
+        program={program}
+        namePolicy={createTSNamePolicy()}
+        nameConflictResolver={tsNameConflictResolver}
+        externals={[httpRuntimeLib]}
+      >
+        <FlavorProvider flavor="core">
+          <SourceDirectory path="src">
+            <StaticHelpers />
+          </SourceDirectory>
+        </FlavorProvider>
+      </Output>,
+    );
+
+    // Core flavor must NOT have any paging helper content
+    expect(result).not.toContain("PagedAsyncIterableIterator");
+    expect(result).not.toContain("buildPagedAsyncIterator");
+    expect(result).not.toContain("PageSettings");
+    expect(result).not.toContain("BuildPagedAsyncIteratorOptions");
+
+    // But other static helpers should still be present
+    expect(result).toContain("serializeRecord");
     expect(result).toContain("FileContents");
   });
 });
