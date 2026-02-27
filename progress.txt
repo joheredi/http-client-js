@@ -1664,3 +1664,40 @@ Created `test/scenarios/cases/operations/coreFlavorGating.md` with 4 test blocks
 - The binary response detection only applies to RESPONSE BODY types, not model property types
 - `isBinaryBytesResponse()` is exported from `deserialize-operation.tsx` and used by `public-operation.tsx`
 - The `getBinaryResponse` helper is emitted for ALL flavors (both core and azure), since binary response handling is needed regardless of flavor
+
+## Task SA-C30: Sample Code Generation Fixes — DONE (2026-02-27)
+
+### What was done
+Fixed three major bugs in sample code generation that caused incorrect output across 25+ scenario tests:
+
+1. **Body example values rendered as `{}` instead of populated objects** (CRITICAL FIX)
+   - Root cause: `isReadOnly()` in `example-values.ts` compared TCGC visibility values using lowercase strings ("create"/"update") but TCGC uses numeric bit flags (Create=1, Read=2, Update=4, Delete=8, Query=16). This caused ALL model properties to be incorrectly marked as readonly, resulting in empty body objects.
+   - Fix: Updated `isReadOnly()` to handle both numeric bit flags (`v === 1` for Create, `v === 4` for Update) and string values (case-insensitive comparison).
+   - Impact: Body params like `{}` now correctly render as `{ name: "body name" }`, `{ properties: { age: 30, city: "..." } }`, etc.
+
+2. **`findExampleValue()` failed to find body params when HTTP body name ≠ method param name**
+   - Root cause: TCGC may name the HTTP body parameter differently than the method parameter (e.g., HTTP body `readRequest` vs method param `body`). The old code only searched by exact name match.
+   - Fix: Added fallback that searches for ANY body-kind HTTP parameter in the example map when the method param is model/array typed.
+   - Also restricted the spread-body property lookup to only fire when TCGC indicates a spread body (`correspondingMethodParams.length > 1`), preventing incorrect matching of body model properties with unrelated path/query params.
+
+3. **apiVersion and client-level params leaked into sample operation options**
+   - Root cause: `buildOperationCallArgs()` didn't filter out `isApiVersionParam` or `onClient` params from the options bag. Also, HTTP-level params like `api-version` and client-level params (e.g., `subscriptionId`) were included in options.
+   - Fix: Added filters to skip apiVersion params, client-level params, and HTTP params matching client constructor param names.
+   - Impact: `{ apiVersion: "2021-10-01-preview", subscriptionId: "..." }` no longer appears in sample operation calls.
+
+### Files changed
+- `src/utils/example-values.ts` — Fixed `isReadOnly()` to handle numeric TCGC visibility flags
+- `src/components/sample-files.tsx` — Fixed `findExampleValue()` body lookup, restricted spread-body matching, added apiVersion/client-level param filtering in `buildOperationCallArgs()`
+- 25 test scenario files updated to match corrected output
+
+### Remaining differences from legacy (not addressed — lower priority)
+- Import ordering (DefaultAzureCredential vs client class) — may be caused by Alloy's import normalization
+- Constructor ordering for ARM clients (credential before subscriptionId) — depends on client class generation, not sample generation
+- x-ms-original-file versioned paths — TCGC correctly reports paths based on service versioning; non-versioned services correctly omit version prefix
+- Sample file ordering in concatenated output
+
+### Patterns and gotchas for future iterations
+- TCGC visibility values are NUMERIC bit flags (1, 2, 4, 8, 16), NOT string enums. Always handle both formats.
+- TCGC may name HTTP body parameters differently from method parameters. Never assume name equality.
+- The spread-body property lookup in `findExampleValue()` can incorrectly match body model properties with unrelated path/query params if not guarded by `correspondingMethodParams.length > 1`.
+- `SCENARIOS_UPDATE=true pnpm test` updates ALL scenario test expectations, including non-sample tests. Always revert unrelated changes with `git checkout -- <dir>`.

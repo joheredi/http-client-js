@@ -1897,3 +1897,34 @@ These files call `getSerializationExpression` and `needsTransformation` without 
 - `getBinaryResponse` does NOT exist in the new emitter yet — task 10.14 tracks implementing it for Azure flavor
 
 **Key distinction**: `stringToUint8Array` (core) vs `getBinaryResponse` + direct return (Azure) — both are correct in their respective runtime contexts. Do not conflate them.
+
+## TCGC Visibility Values Are Numeric Bit Flags, Not Strings
+
+**Problem:** `SdkModelPropertyType.visibility` contains numeric values (bit flags from TypeSpec Compiler's `Lifecycle` enum), not string values like "create"/"update"/"read". Comparing with `.includes("create")` always fails.
+
+**Values:**
+- Create = 1
+- Read = 2
+- Update = 4
+- Delete = 8
+- Query = 16
+
+**Fix:** Check both numeric and string formats:
+```ts
+const hasCreate = prop.visibility.some((v: any) => {
+  if (typeof v === "number") return v === 1;
+  return String(v).toLowerCase() === "create";
+});
+```
+
+## TCGC HTTP Body Parameter Name May Differ From Method Parameter Name
+
+**Problem:** TCGC may give the HTTP body parameter a different name than the corresponding method parameter. For example, the method param might be `body` but the HTTP body param might be `readRequest`. Using `map.get(param.name)` fails to find the body example.
+
+**Fix:** For model/array-typed method params, iterate all map entries and look for any `ep.parameter.kind === "body"` entry as a fallback.
+
+## Spread Body Property Lookup Can Match Wrong Params
+
+**Problem:** The spread body lookup in `findExampleValue()` searches body model properties by name. If a body model has a property like `name` and a path parameter is also called `name`, the lookup incorrectly matches the body property with the path parameter.
+
+**Fix:** Only use spread body lookup when `correspondingMethodParams.length > 1` (indicating TCGC detected a spread body).

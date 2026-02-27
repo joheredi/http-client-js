@@ -257,10 +257,10 @@ import { TextTranslationClient } from "@azure/internal-test";
 async function findSentenceBoundaries(): Promise<void> {
   const endpoint = process.env.TEXT_TRANSLATION_ENDPOINT || "";
   const client = new TextTranslationClient(endpoint);
-  const result = await client.findSentenceBoundaries([{}], {
-    language: "en",
-    script: "Latn",
-  });
+  const result = await client.findSentenceBoundaries(
+    [{ text: "How are you? I am fine. What did you do today?" }],
+    { language: "en", script: "Latn" },
+  );
   console.log(result);
 }
 

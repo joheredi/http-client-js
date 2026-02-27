@@ -146,11 +146,9 @@ async function widgetsCreateOrUpdateWidget(): Promise<void> {
   const endpoint = process.env.WIDGET_MANAGER_ENDPOINT || "";
   const credential = new DefaultAzureCredential();
   const client = new WidgetManagerClient(endpoint, credential);
-  const result = await client.widgets.createOrUpdateWidget(
-    "name1",
-    {},
-    { apiVersion: "2021-10-01-preview" },
-  );
+  const result = await client.widgets.createOrUpdateWidget("name1", {
+    manufacturerId: "manufacturer id1",
+  });
   console.log(result);
 }
 
@@ -174,9 +172,7 @@ async function deleteWidgetByWidgetNameUsingLongRunningOperation(): Promise<void
   const endpoint = process.env.WIDGET_MANAGER_ENDPOINT || "";
   const credential = new DefaultAzureCredential();
   const client = new WidgetManagerClient(endpoint, credential);
-  const result = await client.widgets.deleteWidget("searchbox", {
-    apiVersion: "2021-10-01-preview",
-  });
+  const result = await client.widgets.deleteWidget("searchbox");
   console.log(result);
 }
 
@@ -205,7 +201,6 @@ async function widgetsListWidgets(): Promise<void> {
     top: 8,
     skip: 15,
     maxpagesize: 27,
-    apiVersion: "2021-10-01-preview",
   })) {
     resArray.push(item);
   }

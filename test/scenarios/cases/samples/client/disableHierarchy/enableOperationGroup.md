@@ -68,7 +68,7 @@ import { TestingClient } from "@azure/internal-test";
 async function foo(): Promise<void> {
   const endpoint = process.env.TESTING_ENDPOINT || "";
   const client = new TestingClient(endpoint);
-  const result = await client.b.c.foo({});
+  const result = await client.b.c.foo({ prop2: "body name" });
   console.log(result);
 }
 
@@ -90,7 +90,7 @@ import { TestingClient } from "@azure/internal-test";
 async function bar(): Promise<void> {
   const endpoint = process.env.TESTING_ENDPOINT || "";
   const client = new TestingClient(endpoint);
-  const result = await client.d.bar({});
+  const result = await client.d.bar({ prop1: "body name" });
   console.log(result);
 }
 
@@ -133,7 +133,7 @@ import { TestingClient } from "@azure/internal-test";
 async function foo(): Promise<void> {
   const endpoint = process.env.TESTING_ENDPOINT || "";
   const client = new TestingClient(endpoint);
-  const result = await client.b.c.foo({});
+  const result = await client.b.c.foo({ prop2: "body name" });
   console.log(result);
 }
 
@@ -155,7 +155,7 @@ import { TestingClient } from "@azure/internal-test";
 async function bar(): Promise<void> {
   const endpoint = process.env.TESTING_ENDPOINT || "";
   const client = new TestingClient(endpoint);
-  const result = await client.d.bar({});
+  const result = await client.d.bar({ prop1: "body name" });
   console.log(result);
 }
 

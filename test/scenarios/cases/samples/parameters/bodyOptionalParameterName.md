@@ -257,8 +257,6 @@ async function cloudHsmClustersBackup(): Promise<void> {
       azureStorageBlobContainerUri: "sss",
       token: "aaa",
     },
-    apiVersion: "2025-03-31",
-    subscriptionId: "00000000-0000-0000-0000-000000000000",
   });
   console.log(result);
 }
@@ -358,7 +356,7 @@ async function read(): Promise<void> {
     {
       optionalHeader: "optional header",
       optionalQuery: "renamed optional query",
-      widget: {},
+      widget: { name: "body name" },
     },
   );
   console.log(result);
@@ -445,7 +443,7 @@ async function read(): Promise<void> {
   const client = new TestingClient(endpoint);
   const result = await client.read("required path param", "required query", {
     optionalQuery: "renamed optional query",
-    widget: {},
+    widget: { name: "body name" },
   });
   console.log(result);
 }

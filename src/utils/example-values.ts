@@ -156,19 +156,27 @@ function findModelProperty(
  * Checks whether a model property is read-only.
  *
  * A property is considered read-only if its visibility array does not
- * include "update" or "create" — meaning it can only be observed in
+ * include "Update" or "Create" — meaning it can only be observed in
  * responses, not set in requests.
+ *
+ * TCGC visibility values can be:
+ * - Numeric bit flags from TypeSpec Compiler: Create=1, Read=2, Update=4, Delete=8, Query=16
+ * - String values: "Create", "Read", "Update" (PascalCase or lowercase)
  *
  * @param prop - The TCGC model property to check.
  * @returns True if the property is read-only.
  */
 function isReadOnly(prop: SdkModelPropertyType): boolean {
-  if (!prop.visibility) return false;
-  // If visibility doesn't include "create" or "update", it's readonly
-  return (
-    !prop.visibility.includes("create" as any) &&
-    !prop.visibility.includes("update" as any)
-  );
+  if (!prop.visibility || prop.visibility.length === 0) return false;
+  const hasCreate = prop.visibility.some((v: any) => {
+    if (typeof v === "number") return v === 1; // Lifecycle.Create = 1
+    return String(v).toLowerCase() === "create";
+  });
+  const hasUpdate = prop.visibility.some((v: any) => {
+    if (typeof v === "number") return v === 4; // Lifecycle.Update = 4
+    return String(v).toLowerCase() === "update";
+  });
+  return !hasCreate && !hasUpdate;
 }
 
 /**

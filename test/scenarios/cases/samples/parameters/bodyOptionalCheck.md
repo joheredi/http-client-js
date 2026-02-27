@@ -167,7 +167,7 @@ async function read(): Promise<void> {
   const client = new TestingClient(endpoint);
   const result = await client.read("required path param", "required query", {
     optionalQuery: "renamed optional query",
-    widget: {},
+    widget: { name: "body name" },
   });
   console.log(result);
 }

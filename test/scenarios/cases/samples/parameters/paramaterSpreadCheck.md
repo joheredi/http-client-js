@@ -82,7 +82,7 @@ async function read(): Promise<void> {
     "required path param",
     "required header",
     "required query",
-    {},
+    { name: "body name" },
     {
       optionalHeader: "optional header",
       optionalQuery: "renamed optional query",

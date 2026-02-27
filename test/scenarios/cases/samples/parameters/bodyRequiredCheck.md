@@ -74,7 +74,7 @@ async function read(): Promise<void> {
   const result = await client.read(
     "required path param",
     "required query",
-    {},
+    { name: "body name" },
     { optionalQuery: "renamed optional query" },
   );
   console.log(result);

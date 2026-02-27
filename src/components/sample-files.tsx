@@ -286,7 +286,10 @@ function buildExampleFunction(
     ? `client.${callChainPrefixes.join(".")}.${method.name}`
     : `client.${method.name}`;
 
-  const callArgs = buildOperationCallArgs(method, example);
+  const clientParamNames = new Set(
+    buildClientConstructorParams(topLevelClient).map((p) => p.name),
+  );
+  const callArgs = buildOperationCallArgs(method, example, clientParamNames);
   const isPaging = method.kind === "paging" || method.kind === "lropaging";
 
   if (isPaging) {
@@ -573,11 +576,13 @@ function hasOAuth2Auth(client: SdkClientType<SdkHttpOperation>): boolean {
  *
  * @param method - The TCGC service method being called.
  * @param example - The TCGC example with parameter values.
+ * @param clientParamNames - Names of parameters handled at the client level (constructor).
  * @returns A comma-separated argument string for the method call.
  */
 function buildOperationCallArgs(
   method: SdkServiceMethod<SdkHttpOperation>,
   example: SdkHttpOperationExample,
+  clientParamNames: Set<string> = new Set(),
 ): string {
   const args: string[] = [];
 
@@ -601,6 +606,10 @@ function buildOperationCallArgs(
   const optionalEntries: string[] = [];
   for (const param of method.parameters) {
     if (!isRequiredSignatureParameter(param, method) && param.name !== "options") {
+      // Skip apiVersion params — they are handled by the client/runtime, not in samples
+      if (param.isApiVersionParam) continue;
+      // Skip client-level params — they are set in the client constructor
+      if (param.onClient) continue;
       const exampleValue = findExampleValue(param, exampleValueMap);
       if (exampleValue) {
         optionalEntries.push(`${param.name}: ${getExampleValueCode(exampleValue)}`);
@@ -613,6 +622,9 @@ function buildOperationCallArgs(
     const httpParam = exParam.parameter;
     // Skip body params and params already handled as method params
     if (httpParam.kind === "body") continue;
+    // Skip apiVersion params
+    if ((httpParam as any).isApiVersionParam) continue;
+    if (httpParam.serializedName === "api-version" || httpParam.name === "apiVersion") continue;
 
     const alreadyHandled = method.parameters.some(
       (p) =>
@@ -621,8 +633,9 @@ function buildOperationCallArgs(
     );
 
     if (!alreadyHandled) {
-      // These are likely query/header params that go into the options bag
+      // Skip params that are handled at the client level (e.g., subscriptionId)
       const propName = httpParam.name;
+      if (clientParamNames.has(propName)) continue;
       optionalEntries.push(`${propName}: ${getExampleValueCode(exParam.value)}`);
     }
   }
@@ -688,22 +701,32 @@ function findExampleValue(
     if (bySerialized) return bySerialized.value;
   }
 
-  // For body params, look for "body" or "resource" key in the map
-  if (param.type.kind === "model") {
-    const bodyParam = map.get("body") ?? map.get("resource");
-    if (bodyParam) return bodyParam.value;
+  // For model-typed params (body), look for ANY body-kind HTTP parameter in the map.
+  // TCGC may name the HTTP body parameter differently than the method param
+  // (e.g., HTTP body named "readRequest" but method param named "body").
+  if (param.type.kind === "model" || param.type.kind === "array") {
+    for (const [, ep] of map) {
+      if (ep.parameter.kind === "body") {
+        return ep.value;
+      }
+    }
   }
 
   // Search inside body example values for spread body properties.
   // When a body model's properties are spread into method parameters,
   // the example values are nested as properties of the body example value.
+  // Only check correspondingMethodParams to confirm this is actually a spread body param.
   for (const [, ep] of map) {
     if (ep.parameter.kind === "body" && ep.value.kind === "model") {
-      const modelValue = ep.value as any;
-      if (modelValue.value) {
-        for (const [propName, propValue] of Object.entries(modelValue.value)) {
-          if (propName === param.name || propName === serialized) {
-            return propValue as import("@azure-tools/typespec-client-generator-core").SdkExampleValue;
+      const bodyParam = ep.parameter as any;
+      // Only use spread lookup when TCGC indicates spread (multiple corresponding method params)
+      if (bodyParam.correspondingMethodParams && bodyParam.correspondingMethodParams.length > 1) {
+        const modelValue = ep.value as any;
+        if (modelValue.value) {
+          for (const [propName, propValue] of Object.entries(modelValue.value)) {
+            if (propName === param.name || propName === serialized) {
+              return propValue as import("@azure-tools/typespec-client-generator-core").SdkExampleValue;
+            }
           }
         }
       }

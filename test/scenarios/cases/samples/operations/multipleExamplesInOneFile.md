@@ -164,10 +164,14 @@ async function employeesCreateOrUpdateMaxage(): Promise<void> {
   const result = await client.employees.createOrUpdate(
     "rgopenapi",
     "9KF-f-8b",
-    { tags: { key2913: "urperxmkkhhkp" }, location: "itajgxyqozseoygnl" },
     {
-      apiVersion: "2021-10-01-preview",
-      subscriptionId: "11809CA1-E126-4017-945E-AA795CD5C5A9",
+      properties: {
+        age: 110,
+        city: "gydhnntudughbmxlkyzrskcdkotrxn",
+        profile: "ms",
+      },
+      tags: { key2913: "urperxmkkhhkp" },
+      location: "itajgxyqozseoygnl",
     },
   );
   console.log(result);
@@ -186,10 +190,14 @@ async function employeesCreateOrUpdateMinage(): Promise<void> {
   const result = await client.employees.createOrUpdate(
     "rgopenapi",
     "9KF-f-8b",
-    { tags: { key2913: "urperxmkkhhkp" }, location: "itajgxyqozseoygnl" },
     {
-      apiVersion: "2021-10-01-preview",
-      subscriptionId: "11809CA1-E126-4017-945E-AA795CD5C5A9",
+      properties: {
+        age: 1,
+        city: "gydhnntudughbmxlkyzrskcdkotrxn",
+        profile: "ms",
+      },
+      tags: { key2913: "urperxmkkhhkp" },
+      location: "itajgxyqozseoygnl",
     },
   );
   console.log(result);

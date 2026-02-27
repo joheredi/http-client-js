@@ -143,7 +143,7 @@ async function post(): Promise<void> {
     QUERY_PARAM: "query",
     HEADER_PARAM: "header",
     PATH_PARAM: "path",
-    ListCredentialsRequest: {},
+    ListCredentialsRequest: { serviceName: "SSH", PROPERTY_NAME: "name" },
   });
   console.log(result);
 }

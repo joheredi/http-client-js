@@ -124,10 +124,10 @@ async function employeesCreateOrUpdate(): Promise<void> {
   const result = await client.employees.createOrUpdate(
     "rgopenapi",
     "9KF-f-8b",
-    { tags: { key2913: "urperxmkkhhkp" }, location: "itajgxyqozseoygnl" },
     {
-      subscriptionId: "11809CA1-E126-4017-945E-AA795CD5C5A9",
-      apiVersion: "2021-10-01-preview",
+      properties: { age: 30 },
+      tags: { key2913: "urperxmkkhhkp" },
+      location: "itajgxyqozseoygnl",
     },
   );
   console.log(result);
@@ -154,9 +154,7 @@ async function operationsList(): Promise<void> {
   const credential = new DefaultAzureCredential();
   const client = new ContosoClient(subscriptionId, credential);
   const resArray = new Array();
-  for await (const item of client.operations.list({
-    apiVersion: "2021-10-01-preview",
-  })) {
+  for await (const item of client.operations.list()) {
     resArray.push(item);
   }
 
@@ -209,10 +207,10 @@ async function employeesCreateOrUpdate(): Promise<void> {
   const result = await client.employees.createOrUpdate(
     "rgopenapi",
     "9KF-f-8b",
-    { tags: { key2913: "urperxmkkhhkp" }, location: "itajgxyqozseoygnl" },
     {
-      subscriptionId: "11809CA1-E126-4017-945E-AA795CD5C5A9",
-      apiVersion: "2021-10-01-preview",
+      properties: { age: 30 },
+      tags: { key2913: "urperxmkkhhkp" },
+      location: "itajgxyqozseoygnl",
     },
   );
   console.log(result);
@@ -239,9 +237,7 @@ async function operationsList(): Promise<void> {
   const credential = new DefaultAzureCredential();
   const client = new ContosoClient(subscriptionId, credential);
   const resArray = new Array();
-  for await (const item of client.operations.list({
-    apiVersion: "2021-10-01-preview",
-  })) {
+  for await (const item of client.operations.list()) {
     resArray.push(item);
   }
 
@@ -390,8 +386,11 @@ async function employeesCreateOrUpdate(): Promise<void> {
     "11809CA1-E126-4017-945E-AA795CD5C5A9",
     "rgopenapi",
     "9KF-f-8b",
-    { tags: { key2913: "urperxmkkhhkp" }, location: "itajgxyqozseoygnl" },
-    { apiVersion: "2021-10-01-preview" },
+    {
+      properties: { age: 30 },
+      tags: { key2913: "urperxmkkhhkp" },
+      location: "itajgxyqozseoygnl",
+    },
   );
   console.log(result);
 }
@@ -416,9 +415,7 @@ async function operationsList(): Promise<void> {
   const credential = new DefaultAzureCredential();
   const client = new ContosoClient(credential);
   const resArray = new Array();
-  for await (const item of client.operations.list({
-    apiVersion: "2021-10-01-preview",
-  })) {
+  for await (const item of client.operations.list()) {
     resArray.push(item);
   }
 
@@ -471,8 +468,11 @@ async function employeesCreateOrUpdate(): Promise<void> {
     "11809CA1-E126-4017-945E-AA795CD5C5A9",
     "rgopenapi",
     "9KF-f-8b",
-    { tags: { key2913: "urperxmkkhhkp" }, location: "itajgxyqozseoygnl" },
-    { apiVersion: "2021-10-01-preview" },
+    {
+      properties: { age: 30 },
+      tags: { key2913: "urperxmkkhhkp" },
+      location: "itajgxyqozseoygnl",
+    },
   );
   console.log(result);
 }
@@ -497,9 +497,7 @@ async function operationsList(): Promise<void> {
   const credential = new DefaultAzureCredential();
   const client = new ContosoClient(credential);
   const resArray = new Array();
-  for await (const item of client.operations.list({
-    apiVersion: "2021-10-01-preview",
-  })) {
+  for await (const item of client.operations.list()) {
     resArray.push(item);
   }
 
@@ -659,8 +657,11 @@ async function employeesCreateOrUpdate(): Promise<void> {
     "11809CA1-E126-4017-945E-AA795CD5C5A9",
     "rgopenapi",
     "9KF-f-8b",
-    { tags: { key2913: "urperxmkkhhkp" }, location: "itajgxyqozseoygnl" },
-    { apiVersion: "2021-10-01-preview" },
+    {
+      properties: { age: 30 },
+      tags: { key2913: "urperxmkkhhkp" },
+      location: "itajgxyqozseoygnl",
+    },
   );
   console.log(result);
 }
@@ -685,10 +686,7 @@ async function employeesGet(): Promise<void> {
   const subscriptionId = process.env.CONTOSO_SUBSCRIPTION_ID || "";
   const credential = new DefaultAzureCredential();
   const client = new ContosoClient(subscriptionId, credential);
-  const result = await client.employees.get("rgopenapi", "9KF-f-8b", {
-    apiVersion: "2021-10-01-preview",
-    subscriptionId: "11809CA1-E126-4017-945E-AA795CD5C5A9",
-  });
+  const result = await client.employees.get("rgopenapi", "9KF-f-8b");
   console.log(result);
 }
 
@@ -713,9 +711,7 @@ async function operationsList(): Promise<void> {
   const credential = new DefaultAzureCredential();
   const client = new ContosoClient(subscriptionId, credential);
   const resArray = new Array();
-  for await (const item of client.operations.list({
-    apiVersion: "2021-10-01-preview",
-  })) {
+  for await (const item of client.operations.list()) {
     resArray.push(item);
   }
 
@@ -801,8 +797,11 @@ async function employeesCreateOrUpdate(): Promise<void> {
     "11809CA1-E126-4017-945E-AA795CD5C5A9",
     "rgopenapi",
     "9KF-f-8b",
-    { tags: { key2913: "urperxmkkhhkp" }, location: "itajgxyqozseoygnl" },
-    { apiVersion: "2021-10-01-preview" },
+    {
+      properties: { age: 30 },
+      tags: { key2913: "urperxmkkhhkp" },
+      location: "itajgxyqozseoygnl",
+    },
   );
   console.log(result);
 }
@@ -827,10 +826,7 @@ async function employeesGet(): Promise<void> {
   const subscriptionId = process.env.CONTOSO_SUBSCRIPTION_ID || "";
   const credential = new DefaultAzureCredential();
   const client = new ContosoClient(subscriptionId, credential);
-  const result = await client.employees.get("rgopenapi", "9KF-f-8b", {
-    apiVersion: "2021-10-01-preview",
-    subscriptionId: "11809CA1-E126-4017-945E-AA795CD5C5A9",
-  });
+  const result = await client.employees.get("rgopenapi", "9KF-f-8b");
   console.log(result);
 }
 
@@ -855,9 +851,7 @@ async function operationsList(): Promise<void> {
   const credential = new DefaultAzureCredential();
   const client = new ContosoClient(subscriptionId, credential);
   const resArray = new Array();
-  for await (const item of client.operations.list({
-    apiVersion: "2021-10-01-preview",
-  })) {
+  for await (const item of client.operations.list()) {
     resArray.push(item);
   }
 
@@ -941,8 +935,11 @@ async function employeesCreateOrUpdate(): Promise<void> {
     "11809CA1-E126-4017-945E-AA795CD5C5A9",
     "rgopenapi",
     "9KF-f-8b",
-    { tags: { key2913: "urperxmkkhhkp" }, location: "itajgxyqozseoygnl" },
-    { apiVersion: "2021-10-01-preview" },
+    {
+      properties: { age: 30 },
+      tags: { key2913: "urperxmkkhhkp" },
+      location: "itajgxyqozseoygnl",
+    },
   );
   console.log(result);
 }
@@ -967,10 +964,7 @@ async function employeesGet(): Promise<void> {
   const subscriptionId = process.env.CONTOSO_SUBSCRIPTION_ID || "";
   const credential = new DefaultAzureCredential();
   const client = new ContosoClient(subscriptionId, credential);
-  const result = await client.employees.get("rgopenapi", "9KF-f-8b", {
-    apiVersion: "2021-10-01-preview",
-    subscriptionId: "11809CA1-E126-4017-945E-AA795CD5C5A9",
-  });
+  const result = await client.employees.get("rgopenapi", "9KF-f-8b");
   console.log(result);
 }
 
@@ -995,9 +989,7 @@ async function operationsList(): Promise<void> {
   const credential = new DefaultAzureCredential();
   const client = new ContosoClient(subscriptionId, credential);
   const resArray = new Array();
-  for await (const item of client.operations.list({
-    apiVersion: "2021-10-01-preview",
-  })) {
+  for await (const item of client.operations.list()) {
     resArray.push(item);
   }
 
@@ -1075,8 +1067,11 @@ async function employeesCreateOrUpdate(): Promise<void> {
     "11809CA1-E126-4017-945E-AA795CD5C5A9",
     "rgopenapi",
     "9KF-f-8b",
-    { tags: { key2913: "urperxmkkhhkp" }, location: "itajgxyqozseoygnl" },
-    { apiVersion: "2021-10-01-preview" },
+    {
+      properties: { age: 30 },
+      tags: { key2913: "urperxmkkhhkp" },
+      location: "itajgxyqozseoygnl",
+    },
   );
   console.log(result);
 }
@@ -1101,10 +1096,7 @@ async function employeesGet(): Promise<void> {
   const subscriptionId = process.env.CONTOSO_SUBSCRIPTION_ID || "";
   const credential = new DefaultAzureCredential();
   const client = new ContosoClient(subscriptionId, credential);
-  const result = await client.employees.get("rgopenapi", "9KF-f-8b", {
-    apiVersion: "2021-10-01-preview",
-    subscriptionId: "11809CA1-E126-4017-945E-AA795CD5C5A9",
-  });
+  const result = await client.employees.get("rgopenapi", "9KF-f-8b");
   console.log(result);
 }
 
@@ -1129,9 +1121,7 @@ async function operationsList(): Promise<void> {
   const credential = new DefaultAzureCredential();
   const client = new ContosoClient(subscriptionId, credential);
   const resArray = new Array();
-  for await (const item of client.operations.list({
-    apiVersion: "2021-10-01-preview",
-  })) {
+  for await (const item of client.operations.list()) {
     resArray.push(item);
   }
 

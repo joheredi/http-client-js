@@ -138,10 +138,14 @@ async function employeesCreateOrUpdate(): Promise<void> {
   const result = await client.employees.createOrUpdate(
     "rgopenapi",
     "9KF-f-8b",
-    { tags: { key2913: "urperxmkkhhkp" }, location: "itajgxyqozseoygnl" },
     {
-      apiVersion: "2021-10-01-preview",
-      subscriptionId: "11809CA1-E126-4017-945E-AA795CD5C5A9",
+      properties: {
+        age: 30,
+        city: "gydhnntudughbmxlkyzrskcdkotrxn",
+        profile: "ms",
+      },
+      tags: { key2913: "urperxmkkhhkp" },
+      location: "itajgxyqozseoygnl",
     },
   );
   console.log(result);
@@ -203,10 +207,14 @@ async function employeesCreateOrUpdate(): Promise<void> {
   const result = await client.employees.createOrUpdate(
     "rgopenapi",
     "9KF-f-8b",
-    { tags: { key2913: "urperxmkkhhkp" }, location: "itajgxyqozseoygnl" },
     {
-      apiVersion: "2021-10-01-preview",
-      subscriptionId: "11809CA1-E126-4017-945E-AA795CD5C5A9",
+      properties: {
+        age: 30,
+        city: "gydhnntudughbmxlkyzrskcdkotrxn",
+        profile: "ms",
+      },
+      tags: { key2913: "urperxmkkhhkp" },
+      location: "itajgxyqozseoygnl",
     },
   );
   console.log(result);
@@ -322,7 +330,10 @@ import { TestingClient } from "@azure/internal-test";
 async function publishDocuments(): Promise<void> {
   const endpoint = process.env.TESTING_ENDPOINT || "";
   const client = new TestingClient(endpoint);
-  const result = await client.documents.publish({});
+  const result = await client.documents.publish({
+    documentType: "Exception",
+    Properties: ["stream-1", "stream-2"],
+  });
   console.log(result);
 }
 

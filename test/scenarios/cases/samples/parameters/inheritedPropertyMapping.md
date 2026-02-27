@@ -66,7 +66,16 @@ import { TestingClient } from "@azure/internal-test";
 async function publishDocuments(): Promise<void> {
   const endpoint = process.env.TESTING_ENDPOINT || "";
   const client = new TestingClient(endpoint);
-  const result = await client.documents.publish({});
+  const result = await client.documents.publish({
+    Documents: [
+      {
+        documentType: "Exception",
+        ExceptionType: "System.ArgumentNullException",
+        ExceptionMessage: "Value cannot be null",
+        Properties: ["stream-1", "stream-2"],
+      },
+    ],
+  });
   console.log(result);
 }
 

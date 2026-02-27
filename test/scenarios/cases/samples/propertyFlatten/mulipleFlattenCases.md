@@ -169,7 +169,9 @@ import { TestingClient } from "@azure/internal-test";
 async function read(): Promise<void> {
   const endpoint = process.env.TESTING_ENDPOINT || "";
   const client = new TestingClient(endpoint);
-  const result = await client.read({ widget: {} });
+  const result = await client.read({
+    widget: { name: "body name", properties: { bar: { x: "xx" } } },
+  });
   console.log(result);
 }
 

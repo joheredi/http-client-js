@@ -1510,7 +1510,7 @@
       "title": "Sample Code Generation: Environment Variables, Body Params, and Method Structure",
       "category": "scenario-audit/Samples",
       "priority": "P2",
-      "status": "not-started",
+      "status": "done",
       "description": "Multiple compounding issues in sample generation: environment variable naming (TESTING_ENDPOINT\u2192TEST_SERVICE_ENDPOINT), constructor argument ordering, body parameter simplification ({name:'body name'}\u2192{}), versioned\u2192unversioned file paths, and sample file naming conventions. Legacy sample patterns are the expected output.",
       "legacy_behavior": "TESTING_ENDPOINT env vars, ordered constructor params (credential, subscriptionId), detailed body objects, versioned file paths.",
       "new_behavior": "TEST_SERVICE_ENDPOINT env vars, reversed constructor order (subscriptionId, credential), empty body objects {}, unversioned paths.",
