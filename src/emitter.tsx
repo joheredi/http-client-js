@@ -29,6 +29,7 @@ import { StaticHelpers } from "./components/static-helpers/index.js";
 import { RestorePollerFile } from "./components/restore-poller.js";
 import { SampleFiles } from "./components/sample-files.js";
 import { LoggerFile } from "./components/logger-file.js";
+import { PackageScaffold } from "./components/package-scaffold.js";
 
 import type {
   SdkClientType,
@@ -158,27 +159,29 @@ export function EmitterTree(props: EmitterTreeProps) {
 
   return (
     <SdkContextProvider sdkContext={sdkContext}>
-      <SourceDirectory path="src">
-        {flavor === "azure" && (
-          <LoggerFile packageName={getPackageName(sdkContext)} />
-        )}
-        <ModelFiles />
-        <OperationFiles />
-        <OperationOptionsFiles />
-        <For each={sdkContext.sdkPackage.clients}>
-          {(client) => (
-            <>
-              <ClientContextFile client={client} />
-              <ClassicalClientFile client={client} />
-              <ClassicalOperationGroupFiles client={client} />
-              {flavor === "azure" && <RestorePollerFile client={client} />}
-            </>
+      <PackageScaffold>
+        <SourceDirectory path="src">
+          {flavor === "azure" && (
+            <LoggerFile packageName={getPackageName(sdkContext)} />
           )}
-        </For>
-        <IndexFiles />
-        <StaticHelpers />
-      </SourceDirectory>
-      <SampleFiles />
+          <ModelFiles />
+          <OperationFiles />
+          <OperationOptionsFiles />
+          <For each={sdkContext.sdkPackage.clients}>
+            {(client) => (
+              <>
+                <ClientContextFile client={client} />
+                <ClassicalClientFile client={client} />
+                <ClassicalOperationGroupFiles client={client} />
+                {flavor === "azure" && <RestorePollerFile client={client} />}
+              </>
+            )}
+          </For>
+          <IndexFiles />
+          <StaticHelpers />
+        </SourceDirectory>
+        <SampleFiles />
+      </PackageScaffold>
     </SdkContextProvider>
   );
 }
@@ -249,6 +252,9 @@ export async function $onEmit(context: EmitContext) {
     ignoreNullableOnOptional:
       context.options?.["ignore-nullable-on-optional"] ?? flavor === "azure",
     typespecTitleMap: titleMap,
+    generateMetadata: context.options?.["generate-metadata"] === true,
+    packageName: context.options?.["package-name"] as string | undefined,
+    packageVersion: context.options?.["package-version"] as string | undefined,
   };
 
   const output = (

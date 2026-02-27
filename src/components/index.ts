@@ -64,6 +64,7 @@ export {
 export { RestorePollerFile } from "./restore-poller.js";
 export { SampleFiles } from "./sample-files.js";
 export { LoggerFile } from "./logger-file.js";
+export { PackageScaffold } from "./package-scaffold.js";
 export {
   SubEnumDeclaration,
   SubEnumDeclarations,

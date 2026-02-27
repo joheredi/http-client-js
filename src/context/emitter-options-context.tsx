@@ -74,6 +74,27 @@ export interface EmitterOptionsValue {
    * legacy emitter.
    */
   typespecTitleMap?: Record<string, string>;
+
+  /**
+   * When true, the emitter generates metadata/scaffolding files alongside
+   * source code: package.json, tsconfig.json, README.md, LICENSE, and
+   * flavor-specific config files (api-extractor.json, eslint, vitest).
+   *
+   * Defaults to false. When false, only source files under src/ are emitted.
+   */
+  generateMetadata: boolean;
+
+  /**
+   * The npm package name for the generated package.json.
+   * When not provided, derived from the first client name.
+   */
+  packageName?: string;
+
+  /**
+   * The package version for the generated package.json.
+   * Defaults to "1.0.0-beta.1".
+   */
+  packageVersion?: string;
 }
 
 /**
@@ -86,6 +107,7 @@ const defaultOptions: EmitterOptionsValue = {
   includeHeadersInResponse: false,
   experimentalExtensibleEnums: false,
   ignoreNullableOnOptional: true,
+  generateMetadata: false,
 };
 
 /**
