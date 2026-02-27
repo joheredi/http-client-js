@@ -1191,9 +1191,13 @@ propagate this option from the TypeSpec emitter context.
 When `include-headers-in-response: true`, the public operation function must merge
 response headers into the return type:
 
-- **Body + headers**: Return type is `ModelType & { headerProps }`, body calls both
+- **Body + headers**: Return type is an expanded inline object type
+  `{ modelProp1: type1; modelProp2: type2; headerProp: headerType }` that merges all model
+  properties with non-duplicate response header properties. Body calls both
   `_xxxDeserializeHeaders(result)` and `_xxxDeserialize(result)`, spreads results:
-  `return { ...payload, ...headers }`
+  `return { ...payload, ...headers }`.
+  This matches the legacy emitter behavior (expanded inline types rather than
+  intersection types like `ModelType & { headerProps }`).
 - **Void body + headers**: Return type is the header object type `{ headerProps }`,
   body calls `_xxxDeserialize(result)` for status validation then returns
   `{ ..._xxxDeserializeHeaders(result) }`
@@ -1203,7 +1207,8 @@ The `DeserializeHeaders` component now has a refkey (`deserializeHeadersRefkey`)
 the public operation can reference it and Alloy auto-generates imports.
 
 Key files:
-- `src/components/public-operation.tsx` — `BasicOperation` component handles all three cases
+- `src/components/public-operation.tsx` — `BasicOperation` component handles all three cases;
+  `buildExpandedCompositeReturnType` builds the flat inline object type
 - `src/components/deserialize-headers.tsx` — `collectSuccessResponseHeaders` and
   `buildHeaderReturnType` are exported for reuse
 - `src/utils/refkeys.ts` — `deserializeHeadersRefkey()` added

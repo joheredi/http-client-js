@@ -713,7 +713,7 @@ describe("PublicOperation", () => {
     /**
      * Tests that when `include-headers-in-response` is enabled and the operation
      * has both a model body and response headers, the public function:
-     * 1. Returns an intersection type of the model and header types.
+     * 1. Returns an expanded inline object type with all model and header properties.
      * 2. Calls both `_xxxDeserializeHeaders` and `_xxxDeserialize`.
      * 3. Spreads the results to merge headers into the response object.
      *
@@ -791,7 +791,7 @@ describe("PublicOperation", () => {
         export async function getUser(
           context: Client,
           options: GetUserOptionalParams = { requestOptions: {} },
-        ): Promise<User & { requestId: string }> {
+        ): Promise<{ name: string; requestId: string }> {
           const result = await _getUserSend(context, options);
           const headers = _getUserDeserializeHeaders(result);
           const payload = await _getUserDeserialize(result);

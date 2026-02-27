@@ -38,7 +38,7 @@ export async function getUser(
   context: Client,
   options: GetUserOptionalParams = { requestOptions: {} },
 ): Promise<
-  User & { userId?: string; createdAt?: Date; contentType: "application/xml" }
+  { name: string; email: string; userId?: string; createdAt?: Date; contentType: "application/xml" }
 > {
   const result = await _getUserSend(context, options);
   const headers = _getUserDeserializeHeaders(result);

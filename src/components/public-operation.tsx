@@ -5,9 +5,12 @@ import type {
   SdkLroPagingServiceMethod,
   SdkLroServiceMethod,
   SdkMethodParameter,
+  SdkModelPropertyType,
+  SdkModelType,
   SdkPagingServiceMethod,
   SdkQueryParameter,
   SdkServiceMethod,
+  SdkServiceResponseHeader,
 } from "@azure-tools/typespec-client-generator-core";
 import {
   azureCoreLroLib,
@@ -485,13 +488,17 @@ function getReturnType(method: SdkServiceMethod<SdkHttpOperation>): Children {
 /**
  * Computes the composite return type when response headers should be merged.
  *
- * When the operation has both a body and response headers, the return type
- * is an intersection of the model type and an inline object type for the
- * headers: `ModelType & { headerName: headerType; ... }`.
+ * When the operation has both a model body and response headers, the return
+ * type is an expanded inline object type containing all model properties plus
+ * any non-duplicate header properties:
+ * `{ modelProp1: type1; modelProp2: type2; headerProp: headerType }`.
  *
+ * This matches the legacy emitter's behavior where the return type is a flat
+ * inline object rather than an intersection type (`ModelType & { headers }`).
+ *
+ * When the body is not a model type, falls back to an intersection type.
  * When the operation has no body but has headers, the return type is just
  * the inline header object type.
- *
  * When there are no headers, falls back to the standard return type.
  *
  * @param method - The TCGC service method.
@@ -500,7 +507,7 @@ function getReturnType(method: SdkServiceMethod<SdkHttpOperation>): Children {
  */
 function getCompositeReturnType(
   method: SdkServiceMethod<SdkHttpOperation>,
-  headers: import("@azure-tools/typespec-client-generator-core").SdkServiceResponseHeader[],
+  headers: SdkServiceResponseHeader[],
 ): Children {
   const hasBody = !!method.response.type;
   const hasHeaders = headers.length > 0;
@@ -509,15 +516,98 @@ function getCompositeReturnType(
     return getReturnType(method);
   }
 
-  const headerType = buildHeaderReturnType(headers);
-
   if (hasBody) {
-    const bodyType = getTypeExpression(method.response.type!);
+    const responseType = method.response.type!;
+    if (responseType.kind === "model") {
+      return buildExpandedCompositeReturnType(responseType, headers);
+    }
+    // Non-model body: intersection fallback
+    const bodyType = getTypeExpression(responseType);
+    const headerType = buildHeaderReturnType(headers);
     return code`${bodyType} & ${headerType}`;
   }
 
   // Header-only response
-  return headerType;
+  return buildHeaderReturnType(headers);
+}
+
+/**
+ * Builds an expanded inline object type that merges all model properties and
+ * response header properties into a single flat object type literal.
+ *
+ * This matches the legacy emitter behavior where the return type for operations
+ * with response headers is an expanded object type
+ * (e.g., `{ name: string; email: string; requestId: string }`) rather than an
+ * intersection type (e.g., `User & { requestId: string }`).
+ *
+ * Properties from the model type are listed first (including inherited properties
+ * from the base model chain), followed by any response headers not already present
+ * in the model. Deduplication is case-insensitive by property name.
+ *
+ * @param responseType - The response body model type.
+ * @param headers - The collected success response headers.
+ * @returns Alloy Children representing the expanded inline object type.
+ */
+function buildExpandedCompositeReturnType(
+  responseType: SdkModelType,
+  headers: SdkServiceResponseHeader[],
+): Children {
+  const modelProps = collectAllProperties(responseType);
+  const modelPropNames = new Set(modelProps.map((p) => p.name.toLowerCase()));
+
+  // Build property entries as code template Children
+  const entries: Children[] = [];
+
+  for (const prop of modelProps) {
+    const opt = prop.optional ? "?" : "";
+    const typeExpr = getTypeExpression(prop.type);
+    entries.push(code`${prop.name}${opt}: ${typeExpr}`);
+  }
+
+  // Add non-duplicate headers
+  for (const header of headers) {
+    if (!modelPropNames.has(header.name.toLowerCase())) {
+      const opt = header.optional ? "?" : "";
+      const typeExpr = getTypeExpression(header.type);
+      entries.push(code`${header.name}${opt}: ${typeExpr}`);
+    }
+  }
+
+  // Join entries with "; " separators
+  const parts: Children[] = [];
+  for (let i = 0; i < entries.length; i++) {
+    if (i > 0) parts.push("; ");
+    parts.push(entries[i]);
+  }
+
+  return code`{ ${parts} }`;
+}
+
+/**
+ * Collects all properties from a model type, including inherited properties
+ * from the base model chain.
+ *
+ * Properties are returned in order: base model properties first (from
+ * oldest ancestor to immediate parent), then the model's own properties.
+ *
+ * @param model - The SDK model type.
+ * @returns An array of all model properties.
+ */
+function collectAllProperties(model: SdkModelType): SdkModelPropertyType[] {
+  const result: SdkModelPropertyType[] = [];
+  const ancestors: SdkModelType[] = [];
+  let current = model.baseModel;
+  while (current) {
+    ancestors.push(current);
+    current = current.baseModel;
+  }
+  ancestors.reverse();
+
+  for (const ancestor of ancestors) {
+    result.push(...ancestor.properties);
+  }
+  result.push(...model.properties);
+  return result;
 }
 
 /**

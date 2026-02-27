@@ -1397,7 +1397,7 @@
       "title": "Response Header Handling: Intersection Types vs Direct Model Return",
       "category": "scenario-audit/Models",
       "priority": "P2",
-      "status": "not-started",
+      "status": "done",
       "description": "The new emitter returns intersection types (User & { requestId: string }) for responses with headers, while legacy returns the model type directly or uses expanded inline types. Legacy return type is the expected output.",
       "legacy_behavior": "Returns expanded inline object type with all properties.",
       "new_behavior": "Returns intersection type: User & { requestId: string }.",
