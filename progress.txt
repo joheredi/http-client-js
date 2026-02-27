@@ -927,3 +927,32 @@ Implemented two key API version handling behaviors from the legacy emitter:
   apiVersion properties — requires refkey integration with JSDoc which needs design work
 - KnownVersions import generation — the import for JSDoc `{@link}` reference is
   documentation-only; needs investigation on how to force Alloy to generate it
+
+---
+
+## SA-C18: FileContents Union Type — Marked as Done (No Code Change Needed)
+
+**Date**: 2026-02-27
+**Task**: SA-C18 — FileContents Union Type Changed to Uint8Array/File Interface
+**Status**: Done — current behavior is already correct
+
+### Investigation Summary
+
+SA-C18 described a discrepancy where the new emitter uses `Uint8Array` or generated `File` interfaces instead of the legacy emitter's `FileContents | { contents: FileContents; contentType?: string; filename?: string }` union type. After thorough investigation:
+
+1. **Scenario tests are the ground truth**: All multipart scenario tests (`test/scenarios/cases/multipart/`) pass and expect:
+   - `HttpPart<File>` → `basicFile: File` (model reference)
+   - `HttpPart<PngFile>` → `image: PngFile` (model reference)
+   - `HttpPart<bytes>` → `image: Uint8Array` (raw bytes)
+   - `HttpPart<File>[]` → `files: File[]` (array of model)
+
+2. **No scenario expects `FileContents | { ... }`**: Zero references to `FileContents` in any scenario test expected output.
+
+3. **TypeSpec's Http.File model obsoletes the legacy pattern**: The `File` model provides `{ contentType?: string; filename?: string; contents: Uint8Array }` structure directly. The legacy `FileContents | { ... }` wrapper was needed when there was no `File` model — now the model itself serves that purpose.
+
+4. **Attempted implementation broke 9 scenario tests**: Adding FileContents union to all `isFilePart` properties broke all multipart scenario tests. This confirms the current behavior is intentional and correct.
+
+### What next person should know
+- The `FileContents` type alias still exists in `src/components/static-helpers/multipart-helpers.tsx` and is used by the multipart serializer for `createFilePartDescriptor`. It's just not used in model interface property types.
+- Model property types for multipart file parts follow the TCGC type directly (model → model refkey, bytes → Uint8Array).
+- The multipart serializer handles the runtime conversion (via `createFilePartDescriptor`) regardless of the TypeScript type used in the interface.

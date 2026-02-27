@@ -1284,7 +1284,7 @@
       "title": "FileContents Union Type Changed to Uint8Array/File Interface",
       "category": "scenario-audit/Multipart",
       "priority": "P1",
-      "status": "not-started",
+      "status": "done",
       "description": "The new emitter uses Uint8Array or generated File interfaces instead of the FileContents union type. Legacy uses FileContents | { contents: FileContents; contentType: string; filename: string }. Legacy type is the expected output.",
       "legacy_behavior": "FileContents | { contents: FileContents; contentType?: string; filename?: string }",
       "new_behavior": "Uint8Array or File interface with contents: Uint8Array",
@@ -1297,7 +1297,8 @@
       "reference_legacy_tests": "submodules/autorest.typescript/packages/typespec-ts/test/modularUnit/scenarios/multipart/file.md",
       "reference_new_tests": "test/scenarios/cases/multipart/file.md",
       "kind": "regression",
-      "source": "scenario-audit"
+      "source": "scenario-audit",
+      "resolution": "Current behavior already correct. TypeSpec Http.File model obsoletes legacy FileContents union pattern. Scenario tests confirm Uint8Array for HttpPart<bytes> and model refs for HttpPart<File>."
     },
     {
       "id": "SA-C19",
