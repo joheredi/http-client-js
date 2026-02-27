@@ -1251,4 +1251,84 @@ interface TestResources {
     expect(rendered).toContain("_createOrUpdateSend");
     expect(rendered).toContain("_createOrUpdateDeserialize");
   });
+
+  /**
+   * Tests that paging operations in core flavor generate as regular async functions
+   * returning Promise<T> instead of Azure-specific PagedAsyncIterableIterator<T>.
+   *
+   * Core flavor does not support Azure-specific paging patterns (buildPagedAsyncIterator,
+   * PagedAsyncIterableIterator), so paging operations must fall back to basic async
+   * functions that call send + deserialize and return the full collection wrapper directly.
+   *
+   * This validates:
+   * - The function is async (not synchronous like the Azure paging pattern)
+   * - The function calls _send then _deserialize (BasicOperation pattern)
+   * - No PagedAsyncIterableIterator or buildPagedAsyncIterator references appear in output
+   * - No paging helper imports are generated
+   */
+  it("should generate paging as regular async function in core flavor", async () => {
+    const runner = await TesterWithService.createInstance();
+    const { program } = await runner.compile(
+      t.code`
+        using Azure.ClientGenerator.Core;
+
+        model ItemList {
+          @pageItems
+          items: Item[];
+        }
+
+        model Item {
+          name: string;
+          value: int32;
+        }
+
+        @list @post op ${t.op("listItems")}(): ItemList;
+      `,
+    );
+
+    const sdkContext = await createSdkContextForTest(program);
+    const method = getFirstMethod(sdkContext);
+    expect(method.kind).toBe("paging");
+
+    // Render with CORE flavor — paging should become a basic async function
+    const template = (
+      <Output
+        program={sdkContext.emitContext.program}
+        namePolicy={createTSNamePolicy()}
+        externals={[httpRuntimeLib]}
+      >
+        <FlavorProvider flavor="core">
+          <EmitterOptionsProvider options={{}}>
+            <SdkContextProvider sdkContext={sdkContext}>
+              <SourceDirectory path="src">
+                <SourceFile path="operations.ts">
+                  <OperationOptionsDeclaration method={method} />
+                  {"\n\n"}
+                  <SendOperation method={method} />
+                  {"\n\n"}
+                  <DeserializeOperation method={method} />
+                  {"\n\n"}
+                  <PublicOperation method={method} />
+                </SourceFile>
+              </SourceDirectory>
+            </SdkContextProvider>
+          </EmitterOptionsProvider>
+        </FlavorProvider>
+      </Output>
+    );
+
+    const rendered = renderToString(template);
+
+    // Core flavor paging should be async (BasicOperation pattern)
+    expect(rendered).toContain("export async function");
+
+    // Should NOT contain Azure paging patterns
+    expect(rendered).not.toContain("PagedAsyncIterableIterator");
+    expect(rendered).not.toContain("buildPagedAsyncIterator");
+    expect(rendered).not.toContain("pagingHelpers");
+
+    // Should contain standard send + deserialize pattern
+    expect(rendered).toContain("_listItemsSend");
+    expect(rendered).toContain("_listItemsDeserialize");
+  });
 });

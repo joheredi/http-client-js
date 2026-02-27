@@ -856,7 +856,7 @@
         "Azure flavor retains PagedAsyncIterableIterator return types",
         "No paging helper references appear in core flavor generated code"
       ],
-      "status": "not-started",
+      "status": "done",
       "source": "implementation-phase",
       "category": "phase-10/Flavor Parity \u2014 Match Legacy Emitter Flavor Behavior"
     },
