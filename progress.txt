@@ -1524,3 +1524,33 @@ When gating a static helper file behind Azure flavor, ALL scenario tests that re
 - If a future scenario has an enum type as a direct body parameter in an operation (not wrapped in a model), `send-operation.tsx` would need to be updated to pass options.
 - Pre-existing snapshot drift exists in `propertyType.md`, `clientContext.md`, `classicClient/clientConstructorOverloads.md`, `headerInXmlResponse.md` — these were NOT included in this commit.
 - All 976 tests pass (974 existing + 2 new)
+
+---
+
+## Task SA-C15: Error Handling: Import Azure Core Error Types from Runtime — DONE (2026-02-27)
+
+### What was done
+- Azure Core error types (ErrorModel, InnerError, ErrorResponse) are now imported from the runtime package (`@azure-rest/core-client`) instead of being generated as local interface definitions with deserializers
+- This matches the legacy emitter's behavior where these built-in types come from the shared package
+
+### Key changes
+1. **`src/utils/azure-core-error-types.ts`** (new): `isAzureCoreErrorType()` utility identifies Azure Core error types by `crossLanguageDefinitionId` (`Azure.Core.Foundations.Error`, `Azure.Core.Foundations.InnerError`, `Azure.Core.Foundations.ErrorResponse`)
+2. **`src/components/type-expression.tsx`**: When a model type is an Azure Core error type, returns external package refkey (`azureCoreClientLib.ErrorModel` / `azureCoreClientLib.ErrorResponse`) instead of `typeRefkey(type)` — Alloy auto-generates the import
+3. **`src/components/model-files.tsx`**: Filters out Azure Core error types from the model list, preventing local interface definitions and serializer/deserializer generation
+4. **`src/components/serialization/json-deserializer.tsx`**: `getDeserializationExpression()` returns pass-through for error types; `valueTypeHasNamedDeserializerFn()` returns false for error types
+5. **`src/components/serialization/json-serializer.tsx`**: `getSerializationExpression()` returns pass-through for error types; `valueTypeHasNamedSerializerFn()` returns false for error types
+6. **`src/components/serialization/json-array-record-helpers.tsx`**: `valueTypeHasNamedSerializer()` and `valueTypeHasNamedDeserializer()` return false for error types — prevents named array/record helpers from being generated for error type collections
+7. **Updated 2 scenario test snapshots** (azureCoreOperations, missingErrorResponseModel) and added 6 new unit tests
+
+### Patterns used
+- `crossLanguageDefinitionId` matching to identify Azure Core types (same approach as TCGC's `isAzureCoreModel()`)
+- External package refkey substitution in `getTypeExpression()` — when Alloy encounters the external refkey, it generates the import automatically
+- `needsTransformation(model)` still returns true for error types — this preserves null-check wrapping (`!accessor ? accessor : accessor`) matching legacy output
+- Pass-through deserialization for error type properties and arrays of error types (`.map((p) => { return p; })`)
+
+### What next person should know
+- `isAzureCoreErrorType()` uses `crossLanguageDefinitionId` not `__raw` namespace checks. This is deterministic and doesn't depend on the TypeSpec compiler state.
+- Azure Core error types only appear in Azure-flavored services. Core flavor services never use `Azure.Core.Foundations` types, so the `azureCoreClientLib` refkey is always the correct package.
+- `InnerError` has no export in either runtime package — it only appears as a property inside ErrorModel. Since ErrorModel is not generated locally, InnerError is never referenced.
+- The error DESERIALIZATION in operations (`throw createRestError(result)` without `error.details`) remains unchanged by this task. The SA-C15 task only addresses the local TYPE definitions. Error body deserialization with custom error types is tracked in the errorDeserialization scenarios.
+- All 982 tests pass (976 existing + 6 new utility tests)

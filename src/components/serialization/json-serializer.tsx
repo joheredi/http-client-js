@@ -17,6 +17,7 @@ import { getModelFunctionName } from "../../utils/model-name.js";
 import { flattenSerializerRefkey, serializationHelperRefkey, serializerRefkey, typeRefkey, arraySerializerRefkey, recordSerializerRefkey } from "../../utils/refkeys.js";
 import { computeFlattenCollisionMap, getEffectiveClientName } from "../../utils/flatten-collision.js";
 import { useRuntimeLib } from "../../context/flavor-context.js";
+import { isAzureCoreErrorType } from "../../utils/azure-core-error-types.js";
 
 /**
  * Props for the {@link JsonSerializer} component.
@@ -257,6 +258,11 @@ export function getSerializationExpression(
 ): Children {
   switch (type.kind) {
     case "model":
+      // Azure Core error types are imported from the runtime package and don't
+      // have locally generated serializers. Pass through as-is.
+      if (isAzureCoreErrorType(type)) {
+        return accessor;
+      }
       // Models without Input usage don't have serializer functions generated.
       // This happens for read-only types like Azure.ResourceManager.SystemData
       // that only appear in responses (Output usage). Pass through as-is.
@@ -430,6 +436,8 @@ export function needsTransformation(type: SdkType, options?: SerializationOption
 function valueTypeHasNamedSerializerFn(type: SdkType, options?: SerializationOptions): boolean {
   switch (type.kind) {
     case "model":
+      // Azure Core error types don't have local serializer functions
+      if (isAzureCoreErrorType(type)) return false;
       return (type.usage & UsageFlags.Input) !== 0;
     case "union":
       return !!(

@@ -1,6 +1,8 @@
 import { Children, code } from "@alloy-js/core";
 import type { SdkModelType, SdkType } from "@azure-tools/typespec-client-generator-core";
 import { typeRefkey } from "../utils/refkeys.js";
+import { isAzureCoreErrorType } from "../utils/azure-core-error-types.js";
+import { azureCoreClientLib } from "../utils/external-packages.js";
 
 /**
  * Checks whether a model type represents an empty anonymous model (`{}`).
@@ -154,6 +156,12 @@ export function getTypeExpression(type: SdkType): Children {
       if (isEmptyAnonymousModel(type)) {
         return "Record<string, any>";
       }
+      // Azure Core error types are imported from the runtime package, not
+      // generated locally. Use the external package refkey so Alloy auto-generates
+      // the import from @azure-rest/core-client.
+      if (isAzureCoreErrorType(type)) {
+        return getAzureCoreErrorTypeRef(type);
+      }
       return typeRefkey(type);
 
     // ── Nullable ─────────────────────────────────────────────────────────
@@ -181,5 +189,29 @@ export function getTypeExpression(type: SdkType): Children {
 
     default:
       return "any";
+  }
+}
+
+/**
+ * Maps an Azure Core error type to its external package refkey.
+ *
+ * Azure Core Foundations error types are imported from the runtime package
+ * instead of being generated as local interfaces. This function returns the
+ * appropriate refkey for auto-import resolution.
+ *
+ * @param type - A TCGC SdkModelType that is an Azure Core error type.
+ * @returns The external package member refkey for Alloy import resolution.
+ */
+function getAzureCoreErrorTypeRef(type: SdkModelType): Children {
+  switch (type.crossLanguageDefinitionId) {
+    case "Azure.Core.Foundations.Error":
+      return azureCoreClientLib.ErrorModel;
+    case "Azure.Core.Foundations.ErrorResponse":
+      return azureCoreClientLib.ErrorResponse;
+    default:
+      // InnerError and other error types that don't have a runtime export
+      // fall through to the regular type refkey. This handles the edge case
+      // where the type is referenced directly (unlikely in practice).
+      return typeRefkey(type);
   }
 }

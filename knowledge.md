@@ -1871,3 +1871,12 @@ This applies to ALL components that use SourceFile with computed paths including
 
 ### SA-C31-SER: send-operation.tsx and json-array-record-helpers.tsx don't pass SerializationOptions
 These files call `getSerializationExpression` and `needsTransformation` without passing `SerializationOptions`. This means if a union-as-enum type appears as a direct body parameter or array/dict element, the serializer won't be called. For current scenarios this is fine, but future scenarios with direct enum body params would need these callers updated.
+
+## Azure Core Error Type Handling (SA-C15)
+- Azure Core error types (ErrorModel, InnerError, ErrorResponse) are identified by `crossLanguageDefinitionId`: `Azure.Core.Foundations.Error`, `Azure.Core.Foundations.InnerError`, `Azure.Core.Foundations.ErrorResponse`
+- These types are imported from `@azure-rest/core-client` (Azure flavor), NOT generated locally
+- `isAzureCoreErrorType()` utility in `src/utils/azure-core-error-types.ts` performs the identification
+- Properties of type ErrorModel/ErrorResponse use pass-through deserialization (no deserializer call)
+- Arrays of error types use inline `.map((p) => { return p; })` instead of named array helpers
+- `needsTransformation()` still returns true for error types (to preserve null-check wrapping), but the actual deserialization expression is pass-through
+- InnerError has no runtime package export — it's only used inside ErrorModel, which is not generated locally, so InnerError is never needed

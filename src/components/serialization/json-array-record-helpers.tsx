@@ -17,6 +17,7 @@ import {
 } from "../../utils/refkeys.js";
 import { getSerializationExpression, needsTransformation } from "./json-serializer.js";
 import { getDeserializationExpression } from "./json-deserializer.js";
+import { isAzureCoreErrorType } from "../../utils/azure-core-error-types.js";
 
 /**
  * Props for the {@link JsonArraySerializer} component.
@@ -255,6 +256,8 @@ function getParameterTypeExpression(type: SdkType): Children {
 export function valueTypeHasNamedSerializer(type: SdkType): boolean {
   switch (type.kind) {
     case "model":
+      // Azure Core error types don't have local serializer functions
+      if (isAzureCoreErrorType(type)) return false;
       return (type.usage & UsageFlags.Input) !== 0;
     case "union":
       return !!(
@@ -293,6 +296,8 @@ export function valueTypeHasNamedSerializer(type: SdkType): boolean {
 export function valueTypeHasNamedDeserializer(type: SdkType): boolean {
   switch (type.kind) {
     case "model":
+      // Azure Core error types don't have local deserializer functions
+      if (isAzureCoreErrorType(type)) return false;
       return (
         (type.usage & UsageFlags.Output) !== 0 ||
         (type.usage & UsageFlags.Exception) !== 0

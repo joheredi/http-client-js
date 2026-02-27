@@ -74,65 +74,13 @@ withRawContent: true
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
+import type { ErrorResponse } from "@azure-rest/core-client";
+
 /**
  * Response for the asset chain summary.
  */
 export interface AssetChainSummaryResult {
   errors?: ErrorResponse[];
-}
-
-/**
- * A response containing error details.
- */
-export interface ErrorResponse {
-  /**
-   * The error object.
-   */
-  error: ErrorModel;
-  /**
-   * String error code indicating what went wrong.
-   */
-  errorCode?: string;
-}
-
-/**
- * The error object.
- */
-export interface ErrorModel {
-  /**
-   * One of a server-defined set of error codes.
-   */
-  code: string;
-  /**
-   * A human-readable representation of the error.
-   */
-  message: string;
-  /**
-   * The target of the error.
-   */
-  target?: string;
-  /**
-   * An array of details about specific errors that led to this reported error.
-   */
-  details?: ErrorModel[];
-  /**
-   * An object containing more specific information than the current object about the error.
-   */
-  innererror?: InnerError;
-}
-
-/**
- * An object containing more specific information about the error. As per Azure REST API guidelines - https://aka.ms/AzureRestApiGuidelines#handling-errors.
- */
-export interface InnerError {
-  /**
-   * One of a server-defined set of error codes.
-   */
-  code?: string;
-  /**
-   * Inner error.
-   */
-  innererror?: InnerError;
 }
 
 /**
@@ -151,52 +99,10 @@ export function assetChainSummaryResultDeserializer(
   return {
     errors: !item["errors"]
       ? item["errors"]
-      : errorResponseArrayDeserializer(item["errors"]),
+      : item["errors"].map((p: any) => {
+          return p;
+        }),
   };
-}
-
-export function errorResponseDeserializer(item: any): ErrorResponse {
-  return {
-    error: errorDeserializer(item["error"]),
-    errorCode: item["errorCode"],
-  };
-}
-
-export function errorDeserializer(item: any): ErrorModel {
-  return {
-    code: item["code"],
-    message: item["message"],
-    target: item["target"],
-    details: !item["details"]
-      ? item["details"]
-      : errorArrayDeserializer(item["details"]),
-    innererror: !item["innererror"]
-      ? item["innererror"]
-      : innerErrorDeserializer(item["innererror"]),
-  };
-}
-
-export function innerErrorDeserializer(item: any): InnerError {
-  return {
-    code: item["code"],
-    innererror: !item["innererror"]
-      ? item["innererror"]
-      : innerErrorDeserializer(item["innererror"]),
-  };
-}
-
-export function errorResponseArrayDeserializer(
-  result: Array<ErrorResponse>,
-): any[] {
-  return result.map((item) => {
-    return errorResponseDeserializer(item);
-  });
-}
-
-export function errorArrayDeserializer(result: Array<ErrorModel>): any[] {
-  return result.map((item) => {
-    return errorDeserializer(item);
-  });
 }
 ```
 

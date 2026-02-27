@@ -1242,7 +1242,7 @@
       "title": "Error Handling: Local Error Model Definitions and Enhanced Deserialization",
       "category": "scenario-audit/Error Handling",
       "priority": "P2",
-      "status": "not-started",
+      "status": "done",
       "description": "The new emitter generates local ErrorModel/InnerError/ErrorResponse definitions with deserializers and attaches deserialized details to thrown errors. Legacy imports types from shared package or throws directly. Review if this is an acceptable improvement or must match legacy.",
       "legacy_behavior": "Throws errors directly or imports error types from shared package. Minimal error deserialization.",
       "new_behavior": "Defines error models locally, deserializes error response bodies, attaches to error.details.",

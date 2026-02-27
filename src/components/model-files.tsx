@@ -44,6 +44,7 @@ import {
   collectDictTypes,
 } from "./serialization/json-array-record-helpers.js";
 import { needsTransformation } from "./serialization/json-serializer.js";
+import { isAzureCoreErrorType } from "../utils/azure-core-error-types.js";
 
 /**
  * ESLint disable directives placed at the top of generated model files.
@@ -89,7 +90,12 @@ const MODEL_FILE_ESLINT_DIRECTIVES = [
  *          source file, or `undefined` if no types need to be emitted.
  */
 export function ModelFiles() {
-  const { models, enums, unions, clients } = useSdkContext();
+  const { models: allModels, enums, unions, clients } = useSdkContext();
+
+  // Azure Core error types (ErrorModel, InnerError, ErrorResponse) are imported
+  // from the runtime package, not generated locally. Filter them from the model
+  // list so no local interface definitions or deserializers are emitted.
+  const models = allModels.filter((m) => !isAzureCoreErrorType(m));
 
   // Filter unions to include named SdkUnionType, including those wrapped in
   // SdkNullableType. When a union like `"A" | "B" | null` is defined, TCGC wraps

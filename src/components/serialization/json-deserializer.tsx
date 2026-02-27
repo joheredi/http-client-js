@@ -16,6 +16,7 @@ import { deserializerRefkey, flattenDeserializerRefkey, serializationHelperRefke
 import { computeFlattenCollisionMap, getEffectiveClientName } from "../../utils/flatten-collision.js";
 import { useRuntimeLib } from "../../context/flavor-context.js";
 import { needsTransformation } from "./json-serializer.js";
+import { isAzureCoreErrorType } from "../../utils/azure-core-error-types.js";
 
 /**
  * Props for the {@link JsonDeserializer} component.
@@ -221,6 +222,11 @@ export function getDeserializationExpression(
 ): Children {
   switch (type.kind) {
     case "model":
+      // Azure Core error types are imported from the runtime package and don't
+      // have locally generated deserializers. Return the accessor as-is (pass-through).
+      if (isAzureCoreErrorType(type)) {
+        return accessor;
+      }
       // Models without Output/Exception usage don't have deserializer functions.
       // This can happen for Input-only types referenced in response models.
       // Pass through as-is.
@@ -517,6 +523,8 @@ function getFlattenHelperFunctionName(
 function valueTypeHasNamedDeserializerFn(type: SdkType): boolean {
   switch (type.kind) {
     case "model":
+      // Azure Core error types don't have local deserializer functions
+      if (isAzureCoreErrorType(type)) return false;
       return (
         (type.usage & UsageFlags.Output) !== 0 ||
         (type.usage & UsageFlags.Exception) !== 0
