@@ -145,7 +145,7 @@ export interface BackupOptionalParams extends OperationOptions {
 Should generate operations correctly:
 
 ```ts operations
-import { getLongRunningPoller } from "../helpers/pollingHelpers.js";
+import { getLongRunningPoller } from "../static-helpers/pollingHelpers.js";
 import {
   backupRequestPropertiesSerializer,
   BackupResult,

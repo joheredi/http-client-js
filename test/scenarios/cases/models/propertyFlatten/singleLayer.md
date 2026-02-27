@@ -212,7 +212,7 @@ Model generated.
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import { areAllPropsUndefined } from "../helpers/serializationHelpers.js";
+import { areAllPropsUndefined } from "../static-helpers/serializationHelpers.js";
 
 /**
  * model interface Test
@@ -509,7 +509,7 @@ Model generated.
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import { areAllPropsUndefined } from "../helpers/serializationHelpers.js";
+import { areAllPropsUndefined } from "../static-helpers/serializationHelpers.js";
 
 /**
  * model interface Test
@@ -677,7 +677,7 @@ Model generated.
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import { areAllPropsUndefined } from "../helpers/serializationHelpers.js";
+import { areAllPropsUndefined } from "../static-helpers/serializationHelpers.js";
 
 /**
  * model interface Test

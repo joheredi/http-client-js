@@ -30,7 +30,7 @@ import { useRuntimeLib } from "../../context/flavor-context.js";
  */
 export function PollingHelpersFile() {
   return (
-    <SourceFile path="helpers/pollingHelpers.ts">
+    <SourceFile path="static-helpers/pollingHelpers.ts">
       <OperationStateInterface />
       {"\n\n"}
       <PollerLikeInterface />

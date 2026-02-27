@@ -31,7 +31,7 @@ import { useRuntimeLib } from "../../context/flavor-context.js";
  */
 export function PagingHelpersFile() {
   return (
-    <SourceFile path="helpers/pagingHelpers.ts">
+    <SourceFile path="static-helpers/pagingHelpers.ts">
       <PageSettingsInterface />
       {"\n\n"}
       <BuildPagedAsyncIteratorOptionsInterface />

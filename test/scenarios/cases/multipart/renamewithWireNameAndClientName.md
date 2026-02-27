@@ -23,7 +23,7 @@ op withWireName(
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import { createFilePartDescriptor } from "../helpers/multipartHelpers.js";
+import { createFilePartDescriptor } from "../static-helpers/multipartHelpers.js";
 
 /**
  * model interface MultiPartRequestWithWireName
@@ -80,7 +80,7 @@ needTCGC: true
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import { createFilePartDescriptor } from "../helpers/multipartHelpers.js";
+import { createFilePartDescriptor } from "../static-helpers/multipartHelpers.js";
 
 /**
  * model interface MultiPartRequest

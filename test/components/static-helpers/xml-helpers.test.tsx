@@ -1,7 +1,7 @@
 /**
  * Test suite for the XML helpers static file component.
  *
- * XmlHelpersFile generates `helpers/xmlHelpers.ts` containing type interfaces
+ * XmlHelpersFile generates `static-helpers/xmlHelpers.ts` containing type interfaces
  * and utility functions used by XML serializers and deserializers.
  *
  * What is tested:

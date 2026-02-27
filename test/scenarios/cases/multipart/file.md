@@ -20,7 +20,7 @@ This basic case uses TypeSpec's `Http.File`, which specifies an optional `filena
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import { createFilePartDescriptor } from "../helpers/multipartHelpers.js";
+import { createFilePartDescriptor } from "../static-helpers/multipartHelpers.js";
 import { uint8ArrayToString } from "@typespec/ts-http-runtime";
 
 /**
@@ -186,7 +186,7 @@ The filename must be provided _somehow_. This can either be done by passing a `F
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import { createFilePartDescriptor } from "../helpers/multipartHelpers.js";
+import { createFilePartDescriptor } from "../static-helpers/multipartHelpers.js";
 import { uint8ArrayToString } from "@typespec/ts-http-runtime";
 
 /**
@@ -318,7 +318,7 @@ op doThing(@header contentType: "multipart/form-data", @multipartBody bodyParam:
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import { createFilePartDescriptor } from "../helpers/multipartHelpers.js";
+import { createFilePartDescriptor } from "../static-helpers/multipartHelpers.js";
 import { uint8ArrayToString } from "@typespec/ts-http-runtime";
 
 /**
@@ -448,7 +448,7 @@ Each provided file in the input corresponds to one part in the multipart request
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import { createFilePartDescriptor } from "../helpers/multipartHelpers.js";
+import { createFilePartDescriptor } from "../static-helpers/multipartHelpers.js";
 import { uint8ArrayToString } from "@typespec/ts-http-runtime";
 
 /**

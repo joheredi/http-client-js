@@ -30,7 +30,7 @@ import { serializationHelperRefkey } from "../../utils/refkeys.js";
  */
 export function XmlHelpersFile() {
   return (
-    <SourceFile path="helpers/xmlHelpers.ts">
+    <SourceFile path="static-helpers/xmlHelpers.ts">
       <XmlSerializationOptionsInterface />
       {"\n\n"}
       <XmlPropertyMetadataInterface />

@@ -1,7 +1,7 @@
 /**
  * Test suite for the MultipartHelpersFile component.
  *
- * MultipartHelpersFile generates `helpers/multipartHelpers.ts` containing
+ * MultipartHelpersFile generates `static-helpers/multipartHelpers.ts` containing
  * shared utility functions and types for multipart/form-data request bodies.
  *
  * What is tested:

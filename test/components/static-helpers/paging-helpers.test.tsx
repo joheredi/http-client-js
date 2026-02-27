@@ -1,7 +1,7 @@
 /**
  * Test suite for the PagingHelpersFile component.
  *
- * PagingHelpersFile generates `helpers/pagingHelpers.ts` containing types
+ * PagingHelpersFile generates `static-helpers/pagingHelpers.ts` containing types
  * and functions for paginated API response iteration.
  *
  * What is tested:

@@ -6,7 +6,7 @@
  *
  * What is tested:
  * - StaticHelpers produces all four helper files in the output
- * - Helper files are placed in the helpers/ directory
+ * - Helper files are placed in the static-helpers/ directory
  * - Integration with the emitter: static helpers are included in emitter output
  *
  * Why this matters:
@@ -67,7 +67,7 @@ describe("StaticHelpers", () => {
 
   /**
    * Tests that all helper files are output at the correct paths under
-   * the helpers/ directory.
+   * the static-helpers/ directory.
    */
   it("should produce files at correct paths", async () => {
     const template = (
@@ -77,11 +77,11 @@ describe("StaticHelpers", () => {
     );
 
     expect(template).toRenderTo({
-      "helpers/serializationHelpers.ts": expect.stringContaining("serializeRecord"),
-      "helpers/pagingHelpers.ts": expect.stringContaining("buildPagedAsyncIterator"),
-      "helpers/pollingHelpers.ts": expect.stringContaining("getLongRunningPoller"),
-      "helpers/multipartHelpers.ts": expect.stringContaining("createFilePartDescriptor"),
-      "helpers/xmlHelpers.ts": expect.stringContaining("serializeToXml"),
+      "static-helpers/serializationHelpers.ts": expect.stringContaining("serializeRecord"),
+      "static-helpers/pagingHelpers.ts": expect.stringContaining("buildPagedAsyncIterator"),
+      "static-helpers/pollingHelpers.ts": expect.stringContaining("getLongRunningPoller"),
+      "static-helpers/multipartHelpers.ts": expect.stringContaining("createFilePartDescriptor"),
+      "static-helpers/xmlHelpers.ts": expect.stringContaining("serializeToXml"),
     });
   });
 });

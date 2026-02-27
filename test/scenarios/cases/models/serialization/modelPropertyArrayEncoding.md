@@ -47,7 +47,7 @@ import {
   parseNewlineCollection,
   parsePipeCollection,
   parseSsvCollection,
-} from "../helpers/serializationHelpers.js";
+} from "../static-helpers/serializationHelpers.js";
 
 /**
  * model interface Widget
@@ -129,7 +129,7 @@ import {
   buildPipeCollection,
   parseCsvCollection,
   parsePipeCollection,
-} from "../helpers/serializationHelpers.js";
+} from "../static-helpers/serializationHelpers.js";
 
 /**
  * model interface ContainerWidget
@@ -249,7 +249,7 @@ import {
   parseNewlineCollection,
   parsePipeCollection,
   parseSsvCollection,
-} from "../helpers/serializationHelpers.js";
+} from "../static-helpers/serializationHelpers.js";
 
 /**
  * model interface Widget

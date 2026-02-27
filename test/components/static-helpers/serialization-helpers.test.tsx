@@ -1,7 +1,7 @@
 /**
  * Test suite for the SerializationHelpersFile component.
  *
- * SerializationHelpersFile generates `helpers/serializationHelpers.ts` containing
+ * SerializationHelpersFile generates `static-helpers/serializationHelpers.ts` containing
  * shared utility functions used by model serializers and deserializers.
  *
  * What is tested:

@@ -26,7 +26,7 @@ import { multipartHelperRefkey } from "../../utils/refkeys.js";
  */
 export function MultipartHelpersFile() {
   return (
-    <SourceFile path="helpers/multipartHelpers.ts">
+    <SourceFile path="static-helpers/multipartHelpers.ts">
       <FileContentsType />
       {"\n\n"}
       <CreateFilePartDescriptorFunction />

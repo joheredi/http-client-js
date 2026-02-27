@@ -134,7 +134,7 @@ mustEmptyDiagnostic: false
 ## Operations
 
 ```ts operations
-import { buildCsvCollection } from "../helpers/serializationHelpers.js";
+import { buildCsvCollection } from "../static-helpers/serializationHelpers.js";
 import type { ReadOptionalParams } from "./options.js";
 import {
   type Client,
@@ -701,7 +701,7 @@ needAzureCore: true
 import {
   buildPagedAsyncIterator,
   type PagedAsyncIterableIterator,
-} from "../helpers/pagingHelpers.js";
+} from "../static-helpers/pagingHelpers.js";
 import {
   type Bar,
   barDeserializer,
@@ -795,7 +795,7 @@ needAzureCore: true
 import {
   buildPagedAsyncIterator,
   type PagedAsyncIterableIterator,
-} from "../helpers/pagingHelpers.js";
+} from "../static-helpers/pagingHelpers.js";
 import {
   type Child,
   childDeserializer,
@@ -981,7 +981,7 @@ op get(): TestDictionary;
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import { deserializeRecord } from "../helpers/serializationHelpers.js";
+import { deserializeRecord } from "../static-helpers/serializationHelpers.js";
 
 /**
  * model interface TestDictionary
@@ -1272,7 +1272,7 @@ export function testDeserializer(item: any): Test {
 import {
   buildPagedAsyncIterator,
   type PagedAsyncIterableIterator,
-} from "../helpers/pagingHelpers.js";
+} from "../static-helpers/pagingHelpers.js";
 import {
   type ListTestResult,
   listTestResultDeserializer,

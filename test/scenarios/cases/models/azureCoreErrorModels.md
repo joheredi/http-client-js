@@ -483,7 +483,7 @@ export function systemDataDeserializer(item: any): SystemData {
 import {
   buildPagedAsyncIterator,
   type PagedAsyncIterableIterator,
-} from "../helpers/pagingHelpers.js";
+} from "../static-helpers/pagingHelpers.js";
 import {
   errorResponseDeserializer,
   type Operation,

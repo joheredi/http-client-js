@@ -40,7 +40,7 @@ import {
   buildCsvCollection,
   buildPipeCollection,
   buildSsvCollection,
-} from "../helpers/serializationHelpers.js";
+} from "../static-helpers/serializationHelpers.js";
 import type {
   CreateOptionalParams,
   ReadOptionalParams,

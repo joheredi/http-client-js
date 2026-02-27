@@ -77,7 +77,7 @@ Generated Models.
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import { deserializeRecord } from "../helpers/serializationHelpers.js";
+import { deserializeRecord } from "../static-helpers/serializationHelpers.js";
 
 /**
  * model interface SimpleModel

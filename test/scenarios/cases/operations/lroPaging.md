@@ -384,8 +384,8 @@ export function errorAdditionalInfoDeserializer(
 import {
   buildPagedAsyncIterator,
   type PagedAsyncIterableIterator,
-} from "../helpers/pagingHelpers.js";
-import { getLongRunningPoller } from "../helpers/pollingHelpers.js";
+} from "../static-helpers/pagingHelpers.js";
+import { getLongRunningPoller } from "../static-helpers/pollingHelpers.js";
 import {
   errorResponseDeserializer,
   type Site,

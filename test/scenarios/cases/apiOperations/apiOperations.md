@@ -229,7 +229,7 @@ op uploadFiles(
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import { createFilePartDescriptor } from "../helpers/multipartHelpers.js";
+import { createFilePartDescriptor } from "../static-helpers/multipartHelpers.js";
 
 /**
  * model interface _UploadFilesRequest
@@ -1011,7 +1011,7 @@ withRawContent: true
 import {
   buildPagedAsyncIterator,
   type PagedAsyncIterableIterator,
-} from "../helpers/pagingHelpers.js";
+} from "../static-helpers/pagingHelpers.js";
 import {
   errorResponseDeserializer,
   type Operation,

@@ -13,13 +13,13 @@ import { XmlHelpersFile } from "./xml-helpers.js";
  * support for serialization, paging, polling, and multipart patterns.
  *
  * Each helper file is emitted as a standalone TypeScript source file
- * in the `helpers/` directory. Helper declarations are registered with
+ * in the `static-helpers/` directory. Helper declarations are registered with
  * refkeys, enabling Alloy's automatic import resolution when other
  * components reference them.
  *
  * The emitted directory structure:
  * ```
- * helpers/
+ * static-helpers/
  *   serializationHelpers.ts  — Record serialization, collection builders/parsers
  *   pagingHelpers.ts         — PagedAsyncIterableIterator, buildPagedAsyncIterator
  *   pollingHelpers.ts        — PollerLike, getLongRunningPoller

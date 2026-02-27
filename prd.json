@@ -1589,7 +1589,7 @@
       "title": "Helper Import Paths: static-helpers/ \u2192 helpers/",
       "category": "scenario-audit/Infrastructure",
       "priority": "P2",
-      "status": "not-started",
+      "status": "done",
       "description": "The new emitter uses helpers/ path prefix instead of legacy static-helpers/ for serialization, multipart, polling, and paging helper imports. Legacy paths are the expected output.",
       "legacy_behavior": "import from '../static-helpers/multipartHelpers.js', '../static-helpers/pagingHelpers.js', etc.",
       "new_behavior": "import from '../helpers/multipartHelpers.js', '../helpers/pagingHelpers.js', etc.",

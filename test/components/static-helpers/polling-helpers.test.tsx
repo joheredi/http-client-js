@@ -1,7 +1,7 @@
 /**
  * Test suite for the PollingHelpersFile component.
  *
- * PollingHelpersFile generates `helpers/pollingHelpers.ts` containing types
+ * PollingHelpersFile generates `static-helpers/pollingHelpers.ts` containing types
  * and functions for Long Running Operation (LRO) polling.
  *
  * What is tested:

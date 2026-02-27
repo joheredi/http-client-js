@@ -96,7 +96,7 @@ Generated Models.
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import { serializeRecord } from "../helpers/serializationHelpers.js";
+import { serializeRecord } from "../static-helpers/serializationHelpers.js";
 
 /**
  * model interface SimpleModel

@@ -117,7 +117,7 @@ op getDocument(@path id: string): {
 ## Operations
 
 ```ts operations
-import { isXmlContentType } from "../helpers/xmlHelpers.js";
+import { isXmlContentType } from "../static-helpers/xmlHelpers.js";
 import {
   apiErrorDeserializer,
   apiErrorXmlDeserializer,
