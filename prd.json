@@ -1341,7 +1341,7 @@
       "title": "Return Type: Wrapper Collection Types vs Unwrapped Arrays",
       "category": "scenario-audit/Operations",
       "priority": "P1",
-      "status": "not-started",
+      "status": "done",
       "description": "The new emitter returns unwrapped array types (Promise<Operation[]>) instead of wrapper collection types (Promise<_OperationListResult>). Legacy wrapper return type is the expected output.",
       "legacy_behavior": "Promise<_OperationListResult> \u2014 returns wrapper object containing array.",
       "new_behavior": "Promise<Operation[]> \u2014 returns array directly.",

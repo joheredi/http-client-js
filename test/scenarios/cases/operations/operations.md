@@ -688,7 +688,11 @@ import {
   buildPagedAsyncIterator,
   type PagedAsyncIterableIterator,
 } from "../helpers/pagingHelpers.js";
-import { errorDeserializer } from "../models/models.js";
+import {
+  type Bar,
+  barDeserializer,
+  errorDeserializer,
+} from "../models/models.js";
 import type { TestOptionalParams } from "./options.js";
 import {
   type Client,
@@ -713,7 +717,7 @@ export function _testSend(
 
 export async function _testDeserialize(
   result: PathUncheckedResponse,
-): Promise<string[]> {
+): Promise<Bar> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
     const error = createRestError(result);
@@ -721,7 +725,7 @@ export async function _testDeserialize(
     throw error;
   }
 
-  return result.body;
+  return barDeserializer(result.body);
 }
 
 export function test(
@@ -778,7 +782,11 @@ import {
   buildPagedAsyncIterator,
   type PagedAsyncIterableIterator,
 } from "../helpers/pagingHelpers.js";
-import { errorDeserializer } from "../models/models.js";
+import {
+  type Child,
+  childDeserializer,
+  errorDeserializer,
+} from "../models/models.js";
 import type { TestOptionalParams } from "./options.js";
 import {
   type Client,
@@ -803,7 +811,7 @@ export function _testSend(
 
 export async function _testDeserialize(
   result: PathUncheckedResponse,
-): Promise<string[]> {
+): Promise<Child> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
     const error = createRestError(result);
@@ -811,7 +819,7 @@ export async function _testDeserialize(
     throw error;
   }
 
-  return result.body;
+  return childDeserializer(result.body);
 }
 
 export function test(
@@ -1251,7 +1259,11 @@ import {
   buildPagedAsyncIterator,
   type PagedAsyncIterableIterator,
 } from "../helpers/pagingHelpers.js";
-import { type Test, testDeserializer } from "../models/models.js";
+import {
+  type ListTestResult,
+  listTestResultDeserializer,
+  type Test,
+} from "../models/models.js";
 import type { BarOptionalParams, FooOptionalParams } from "./options.js";
 import {
   type Client,
@@ -1276,15 +1288,13 @@ export function _barSend(
 
 export async function _barDeserialize(
   result: PathUncheckedResponse,
-): Promise<Test[]> {
+): Promise<ListTestResult> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
     throw createRestError(result);
   }
 
-  return result.body.map((p: any) => {
-    return testDeserializer(p);
-  });
+  return listTestResultDeserializer(result.body);
 }
 
 export function bar(
@@ -1315,15 +1325,13 @@ export function _fooSend(
 
 export async function _fooDeserialize(
   result: PathUncheckedResponse,
-): Promise<Test[]> {
+): Promise<ListTestResult> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
     throw createRestError(result);
   }
 
-  return result.body.map((p: any) => {
-    return testDeserializer(p);
-  });
+  return listTestResultDeserializer(result.body);
 }
 
 export function foo(

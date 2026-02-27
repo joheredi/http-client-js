@@ -94,15 +94,30 @@ export function DeserializeOperation(props: DeserializeOperationProps) {
 /**
  * Computes the TypeScript return type for the deserialize function.
  *
- * Uses the method's response type from TCGC. If the method has no response
- * type (e.g., a 204 No Content response), the return type is `void`.
- * Otherwise, the return type is the TypeScript type expression for the
- * response model.
+ * For paging/lropaging operations, uses the HTTP-level response body type
+ * which preserves the wrapper collection model (e.g., `_OperationListResult`)
+ * rather than the TCGC-normalized element type (e.g., `Operation[]`).
+ * This matches the legacy emitter's behavior where deserialize functions
+ * return the full wrapper model, and the paging helper extracts items from it.
+ *
+ * For other operations, uses the method's response type from TCGC directly.
+ * If the method has no response type (e.g., a 204 No Content response),
+ * the return type is `void`.
  *
  * @param method - The TCGC service method.
  * @returns Alloy Children representing the return type expression.
  */
 function getReturnType(method: SdkServiceMethod<SdkHttpOperation>): Children {
+  // For paging operations, use the HTTP-level response type which preserves
+  // the wrapper model (e.g., _OperationListResult) rather than the
+  // TCGC-normalized element type (e.g., Operation[])
+  if (isPagingOperation(method)) {
+    const wrapperType = getSuccessResponseType(method);
+    if (wrapperType) {
+      return getTypeExpression(wrapperType);
+    }
+  }
+
   const responseType = method.response.type;
   if (!responseType) {
     return "void";
@@ -178,6 +193,10 @@ function isLroOperation(
  * - **Array of models**: Maps each element through the element deserializer
  * - **Primitive types**: Returns `result.body` directly
  *
+ * For paging operations, uses the HTTP-level wrapper model type (e.g.,
+ * `_OperationListResult`) so the deserializer processes the full response
+ * body including pagination metadata like `nextLink`.
+ *
  * This mirrors the legacy emitter's deserialization logic where model types
  * use dedicated deserializer functions and primitives pass through unchanged.
  *
@@ -187,7 +206,11 @@ function isLroOperation(
 function getResponseBodyExpression(
   method: SdkServiceMethod<SdkHttpOperation>,
 ): Children {
-  const responseType = method.response.type;
+  // For paging operations, use the HTTP-level response type (wrapper model)
+  // instead of the TCGC-normalized element type
+  const responseType = isPagingOperation(method)
+    ? getSuccessResponseType(method) ?? method.response.type
+    : method.response.type;
 
   // Void response — no body to deserialize
   if (!responseType) {
@@ -272,6 +295,45 @@ function buildErrorHandlingBlock(
       {i < parts.length - 1 ? "\n" : undefined}
     </>
   ));
+}
+
+/**
+ * Checks whether a service method is a paging operation.
+ *
+ * Paging operations (both pure paging and LRO+paging) have their
+ * `method.response.type` normalized by TCGC to the element type,
+ * but the deserialize function needs the full wrapper model type
+ * from the HTTP response.
+ *
+ * @param method - The TCGC service method.
+ * @returns `true` if the method is a paging or LRO+paging operation.
+ */
+function isPagingOperation(
+  method: SdkServiceMethod<SdkHttpOperation>,
+): boolean {
+  return method.kind === "paging" || method.kind === "lropaging";
+}
+
+/**
+ * Gets the HTTP-level success response body type for an operation.
+ *
+ * For paging operations, TCGC normalizes `method.response.type` to the element
+ * type (e.g., `Operation` from `Operation[]`), but the HTTP-level response
+ * preserves the wrapper model (e.g., `_OperationListResult` with `value` and
+ * `nextLink` properties). This function retrieves that wrapper type.
+ *
+ * @param method - The TCGC service method.
+ * @returns The SdkType of the first success response body, or undefined.
+ */
+function getSuccessResponseType(
+  method: SdkServiceMethod<SdkHttpOperation>,
+): SdkType | undefined {
+  for (const response of method.operation.responses) {
+    if (response.type) {
+      return response.type;
+    }
+  }
+  return undefined;
 }
 
 /**

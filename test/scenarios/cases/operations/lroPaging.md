@@ -389,7 +389,8 @@ import { getLongRunningPoller } from "../helpers/pollingHelpers.js";
 import {
   errorResponseDeserializer,
   type Site,
-  siteDeserializer,
+  type WebAppCollection,
+  webAppCollectionDeserializer,
 } from "../models/models.js";
 import { SuspendOptionalParams } from "./sites/options.js";
 import {
@@ -429,7 +430,7 @@ export function _suspendSend(
 
 export async function _suspendDeserialize(
   result: PathUncheckedResponse,
-): Promise<Site[]> {
+): Promise<WebAppCollection> {
   const expectedStatuses = ["200", "202", "201"];
   if (!expectedStatuses.includes(result.status)) {
     const error = createRestError(result);
@@ -437,9 +438,7 @@ export async function _suspendDeserialize(
     throw error;
   }
 
-  return result.body.map((p: any) => {
-    return siteDeserializer(p);
-  });
+  return webAppCollectionDeserializer(result.body);
 }
 
 /**

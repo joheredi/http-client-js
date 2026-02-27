@@ -994,7 +994,8 @@ import {
 import {
   errorResponseDeserializer,
   type Operation,
-  operationDeserializer,
+  type OperationListResult,
+  operationListResultDeserializer,
 } from "../models/models.js";
 import { ListOptionalParams } from "./operations/options.js";
 import {
@@ -1026,7 +1027,7 @@ export function _listSend(
 
 export async function _listDeserialize(
   result: PathUncheckedResponse,
-): Promise<Operation[]> {
+): Promise<OperationListResult> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
     const error = createRestError(result);
@@ -1034,9 +1035,7 @@ export async function _listDeserialize(
     throw error;
   }
 
-  return result.body.map((p: any) => {
-    return operationDeserializer(p);
-  });
+  return operationListResultDeserializer(result.body);
 }
 
 /**

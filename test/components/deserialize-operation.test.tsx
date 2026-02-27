@@ -675,6 +675,99 @@ describe("DeserializeOperation", () => {
   });
 
   /**
+   * Tests that a paging operation's deserialize function returns the wrapper
+   * collection model type (e.g., ItemList) rather than the unwrapped array
+   * element type (e.g., Item[]). This is critical for SA-C21 compliance:
+   * the paging infrastructure (buildPagedAsyncIterator) expects the deserialize
+   * function to return the full wrapper model so it can extract items via
+   * the itemName property (e.g., "items") and follow the nextLink for
+   * subsequent pages. Without the wrapper type, paging metadata like nextLink
+   * would be lost during deserialization.
+   */
+  it("should return wrapper collection type for paging operations", async () => {
+    const runner = await TesterWithService.createInstance();
+    const { program } = await runner.compile(
+      t.code`
+        using Azure.ClientGenerator.Core;
+
+        model ItemList {
+          @pageItems
+          items: Item[];
+        }
+
+        model Item {
+          name: string;
+          value: int32;
+        }
+
+        @list @post op ${t.op("listItems")}(): ItemList;
+      `,
+    );
+
+    const sdkContext = await createSdkContextForTest(program);
+    const method = getFirstMethod(sdkContext);
+    const itemModel = sdkContext.sdkPackage.models.find((m) => m.name === "Item")!;
+    const itemListModel = sdkContext.sdkPackage.models.find((m) => m.name === "ItemList")!;
+
+    const template = (
+      <SdkTestFile sdkContext={sdkContext} externals={[httpRuntimeLib]}>
+        <ModelInterface model={itemModel} />
+        {"\n\n"}
+        <ModelInterface model={itemListModel} />
+        {"\n\n"}
+        <JsonDeserializer model={itemModel} />
+        {"\n\n"}
+        <JsonDeserializer model={itemListModel} />
+        {"\n\n"}
+        <DeserializeOperation method={method} />
+      </SdkTestFile>
+    );
+
+    expect(template).toRenderTo(d`
+      import { createRestError, type PathUncheckedResponse } from "@typespec/ts-http-runtime";
+
+      /**
+       * model interface Item
+       */
+      export interface Item {
+        name: string;
+        value: number;
+      }
+
+      /**
+       * model interface ItemList
+       */
+      export interface ItemList {
+        items: (Item)[];
+      }
+
+      export function itemDeserializer(item: any): Item {
+        return {
+          name: item["name"],
+          value: item["value"],
+        };
+      }
+
+      export function itemListDeserializer(item: any): ItemList {
+        return {
+          items: item["items"].map((p: any) => { return itemDeserializer(p); }),
+        };
+      }
+
+      export async function _listItemsDeserialize(
+        result: PathUncheckedResponse,
+      ): Promise<ItemList> {
+        const expectedStatuses = ["200"];
+        if (!expectedStatuses.includes(result.status)) {
+          throw createRestError(result);
+        }
+
+        return itemListDeserializer(result.body);
+      }
+    `);
+  });
+
+  /**
    * Tests that when exception headers exist but there is no error body model,
    * the exception headers are directly assigned to error.details instead of
    * being merged with the body. This handles the case where the error model
