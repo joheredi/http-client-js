@@ -20,7 +20,9 @@
  */
 import "@alloy-js/core/testing";
 import { code } from "@alloy-js/core";
-import { d } from "@alloy-js/core/testing";
+import { d, renderToString } from "@alloy-js/core/testing";
+import { createTSNamePolicy, SourceFile } from "@alloy-js/typescript";
+import { Output } from "@typespec/emitter-framework";
 import { t } from "@typespec/compiler/testing";
 import { beforeAll, describe, expect, it } from "vitest";
 import type {
@@ -31,7 +33,10 @@ import { OperationOptionsDeclaration } from "../../src/components/operation-opti
 import { ModelInterface } from "../../src/components/model-interface.js";
 import { operationOptionsRefkey } from "../../src/utils/refkeys.js";
 import { httpRuntimeLib } from "../../src/utils/external-packages.js";
-import { TesterWithService, createSdkContextForTest } from "../test-host.js";
+import { FlavorProvider } from "../../src/context/flavor-context.js";
+import { EmitterOptionsProvider } from "../../src/context/emitter-options-context.js";
+import { SdkContextProvider } from "../../src/context/sdk-context.js";
+import { TesterWithService, RawTester, createSdkContextForTest } from "../test-host.js";
 import { SdkTestFile } from "../utils.jsx";
 
 /**
@@ -356,5 +361,155 @@ describe("OperationOptions", () => {
         body?: PatchData;
       }
     `);
+  });
+
+  /**
+   * Tests that LRO operations in Azure flavor include the `updateIntervalInMs`
+   * synthetic member in the options interface.
+   *
+   * Azure flavor uses polling infrastructure (@azure/core-lro) for long-running
+   * operations, and consumers need to control the polling interval. Without this
+   * member, there is no way to configure how often the poller checks for completion.
+   *
+   * Uses an ARM TypeSpec definition (ArmResourceCreateOrReplaceAsync) because TCGC
+   * only sets `method.kind === "lro"` for operations decorated with Azure.Core
+   * LRO patterns.
+   */
+  it("should include updateIntervalInMs for LRO operations in Azure flavor", async () => {
+    const runner = await RawTester.createInstance();
+    const { program } = await runner.compile(`
+import "@typespec/http";
+import "@typespec/rest";
+import "@typespec/versioning";
+import "@azure-tools/typespec-azure-core";
+import "@azure-tools/typespec-azure-resource-manager";
+import "@azure-tools/typespec-client-generator-core";
+using TypeSpec.Http;
+using TypeSpec.Rest;
+using TypeSpec.Versioning;
+using Azure.Core;
+using Azure.ResourceManager;
+
+@armProviderNamespace
+@service
+@versioned(Versions)
+@armCommonTypesVersion(Azure.ResourceManager.CommonTypes.Versions.v5)
+namespace Microsoft.TestLroOpts;
+
+enum Versions { v2024_01_01: "2024-01-01" }
+
+model TestResource is TrackedResource<TestResourceProperties> {
+  @key("testResourceName") @path @segment("testResources") name: string;
+}
+model TestResourceProperties { state?: string; }
+
+@armResourceOperations
+interface TestResources {
+  createOrUpdate is ArmResourceCreateOrReplaceAsync<TestResource>;
+}
+    `);
+
+    const sdkContext = await createSdkContextForTest(program);
+    const allMethods = sdkContext.sdkPackage.clients.flatMap((c: any) =>
+      [...c.methods, ...c.children.flatMap((child: any) => child.methods)]
+    );
+    const lroMethod = allMethods.find((m: any) => m.kind === "lro");
+    expect(lroMethod).toBeDefined();
+
+    const template = (
+      <Output
+        program={sdkContext.emitContext.program}
+        namePolicy={createTSNamePolicy()}
+        externals={[httpRuntimeLib]}
+      >
+        <FlavorProvider flavor="azure">
+          <EmitterOptionsProvider options={{}}>
+            <SdkContextProvider sdkContext={sdkContext}>
+              <SourceFile path="test.ts">
+                <OperationOptionsDeclaration method={lroMethod} />
+              </SourceFile>
+            </SdkContextProvider>
+          </EmitterOptionsProvider>
+        </FlavorProvider>
+      </Output>
+    );
+
+    const rendered = renderToString(template);
+    expect(rendered).toContain("updateIntervalInMs");
+    expect(rendered).toContain("Delay to wait until next poll, in milliseconds.");
+  });
+
+  /**
+   * Tests that LRO operations in core flavor do NOT include the `updateIntervalInMs`
+   * synthetic member in the options interface.
+   *
+   * Core flavor treats LRO operations as regular async functions without Azure-specific
+   * polling infrastructure. The `updateIntervalInMs` option is meaningless without
+   * a poller, so including it would expose a non-functional API surface to consumers.
+   *
+   * Uses the same ARM TypeSpec definition as the Azure test but renders with
+   * core flavor to verify the conditional behavior.
+   */
+  it("should NOT include updateIntervalInMs for LRO operations in core flavor", async () => {
+    const runner = await RawTester.createInstance();
+    const { program } = await runner.compile(`
+import "@typespec/http";
+import "@typespec/rest";
+import "@typespec/versioning";
+import "@azure-tools/typespec-azure-core";
+import "@azure-tools/typespec-azure-resource-manager";
+import "@azure-tools/typespec-client-generator-core";
+using TypeSpec.Http;
+using TypeSpec.Rest;
+using TypeSpec.Versioning;
+using Azure.Core;
+using Azure.ResourceManager;
+
+@armProviderNamespace
+@service
+@versioned(Versions)
+@armCommonTypesVersion(Azure.ResourceManager.CommonTypes.Versions.v5)
+namespace Microsoft.TestLroCore;
+
+enum Versions { v2024_01_01: "2024-01-01" }
+
+model TestResource is TrackedResource<TestResourceProperties> {
+  @key("testResourceName") @path @segment("testResources") name: string;
+}
+model TestResourceProperties { state?: string; }
+
+@armResourceOperations
+interface TestResources {
+  createOrUpdate is ArmResourceCreateOrReplaceAsync<TestResource>;
+}
+    `);
+
+    const sdkContext = await createSdkContextForTest(program);
+    const allMethods = sdkContext.sdkPackage.clients.flatMap((c: any) =>
+      [...c.methods, ...c.children.flatMap((child: any) => child.methods)]
+    );
+    const lroMethod = allMethods.find((m: any) => m.kind === "lro");
+    expect(lroMethod).toBeDefined();
+
+    const template = (
+      <Output
+        program={sdkContext.emitContext.program}
+        namePolicy={createTSNamePolicy()}
+        externals={[httpRuntimeLib]}
+      >
+        <FlavorProvider flavor="core">
+          <EmitterOptionsProvider options={{}}>
+            <SdkContextProvider sdkContext={sdkContext}>
+              <SourceFile path="test.ts">
+                <OperationOptionsDeclaration method={lroMethod} />
+              </SourceFile>
+            </SdkContextProvider>
+          </EmitterOptionsProvider>
+        </FlavorProvider>
+      </Output>
+    );
+
+    const rendered = renderToString(template);
+    expect(rendered).not.toContain("updateIntervalInMs");
   });
 });
