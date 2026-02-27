@@ -907,7 +907,7 @@
       "id": "10.11",
       "title": "Add core flavor scenario tests for LRO/paging gating",
       "description": "Create scenario tests verifying core flavor generates correct output without LRO/paging Azure features.\n\nTests should verify:\n1. A service with LRO operations under core flavor generates regular async functions (not PollerLike)\n2. A service with paging operations under core flavor generates regular async functions (not PagedAsyncIterableIterator)\n3. Core flavor output contains no @azure/core-lro imports\n4. Core flavor output contains no helpers/pagingHelpers.ts or helpers/pollingHelpers.ts\n5. Core flavor output contains no DefaultAzureCredential imports\n\nTest infrastructure: test/scenarios/emit-for-scenario.tsx has resolveFlavor() and detectAzureFlavor(). Use existing scenario framework.\n\nFiles to create/modify: test/scenarios/cases/ \u2014 new or updated scenario files.",
-      "pass": false,
+      "pass": true,
       "pass_criteria": [
         "Core flavor scenario tests exist and pass",
         "Tests verify no @azure/* imports in core flavor output (except expandUrlTemplate from ts-http-runtime)",
@@ -915,7 +915,7 @@
         "Tests verify paging generates as regular async for core",
         "Tests verify credential placeholder for core"
       ],
-      "status": "not-started",
+      "status": "done",
       "source": "implementation-phase",
       "category": "phase-10/Flavor Parity \u2014 Match Legacy Emitter Flavor Behavior"
     },

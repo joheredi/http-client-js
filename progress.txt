@@ -1596,3 +1596,39 @@ Review/audit task — no code changes needed. Analyzed the difference between th
 - Task 10.14 covers implementing the `getBinaryResponse` pattern for Azure flavor output.
 - The `_downloadFileSend()` return type is always `StreamableMethod` regardless of response type (send-operation.tsx line 95).
 - All 982 tests pass with the current implementation.
+
+---
+
+## Task 10.11: Add core flavor scenario tests for LRO/paging gating — DONE (2026-02-27)
+
+### What was done
+Created `test/scenarios/cases/operations/coreFlavorGating.md` with 4 test blocks across 3 scenarios:
+
+1. **Core flavor paging** — TypeSpec with `@pageItems` + `flavor: core`. Verifies `test()` generates as `async function` returning `Promise<string[]>` instead of `PagedAsyncIterableIterator<string>`. No `buildPagedAsyncIterator` or `@azure-rest/core-client` imports.
+
+2. **Core flavor LRO** — TypeSpec with Azure.Core `LongRunningResourceCreateOrReplace` + `flavor: core`. Verifies `createOrReplace()` generates as `async function` returning `Promise<User>` instead of `PollerLike<OperationState<User>, User>`. No `getLongRunningPoller` or `@azure/core-lro` imports. Deserialization expects only `["201", "200"]` (not Azure's extra `["200", "202", "201"]`).
+
+3. **Core flavor LRO+paging** — ARM TypeSpec with `ArmResourceActionAsyncBase` (both LRO and paging) + `flavor: core`. Verifies `suspend()` generates as `async function` returning `Promise<Site[]>` instead of `PagedAsyncIterableIterator<Site>`. Deserialization expects only `["200"]` (no extra LRO status codes).
+
+4. **Client context** — Verifies core flavor client context imports from `@typespec/ts-http-runtime` (not `@azure-rest/core-client`), uses `getClient()` without `TokenCredential` parameter (no Azure auth).
+
+### Patterns used
+- Scenario test .md format with TypeSpec input and expected output blocks
+- YAML config `flavor: core` to force core flavor even with Azure TypeSpec patterns
+- `withRawContent: true` for scenarios with explicit TypeSpec imports
+- `needAzureCore: true` for scenarios needing Azure.Core decorators (e.g., `@pageItems`)
+- `SCENARIOS_UPDATE=true` to auto-generate expected output from emitter
+- Legacy category names (`operations`, `clientContext`) for code block matching
+
+### Key implementation details
+- The `resolveFlavor()` function in emit-for-scenario.tsx gives explicit YAML `flavor` config highest priority, so `flavor: core` overrides auto-detection
+- Core externals only include `httpRuntimeLib` — Azure packages are excluded
+- `PublicOperation` component (src/components/public-operation.tsx) routes LRO/paging/lropaging to `BasicOperation` for core flavor
+- Core flavor deserialization skips extra LRO status codes (200, 201, 202) that Azure adds
+- `StaticHelpers` conditionally renders `PagingHelpersFile` and `PollingHelpersFile` only for Azure flavor
+
+### What next person should know
+- All 986 tests pass (3 skipped)
+- The LRO TypeSpec pattern requires a block namespace (not blockless) to avoid "blockless-namespace-first" compilation error
+- Azure.Core is always pre-loaded in the Tester — `needAzureCore: true` is a documentary flag, not functionally required
+- To test file absence (e.g., pagingHelpers.ts not emitted), use legacy categories which return `"// (file was not generated)"` sentinel for missing files
