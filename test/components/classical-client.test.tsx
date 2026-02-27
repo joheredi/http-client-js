@@ -192,6 +192,42 @@ describe("ClassicalClient", () => {
     });
 
     /**
+     * Tests that the constructor assembles userAgentPrefix with the
+     * `azsdk-js-client` tag before calling the factory function. The
+     * userAgentPrefix distinguishes classical (class-based) clients from
+     * the modular API layer (`azsdk-js-api`), enabling telemetry tracking.
+     *
+     * The constructor must:
+     * 1. Extract any user-provided prefix from options
+     * 2. Construct a prefix with `azsdk-js-client`
+     * 3. Pass wrapped options with the prefix to the factory function
+     *
+     * Without this, the HTTP User-Agent header would not include the
+     * `azsdk-js-client` tag when the SDK is consumed via the class API.
+     */
+    it("should assemble userAgentPrefix with azsdk-js-client tag in constructor", () => {
+      const template = (
+        <ClassicalClientTestWrapper sdkContext={sdkContext}>
+          <SourceFile path="testingClient.ts">
+            <ClassicalClientDeclaration client={client} />
+          </SourceFile>
+        </ClassicalClientTestWrapper>
+      );
+
+      const result = renderToString(template);
+
+      // Should extract user-provided prefix from options
+      expect(result).toContain(
+        "const prefixFromOptions = options?.userAgentOptions?.userAgentPrefix;",
+      );
+      // Should construct userAgentPrefix with azsdk-js-client tag
+      expect(result).toContain("azsdk-js-client");
+      // Should pass wrapped options to factory function
+      expect(result).toContain("...options,");
+      expect(result).toContain("userAgentOptions: { userAgentPrefix },");
+    });
+
+    /**
      * Tests that the constructor calls the factory function via refkey,
      * which enables Alloy to auto-generate cross-file imports. This is
      * critical because the factory function lives in a separate file
@@ -461,8 +497,10 @@ describe("ClassicalClient ARM constructor", () => {
 
     // Should include subscriptionId as a required constructor parameter
     expect(result).toContain("subscriptionId: string");
-    // Should forward subscriptionId to the factory function
-    expect(result).toContain("createStandardService(credential, subscriptionId, options)");
+    // Should forward subscriptionId to the factory function with wrapped options
+    expect(result).toContain("createStandardService(credential, subscriptionId, {");
+    expect(result).toContain("...options,");
+    expect(result).toContain("userAgentOptions: { userAgentPrefix },");
     // Should NOT have constructor overloads
     expect(result).not.toContain("subscriptionIdOrOptions");
   });

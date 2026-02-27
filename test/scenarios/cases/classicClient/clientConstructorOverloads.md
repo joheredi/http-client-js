@@ -66,7 +66,14 @@ export class GlobalServiceClient {
     credential: TokenCredential,
     options: GlobalServiceClientOptionalParams = {},
   ) {
-    this._client = createGlobalService(credential, options);
+    const prefixFromOptions = options?.userAgentOptions?.userAgentPrefix;
+    const userAgentPrefix = prefixFromOptions
+      ? `${prefixFromOptions} azsdk-js-client`
+      : `azsdk-js-client`;
+    this._client = createGlobalService(credential, {
+      ...options,
+      userAgentOptions: { userAgentPrefix },
+    });
     this.pipeline = this._client.pipeline;
     this.operations = _getOperationsOperations(this._client);
   }
@@ -197,7 +204,14 @@ export class StandardServiceClient {
     subscriptionId: string,
     options: StandardServiceClientOptionalParams = {},
   ) {
-    this._client = createStandardService(credential, subscriptionId, options);
+    const prefixFromOptions = options?.userAgentOptions?.userAgentPrefix;
+    const userAgentPrefix = prefixFromOptions
+      ? `${prefixFromOptions} azsdk-js-client`
+      : `azsdk-js-client`;
+    this._client = createStandardService(credential, subscriptionId, {
+      ...options,
+      userAgentOptions: { userAgentPrefix },
+    });
     this.pipeline = this._client.pipeline;
     this.operations = _getOperationsOperations(this._client);
     this.standardResources = _getStandardResourcesOperations(this._client);
@@ -345,10 +359,17 @@ export class MixedServiceClient {
     }
 
     options = options ?? {};
+    const prefixFromOptions = options?.userAgentOptions?.userAgentPrefix;
+    const userAgentPrefix = prefixFromOptions
+      ? `${prefixFromOptions} azsdk-js-client`
+      : `azsdk-js-client`;
     this._client = createMixedService(
       credential,
       subscriptionId ?? "",
-      options,
+      {
+        ...options,
+        userAgentOptions: { userAgentPrefix },
+      },
     );
     this.pipeline = this._client.pipeline;
     this.operations = _getOperationsOperations(this._client);

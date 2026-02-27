@@ -84,13 +84,20 @@ export class MachineLearningServicesClient {
     credential: TokenCredential,
     options: MachineLearningServicesClientOptionalParams = {},
   ) {
+    const prefixFromOptions = options?.userAgentOptions?.userAgentPrefix;
+    const userAgentPrefix = prefixFromOptions
+      ? `${prefixFromOptions} azsdk-js-client`
+      : `azsdk-js-client`;
     this._client = createMachineLearningServices(
       endpoint,
       subscriptionId,
       resourceGroupName,
       workspaceName,
       credential,
-      options,
+      {
+        ...options,
+        userAgentOptions: { userAgentPrefix },
+      },
     );
     this.pipeline = this._client.pipeline;
     this.indexes = _getIndexesOperations(this._client);

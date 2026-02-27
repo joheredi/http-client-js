@@ -854,3 +854,28 @@ The fix was a single check in `getTypeExpression()` in `type-expression.tsx`: wh
 - `getTypeExpression()` is the single choke point for type references. Serializer/deserializer function signatures use `typeRefkey()` directly, so they are NOT affected.
 - The `isGeneratedName` property (not `isAnonymous`) is the correct flag on `SdkModelType` for detecting auto-generated (anonymous) types.
 - Empty anonymous models are rare but important for API surface correctness — using internal generated names in public APIs breaks consumers.
+
+## Task: SA-C8 — Classic Client Constructor: userAgentPrefix Assembly Logic (2026-02-27)
+
+**What was done:**
+Added `userAgentPrefix` assembly to the classical client constructor body, matching legacy emitter behavior. The classical client constructor now:
+1. Extracts any user-provided prefix from `options?.userAgentOptions?.userAgentPrefix`
+2. Constructs a `userAgentPrefix` that prepends the user-provided prefix to `azsdk-js-client`
+3. Passes wrapped options `{ ...options, userAgentOptions: { userAgentPrefix } }` to the factory function
+
+This applies to both the standard constructor (`buildConstructorBody`) and the overloaded ARM constructor (`OverloadedConstructor`). The `azsdk-js-client` tag distinguishes classical class-based clients from the modular API layer which uses `azsdk-js-api`.
+
+**Files changed:**
+- `src/components/classical-client.tsx` — Modified `buildConstructorBody()` to add userAgentPrefix assembly; added `buildNonOptionsArguments()` helper; refactored `buildFactoryCallArguments()` to use the new helper; modified `OverloadedConstructor` to add userAgentPrefix assembly with wrapped options
+- `test/components/classical-client.test.tsx` — Added new unit test "should assemble userAgentPrefix with azsdk-js-client tag in constructor"; updated ARM constructor test expectations
+- `test/scenarios/cases/classicClient/classicClient.md` — Updated expected constructor output
+- `test/scenarios/cases/classicClient/clientConstructorOverloads.md` — Updated 3 scenario constructors (tenant-only, subscription, mixed)
+- `test/scenarios/cases/classicClient/reservedWordOperations.md` — Updated expected constructor output
+- `test/scenarios/cases/apiOperations/apiOperations.md` — Updated 3 classicClient sections
+- `test/scenarios/cases/client/client.md` — Updated expected constructor output
+- `test/scenarios/cases/samples/parameters/clientConstructorArgs.md` — Updated expected constructor output
+
+**Key patterns:**
+- `buildNonOptionsArguments()` extracts all factory args except `options` — reused by both constructor variants
+- The wrapped options pattern `{ ...options, userAgentOptions: { userAgentPrefix } }` is embedded directly in the `code` template as a multi-line object literal
+- For overloaded constructors, the userAgentPrefix assembly comes AFTER `options = options ?? {};`

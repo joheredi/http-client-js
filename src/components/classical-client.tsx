@@ -272,21 +272,35 @@ function buildConstructorParameters(
  * Builds the constructor body that initializes the client context and pipeline.
  *
  * The constructor body:
- * 1. Calls the factory function with all constructor parameters to create
- *    the modular client context
- * 2. Assigns the context to `this._client`
- * 3. Delegates `this.pipeline` from the context's pipeline
+ * 1. Assembles a `userAgentPrefix` with the `azsdk-js-client` tag, preserving
+ *    any user-provided prefix from `options.userAgentOptions.userAgentPrefix`
+ * 2. Calls the factory function with all constructor parameters plus the
+ *    wrapped options (spreading the original options with the new userAgentPrefix)
+ * 3. Assigns the context to `this._client`
+ * 4. Delegates `this.pipeline` from the context's pipeline
+ *
+ * The `azsdk-js-client` tag distinguishes classical (class-based) clients
+ * from the modular API layer which uses `azsdk-js-api`. This telemetry tag
+ * is appended to the HTTP User-Agent header for tracking SDK usage.
  *
  * @param client - The TCGC client type.
  * @returns Alloy Children representing the constructor body statements.
  */
 function buildConstructorBody(client: SdkClientType<SdkHttpOperation>): Children {
-  const factoryArgs = buildFactoryCallArguments(client);
   const childClients = client.children ?? [];
+  const nonOptionsArgs = buildNonOptionsArguments(client);
+  const argPrefix = nonOptionsArgs.length > 0 ? nonOptionsArgs.join(", ") + ", " : "";
 
   return (
     <>
-      {code`this._client = ${createClientRefkey(client)}(${factoryArgs});`}
+      {code`const prefixFromOptions = options?.userAgentOptions?.userAgentPrefix;`}
+      {"\n"}
+      {code`const userAgentPrefix = prefixFromOptions ? \`\${prefixFromOptions} azsdk-js-client\` : \`azsdk-js-client\`;`}
+      {"\n"}
+      {code`this._client = ${createClientRefkey(client)}(${argPrefix}{
+  ...options,
+  userAgentOptions: { userAgentPrefix },
+});`}
       {"\n"}
       {code`this.pipeline = this._client.pipeline;`}
       {childClients.map((child) => (
@@ -297,6 +311,46 @@ function buildConstructorBody(client: SdkClientType<SdkHttpOperation>): Children
       ))}
     </>
   );
+}
+
+/**
+ * Builds the list of non-options arguments for the factory function call.
+ *
+ * Returns just the endpoint, credential, and required method parameter names
+ * (e.g., subscriptionId) WITHOUT the trailing `options` argument. This is
+ * used by `buildConstructorBody` to construct the factory call with wrapped
+ * options (including userAgentPrefix).
+ *
+ * @param client - The TCGC client type.
+ * @returns An array of argument name strings (excluding options).
+ */
+function buildNonOptionsArguments(
+  client: SdkClientType<SdkHttpOperation>,
+): string[] {
+  const args: string[] = [];
+  const initParams = client.clientInitialization.parameters;
+
+  const endpointParam = initParams.find(
+    (p): p is SdkEndpointParameter => p.kind === "endpoint",
+  );
+  if (endpointParam) {
+    for (const arg of getRequiredEndpointArgs(endpointParam)) {
+      args.push(arg.name);
+    }
+  }
+
+  const credentialParam = initParams.find(
+    (p): p is SdkCredentialParameter => p.kind === "credential",
+  );
+  if (credentialParam) {
+    args.push("credential");
+  }
+
+  for (const methodParam of getRequiredMethodParams(client)) {
+    args.push(methodParam.name);
+  }
+
+  return args;
 }
 
 /**
@@ -311,36 +365,7 @@ function buildConstructorBody(client: SdkClientType<SdkHttpOperation>): Children
 function buildFactoryCallArguments(
   client: SdkClientType<SdkHttpOperation>,
 ): string {
-  const args: string[] = [];
-  const initParams = client.clientInitialization.parameters;
-
-  // Forward required endpoint parameters
-  const endpointParam = initParams.find(
-    (p): p is SdkEndpointParameter => p.kind === "endpoint",
-  );
-  if (endpointParam) {
-    const requiredArgs = getRequiredEndpointArgs(endpointParam);
-    for (const arg of requiredArgs) {
-      args.push(arg.name);
-    }
-  }
-
-  // Forward credential if present
-  const credentialParam = initParams.find(
-    (p): p is SdkCredentialParameter => p.kind === "credential",
-  );
-  if (credentialParam) {
-    args.push("credential");
-  }
-
-  // Forward required method parameters (e.g., subscriptionId)
-  for (const methodParam of getRequiredMethodParams(client)) {
-    args.push(methodParam.name);
-  }
-
-  // Always forward options
-  args.push("options");
-  return args.join(", ");
+  return [...buildNonOptionsArguments(client), "options"].join(", ");
 }
 
 /**
@@ -727,8 +752,8 @@ function OverloadedConstructor(props: { client: SdkClientType<SdkHttpOperation> 
     prefixArgNames.push("credential");
   }
 
-  // Build the factory call arguments, using subscriptionId ?? "" for the overload case
-  const factoryCallArgs = [...prefixArgNames, 'subscriptionId ?? ""', "options"].join(", ");
+  // Build the factory call arguments without options — options will be wrapped with userAgentPrefix
+  const factoryCallPrefix = [...prefixArgNames, 'subscriptionId ?? ""'].join(", ");
 
   const childClients = client.children ?? [];
   const optionsRef = clientOptionsRefkey(client);
@@ -766,7 +791,14 @@ function OverloadedConstructor(props: { client: SdkClientType<SdkHttpOperation> 
       {"\n\n"}
       {code`  options = options ?? {};`}
       {"\n"}
-      {code`  this._client = ${createClientRefkey(client)}(${factoryCallArgs});`}
+      {code`  const prefixFromOptions = options?.userAgentOptions?.userAgentPrefix;`}
+      {"\n"}
+      {code`  const userAgentPrefix = prefixFromOptions ? \`\${prefixFromOptions} azsdk-js-client\` : \`azsdk-js-client\`;`}
+      {"\n"}
+      {code`  this._client = ${createClientRefkey(client)}(${factoryCallPrefix}, {
+    ...options,
+    userAgentOptions: { userAgentPrefix },
+  });`}
       {"\n"}
       {code`  this.pipeline = this._client.pipeline;`}
       {childClients.map((child) => (

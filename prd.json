@@ -1083,7 +1083,7 @@
       "title": "Classic Client Constructor: userAgentPrefix Assembly Logic",
       "category": "scenario-audit/Client Infrastructure",
       "priority": "P1",
-      "status": "not-started",
+      "status": "done",
       "description": "The new emitter removes userAgentPrefix assembly from classic client constructors. The legacy constructs userAgentPrefix from package name/version and merges with existing prefix. Legacy behavior is the expected output.",
       "legacy_behavior": "Constructs userAgentPrefix from package name/version, merges with existing prefix from options before passing to createTestService.",
       "new_behavior": "userAgentPrefix logic removed entirely from constructor, passes options directly.",
