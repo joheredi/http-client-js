@@ -120,7 +120,7 @@ Raw json files.
 Generated operation options.
 
 ```ts models:withOptions
-import type { BackupRequestProperties } from "../models/models.js";
+import type { BackupRequestProperties } from "../../models/models.js";
 import type { OperationOptions } from "@azure-rest/core-client";
 
 /**
@@ -149,9 +149,9 @@ import {
   backupRequestPropertiesSerializer,
   BackupResult,
   backupResultDeserializer,
-} from "../models/models.js";
-import { getLongRunningPoller } from "../static-helpers/pollingHelpers.js";
-import { BackupOptionalParams } from "./cloudHsmClusters/options.js";
+} from "../../models/models.js";
+import { getLongRunningPoller } from "../../static-helpers/pollingHelpers.js";
+import { BackupOptionalParams } from "./options.js";
 import {
   Client,
   createRestError,

@@ -261,8 +261,11 @@ mustEmptyDiagnostic: false
 ## Operations
 
 ```ts operations
-import { type DocumentBase, documentBaseSerializer } from "../models/models.js";
-import type { PublishOptionalParams } from "./documents/options.js";
+import {
+  type DocumentBase,
+  documentBaseSerializer,
+} from "../../models/models.js";
+import type { PublishOptionalParams } from "./options.js";
 import {
   type Client,
   createRestError,

@@ -158,8 +158,8 @@ export function createBillingBenefits(
 import {
   type SavingsPlanModel,
   savingsPlanModelDeserializer,
-} from "../models/models.js";
-import { GetOptionalParams } from "./savingsPlanModels/options.js";
+} from "../../models/models.js";
+import { GetOptionalParams } from "./options.js";
 import {
   Client,
   createRestError,
@@ -396,8 +396,8 @@ export function createBillingBenefits(
 import {
   type SavingsPlanModel,
   savingsPlanModelDeserializer,
-} from "../models/models.js";
-import { GetOptionalParams } from "./savingsPlanModels/options.js";
+} from "../../models/models.js";
+import { GetOptionalParams } from "./options.js";
 import {
   Client,
   createRestError,

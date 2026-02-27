@@ -1012,12 +1012,12 @@ import {
   type Operation,
   type OperationListResult,
   operationListResultDeserializer,
-} from "../models/models.js";
+} from "../../models/models.js";
 import {
   buildPagedAsyncIterator,
   type PagedAsyncIterableIterator,
-} from "../static-helpers/pagingHelpers.js";
-import { ListOptionalParams } from "./operations/options.js";
+} from "../../static-helpers/pagingHelpers.js";
+import { ListOptionalParams } from "./options.js";
 import {
   Client,
   createRestError,

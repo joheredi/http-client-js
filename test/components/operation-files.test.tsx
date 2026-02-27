@@ -37,6 +37,7 @@ import type {
 } from "@azure-tools/typespec-client-generator-core";
 import { SdkContextProvider } from "../../src/context/sdk-context.js";
 import { OperationFiles } from "../../src/components/operation-files.js";
+import { OperationOptionsFiles } from "../../src/components/operation-options-files.js";
 import { ModelFiles } from "../../src/components/model-files.js";
 import { httpRuntimeLib } from "../../src/utils/external-packages.js";
 import {
@@ -347,5 +348,59 @@ describe("OperationFiles", () => {
     expect(template).toRenderTo({
       "api/operations.ts": expect.stringContaining("id: string"),
     });
+  });
+
+  /**
+   * Tests that grouped operations import options from a flat `./options.js`
+   * path, not a nested `./groupName/options.js` path. This validates the
+   * SourceDirectory nesting fix (SA-C37) — both operations and options files
+   * in the same subdirectory must use same-directory relative imports.
+   *
+   * Why this matters:
+   * Before this fix, Alloy's import resolver computed paths relative to the
+   * parent SourceDirectory (`api/`) instead of the actual file location
+   * (`api/groupName/`). This produced incorrect imports like
+   * `./widgets/options.js` from `api/widgets/operations.ts`, which would
+   * resolve to `api/widgets/widgets/options.ts` — a non-existent path.
+   */
+  it("should import options from flat ./options.js in grouped operations", async () => {
+    const runner = await TesterWithService.createInstance();
+    const { program } = await runner.compile(
+      t.code`
+        @route("/widgets")
+        interface Widgets {
+          @get op ${t.op("listWidgets")}(@query filter?: string): string;
+        }
+      `,
+    );
+
+    const sdkContext = await createSdkContextForTest(program);
+
+    const topClient = sdkContext.sdkPackage.clients[0];
+    const hasChildren = topClient.children && topClient.children.length > 0;
+
+    // Only assert when TCGC creates child clients (operation groups)
+    if (hasChildren) {
+      const childName = topClient.children![0].name;
+      const normalizedName =
+        childName.charAt(0).toLowerCase() + childName.slice(1);
+
+      const template = (
+        <OperationFilesTestWrapper sdkContext={sdkContext}>
+          <OperationFiles />
+          <OperationOptionsFiles />
+        </OperationFilesTestWrapper>
+      );
+
+      // Check that operations file imports options from same-directory flat path
+      expect(template).toRenderTo({
+        [`api/${normalizedName}/operations.ts`]: expect.stringContaining(
+          'from "./options.js"',
+        ),
+        [`api/${normalizedName}/options.ts`]: expect.stringContaining(
+          "ListWidgetsOptionalParams",
+        ),
+      });
+    }
   });
 });

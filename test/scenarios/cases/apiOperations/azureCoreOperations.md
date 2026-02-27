@@ -54,8 +54,8 @@ needAzureCore: true
 import {
   type ResourceOperationStatusWidgetSuiteWidgetSuiteError,
   resourceOperationStatusWidgetSuiteWidgetSuiteErrorDeserializer,
-} from "../models/models.js";
-import { GetWidgetOperationStatusOptionalParams } from "./widgets/options.js";
+} from "../../models/models.js";
+import { GetWidgetOperationStatusOptionalParams } from "./options.js";
 import {
   Client,
   createRestError,

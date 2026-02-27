@@ -86,17 +86,20 @@ interface OperationOptionsGroupFileProps {
 function OperationOptionsGroupFile(props: OperationOptionsGroupFileProps) {
   const { group } = props;
 
-  const filePath = group.prefixPath
-    ? `${group.prefixPath}/options.ts`
-    : "options.ts";
-
-  return (
-    <SourceFile path={filePath}>
+  const content = (
+    <SourceFile path="options.ts">
       <For each={group.operations} doubleHardline>
         {(method) => <OperationOptionsDeclaration method={method} />}
       </For>
     </SourceFile>
   );
+
+  // Use nested SourceDirectory for grouped options so Alloy computes
+  // correct relative import paths (e.g., ./options.js instead of ./group/options.js).
+  if (group.prefixPath) {
+    return <SourceDirectory path={group.prefixPath}>{content}</SourceDirectory>;
+  }
+  return content;
 }
 
 /**

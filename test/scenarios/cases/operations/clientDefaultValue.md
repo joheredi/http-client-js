@@ -61,11 +61,11 @@ The generated operations should apply default values for query, header, and body
 import {
   type Configuration,
   configurationDeserializer,
-} from "../models/models.js";
+} from "../../models/models.js";
 import type {
   CreateOptionalParams,
   TestQueryOptionalParams,
-} from "./operations/options.js";
+} from "./options.js";
 import {
   type Client,
   createRestError,
@@ -199,11 +199,11 @@ needTCGC: true
 import {
   type Configuration,
   configurationDeserializer,
-} from "../models/models.js";
+} from "../../models/models.js";
 import type {
   CreateRequiredOptionalParams,
   TestRequiredOptionalParams,
-} from "./operations/options.js";
+} from "./options.js";
 import {
   type Client,
   createRestError,

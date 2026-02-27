@@ -1664,7 +1664,7 @@
       "title": "Options Import Path: Nested Subdirectories vs Flat",
       "category": "scenario-audit/Operations",
       "priority": "P2",
-      "status": "not-started",
+      "status": "done",
       "description": "The new emitter imports options from nested subdirectory paths (e.g., ./partnerTopics/options.js, ./widgets/options.js) instead of flat ./options.js. Legacy flat import paths are the expected output.",
       "legacy_behavior": "import from './options.js'",
       "new_behavior": "import from './partnerTopics/options.js' or './widgets/options.js'",

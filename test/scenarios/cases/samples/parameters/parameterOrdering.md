@@ -70,8 +70,8 @@ import {
   testVerificationContentSerializer,
   type TestVerificationResult,
   testVerificationResultDeserializer,
-} from "../models/models.js";
-import { VerifyOptionalParams } from "./deviceLocation/options.js";
+} from "../../models/models.js";
+import { VerifyOptionalParams } from "./options.js";
 import {
   Client,
   createRestError,

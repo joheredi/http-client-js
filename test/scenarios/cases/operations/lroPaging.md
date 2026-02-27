@@ -401,13 +401,13 @@ import {
   type Site,
   type WebAppCollection,
   webAppCollectionDeserializer,
-} from "../models/models.js";
+} from "../../models/models.js";
 import {
   buildPagedAsyncIterator,
   type PagedAsyncIterableIterator,
-} from "../static-helpers/pagingHelpers.js";
-import { getLongRunningPoller } from "../static-helpers/pollingHelpers.js";
-import { SuspendOptionalParams } from "./sites/options.js";
+} from "../../static-helpers/pagingHelpers.js";
+import { getLongRunningPoller } from "../../static-helpers/pollingHelpers.js";
+import { SuspendOptionalParams } from "./options.js";
 import {
   Client,
   createRestError,

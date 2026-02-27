@@ -67,8 +67,8 @@ import {
   partnerTopicDeserializer,
   PartnerTopicUpdateParameters,
   partnerTopicUpdateParametersSerializer,
-} from "../models/models.js";
-import { UpdateOptionalParams } from "./partnerTopics/options.js";
+} from "../../models/models.js";
+import { UpdateOptionalParams } from "./options.js";
 import {
   Client,
   createRestError,

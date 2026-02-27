@@ -1431,3 +1431,25 @@ When gating a static helper file behind Azure flavor, ALL scenario tests that re
 - Record helpers use `serializeRecord`/`deserializeRecord` from static helpers internally (not inline Object.keys pattern)
 - `valueTypeHasNamedSerializerFn` is defined locally in both json-serializer.tsx and json-deserializer.tsx to avoid circular dependency with json-array-record-helpers.tsx
 - All 973 tests pass after this change
+
+## Task SA-C37: Options Import Path — Nested Subdirectories vs Flat — DONE (2026-02-27)
+
+### What was done
+- Fixed incorrect relative import paths in operation files for grouped operations
+- Root cause: `SourceFile path="partnerTopics/operations.ts"` inside `<SourceDirectory path="api">` caused Alloy's import resolver to compute paths relative to `api/` instead of the actual file location `api/partnerTopics/`
+- This produced imports like `./partnerTopics/options.js` from `api/partnerTopics/operations.ts`, which would resolve to `api/partnerTopics/partnerTopics/options.ts` (non-existent)
+- Fix: use nested `<SourceDirectory path={group.prefixPath}>` + `<SourceFile path="operations.ts">` instead of embedding the prefix in the SourceFile path
+- Applied the same fix to both `operation-files.tsx` and `operation-options-files.tsx`
+- Updated 14 scenario test snapshots to reflect correct import paths
+- Added 1 new unit test validating flat `./options.js` imports in grouped operations
+
+### Patterns used
+- `<SourceDirectory>` nesting for proper Alloy import resolution — never embed subdirectory paths in `<SourceFile path>`, always use nested `<SourceDirectory>` components
+- Conditional wrapping: root-level groups (empty prefixPath) return bare `<SourceFile>`, grouped operations wrap in `<SourceDirectory>`
+- `SCENARIOS_UPDATE=true pnpm test` to regenerate scenario snapshots
+
+### What next person should know
+- **Critical Alloy gotcha**: When a `SourceFile` path contains subdirectory components (slashes), Alloy's import resolver uses the PARENT `SourceDirectory` as the base for relative path computation, not the actual file path. Always use nested `<SourceDirectory>` components instead.
+- The fix also corrects `../models/models.js` → `../../models/models.js` imports because the operations file is now properly recognized as being in a subdirectory
+- Pre-existing snapshot drift exists in `propertyType.md` and `clientContext.md` (formatting changes unrelated to this fix) — those were NOT included in this commit
+- All 974 tests pass (973 existing + 1 new)

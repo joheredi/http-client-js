@@ -206,8 +206,8 @@ export function errorArrayDeserializer(result: Array<ErrorModel>): any[] {
 import {
   type AssetChainSummaryResult,
   assetChainSummaryResultDeserializer,
-} from "../models/models.js";
-import type { GetAssetChainSummaryOptionalParams } from "./operations/options.js";
+} from "../../models/models.js";
+import type { GetAssetChainSummaryOptionalParams } from "./options.js";
 import {
   type Client,
   createRestError,

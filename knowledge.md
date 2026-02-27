@@ -1835,3 +1835,24 @@ Simply filtering Azure Core error types from the model list. The types are neede
 
 ### Key Insight
 TCGC propagates `UsageFlags.Output` through property references. When `AssetChainSummaryResult` (Output) has `errors?: ErrorResponse[]`, TCGC gives `ErrorResponse` Output usage too. This means the type appears in `outputModels` and gets deserializers. Filtering it breaks the chain.
+
+## Alloy: SourceFile Path Must Not Contain Subdirectories
+
+**Discovered in SA-C37.**
+
+When a `<SourceFile path="group/file.ts">` path contains subdirectory components (slashes), Alloy's import resolver computes relative imports from the PARENT `<SourceDirectory>`, not from the actual file location. This produces incorrect import paths.
+
+**Wrong:**
+```tsx
+<SourceDirectory path="api">
+  <SourceFile path="widgets/operations.ts">  // Alloy thinks file is in api/
+```
+
+**Correct:**
+```tsx
+<SourceDirectory path="api">
+  <SourceDirectory path="widgets">
+    <SourceFile path="operations.ts">  // Alloy correctly knows file is in api/widgets/
+```
+
+This applies to ALL components that use SourceFile with computed paths including subdirectory prefixes.

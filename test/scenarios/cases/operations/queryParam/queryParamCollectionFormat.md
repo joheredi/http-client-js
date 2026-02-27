@@ -40,11 +40,8 @@ import {
   buildCsvCollection,
   buildPipeCollection,
   buildSsvCollection,
-} from "../static-helpers/serializationHelpers.js";
-import type {
-  CreateOptionalParams,
-  ReadOptionalParams,
-} from "./queryOperations/options.js";
+} from "../../static-helpers/serializationHelpers.js";
+import type { CreateOptionalParams, ReadOptionalParams } from "./options.js";
 import {
   type Client,
   createRestError,
@@ -157,7 +154,7 @@ interface QueryOperations {
 ## Operations
 
 ```ts operations
-import type { ReadOptionalParams } from "./queryOperations/options.js";
+import type { ReadOptionalParams } from "./options.js";
 import {
   type Client,
   createRestError,
