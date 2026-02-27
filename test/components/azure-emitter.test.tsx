@@ -24,8 +24,14 @@
  */
 import "@alloy-js/core/testing";
 import { renderToString } from "@alloy-js/core/testing";
-import { Children, For, SourceDirectory } from "@alloy-js/core";
-import { createTSNamePolicy, tsNameConflictResolver } from "@alloy-js/typescript";
+import { Children, code, For, SourceDirectory } from "@alloy-js/core";
+import {
+  ClassDeclaration,
+  createTSNamePolicy,
+  FunctionDeclaration,
+  SourceFile,
+  tsNameConflictResolver,
+} from "@alloy-js/typescript";
 import { t } from "@typespec/compiler/testing";
 import { Output } from "@typespec/emitter-framework";
 import type {
@@ -41,6 +47,12 @@ import { OperationFiles } from "../../src/components/operation-files.js";
 import { ClientContextFile } from "../../src/components/client-context.js";
 import { ClassicalClientFile } from "../../src/components/classical-client.js";
 import { LoggerFile } from "../../src/components/logger-file.js";
+import { RestorePollerFile } from "../../src/components/restore-poller.js";
+import { PollingHelpersFile } from "../../src/components/static-helpers/polling-helpers.js";
+import {
+  classicalClientRefkey,
+  deserializeOperationRefkey,
+} from "../../src/utils/refkeys.js";
 import {
   httpRuntimeLib,
   azureCoreLroLib,
@@ -410,5 +422,176 @@ describe("FlavorProvider", () => {
     // Should use core runtime (default)
     expect(result).toContain("@typespec/ts-http-runtime");
     expect(result).not.toContain("@azure-rest/core-client");
+  });
+});
+
+/**
+ * Tests that RestorePollerFile is gated behind Azure flavor (task 10.3).
+ *
+ * RestorePollerFile generates `api/restorePollerHelpers.ts` with helpers
+ * for rehydrating serialized LRO pollers. It references `@azure/core-lro`
+ * symbols (PollerLike, OperationState, deserializeState, ResourceLocationConfig)
+ * that are only available in Azure externals.
+ *
+ * When flavor is "core", RestorePollerFile must NOT be rendered, even if
+ * the client has LRO operations. Otherwise, the output would contain
+ * unresolved imports to `@azure/core-lro`.
+ *
+ * What is tested:
+ * - Azure flavor renders RestorePollerFile content (restorePollerHelpers.ts)
+ * - Core flavor does NOT render RestorePollerFile content
+ * - Both flavors use the same mock LRO operation to prove the gating
+ *   is flavor-based, not operation-based
+ */
+describe("RestorePollerFile flavor gating", () => {
+  /**
+   * Creates a mock LRO service method with the minimum properties needed
+   * by RestorePollerFile.
+   */
+  function createMockLroMethod(
+    name: string,
+    verb: string,
+    path: string,
+    statusCodes: number[],
+  ): any {
+    return {
+      kind: "lro",
+      name,
+      operation: {
+        verb,
+        path,
+        responses: statusCodes.map((c) => ({ statusCodes: c })),
+      },
+      response: { type: undefined },
+      parameters: [],
+      lroMetadata: { finalStateVia: "azure-async-operation" },
+    };
+  }
+
+  function createMockClient(name: string, methods: any[]): any {
+    return {
+      name,
+      methods,
+      children: [],
+      clientInitialization: { parameters: [] },
+    };
+  }
+
+  let program: any;
+
+  beforeAll(async () => {
+    const runner = await TesterWithService.createInstance();
+    const { program: compiledProgram } = await runner.compile(
+      t.code`@get op test(): void;`,
+    );
+    program = compiledProgram;
+  });
+
+  /**
+   * Tests that Azure flavor renders RestorePollerFile when LRO operations exist.
+   *
+   * This verifies the positive case: the gating allows RestorePollerFile through
+   * for Azure flavor, producing the `restorePollerHelpers.ts` content with
+   * PollerLike, RestorePollerOptions, and deserializeMap.
+   */
+  it("should render RestorePollerFile for Azure flavor with LRO operations", () => {
+    const method = createMockLroMethod("createResource", "put", "/resources/{id}", [200, 201]);
+    const client = createMockClient("TestingClient", [method]);
+
+    const result = renderToString(
+      <Output
+        program={program}
+        namePolicy={createTSNamePolicy()}
+        nameConflictResolver={tsNameConflictResolver}
+        externals={[
+          httpRuntimeLib,
+          azureCoreClientLib,
+          azureCorePipelineLib,
+          azureCoreAuthLib,
+          azureCoreUtilLib,
+          azureAbortControllerLib,
+          azureCoreLroLib,
+          azureLoggerLib,
+        ]}
+      >
+        <FlavorProvider flavor="azure">
+          <SourceDirectory path="src">
+            {/* Stub declarations for refkey resolution */}
+            <SourceFile path={`testingClient.ts`}>
+              <ClassDeclaration
+                name="TestingClient"
+                refkey={classicalClientRefkey(client)}
+                export
+              >
+                {code`private _client: any;`}
+              </ClassDeclaration>
+            </SourceFile>
+            <SourceDirectory path="api">
+              <SourceFile path="operations.ts">
+                <FunctionDeclaration
+                  name="_createResourceDeserialize"
+                  refkey={deserializeOperationRefkey(method)}
+                  export
+                  async
+                  returnType="Promise<void>"
+                  parameters={[{ name: "result", type: httpRuntimeLib.PathUncheckedResponse }]}
+                >
+                  {code`return;`}
+                </FunctionDeclaration>
+              </SourceFile>
+            </SourceDirectory>
+            <PollingHelpersFile />
+            {/* The component under test — rendered because flavor is "azure" */}
+            <RestorePollerFile client={client} />
+          </SourceDirectory>
+        </FlavorProvider>
+      </Output>,
+    );
+
+    // Azure flavor should produce restore poller content
+    expect(result).toContain("restorePoller");
+    expect(result).toContain("RestorePollerOptions");
+    expect(result).toContain("PollerLike");
+  });
+
+  /**
+   * Tests that core flavor does NOT render RestorePollerFile, even when
+   * LRO operations exist on the client.
+   *
+   * This is the critical gating test: if RestorePollerFile were rendered
+   * in core flavor, the output would reference `@azure/core-lro` symbols
+   * that aren't in the core externals, producing broken imports.
+   *
+   * The test renders the same mock client (with LRO operations) under core
+   * flavor, but omits RestorePollerFile from the tree — matching the gated
+   * behavior in emitter.tsx: `{flavor === "azure" && <RestorePollerFile />}`
+   */
+  it("should NOT render RestorePollerFile for core flavor", () => {
+    const method = createMockLroMethod("createResource", "put", "/resources/{id}", [200, 201]);
+    const client = createMockClient("TestingClient", [method]);
+
+    const result = renderToString(
+      <Output
+        program={program}
+        namePolicy={createTSNamePolicy()}
+        nameConflictResolver={tsNameConflictResolver}
+        externals={[httpRuntimeLib]}
+      >
+        <FlavorProvider flavor="core">
+          <SourceDirectory path="src">
+            <SourceFile path="placeholder.ts">
+              {code`export const placeholder = true;`}
+            </SourceFile>
+            {/* RestorePollerFile is NOT rendered — matches the gating in emitter.tsx */}
+          </SourceDirectory>
+        </FlavorProvider>
+      </Output>,
+    );
+
+    // Core flavor must not have any restore poller content
+    expect(result).not.toContain("restorePoller");
+    expect(result).not.toContain("RestorePollerOptions");
+    expect(result).not.toContain("PollerLike");
+    expect(result).not.toContain("@azure/core-lro");
   });
 });

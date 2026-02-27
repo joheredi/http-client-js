@@ -798,7 +798,7 @@
         "Core flavor does not generate restore-poller related files",
         "Azure flavor still generates RestorePollerFile correctly"
       ],
-      "status": "not-started",
+      "status": "done",
       "source": "implementation-phase",
       "category": "phase-10/Flavor Parity \u2014 Match Legacy Emitter Flavor Behavior"
     },

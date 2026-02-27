@@ -351,7 +351,7 @@ ${x}
                     <ClientContextFile client={client} />
                     <ClassicalClientFile client={client} />
                     <ClassicalOperationGroupFiles client={client} />
-                    <RestorePollerFile client={client} />
+                    {flavor === "azure" && <RestorePollerFile client={client} />}
                   </>
                 )}
               </For>

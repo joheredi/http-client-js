@@ -1173,3 +1173,25 @@ TypeSpec's `@multipartBody` validation requires ALL properties to be `HttpPart<T
 - Tasks 10.3-10.9 should now gate LRO/paging components behind Azure flavor checks so that core-flavor generation never emits LRO/paging code that would reference the now-excluded `@azure/core-lro` symbols
 - The `detectAzureFlavor()` function in `emit-for-scenario.tsx` does NOT detect LRO operations specifically — it detects Azure-specific TypeSpec namespaces/decorators
 - All 957 tests pass after this change
+
+## Task 10.3: Gate RestorePollerFile behind Azure flavor — DONE (2026-02-27)
+
+### What was done
+- Modified `src/emitter.tsx` line 212: wrapped `<RestorePollerFile client={client} />` with `{flavor === "azure" && <RestorePollerFile client={client} />}` so it only renders for Azure flavor
+- Applied the same gating to `test/scenarios/emit-for-scenario.tsx` line 354 to keep the test harness consistent with the emitter
+- Added flavor gating tests in `test/components/azure-emitter.test.tsx`:
+  - "should render RestorePollerFile for Azure flavor with LRO operations" — verifies Azure flavor produces restorePollerHelpers content (PollerLike, RestorePollerOptions, deserializeMap)
+  - "should NOT render RestorePollerFile for core flavor" — verifies core flavor produces no restore-poller content
+- Used mock LRO methods (same pattern as restore-poller.test.tsx) to test both flavors with identical LRO operations
+
+### Pattern used
+Exact same pattern as the existing LoggerFile gating at emitter.tsx line 200:
+```tsx
+{flavor === "azure" && <RestorePollerFile client={client} />}
+```
+The `flavor` variable is available in the `$onEmit` scope (line 178).
+
+### What next person should know
+- Tasks 10.4 (PollingHelpersFile) and 10.5 (PagingHelpersFile) should follow the same gating pattern
+- PollingHelpersFile and PagingHelpersFile are rendered via `<StaticHelpers />` component, not directly in emitter.tsx — investigate `src/components/static-helpers/index.tsx` to find where they're rendered
+- The `emit-for-scenario.tsx` test harness mirrors the `emitter.tsx` component tree, so any gating changes must be applied to both files
