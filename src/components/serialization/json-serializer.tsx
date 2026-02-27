@@ -283,6 +283,20 @@ export function getSerializationExpression(
       return code`${useRuntimeLib().uint8ArrayToString}(${accessor}, "${encoding}")`;
     }
 
+    case "union":
+      // User-defined named unions with Input usage have pass-through serializer
+      // functions. Call the union serializer refkey so the function is referenced
+      // and Alloy auto-generates the import. Generated unions (e.g., additional
+      // property type wrappers) are excluded — they don't have serializer functions.
+      if (
+        type.name &&
+        !type.isGeneratedName &&
+        (type.usage & UsageFlags.Input) !== 0
+      ) {
+        return code`${serializerRefkey(type)}(${accessor})`;
+      }
+      return accessor;
+
     case "nullable":
       return getSerializationExpression(type.type, accessor);
 
@@ -320,11 +334,15 @@ export function needsTransformation(type: SdkType): boolean {
     case "bytes":
       return true;
     case "union":
-      // Named unions with Output/Exception usage have deserializer functions,
-      // so they need transformation in deserialization contexts.
+      // User-defined named unions with Input usage have serializer functions and
+      // those with Output/Exception usage have deserializer functions. In both
+      // cases, the type needs transformation so that null-check wrapping and
+      // array/dict handling correctly call the serializer/deserializer function.
+      // Generated unions (isGeneratedName) are excluded from serializer generation.
       return !!(
         type.name &&
-        ((type.usage & UsageFlags.Output) !== 0 ||
+        ((!type.isGeneratedName && (type.usage & UsageFlags.Input) !== 0) ||
+          (type.usage & UsageFlags.Output) !== 0 ||
           (type.usage & UsageFlags.Exception) !== 0)
       );
     default:

@@ -353,6 +353,10 @@ describe("ModelFiles", () => {
          * Alias for MixedType
          */
         export type MixedType = string | number;
+
+        export function mixedTypeSerializer(item: MixedType): any {
+          return item;
+        }
       `,
     });
   });

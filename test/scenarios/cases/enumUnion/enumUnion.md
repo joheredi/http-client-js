@@ -1015,6 +1015,10 @@ export type MixedTypes = EnumTest | string | Foo;
 export function fooSerializer(item: Foo): any {
   return {};
 }
+
+export function mixedTypesSerializer(item: MixedTypes): any {
+  return item;
+}
 ```
 
 # model type string enum

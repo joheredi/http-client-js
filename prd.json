@@ -931,7 +931,7 @@
         "Consumers who import these functions from the generated code are not broken",
         "Existing tests pass"
       ],
-      "status": "not-started",
+      "status": "done",
       "source": "implementation-phase",
       "category": "phase-10/Flavor Parity \u2014 Match Legacy Emitter Flavor Behavior"
     },
@@ -1202,7 +1202,7 @@
       "title": "Identity Serializer/Deserializer Removal",
       "category": "scenario-audit/Serialization",
       "priority": "P2",
-      "status": "not-started",
+      "status": "done",
       "description": "The new emitter omits serializer functions that are identity operations (return item). Legacy generates these. If consumers import and call them, their code breaks. Review whether legacy behavior is required.",
       "legacy_behavior": "Generates function fooSerializer(item) { return item; } even for pass-through types.",
       "new_behavior": "Omits identity serializers entirely.",

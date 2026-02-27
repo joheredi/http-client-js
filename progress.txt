@@ -1030,3 +1030,29 @@ TypeSpec's `@multipartBody` validation requires ALL properties to be `HttpPart<T
 - If model has XML decorators but exception has no XML content types, JSON deserializer is still used
 - The `isXmlContentType` helper is generated in `helpers/xmlHelpers.ts` alongside other XML utilities
 - Per-status-code error handling (as in legacy) is NOT implemented — all exceptions use the same default/first error type
+
+## Task 10.12 / SA-C13: Generate Pass-Through Union Serializers — DONE (2026-02-27)
+
+### What was done
+- Created `src/components/serialization/json-union-serializer.tsx` — new Alloy component that generates pass-through `return item;` serializer functions for user-defined named unions with Input usage
+- Updated `src/components/serialization/json-serializer.tsx`:
+  - Added `union` case to `getSerializationExpression()` to call union serializer refkeys for non-generated named unions with Input usage
+  - Updated `needsTransformation()` to return `true` for non-generated named unions with Input usage, enabling proper null-check wrapping
+- Updated `src/components/model-files.tsx`:
+  - Added `inputUnions` filter for non-generated unions with Input usage
+  - Added `UnionSerializerDeclarations` component that renders `JsonUnionSerializer` for each input union
+  - Added rendering in the model files between model serializers and deserializers
+  - Added proper blank line separator logic for union serializers
+- Updated scenario test `test/scenarios/cases/enumUnion/enumUnion.md` to include `mixedTypesSerializer` in expected output
+- Updated unit test `test/components/model-files.test.tsx` to include union serializer in expected output
+- Created unit test `test/components/serialization/json-union-serializer.test.tsx` with 2 tests
+
+### Key patterns
+- `JsonUnionSerializer` mirrors `JsonUnionDeserializer` pattern: same structure, uses `serializerRefkey()` instead of `deserializerRefkey()`, parameter type is the union type via refkey
+- Only user-defined unions (`!isGeneratedName`) get serializers. Generated unions (e.g., `_VegetablesAdditionalProperty` from `extends Record<string, int64 | string>`) are excluded
+- Some TypeSpec unions (e.g., `union Foo { "bar", Baz, string }` where `string` subsumes all variants) may be simplified by TCGC and not appear in `sdkPackage.unions`, so they don't get serializers — this matches the legacy behavior
+
+### What the next person should know
+- The nestedEnum scenario tests pass without union serializers because TCGC simplifies those unions
+- If new scenario tests expect union serializers, check whether TCGC actually reports them as named unions
+- The `needsTransformation` function now checks both Input (for ser) and Output/Exception (for deser) usage on unions

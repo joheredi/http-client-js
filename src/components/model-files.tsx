@@ -26,6 +26,7 @@ import { XmlDeserializer } from "./serialization/xml-deserializer.js";
 import { XmlObjectDeserializer } from "./serialization/xml-object-deserializer.js";
 import { UnionDeclaration } from "./union-declaration.js";
 import { JsonUnionDeserializer } from "./serialization/json-union-deserializer.js";
+import { JsonUnionSerializer } from "./serialization/json-union-serializer.js";
 import { extractSubEnums, SubEnumDeclarations } from "./sub-enum-declaration.js";
 import { hasXmlSerialization } from "../utils/xml-detection.js";
 
@@ -161,6 +162,16 @@ export function ModelFiles() {
     (m) => isDiscriminated(m),
   );
 
+  // Filter unions that appear in Input context — they need serializers.
+  // Non-discriminated unions get simple pass-through serializers that return the
+  // item unchanged, matching the legacy emitter's behavior.
+  // Only user-defined unions (isGeneratedName = false) get serializers — generated
+  // unions (e.g., additional property type wrappers like _VegetablesAdditionalProperty)
+  // are internal implementation details that don't need standalone serializer functions.
+  const inputUnions = namedUnions.filter(
+    (u) => !u.isGeneratedName && (u.usage & UsageFlags.Input) !== 0,
+  );
+
   // Filter unions that appear in Output/Exception context — they need deserializers.
   // Non-discriminated unions get simple pass-through deserializers that return the
   // raw JSON item unchanged, matching the legacy emitter's behavior.
@@ -176,6 +187,7 @@ export function ModelFiles() {
     multipartInputModels.length > 0;
   const hasDeserializers =
     regularOutputModels.length > 0 || polymorphicOutputModels.length > 0;
+  const hasUnionSerializers = inputUnions.length > 0;
   const hasUnionDeserializers = outputUnions.length > 0;
   const hasXmlSerializers = xmlInputModels.length > 0;
   const hasXmlDeserializers = xmlOutputModels.length > 0;
@@ -200,7 +212,7 @@ export function ModelFiles() {
           : undefined}
         <UnionDeclarations unions={namedUnions} />
         {(models.length > 0 || enums.length > 0 || allSubEnums.length > 0 || namedUnions.length > 0) &&
-        (hasSerializers || hasDeserializers || hasXmlSerializers || hasXmlDeserializers)
+        (hasSerializers || hasUnionSerializers || hasDeserializers || hasXmlSerializers || hasXmlDeserializers)
           ? "\n\n"
           : undefined}
         <SerializerDeclarations models={regularInputModels} />
@@ -213,23 +225,25 @@ export function ModelFiles() {
           ? "\n\n"
           : undefined}
         <MultipartSerializerDeclarations models={multipartInputModels} />
-        {hasSerializers && hasDeserializers ? "\n\n" : undefined}
+        {hasSerializers && hasUnionSerializers ? "\n\n" : undefined}
+        <UnionSerializerDeclarations unions={inputUnions} />
+        {(hasSerializers || hasUnionSerializers) && hasDeserializers ? "\n\n" : undefined}
         <DeserializerDeclarations models={regularOutputModels} />
         {regularOutputModels.length > 0 && polymorphicOutputModels.length > 0
           ? "\n\n"
           : undefined}
         <PolymorphicDeserializerDeclarations models={polymorphicOutputModels} />
-        {(hasDeserializers || hasSerializers) && hasUnionDeserializers
+        {(hasDeserializers || hasSerializers || hasUnionSerializers) && hasUnionDeserializers
           ? "\n\n"
           : undefined}
         <UnionDeserializerDeclarations unions={outputUnions} />
-        {(hasSerializers || hasDeserializers || hasUnionDeserializers) && hasXmlSerializers
+        {(hasSerializers || hasUnionSerializers || hasDeserializers || hasUnionDeserializers) && hasXmlSerializers
           ? "\n\n"
           : undefined}
         <XmlSerializerDeclarations models={xmlInputModels} />
         {hasXmlSerializers && hasXmlDeserializers ? "\n\n" : undefined}
         <XmlDeserializerDeclarations models={xmlOutputModels} />
-        {(hasSerializers || hasDeserializers || hasUnionDeserializers || hasXmlSerializers || hasXmlDeserializers) ? (
+        {(hasSerializers || hasUnionSerializers || hasDeserializers || hasUnionDeserializers || hasXmlSerializers || hasXmlDeserializers) ? (
           <FlattenHelperDeclarations inputModels={[...regularInputModels, ...multipartInputModels]} outputModels={regularOutputModels} />
         ) : undefined}
       </SourceFile>
@@ -570,6 +584,36 @@ function PolymorphicDeserializerDeclarations(
           <JsonPolymorphicDeserializer model={model} />
         </>
       )}
+    </For>
+  );
+}
+
+/**
+ * Props for the {@link UnionSerializerDeclarations} component.
+ */
+interface UnionSerializerDeclarationsProps {
+  /** The list of TCGC union types that have Input usage and need serializers. */
+  unions: SdkUnionType[];
+}
+
+/**
+ * Renders all pass-through JSON serializer function declarations for union types.
+ *
+ * Non-discriminated unions (e.g., `"bar" | Baz | string`) get a simple pass-through
+ * serializer that returns `item` as-is. This exists so that model serialization code
+ * can uniformly reference a serializer refkey for property types, regardless of
+ * whether the type is a model or union. It also ensures consumers who import these
+ * serializer functions are not broken.
+ *
+ * @param props - Component props containing the list of input union types.
+ * @returns Alloy JSX tree with union serializer declarations, or undefined if empty.
+ */
+function UnionSerializerDeclarations(props: UnionSerializerDeclarationsProps) {
+  if (props.unions.length === 0) return undefined;
+
+  return (
+    <For each={props.unions} doubleHardline>
+      {(unionType) => <JsonUnionSerializer type={unionType} />}
     </For>
   );
 }
