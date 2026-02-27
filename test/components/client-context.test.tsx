@@ -429,4 +429,136 @@ describe("ClientContext", () => {
     const result = renderToString(template);
     expect(result).toContain("apiVersion");
   });
+
+  /**
+   * Tests that the factory function always destructures `apiVersion` out of
+   * updatedOptions before passing to getClient. This prevents apiVersion from
+   * leaking as a client option to the HTTP runtime, which doesn't understand it.
+   *
+   * The legacy emitter always strips apiVersion from options because it is
+   * managed at the client context level, not the HTTP client level. The
+   * destructuring pattern `const { apiVersion: _, ...updatedOptions }` ensures
+   * apiVersion is separated from the options passed to getClient.
+   *
+   * Why this matters: without this, apiVersion would be included in the
+   * options bag passed to `getClient()`, which could cause unexpected behavior
+   * in the HTTP runtime or HTTP pipeline middleware that inspects options.
+   */
+  it("should destructure apiVersion out of updatedOptions in factory", async () => {
+    const runner = await TesterWithService.createInstance();
+    const { program } = await runner.compile(
+      t.code`
+        @get op getItem(): string;
+      `,
+    );
+
+    const sdkContext = await createSdkContextForTest(program);
+    const client = getFirstClient(sdkContext);
+
+    const template = (
+      <SdkTestFile sdkContext={sdkContext} externals={[httpRuntimeLib]}>
+        <ClientContextFactory client={client} />
+      </SdkTestFile>
+    );
+
+    const result = renderToString(template);
+    // Should use destructuring pattern to strip apiVersion
+    expect(result).toContain("const { apiVersion: _, ...updatedOptions } = {");
+    // Should NOT use the old pattern
+    expect(result).not.toMatch(/const updatedOptions = \{/);
+  });
+
+  /**
+   * Tests that for Azure flavor, the factory function emits a warning when
+   * the client does not support client-level apiVersion. This occurs when
+   * the client context does not have an apiVersion member — meaning apiVersion
+   * is managed at the operation level, not the client level.
+   *
+   * The warning tells consumers: "This client does not support client
+   * api-version, please change it at the operation level". This matches the
+   * legacy emitter behavior which always emits this warning for Azure clients
+   * without client-level apiVersion.
+   *
+   * Why this matters: without the warning, consumers would silently pass
+   * `options.apiVersion` thinking it affects all operations, when in fact it
+   * is ignored. The warning prevents confusion and guides consumers to pass
+   * apiVersion per-operation instead.
+   */
+  it("should emit apiVersion warning for azure flavor without apiVersion in context", async () => {
+    const runner = await TesterWithService.createInstance();
+    const { program } = await runner.compile(
+      t.code`
+        @get op getItem(): string;
+      `,
+    );
+
+    const sdkContext = await createSdkContextForTest(program);
+    const client = getFirstClient(sdkContext);
+
+    const template = (
+      <Output
+        program={sdkContext.emitContext.program}
+        namePolicy={createTSNamePolicy()}
+        externals={[
+          azureCoreClientLib,
+          azureCorePipelineLib,
+          azureCoreAuthLib,
+          azureCoreUtilLib,
+          azureAbortControllerLib,
+          azureLoggerLib,
+        ]}
+      >
+        <SdkContextProvider sdkContext={sdkContext}>
+          <FlavorProvider flavor="azure">
+            <SourceFile path="test.ts">
+              <ClientContextFactory client={client} />
+            </SourceFile>
+            <LoggerFile packageName="test-service" />
+          </FlavorProvider>
+        </SdkContextProvider>
+      </Output>
+    );
+
+    const result = renderToString(template);
+    // Should include warning about unsupported client-level apiVersion
+    expect(result).toContain("if (options.apiVersion)");
+    expect(result).toContain(
+      'logger.warning("This client does not support client api-version, please change it at the operation level")',
+    );
+    // Should return clientContext (not inline return with getClient)
+    expect(result).toContain("return clientContext;");
+  });
+
+  /**
+   * Tests that for core (non-Azure) flavor, the factory function does NOT
+   * emit the apiVersion warning, even when the client has no apiVersion
+   * in context.
+   *
+   * The warning is Azure-specific because it requires the generated logger
+   * from logger.ts, which only exists for Azure flavor. Core flavor has no
+   * package logger, so emitting the warning would reference a non-existent
+   * module and break the generated code.
+   */
+  it("should NOT emit apiVersion warning for core flavor", async () => {
+    const runner = await TesterWithService.createInstance();
+    const { program } = await runner.compile(
+      t.code`
+        @get op getItem(): string;
+      `,
+    );
+
+    const sdkContext = await createSdkContextForTest(program);
+    const client = getFirstClient(sdkContext);
+
+    const template = (
+      <SdkTestFile sdkContext={sdkContext} externals={[httpRuntimeLib]}>
+        <ClientContextFactory client={client} />
+      </SdkTestFile>
+    );
+
+    const result = renderToString(template);
+    // Core flavor should NOT have the warning
+    expect(result).not.toContain("options.apiVersion");
+    expect(result).not.toContain("logger.warning");
+  });
 });

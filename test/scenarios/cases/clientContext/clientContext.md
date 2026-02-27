@@ -80,12 +80,16 @@ export function createService(
   const endpointUrl = options.endpoint ?? `${endpoint}/client/structure/${client}`;
   const prefixFromOptions = options?.userAgentOptions?.userAgentPrefix;
   const userAgentPrefix = prefixFromOptions ? `${prefixFromOptions} azsdk-js-api` : `azsdk-js-api`;
-  const updatedOptions = {
+  const { apiVersion: _, ...updatedOptions } = {
   ...options,
   userAgentOptions: { userAgentPrefix },
   loggingOptions: { logger: options.loggingOptions?.logger ?? logger.info },
   };
-  return getClient(endpointUrl, updatedOptions); as ServiceContext;
+  const clientContext = getClient(endpointUrl, updatedOptions);
+  if (options.apiVersion) {
+  logger.warning("This client does not support client api-version, please change it at the operation level");
+  }
+  return clientContext;
 }
 
 ```
@@ -176,12 +180,16 @@ export function createService(
   const endpointUrl = options.endpoint ?? `${endpoint}/client/structure/${client}`;
   const prefixFromOptions = options?.userAgentOptions?.userAgentPrefix;
   const userAgentPrefix = prefixFromOptions ? `${prefixFromOptions} azsdk-js-api` : `azsdk-js-api`;
-  const updatedOptions = {
+  const { apiVersion: _, ...updatedOptions } = {
   ...options,
   userAgentOptions: { userAgentPrefix },
   loggingOptions: { logger: options.loggingOptions?.logger ?? logger.info },
   };
-  return getClient(endpointUrl, updatedOptions); as ServiceContext;
+  const clientContext = getClient(endpointUrl, updatedOptions);
+  if (options.apiVersion) {
+  logger.warning("This client does not support client api-version, please change it at the operation level");
+  }
+  return clientContext;
 }
 
 ```
@@ -270,12 +278,16 @@ export function createTesting(
   const endpointUrl = options.endpoint ?? `${endpoint}/client/structure/${client}`;
   const prefixFromOptions = options?.userAgentOptions?.userAgentPrefix;
   const userAgentPrefix = prefixFromOptions ? `${prefixFromOptions} azsdk-js-api` : `azsdk-js-api`;
-  const updatedOptions = {
+  const { apiVersion: _, ...updatedOptions } = {
   ...options,
   userAgentOptions: { userAgentPrefix },
   loggingOptions: { logger: options.loggingOptions?.logger ?? logger.info },
   };
-  return getClient(endpointUrl, updatedOptions); as TestingContext;
+  const clientContext = getClient(endpointUrl, updatedOptions);
+  if (options.apiVersion) {
+  logger.warning("This client does not support client api-version, please change it at the operation level");
+  }
+  return clientContext;
 }
 
 ```

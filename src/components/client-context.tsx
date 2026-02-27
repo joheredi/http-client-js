@@ -580,6 +580,10 @@ function addCredentialSchemeType(
  * 3. Calling `getClient()` with endpoint, credential (if any), and options
  * 4. Spreading any custom client properties onto the context object
  * 5. Returning the result typed as the context interface
+ * 6. For Azure flavor, emitting a warning when the client does not support
+ *    client-level apiVersion (i.e., no apiVersion in context members). This
+ *    warns consumers that passing `options.apiVersion` has no effect and they
+ *    should supply apiVersion per-operation instead.
  *
  * @param client - The TCGC client type.
  * @returns Alloy Children representing the function body.
@@ -610,7 +614,19 @@ function buildFactoryBody(client: SdkClientType<SdkHttpOperation>): Children {
     credentialParam !== undefined,
   );
 
-  // 4. Build return statement with optional context member spreading
+  // 4. Check if the client has apiVersion in its context interface.
+  //    When it does NOT and we are in Azure flavor, we emit a warning so
+  //    consumers know that passing `options.apiVersion` has no effect at the
+  //    client level and must be supplied per-operation instead. This matches
+  //    the legacy emitter.
+  const { flavor } = useFlavorContext();
+  const hasApiVersionInContext = initParams.some(
+    (p) => p.kind === "method" && p.isApiVersionParam,
+  );
+  const shouldWarnApiVersion =
+    flavor === "azure" && !hasApiVersionInContext;
+
+  // 5. Build return statement with optional context member spreading
   if (contextMembers.length > 0) {
     bodyParts.push(code`const clientContext = ${getClientCall}`);
     const spreadMembers = contextMembers
@@ -622,6 +638,15 @@ function buildFactoryBody(client: SdkClientType<SdkHttpOperation>): Children {
     bodyParts.push(
       code`return { ...clientContext, ${spreadMembers} } as ${clientContextRefkey(client)};`,
     );
+  } else if (shouldWarnApiVersion) {
+    // No apiVersion in context → emit warning + return without cast
+    bodyParts.push(code`const clientContext = ${getClientCall}`);
+    bodyParts.push(
+      code`if (options.apiVersion) {
+  ${loggerRefkey()}.warning("This client does not support client api-version, please change it at the operation level");
+}`,
+    );
+    bodyParts.push(code`return clientContext;`);
   } else {
     bodyParts.push(
       code`return ${getClientCall} as ${clientContextRefkey(client)};`,
@@ -743,8 +768,10 @@ function buildEndpointFromType(endpointType: {
  * 3. For Azure flavor, adds `loggingOptions` that wires the generated logger
  *    into the client pipeline, falling back to `logger.info` when the consumer
  *    hasn't provided a custom logger
- * 4. Creates `updatedOptions` by spreading the original options with the new
- *    `userAgentOptions.userAgentPrefix` and (for Azure) `loggingOptions`
+ * 4. Destructures `apiVersion` out of the merged options via
+ *    `const { apiVersion: _, ...updatedOptions }` to prevent apiVersion from
+ *    leaking to `getClient()` — apiVersion is managed at the context level,
+ *    not the HTTP client options level. This matches the legacy emitter.
  *
  * The `azsdk-js-api` tag identifies requests as originating from a modular
  * (API-layer) generated client, distinguishing them from classical (wrapper-layer)
@@ -763,7 +790,7 @@ function buildEndpointFromType(endpointType: {
  * const userAgentPrefix = prefixFromOptions
  *   ? `${prefixFromOptions} azsdk-js-api`
  *   : `azsdk-js-api`;
- * const updatedOptions = {
+ * const { apiVersion: _, ...updatedOptions } = {
  *   ...options,
  *   userAgentOptions: { userAgentPrefix },
  * };
@@ -775,7 +802,7 @@ function buildEndpointFromType(endpointType: {
  * const userAgentPrefix = prefixFromOptions
  *   ? `${prefixFromOptions} azsdk-js-api`
  *   : `azsdk-js-api`;
- * const updatedOptions = {
+ * const { apiVersion: _, ...updatedOptions } = {
  *   ...options,
  *   userAgentOptions: { userAgentPrefix },
  *   loggingOptions: { logger: options.loggingOptions?.logger ?? logger.info },
@@ -796,13 +823,13 @@ export function buildUserAgentOptions(): Children {
   );
 
   if (flavor === "azure") {
-    parts.push(code`const updatedOptions = {
+    parts.push(code`const { apiVersion: _, ...updatedOptions } = {
   ...options,
   userAgentOptions: { userAgentPrefix },
   loggingOptions: { logger: options.loggingOptions?.logger ?? ${loggerRefkey()}.info },
 };`);
   } else {
-    parts.push(code`const updatedOptions = {
+    parts.push(code`const { apiVersion: _, ...updatedOptions } = {
   ...options,
   userAgentOptions: { userAgentPrefix },
 };`);

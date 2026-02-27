@@ -879,3 +879,51 @@ This applies to both the standard constructor (`buildConstructorBody`) and the o
 - `buildNonOptionsArguments()` extracts all factory args except `options` — reused by both constructor variants
 - The wrapped options pattern `{ ...options, userAgentOptions: { userAgentPrefix } }` is embedded directly in the `code` template as a multi-line object literal
 - For overloaded constructors, the userAgentPrefix assembly comes AFTER `options = options ?? {};`
+
+---
+
+## Task: SA-C7 — API Version Handling: Validation, Warnings, and KnownVersions Integration (2026-02-27)
+
+**What was done:**
+Implemented two key API version handling behaviors from the legacy emitter:
+
+1. **apiVersion destructuring from updatedOptions** — The factory function now always uses
+   `const { apiVersion: _, ...updatedOptions } = { ...options, ... }` instead of
+   `const updatedOptions = { ...options, ... }`. This prevents apiVersion from leaking
+   as a client option to `getClient()`, since apiVersion is managed at the context level.
+
+2. **Version warning for Azure flavor** — When the client does NOT have apiVersion in its
+   context interface (i.e., no client-level apiVersion), the factory now emits:
+   ```
+   if (options.apiVersion) {
+     logger.warning("This client does not support client api-version, please change it at the operation level");
+   }
+   ```
+   This is gated behind Azure flavor only (core flavor has no logger).
+
+**Files changed:**
+- `src/components/client-context.tsx` — Modified `buildUserAgentOptions()` to destructure
+  apiVersion; modified `buildFactoryBody()` to emit warning for Azure flavor when no
+  apiVersion in context; updated JSDoc documentation
+- `test/components/client-context.test.tsx` — Added 3 unit tests: destructuring pattern,
+  Azure flavor warning, core flavor no-warning
+- `test/scenarios/cases/apiOperations/apiOperations.md` — 3 updatedOptions patterns
+- `test/scenarios/cases/client/client.md` — 1 updatedOptions pattern
+- `test/scenarios/cases/clientContext/clientContext.md` — 3 scenarios: destructuring + warning
+- `test/scenarios/cases/clientContext/optionalApiVersion.md` — 1 updatedOptions pattern
+- `test/scenarios/cases/operations/headerParam/headerParamWithClientInitialization.md` — 2 patterns
+- `test/scenarios/cases/operations/queryParam/queryParamWithClientInitialization.md` — 2 patterns
+
+**Key patterns:**
+- Destructuring `const { apiVersion: _, ...updatedOptions }` always strips apiVersion from
+  the options passed to getClient
+- Warning is Azure-only because it requires the generated logger from logger.ts
+- Warning only emitted when `!hasApiVersionInContext && contextMembers.length === 0`
+- When context HAS apiVersion (optionalApiVersion scenario), no warning — apiVersion is
+  extracted and spread onto the return context object
+
+**What's NOT done (remaining items for separate tasks):**
+- KnownVersions JSDoc reference (`/** Known values of {@link KnownVersions} */`) on
+  apiVersion properties — requires refkey integration with JSDoc which needs design work
+- KnownVersions import generation — the import for JSDoc `{@link}` reference is
+  documentation-only; needs investigation on how to force Alloy to generate it

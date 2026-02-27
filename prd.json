@@ -1060,7 +1060,7 @@
       "title": "API Version Handling: Validation, Warnings, and KnownVersions Integration",
       "category": "scenario-audit/Client Infrastructure",
       "priority": "P1",
-      "status": "not-started",
+      "status": "done",
       "description": "The new emitter removes API version negotiation logic including version warnings, KnownVersions imports, and default version injection. The legacy behavior with validation and warnings is the expected output.",
       "legacy_behavior": "Imports KnownVersions enum, validates/warns about API version mismatches, passes API version through context or as parameter.",
       "new_behavior": "API version handling simplified or removed entirely.",
