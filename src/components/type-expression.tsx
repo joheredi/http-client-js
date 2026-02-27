@@ -1,6 +1,26 @@
 import { Children, code } from "@alloy-js/core";
-import type { SdkType } from "@azure-tools/typespec-client-generator-core";
+import type { SdkModelType, SdkType } from "@azure-tools/typespec-client-generator-core";
 import { typeRefkey } from "../utils/refkeys.js";
+
+/**
+ * Checks whether a model type represents an empty anonymous model (`{}`).
+ *
+ * Empty anonymous models are rendered as `Record<string, any>` in type
+ * references (property types, operation parameters, return types) to match
+ * legacy emitter behavior. The model declaration and its serializer/deserializer
+ * are still generated with the `_` prefixed name — only the type references change.
+ *
+ * A model is considered empty-anonymous when it has a generated (auto) name,
+ * no own properties, no base model, and no additional properties.
+ */
+export function isEmptyAnonymousModel(type: SdkModelType): boolean {
+  return (
+    type.isGeneratedName === true &&
+    type.properties.length === 0 &&
+    !type.baseModel &&
+    !type.additionalProperties
+  );
+}
 
 /**
  * Returns the TypeScript type expression for a property, stripping `| null`
@@ -131,6 +151,9 @@ export function getTypeExpression(type: SdkType): Children {
 
     // ── Model (named type → refkey reference) ────────────────────────────
     case "model":
+      if (isEmptyAnonymousModel(type)) {
+        return "Record<string, any>";
+      }
       return typeRefkey(type);
 
     // ── Nullable ─────────────────────────────────────────────────────────

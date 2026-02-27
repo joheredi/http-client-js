@@ -161,7 +161,7 @@ export interface NameConflictModel extends Record<string, any> {
  * model interface ObjectAdditionalPropsModel
  */
 export interface ObjectAdditionalPropsModel extends Record<string, any> {
-  additionalProperties: _ObjectAdditionalPropsModelAdditionalProperties;
+  additionalProperties: Record<string, any>;
   propA: string;
   propB: string;
 }

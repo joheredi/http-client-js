@@ -1152,7 +1152,7 @@
       "title": "Inline Types Extracted to Named Interfaces (_ReadResponse, _ReadRequest, etc.)",
       "category": "scenario-audit/Models",
       "priority": "P1",
-      "status": "not-started",
+      "status": "done",
       "description": "The new emitter extracts anonymous/inline response and request types into named interfaces (prefixed with _), while legacy uses Record<string, any> or inline object types. Legacy typing is the expected output.",
       "legacy_behavior": "Uses Record<string, any> or inline object types for request/response bodies.",
       "new_behavior": "Generates named interfaces like _ReadResponse, _ReadRequest, _FooRequest.",

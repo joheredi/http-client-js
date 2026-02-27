@@ -532,7 +532,7 @@ export function _readRequestSerializer(item: _ReadRequest): any {
 ## Operations
 
 ```ts operations
-import { type _ReadRequest, _readRequestSerializer } from "../models/models.js";
+import { _readRequestSerializer } from "../models/models.js";
 import type { ReadOptionalParams } from "./options.js";
 import {
   type Client,
@@ -547,7 +547,7 @@ export function _readSend(
   context: Client,
   pathParam: string,
   queryParam: string,
-  body: _ReadRequest,
+  body: Record<string, any>,
   options: ReadOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
   const path = expandUrlTemplate(
@@ -577,7 +577,7 @@ export async function read(
   context: Client,
   pathParam: string,
   queryParam: string,
-  body: _ReadRequest,
+  body: Record<string, any>,
   options: ReadOptionalParams = { requestOptions: {} },
 ): Promise<void> {
   const result = await _readSend(context, pathParam, queryParam, body, options);
@@ -691,7 +691,7 @@ op read(@body body: Test): void;
 
 ```ts models interface Test
 export interface Test {
-  color: _TestColor;
+  color: Record<string, any>;
 }
 ```
 
@@ -859,10 +859,7 @@ export function _readResponseDeserializer(item: any): _ReadResponse {
 ## Operations
 
 ```ts operations
-import {
-  type _ReadResponse,
-  _readResponseDeserializer,
-} from "../models/models.js";
+import { _readResponseDeserializer } from "../models/models.js";
 import type { ReadOptionalParams } from "./options.js";
 import {
   type Client,
@@ -887,7 +884,7 @@ export function _readSend(
 
 export async function _readDeserialize(
   result: PathUncheckedResponse,
-): Promise<_ReadResponse> {
+): Promise<Record<string, any>> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
     throw createRestError(result);
@@ -899,7 +896,7 @@ export async function _readDeserialize(
 export async function read(
   context: Client,
   options: ReadOptionalParams = { requestOptions: {} },
-): Promise<_ReadResponse> {
+): Promise<Record<string, any>> {
   const result = await _readSend(context, options);
   return _readDeserialize(result);
 }
@@ -1114,9 +1111,9 @@ import { deserializeRecord } from "../helpers/serializationHelpers.js";
  * model interface ReturnBody
  */
 export interface ReturnBody {
-  emptyAnomyous: _ReturnBodyEmptyAnomyous;
-  emptyAnomyousArray: _ReturnBodyEmptyAnomyousArray[];
-  emptyAnomyousDict: Record<string, _ReturnBodyEmptyAnomyousDict>;
+  emptyAnomyous: Record<string, any>;
+  emptyAnomyousArray: Record<string, any>[];
+  emptyAnomyousDict: Record<string, Record<string, any>>;
   emptyModel: EmptyModel;
   emptyModelArray: EmptyModel[];
   emptyModelDict: Record<string, EmptyModel>;

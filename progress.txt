@@ -832,3 +832,25 @@ Fixed `buildExpectedStatusArray()` in `public-operation.tsx` to add LRO polling 
 - `deserialize-operation.tsx` already had the correct LRO status code logic (`getExpectedStatuses()`) but `public-operation.tsx` had a separate `buildExpectedStatusArray()` that was missing it. Both need the same logic since both the deserializer and the poller receive the expected status codes.
 - The apiVersion is passed as a runtime expression (e.g., `context.apiVersion ?? "2024-01-01"`) to the poller options so polling requests carry the correct api-version query parameter.
 - For LRO+Paging operations, BOTH the poller call and the paging call use the same expanded status codes (since they share the same `expectedStatuses` variable in the component).
+
+---
+Task: SA-C11 — Inline Types Extracted to Named Interfaces
+Date: 2026-02-27
+
+## What was done
+Fixed empty anonymous models (like `{}` in TypeSpec) to render as `Record<string, any>` in type reference positions (model property types, operation parameter types, operation return types) instead of using the generated `_` prefixed named type. This matches legacy emitter behavior.
+
+The fix was a single check in `getTypeExpression()` in `type-expression.tsx`: when a model has `isGeneratedName=true`, zero properties, no baseModel, and no additionalProperties, it returns `"Record<string, any>"` instead of the model's refkey. The model declarations and their serializers/deserializers are still generated with the named type (they use `typeRefkey()` directly), so the change only affects type references.
+
+## Files changed
+- `src/components/type-expression.tsx` — Added `isEmptyAnonymousModel()` helper and check in `getTypeExpression()` model case
+- `test/scenarios/cases/anonymous/anonymous.md` — Updated 4 test sections to expect `Record<string, any>` for empty anonymous types
+- `test/scenarios/cases/models/deserialization/additionalProperties.md` — Updated property type from `_ObjectAdditionalPropsModelAdditionalProperties` to `Record<string, any>`
+- `test/scenarios/cases/samples/parameters/bodyOptionalCheck.md` — Updated operations to use `Record<string, any>` return type
+- `test/scenarios/cases/samples/parameters/bodyReadonlyOptionalCheck.md` — Updated operations to use `Record<string, any>` return type
+- `test/components/type-expression.test.tsx` — Added 3 unit tests: empty anonymous → Record<string, any>, named empty → keeps name, non-empty anonymous → keeps name
+
+## Key learnings
+- `getTypeExpression()` is the single choke point for type references. Serializer/deserializer function signatures use `typeRefkey()` directly, so they are NOT affected.
+- The `isGeneratedName` property (not `isAnonymous`) is the correct flag on `SdkModelType` for detecting auto-generated (anonymous) types.
+- Empty anonymous models are rare but important for API surface correctness — using internal generated names in public APIs breaks consumers.

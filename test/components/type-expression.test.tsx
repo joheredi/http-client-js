@@ -25,7 +25,7 @@ import type {
   SdkModelType,
   SdkType,
 } from "@azure-tools/typespec-client-generator-core";
-import { getTypeExpression, getOptionalAwareTypeExpression } from "../../src/components/type-expression.js";
+import { getTypeExpression, getOptionalAwareTypeExpression, isEmptyAnonymousModel } from "../../src/components/type-expression.js";
 import { typeRefkey } from "../../src/utils/refkeys.js";
 import { TesterWithService, createSdkContextForTest } from "../test-host.js";
 import { SdkTestFile } from "../utils.jsx";
@@ -454,6 +454,122 @@ describe("Type Expression", () => {
 
         type Test = Color
       `);
+    });
+
+    /**
+     * Tests that empty anonymous models (with isGeneratedName=true and no
+     * properties) are rendered as Record<string, any> instead of the named
+     * type reference. This matches legacy emitter behavior where inline empty
+     * models like `{}` in TypeSpec produce `Record<string, any>` in all type
+     * reference positions (property types, operation params, return types).
+     *
+     * Named empty models (like `model EmptyModel {}`) keep their named type.
+     * This distinction is critical because using named types for anonymous
+     * empty models would create a public API dependency on auto-generated
+     * internal names.
+     */
+    it("should map empty anonymous models to Record<string, any>", async () => {
+      const runner = await TesterWithService.createInstance();
+      const { program } = await runner.compile(
+        t.code`
+          model ${t.model("Parent")} {
+            emptyProp: {};
+          }
+
+          op ${t.op("getParent")}(): Parent;
+        `,
+      );
+
+      const sdkContext = await createSdkContextForTest(program);
+      const parentModel = sdkContext.sdkPackage.models.find(
+        (m) => m.name === "Parent",
+      )!;
+      const emptyType = getPropertyType(parentModel, "emptyProp");
+
+      // Verify the model is detected as empty anonymous
+      expect(emptyType.kind).toBe("model");
+      expect(isEmptyAnonymousModel(emptyType as SdkModelType)).toBe(true);
+
+      // Verify it renders as Record<string, any>
+      const template = (
+        <SdkTestFile sdkContext={sdkContext}>
+          {getTypeExpression(emptyType)}
+        </SdkTestFile>
+      );
+      expect(template).toRenderTo("Record<string, any>");
+    });
+
+    /**
+     * Tests that named empty models (not auto-generated) keep their named
+     * type reference. This ensures that explicitly defined models like
+     * `model EmptyModel {}` are NOT collapsed to Record<string, any>.
+     */
+    it("should keep named type for non-anonymous empty models", async () => {
+      const runner = await TesterWithService.createInstance();
+      const { program } = await runner.compile(
+        t.code`
+          model ${t.model("EmptyModel")} {}
+
+          model ${t.model("Parent")} {
+            child: EmptyModel;
+          }
+
+          op ${t.op("getParent")}(): Parent;
+        `,
+      );
+
+      const sdkContext = await createSdkContextForTest(program);
+      const emptyModel = sdkContext.sdkPackage.models.find(
+        (m) => m.name === "EmptyModel",
+      )!;
+      const parentModel = sdkContext.sdkPackage.models.find(
+        (m) => m.name === "Parent",
+      )!;
+      const childType = getPropertyType(parentModel, "child");
+
+      // Verify not detected as empty anonymous (it has a user-given name)
+      expect(isEmptyAnonymousModel(childType as SdkModelType)).toBe(false);
+
+      // Verify it renders as the named type
+      const template = (
+        <SdkTestFile sdkContext={sdkContext}>
+          <InterfaceDeclaration name="EmptyModel" refkey={typeRefkey(emptyModel)} />
+          {"\n\n"}
+          {code`type Test = ${getTypeExpression(childType)}`}
+        </SdkTestFile>
+      );
+      expect(template).toRenderTo(`
+        interface EmptyModel {}
+
+        type Test = EmptyModel
+      `);
+    });
+
+    /**
+     * Tests that non-empty anonymous models (with properties) keep their
+     * named type reference. Only EMPTY anonymous models become Record<string, any>.
+     */
+    it("should keep named type for non-empty anonymous models", async () => {
+      const runner = await TesterWithService.createInstance();
+      const { program } = await runner.compile(
+        t.code`
+          model ${t.model("Parent")} {
+            child: { foo: string };
+          }
+
+          op ${t.op("getParent")}(): Parent;
+        `,
+      );
+
+      const sdkContext = await createSdkContextForTest(program);
+      const parentModel = sdkContext.sdkPackage.models.find(
+        (m) => m.name === "Parent",
+      )!;
+      const childType = getPropertyType(parentModel, "child");
+
+      // Non-empty anonymous model should NOT be treated as empty anonymous
+      expect(childType.kind).toBe("model");
+      expect(isEmptyAnonymousModel(childType as SdkModelType)).toBe(false);
     });
   });
 

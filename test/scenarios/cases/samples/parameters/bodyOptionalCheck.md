@@ -77,7 +77,6 @@ Should generate operations correctly:
 
 ```ts operations
 import {
-  type _ReadResponse,
   _readResponseDeserializer,
   bodyParameterSerializer,
 } from "../models/models.js";
@@ -121,7 +120,7 @@ export function _readSend(
 
 export async function _readDeserialize(
   result: PathUncheckedResponse,
-): Promise<_ReadResponse> {
+): Promise<Record<string, any>> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
     throw createRestError(result);
@@ -143,7 +142,7 @@ export async function read(
   name: string,
   requiredQuery: string,
   options: ReadOptionalParams = { requestOptions: {} },
-): Promise<_ReadResponse> {
+): Promise<Record<string, any>> {
   const result = await _readSend(context, name, requiredQuery, options);
   return _readDeserialize(result);
 }
