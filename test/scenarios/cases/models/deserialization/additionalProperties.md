@@ -224,7 +224,7 @@ export function objectAdditionalPropsModelDeserializer(
 export function _objectAdditionalPropsModelAdditionalPropertiesDeserializer(
   item: any,
 ): _ObjectAdditionalPropsModelAdditionalProperties {
-  return {};
+  return item;
 }
 
 export function _unionModelAdditionalPropertyDeserializer(

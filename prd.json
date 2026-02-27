@@ -1224,7 +1224,7 @@
       "title": "Empty Model Deserializer: return item vs return {}",
       "category": "scenario-audit/Serialization",
       "priority": "P2",
-      "status": "not-started",
+      "status": "done",
       "description": "For models with no properties, the new emitter returns {} instead of the input item. Legacy passes through the original object. Legacy behavior (return item) is the expected output.",
       "legacy_behavior": "return item \u2014 passes through original object preserving extra properties.",
       "new_behavior": "return {} \u2014 returns new empty object, discarding all properties.",

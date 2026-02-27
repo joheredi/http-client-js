@@ -1055,4 +1055,54 @@ describe("JsonSerializer", () => {
       }
     `);
   });
+
+  describe("empty models", () => {
+    /**
+     * Tests that an empty model (no properties, no additionalProperties) produces
+     * a pass-through serializer that returns `item` directly instead of `{}`.
+     *
+     * Why this matters:
+     * The legacy emitter returns `item` for empty models, preserving any extra
+     * properties on the object. Returning `{}` would discard all data, which is
+     * a breaking change for consumers who rely on the pass-through behavior.
+     * This is regression SA-C14.
+     */
+    let sdkContext: Awaited<ReturnType<typeof createSdkContextForTest>>;
+    let emptyModel: (typeof sdkContext.sdkPackage.models)[number];
+
+    beforeAll(async () => {
+      const runner = await TesterWithService.createInstance();
+      const { program } = await runner.compile(
+        t.code`
+          model ${t.model("EmptyInput")} {}
+
+          @route("/empty") op sendEmpty(@body body: EmptyInput): void;
+        `,
+      );
+
+      sdkContext = await createSdkContextForTest(program);
+      emptyModel = sdkContext.sdkPackage.models.find((m) => m.name === "EmptyInput")!;
+    });
+
+    it("should return item for empty model serializer", () => {
+      const template = (
+        <SdkTestFile sdkContext={sdkContext}>
+          <ModelInterface model={emptyModel} />
+          {"\n\n"}
+          <JsonSerializer model={emptyModel} />
+        </SdkTestFile>
+      );
+
+      expect(template).toRenderTo(d`
+        /**
+         * model interface EmptyInput
+         */
+        export interface EmptyInput {}
+
+        export function emptyInputSerializer(item: EmptyInput): any {
+          return item;
+        }
+      `);
+    });
+  });
 });

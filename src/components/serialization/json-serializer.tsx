@@ -75,6 +75,10 @@ export function JsonSerializer(props: JsonSerializerProps) {
   const { model, refkeyOverride, nameSuffix, includeParentProperties } = props;
   const properties = getSerializableProperties(model, includeParentProperties);
   const hasAdditional = hasAdditionalProperties(model);
+  // Empty models (no properties and no additionalProperties) pass through the
+  // input unchanged — `return item;` — preserving any extra properties on the
+  // object. This matches the legacy emitter's behavior.
+  const isEmpty = properties.length === 0 && !hasAdditional;
 
   return (
     <FunctionDeclaration
@@ -84,49 +88,51 @@ export function JsonSerializer(props: JsonSerializerProps) {
       returnType="any"
       parameters={[{ name: "item", type: typeRefkey(model) }]}
     >
-      {code`return `}
-      <ObjectExpression>
-        {hasAdditional ? (
-          <>
-            <ObjectSpreadProperty value="item" />
-            {properties.length > 0 ? code`, ` : undefined}
-          </>
-        ) : undefined}
-        <For each={properties} comma softline enderPunctuation>
-          {(prop) => {
-            // Flatten properties emit a helper function call instead of inline expansion.
-            // Required: `properties: _testPropertiesSerializer(item)`
-            // Optional: `properties: areAllPropsUndefined(item, [...]) ? undefined : _testPropertiesSerializer(item)`
-            if (prop.flatten && prop.type.kind === "model") {
-              const helperRef = flattenSerializerRefkey(model, prop.serializedName);
-              if (prop.optional) {
-                const clientNames = getFlattenClientNames(prop);
-                const namesList = clientNames.map((n) => `"${n}"`).join(", ");
+      {isEmpty ? code`return item;` : <>
+        {code`return `}
+        <ObjectExpression>
+          {hasAdditional ? (
+            <>
+              <ObjectSpreadProperty value="item" />
+              {properties.length > 0 ? code`, ` : undefined}
+            </>
+          ) : undefined}
+          <For each={properties} comma softline enderPunctuation>
+            {(prop) => {
+              // Flatten properties emit a helper function call instead of inline expansion.
+              // Required: `properties: _testPropertiesSerializer(item)`
+              // Optional: `properties: areAllPropsUndefined(item, [...]) ? undefined : _testPropertiesSerializer(item)`
+              if (prop.flatten && prop.type.kind === "model") {
+                const helperRef = flattenSerializerRefkey(model, prop.serializedName);
+                if (prop.optional) {
+                  const clientNames = getFlattenClientNames(prop);
+                  const namesList = clientNames.map((n) => `"${n}"`).join(", ");
+                  return (
+                    <ObjectProperty
+                      name={prop.serializedName}
+                      value={code`${serializationHelperRefkey("areAllPropsUndefined")}(item, [${namesList}])\n? undefined\n: ${helperRef}(item)`}
+                    />
+                  );
+                }
                 return (
                   <ObjectProperty
                     name={prop.serializedName}
-                    value={code`${serializationHelperRefkey("areAllPropsUndefined")}(item, [${namesList}])\n? undefined\n: ${helperRef}(item)`}
+                    value={code`${helperRef}(item)`}
                   />
                 );
               }
-              return (
-                <ObjectProperty
-                  name={prop.serializedName}
-                  value={code`${helperRef}(item)`}
-                />
-              );
-            }
-            const accessor = `item["${prop.name}"]`;
-            let valueExpr = getSerializationExpression(prop.type, accessor);
-            // Apply array encoding if the property has @encode(ArrayEncoding.xxx).
-            // This converts arrays to delimited strings on the wire (e.g., ["a","b"] → "a,b").
-            valueExpr = wrapWithArrayEncoding(valueExpr, accessor, prop);
-            const wrapped = wrapWithNullCheck(valueExpr, accessor, prop);
-            return <ObjectProperty name={prop.serializedName} value={wrapped} />;
-          }}
-        </For>
-      </ObjectExpression>
-      {code`;`}
+              const accessor = `item["${prop.name}"]`;
+              let valueExpr = getSerializationExpression(prop.type, accessor);
+              // Apply array encoding if the property has @encode(ArrayEncoding.xxx).
+              // This converts arrays to delimited strings on the wire (e.g., ["a","b"] → "a,b").
+              valueExpr = wrapWithArrayEncoding(valueExpr, accessor, prop);
+              const wrapped = wrapWithNullCheck(valueExpr, accessor, prop);
+              return <ObjectProperty name={prop.serializedName} value={wrapped} />;
+            }}
+          </For>
+        </ObjectExpression>
+        {code`;`}
+      </>}
     </FunctionDeclaration>
   );
 }

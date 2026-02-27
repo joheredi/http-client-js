@@ -525,7 +525,7 @@ op read(@path pathParam: string, @query queryParam: string, @body body: {}): OkR
 export interface _ReadRequest {}
 
 export function _readRequestSerializer(item: _ReadRequest): any {
-  return {};
+  return item;
 }
 ```
 
@@ -852,7 +852,7 @@ op read(): { @body _: {}; };
 export interface _ReadResponse {}
 
 export function _readResponseDeserializer(item: any): _ReadResponse {
-  return {};
+  return item;
 }
 ```
 
@@ -928,7 +928,7 @@ op read(): {@body _: PublishResult};
 export interface PublishResult {}
 
 export function publishResultDeserializer(item: any): PublishResult {
-  return {};
+  return item;
 }
 ```
 
@@ -1162,23 +1162,23 @@ export function returnBodyDeserializer(item: any): ReturnBody {
 export function _returnBodyEmptyAnomyousDeserializer(
   item: any,
 ): _ReturnBodyEmptyAnomyous {
-  return {};
+  return item;
 }
 
 export function _returnBodyEmptyAnomyousArrayDeserializer(
   item: any,
 ): _ReturnBodyEmptyAnomyousArray {
-  return {};
+  return item;
 }
 
 export function _returnBodyEmptyAnomyousDictDeserializer(
   item: any,
 ): _ReturnBodyEmptyAnomyousDict {
-  return {};
+  return item;
 }
 
 export function emptyModelDeserializer(item: any): EmptyModel {
-  return {};
+  return item;
 }
 ```
 

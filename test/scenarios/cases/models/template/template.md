@@ -119,7 +119,7 @@ export function templatedBaseSerializer(item: TemplatedBase): any {
 }
 
 export function baseSerializer(item: Base): any {
-  return {};
+  return item;
 }
 
 export function templatedSerializer(item: Templated): any {
@@ -169,7 +169,7 @@ export function templatedBaseDeserializer(item: any): TemplatedBase {
 }
 
 export function baseDeserializer(item: any): Base {
-  return {};
+  return item;
 }
 
 export function templatedDeserializer(item: any): Templated {

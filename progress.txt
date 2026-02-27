@@ -1056,3 +1056,29 @@ TypeSpec's `@multipartBody` validation requires ALL properties to be `HttpPart<T
 - The nestedEnum scenario tests pass without union serializers because TCGC simplifies those unions
 - If new scenario tests expect union serializers, check whether TCGC actually reports them as named unions
 - The `needsTransformation` function now checks both Input (for ser) and Output/Exception (for deser) usage on unions
+
+---
+## Task SA-C14: Empty Model Deserializer — return item vs return {} — DONE (2026-02-27)
+
+**What was done:**
+- Fixed empty model serializers and deserializers to return `item` instead of `{}`.
+- Legacy emitter returns `item` for models with no properties and no additionalProperties, preserving extra properties on the object. The new emitter was returning `{}`, which discards all data.
+- Added `isEmpty` check in both `JsonDeserializer` and `JsonSerializer` components: when `properties.length === 0 && !hasAdditional`, render `return item;` instead of constructing an empty `ObjectExpression`.
+
+**Files modified:**
+- `src/components/serialization/json-deserializer.tsx` — Added isEmpty check, conditional return
+- `src/components/serialization/json-serializer.tsx` — Same isEmpty check pattern
+- `test/components/serialization/json-deserializer.test.tsx` — Added unit test for empty model deserializer
+- `test/components/serialization/json-serializer.test.tsx` — Added unit test for empty model serializer
+- `test/scenarios/cases/anonymous/anonymous.md` — Updated 7 expected outputs from `return {};` to `return item;`
+- `test/scenarios/cases/models/template/template.md` — Updated 2 expected outputs
+- `test/scenarios/cases/enumUnion/enumUnion.md` — Updated 1 expected output
+- `test/scenarios/cases/models/deserialization/additionalProperties.md` — Updated 1 expected output
+
+**Patterns used:**
+- Conditional rendering in Alloy JSX: `{isEmpty ? code\`return item;\` : <>{/* normal ObjectExpression */}</>}`
+- Legacy emitter ref: `submodules/autorest.typescript/.../buildDeserializerFunction.ts` lines 441-453
+
+**Notes for next iteration:**
+- TCGC may not track empty models unless they're explicitly used via `@body` in operations. Unit tests need `@body _: ModelName` syntax.
+- The `hasAdditionalProperties` check is separate from `isEmpty` — models with only additionalProperties still use the spread pattern (`{...item}`), not the pass-through.

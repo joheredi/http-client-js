@@ -1013,7 +1013,7 @@ export type EnumTest = 1 | 2 | 3 | 4;
 export type MixedTypes = EnumTest | string | Foo;
 
 export function fooSerializer(item: Foo): any {
-  return {};
+  return item;
 }
 
 export function mixedTypesSerializer(item: MixedTypes): any {

@@ -75,6 +75,10 @@ export function JsonDeserializer(props: JsonDeserializerProps) {
   const { model, refkeyOverride, nameSuffix, includeParentProperties } = props;
   const properties = getDeserializableProperties(model, includeParentProperties);
   const hasAdditional = model.additionalProperties !== undefined;
+  // Empty models (no properties and no additionalProperties) pass through the
+  // input unchanged — `return item;` — preserving any extra properties on the
+  // object. This matches the legacy emitter's behavior.
+  const isEmpty = properties.length === 0 && !hasAdditional;
 
   return (
     <FunctionDeclaration
@@ -84,37 +88,39 @@ export function JsonDeserializer(props: JsonDeserializerProps) {
       returnType={code`${typeRefkey(model)}`}
       parameters={[{ name: "item", type: "any" }]}
     >
-      {code`return `}
-      <ObjectExpression>
-        {hasAdditional ? (
-          <>
-            <ObjectSpreadProperty value="item" />
-            {properties.length > 0 ? code`, ` : undefined}
-          </>
-        ) : undefined}
-        <For each={properties} comma softline enderPunctuation>
-          {(prop) => {
-            // Flatten properties emit a spread with a helper function call.
-            // Required: `..._testPropertiesDeserializer(item["properties"])`
-            // Optional: `...(!item["properties"] ? item["properties"] : _testPropertiesDeserializer(item["properties"]))`
-            if (prop.flatten && prop.type.kind === "model") {
-              const helperRef = flattenDeserializerRefkey(model, prop.serializedName);
-              if (prop.optional) {
-                return code`...(!item["${prop.serializedName}"] ? item["${prop.serializedName}"] : ${helperRef}(item["${prop.serializedName}"]))`;
+      {isEmpty ? code`return item;` : <>
+        {code`return `}
+        <ObjectExpression>
+          {hasAdditional ? (
+            <>
+              <ObjectSpreadProperty value="item" />
+              {properties.length > 0 ? code`, ` : undefined}
+            </>
+          ) : undefined}
+          <For each={properties} comma softline enderPunctuation>
+            {(prop) => {
+              // Flatten properties emit a spread with a helper function call.
+              // Required: `..._testPropertiesDeserializer(item["properties"])`
+              // Optional: `...(!item["properties"] ? item["properties"] : _testPropertiesDeserializer(item["properties"]))`
+              if (prop.flatten && prop.type.kind === "model") {
+                const helperRef = flattenDeserializerRefkey(model, prop.serializedName);
+                if (prop.optional) {
+                  return code`...(!item["${prop.serializedName}"] ? item["${prop.serializedName}"] : ${helperRef}(item["${prop.serializedName}"]))`;
+                }
+                return code`...${helperRef}(item["${prop.serializedName}"])`;
               }
-              return code`...${helperRef}(item["${prop.serializedName}"])`;
-            }
-            const accessor = `item["${prop.serializedName}"]`;
-            let valueExpr = getDeserializationExpression(prop.type, accessor);
-            // Apply array decoding if the property has @encode(ArrayEncoding.xxx).
-            // This parses delimited strings back into arrays (e.g., "a,b" → ["a","b"]).
-            valueExpr = wrapWithArrayDecoding(valueExpr, accessor, prop);
-            const wrapped = wrapWithNullCheck(valueExpr, accessor, prop);
-            return <ObjectProperty name={prop.name} value={wrapped} />;
-          }}
-        </For>
-      </ObjectExpression>
-      {code`;`}
+              const accessor = `item["${prop.serializedName}"]`;
+              let valueExpr = getDeserializationExpression(prop.type, accessor);
+              // Apply array decoding if the property has @encode(ArrayEncoding.xxx).
+              // This parses delimited strings back into arrays (e.g., "a,b" → ["a","b"]).
+              valueExpr = wrapWithArrayDecoding(valueExpr, accessor, prop);
+              const wrapped = wrapWithNullCheck(valueExpr, accessor, prop);
+              return <ObjectProperty name={prop.name} value={wrapped} />;
+            }}
+          </For>
+        </ObjectExpression>
+        {code`;`}
+      </>}
     </FunctionDeclaration>
   );
 }
