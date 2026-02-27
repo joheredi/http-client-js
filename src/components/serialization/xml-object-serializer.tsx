@@ -112,6 +112,13 @@ function getXmlObjectSerializationExpression(
       if (inner.kind === "model") {
         return code`${accessor}?.map((i: any) => ${xmlObjectSerializerRefkey(inner)}(i))`;
       }
+      // For arrays of bytes/dates, map each item through the appropriate conversion.
+      // The legacy emitter generates uint8ArrayToString for bytes items and date
+      // conversion for date items in object serializers.
+      const itemExpr = getArrayItemSerializationExpression(inner);
+      if (itemExpr) {
+        return code`${accessor}?.map((i: any) =>\n  ${itemExpr}\n)`;
+      }
       return accessor;
     }
 
@@ -134,5 +141,37 @@ function getXmlObjectSerializationExpression(
 
     default:
       return accessor;
+  }
+}
+
+/**
+ * Generates the serialization expression for a single array item in the XML
+ * object serializer context. Used inside `.map()` callbacks for arrays of
+ * non-model types (bytes, dates) that need value conversion.
+ *
+ * Returns `undefined` for types that don't need conversion (primitives).
+ *
+ * @param type - The TCGC type of the array's value type.
+ * @returns Alloy Children for the `.map()` callback body, or undefined if no conversion needed.
+ */
+function getArrayItemSerializationExpression(type: SdkType): Children | undefined {
+  switch (type.kind) {
+    case "bytes":
+      return code`i !== undefined ? ${useRuntimeLib().uint8ArrayToString}(i, "base64") : undefined`;
+
+    case "utcDateTime":
+      if (type.encode === "unixTimestamp") {
+        return code`i !== undefined ? ((i).getTime() / 1000) | 0 : undefined`;
+      }
+      return code`i !== undefined ? (i).toISOString() : undefined`;
+
+    case "plainDate":
+      return code`i !== undefined ? (i).toISOString().split("T")[0] : undefined`;
+
+    case "nullable":
+      return getArrayItemSerializationExpression(type.type);
+
+    default:
+      return undefined;
   }
 }

@@ -111,6 +111,16 @@ function renderSerializeMetadataEntry(prop: SdkModelPropertyType): Children {
     return code`{ ${parts.join(", ")}, serializer: ${xmlObjectSerializerRefkey(prop.type)} }`;
   }
 
+  // Add encoding hints — for arrays, extract encoding from the item type (valueType)
+  // since the array type itself has no encoding; the legacy emitter propagates encoding
+  // metadata from leaf types through array containers.
+  const encodingType =
+    prop.type.kind === "array" ? prop.type.valueType : prop.type;
+  const encoding = getDateEncoding(encodingType);
+  if (encoding) parts.push(`dateEncoding: "${encoding}"`);
+  const bytesEnc = getBytesEncoding(encodingType);
+  if (bytesEnc) parts.push(`bytesEncoding: "${bytesEnc}"`);
+
   // Add serializer for array items that are models
   if (propType === "array" && prop.type.kind === "array") {
     const inner = prop.type.valueType;
@@ -120,12 +130,6 @@ function renderSerializeMetadataEntry(prop: SdkModelPropertyType): Children {
     const itemType = getArrayItemType(inner);
     if (itemType) parts.push(`itemType: "${itemType}"`);
   }
-
-  // Add encoding hints
-  const encoding = getDateEncoding(prop.type);
-  if (encoding) parts.push(`dateEncoding: "${encoding}"`);
-  const bytesEnc = getBytesEncoding(prop.type);
-  if (bytesEnc) parts.push(`bytesEncoding: "${bytesEnc}"`);
 
   return code`{ ${parts.join(", ")} }`;
 }

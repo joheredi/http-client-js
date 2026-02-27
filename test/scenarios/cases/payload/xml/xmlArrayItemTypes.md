@@ -70,6 +70,7 @@ export function blockLookupListXmlSerializer(item: BlockLookupList): string {
         itemsName: "Committed",
       },
       type: "array",
+      bytesEncoding: "base64",
       itemType: "bytes",
     },
     {
@@ -80,12 +81,14 @@ export function blockLookupListXmlSerializer(item: BlockLookupList): string {
         itemsName: "Uncommitted",
       },
       type: "array",
+      bytesEncoding: "base64",
       itemType: "bytes",
     },
     {
       propertyName: "latest",
       xmlOptions: { name: "Latest", unwrapped: true, itemsName: "Latest" },
       type: "array",
+      bytesEncoding: "base64",
       itemType: "bytes",
     },
   ];
@@ -98,9 +101,15 @@ export function blockLookupListXmlObjectSerializer(
   item: BlockLookupList,
 ): XmlSerializedObject {
   return {
-    Committed: item["committed"],
-    Uncommitted: item["uncommitted"],
-    Latest: item["latest"],
+    Committed: item["committed"]?.map((i: any) =>
+      i !== undefined ? uint8ArrayToString(i, "base64") : undefined,
+    ),
+    Uncommitted: item["uncommitted"]?.map((i: any) =>
+      i !== undefined ? uint8ArrayToString(i, "base64") : undefined,
+    ),
+    Latest: item["latest"]?.map((i: any) =>
+      i !== undefined ? uint8ArrayToString(i, "base64") : undefined,
+    ),
   };
 }
 ```
@@ -158,12 +167,14 @@ export function dateArraysModelXmlSerializer(item: DateArraysModel): string {
       propertyName: "timestamps",
       xmlOptions: { name: "Timestamps", itemsName: "utcDateTime" },
       type: "array",
+      dateEncoding: "rfc3339",
       itemType: "date",
     },
     {
       propertyName: "httpDates",
       xmlOptions: { name: "HttpDates", itemsName: "rfc7231DateTime" },
       type: "array",
+      dateEncoding: "rfc7231",
       itemType: "date",
     },
   ];
@@ -180,12 +191,14 @@ export function dateArraysModelXmlDeserializer(
       propertyName: "timestamps",
       xmlOptions: { name: "Timestamps", itemsName: "utcDateTime" },
       type: "array",
+      dateEncoding: "rfc3339",
       itemType: "date",
     },
     {
       propertyName: "httpDates",
       xmlOptions: { name: "HttpDates", itemsName: "rfc7231DateTime" },
       type: "array",
+      dateEncoding: "rfc7231",
       itemType: "date",
     },
   ];

@@ -54,6 +54,8 @@ function createMockXmlModel(
     type: any;
     optional?: boolean;
     attribute?: boolean;
+    unwrapped?: boolean;
+    itemsName?: string;
   }>,
   xmlName?: string,
 ): SdkModelType {
@@ -75,6 +77,8 @@ function createMockXmlModel(
         xml: {
           name: p.xmlName,
           attribute: p.attribute,
+          unwrapped: p.unwrapped,
+          itemsName: p.itemsName,
         },
       },
     })),
@@ -260,5 +264,90 @@ describe("XmlSerializer", () => {
     const result = renderToString(template);
     expect(result).toContain("blockLookupListXmlSerializer");
     expect(result).toContain('"BlockList"');
+  });
+
+  /**
+   * Tests that array properties with bytes item types produce metadata with
+   * `bytesEncoding: "base64"` propagated from the array's value type.
+   *
+   * Why this matters: The legacy emitter includes encoding hints on array
+   * metadata so the runtime knows how to encode/decode each item. Without
+   * `bytesEncoding`, the runtime may not base64-encode Uint8Array items,
+   * causing corrupted XML payloads.
+   */
+  it("should include bytesEncoding for arrays of bytes", async () => {
+    const model = createMockXmlModel(
+      "BlockLookupList",
+      [
+        {
+          name: "committed",
+          serializedName: "committed",
+          xmlName: "Committed",
+          type: { kind: "array", valueType: { kind: "bytes", encode: "base64" } },
+          unwrapped: true,
+          itemsName: "Committed",
+        },
+      ],
+      "BlockList",
+    );
+
+    const template = (
+      <Output program={program} namePolicy={createTSNamePolicy()}>
+        <XmlHelpersFile />
+        <SourceFile path="test.ts">
+          <ModelInterface model={model} />
+          {"\n\n"}
+          <XmlSerializer model={model} />
+        </SourceFile>
+      </Output>
+    );
+
+    const result = renderToString(template);
+    expect(result).toContain('bytesEncoding: "base64"');
+    expect(result).toContain('itemType: "bytes"');
+    expect(result).toContain('type: "array"');
+  });
+
+  /**
+   * Tests that array properties with date item types produce metadata with
+   * `dateEncoding` propagated from the array's value type.
+   *
+   * Why this matters: Different date encodings (rfc3339, rfc7231, unixTimestamp)
+   * require different serialization strategies. Without the encoding hint on the
+   * array metadata, the runtime defaults may produce wrong date formats in XML.
+   */
+  it("should include dateEncoding for arrays of dates", async () => {
+    const model = createMockXmlModel("DateArraysModel", [
+      {
+        name: "timestamps",
+        serializedName: "timestamps",
+        xmlName: "Timestamps",
+        type: { kind: "array", valueType: { kind: "utcDateTime", encode: "rfc3339" } },
+        itemsName: "utcDateTime",
+      },
+      {
+        name: "httpDates",
+        serializedName: "httpDates",
+        xmlName: "HttpDates",
+        type: { kind: "array", valueType: { kind: "utcDateTime", encode: "rfc7231" } },
+        itemsName: "rfc7231DateTime",
+      },
+    ]);
+
+    const template = (
+      <Output program={program} namePolicy={createTSNamePolicy()}>
+        <XmlHelpersFile />
+        <SourceFile path="test.ts">
+          <ModelInterface model={model} />
+          {"\n\n"}
+          <XmlSerializer model={model} />
+        </SourceFile>
+      </Output>
+    );
+
+    const result = renderToString(template);
+    expect(result).toContain('dateEncoding: "rfc3339"');
+    expect(result).toContain('dateEncoding: "rfc7231"');
+    expect(result).toContain('itemType: "date"');
   });
 });

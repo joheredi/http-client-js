@@ -29,6 +29,8 @@ import { UsageFlags } from "@azure-tools/typespec-client-generator-core";
 import { XmlObjectSerializer } from "../../../src/components/serialization/xml-object-serializer.js";
 import { XmlHelpersFile } from "../../../src/components/static-helpers/xml-helpers.js";
 import { ModelInterface } from "../../../src/components/model-interface.js";
+import { FlavorProvider } from "../../../src/context/flavor-context.js";
+import { httpRuntimeLib } from "../../../src/utils/external-packages.js";
 
 /**
  * Creates a mock SdkModelType with XML serialization options for testing.
@@ -191,5 +193,82 @@ describe("XmlObjectSerializer", () => {
 
     const result = renderToString(template);
     expect(result).toContain("XmlSerializedObject");
+  });
+
+  /**
+   * Tests that arrays of bytes are serialized with `.map()` and
+   * `uint8ArrayToString(i, "base64")` for each item. The legacy emitter
+   * generates this pattern so each Uint8Array in the array is properly
+   * base64-encoded for XML transport.
+   *
+   * Why this matters: Without the `.map()` + uint8ArrayToString call,
+   * byte arrays would be passed as raw Uint8Array objects which cannot
+   * be directly serialized to XML text content.
+   */
+  it("should map bytes array items through uint8ArrayToString", async () => {
+    const model = createMockXmlModel("BlockLookupList", [
+      {
+        name: "committed",
+        serializedName: "committed",
+        xmlName: "Committed",
+        type: { kind: "array", valueType: { kind: "bytes", encode: "base64" } },
+      },
+    ]);
+
+    const template = (
+      <Output program={program} namePolicy={createTSNamePolicy()} externals={[httpRuntimeLib]}>
+        <FlavorProvider flavor="core">
+          <XmlHelpersFile />
+          <SourceFile path="test.ts">
+            <ModelInterface model={model} />
+            {"\n\n"}
+            <XmlObjectSerializer model={model} />
+          </SourceFile>
+        </FlavorProvider>
+      </Output>
+    );
+
+    const result = renderToString(template);
+    expect(result).toContain("uint8ArrayToString(i");
+    expect(result).toContain('?.map(');
+    expect(result).not.toContain("Unresolved Symbol");
+  });
+
+  /**
+   * Tests that arrays of dates are serialized with `.map()` and
+   * date conversion for each item. The legacy emitter generates
+   * `.toISOString()` for rfc3339 encoding.
+   *
+   * Why this matters: Date objects in arrays need to be converted to
+   * their string representations for XML serialization. Without the
+   * `.map()` call, raw Date objects would appear in the XML output.
+   */
+  it("should map date array items through date conversion", async () => {
+    const model = createMockXmlModel("DateModel", [
+      {
+        name: "timestamps",
+        serializedName: "timestamps",
+        xmlName: "Timestamps",
+        type: { kind: "array", valueType: { kind: "utcDateTime", encode: "rfc3339" } },
+      },
+    ]);
+
+    const template = (
+      <Output program={program} namePolicy={createTSNamePolicy()} externals={[httpRuntimeLib]}>
+        <FlavorProvider flavor="core">
+          <XmlHelpersFile />
+          <SourceFile path="test.ts">
+            <ModelInterface model={model} />
+            {"\n\n"}
+            <XmlObjectSerializer model={model} />
+          </SourceFile>
+        </FlavorProvider>
+      </Output>
+    );
+
+    const result = renderToString(template);
+    expect(result).toContain("?.map(");
+    expect(result).toContain("toISOString()");
+    expect(result).not.toContain("Unresolved Symbol");
   });
 });

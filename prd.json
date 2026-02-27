@@ -1571,7 +1571,7 @@
       "title": "XML Encoding Metadata Removal (bytesEncoding, dateEncoding, uint8ArrayToString)",
       "category": "scenario-audit/XML",
       "priority": "P1",
-      "status": "not-started",
+      "status": "done",
       "description": "The new emitter omits encoding metadata (bytesEncoding, dateEncoding) from XML array item type definitions and removes uint8ArrayToString encoding calls. Legacy includes these encoding hints. Legacy behavior is the expected output.",
       "legacy_behavior": "Includes bytesEncoding: 'base64', dateEncoding: 'rfc3339' in metadata, uses uint8ArrayToString for binary fields.",
       "new_behavior": "Encoding metadata removed, binary encoding calls omitted.",

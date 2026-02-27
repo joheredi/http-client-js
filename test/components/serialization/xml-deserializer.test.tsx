@@ -46,6 +46,7 @@ function createMockXmlOutputModel(
     type: any;
     optional?: boolean;
     attribute?: boolean;
+    itemsName?: string;
   }>,
   xmlName?: string,
 ): SdkModelType {
@@ -67,6 +68,7 @@ function createMockXmlOutputModel(
         xml: {
           name: p.xmlName,
           attribute: p.attribute,
+          itemsName: p.itemsName,
         },
       },
     })),
@@ -232,5 +234,84 @@ describe("XmlDeserializer", () => {
 
     const result = renderToString(template);
     expect(result).toContain("attribute: true");
+  });
+
+  /**
+   * Tests that array properties with date item types produce metadata with
+   * `dateEncoding` propagated from the array's value type in deserialization
+   * metadata. This ensures the runtime correctly parses date strings in arrays.
+   *
+   * Why this matters: Without dateEncoding on array metadata, the runtime
+   * may use the wrong date parsing strategy (e.g., treating rfc7231 dates
+   * as rfc3339), causing incorrect Date objects or parse failures.
+   */
+  it("should include dateEncoding for arrays of dates", async () => {
+    const model = createMockXmlOutputModel("DateArraysModel", [
+      {
+        name: "timestamps",
+        serializedName: "timestamps",
+        xmlName: "Timestamps",
+        type: { kind: "array", valueType: { kind: "utcDateTime", encode: "rfc3339" } },
+        itemsName: "utcDateTime",
+      },
+      {
+        name: "httpDates",
+        serializedName: "httpDates",
+        xmlName: "HttpDates",
+        type: { kind: "array", valueType: { kind: "utcDateTime", encode: "rfc7231" } },
+        itemsName: "rfc7231DateTime",
+      },
+    ]);
+
+    const template = (
+      <Output program={program} namePolicy={createTSNamePolicy()}>
+        <XmlHelpersFile />
+        <SourceFile path="test.ts">
+          <ModelInterface model={model} />
+          {"\n\n"}
+          <XmlDeserializer model={model} />
+        </SourceFile>
+      </Output>
+    );
+
+    const result = renderToString(template);
+    expect(result).toContain('dateEncoding: "rfc3339"');
+    expect(result).toContain('dateEncoding: "rfc7231"');
+    expect(result).toContain('itemType: "date"');
+  });
+
+  /**
+   * Tests that array properties with bytes item types produce metadata with
+   * `bytesEncoding: "base64"` in deserialization metadata.
+   *
+   * Why this matters: Without bytesEncoding on array metadata, the runtime
+   * cannot properly decode base64 strings back to Uint8Array items.
+   */
+  it("should include bytesEncoding for arrays of bytes", async () => {
+    const model = createMockXmlOutputModel("BlockLookupList", [
+      {
+        name: "committed",
+        serializedName: "committed",
+        xmlName: "Committed",
+        type: { kind: "array", valueType: { kind: "bytes", encode: "base64" } },
+        itemsName: "Committed",
+      },
+    ]);
+
+    const template = (
+      <Output program={program} namePolicy={createTSNamePolicy()}>
+        <XmlHelpersFile />
+        <SourceFile path="test.ts">
+          <ModelInterface model={model} />
+          {"\n\n"}
+          <XmlDeserializer model={model} />
+        </SourceFile>
+      </Output>
+    );
+
+    const result = renderToString(template);
+    expect(result).toContain('bytesEncoding: "base64"');
+    expect(result).toContain('itemType: "bytes"');
+    expect(result).toContain('type: "array"');
   });
 });
