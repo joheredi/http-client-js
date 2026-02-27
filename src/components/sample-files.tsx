@@ -11,6 +11,7 @@ import type {
   SdkServiceMethod,
 } from "@azure-tools/typespec-client-generator-core";
 import { useSdkContext } from "../context/sdk-context.js";
+import { type FlavorKind, useFlavorContext } from "../context/flavor-context.js";
 import { getClientName } from "./client-context.js";
 import { isRequiredSignatureParameter } from "./send-operation.js";
 import { getExampleValueCode } from "../utils/example-values.js";
@@ -107,16 +108,17 @@ interface SampleFileProps {
 function SampleFile(props: SampleFileProps) {
   const { info } = props;
   const { topLevelClient, method, examples } = info;
+  const { flavor } = useFlavorContext();
 
   const clientClassName = topLevelClient.name;
   const exampleFunctions = examples.map((example) =>
-    buildExampleFunction(example, info),
+    buildExampleFunction(example, info, flavor),
   );
   const functionNames = exampleFunctions.map((f) => f.name);
 
   // Build import line — uses package name placeholder since samples
   // import the SDK as an external package dependency
-  const importLines = buildSampleImports(topLevelClient, clientClassName);
+  const importLines = buildSampleImports(topLevelClient, clientClassName, flavor);
 
   // Build main function
   const mainBody = functionNames.map((name) => `  await ${name}();`).join("\n");
@@ -247,11 +249,13 @@ interface ExampleFunctionInfo {
  *
  * @param example - The TCGC example containing parameter values.
  * @param info - The sample info with client/method context.
+ * @param flavor - The emitter flavor ("azure" or "core").
  * @returns An ExampleFunctionInfo with the function name and body.
  */
 function buildExampleFunction(
   example: SdkHttpOperationExample,
   info: SampleInfo,
+  flavor: FlavorKind,
 ): ExampleFunctionInfo {
   const { topLevelClient, method, callChainPrefixes } = info;
   const funcName = normalizeFunctionName(example.name);
@@ -266,7 +270,7 @@ function buildExampleFunction(
   }
 
   // 2. Setup credential
-  const credentialCode = getCredentialSetupCode(topLevelClient);
+  const credentialCode = getCredentialSetupCode(topLevelClient, flavor);
   if (credentialCode) {
     lines.push(`  const credential = ${credentialCode};`);
   }
@@ -310,15 +314,18 @@ function buildExampleFunction(
  * Generates two types of imports:
  * 1. The client class from the SDK package (using `@azure/internal-test`
  *    as the default package name)
- * 2. `DefaultAzureCredential` from `@azure/identity` for OAuth2 auth
+ * 2. For Azure flavor: `DefaultAzureCredential` from `@azure/identity` for OAuth2 auth
+ *    For Core flavor: no additional imports (inline token credential placeholder)
  *
  * @param client - The TCGC client type.
  * @param clientClassName - The name of the classical client class.
+ * @param flavor - The emitter flavor ("azure" or "core").
  * @returns A string containing all import declarations.
  */
 function buildSampleImports(
   client: SdkClientType<SdkHttpOperation>,
   clientClassName: string,
+  flavor: FlavorKind,
 ): string {
   const lines: string[] = [];
 
@@ -327,8 +334,8 @@ function buildSampleImports(
   const packageName = "@azure/internal-test";
   lines.push(`import { ${clientClassName} } from "${packageName}";`);
 
-  // Import DefaultAzureCredential for OAuth2/bearer auth
-  if (hasOAuth2Auth(client)) {
+  // Import DefaultAzureCredential for OAuth2/bearer auth (Azure flavor only)
+  if (flavor === "azure" && hasOAuth2Auth(client)) {
     lines.push(`import { DefaultAzureCredential } from "@azure/identity";`);
   }
 
@@ -449,18 +456,21 @@ function buildClientConstructorParams(
 }
 
 /**
- * Gets the credential setup code for a sample file based on auth scheme.
+ * Gets the credential setup code for a sample file based on auth scheme and flavor.
  *
  * Returns the appropriate credential initialization code:
- * - OAuth2/OpenIDConnect: `new DefaultAzureCredential()`
+ * - Azure flavor + OAuth2/OpenIDConnect: `new DefaultAzureCredential()`
+ * - Core flavor + OAuth2/OpenIDConnect: inline TokenCredential placeholder
  * - API Key: `{ key: "INPUT_YOUR_KEY_HERE" }`
  * - No auth: undefined (no credential needed)
  *
  * @param client - The TCGC client type with authentication configuration.
+ * @param flavor - The emitter flavor ("azure" or "core").
  * @returns A TypeScript expression string for credential setup, or undefined.
  */
 function getCredentialSetupCode(
   client: SdkClientType<SdkHttpOperation>,
+  flavor: FlavorKind,
 ): string | undefined {
   const credentialParam = client.clientInitialization.parameters.find(
     (p): p is SdkCredentialParameter => p.kind === "credential",
@@ -471,14 +481,14 @@ function getCredentialSetupCode(
   const credType = credentialParam.type;
 
   if (credType.kind === "credential") {
-    return getCredentialCodeForScheme(credType.scheme);
+    return getCredentialCodeForScheme(credType.scheme, flavor);
   }
 
   if (credType.kind === "union") {
     // Use first credential variant
     for (const variant of credType.variantTypes) {
       if (variant.kind === "credential") {
-        return getCredentialCodeForScheme(variant.scheme);
+        return getCredentialCodeForScheme(variant.scheme, flavor);
       }
     }
   }
@@ -489,14 +499,23 @@ function getCredentialSetupCode(
 /**
  * Returns the TypeScript credential expression for a specific auth scheme.
  *
+ * For OAuth2/OpenIDConnect:
+ * - Azure flavor: `new DefaultAzureCredential()` (uses `@azure/identity` package)
+ * - Core flavor: inline TokenCredential placeholder with a getToken() method
+ *
  * @param scheme - The auth scheme from TCGC.
+ * @param flavor - The emitter flavor ("azure" or "core").
  * @returns A TypeScript expression string for the credential.
  */
-function getCredentialCodeForScheme(scheme: { type: string }): string {
+function getCredentialCodeForScheme(scheme: { type: string }, flavor: FlavorKind): string {
   switch (scheme.type) {
     case "oauth2":
     case "openIdConnect":
-      return "new DefaultAzureCredential()";
+      if (flavor === "azure") {
+        return "new DefaultAzureCredential()";
+      }
+      // Core flavor: inline token credential placeholder
+      return `{ getToken: async () => ({ token: "INPUT_YOUR_TOKEN_HERE", expiresOnTimestamp: Date.now() }) }`;
     case "apiKey":
     case "http":
       return `{ key: "INPUT_YOUR_KEY_HERE" }`;

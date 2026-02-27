@@ -60,6 +60,7 @@ import { httpRuntimeLib } from "../../src/utils/external-packages.js";
 import { getExampleValueCode } from "../../src/utils/example-values.js";
 import { TesterWithService, Tester, createSdkContextForTest } from "../test-host.js";
 import { SdkContextProvider } from "../../src/context/sdk-context.js";
+import { FlavorProvider, type FlavorKind } from "../../src/context/flavor-context.js";
 
 /**
  * Helper to extract the first client from an SDK context.
@@ -75,9 +76,13 @@ function getFirstClient(sdkContext: {
  * for SampleFiles to render correctly. Includes the client context,
  * classical client, and operation declarations so that the sample
  * generation can introspect the client hierarchy.
+ *
+ * Wraps with FlavorProvider to allow testing flavor-specific behavior
+ * (e.g., Azure vs core credential patterns). Defaults to "core" flavor.
  */
 function SampleTestWrapper(props: {
   sdkContext: SdkContext<Record<string, any>, SdkHttpOperation>;
+  flavor?: FlavorKind;
   children: Children;
 }) {
   const client = props.sdkContext.sdkPackage.clients[0];
@@ -88,32 +93,34 @@ function SampleTestWrapper(props: {
       namePolicy={createTSNamePolicy()}
       externals={[httpRuntimeLib]}
     >
-      <SdkContextProvider sdkContext={props.sdkContext}>
-        {/* Infrastructure files for refkey resolution */}
-        <SourceFile path="src/api/testingClientContext.ts">
-          <ClientContextDeclaration client={client} />
-          <ClientContextOptionsDeclaration client={client} />
-          <ClientContextFactory client={client} />
-        </SourceFile>
-        <SourceFile path="src/api/operations.ts">
-          {methods.map((method: any, i: number) => (
-            <>
-              {i > 0 && "\n\n"}
-              <OperationOptionsDeclaration method={method} />
-              {"\n\n"}
-              <SendOperation method={method} />
-              {"\n\n"}
-              <DeserializeOperation method={method} />
-              {"\n\n"}
-              <PublicOperation method={method} />
-            </>
-          ))}
-        </SourceFile>
-        <SourceFile path="src/testingClient.ts">
-          <ClassicalClientDeclaration client={client} />
-        </SourceFile>
-        {props.children}
-      </SdkContextProvider>
+      <FlavorProvider flavor={props.flavor ?? "core"}>
+        <SdkContextProvider sdkContext={props.sdkContext}>
+          {/* Infrastructure files for refkey resolution */}
+          <SourceFile path="src/api/testingClientContext.ts">
+            <ClientContextDeclaration client={client} />
+            <ClientContextOptionsDeclaration client={client} />
+            <ClientContextFactory client={client} />
+          </SourceFile>
+          <SourceFile path="src/api/operations.ts">
+            {methods.map((method: any, i: number) => (
+              <>
+                {i > 0 && "\n\n"}
+                <OperationOptionsDeclaration method={method} />
+                {"\n\n"}
+                <SendOperation method={method} />
+                {"\n\n"}
+                <DeserializeOperation method={method} />
+                {"\n\n"}
+                <PublicOperation method={method} />
+              </>
+            ))}
+          </SourceFile>
+          <SourceFile path="src/testingClient.ts">
+            <ClassicalClientDeclaration client={client} />
+          </SourceFile>
+          {props.children}
+        </SdkContextProvider>
+      </FlavorProvider>
     </Output>
   );
 }
@@ -306,6 +313,83 @@ describe("SampleFiles", () => {
 
     expect(sampleContent).toContain('{ key: "INPUT_YOUR_KEY_HERE" }');
     expect(sampleContent).not.toContain("DefaultAzureCredential");
+  });
+
+  /**
+   * Tests that OAuth2 auth with Azure flavor generates DefaultAzureCredential.
+   *
+   * When the emitter runs in Azure flavor, OAuth2/OpenIDConnect services should
+   * import and use `DefaultAzureCredential` from `@azure/identity`, which is
+   * the standard Azure SDK credential pattern. This matches the legacy emitter's
+   * behavior for Azure packages.
+   */
+  it("should use DefaultAzureCredential for OAuth2 auth in Azure flavor", async () => {
+    const runner = await Tester.createInstance();
+    const { program } = await runner.compile(
+      t.code`
+        @service(#{title: "Test Service"})
+        @useAuth(OAuth2Auth<[{type: OAuth2FlowType.implicit, authorizationUrl: "https://login.example.com/auth", scopes: ["https://example.com/.default"]}]>)
+        namespace TestService;
+
+        @get op getItem(): string;
+      `,
+    );
+
+    const sdkContext = await createSdkContextForTest(program);
+    addMockExample(sdkContext);
+
+    const template = (
+      <SampleTestWrapper sdkContext={sdkContext} flavor="azure">
+        <SampleFiles />
+      </SampleTestWrapper>
+    );
+
+    const result = renderToString(template);
+    const sampleContent = extractSampleContent(result, "getItemSample.ts");
+
+    expect(sampleContent).toContain("new DefaultAzureCredential()");
+    expect(sampleContent).toContain('import { DefaultAzureCredential } from "@azure/identity"');
+  });
+
+  /**
+   * Tests that OAuth2 auth with core flavor generates a placeholder TokenCredential.
+   *
+   * When the emitter runs in core (non-Azure) flavor, OAuth2/OpenIDConnect services
+   * should NOT use DefaultAzureCredential. Instead, the sample should use an inline
+   * token credential placeholder with a getToken() method. This matches the legacy
+   * emitter's behavior for non-Azure packages and avoids introducing an Azure
+   * dependency in vanilla TypeSpec SDKs.
+   */
+  it("should use inline token credential for OAuth2 auth in core flavor", async () => {
+    const runner = await Tester.createInstance();
+    const { program } = await runner.compile(
+      t.code`
+        @service(#{title: "Test Service"})
+        @useAuth(OAuth2Auth<[{type: OAuth2FlowType.implicit, authorizationUrl: "https://login.example.com/auth", scopes: ["https://example.com/.default"]}]>)
+        namespace TestService;
+
+        @get op getItem(): string;
+      `,
+    );
+
+    const sdkContext = await createSdkContextForTest(program);
+    addMockExample(sdkContext);
+
+    const template = (
+      <SampleTestWrapper sdkContext={sdkContext} flavor="core">
+        <SampleFiles />
+      </SampleTestWrapper>
+    );
+
+    const result = renderToString(template);
+    const sampleContent = extractSampleContent(result, "getItemSample.ts");
+
+    // Core flavor should NOT use DefaultAzureCredential or import @azure/identity
+    expect(sampleContent).not.toContain("DefaultAzureCredential");
+    expect(sampleContent).not.toContain("@azure/identity");
+    // Should use inline token credential placeholder
+    expect(sampleContent).toContain("getToken");
+    expect(sampleContent).toContain("INPUT_YOUR_TOKEN_HERE");
   });
 
   /**

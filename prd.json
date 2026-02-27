@@ -899,7 +899,7 @@
         "Both flavors use { key: 'INPUT_YOUR_KEY_HERE' } for API key auth",
         "@azure/identity import only appears in Azure flavor samples"
       ],
-      "status": "not-started",
+      "status": "done",
       "source": "implementation-phase",
       "category": "phase-10/Flavor Parity \u2014 Match Legacy Emitter Flavor Behavior"
     },
