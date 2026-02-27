@@ -48,9 +48,9 @@ Model generated.
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
 /**
- * Type of Foo
+ * Alias for Foo
  */
-export type Foo = Baz | "bar" | string;
+export type Foo = "bar" | Baz | string;
 
 /**
  * Type of Baz

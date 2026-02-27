@@ -252,26 +252,23 @@ function buildComposedUnionBody(type: SdkEnumType): Children {
     return type.values.map((v) => getEnumValueLiteral(v)).join(" | ");
   }
 
-  // Collect sub-enum values to exclude them from the ungrouped literals
-  const subEnumValues = new Set<string>();
+  // Build a lookup from value to sub-enum name for O(1) checks
+  const valueToSubEnum = new Map<string, string>();
   for (const sub of subEnums) {
     for (const v of sub.values) {
-      subEnumValues.add(String(v.value));
+      valueToSubEnum.set(String(v.value), sub.name);
     }
   }
 
-  // Build ordered parts: sub-enum references, then ungrouped literals, then string
-  const parts: ComposedPart[] = [];
+  // Collect ungrouped literal values (not belonging to any sub-enum)
+  const ungroupedValues = type.values.filter(
+    (v) => !valueToSubEnum.has(String(v.value)),
+  );
 
-  for (const sub of subEnums) {
-    parts.push({ kind: "ref", subName: sub.name });
-  }
-
-  for (const v of type.values) {
-    if (!subEnumValues.has(String(v.value))) {
-      parts.push({ kind: "lit", text: getEnumValueLiteral(v) });
-    }
-  }
+  // Try to reconstruct the original TypeSpec source order from __raw union variants.
+  // TCGC flattens the union values and loses the original variant order.
+  // The __raw TypeSpec Union preserves variant insertion order.
+  const parts = buildPartsFromRawVariants(type, subEnums, ungroupedValues);
 
   if (!type.isFixed) {
     parts.push({ kind: "lit", text: "string" });
@@ -287,6 +284,86 @@ function buildComposedUnionBody(type: SdkEnumType): Children {
       }}
     </For>
   );
+}
+
+/**
+ * Reconstructs union parts in TypeSpec source order using the __raw union.
+ *
+ * The TypeSpec Union type preserves variant insertion order. Each variant
+ * is either a named type (enum/union → sub-enum ref) or an anonymous
+ * string literal. We walk the original variants to produce parts in the
+ * correct source order.
+ *
+ * Falls back to a simple ordering (literals first, then sub-enum refs)
+ * if the __raw union is not available.
+ *
+ * @param type - The TCGC enum-as-union type.
+ * @param subEnums - The extracted sub-enum groups.
+ * @param ungroupedValues - Literal values not belonging to any sub-enum.
+ * @returns Ordered parts for the composed type body.
+ */
+function buildPartsFromRawVariants(
+  type: SdkEnumType,
+  subEnums: { name: string; values: SdkEnumValueType[] }[],
+  ungroupedValues: SdkEnumValueType[],
+): ComposedPart[] {
+  const raw = (type as any).__raw;
+
+  // If __raw is a Union, use its variants for ordering
+  if (raw?.kind === "Union" && raw.variants) {
+    const parts: ComposedPart[] = [];
+    const emittedSubEnums = new Set<string>();
+    const subEnumNames = new Set(subEnums.map((s) => s.name));
+
+    for (const [, variant] of raw.variants) {
+      // Check if this variant references a named type (enum or union)
+      const variantType = variant.type;
+      if (variantType && (variantType.kind === "Enum" || variantType.kind === "Union") && variantType.name) {
+        if (subEnumNames.has(variantType.name) && !emittedSubEnums.has(variantType.name)) {
+          emittedSubEnums.add(variantType.name);
+          parts.push({ kind: "ref", subName: variantType.name });
+        }
+      } else if (variantType?.kind === "Scalar" && variantType.name === "string") {
+        // Skip 'string' base type — handled separately via isFixed
+      } else if (variantType?.kind === "String") {
+        // String literal variant — emit as literal
+        parts.push({ kind: "lit", text: `"${variantType.value}"` });
+      }
+    }
+    return parts;
+  }
+
+  // Fallback: use type.values order (TCGC flattened order)
+  const parts: ComposedPart[] = [];
+  const emittedSubEnums = new Set<string>();
+  for (const v of type.values) {
+    const subName = valueToSubEnumLookup(v, subEnums);
+    if (subName) {
+      if (!emittedSubEnums.has(subName)) {
+        emittedSubEnums.add(subName);
+        parts.push({ kind: "ref", subName });
+      }
+    } else {
+      parts.push({ kind: "lit", text: getEnumValueLiteral(v) });
+    }
+  }
+  return parts;
+}
+
+/**
+ * Looks up which sub-enum a value belongs to.
+ */
+function valueToSubEnumLookup(
+  value: SdkEnumValueType,
+  subEnums: { name: string; values: SdkEnumValueType[] }[],
+): string | undefined {
+  const valStr = String(value.value);
+  for (const sub of subEnums) {
+    for (const v of sub.values) {
+      if (String(v.value) === valStr) return sub.name;
+    }
+  }
+  return undefined;
 }
 
 /**
@@ -316,7 +393,13 @@ function getEnumValueLiteral(value: SdkEnumValueType): string {
  * @returns A documentation string for the type alias.
  */
 function getTypeAliasDoc(type: SdkEnumType): string {
-  return type.doc ?? `Type of ${type.name}`;
+  if (type.doc) return type.doc;
+  // Union-as-enum types that contain sub-enums use "Alias for" prefix
+  // to match legacy emitter behavior for union types.
+  if (type.isUnionAsEnum && extractSubEnums(type).length > 0) {
+    return `Alias for ${type.name}`;
+  }
+  return `Type of ${type.name}`;
 }
 
 /**

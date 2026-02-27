@@ -108,7 +108,7 @@ describe("Polymorphic Type", () => {
       }
 
       /**
-       * Alias for \`Pet\`
+       * Alias for PetUnion
        */
       export type PetUnion = Cat | Dog | Pet;
     `);
@@ -331,7 +331,7 @@ describe("Polymorphic Type", () => {
       }
 
       /**
-       * Alias for \`Shape\`
+       * Alias for ShapeUnion
        */
       export type ShapeUnion = Circle | Square | Shape;
 
@@ -394,7 +394,7 @@ describe("Polymorphic Type", () => {
       }
 
       /**
-       * Alias for \`Base\`
+       * Alias for BaseUnion
        */
       export type BaseUnion = OnlyChild | Base;
     `);

@@ -1551,8 +1551,8 @@
       "title": "Discriminator/Union Handling: Property Order, Type Alias Descriptions, Serializers",
       "category": "scenario-audit/Serialization",
       "priority": "P2",
-      "status": "not-started",
-      "description": "The new emitter handles discriminated unions differently \u2014 reorders properties, changes 'Alias for' to 'Type of' in descriptions, removes some union serializers, and reorders union members. Legacy behavior is the expected output.",
+      "status": "done",
+      "description": "The new emitter handles discriminated unions differently \u2014 reorders properties, changes 'Alias for' to 'Type of' in descriptions, removes some union serializers, and reorders union members. Legacy behavior is the expected output. (Partially addressed: doc format, union member ordering, sub-enum doc propagation, and polymorphic union doc are fixed. Union serializer generation for enum-as-union types is deferred to SA-C31-SER.)",
       "legacy_behavior": "Generates union serializers, 'Alias for' description prefix, specific property ordering.",
       "new_behavior": "Removes some union serializers, 'Type of' description prefix, different property ordering.",
       "affected_scenarios": [
@@ -1699,6 +1699,21 @@
       "reference_new_tests": "test/scenarios/cases/operations/override.md",
       "kind": "regression",
       "source": "scenario-audit"
+    },
+    {
+      "id": "SA-C31-SER",
+      "title": "Add missing pass-through serializers for union-as-enum types",
+      "category": "scenario-audit/Serialization",
+      "priority": "P2",
+      "status": "not-started",
+      "description": "The legacy emitter generates pass-through serializer functions for union-as-enum types (e.g., provisioningStateSerializer for ProvisioningState). The new emitter does not. This requires threading experimentalExtensibleEnums through getSerializationExpression/needsTransformation or handling it in the JsonSerializer component. Affects experimentalExtensibleEnumsFalse and experimentalExtensibleEnumsUndefined scenarios.",
+      "affected_scenarios": [
+        "models/nestedEnum/notFlatten/experimentalExtensibleEnumsFalse",
+        "models/nestedEnum/notFlatten/experimentalExtensibleEnumsUndefined"
+      ],
+      "kind": "regression",
+      "source": "scenario-audit",
+      "dependencies": []
     }
   ],
   "phases_metadata": [

@@ -1670,7 +1670,7 @@ export interface Pet {
 }
 
 /**
- * Alias for `Pet`
+ * Alias for PetUnion
  */
 export type PetUnion = PSDog | Pet;
 
@@ -1823,7 +1823,7 @@ export interface Pet {
 }
 
 /**
- * Alias for `Pet`
+ * Alias for PetUnion
  */
 export type PetUnion = Cat | Dog | Pet;
 
@@ -1975,7 +1975,7 @@ export interface Pet {
 }
 
 /**
- * Alias for `Pet`
+ * Alias for PetUnion
  */
 export type PetUnion = Cat | Dog | Pet;
 
@@ -1997,7 +1997,7 @@ export interface Dog extends Pet {
 }
 
 /**
- * Alias for `Dog`
+ * Alias for DogUnion
  */
 export type DogUnion = Gold | Dog;
 
@@ -2882,7 +2882,7 @@ export interface Pet {
 }
 
 /**
- * Alias for `Pet`
+ * Alias for PetUnion
  */
 export type PetUnion = ServicePlacementPolicyDescription | Pet;
 

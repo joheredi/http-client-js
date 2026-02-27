@@ -1466,3 +1466,28 @@ When gating a static helper file behind Azure flavor, ALL scenario tests that re
 **Pattern**: Uses `code` tagged templates with arrays of Children to build inline object types. Each property entry is a `code` template (`code\`propName?: typeExpr\``), joined with "; " separators, then wrapped in `code\`{ ${parts} }\``. This preserves refkey-based import resolution for complex property types (models, enums).
 
 **What next person should know**: The `buildExpandedCompositeReturnType` function only handles model response types. Non-model response types with headers fall back to intersection types (unlikely in practice). Header-only responses still use `buildHeaderReturnType()` which returns a plain string.
+
+## Task SA-C31: Discriminator/Union Handling — Doc Formats, Union Member Ordering, Sub-Enum Docs — DONE (2026-02-27)
+
+**What was done**: Fixed 4 issues in discriminated union and union-as-enum type generation to match legacy emitter behavior:
+
+1. **Polymorphic union doc format**: Changed from `Alias for \`ModelName\`` to `Alias for ModelNameUnion` (uses union type alias name without backticks). File: `src/components/polymorphic-type.tsx` — `getPolymorphicDoc()` now computes the normalized union name.
+
+2. **"Alias for" vs "Type of" for union-as-enum types**: When an `SdkEnumType` with `isUnionAsEnum: true` has extractable sub-enums, the doc prefix is now `"Alias for"` instead of `"Type of"`. Simple enums and union-as-enums without sub-enums retain `"Type of"`. File: `src/components/enum-declaration.tsx` — `getTypeAliasDoc()` checks `isUnionAsEnum && extractSubEnums(type).length > 0`.
+
+3. **Union member ordering**: `buildComposedUnionBody()` now reconstructs the original TypeSpec source order by reading the `__raw` Union type's `variants` map (which preserves insertion order). TCGC flattens values losing source order, but the `__raw.variants` retains it. Falls back to TCGC value order if `__raw` is unavailable.
+
+4. **Sub-enum doc propagation**: `extractSubEnums()` now captures the doc text from the original TypeSpec type node's JSDoc comments (`__raw.enum.node.docs` or `__raw.union.node.docs`). `SubEnumDeclaration` uses this doc when available instead of always falling back to `"Type of"`.
+
+**What was NOT done (deferred to SA-C31-SER)**:
+- Pass-through serializer generation for union-as-enum types (e.g., `provisioningStateSerializer`). This requires threading `experimentalExtensibleEnums` into `getSerializationExpression`/`needsTransformation`, which affects many call sites. When `experimentalExtensibleEnums: true`, no serializer should be generated. When `false/undefined`, a pass-through serializer IS needed.
+
+**Key patterns**:
+- `__raw.enum.node.docs[0].content` to extract JSDoc from TypeSpec AST
+- `(type as any).__raw.variants` to access TypeSpec Union variant order
+- `extractSubEnums(type).length > 0` as the discriminator for "Alias for" vs "Type of"
+
+**What next person should know**:
+- SA-C31-SER is the remaining work for union-as-enum serializers
+- The `experimentalExtensibleEnums` flag complicates serializer generation because it controls whether sub-enums are rendered, but `getSerializationExpression` doesn't have access to the flag
+- Property ordering in serializers/deserializers for inherited models (extends scenario) is still different from legacy — this is a separate issue from SA-C31

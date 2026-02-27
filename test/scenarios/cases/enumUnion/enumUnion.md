@@ -261,7 +261,7 @@ withRawContent: true
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
 /**
- * Type of SchemaContentTypeValues
+ * Alias for SchemaContentTypeValues
  */
 export type SchemaContentTypeValues =
   | JsonContentType
@@ -328,7 +328,7 @@ withRawContent: true
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
 /**
- * Type of SchemaContentTypeValues
+ * Alias for SchemaContentTypeValues
  */
 export type SchemaContentTypeValues =
   | JsonContentType
@@ -447,7 +447,7 @@ withRawContent: true
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
 /**
- * Type of SchemaContentTypeValues
+ * Alias for SchemaContentTypeValues
  */
 export type SchemaContentTypeValues =
   | JsonContentType
@@ -514,7 +514,7 @@ withRawContent: true
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
 /**
- * Type of SchemaContentTypeValues
+ * Alias for SchemaContentTypeValues
  */
 export type SchemaContentTypeValues =
   | JsonContentType

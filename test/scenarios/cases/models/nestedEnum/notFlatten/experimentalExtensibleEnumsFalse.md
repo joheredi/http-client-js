@@ -109,7 +109,8 @@ export enum KnownVersions {
 }
 
 /**
- * Type of ResourceProvisioningState
+ * Standard terminal provisioning state of resource type. You can include in your
+ * custom provision state to avoid duplication and ensure consistency
  */
 export type ResourceProvisioningState = "Succeeded" | "Failed" | "Canceled";
 

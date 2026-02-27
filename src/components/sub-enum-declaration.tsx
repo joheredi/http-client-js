@@ -20,6 +20,8 @@ export interface SubEnumInfo {
   name: string;
   /** The enum values belonging to this sub-enum group. */
   values: SdkEnumValueType[];
+  /** Documentation from the original TypeSpec enum/union, if available. */
+  doc?: string;
 }
 
 /**
@@ -47,6 +49,7 @@ export function extractSubEnums(enumType: SdkEnumType): SubEnumInfo[] {
   }
 
   const groups = new Map<string, SdkEnumValueType[]>();
+  const docs = new Map<string, string | undefined>();
 
   for (const value of enumType.values) {
     const raw = (value as any).__raw;
@@ -57,9 +60,15 @@ export function extractSubEnums(enumType: SdkEnumType): SubEnumInfo[] {
     if (raw.kind === "EnumMember" && raw.enum?.name) {
       // Value comes from a TypeSpec `enum Foo { ... }`
       sourceName = raw.enum.name;
+      if (!docs.has(raw.enum.name)) {
+        docs.set(raw.enum.name, extractDocFromNode(raw.enum));
+      }
     } else if (raw.kind === "UnionVariant" && raw.union?.name) {
       // Value comes from a TypeSpec `union Foo { ... }`
       sourceName = raw.union.name;
+      if (!docs.has(raw.union.name)) {
+        docs.set(raw.union.name, extractDocFromNode(raw.union));
+      }
     }
 
     if (sourceName) {
@@ -79,6 +88,7 @@ export function extractSubEnums(enumType: SdkEnumType): SubEnumInfo[] {
     .map(([name, values]) => ({
       name,
       values,
+      doc: docs.get(name),
     }));
 }
 
@@ -130,7 +140,8 @@ export interface SubEnumDeclarationProps {
 export function SubEnumDeclaration(props: SubEnumDeclarationProps) {
   const { parentEnum, subEnum } = props;
   const normalizedName = normalizeSubEnumName(subEnum.name);
-  const doc = `Type of ${normalizedName}`;
+  // Use the original TypeSpec doc if available, otherwise fall back to "Type of"
+  const doc = subEnum.doc ?? `Type of ${normalizedName}`;
 
   const literals = subEnum.values.map((v) => {
     if (typeof v.value === "string") {
@@ -206,4 +217,26 @@ export function SubEnumDeclarations(props: SubEnumDeclarationsProps) {
 function normalizeSubEnumName(name: string): string {
   if (name.length === 0) return name;
   return name.charAt(0).toUpperCase() + name.slice(1);
+}
+
+/**
+ * Extracts JSDoc documentation text from a TypeSpec AST node.
+ *
+ * TypeSpec types (Enum, Union) have `node.docs` containing JSDoc comments
+ * from the TypeSpec source. This function extracts the text content from
+ * the first doc block, which matches how `@doc` decorators and `/** ... *​/`
+ * comments are stored in the TypeSpec AST.
+ *
+ * @param tspType - A TypeSpec type object with optional `node.docs`.
+ * @returns The documentation text, or undefined if no docs are available.
+ */
+function extractDocFromNode(tspType: any): string | undefined {
+  const docs = tspType?.node?.docs;
+  if (!Array.isArray(docs) || docs.length === 0) return undefined;
+
+  const content = docs[0]?.content;
+  if (!Array.isArray(content) || content.length === 0) return undefined;
+
+  const text = content.map((c: any) => c.text ?? "").join("").trim();
+  return text || undefined;
 }
