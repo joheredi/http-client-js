@@ -6,7 +6,7 @@ import type {
   SdkType,
 } from "@azure-tools/typespec-client-generator-core";
 import type { HttpStatusCodeRange } from "@typespec/http";
-import { useRuntimeLib } from "../context/flavor-context.js";
+import { useFlavorContext, type FlavorKind, type RuntimeLib } from "../context/flavor-context.js";
 import {
   deserializeOperationRefkey,
 } from "../utils/refkeys.js";
@@ -53,11 +53,11 @@ export interface DeserializeOperationProps {
  * @returns An Alloy JSX tree representing the deserialize function declaration.
  */
 export function DeserializeOperation(props: DeserializeOperationProps) {
-  const runtimeLib = useRuntimeLib();
+  const { flavor, runtimeLib } = useFlavorContext();
   const { method } = props;
   const functionName = namekey(`_${getEscapedOperationName(method.name)}Deserialize`, { ignoreNamePolicy: true });
   const returnTypeExpr = getReturnType(method);
-  const expectedStatuses = getExpectedStatuses(method);
+  const expectedStatuses = getExpectedStatuses(method, flavor);
   const bodyExpression = getResponseBodyExpression(method);
   const errorBlock = buildErrorHandlingBlock(runtimeLib);
 
@@ -121,17 +121,21 @@ function getReturnType(method: SdkServiceMethod<SdkHttpOperation>): Children {
  * Builds the expected status codes string for the status code check.
  *
  * Examines the operation's HTTP responses and collects all status codes.
- * For LRO operations (non-GET), additional polling status codes are added
- * (200, 201, 202) to match the legacy emitter's behavior.
+ * For Azure flavor LRO operations (non-GET), additional polling status codes
+ * are added (200, 201, 202) to match the legacy emitter's behavior.
+ * Core flavor skips these extra codes because it treats LRO operations as
+ * regular async functions without polling infrastructure.
  *
  * Status codes are formatted as quoted strings (e.g., `"200", "201"`)
  * because `PathUncheckedResponse.status` is a string.
  *
  * @param method - The TCGC service method.
+ * @param flavor - The current emitter flavor ("core" or "azure").
  * @returns A string of comma-separated quoted status codes.
  */
 function getExpectedStatuses(
   method: SdkServiceMethod<SdkHttpOperation>,
+  flavor: FlavorKind,
 ): string {
   const operation = method.operation;
   const statusCodes = new Set<string>();
@@ -149,8 +153,10 @@ function getExpectedStatuses(
     }
   }
 
-  // LRO operations need additional polling status codes
-  if (isLroOperation(method) && operation.verb !== "get") {
+  // LRO operations need additional polling status codes for Azure flavor only.
+  // Core flavor treats LRO operations as regular async functions (no poller),
+  // so these extra polling codes are not needed.
+  if (flavor === "azure" && isLroOperation(method) && operation.verb !== "get") {
     statusCodes.add(`"200"`);
     statusCodes.add(`"202"`);
     if (operation.verb !== "delete") {
@@ -230,7 +236,7 @@ function getResponseBodyExpression(
  * @returns Alloy Children representing the error handling code block.
  */
 function buildErrorHandlingBlock(
-  runtimeLib: ReturnType<typeof useRuntimeLib>,
+  runtimeLib: RuntimeLib,
 ): Children {
   return code`  throw ${runtimeLib.createRestError}(result);`;
 }

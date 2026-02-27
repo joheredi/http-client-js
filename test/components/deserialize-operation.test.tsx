@@ -34,7 +34,7 @@ import { ModelInterface } from "../../src/components/model-interface.js";
 import { JsonDeserializer } from "../../src/components/serialization/json-deserializer.js";
 import { deserializeOperationRefkey } from "../../src/utils/refkeys.js";
 import { httpRuntimeLib } from "../../src/utils/external-packages.js";
-import { Tester, TesterWithService, createSdkContextForTest } from "../test-host.js";
+import { RawTester, Tester, TesterWithService, createSdkContextForTest } from "../test-host.js";
 import { SdkTestFile } from "../utils.jsx";
 import { SdkContextProvider } from "../../src/context/sdk-context.js";
 import { FlavorProvider } from "../../src/context/flavor-context.js";
@@ -919,5 +919,150 @@ describe("DeserializeOperation", () => {
     expect(result).not.toContain("apiErrorDeserializer");
     expect(result).not.toContain("error.details");
     expect(result).toContain("throw createRestError(result)");
+  });
+
+  /**
+   * Tests that Azure flavor LRO operations get extra polling status codes (200, 201, 202)
+   * added to the expectedStatuses array. Azure SDK LRO operations use a poller that polls
+   * via GET on the same path, and these intermediate responses can return 200/201/202.
+   * Without these extra codes, the deserialize function would throw RestError for valid
+   * polling responses, breaking the LRO flow.
+   */
+  it("should include extra LRO status codes for Azure flavor", async () => {
+    const runner = await RawTester.createInstance();
+    const { program } = await runner.compile(`
+import "@typespec/http";
+import "@typespec/rest";
+import "@typespec/versioning";
+import "@azure-tools/typespec-azure-core";
+import "@azure-tools/typespec-azure-resource-manager";
+import "@azure-tools/typespec-client-generator-core";
+using TypeSpec.Http;
+using TypeSpec.Rest;
+using TypeSpec.Versioning;
+using Azure.Core;
+using Azure.ResourceManager;
+
+@armProviderNamespace
+@service
+@versioned(Versions)
+@armCommonTypesVersion(Azure.ResourceManager.CommonTypes.Versions.v5)
+namespace Microsoft.TestLroDeserAzure;
+
+enum Versions { v2024_01_01: "2024-01-01" }
+
+model TestResource is TrackedResource<TestResourceProperties> {
+  @key("testResourceName") @path @segment("testResources") name: string;
+}
+model TestResourceProperties { state?: string; }
+
+@armResourceOperations
+interface TestResources {
+  createOrUpdate is ArmResourceCreateOrReplaceAsync<TestResource>;
+}
+    `);
+
+    const sdkContext = await createSdkContextForTest(program);
+    const allMethods = sdkContext.sdkPackage.clients.flatMap((c: any) =>
+      [...c.methods, ...c.children.flatMap((child: any) => child.methods)],
+    );
+    const lroMethod = allMethods.find((m: any) => m.kind === "lro");
+    expect(lroMethod).toBeDefined();
+
+    const template = (
+      <Output
+        program={sdkContext.emitContext.program}
+        namePolicy={createTSNamePolicy()}
+        externals={[httpRuntimeLib]}
+      >
+        <FlavorProvider flavor="azure">
+          <EmitterOptionsProvider options={{}}>
+            <SdkContextProvider sdkContext={sdkContext}>
+              <SourceFile path="test.ts">
+                <DeserializeOperation method={lroMethod} />
+              </SourceFile>
+            </SdkContextProvider>
+          </EmitterOptionsProvider>
+        </FlavorProvider>
+      </Output>
+    );
+
+    const rendered = renderToString(template);
+    // Azure LRO operations should get extra polling status codes
+    expect(rendered).toContain('"200"');
+    expect(rendered).toContain('"201"');
+    expect(rendered).toContain('"202"');
+  });
+
+  /**
+   * Tests that core flavor LRO operations do NOT get extra polling status codes.
+   * Core flavor treats LRO operations as regular async functions without a poller,
+   * so only the status codes explicitly defined in the TypeSpec spec should appear.
+   * Adding unnecessary codes would mask real server errors by accepting unexpected
+   * responses as valid.
+   */
+  it("should NOT include extra LRO status codes for core flavor", async () => {
+    const runner = await RawTester.createInstance();
+    const { program } = await runner.compile(`
+import "@typespec/http";
+import "@typespec/rest";
+import "@typespec/versioning";
+import "@azure-tools/typespec-azure-core";
+import "@azure-tools/typespec-azure-resource-manager";
+import "@azure-tools/typespec-client-generator-core";
+using TypeSpec.Http;
+using TypeSpec.Rest;
+using TypeSpec.Versioning;
+using Azure.Core;
+using Azure.ResourceManager;
+
+@armProviderNamespace
+@service
+@versioned(Versions)
+@armCommonTypesVersion(Azure.ResourceManager.CommonTypes.Versions.v5)
+namespace Microsoft.TestLroDeserCore;
+
+enum Versions { v2024_01_01: "2024-01-01" }
+
+model TestResource is TrackedResource<TestResourceProperties> {
+  @key("testResourceName") @path @segment("testResources") name: string;
+}
+model TestResourceProperties { state?: string; }
+
+@armResourceOperations
+interface TestResources {
+  createOrUpdate is ArmResourceCreateOrReplaceAsync<TestResource>;
+}
+    `);
+
+    const sdkContext = await createSdkContextForTest(program);
+    const allMethods = sdkContext.sdkPackage.clients.flatMap((c: any) =>
+      [...c.methods, ...c.children.flatMap((child: any) => child.methods)],
+    );
+    const lroMethod = allMethods.find((m: any) => m.kind === "lro");
+    expect(lroMethod).toBeDefined();
+
+    const template = (
+      <Output
+        program={sdkContext.emitContext.program}
+        namePolicy={createTSNamePolicy()}
+        externals={[httpRuntimeLib]}
+      >
+        <FlavorProvider flavor="core">
+          <EmitterOptionsProvider options={{}}>
+            <SdkContextProvider sdkContext={sdkContext}>
+              <SourceFile path="test.ts">
+                <DeserializeOperation method={lroMethod} />
+              </SourceFile>
+            </SdkContextProvider>
+          </EmitterOptionsProvider>
+        </FlavorProvider>
+      </Output>
+    );
+
+    const rendered = renderToString(template);
+    // Core flavor should NOT add extra polling status codes
+    // The only status code should be what the TypeSpec defines (200 for PUT)
+    expect(rendered).not.toContain('"202"');
   });
 });
