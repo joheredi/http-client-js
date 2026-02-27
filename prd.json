@@ -1305,7 +1305,7 @@
       "title": "Binary Deserialization: Direct Return vs stringToUint8Array Conversion",
       "category": "scenario-audit/Serialization",
       "priority": "P2",
-      "status": "not-started",
+      "status": "done",
       "description": "The new emitter uses stringToUint8Array(result.body, 'base64') instead of direct body return for binary responses. Review if legacy direct-return or new conversion is correct.",
       "legacy_behavior": "Direct return of response body or getBinaryResponse wrapper.",
       "new_behavior": "Explicit stringToUint8Array(result.body, 'base64') conversion.",

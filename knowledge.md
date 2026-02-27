@@ -1880,3 +1880,20 @@ These files call `getSerializationExpression` and `needsTransformation` without 
 - Arrays of error types use inline `.map((p) => { return p; })` instead of named array helpers
 - `needsTransformation()` still returns true for error types (to preserve null-check wrapping), but the actual deserialization expression is pass-through
 - InnerError has no runtime package export — it's only used inside ErrorModel, which is not generated locally, so InnerError is never needed
+
+## Binary Response Handling: Core vs Azure Flavor
+
+**Core flavor** (`@typespec/ts-http-runtime`):
+- Binary responses (bytes with `encode="binary"` or `encode="bytes"`) are deserialized with `stringToUint8Array(result.body, "base64")`
+- The runtime returns binary bodies as base64-encoded strings
+- `needsTransformation()` returns `true` for `bytes` type, so `getDeserializationExpression()` handles the conversion
+- No special streaming or `getBinaryResponse` helper needed
+
+**Azure flavor** (`@azure-rest/core-client`):
+- Azure Core Client has a known UTF-8 coercion bug that corrupts non-UTF-8 binary bodies
+- Legacy uses `getBinaryResponse()` static helper that calls `asNodeStream()`/`asBrowserStream()` to read raw bytes
+- The `_downloadFileSend()` result is NOT awaited; instead passed to `getBinaryResponse(streamableMethod)`
+- The deserialize function then returns `result.body` directly (already Uint8Array from streaming)
+- `getBinaryResponse` does NOT exist in the new emitter yet — task 10.14 tracks implementing it for Azure flavor
+
+**Key distinction**: `stringToUint8Array` (core) vs `getBinaryResponse` + direct return (Azure) — both are correct in their respective runtime contexts. Do not conflate them.
