@@ -6,8 +6,9 @@ import type {
   SdkModelPropertyType,
   SdkModelType,
 } from "@azure-tools/typespec-client-generator-core";
-import { getModelName, getModelFunctionName } from "../../utils/model-name.js";
-import { serializerRefkey, typeRefkey, multipartHelperRefkey } from "../../utils/refkeys.js";
+import { computeFlattenCollisionMap } from "../../utils/flatten-collision.js";
+import { getModelFunctionName } from "../../utils/model-name.js";
+import { flattenSerializerRefkey, serializationHelperRefkey, serializerRefkey, typeRefkey, multipartHelperRefkey } from "../../utils/refkeys.js";
 
 /**
  * Props for the {@link MultipartSerializer} component.
@@ -46,6 +47,11 @@ export interface MultipartSerializerProps {
  * JSON serializer) because a model is either used in JSON or multipart context,
  * not both. The send function calls the serializer via the same refkey.
  *
+ * Flatten properties are handled using the SA-C25a pattern: instead of
+ * expanding nested properties inline, they are serialized as a single part
+ * whose body is produced by a flatten helper function that maintains the
+ * nested wire structure.
+ *
  * @param props - The component props containing the TCGC model type.
  * @returns An Alloy JSX tree representing the multipart serializer function.
  */
@@ -63,7 +69,11 @@ export function MultipartSerializer(props: MultipartSerializerProps) {
     >
       {code`return [`}
       <For each={properties} comma softline>
-        {(prop) => buildPartExpression(prop)}
+        {(prop) =>
+          prop.flatten && prop.type.kind === "model"
+            ? buildFlattenPartExpression(prop, model)
+            : buildPartExpression(prop)
+        }
       </For>
       {code`];`}
     </FunctionDeclaration>
@@ -73,22 +83,46 @@ export function MultipartSerializer(props: MultipartSerializerProps) {
 /**
  * Collects properties from a model that participate in multipart serialization.
  *
- * Handles flattened properties by expanding them inline, inheriting the
- * wrapper's optionality. Only properties with multipart metadata are included.
+ * Handles flattened properties in two ways depending on whether the nested
+ * model's properties carry multipart metadata:
+ *
+ * - **Multipart nested props**: Expanded inline as individual parts, with
+ *   collision-aware accessor names from `computeFlattenCollisionMap()`.
+ * - **Non-multipart nested props**: Kept as a single flatten property. The
+ *   render loop delegates to `buildFlattenPartExpression()` which uses a
+ *   flatten helper function to produce a nested wire-format sub-object as
+ *   the body of one multipart part.
  *
  * @param model - The TCGC model type.
- * @returns An array of properties with multipart metadata.
+ * @returns An array of properties for multipart serialization.
  */
 function getMultipartProperties(model: SdkModelType): SdkModelPropertyType[] {
   const result: SdkModelPropertyType[] = [];
+  const collisionMap = computeFlattenCollisionMap(model);
 
   for (const prop of model.properties) {
     if (prop.flatten && prop.type.kind === "model") {
-      for (const nestedProp of prop.type.properties) {
-        result.push({
-          ...nestedProp,
-          optional: prop.optional ? true : nestedProp.optional,
-        });
+      const flatModel = prop.type as SdkModelType;
+      const hasMultipartMetadata = flatModel.properties.some(
+        (p) => p.serializationOptions?.multipart,
+      );
+
+      if (hasMultipartMetadata) {
+        // Nested properties are individual multipart parts — expand inline
+        // with collision-aware naming so accessors match the model interface.
+        const renames = collisionMap.get(prop.serializedName);
+        for (const nestedProp of flatModel.properties) {
+          const renamedName = renames?.get(nestedProp.name);
+          result.push({
+            ...nestedProp,
+            optional: prop.optional ? true : nestedProp.optional,
+            ...(renamedName ? { name: renamedName } : {}),
+          });
+        }
+      } else {
+        // Non-multipart nested properties — keep as a single part whose body
+        // is produced by a flatten helper function (nested wire format).
+        result.push(prop);
       }
     } else {
       result.push(prop);
@@ -230,6 +264,52 @@ function buildMultiPartExpression(
   accessor: string,
 ): Children {
   return code`...((${accessor}).map((x: unknown) => ({ name: "${partName}", body: x })))`;
+}
+
+/**
+ * Builds a part expression for a flatten property using a helper function.
+ *
+ * Instead of expanding the flatten property's nested properties into individual
+ * multipart parts, this produces a **single** part whose body is the nested
+ * wire-format sub-object returned by the flatten serializer helper. This
+ * mirrors the SA-C25a pattern used by the JSON serializer.
+ *
+ * For optional flatten properties, the expression is guarded with
+ * `areAllPropsUndefined(item, [...])` to skip the part entirely when all
+ * nested client properties are undefined.
+ *
+ * @param prop - The flatten property from the TCGC model.
+ * @param model - The parent TCGC model (needed for the flatten helper refkey).
+ * @returns Alloy Children for the flatten part expression.
+ */
+function buildFlattenPartExpression(
+  prop: SdkModelPropertyType,
+  model: SdkModelType,
+): Children {
+  const helperRef = flattenSerializerRefkey(model, prop.serializedName);
+  const partName = prop.serializedName;
+
+  if (prop.optional) {
+    const clientNames = getFlattenClientNames(prop);
+    const namesList = clientNames.map((n) => `"${n}"`).join(", ");
+    return code`...(${serializationHelperRefkey("areAllPropsUndefined")}(item, [${namesList}]) ? [] : [{ name: "${partName}", body: ${helperRef}(item) }])`;
+  }
+
+  return code`{ name: "${partName}", body: ${helperRef}(item) }`;
+}
+
+/**
+ * Collects client-side property names from a flatten property's nested model.
+ *
+ * These names are used by `areAllPropsUndefined()` to check whether all
+ * expanded properties are undefined before serializing the optional flatten part.
+ *
+ * @param flattenProp - The flatten property whose nested model to inspect.
+ * @returns Array of client-side property names.
+ */
+function getFlattenClientNames(flattenProp: SdkModelPropertyType): string[] {
+  const flatModel = flattenProp.type as SdkModelType;
+  return flatModel.properties.map((p) => p.name);
 }
 
 /**

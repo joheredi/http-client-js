@@ -1445,7 +1445,7 @@
       "id": "SA-C25c",
       "title": "Fix flatten in multipart-serializer to use nested wire format",
       "description": "Apply the same nested wire format pattern from SA-C25a to multipart serialization in multipart-serializer.tsx. Ensure flatten properties in multipart form-data contexts use helper functions and maintain the nested wire structure.",
-      "status": "not-started",
+      "status": "done",
       "category": "scenario-audit/Serialization",
       "priority": "P1",
       "dependencies": [

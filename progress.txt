@@ -956,3 +956,24 @@ SA-C18 described a discrepancy where the new emitter uses `Uint8Array` or genera
 - The `FileContents` type alias still exists in `src/components/static-helpers/multipart-helpers.tsx` and is used by the multipart serializer for `createFilePartDescriptor`. It's just not used in model interface property types.
 - Model property types for multipart file parts follow the TCGC type directly (model → model refkey, bytes → Uint8Array).
 - The multipart serializer handles the runtime conversion (via `createFilePartDescriptor`) regardless of the TypeScript type used in the interface.
+
+## SA-C25c: Fix flatten in multipart-serializer to use nested wire format — DONE (2026-02-27)
+
+### What was done
+- Modified `getMultipartProperties()` in `src/components/serialization/multipart-serializer.tsx` to handle flatten properties with collision-aware naming
+- Added two code paths for flatten properties in multipart context:
+  1. **Multipart nested props (HttpPart)**: Expanded inline with collision-aware accessor names from `computeFlattenCollisionMap()` to match the model interface
+  2. **Non-multipart nested props**: Kept as a single part whose body is produced by a `flattenSerializerRefkey` helper function (defensive path for future TCGC support)
+- Added `buildFlattenPartExpression()` function that produces a single part using the flatten helper function, with optional guard via `areAllPropsUndefined()`
+- Added `getFlattenClientNames()` helper for collecting client property names for the undefined guard
+- Updated `model-files.tsx` to include multipart input models in `FlattenHelperDeclarations` so flatten helper functions are rendered for multipart models
+- Added regression tests verifying existing multipart behavior is preserved alongside the new flatten handling
+
+### Key discovery
+TypeSpec's `@multipartBody` validation requires ALL properties to be `HttpPart<T>`, making `@flattenProperty` incompatible with multipart body models in current TypeSpec. The non-multipart nested props path (helper function approach) is defensive code for potential future TCGC changes. The collision-aware inline expansion path is the primary fix.
+
+### Patterns used
+- Imported `computeFlattenCollisionMap` from `src/utils/flatten-collision.ts` (same as model-interface.tsx)
+- Used `flattenSerializerRefkey(model, prop.serializedName)` for helper function references
+- Used `serializationHelperRefkey("areAllPropsUndefined")` for optional flatten guards
+- Matched the model-interface.tsx pattern for collision-aware property name resolution

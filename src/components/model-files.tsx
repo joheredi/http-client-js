@@ -230,7 +230,7 @@ export function ModelFiles() {
         {hasXmlSerializers && hasXmlDeserializers ? "\n\n" : undefined}
         <XmlDeserializerDeclarations models={xmlOutputModels} />
         {(hasSerializers || hasDeserializers || hasUnionDeserializers || hasXmlSerializers || hasXmlDeserializers) ? (
-          <FlattenHelperDeclarations inputModels={regularInputModels} outputModels={regularOutputModels} />
+          <FlattenHelperDeclarations inputModels={[...regularInputModels, ...multipartInputModels]} outputModels={regularOutputModels} />
         ) : undefined}
       </SourceFile>
     </SourceDirectory>
