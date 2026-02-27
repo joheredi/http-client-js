@@ -40,8 +40,12 @@ export interface EmitterOptionsValue {
    * `prop?: T | null`. This follows the Azure SDK convention where optional
    * implicitly means nullable, making the explicit `| null` redundant.
    *
-   * Defaults to `true`, matching the legacy emitter's behavior for Azure
-   * services. Set to `false` to preserve `| null` on optional nullable types.
+   * The emitter defaults this to `true` for Azure flavor and `false` for
+   * core flavor, matching the legacy emitter behavior. Users can override
+   * via the `ignore-nullable-on-optional` YAML config option.
+   *
+   * The context default below (`true`) is used as a fallback for unit tests
+   * that don't go through the emitter's flavor-aware defaulting.
    *
    * Corresponds to the `ignore-nullable-on-optional` YAML config option.
    */

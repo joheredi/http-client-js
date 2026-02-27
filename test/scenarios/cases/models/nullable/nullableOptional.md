@@ -12,6 +12,12 @@ model TestModel {
 op test(): { @body body: TestModel };
 ```
 
+## config
+
+```yaml
+flavor: azure
+```
+
 ## Models
 
 ```ts models
@@ -111,11 +117,17 @@ interface TestOperations {
 }
 ```
 
+## config
+
+```yaml
+flavor: azure
+```
+
 ## Models with Options
 
 ```ts models:withOptions
 import type { Widget } from "../models/models.js";
-import type { OperationOptions } from "@typespec/ts-http-runtime";
+import type { OperationOptions } from "@azure-rest/core-client";
 
 /**
  * Optional parameters for the create operation.

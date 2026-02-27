@@ -181,7 +181,8 @@ export async function $onEmit(context: EmitContext) {
   const emitterOptions = {
     includeHeadersInResponse: context.options?.["include-headers-in-response"] === true,
     experimentalExtensibleEnums: context.options?.["experimental-extensible-enums"] === true,
-    ignoreNullableOnOptional: context.options?.["ignore-nullable-on-optional"] !== false,
+    ignoreNullableOnOptional:
+      context.options?.["ignore-nullable-on-optional"] ?? (flavor === "azure"),
     typespecTitleMap: titleMap,
   };
 

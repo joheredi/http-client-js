@@ -323,7 +323,8 @@ ${x}
   const emitterOptions = {
     includeHeadersInResponse: yamlConfig["include-headers-in-response"] === true,
     experimentalExtensibleEnums: yamlConfig["experimental-extensible-enums"] === true,
-    ignoreNullableOnOptional: yamlConfig["ignore-nullable-on-optional"] !== false,
+    ignoreNullableOnOptional:
+      (yamlConfig["ignore-nullable-on-optional"] as boolean | undefined) ?? (flavor === "azure"),
   };
 
   const output = (

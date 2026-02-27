@@ -770,7 +770,7 @@
         "When ignore-nullable-on-optional is explicitly set to true/false, that value is used regardless of flavor",
         "Existing tests still pass"
       ],
-      "status": "not-started",
+      "status": "done",
       "source": "implementation-phase",
       "category": "phase-10/Flavor Parity \u2014 Match Legacy Emitter Flavor Behavior"
     },

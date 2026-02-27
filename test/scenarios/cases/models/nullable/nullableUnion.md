@@ -30,7 +30,7 @@ op post(@body body: A): { @body body: A };
 export interface _PostRequest {
   code?: string;
   message?: string;
-  propA?: _PostRequest;
+  propA?: _PostRequest | null;
 }
 
 export function _postRequestSerializer(item: _PostRequest): any {
