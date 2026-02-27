@@ -49,6 +49,7 @@ import { ClassicalClientFile } from "../../src/components/classical-client.js";
 import { LoggerFile } from "../../src/components/logger-file.js";
 import { RestorePollerFile } from "../../src/components/restore-poller.js";
 import { PollingHelpersFile } from "../../src/components/static-helpers/polling-helpers.js";
+import { StaticHelpers } from "../../src/components/static-helpers/index.js";
 import {
   classicalClientRefkey,
   deserializeOperationRefkey,
@@ -593,5 +594,108 @@ describe("RestorePollerFile flavor gating", () => {
     expect(result).not.toContain("RestorePollerOptions");
     expect(result).not.toContain("PollerLike");
     expect(result).not.toContain("@azure/core-lro");
+  });
+});
+
+/**
+ * Tests that PollingHelpersFile is gated behind Azure flavor (task 10.4).
+ *
+ * PollingHelpersFile generates `static-helpers/pollingHelpers.ts` with types
+ * and functions for Long Running Operation (LRO) polling: OperationState,
+ * PollerLike, GetLongRunningPollerOptions, and getLongRunningPoller.
+ *
+ * These types depend on Azure-specific LRO patterns. When flavor is "core",
+ * PollingHelpersFile must NOT be rendered by the StaticHelpers orchestrator.
+ * Otherwise, the output would reference patterns that don't apply to core SDKs.
+ *
+ * What is tested:
+ * - Azure flavor renders PollingHelpersFile via StaticHelpers (pollingHelpers.ts present)
+ * - Core flavor does NOT render PollingHelpersFile via StaticHelpers (pollingHelpers.ts absent)
+ * - Gating is flavor-based, not operation-based
+ */
+describe("PollingHelpersFile flavor gating", () => {
+  let program: any;
+
+  beforeAll(async () => {
+    const runner = await TesterWithService.createInstance();
+    const { program: compiledProgram } = await runner.compile(
+      t.code`@get op test(): void;`,
+    );
+    program = compiledProgram;
+  });
+
+  /**
+   * Tests that Azure flavor renders PollingHelpersFile via StaticHelpers.
+   *
+   * This verifies the positive case: the StaticHelpers orchestrator includes
+   * PollingHelpersFile when flavor is "azure", producing pollingHelpers.ts
+   * with PollerLike, OperationState, and getLongRunningPoller declarations.
+   */
+  it("should render PollingHelpersFile via StaticHelpers for Azure flavor", () => {
+    const result = renderToString(
+      <Output
+        program={program}
+        namePolicy={createTSNamePolicy()}
+        nameConflictResolver={tsNameConflictResolver}
+        externals={[
+          httpRuntimeLib,
+          azureCoreClientLib,
+          azureCorePipelineLib,
+          azureCoreAuthLib,
+          azureCoreUtilLib,
+          azureAbortControllerLib,
+          azureCoreLroLib,
+          azureLoggerLib,
+        ]}
+      >
+        <FlavorProvider flavor="azure">
+          <SourceDirectory path="src">
+            <StaticHelpers />
+          </SourceDirectory>
+        </FlavorProvider>
+      </Output>,
+    );
+
+    // Azure flavor should produce polling helper content
+    expect(result).toContain("PollerLike");
+    expect(result).toContain("getLongRunningPoller");
+    expect(result).toContain("OperationState");
+    expect(result).toContain("GetLongRunningPollerOptions");
+  });
+
+  /**
+   * Tests that core flavor does NOT render PollingHelpersFile via StaticHelpers.
+   *
+   * This is the critical gating test: StaticHelpers checks the flavor context
+   * and skips PollingHelpersFile for core flavor. Without this gating, core
+   * SDKs would emit polling infrastructure that references Azure-specific
+   * patterns, producing unnecessary (and potentially broken) output.
+   */
+  it("should NOT render PollingHelpersFile via StaticHelpers for core flavor", () => {
+    const result = renderToString(
+      <Output
+        program={program}
+        namePolicy={createTSNamePolicy()}
+        nameConflictResolver={tsNameConflictResolver}
+        externals={[httpRuntimeLib]}
+      >
+        <FlavorProvider flavor="core">
+          <SourceDirectory path="src">
+            <StaticHelpers />
+          </SourceDirectory>
+        </FlavorProvider>
+      </Output>,
+    );
+
+    // Core flavor must NOT have any polling helper content
+    expect(result).not.toContain("PollerLike");
+    expect(result).not.toContain("getLongRunningPoller");
+    expect(result).not.toContain("OperationState");
+    expect(result).not.toContain("GetLongRunningPollerOptions");
+
+    // But other static helpers should still be present
+    expect(result).toContain("serializeRecord");
+    expect(result).toContain("PagedAsyncIterableIterator");
+    expect(result).toContain("FileContents");
   });
 });

@@ -1195,3 +1195,33 @@ The `flavor` variable is available in the `$onEmit` scope (line 178).
 - Tasks 10.4 (PollingHelpersFile) and 10.5 (PagingHelpersFile) should follow the same gating pattern
 - PollingHelpersFile and PagingHelpersFile are rendered via `<StaticHelpers />` component, not directly in emitter.tsx — investigate `src/components/static-helpers/index.tsx` to find where they're rendered
 - The `emit-for-scenario.tsx` test harness mirrors the `emitter.tsx` component tree, so any gating changes must be applied to both files
+
+## Task 10.4: Gate PollingHelpersFile behind Azure flavor — DONE (2026-02-27)
+
+### What was done
+- Modified `src/components/static-helpers/index.tsx`: added `useFlavorContext()` hook and gated `<PollingHelpersFile />` with `{flavor === "azure" && <PollingHelpersFile />}`
+- Updated `test/components/static-helpers/static-helpers.test.tsx`:
+  - Split existing tests into Azure and core flavor variants
+  - Azure flavor tests verify all 5 helpers rendered (including pollingHelpers.ts)
+  - Core flavor tests verify 4 helpers rendered (pollingHelpers.ts excluded)
+  - Added FlavorProvider wrapping and appropriate externals for azure tests
+- Added PollingHelpersFile flavor gating tests in `test/components/azure-emitter.test.tsx`:
+  - "should render PollingHelpersFile via StaticHelpers for Azure flavor" — verifies PollerLike, getLongRunningPoller, OperationState present
+  - "should NOT render PollingHelpersFile via StaticHelpers for core flavor" — verifies polling content absent, other helpers still present
+
+### Pattern used
+Gating inside the `StaticHelpers` orchestrator component using `useFlavorContext()`:
+```tsx
+const { flavor } = useFlavorContext();
+{flavor === "azure" && <PollingHelpersFile />}
+```
+This is different from RestorePollerFile/LoggerFile which are gated at the emitter.tsx level. The StaticHelpers approach is cleaner because:
+- Only one source file changes (no dual changes to emitter.tsx + emit-for-scenario.tsx)
+- FlavorProvider is already available in the tree above StaticHelpers
+- Tests that render PollingHelpersFile directly (polling-helpers.test.tsx, restore-poller.test.tsx, public-operation.test.tsx) are unaffected
+
+### What next person should know
+- Task 10.5 (PagingHelpersFile) should follow the SAME pattern: gate inside StaticHelpers with `{flavor === "azure" && <PagingHelpersFile />}`
+- The `useFlavorContext()` import is already in `src/components/static-helpers/index.tsx` — just add the gating condition
+- `test/components/static-helpers/static-helpers.test.tsx` already has the Azure/core split pattern — add paging assertions accordingly
+- The static-helpers test now imports azure externals and FlavorProvider — reuse these for paging gating tests

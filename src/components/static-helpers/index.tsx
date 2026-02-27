@@ -1,4 +1,5 @@
 import { SourceDirectory } from "@alloy-js/core";
+import { useFlavorContext } from "../../context/flavor-context.js";
 import { SerializationHelpersFile } from "./serialization-helpers.js";
 import { PagingHelpersFile } from "./paging-helpers.js";
 import { PollingHelpersFile } from "./polling-helpers.js";
@@ -27,14 +28,19 @@ import { XmlHelpersFile } from "./xml-helpers.js";
  *   xmlHelpers.ts            — XML serialization/deserialization types and functions
  * ```
  *
+ * Polling helpers (`pollingHelpers.ts`) are gated behind Azure flavor because
+ * they depend on Azure-specific LRO patterns. Core flavor does not emit
+ * polling helper types or functions.
+ *
  * @returns An Alloy JSX tree containing all static helper source files.
  */
 export function StaticHelpers() {
+  const { flavor } = useFlavorContext();
   return (
     <>
       <SerializationHelpersFile />
       <PagingHelpersFile />
-      <PollingHelpersFile />
+      {flavor === "azure" && <PollingHelpersFile />}
       <MultipartHelpersFile />
       <XmlHelpersFile />
     </>
