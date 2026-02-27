@@ -372,6 +372,21 @@ export function pollingHelperRefkey(name: string): Refkey {
 }
 
 /**
+ * Creates a refkey for a binary response helper function.
+ *
+ * Binary response helpers handle reading binary (bytes) HTTP responses
+ * via streaming to avoid UTF-8 corruption by the HTTP pipeline.
+ * The primary helper is `getBinaryResponse`, which reads the response
+ * stream and returns the body as a Uint8Array.
+ *
+ * @param name - The binary response helper function name (e.g., `"getBinaryResponse"`).
+ * @returns A stable refkey for the named binary response helper declaration.
+ */
+export function binaryResponseHelperRefkey(name: string): Refkey {
+  return refkey("binaryResponseHelper", name);
+}
+
+/**
  * Creates a refkey for an operation group's `XxxOperations` interface.
  *
  * Each operation group (represented as a child client in TCGC) gets an

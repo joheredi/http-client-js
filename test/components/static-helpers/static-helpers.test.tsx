@@ -5,8 +5,8 @@
  * paging helpers, polling helpers, multipart helpers, and XML helpers.
  *
  * What is tested:
- * - Azure flavor: StaticHelpers produces all five helper files (including paging and polling)
- * - Core flavor: StaticHelpers produces three helper files (paging and polling excluded)
+ * - Azure flavor: StaticHelpers produces all helper files (including paging, polling, and binary response)
+ * - Core flavor: StaticHelpers produces helper files without paging/polling (but with binary response)
  * - Helper files are placed in the static-helpers/ directory
  *
  * Why this matters:
@@ -154,6 +154,7 @@ describe("StaticHelpers", () => {
       "static-helpers/pollingHelpers.ts": expect.stringContaining("getLongRunningPoller"),
       "static-helpers/multipartHelpers.ts": expect.stringContaining("createFilePartDescriptor"),
       "static-helpers/xmlHelpers.ts": expect.stringContaining("serializeToXml"),
+      "static-helpers/getBinaryResponse.ts": expect.stringContaining("getBinaryResponse"),
     });
   });
 

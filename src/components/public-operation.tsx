@@ -24,6 +24,7 @@ import {
 import {
   deserializeHeadersRefkey,
   deserializeOperationRefkey,
+  binaryResponseHelperRefkey,
   operationOptionsRefkey,
   pagingHelperRefkey,
   pollingHelperRefkey,
@@ -33,6 +34,7 @@ import {
 import { getOptionsParamName, isRequiredSignatureParameter } from "./send-operation.js";
 import { getTypeExpression } from "./type-expression.js";
 import { isReservedOperationName, getEscapedParameterName } from "../utils/name-policy.js";
+import { isBinaryBytesResponse } from "./deserialize-operation.js";
 
 /**
  * Builds the JSDoc string for a public operation function, adding a @fixme
@@ -160,12 +162,30 @@ function BasicOperation(props: { method: SdkServiceMethod<SdkHttpOperation> }) {
     : [];
   const hasHeaders = headers.length > 0;
 
+  // Check if this operation returns binary bytes (encode="bytes"/"binary").
+  // Binary responses use the getBinaryResponse helper to read the HTTP stream
+  // as raw bytes instead of the standard `await send()` pattern.
+  const isBinaryResponse = hasBody && isBinaryBytesResponse(method.response.type!);
+
   // Build return type: model & headers intersection when both exist
   const returnType = getCompositeReturnType(method, headers);
 
   // Build function body based on whether we have headers and/or body
   let body: Children;
-  if (hasHeaders && hasBody) {
+  if (isBinaryResponse) {
+    // Binary response: use getBinaryResponse helper to read the stream
+    // without UTF-8 corruption. The send function is NOT awaited — we pass
+    // the StreamableMethod directly to getBinaryResponse.
+    body = (
+      <>
+        {code`const streamableMethod = ${sendOperationRefkey(method)}(${callArgs});`}
+        {"\n"}
+        {code`const result = await ${binaryResponseHelperRefkey("getBinaryResponse")}(streamableMethod);`}
+        {"\n"}
+        {code`return ${deserializeOperationRefkey(method)}(result);`}
+      </>
+    );
+  } else if (hasHeaders && hasBody) {
     // Merge payload + headers via spread
     body = (
       <>

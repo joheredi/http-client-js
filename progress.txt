@@ -1632,3 +1632,35 @@ Created `test/scenarios/cases/operations/coreFlavorGating.md` with 4 test blocks
 - The LRO TypeSpec pattern requires a block namespace (not blockless) to avoid "blockless-namespace-first" compilation error
 - Azure.Core is always pre-loaded in the Tester — `needAzureCore: true` is a documentary flag, not functionally required
 - To test file absence (e.g., pagingHelpers.ts not emitted), use legacy categories which return `"// (file was not generated)"` sentinel for missing files
+
+---
+### Task 10.14: Match legacy binary response handling — DONE (2026-02-27)
+
+**What was done:**
+- Created `getBinaryResponse` static helper (`src/components/static-helpers/binary-response-helpers.tsx`) that reads binary HTTP responses via `asNodeStream()` to avoid UTF-8 corruption by the HTTP pipeline
+- Added `binaryResponseHelperRefkey` in `src/utils/refkeys.ts` for cross-file reference resolution
+- Updated `src/components/static-helpers/index.tsx` to include `BinaryResponseHelpersFile` (emitted for all flavors)
+- Updated `src/components/deserialize-operation.tsx` — binary byte responses (`encode="bytes"/"binary"`) now return `result.body` directly instead of using `stringToUint8Array(result.body, "base64")`
+- Added `isBinaryBytesResponse()` helper function (exported) to detect binary byte response types
+- Updated `src/components/public-operation.tsx` — binary byte response operations now use `getBinaryResponse(streamableMethod)` pattern instead of `await _xxxSend()`:
+  ```
+  const streamableMethod = _xxxSend(context, options);
+  const result = await getBinaryResponse(streamableMethod);
+  return _xxxDeserialize(result);
+  ```
+- Updated scenario test `test/scenarios/cases/apiOperations/apiOperations.md` to match legacy pattern
+- Created unit tests `test/components/static-helpers/binary-response-helpers.test.tsx` (6 tests)
+- Updated `test/components/static-helpers/static-helpers.test.tsx` to include new helper file
+
+**Patterns used:**
+- Static helper file pattern (same as multipart/paging/polling helpers)
+- `useRuntimeLib()` for flavor-agnostic type references (StreamableMethod, PathUncheckedResponse)
+- `binaryResponseHelperRefkey("getBinaryResponse")` for cross-file Alloy import resolution
+- Detection: `type.kind === "bytes" && (type.encode === "bytes" || type.encode === "binary")`
+
+### What next person should know
+- All 992 tests pass (3 skipped)
+- Non-binary bytes (base64/base64url model properties) still use `stringToUint8Array` with typeof guard — unchanged
+- The binary response detection only applies to RESPONSE BODY types, not model property types
+- `isBinaryBytesResponse()` is exported from `deserialize-operation.tsx` and used by `public-operation.tsx`
+- The `getBinaryResponse` helper is emitted for ALL flavors (both core and azure), since binary response handling is needed regardless of flavor

@@ -312,6 +312,7 @@ op downloadFile(): {
 ## Operations
 
 ```ts operations
+import { getBinaryResponse } from "../static-helpers/getBinaryResponse.js";
 import type { DownloadFileOptionalParams } from "./options.js";
 import {
   type Client,
@@ -319,7 +320,6 @@ import {
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
-  stringToUint8Array,
 } from "@typespec/ts-http-runtime";
 
 export function _downloadFileSend(
@@ -343,14 +343,15 @@ export async function _downloadFileDeserialize(
     throw createRestError(result);
   }
 
-  return stringToUint8Array(result.body, "base64");
+  return result.body;
 }
 
 export async function downloadFile(
   context: Client,
   options: DownloadFileOptionalParams = { requestOptions: {} },
 ): Promise<Uint8Array> {
-  const result = await _downloadFileSend(context, options);
+  const streamableMethod = _downloadFileSend(context, options);
+  const result = await getBinaryResponse(streamableMethod);
   return _downloadFileDeserialize(result);
 }
 ```
@@ -374,6 +375,7 @@ op downloadFile(): {
 ## Operations
 
 ```ts operations
+import { getBinaryResponse } from "../static-helpers/getBinaryResponse.js";
 import type { DownloadFileOptionalParams } from "./options.js";
 import {
   type Client,
@@ -381,7 +383,6 @@ import {
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
-  stringToUint8Array,
 } from "@typespec/ts-http-runtime";
 
 export function _downloadFileSend(
@@ -405,14 +406,15 @@ export async function _downloadFileDeserialize(
     throw createRestError(result);
   }
 
-  return stringToUint8Array(result.body, "base64");
+  return result.body;
 }
 
 export async function downloadFile(
   context: Client,
   options: DownloadFileOptionalParams = { requestOptions: {} },
 ): Promise<Uint8Array> {
-  const result = await _downloadFileSend(context, options);
+  const streamableMethod = _downloadFileSend(context, options);
+  const result = await getBinaryResponse(streamableMethod);
   return _downloadFileDeserialize(result);
 }
 ```

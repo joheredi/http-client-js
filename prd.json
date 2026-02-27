@@ -964,7 +964,7 @@
         "Non-binary bytes properties (e.g., base64-encoded model properties) still use stringToUint8Array correctly",
         "Existing tests updated to match legacy pattern"
       ],
-      "status": "not-started",
+      "status": "done",
       "source": "implementation-phase",
       "category": "phase-10/Flavor Parity \u2014 Match Legacy Emitter Flavor Behavior"
     },

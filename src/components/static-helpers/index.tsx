@@ -5,6 +5,7 @@ import { PagingHelpersFile } from "./paging-helpers.js";
 import { PollingHelpersFile } from "./polling-helpers.js";
 import { MultipartHelpersFile } from "./multipart-helpers.js";
 import { XmlHelpersFile } from "./xml-helpers.js";
+import { BinaryResponseHelpersFile } from "./binary-response-helpers.js";
 
 /**
  * Orchestrator component that renders all static helper source files.
@@ -47,6 +48,7 @@ export function StaticHelpers() {
       {flavor === "azure" && <PollingHelpersFile />}
       <MultipartHelpersFile />
       <XmlHelpersFile />
+      <BinaryResponseHelpersFile />
     </>
   );
 }
@@ -56,3 +58,4 @@ export { PagingHelpersFile } from "./paging-helpers.js";
 export { PollingHelpersFile } from "./polling-helpers.js";
 export { MultipartHelpersFile } from "./multipart-helpers.js";
 export { XmlHelpersFile } from "./xml-helpers.js";
+export { BinaryResponseHelpersFile } from "./binary-response-helpers.js";

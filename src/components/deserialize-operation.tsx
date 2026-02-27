@@ -187,6 +187,9 @@ function isLroOperation(
  *
  * Determines how to process the response body based on the response type:
  * - **void (no body)**: Returns `return;`
+ * - **Binary bytes (encode="bytes"/"binary")**: Returns `result.body` directly
+ *   because the `getBinaryResponse` helper has already read the binary stream
+ *   and set the body as a Uint8Array. No further conversion is needed.
  * - **Model types**: Calls the model's deserializer function via refkey
  * - **Array of models**: Maps each element through the element deserializer
  * - **Primitive types**: Returns `result.body` directly
@@ -213,6 +216,13 @@ function getResponseBodyExpression(
   // Void response — no body to deserialize
   if (!responseType) {
     return code`return;`;
+  }
+
+  // Binary bytes responses (encode="bytes" or "binary") are handled by
+  // the getBinaryResponse helper which reads the stream and sets body
+  // as Uint8Array. The deserialize function just returns result.body directly.
+  if (isBinaryBytesResponse(responseType)) {
+    return code`return result.body;`;
   }
 
   // For types that need deserialization (models, arrays of models, etc.)
@@ -278,4 +288,25 @@ function getSuccessResponseType(
     }
   }
   return undefined;
+}
+
+/**
+ * Checks whether a response type represents binary bytes that should be
+ * returned directly without deserialization.
+ *
+ * Binary bytes responses (encode="bytes" or "binary") are handled by the
+ * `getBinaryResponse` static helper, which reads the HTTP stream and sets
+ * the body as a Uint8Array. The deserialize function should return
+ * `result.body` directly without calling `stringToUint8Array`.
+ *
+ * Non-binary bytes (e.g., base64-encoded model properties) still need
+ * `stringToUint8Array` conversion and are NOT matched by this check.
+ *
+ * @param type - The SDK response type.
+ * @returns `true` if the type is bytes with binary encoding.
+ */
+export function isBinaryBytesResponse(type: SdkType): boolean {
+  if (type.kind !== "bytes") return false;
+  const encode = (type as any).encode;
+  return encode === "bytes" || encode === "binary";
 }
