@@ -153,9 +153,10 @@ const azureExternals = [
 /**
  * External packages for core (non-Azure) SDK generation.
  *
- * Core flavor uses a single runtime package for all symbols.
+ * Core flavor uses only the runtime package. Azure-specific packages like
+ * `@azure/core-lro` are excluded — LRO/paging support is gated behind Azure flavor.
  */
-const coreExternals = [httpRuntimeLib, azureCoreLroLib];
+const coreExternals = [httpRuntimeLib];
 
 /**
  * Detects whether TypeSpec code uses Azure-specific features, indicating

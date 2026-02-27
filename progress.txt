@@ -1155,3 +1155,21 @@ TypeSpec's `@multipartBody` validation requires ALL properties to be `HttpPart<T
 ### Notes for next iteration
 - `additionalProperties.md` scenario has an import from `"../static-helpers/serialization/serialize-record.js"` which is a different path structure (sub-directory under static-helpers). This was already `static-helpers/` and wasn't changed.
 - All 957 tests pass after this change
+
+## Task 10.2: Remove azureCoreLroLib from coreExternals — DONE (2026-02-27)
+
+### What was done
+- Removed `azureCoreLroLib` from `coreExternals` in `src/emitter.tsx` (line 60)
+- Made the same change in `test/scenarios/emit-for-scenario.tsx` (line 158)
+- Updated JSDoc comments to explain why core flavor excludes `@azure/core-lro`
+- Core flavor now only includes `[httpRuntimeLib]` in its externals
+- Azure flavor still includes `azureCoreLroLib` in `azureExternals` — no change there
+
+### Patterns used
+- `coreExternals` and `azureExternals` are selected via `flavor === "azure" ? azureExternals : coreExternals` in both the emitter and test scenario infrastructure
+- All LRO scenario tests auto-detect as Azure flavor (they use `Azure.ResourceManager`, `Azure.Core`, etc.), so removing from core externals doesn't break any tests
+
+### Notes for next iteration
+- Tasks 10.3-10.9 should now gate LRO/paging components behind Azure flavor checks so that core-flavor generation never emits LRO/paging code that would reference the now-excluded `@azure/core-lro` symbols
+- The `detectAzureFlavor()` function in `emit-for-scenario.tsx` does NOT detect LRO operations specifically — it detects Azure-specific TypeSpec namespaces/decorators
+- All 957 tests pass after this change
