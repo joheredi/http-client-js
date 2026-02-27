@@ -1629,7 +1629,7 @@
       "title": "XML Error Deserialization: Content-Type Check Logic Removed",
       "category": "scenario-audit/Error Handling",
       "priority": "P1",
-      "status": "not-started",
+      "status": "done",
       "description": "The new emitter removes XML content-type checking logic and conditional deserializer selection. Legacy checks response content-type to choose between JSON and XML deserializers. Legacy behavior is the expected output.",
       "legacy_behavior": "Checks content-type header, selects JSON or XML deserializer accordingly.",
       "new_behavior": "Content-type check removed, always uses same deserializer path.",

@@ -13,7 +13,10 @@ import { useRuntimeLib } from "../context/flavor-context.js";
 import {
   deserializeExceptionHeadersRefkey,
   deserializeOperationRefkey,
+  serializationHelperRefkey,
+  xmlDeserializerRefkey,
 } from "../utils/refkeys.js";
+import { hasXmlSerialization } from "../utils/xml-detection.js";
 import { collectExceptionResponseHeaders } from "./deserialize-headers.js";
 import { getTypeExpression } from "./type-expression.js";
 import {
@@ -238,6 +241,13 @@ function getResponseBodyExpression(
  * 3. Merge exception headers (if enabled): `error.details = {...(error.details as any), ..._xxxDeserializeExceptionHeaders(result)};`
  * 4. Throw: `throw error;`
  *
+ * For XML error handling, the function detects whether the error model uses
+ * XML serialization and generates the appropriate deserializer call:
+ * - **XML-only**: Uses the XML deserializer directly
+ * - **Dual-format (JSON + XML)**: Adds runtime content-type detection via
+ *   `isXmlContentType()` to choose the correct deserializer
+ * - **JSON-only**: Uses the JSON deserializer (default behavior)
+ *
  * If the error model has no body that needs deserialization and there are no
  * exception headers to merge, the simpler `throw createRestError(result)` pattern
  * is used instead.
@@ -253,7 +263,8 @@ function buildErrorHandlingBlock(
   const { includeHeadersInResponse } = useEmitterOptions();
 
   // Determine if the error response has a body that needs deserialization
-  const exceptionType = getExceptionBodyType(method);
+  const exceptionDetails = getExceptionDetails(method);
+  const exceptionType = exceptionDetails?.type;
   const hasErrorBody = exceptionType !== undefined && needsTransformation(exceptionType);
 
   // Determine if there are exception headers to merge
@@ -272,8 +283,26 @@ function buildErrorHandlingBlock(
   parts.push(code`  const error = ${runtimeLib.createRestError}(result);`);
 
   if (hasErrorBody) {
-    const deserExpr = getDeserializationExpression(exceptionType!, "result.body");
-    parts.push(code`  error.details = ${deserExpr};`);
+    const xmlMode = getXmlErrorMode(exceptionType!, exceptionDetails!.contentTypes);
+
+    if (xmlMode === "xml-only") {
+      // XML-only: use the XML deserializer directly
+      parts.push(code`  error.details = ${xmlDeserializerRefkey(exceptionType!)}(result.body);`);
+    } else if (xmlMode === "dual") {
+      // Dual-format: runtime content-type check to select deserializer
+      const isXmlRef = serializationHelperRefkey("isXmlContentType");
+      const jsonDeserExpr = getDeserializationExpression(exceptionType!, "result.body");
+      parts.push(code`  const responseContentType = result.headers?.["content-type"] ?? "";`);
+      parts.push(
+        code`  error.details = ${isXmlRef}(responseContentType)
+    ? ${xmlDeserializerRefkey(exceptionType!)}(result.body)
+    : ${jsonDeserExpr};`,
+      );
+    } else {
+      // JSON-only: use the JSON deserializer (existing behavior)
+      const deserExpr = getDeserializationExpression(exceptionType!, "result.body");
+      parts.push(code`  error.details = ${deserExpr};`);
+    }
   }
 
   if (hasExceptionHeaders) {
@@ -337,33 +366,93 @@ function getSuccessResponseType(
 }
 
 /**
- * Extracts the error body type from an operation's exception responses.
+ * Details about an exception response, including the body type and content types.
+ */
+interface ExceptionDetails {
+  /** The SDK type of the error body. */
+  type: SdkType;
+  /** The content types declared on the exception response (e.g., ["application/json", "application/xml"]). */
+  contentTypes: string[];
+}
+
+/**
+ * Extracts exception details from an operation's exception responses.
  *
  * Examines the operation's `exceptions` array to find an error model type
- * that can be deserialized. Prefers the default ("*") exception type, falling
- * back to the first exception with a body type.
+ * that can be deserialized, along with its declared content types. Prefers
+ * the default ("*") exception, falling back to the first exception with a body type.
+ *
+ * The content types are used to determine whether the error response uses
+ * XML, JSON, or both formats, enabling the correct deserializer selection.
  *
  * @param method - The TCGC service method.
- * @returns The SdkType of the error body, or undefined if no error body exists.
+ * @returns The exception details, or undefined if no error body exists.
  */
-function getExceptionBodyType(
+function getExceptionDetails(
   method: SdkServiceMethod<SdkHttpOperation>,
-): SdkType | undefined {
+): ExceptionDetails | undefined {
   const exceptions = method.operation.exceptions;
   if (exceptions.length === 0) return undefined;
 
   // Prefer the default ("*") exception
   const defaultException = exceptions.find((e) => e.statusCodes === "*");
   if (defaultException?.type) {
-    return defaultException.type;
+    return {
+      type: defaultException.type,
+      contentTypes: defaultException.contentTypes ?? [],
+    };
   }
 
   // Fall back to first exception with a body type
   for (const exception of exceptions) {
     if (exception.type) {
-      return exception.type;
+      return {
+        type: exception.type,
+        contentTypes: exception.contentTypes ?? [],
+      };
     }
   }
 
   return undefined;
+}
+
+/**
+ * The XML handling mode for error deserialization.
+ *
+ * - `"json-only"` — The error model has no XML serialization; use JSON deserializer.
+ * - `"xml-only"` — The error response only uses XML content types; use XML deserializer directly.
+ * - `"dual"` — The error response supports both JSON and XML; use runtime content-type detection.
+ */
+type XmlErrorMode = "json-only" | "xml-only" | "dual";
+
+/**
+ * Determines the XML handling mode for an error response based on the error model's
+ * XML serialization metadata and the exception's declared content types.
+ *
+ * This drives the deserialization strategy in `buildErrorHandlingBlock`:
+ * - If the model has no XML serialization options, always use JSON.
+ * - If the content types are all XML, use the XML deserializer directly.
+ * - If the content types include both JSON and XML, use runtime content-type detection.
+ *
+ * @param exceptionType - The SDK type of the error body.
+ * @param contentTypes - The content types declared on the exception response.
+ * @returns The XML error handling mode.
+ */
+function getXmlErrorMode(
+  exceptionType: SdkType,
+  contentTypes: string[],
+): XmlErrorMode {
+  if (!hasXmlSerialization(exceptionType)) {
+    return "json-only";
+  }
+
+  const hasXml = contentTypes.some((ct) => ct.toLowerCase().includes("xml"));
+  const hasJson = contentTypes.some((ct) => ct.toLowerCase().includes("json"));
+
+  if (hasXml && hasJson) return "dual";
+  if (hasXml) return "xml-only";
+
+  // Model has XML serialization but no XML content types declared
+  // (e.g., only JSON content type) — use JSON deserializer
+  return "json-only";
 }

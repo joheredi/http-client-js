@@ -998,3 +998,35 @@ TypeSpec's `@multipartBody` validation requires ALL properties to be `HttpPart<T
 - `useRuntimeLib().uint8ArrayToString` refkey for bytes conversion in object serializer map callbacks
 - Legacy emitter order: encoding hints (bytesEncoding/dateEncoding) appear before itemType in metadata entries
 - FlavorProvider + httpRuntimeLib externals needed in tests that invoke useRuntimeLib()
+
+## SA-C35: XML Error Deserialization: Content-Type Check Logic — DONE (2026-02-27)
+
+### What was done
+- Added `isXmlContentType` static helper function to `src/components/static-helpers/xml-helpers.tsx`
+  - Registered with `serializationHelperRefkey("isXmlContentType")` for automatic import resolution
+  - Checks if content-type string indicates XML (`application/xml`, `text/xml`, `+xml` suffix)
+- Modified `buildErrorHandlingBlock` in `src/components/deserialize-operation.tsx` to handle three error modes:
+  - **XML-only**: Uses `xmlDeserializerRefkey(type)` directly when exception contentTypes are all XML
+  - **Dual-format**: Adds runtime content-type check with `isXmlContentType()` to select JSON or XML deserializer
+  - **JSON-only**: Existing behavior unchanged
+- Refactored `getExceptionBodyType` → `getExceptionDetails` to return both the error type and contentTypes
+- Added `getXmlErrorMode` helper to classify error responses as json-only, xml-only, or dual
+
+### Files changed
+- `src/components/static-helpers/xml-helpers.tsx` — Added `IsXmlContentTypeFunction` component
+- `src/components/deserialize-operation.tsx` — XML-aware error handling in `buildErrorHandlingBlock`
+- `test/scenarios/cases/operations/errorDeserialization/xmlErrorDeserialization.md` — Updated expected output for XML-only and dual-format scenarios
+- `test/scenarios/cases/operations/errorDeserialization/errorHeaderDeserialization.md` — Updated XML error with headers scenario
+- `test/components/deserialize-operation.test.tsx` — Added 2 unit tests for XML error modes
+
+### Patterns used
+- `serializationHelperRefkey("isXmlContentType")` for static helper refkey
+- `xmlDeserializerRefkey(type)` for referencing XML deserializer declarations
+- `hasXmlSerialization(type)` from xml-detection.ts for detecting XML models
+- `exception.contentTypes` from TCGC to determine XML/JSON/dual content types
+
+### What the next person should know
+- XML error mode detection relies on both `hasXmlSerialization(type)` AND `contentTypes` on the exception
+- If model has XML decorators but exception has no XML content types, JSON deserializer is still used
+- The `isXmlContentType` helper is generated in `helpers/xmlHelpers.ts` alongside other XML utilities
+- Per-status-code error handling (as in legacy) is NOT implemented — all exceptions use the same default/first error type

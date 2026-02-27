@@ -17,10 +17,14 @@
  * - Error body deserialization: @error model body is deserialized into error.details.
  * - Exception header merging: headers are merged into error.details when enabled.
  * - Exception headers only: assigned directly to error.details when no error body.
+ * - XML-only error: uses XML deserializer directly when error response has only XML content type.
+ * - Dual-format error: uses runtime content-type check to select JSON or XML deserializer.
  */
 import "@alloy-js/core/testing";
 import { code } from "@alloy-js/core";
-import { d } from "@alloy-js/core/testing";
+import { d, renderToString } from "@alloy-js/core/testing";
+import { createTSNamePolicy, SourceFile } from "@alloy-js/typescript";
+import { Output } from "@typespec/emitter-framework";
 import { t } from "@typespec/compiler/testing";
 import { beforeAll, describe, expect, it } from "vitest";
 import type {
@@ -32,10 +36,15 @@ import { DeserializeOperation } from "../../src/components/deserialize-operation
 import { DeserializeExceptionHeaders } from "../../src/components/deserialize-headers.js";
 import { ModelInterface } from "../../src/components/model-interface.js";
 import { JsonDeserializer } from "../../src/components/serialization/json-deserializer.js";
+import { XmlDeserializer } from "../../src/components/serialization/xml-deserializer.js";
+import { XmlHelpersFile } from "../../src/components/static-helpers/xml-helpers.js";
 import { deserializeOperationRefkey } from "../../src/utils/refkeys.js";
 import { httpRuntimeLib } from "../../src/utils/external-packages.js";
-import { TesterWithService, createSdkContextForTest } from "../test-host.js";
+import { Tester, TesterWithService, createSdkContextForTest } from "../test-host.js";
 import { SdkTestFile } from "../utils.jsx";
+import { SdkContextProvider } from "../../src/context/sdk-context.js";
+import { FlavorProvider } from "../../src/context/flavor-context.js";
+import { EmitterOptionsProvider } from "../../src/context/emitter-options-context.js";
 
 /**
  * Helper to extract the first method from the first client in an SDK context.
@@ -845,5 +854,161 @@ describe("DeserializeOperation", () => {
         return widgetDeserializer(result.body);
       }
     `);
+  });
+
+  /**
+   * Tests that when an @error model has XML serialization decorators and the
+   * exception response content type is XML-only, the deserialize function uses
+   * the XML deserializer directly instead of the JSON deserializer.
+   *
+   * This is critical because XML responses cannot be parsed by JSON deserializers.
+   * Without this, XML error responses would be silently mishandled, passing
+   * unparsed XML strings to JSON deserialization logic and producing garbage
+   * or undefined values in error.details.
+   */
+  it("should use XML deserializer for XML-only error response", async () => {
+    const runner = await Tester.createInstance();
+    const { program } = await runner.compile(
+      t.code`
+        using TypeSpec.Xml;
+
+        @service(#{title: "Test"})
+        namespace Test;
+
+        @error
+        model StorageError {
+          @Xml.name("Code") code?: string;
+          @Xml.name("Message") message?: string;
+        }
+
+        model Widget {
+          id: string;
+          name: string;
+        }
+
+        @route("/widgets/{id}")
+        @get op ${t.op("getWidget")}(@path id: string): Widget | {
+          @header contentType: "application/xml";
+          @body body: StorageError;
+          @statusCode statusCode: 400;
+        };
+      `,
+    );
+
+    const sdkContext = await createSdkContextForTest(program);
+    const method = getFirstMethod(sdkContext);
+    const errorModel = sdkContext.sdkPackage.models.find((m) => m.name === "StorageError")!;
+    const widgetModel = sdkContext.sdkPackage.models.find((m) => m.name === "Widget")!;
+
+    const template = (
+      <Output program={program} namePolicy={createTSNamePolicy()} externals={[httpRuntimeLib]}>
+        <FlavorProvider flavor="core">
+          <EmitterOptionsProvider options={{}}>
+            <SdkContextProvider sdkContext={sdkContext}>
+              <XmlHelpersFile />
+              <SourceFile path="test.ts">
+                <ModelInterface model={widgetModel} />
+                {"\n\n"}
+                <ModelInterface model={errorModel} />
+                {"\n\n"}
+                <JsonDeserializer model={widgetModel} />
+                {"\n\n"}
+                <XmlDeserializer model={errorModel} />
+                {"\n\n"}
+                <DeserializeOperation method={method} />
+              </SourceFile>
+            </SdkContextProvider>
+          </EmitterOptionsProvider>
+        </FlavorProvider>
+      </Output>
+    );
+
+    const result = renderToString(template);
+    // Should use storageErrorXmlDeserializer, not storageErrorDeserializer
+    expect(result).toContain("storageErrorXmlDeserializer(result.body)");
+    expect(result).not.toContain("storageErrorDeserializer(result.body)");
+    // Should NOT include content-type check in the deserialize function (XML-only, no dual-format)
+    expect(result).not.toContain("isXmlContentType(responseContentType)");
+  });
+
+  /**
+   * Tests that when an @error model has XML serialization decorators and the
+   * exception response supports both JSON and XML content types, the deserialize
+   * function adds runtime content-type detection to select the correct deserializer.
+   *
+   * This prevents mishandling of dual-format error responses where the server may
+   * return either JSON or XML depending on the request's Accept header or other
+   * factors. Without the runtime check, XML error responses would be silently
+   * passed to the JSON deserializer, producing invalid error details.
+   */
+  it("should use content-type check for dual-format error response", async () => {
+    const runner = await Tester.createInstance();
+    const { program } = await runner.compile(
+      t.code`
+        using TypeSpec.Xml;
+
+        @service(#{title: "Test"})
+        namespace Test;
+
+        @error
+        model ApiError {
+          @Xml.name("Code") code?: string;
+          @Xml.name("Message") message?: string;
+        }
+
+        model Document {
+          id: string;
+          content: string;
+        }
+
+        @route("/documents/{id}")
+        @get op ${t.op("getDocument")}(@path id: string): {
+          @header contentType: "application/json" | "application/xml";
+          @body body: Document;
+        } | {
+          @header contentType: "application/json" | "application/xml";
+          @body body: ApiError;
+          @statusCode statusCode: 400;
+        };
+      `,
+    );
+
+    const sdkContext = await createSdkContextForTest(program);
+    const method = getFirstMethod(sdkContext);
+    const errorModel = sdkContext.sdkPackage.models.find((m) => m.name === "ApiError")!;
+    const docModel = sdkContext.sdkPackage.models.find((m) => m.name === "Document")!;
+
+    const template = (
+      <Output program={program} namePolicy={createTSNamePolicy()} externals={[httpRuntimeLib]}>
+        <FlavorProvider flavor="core">
+          <EmitterOptionsProvider options={{}}>
+            <SdkContextProvider sdkContext={sdkContext}>
+              <XmlHelpersFile />
+              <SourceFile path="test.ts">
+                <ModelInterface model={docModel} />
+                {"\n\n"}
+                <ModelInterface model={errorModel} />
+                {"\n\n"}
+                <JsonDeserializer model={docModel} />
+                {"\n\n"}
+                <JsonDeserializer model={errorModel} />
+                {"\n\n"}
+                <XmlDeserializer model={errorModel} />
+                {"\n\n"}
+                <DeserializeOperation method={method} />
+              </SourceFile>
+            </SdkContextProvider>
+          </EmitterOptionsProvider>
+        </FlavorProvider>
+      </Output>
+    );
+
+    const result = renderToString(template);
+    // Should include content-type check
+    expect(result).toContain('result.headers?.["content-type"]');
+    expect(result).toContain("isXmlContentType(responseContentType)");
+    // Should include both XML and JSON deserializer references
+    expect(result).toContain("apiErrorXmlDeserializer(result.body)");
+    expect(result).toContain("apiErrorDeserializer(result.body)");
   });
 });

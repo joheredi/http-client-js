@@ -213,7 +213,7 @@ export async function _getWidgetDeserialize(
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
     const error = createRestError(result);
-    error.details = storageErrorDeserializer(result.body);
+    error.details = storageErrorXmlDeserializer(result.body);
     error.details = {
       ...(error.details as Record<string, unknown>),
       ..._getWidgetDeserializeExceptionHeaders(result),

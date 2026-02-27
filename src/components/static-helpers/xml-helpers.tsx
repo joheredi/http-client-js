@@ -44,6 +44,8 @@ export function XmlHelpersFile() {
       <DeserializeFromXmlFunction />
       {"\n\n"}
       <DeserializeXmlObjectFunction />
+      {"\n\n"}
+      <IsXmlContentTypeFunction />
     </SourceFile>
   );
 }
@@ -438,6 +440,34 @@ function deserializePrimitive(value: any, prop: ${serializationHelperRefkey("Xml
   if (prop.primitiveSubtype === "boolean") return value === "true" || value === true;
   return String(value);
 }`}
+    </FunctionDeclaration>
+  );
+}
+
+/**
+ * Renders the `isXmlContentType` function that checks whether a given
+ * content-type string indicates XML content.
+ *
+ * This is used at runtime to detect XML responses and select the correct
+ * deserializer (JSON vs XML) in dual-format error/response handling.
+ * The check matches `application/xml`, `text/xml`, and `+xml` suffixes
+ * (e.g., `application/atom+xml`).
+ */
+function IsXmlContentTypeFunction() {
+  return (
+    <FunctionDeclaration
+      name="isXmlContentType"
+      refkey={serializationHelperRefkey("isXmlContentType")}
+      export
+      returnType="boolean"
+      parameters={[{ name: "contentType", type: "string" }]}
+    >
+      {code`const normalized = contentType.toLowerCase();
+return (
+  normalized.includes("application/xml") ||
+  normalized.includes("text/xml") ||
+  normalized.endsWith("+xml")
+);`}
     </FunctionDeclaration>
   );
 }

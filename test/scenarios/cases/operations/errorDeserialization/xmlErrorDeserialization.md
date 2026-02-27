@@ -27,7 +27,7 @@ op getWidget(@path id: string): Widget | StorageError;
 
 ```ts operations
 import {
-  storageErrorDeserializer,
+  storageErrorXmlDeserializer,
   type Widget,
   widgetDeserializer,
 } from "../models/models.js";
@@ -66,7 +66,7 @@ export async function _getWidgetDeserialize(
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
     const error = createRestError(result);
-    error.details = storageErrorDeserializer(result.body);
+    error.details = storageErrorXmlDeserializer(result.body);
     throw error;
   }
 
@@ -117,8 +117,10 @@ op getDocument(@path id: string): {
 ## Operations
 
 ```ts operations
+import { isXmlContentType } from "../helpers/xmlHelpers.js";
 import {
   apiErrorDeserializer,
+  apiErrorXmlDeserializer,
   type Document,
   documentDeserializer,
 } from "../models/models.js";
@@ -157,7 +159,10 @@ export async function _getDocumentDeserialize(
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
     const error = createRestError(result);
-    error.details = apiErrorDeserializer(result.body);
+    const responseContentType = result.headers?.["content-type"] ?? "";
+    error.details = isXmlContentType(responseContentType)
+      ? apiErrorXmlDeserializer(result.body)
+      : apiErrorDeserializer(result.body);
     throw error;
   }
 
