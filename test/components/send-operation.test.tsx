@@ -885,6 +885,88 @@ op groupCustomized(
     });
 
     /**
+     * Tests user-defined contentType parameters use variable references.
+     *
+     * When a user explicitly defines a contentType parameter with a non-constant type
+     * (e.g., `@header("Content-Type") contentType: MyUnionType` or `@header contentType: string`),
+     * the generated code must reference the parameter variable — not hardcode a literal.
+     * This matches the legacy emitter's behavior of `contentType: contentType`.
+     *
+     * This is critical because hardcoding a literal ignores the caller's content type
+     * selection, making the parameter useless.
+     */
+    it("should use variable reference for user-defined contentType parameter", async () => {
+      const runner = await TesterWithService.createInstance();
+      const { program } = await runner.compile(
+        t.code`
+          @route("/")
+          @post op ${t.op("send")}(
+            @header("Content-Type") contentType: "application/json" | "text/plain",
+            @body body: string
+          ): void;
+        `,
+      );
+
+      const sdkContext = await createSdkContextForTest(program);
+      const method = getFirstMethod(sdkContext);
+
+      const template = (
+        <SdkTestFile sdkContext={sdkContext} externals={[httpRuntimeLib]}>
+          <OperationOptionsDeclaration method={method} />
+          {"\n\n"}
+          <SendOperation method={method} />
+        </SdkTestFile>
+      );
+
+      const result = renderToString(template);
+      // contentType should be a positional parameter (user-defined, non-constant)
+      expect(result).toMatch(/sendSend\(\s*context: Client,\s*contentType:/);
+      // contentType in request options should use the variable, NOT a hardcoded literal
+      expect(result).toContain("contentType: contentType");
+      // Should NOT hardcode a literal like contentType: "application/json"
+      expect(result).not.toContain('contentType: "application/json"');
+    });
+
+    /**
+     * Tests that user-defined contentType with a string type uses variable reference.
+     *
+     * When contentType is declared as `@header contentType: string = "default"`,
+     * the generated code must reference the `contentType` parameter variable,
+     * not hardcode the default value or a wildcard content type.
+     */
+    it("should use variable reference for string contentType with default value", async () => {
+      const runner = await TesterWithService.createInstance();
+      const { program } = await runner.compile(
+        t.code`
+          @route("/upload")
+          @post op ${t.op("uploadFile")}(
+            @header contentType: string,
+            @body body: bytes
+          ): void;
+        `,
+      );
+
+      const sdkContext = await createSdkContextForTest(program);
+      const method = getFirstMethod(sdkContext);
+
+      const template = (
+        <SdkTestFile sdkContext={sdkContext} externals={[httpRuntimeLib]}>
+          <OperationOptionsDeclaration method={method} />
+          {"\n\n"}
+          <SendOperation method={method} />
+        </SdkTestFile>
+      );
+
+      const result = renderToString(template);
+      // contentType should be a positional parameter
+      expect(result).toMatch(/uploadFileSend\(\s*context: Client,\s*contentType:/);
+      // contentType in request options should use the variable reference
+      expect(result).toContain("contentType: contentType");
+      // Should NOT hardcode */* or any other literal
+      expect(result).not.toContain('contentType: "*/*"');
+    });
+
+    /**
      * Tests constant path parameters. When a path parameter has a constant
      * type (e.g., `@path strDefault: "foobar"`), it should not appear as a function
      * argument. Instead, the literal value should be used in the URL template

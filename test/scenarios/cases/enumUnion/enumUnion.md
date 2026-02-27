@@ -76,7 +76,7 @@ export function _getSend(
 ): StreamableMethod {
   return context.path("/").post({
     ...operationOptionsToRequestParameters(options),
-    contentType: "application/json; serialization=Avro",
+    contentType: contentType,
     body: body,
   });
 }

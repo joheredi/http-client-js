@@ -1265,7 +1265,7 @@
       "title": "ContentType: Variable Reference Replaced with Hardcoded Literal",
       "category": "scenario-audit/Operations",
       "priority": "P1",
-      "status": "not-started",
+      "status": "done",
       "description": "The new emitter uses hardcoded content type string literals ('*/*' or 'application/json') instead of variable references. Legacy uses dynamic contentType parameter. Legacy behavior is the expected output.",
       "legacy_behavior": "headers: { 'Content-Type': contentType } using parameter value.",
       "new_behavior": "headers: { 'Content-Type': '*/*' } or 'application/json' literal.",

@@ -451,7 +451,7 @@ export function _uploadFileViaBodySend(
 ): StreamableMethod {
   return context.path("/uploadFileViaBody").post({
     ...operationOptionsToRequestParameters(options),
-    contentType: "*/*",
+    contentType: contentType,
     body: body,
   });
 }
