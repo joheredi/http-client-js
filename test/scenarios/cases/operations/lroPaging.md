@@ -382,16 +382,15 @@ export function errorAdditionalInfoDeserializer(
 
 ```ts operations
 import {
-  buildPagedAsyncIterator,
-  type PagedAsyncIterableIterator,
-} from "../static-helpers/pagingHelpers.js";
-import { getLongRunningPoller } from "../static-helpers/pollingHelpers.js";
-import {
-  errorResponseDeserializer,
   type Site,
   type WebAppCollection,
   webAppCollectionDeserializer,
 } from "../models/models.js";
+import {
+  buildPagedAsyncIterator,
+  type PagedAsyncIterableIterator,
+} from "../static-helpers/pagingHelpers.js";
+import { getLongRunningPoller } from "../static-helpers/pollingHelpers.js";
 import { SuspendOptionalParams } from "./sites/options.js";
 import {
   Client,
@@ -433,9 +432,7 @@ export async function _suspendDeserialize(
 ): Promise<WebAppCollection> {
   const expectedStatuses = ["200", "202", "201"];
   if (!expectedStatuses.includes(result.status)) {
-    const error = createRestError(result);
-    error.details = errorResponseDeserializer(result.body);
-    throw error;
+    throw createRestError(result);
   }
 
   return webAppCollectionDeserializer(result.body);

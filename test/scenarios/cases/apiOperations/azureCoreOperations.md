@@ -52,7 +52,6 @@ needAzureCore: true
 
 ```ts operations
 import {
-  errorResponseDeserializer,
   type ResourceOperationStatusWidgetSuiteWidgetSuiteError,
   resourceOperationStatusWidgetSuiteWidgetSuiteErrorDeserializer,
 } from "../models/models.js";
@@ -92,9 +91,7 @@ export async function _getWidgetOperationStatusDeserialize(
 ): Promise<ResourceOperationStatusWidgetSuiteWidgetSuiteError> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
-    const error = createRestError(result);
-    error.details = errorResponseDeserializer(result.body);
-    throw error;
+    throw createRestError(result);
   }
 
   return resourceOperationStatusWidgetSuiteWidgetSuiteErrorDeserializer(

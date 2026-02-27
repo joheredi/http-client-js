@@ -66,7 +66,6 @@ withVersionedApiVersion: true
 
 ```ts operations
 import {
-  errorResponseDeserializer,
   TestVerificationContent,
   testVerificationContentSerializer,
   type TestVerificationResult,
@@ -113,9 +112,7 @@ export async function _verifyDeserialize(
 ): Promise<TestVerificationResult> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
-    const error = createRestError(result);
-    error.details = errorResponseDeserializer(result.body);
-    throw error;
+    throw createRestError(result);
   }
 
   return testVerificationResultDeserializer(result.body);

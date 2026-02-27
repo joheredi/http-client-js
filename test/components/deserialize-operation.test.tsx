@@ -14,11 +14,8 @@
  * - GET returning an array of models maps each element through the deserializer.
  * - Nullable model response wraps deserialization with null check.
  * - createRestError is imported and used for unexpected status codes.
- * - Error body deserialization: @error model body is deserialized into error.details.
- * - Exception header merging: headers are merged into error.details when enabled.
- * - Exception headers only: assigned directly to error.details when no error body.
- * - XML-only error: uses XML deserializer directly when error response has only XML content type.
- * - Dual-format error: uses runtime content-type check to select JSON or XML deserializer.
+ * - Error handling throws createRestError directly (no error body deserialization).
+ * - Error handling throws directly even with exception headers and include-headers-in-response.
  */
 import "@alloy-js/core/testing";
 import { code } from "@alloy-js/core";
@@ -33,11 +30,8 @@ import type {
   SdkServiceMethod,
 } from "@azure-tools/typespec-client-generator-core";
 import { DeserializeOperation } from "../../src/components/deserialize-operation.js";
-import { DeserializeExceptionHeaders } from "../../src/components/deserialize-headers.js";
 import { ModelInterface } from "../../src/components/model-interface.js";
 import { JsonDeserializer } from "../../src/components/serialization/json-deserializer.js";
-import { XmlDeserializer } from "../../src/components/serialization/xml-deserializer.js";
-import { XmlHelpersFile } from "../../src/components/static-helpers/xml-helpers.js";
 import { deserializeOperationRefkey } from "../../src/utils/refkeys.js";
 import { httpRuntimeLib } from "../../src/utils/external-packages.js";
 import { Tester, TesterWithService, createSdkContextForTest } from "../test-host.js";
@@ -488,7 +482,14 @@ describe("DeserializeOperation", () => {
    * structured error information (error codes, messages, etc.) from the
    * RestError's details property.
    */
-  it("should deserialize error body when @error model exists", async () => {
+  /**
+   * Tests that when an @error model exists, the deserialize function still throws
+   * createRestError directly WITHOUT deserializing the error body. The legacy emitter
+   * pattern does not attach error.details with a deserialized body — it simply throws
+   * createRestError(result). This ensures consistency with the legacy emitter's error
+   * handling behavior, where error bodies are not deserialized into structured objects.
+   */
+  it("should throw createRestError directly even with @error model", async () => {
     const runner = await TesterWithService.createInstance();
     const { program } = await runner.compile(
       t.code`
@@ -510,17 +511,12 @@ describe("DeserializeOperation", () => {
     const sdkContext = await createSdkContextForTest(program);
     const method = getFirstMethod(sdkContext);
     const widgetModel = sdkContext.sdkPackage.models.find((m) => m.name === "Widget")!;
-    const errorModel = sdkContext.sdkPackage.models.find((m) => m.name === "ApiError")!;
 
     const template = (
       <SdkTestFile sdkContext={sdkContext} externals={[httpRuntimeLib]}>
         <ModelInterface model={widgetModel} />
         {"\n\n"}
-        <ModelInterface model={errorModel} />
-        {"\n\n"}
         <JsonDeserializer model={widgetModel} />
-        {"\n\n"}
-        <JsonDeserializer model={errorModel} />
         {"\n\n"}
         <DeserializeOperation method={method} />
       </SdkTestFile>
@@ -537,25 +533,10 @@ describe("DeserializeOperation", () => {
         name: string;
       }
 
-      /**
-       * model interface ApiError
-       */
-      export interface ApiError {
-        code: string;
-        message: string;
-      }
-
       export function widgetDeserializer(item: any): Widget {
         return {
           id: item["id"],
           name: item["name"],
-        };
-      }
-
-      export function apiErrorDeserializer(item: any): ApiError {
-        return {
-          code: item["code"],
-          message: item["message"],
         };
       }
 
@@ -564,9 +545,7 @@ describe("DeserializeOperation", () => {
       ): Promise<Widget> {
         const expectedStatuses = ["200"];
         if (!expectedStatuses.includes(result.status)) {
-          const error = createRestError(result);
-          error.details = apiErrorDeserializer(result.body);
-          throw error;
+          throw createRestError(result);
         }
 
         return widgetDeserializer(result.body);
@@ -575,13 +554,12 @@ describe("DeserializeOperation", () => {
   });
 
   /**
-   * Tests that exception headers are merged into error.details when both
-   * an @error model body and exception headers exist and include-headers-in-response
-   * is enabled. The legacy emitter pattern spreads the deserialized body and
-   * exception headers together: error.details = {...body, ...headers}. This ensures
-   * consumers get both the structured error data and the error headers in one place.
+   * Tests that even when an @error model has exception headers and
+   * include-headers-in-response is enabled, the deserialize function still
+   * throws createRestError directly without merging exception headers.
+   * The legacy emitter pattern does not attach error.details at all.
    */
-  it("should merge exception headers into error.details when enabled", async () => {
+  it("should throw createRestError directly even with exception headers enabled", async () => {
     const runner = await TesterWithService.createInstance();
     const { program } = await runner.compile(
       t.code`
@@ -604,7 +582,6 @@ describe("DeserializeOperation", () => {
     const sdkContext = await createSdkContextForTest(program);
     const method = getFirstMethod(sdkContext);
     const widgetModel = sdkContext.sdkPackage.models.find((m) => m.name === "Widget")!;
-    const errorModel = sdkContext.sdkPackage.models.find((m) => m.name === "ApiError")!;
 
     const template = (
       <SdkTestFile
@@ -614,13 +591,7 @@ describe("DeserializeOperation", () => {
       >
         <ModelInterface model={widgetModel} />
         {"\n\n"}
-        <ModelInterface model={errorModel} />
-        {"\n\n"}
         <JsonDeserializer model={widgetModel} />
-        {"\n\n"}
-        <JsonDeserializer model={errorModel} />
-        {"\n\n"}
-        <DeserializeExceptionHeaders method={method} />
         {"\n\n"}
         <DeserializeOperation method={method} />
       </SdkTestFile>
@@ -637,15 +608,6 @@ describe("DeserializeOperation", () => {
         name: string;
       }
 
-      /**
-       * model interface ApiError
-       */
-      export interface ApiError {
-        code: string;
-        message: string;
-        errorCode: string;
-      }
-
       export function widgetDeserializer(item: any): Widget {
         return {
           id: item["id"],
@@ -653,29 +615,12 @@ describe("DeserializeOperation", () => {
         };
       }
 
-      export function apiErrorDeserializer(item: any): ApiError {
-        return {
-          code: item["code"],
-          message: item["message"],
-          errorCode: item["errorCode"],
-        };
-      }
-
-      export function _getWidgetDeserializeExceptionHeaders(
-        result: PathUncheckedResponse,
-      ): { errorCode: string } {
-        return { errorCode: result.headers["x-ms-error-code"] };
-      }
-
       export async function _getWidgetDeserialize(
         result: PathUncheckedResponse,
       ): Promise<Widget> {
         const expectedStatuses = ["200"];
         if (!expectedStatuses.includes(result.status)) {
-          const error = createRestError(result);
-          error.details = apiErrorDeserializer(result.body);
-          error.details = { ...(error.details as Record<string, unknown>), ..._getWidgetDeserializeExceptionHeaders(result) };
-          throw error;
+          throw createRestError(result);
         }
 
         return widgetDeserializer(result.body);
@@ -782,7 +727,12 @@ describe("DeserializeOperation", () => {
    * being merged with the body. This handles the case where the error model
    * only has header properties and no body properties.
    */
-  it("should assign exception headers directly when no error body", async () => {
+  /**
+   * Tests that even with exception headers only (no error body), the deserialize
+   * function throws createRestError directly. The legacy emitter does not assign
+   * exception headers to error.details — it simply throws createRestError(result).
+   */
+  it("should throw createRestError directly even with exception headers only", async () => {
     const runner = await TesterWithService.createInstance();
     const { program } = await runner.compile(
       t.code`
@@ -813,8 +763,6 @@ describe("DeserializeOperation", () => {
         {"\n\n"}
         <JsonDeserializer model={widgetModel} />
         {"\n\n"}
-        <DeserializeExceptionHeaders method={method} />
-        {"\n\n"}
         <DeserializeOperation method={method} />
       </SdkTestFile>
     );
@@ -835,20 +783,12 @@ describe("DeserializeOperation", () => {
         };
       }
 
-      export function _getWidgetDeserializeExceptionHeaders(
-        result: PathUncheckedResponse,
-      ): { errorCode: string } {
-        return { errorCode: result.headers["x-ms-error-code"] };
-      }
-
       export async function _getWidgetDeserialize(
         result: PathUncheckedResponse,
       ): Promise<Widget> {
         const expectedStatuses = ["200"];
         if (!expectedStatuses.includes(result.status)) {
-          const error = createRestError(result);
-          error.details = _getWidgetDeserializeExceptionHeaders(result);
-          throw error;
+          throw createRestError(result);
         }
 
         return widgetDeserializer(result.body);
@@ -858,15 +798,11 @@ describe("DeserializeOperation", () => {
 
   /**
    * Tests that when an @error model has XML serialization decorators and the
-   * exception response content type is XML-only, the deserialize function uses
-   * the XML deserializer directly instead of the JSON deserializer.
-   *
-   * This is critical because XML responses cannot be parsed by JSON deserializers.
-   * Without this, XML error responses would be silently mishandled, passing
-   * unparsed XML strings to JSON deserialization logic and producing garbage
-   * or undefined values in error.details.
+   * exception response content type is XML-only, the deserialize function still
+   * throws createRestError directly without using any XML deserializer.
+   * The legacy emitter does not deserialize error bodies regardless of format.
    */
-  it("should use XML deserializer for XML-only error response", async () => {
+  it("should throw createRestError directly for XML-only error response", async () => {
     const runner = await Tester.createInstance();
     const { program } = await runner.compile(
       t.code`
@@ -897,24 +833,13 @@ describe("DeserializeOperation", () => {
 
     const sdkContext = await createSdkContextForTest(program);
     const method = getFirstMethod(sdkContext);
-    const errorModel = sdkContext.sdkPackage.models.find((m) => m.name === "StorageError")!;
-    const widgetModel = sdkContext.sdkPackage.models.find((m) => m.name === "Widget")!;
 
     const template = (
       <Output program={program} namePolicy={createTSNamePolicy()} externals={[httpRuntimeLib]}>
         <FlavorProvider flavor="core">
           <EmitterOptionsProvider options={{}}>
             <SdkContextProvider sdkContext={sdkContext}>
-              <XmlHelpersFile />
               <SourceFile path="test.ts">
-                <ModelInterface model={widgetModel} />
-                {"\n\n"}
-                <ModelInterface model={errorModel} />
-                {"\n\n"}
-                <JsonDeserializer model={widgetModel} />
-                {"\n\n"}
-                <XmlDeserializer model={errorModel} />
-                {"\n\n"}
                 <DeserializeOperation method={method} />
               </SourceFile>
             </SdkContextProvider>
@@ -924,24 +849,20 @@ describe("DeserializeOperation", () => {
     );
 
     const result = renderToString(template);
-    // Should use storageErrorXmlDeserializer, not storageErrorDeserializer
-    expect(result).toContain("storageErrorXmlDeserializer(result.body)");
-    expect(result).not.toContain("storageErrorDeserializer(result.body)");
-    // Should NOT include content-type check in the deserialize function (XML-only, no dual-format)
-    expect(result).not.toContain("isXmlContentType(responseContentType)");
+    // Should NOT use any error deserializer — just throw directly
+    expect(result).not.toContain("storageErrorXmlDeserializer");
+    expect(result).not.toContain("storageErrorDeserializer");
+    expect(result).not.toContain("error.details");
+    expect(result).toContain("throw createRestError(result)");
   });
 
   /**
    * Tests that when an @error model has XML serialization decorators and the
    * exception response supports both JSON and XML content types, the deserialize
-   * function adds runtime content-type detection to select the correct deserializer.
-   *
-   * This prevents mishandling of dual-format error responses where the server may
-   * return either JSON or XML depending on the request's Accept header or other
-   * factors. Without the runtime check, XML error responses would be silently
-   * passed to the JSON deserializer, producing invalid error details.
+   * function still throws createRestError directly without any content-type detection.
+   * The legacy emitter does not deserialize error bodies regardless of format.
    */
-  it("should use content-type check for dual-format error response", async () => {
+  it("should throw createRestError directly for dual-format error response", async () => {
     const runner = await Tester.createInstance();
     const { program } = await runner.compile(
       t.code`
@@ -975,26 +896,13 @@ describe("DeserializeOperation", () => {
 
     const sdkContext = await createSdkContextForTest(program);
     const method = getFirstMethod(sdkContext);
-    const errorModel = sdkContext.sdkPackage.models.find((m) => m.name === "ApiError")!;
-    const docModel = sdkContext.sdkPackage.models.find((m) => m.name === "Document")!;
 
     const template = (
       <Output program={program} namePolicy={createTSNamePolicy()} externals={[httpRuntimeLib]}>
         <FlavorProvider flavor="core">
           <EmitterOptionsProvider options={{}}>
             <SdkContextProvider sdkContext={sdkContext}>
-              <XmlHelpersFile />
               <SourceFile path="test.ts">
-                <ModelInterface model={docModel} />
-                {"\n\n"}
-                <ModelInterface model={errorModel} />
-                {"\n\n"}
-                <JsonDeserializer model={docModel} />
-                {"\n\n"}
-                <JsonDeserializer model={errorModel} />
-                {"\n\n"}
-                <XmlDeserializer model={errorModel} />
-                {"\n\n"}
                 <DeserializeOperation method={method} />
               </SourceFile>
             </SdkContextProvider>
@@ -1004,11 +912,12 @@ describe("DeserializeOperation", () => {
     );
 
     const result = renderToString(template);
-    // Should include content-type check
-    expect(result).toContain('result.headers?.["content-type"]');
-    expect(result).toContain("isXmlContentType(responseContentType)");
-    // Should include both XML and JSON deserializer references
-    expect(result).toContain("apiErrorXmlDeserializer(result.body)");
-    expect(result).toContain("apiErrorDeserializer(result.body)");
+    // Should NOT include content-type check or any deserializer references
+    expect(result).not.toContain('result.headers?.["content-type"]');
+    expect(result).not.toContain("isXmlContentType");
+    expect(result).not.toContain("apiErrorXmlDeserializer");
+    expect(result).not.toContain("apiErrorDeserializer");
+    expect(result).not.toContain("error.details");
+    expect(result).toContain("throw createRestError(result)");
   });
 });

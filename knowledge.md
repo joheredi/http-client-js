@@ -1815,3 +1815,23 @@ including `_<digits>` patterns from TCGC conflict resolution (e.g., `Color_1` â†
 **Rule**: When writing tests for multipart + flatten combinations, you cannot use TypeSpec compilation. Use mocked TCGC model types or test non-flatten regression paths instead.
 
 **Key files**: `src/components/serialization/multipart-serializer.tsx` (defensive flatten handling), `src/components/model-files.tsx` (multipart models now included in FlattenHelperDeclarations)
+
+## Azure Core Error Type Model Filtering Limitation
+
+### Issue
+Task 10.13 attempted to filter Azure Core error types (ErrorModel, ErrorResponse, InnerError) from local model generation, replacing them with runtime package imports. This caused `<Unresolved Symbol>` errors because these types are referenced as properties of regular models (e.g., `AssetChainSummaryResult.errors?: ErrorResponse[]`).
+
+### Root Cause
+When `isAzureCoreErrorType()` filtered models from the `models` list in `model-files.tsx`, the filtered types' refkeys were never declared. But other models' properties still referenced these refkeys via `getTypeExpression()`, causing unresolved symbols.
+
+### What Works
+Simplifying `buildErrorHandlingBlock()` to `throw createRestError(result)` without deserializing error bodies. This doesn't break any refkey chains because it removes references (the deserializer call) rather than declarations.
+
+### What Doesn't Work
+Simply filtering Azure Core error types from the model list. The types are needed whenever regular models have properties that reference them. A proper solution would require:
+1. Mapping Azure Core error type refkeys to runtime package member references (e.g., `httpRuntimeLib.ErrorModel`)
+2. Or generating a type alias that re-exports from the runtime package
+3. Both approaches need changes in the type expression and serialization layers
+
+### Key Insight
+TCGC propagates `UsageFlags.Output` through property references. When `AssetChainSummaryResult` (Output) has `errors?: ErrorResponse[]`, TCGC gives `ErrorResponse` Output usage too. This means the type appears in `outputModels` and gets deserializers. Filtering it breaks the chain.

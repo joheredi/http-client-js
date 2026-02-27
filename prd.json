@@ -948,7 +948,7 @@
         "error.details is NOT populated with deserialized error bodies",
         "Existing tests updated to match new error handling pattern"
       ],
-      "status": "not-started",
+      "status": "done",
       "source": "implementation-phase",
       "category": "phase-10/Flavor Parity \u2014 Match Legacy Emitter Flavor Behavior"
     },

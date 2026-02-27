@@ -63,7 +63,6 @@ withRawContent: true
 
 ```ts operations
 import {
-  errorResponseDeserializer,
   type PartnerTopic,
   partnerTopicDeserializer,
   PartnerTopicUpdateParameters,
@@ -113,9 +112,7 @@ export async function _updateDeserialize(
 ): Promise<PartnerTopic> {
   const expectedStatuses = ["200", "201"];
   if (!expectedStatuses.includes(result.status)) {
-    const error = createRestError(result);
-    error.details = errorResponseDeserializer(result.body);
-    throw error;
+    throw createRestError(result);
   }
 
   return partnerTopicDeserializer(result.body);

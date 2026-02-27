@@ -59,7 +59,6 @@ withRawContent: true
 ## Operations
 
 ```ts operations
-import { errorResponseDeserializer } from "../models/models.js";
 import type { CheckNameAvailabilityOptionalParams } from "./options.js";
 import {
   type Client,
@@ -94,9 +93,7 @@ export async function _checkNameAvailabilityDeserialize(
 ): Promise<void> {
   const expectedStatuses = ["204"];
   if (!expectedStatuses.includes(result.status)) {
-    const error = createRestError(result);
-    error.details = errorResponseDeserializer(result.body);
-    throw error;
+    throw createRestError(result);
   }
 
   return;

@@ -699,15 +699,11 @@ flavor: azure
 ## Operations
 
 ```ts operations
+import { type Bar, barDeserializer } from "../models/models.js";
 import {
   buildPagedAsyncIterator,
   type PagedAsyncIterableIterator,
 } from "../static-helpers/pagingHelpers.js";
-import {
-  type Bar,
-  barDeserializer,
-  errorDeserializer,
-} from "../models/models.js";
 import type { TestOptionalParams } from "./options.js";
 import {
   type Client,
@@ -735,9 +731,7 @@ export async function _testDeserialize(
 ): Promise<Bar> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
-    const error = createRestError(result);
-    error.details = errorDeserializer(result.body);
-    throw error;
+    throw createRestError(result);
   }
 
   return barDeserializer(result.body);
@@ -794,15 +788,11 @@ flavor: azure
 ## Operations
 
 ```ts operations
+import { type Child, childDeserializer } from "../models/models.js";
 import {
   buildPagedAsyncIterator,
   type PagedAsyncIterableIterator,
 } from "../static-helpers/pagingHelpers.js";
-import {
-  type Child,
-  childDeserializer,
-  errorDeserializer,
-} from "../models/models.js";
 import type { TestOptionalParams } from "./options.js";
 import {
   type Client,
@@ -830,9 +820,7 @@ export async function _testDeserialize(
 ): Promise<Child> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
-    const error = createRestError(result);
-    error.details = errorDeserializer(result.body);
-    throw error;
+    throw createRestError(result);
   }
 
   return childDeserializer(result.body);
@@ -1273,14 +1261,14 @@ export function testDeserializer(item: any): Test {
 
 ```ts operations
 import {
-  buildPagedAsyncIterator,
-  type PagedAsyncIterableIterator,
-} from "../static-helpers/pagingHelpers.js";
-import {
   type ListTestResult,
   listTestResultDeserializer,
   type Test,
 } from "../models/models.js";
+import {
+  buildPagedAsyncIterator,
+  type PagedAsyncIterableIterator,
+} from "../static-helpers/pagingHelpers.js";
 import type { BarOptionalParams, FooOptionalParams } from "./options.js";
 import {
   type Client,

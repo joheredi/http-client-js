@@ -481,15 +481,14 @@ export function systemDataDeserializer(item: any): SystemData {
 
 ```ts operations
 import {
-  buildPagedAsyncIterator,
-  type PagedAsyncIterableIterator,
-} from "../static-helpers/pagingHelpers.js";
-import {
-  errorResponseDeserializer,
   type Operation,
   type OperationListResult,
   operationListResultDeserializer,
 } from "../models/models.js";
+import {
+  buildPagedAsyncIterator,
+  type PagedAsyncIterableIterator,
+} from "../static-helpers/pagingHelpers.js";
 import { ListOptionalParams } from "./operations/options.js";
 import {
   Client,
@@ -523,9 +522,7 @@ export async function _listDeserialize(
 ): Promise<OperationListResult> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
-    const error = createRestError(result);
-    error.details = errorResponseDeserializer(result.body);
-    throw error;
+    throw createRestError(result);
   }
 
   return operationListResultDeserializer(result.body);

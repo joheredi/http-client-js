@@ -50,11 +50,7 @@ withVersionedApiVersion: true
 ## Operations
 
 ```ts operations
-import {
-  errorResponseDeserializer,
-  type KeyBundle,
-  keyBundleDeserializer,
-} from "../models/models.js";
+import { type KeyBundle, keyBundleDeserializer } from "../models/models.js";
 import { UpdateKeyOptionalParams } from "./options.js";
 import {
   Client,
@@ -97,9 +93,7 @@ export async function _updateKeyDeserialize(
 ): Promise<KeyBundle> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
-    const error = createRestError(result);
-    error.details = errorResponseDeserializer(result.body);
-    throw error;
+    throw createRestError(result);
   }
 
   return keyBundleDeserializer(result.body);

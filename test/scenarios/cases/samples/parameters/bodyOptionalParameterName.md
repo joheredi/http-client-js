@@ -145,13 +145,12 @@ export interface BackupOptionalParams extends OperationOptions {
 Should generate operations correctly:
 
 ```ts operations
-import { getLongRunningPoller } from "../static-helpers/pollingHelpers.js";
 import {
   backupRequestPropertiesSerializer,
   BackupResult,
   backupResultDeserializer,
-  errorResponseDeserializer,
 } from "../models/models.js";
+import { getLongRunningPoller } from "../static-helpers/pollingHelpers.js";
 import { BackupOptionalParams } from "./cloudHsmClusters/options.js";
 import {
   Client,
@@ -197,9 +196,7 @@ export async function _backupDeserialize(
 ): Promise<BackupResult> {
   const expectedStatuses = ["202", "200", "201"];
   if (!expectedStatuses.includes(result.status)) {
-    const error = createRestError(result);
-    error.details = errorResponseDeserializer(result.body);
-    throw error;
+    throw createRestError(result);
   }
 
   return backupResultDeserializer(result.body);
@@ -219,14 +216,19 @@ export function backup(
   cloudHsmClusterName: string,
   options: BackupOptionalParams = { requestOptions: {} },
 ): PollerLike<OperationState<BackupResult>, BackupResult> {
-  return getLongRunningPoller(context, _backupDeserialize, ["202", "200", "201"], {
-    updateIntervalInMs: options?.updateIntervalInMs,
-    abortSignal: options?.abortSignal,
-    getInitialResponse: () =>
-      _backupSend(context, resourceGroupName, cloudHsmClusterName, options),
-    resourceLocationConfig: "azure-async-operation",
-    apiVersion: context.apiVersion ?? "2021-10-01-preview",
-  }) as PollerLike<OperationState<BackupResult>, BackupResult>;
+  return getLongRunningPoller(
+    context,
+    _backupDeserialize,
+    ["202", "200", "201"],
+    {
+      updateIntervalInMs: options?.updateIntervalInMs,
+      abortSignal: options?.abortSignal,
+      getInitialResponse: () =>
+        _backupSend(context, resourceGroupName, cloudHsmClusterName, options),
+      resourceLocationConfig: "azure-async-operation",
+      apiVersion: context.apiVersion ?? "2021-10-01-preview",
+    },
+  ) as PollerLike<OperationState<BackupResult>, BackupResult>;
 }
 ```
 

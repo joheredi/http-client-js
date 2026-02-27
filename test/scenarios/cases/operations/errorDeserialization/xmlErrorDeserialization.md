@@ -26,11 +26,7 @@ op getWidget(@path id: string): Widget | StorageError;
 ## Operations
 
 ```ts operations
-import {
-  storageErrorXmlDeserializer,
-  type Widget,
-  widgetDeserializer,
-} from "../models/models.js";
+import { type Widget, widgetDeserializer } from "../models/models.js";
 import type { GetWidgetOptionalParams } from "./options.js";
 import {
   type Client,
@@ -65,9 +61,7 @@ export async function _getWidgetDeserialize(
 ): Promise<Widget> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
-    const error = createRestError(result);
-    error.details = storageErrorXmlDeserializer(result.body);
-    throw error;
+    throw createRestError(result);
   }
 
   return widgetDeserializer(result.body);
@@ -117,13 +111,7 @@ op getDocument(@path id: string): {
 ## Operations
 
 ```ts operations
-import { isXmlContentType } from "../static-helpers/xmlHelpers.js";
-import {
-  apiErrorDeserializer,
-  apiErrorXmlDeserializer,
-  type Document,
-  documentDeserializer,
-} from "../models/models.js";
+import { type Document, documentDeserializer } from "../models/models.js";
 import type { GetDocumentOptionalParams } from "./options.js";
 import {
   type Client,
@@ -158,12 +146,7 @@ export async function _getDocumentDeserialize(
 ): Promise<Document> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
-    const error = createRestError(result);
-    const responseContentType = result.headers?.["content-type"] ?? "";
-    error.details = isXmlContentType(responseContentType)
-      ? apiErrorXmlDeserializer(result.body)
-      : apiErrorDeserializer(result.body);
-    throw error;
+    throw createRestError(result);
   }
 
   return documentDeserializer(result.body);
@@ -206,11 +189,7 @@ op getItem(@path id: string): Item | SimpleError;
 ## Operations
 
 ```ts operations
-import {
-  type Item,
-  itemDeserializer,
-  simpleErrorDeserializer,
-} from "../models/models.js";
+import { type Item, itemDeserializer } from "../models/models.js";
 import type { GetItemOptionalParams } from "./options.js";
 import {
   type Client,
@@ -245,9 +224,7 @@ export async function _getItemDeserialize(
 ): Promise<Item> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
-    const error = createRestError(result);
-    error.details = simpleErrorDeserializer(result.body);
-    throw error;
+    throw createRestError(result);
   }
 
   return itemDeserializer(result.body);
