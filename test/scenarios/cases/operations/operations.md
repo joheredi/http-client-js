@@ -831,7 +831,7 @@ export function test(
     () => _testSend(context, options),
     _testDeserialize,
     ["200"],
-    { itemName: "lists" },
+    { itemName: "lists", nextLinkName: "nextLink" },
   );
 }
 ```
@@ -1306,7 +1306,7 @@ export function bar(
     () => _barSend(context, options),
     _barDeserialize,
     ["200"],
-    { itemName: "tests" },
+    { itemName: "tests", nextLinkName: "next" },
   );
 }
 
@@ -1343,7 +1343,7 @@ export function foo(
     () => _fooSend(context, options),
     _fooDeserialize,
     ["200"],
-    { itemName: "tests" },
+    { itemName: "tests", nextLinkName: "next", nextLinkMethod: "POST" },
   );
 }
 ```

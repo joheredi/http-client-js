@@ -6,6 +6,7 @@ import type {
   SdkLroServiceMethod,
   SdkMethodParameter,
   SdkPagingServiceMethod,
+  SdkQueryParameter,
   SdkServiceMethod,
 } from "@azure-tools/typespec-client-generator-core";
 import {
@@ -583,9 +584,14 @@ function getResourceLocationConfig(
 /**
  * Builds the paging options object for `buildPagedAsyncIterator`.
  *
- * Extracts `itemName` and `nextLinkName` from the TCGC paging metadata.
- * These tell the paging helper where to find the items array and the
- * continuation token in the response body.
+ * Extracts paging configuration from the TCGC paging metadata:
+ * - `itemName`: path to the items array in the response body
+ * - `nextLinkName`: path to the continuation token in the response body
+ * - `nextLinkMethod`: HTTP verb for next-page requests (only emitted when not "GET")
+ * - `apiVersion`: API version expression for next-page URL injection
+ *
+ * This matches the legacy emitter behavior which includes full paging
+ * configuration in the `buildPagedAsyncIterator` call.
  *
  * @param method - The TCGC paging service method.
  * @returns A string with the paging options object, or empty string if defaults apply.
@@ -606,16 +612,69 @@ function buildPagingOptions(
     }
   }
 
-  // Extract next link name from continuationTokenResponseSegments
-  const nextLinkSegments =
+  // Extract next link name from nextLinkSegments (preferred) or
+  // continuationTokenResponseSegments (fallback).
+  // nextLinkSegments maps the path to the next-page URL in the response body.
+  const nextLinkSegs =
+    method.pagingMetadata?.nextLinkSegments ??
     method.pagingMetadata?.continuationTokenResponseSegments;
-  if (nextLinkSegments && nextLinkSegments.length > 0) {
-    const lastSegment = nextLinkSegments[nextLinkSegments.length - 1];
+  if (nextLinkSegs && nextLinkSegs.length > 0) {
+    const lastSegment = nextLinkSegs[nextLinkSegs.length - 1];
     if ("serializedName" in lastSegment) {
       parts.push(`nextLinkName: "${lastSegment.serializedName}"`);
     }
   }
 
+  // Extract next link HTTP method — only emit when not "GET" (the default)
+  const nextLinkVerb = method.pagingMetadata?.nextLinkVerb;
+  if (nextLinkVerb && nextLinkVerb !== "GET") {
+    parts.push(`nextLinkMethod: "${nextLinkVerb}"`);
+  }
+
+  // Extract API version from the HTTP operation's query parameters.
+  // When present, the paging helper appends api-version to next-page URLs.
+  const apiVersionExpr = getApiVersionExpression(method);
+  if (apiVersionExpr) {
+    parts.push(`apiVersion: ${apiVersionExpr}`);
+  }
+
   if (parts.length === 0) return "";
   return `, { ${parts.join(", ")} }`;
+}
+
+/**
+ * Extracts the API version expression from a service method's HTTP operation
+ * query parameters. Looks for a query parameter marked with `isApiVersionParam`
+ * and returns a JavaScript expression for accessing its value.
+ *
+ * For client-level API version params with a default, returns:
+ *   `context.apiVersion ?? "2023-12-01"`
+ *
+ * For client-level API version params without a default, returns:
+ *   `context.apiVersion`
+ *
+ * @param method - The TCGC service method.
+ * @returns A JavaScript expression string, or undefined if no API version param exists.
+ */
+function getApiVersionExpression(
+  method: SdkServiceMethod<SdkHttpOperation>,
+): string | undefined {
+  const queryParams = method.operation.parameters.filter(
+    (p): p is SdkQueryParameter => p.kind === "query",
+  );
+  const apiVersionParam = queryParams.find((p) => p.isApiVersionParam);
+  if (!apiVersionParam) return undefined;
+
+  const correspondingParam = apiVersionParam.correspondingMethodParams[0];
+  if (!correspondingParam) return undefined;
+
+  if (correspondingParam.kind === "method" && correspondingParam.onClient) {
+    const defaultValue = correspondingParam.clientDefaultValue;
+    if (defaultValue !== undefined) {
+      return `context.apiVersion ?? "${defaultValue}"`;
+    }
+    return "context.apiVersion";
+  }
+
+  return undefined;
 }

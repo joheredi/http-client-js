@@ -792,3 +792,24 @@ TCGC normalizes `method.response.type` for paging operations to the element type
 - `method.operation.responses` to access HTTP-level response types
 - `isPagingOperation(method)` guard for paging-specific behavior
 - Existing `getDeserializationExpression()` naturally handles wrapper model types via model deserializer refkeys
+
+---
+Task: SA-C22 — Paging Configuration: Missing itemName/nextLinkName/apiVersion
+Date: 2026-02-27
+
+## What was done
+Added full paging configuration to `buildPagedAsyncIterator` calls to match the legacy emitter:
+- `nextLinkName`: extracted from TCGC `pagingMetadata.nextLinkSegments` (NOT `continuationTokenResponseSegments`)
+- `nextLinkMethod`: extracted from `pagingMetadata.nextLinkVerb`, only emitted when not "GET"
+- `apiVersion`: extracted from HTTP operation query params with `isApiVersionParam`, generates `context.apiVersion ?? "default"` expression
+
+## Files changed
+- `src/components/public-operation.tsx` — Extended `buildPagingOptions()` with nextLinkMethod, apiVersion; added `getApiVersionExpression()` helper
+- `src/components/static-helpers/paging-helpers.tsx` — Added `nextLinkMethod` and `apiVersion` to `BuildPagedAsyncIteratorOptions` interface; updated `buildPagedAsyncIterator` to use POST/GET based on nextLinkMethod and inject api-version via `addApiVersionToUrl` helper
+- Updated 4 scenario test files (apiOperations.md, azureCoreErrorModels.md, lroPaging.md, operations.md)
+- Updated paging-helpers unit test
+
+## Key learnings
+- TCGC has TWO different fields: `nextLinkSegments` (next page URL path) and `continuationTokenResponseSegments` (opaque token path). The legacy emitter uses `nextLinkSegments` for `nextLinkName`. Use `nextLinkSegments` preferentially, with `continuationTokenResponseSegments` as fallback.
+- The `apiVersion` in paging options is a JavaScript expression (not a string literal): `context.apiVersion ?? "2023-12-01"`. The paging helper uses it to append `api-version` query parameter to next-page URLs via `addApiVersionToUrl`.
+- The `SdkQueryParameter` type (imported from TCGC) is needed to properly filter and type-check API version parameters.

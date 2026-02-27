@@ -1359,7 +1359,7 @@
       "title": "Paging Configuration: Missing itemName/nextLinkName/apiVersion",
       "category": "scenario-audit/Operations",
       "priority": "P1",
-      "status": "not-started",
+      "status": "done",
       "description": "The new emitter simplifies paging configuration by removing itemName, nextLinkName, apiVersion, and nextLinkMethod. Legacy includes full paging config. Legacy configuration is the expected output.",
       "legacy_behavior": "{ itemName: 'value', nextLinkName: 'nextLink', apiVersion: '2023-09-01' }",
       "new_behavior": "{ itemName: 'value' } or {} \u2014 other fields omitted.",

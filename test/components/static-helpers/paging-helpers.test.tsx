@@ -7,8 +7,10 @@
  * What is tested:
  * - PageSettings interface is rendered with continuationToken member
  * - PagedAsyncIterableIterator interface is rendered with correct type parameter
- * - BuildPagedAsyncIteratorOptions interface is rendered with itemName and nextLinkName
- * - buildPagedAsyncIterator function is rendered with correct signature
+ * - BuildPagedAsyncIteratorOptions interface is rendered with itemName, nextLinkName,
+ *   nextLinkMethod, and apiVersion
+ * - buildPagedAsyncIterator function is rendered with correct signature and
+ *   nextLinkMethod/apiVersion support
  * - Each declaration's refkey enables cross-file imports via Alloy
  * - PagedAsyncIterableIterator refkey works as a return type in operation functions
  *
@@ -80,8 +82,9 @@ describe("PagingHelpersFile", () => {
 
   /**
    * Tests that the BuildPagedAsyncIteratorOptions interface is rendered
-   * with itemName and nextLinkName members. These configure where to
-   * find the items array and continuation token in the response body.
+   * with all configuration members: itemName, nextLinkName, nextLinkMethod,
+   * and apiVersion. These configure how the paging helper finds items,
+   * follows next links, and injects API version into subsequent requests.
    */
   it("should render BuildPagedAsyncIteratorOptions interface", async () => {
     const template = (
@@ -94,12 +97,18 @@ describe("PagingHelpersFile", () => {
     expect(result).toContain("export interface BuildPagedAsyncIteratorOptions");
     expect(result).toContain("itemName");
     expect(result).toContain("nextLinkName");
+    expect(result).toContain("nextLinkMethod");
+    expect(result).toContain("apiVersion");
   });
 
   /**
    * Tests that the buildPagedAsyncIterator function is rendered with
    * the correct export signature and type parameter. This is the core
    * factory function called by paging operation wrappers.
+   *
+   * Also verifies that nextLinkMethod and apiVersion configuration
+   * are extracted from options and used in page fetching logic,
+   * including the addApiVersionToUrl helper for URL parameter injection.
    */
   it("should render buildPagedAsyncIterator function", async () => {
     const template = (
@@ -111,6 +120,13 @@ describe("PagingHelpersFile", () => {
     const result = renderToString(template);
     expect(result).toContain("export function buildPagedAsyncIterator");
     expect(result).toContain("expectedStatuses");
+    // Verify nextLinkMethod support — the function should check whether to use POST or GET
+    expect(result).toContain('nextLinkMethod');
+    expect(result).toContain('.post()');
+    expect(result).toContain('.get()');
+    // Verify apiVersion support — the function should inject api-version into next page URLs
+    expect(result).toContain('addApiVersionToUrl');
+    expect(result).toContain('api-version');
   });
 
   /**

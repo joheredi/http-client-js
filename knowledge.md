@@ -1787,3 +1787,10 @@ segments via its `deconstruct()` + `isFullyUpperCase()` logic.
 **Why not full legacy normalization for all types?**: Legacy `deconstruct()` strips ALL underscores,
 including `_<digits>` patterns from TCGC conflict resolution (e.g., `Color_1` → `Color1`). The
 `change-case` library correctly preserves these. The hybrid approach gets the best of both worlds.
+
+## TCGC Paging Metadata: nextLinkSegments vs continuationTokenResponseSegments
+- `nextLinkSegments` contains the path to the next page URL in the response body (e.g., `nextLink` property)
+- `continuationTokenResponseSegments` contains the path to an opaque continuation token
+- For `nextLinkName` in the paging helper options, use `nextLinkSegments` (preferred) with `continuationTokenResponseSegments` as fallback
+- The legacy emitter uses `nextLinkSegments` exclusively for this purpose
+- Both fields hold arrays of `SdkServiceResponseHeader | SdkModelPropertyType`; use `serializedName` (the wire name) for JSON property access

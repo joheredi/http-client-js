@@ -473,7 +473,11 @@ export function suspend(
     async () => await initialPagingPoller,
     _suspendDeserialize,
     ["200"],
-    { itemName: "value" },
+    {
+      itemName: "value",
+      nextLinkName: "nextLink",
+      apiVersion: context.apiVersion ?? "2023-12-01",
+    },
   );
 }
 ```

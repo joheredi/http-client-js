@@ -92,8 +92,11 @@ function PagedAsyncIterableIteratorInterface() {
  * Renders the `BuildPagedAsyncIteratorOptions` interface that configures
  * the `buildPagedAsyncIterator` function.
  *
- * Specifies `itemName` (path to items array in response) and `nextLinkName`
- * (path to continuation token in response).
+ * Specifies:
+ * - `itemName`: path to items array in the response body
+ * - `nextLinkName`: path to continuation token in the response body
+ * - `nextLinkMethod`: HTTP verb for next-page requests ("GET" or "POST")
+ * - `apiVersion`: API version string to inject into next-page URLs
  */
 function BuildPagedAsyncIteratorOptionsInterface() {
   return (
@@ -105,6 +108,10 @@ function BuildPagedAsyncIteratorOptionsInterface() {
       <InterfaceMember name="itemName" type="string" optional />
       {"\n"}
       <InterfaceMember name="nextLinkName" type="string" optional />
+      {"\n"}
+      <InterfaceMember name="nextLinkMethod" type={code`"GET" | "POST"`} optional />
+      {"\n"}
+      <InterfaceMember name="apiVersion" type="string" optional />
     </InterfaceDeclaration>
   );
 }
@@ -140,11 +147,21 @@ function BuildPagedAsyncIteratorFunction() {
     >
       {code`const itemName = options?.itemName ?? "value";
 const nextLinkName = options?.nextLinkName ?? "nextLink";
+const nextLinkMethod = options?.nextLinkMethod ?? "GET";
+const apiVersion = options?.apiVersion;
 
 async function getPage(pageLink?: string): Promise<{ values: TElement[]; nextPageLink?: string } | undefined> {
-  const result = pageLink
-    ? await client.pathUnchecked(pageLink).get()
-    : await getInitialResponse();
+  let result: ${runtimeLib.PathUncheckedResponse};
+  if (pageLink) {
+    const resolvedPageLink = apiVersion
+      ? addApiVersionToUrl(pageLink, apiVersion)
+      : pageLink;
+    result = nextLinkMethod === "POST"
+      ? await client.pathUnchecked(resolvedPageLink).post()
+      : await client.pathUnchecked(resolvedPageLink).get();
+  } else {
+    result = await getInitialResponse();
+  }
 
   const statusStr = String(result.status);
   if (!expectedStatuses.includes(statusStr)) {
@@ -157,6 +174,14 @@ async function getPage(pageLink?: string): Promise<{ values: TElement[]; nextPag
   const nextLink = typedBody[nextLinkName] as string | undefined;
 
   return { values, nextPageLink: nextLink };
+}
+
+function addApiVersionToUrl(urlStr: string, apiVersion: string): string {
+  const url = new URL(urlStr);
+  if (!url.searchParams.has("api-version")) {
+    url.searchParams.set("api-version", apiVersion);
+  }
+  return url.toString();
 }
 
 let currentPage: { values: TElement[]; nextPageLink?: string } | undefined;
