@@ -61,6 +61,27 @@ When resolving questions about how to write Alloy code:
 
 ---
 
+## Testing
+
+### Unit & Scenario Tests
+
+```bash
+pnpm test          # Runs all unit and scenario tests (~1000+ tests)
+pnpm test:watch    # Watch mode
+```
+
+### Smoke Test
+
+```bash
+pnpm build && pnpm test:smoke    # Must build first — tsp compile loads from dist/
+```
+
+The smoke test exercises the **full end-to-end pipeline**: `tsp compile` → compiler loads emitter → `$onEmit` → files written → `npm install` → `npm run build` (tsc). It validates that the emitter is correctly loadable by the TypeSpec compiler and that the generated library compiles.
+
+**Investigating failures:** After running `pnpm test:smoke`, the generated output is preserved at `temp/smoke/http-client-js/`. You can inspect the generated source, run `npm run build` manually inside that directory to see compiler errors, or modify files to debug issues. The `temp/` directory is gitignored and cleared automatically at the start of each smoke run.
+
+---
+
 ## Tech Stack
 
 | Tool                                                   | Purpose                                                              |

@@ -17,12 +17,11 @@
  *
  * Prerequisites: the emitter must be built (`pnpm build`) before running.
  */
-import { mkdtemp, rm, writeFile } from "fs/promises";
+import { rm, writeFile, mkdir } from "fs/promises";
 import { execSync } from "child_process";
 import { join, resolve } from "path";
-import { tmpdir } from "os";
 import { fileURLToPath } from "url";
-import { describe, it, expect, afterAll } from "vitest";
+import { describe, it, expect, beforeAll } from "vitest";
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 
@@ -31,6 +30,9 @@ const emitterRoot = resolve(__dirname, "../..");
 
 /** Absolute path to the .tsp fixture (must be inside the project tree for import resolution). */
 const fixturePath = join(__dirname, "fixtures", "main.tsp");
+
+/** Output directory inside the project — preserved after tests for investigation. */
+const smokeOutputDir = join(emitterRoot, "temp", "smoke");
 
 /**
  * Runs a shell command, capturing output for diagnostics on failure.
@@ -60,16 +62,16 @@ function run(command: string, cwd: string, timeoutMs: number): string {
 }
 
 describe("smoke test", () => {
-  let tempDir: string | undefined;
+  beforeAll(async () => {
+    await rm(smokeOutputDir, { recursive: true, force: true });
+    await mkdir(smokeOutputDir, { recursive: true });
+  });
 
   it(
     "tsp compile → npm install → npm run build",
     { timeout: 180_000 },
     async () => {
-      // 1. Create temp directory for output + config
-      tempDir = await mkdtemp(join(tmpdir(), "http-client-js-smoke-"));
-
-      // 2. Generate a tspconfig.yaml that references the local emitter by absolute path
+      // 1. Generate a tspconfig.yaml that references the local emitter by absolute path
       const tspConfig = `
 emit:
   - ${emitterRoot}
@@ -80,19 +82,19 @@ options:
     package-version: "1.0.0"
     emitter-output-dir: "{output-dir}/http-client-js"
 `;
-      await writeFile(join(tempDir, "tspconfig.yaml"), tspConfig);
+      await writeFile(join(smokeOutputDir, "tspconfig.yaml"), tspConfig);
 
-      // 3. Run tsp compile from the emitter project root (where @typespec/http etc. are installed).
+      // 2. Run tsp compile from the emitter project root (where @typespec/http etc. are installed).
       //    The fixture .tsp file is inside the project tree so its imports resolve.
       const tspOutput = run(
-        `npx tsp compile ${fixturePath} --config ${join(tempDir, "tspconfig.yaml")} --output-dir ${tempDir}`,
+        `npx tsp compile ${fixturePath} --config ${join(smokeOutputDir, "tspconfig.yaml")} --output-dir ${smokeOutputDir}`,
         emitterRoot,
         60_000,
       );
       expect(tspOutput).toContain("Compilation completed successfully");
 
-      // 4. Verify generated files exist
-      const outputDir = join(tempDir, "http-client-js");
+      // 3. Verify generated files exist
+      const outputDir = join(smokeOutputDir, "http-client-js");
       const { existsSync, readFileSync } = await import("fs");
       expect(existsSync(join(outputDir, "package.json"))).toBe(true);
       expect(existsSync(join(outputDir, "tsconfig.json"))).toBe(true);
@@ -105,13 +107,13 @@ options:
       expect(pkgJson.name).toBe("smoke-test-sdk");
       expect(pkgJson.scripts.build).toBeDefined();
 
-      // 5. Install dependencies
+      // 4. Install dependencies
       run("npm install --prefer-offline", outputDir, 120_000);
 
-      // 6. Build the library
+      // 5. Build the library
       run("npm run build", outputDir, 60_000);
 
-      // 7. Verify build output exists
+      // 6. Verify build output exists
       expect(existsSync(join(outputDir, "dist"))).toBe(true);
     },
   );
