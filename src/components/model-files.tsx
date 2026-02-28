@@ -1,5 +1,5 @@
 import { For, SourceDirectory } from "@alloy-js/core";
-import { SourceFile } from "@alloy-js/typescript";
+import { BarrelFile, SourceFile } from "@alloy-js/typescript";
 import type {
   SdkArrayType,
   SdkClientType,
@@ -264,6 +264,7 @@ export function ModelFiles() {
 
   return (
     <SourceDirectory path="models">
+      <BarrelFile />
       <SourceFile path="models.ts" header={MODEL_FILE_ESLINT_DIRECTIVES}>
         <ModelDeclarations models={models} />
         {models.length > 0 && (enums.length > 0 || nullableEnums.length > 0)

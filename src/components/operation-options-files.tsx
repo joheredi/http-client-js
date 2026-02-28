@@ -1,5 +1,5 @@
 import { For, SourceDirectory } from "@alloy-js/core";
-import { SourceFile } from "@alloy-js/typescript";
+import { BarrelFile, SourceFile } from "@alloy-js/typescript";
 import type {
   SdkClientType,
   SdkHttpOperation,
@@ -97,7 +97,10 @@ function OperationOptionsGroupFile(props: OperationOptionsGroupFileProps) {
   // Use nested SourceDirectory for grouped options so Alloy computes
   // correct relative import paths (e.g., ./options.js instead of ./group/options.js).
   if (group.prefixPath) {
-    return <SourceDirectory path={group.prefixPath}>{content}</SourceDirectory>;
+    return <SourceDirectory path={group.prefixPath}>
+      <BarrelFile />
+      {content}
+    </SourceDirectory>;
   }
   return content;
 }

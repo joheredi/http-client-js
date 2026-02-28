@@ -24,7 +24,6 @@ import {
   azureAbortControllerLib,
   azureLoggerLib,
 } from "./utils/external-packages.js";
-import { IndexFiles } from "./components/index-file.js";
 import { StaticHelpers } from "./components/static-helpers/index.js";
 import { RestorePollerFile } from "./components/restore-poller.js";
 import { SampleFiles } from "./components/sample-files.js";
@@ -36,6 +35,7 @@ import type {
   SdkContext,
   SdkHttpOperation,
 } from "@azure-tools/typespec-client-generator-core";
+import { BarrelFile } from "@alloy-js/typescript";
 
 /**
  * All external packages needed for Azure-flavored SDK generation.
@@ -164,6 +164,7 @@ export function EmitterTree(props: EmitterTreeProps) {
           {flavor === "azure" && (
             <LoggerFile packageName={getPackageName(sdkContext)} />
           )}
+          <BarrelFile />
           <ModelFiles />
           <OperationFiles />
           <OperationOptionsFiles />
@@ -177,7 +178,6 @@ export function EmitterTree(props: EmitterTreeProps) {
               </>
             )}
           </For>
-          <IndexFiles />
           <StaticHelpers />
         </SourceDirectory>
         <SampleFiles />
