@@ -407,36 +407,36 @@ export type DocumentType =
 
 export function requestSerializer(item: Request): any {
   return {
-    DocumentStreamIds: item["DocumentStreamIds"],
-    Properties: item["Properties"],
-    DocumentType: item["DocumentType"],
-    Name: item["Name"],
-    Url: item["Url"],
+    DocumentStreamIds: item["documentStreamIds"],
+    Properties: item["properties"],
+    DocumentType: item["documentType"],
+    Name: item["name"],
+    Url: item["url"],
   };
 }
 
 export function exceptionSerializer(item: Exception): any {
   return {
-    DocumentStreamIds: item["DocumentStreamIds"],
-    Properties: item["Properties"],
-    DocumentType: item["DocumentType"],
-    ExceptionType: item["ExceptionType"],
-    ExceptionMessage: item["ExceptionMessage"],
+    DocumentStreamIds: item["documentStreamIds"],
+    Properties: item["properties"],
+    DocumentType: item["documentType"],
+    ExceptionType: item["exceptionType"],
+    ExceptionMessage: item["exceptionMessage"],
   };
 }
 
 export function documentIngressSerializer(item: DocumentIngress): any {
   return {
-    DocumentType: documentTypeSerializer(item["DocumentType"]),
-    DocumentStreamIds: item["DocumentStreamIds"],
-    Properties: item["Properties"],
+    DocumentType: documentTypeSerializer(item["documentType"]),
+    DocumentStreamIds: item["documentStreamIds"],
+    Properties: item["properties"],
   };
 }
 
 export function documentIngressUnionSerializer(
   item: DocumentIngressUnion,
 ): any {
-  switch (item["DocumentType"]) {
+  switch (item["documentType"]) {
     case "Request":
       return requestSerializer(item as Request);
     case "Exception":
@@ -452,29 +452,29 @@ export function documentTypeSerializer(item: DocumentType): any {
 
 export function requestDeserializer(item: any): Request {
   return {
-    DocumentStreamIds: item["DocumentStreamIds"],
-    Properties: item["Properties"],
-    DocumentType: item["DocumentType"],
-    Name: item["Name"],
-    Url: item["Url"],
+    documentStreamIds: item["DocumentStreamIds"],
+    properties: item["Properties"],
+    documentType: item["DocumentType"],
+    name: item["Name"],
+    url: item["Url"],
   };
 }
 
 export function exceptionDeserializer(item: any): Exception {
   return {
-    DocumentStreamIds: item["DocumentStreamIds"],
-    Properties: item["Properties"],
-    DocumentType: item["DocumentType"],
-    ExceptionType: item["ExceptionType"],
-    ExceptionMessage: item["ExceptionMessage"],
+    documentStreamIds: item["DocumentStreamIds"],
+    properties: item["Properties"],
+    documentType: item["DocumentType"],
+    exceptionType: item["ExceptionType"],
+    exceptionMessage: item["ExceptionMessage"],
   };
 }
 
 export function documentIngressDeserializer(item: any): DocumentIngress {
   return {
-    DocumentType: item["DocumentType"],
-    DocumentStreamIds: item["DocumentStreamIds"],
-    Properties: item["Properties"],
+    documentType: item["DocumentType"],
+    documentStreamIds: item["DocumentStreamIds"],
+    properties: item["Properties"],
   };
 }
 

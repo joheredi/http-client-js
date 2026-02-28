@@ -75,8 +75,8 @@ export function _simpleModelPropPropBDeserializer(
   item: any,
 ): _SimpleModelPropPropB {
   return {
-    propAA: item["propAA"],
-    propBB: item["propBB"],
+    propAa: item["propAA"],
+    propBb: item["propBB"],
   };
 }
 ```

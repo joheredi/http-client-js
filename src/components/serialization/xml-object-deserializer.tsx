@@ -11,6 +11,7 @@ import {
   typeRefkey,
   xmlObjectDeserializerRefkey,
 } from "../../utils/refkeys.js";
+import { normalizePropertyName } from "../../utils/name-policy.js";
 
 /**
  * Props for the {@link XmlObjectDeserializer} component.
@@ -83,7 +84,7 @@ function renderDeserializeMetadataEntry(prop: SdkModelPropertyType): Children {
   const propType = getXmlPropertyType(prop.type);
 
   const parts: string[] = [];
-  parts.push(`propertyName: "${prop.name}"`);
+  parts.push(`propertyName: "${normalizePropertyName(prop.name)}"`);
 
   // Build xmlOptions
   const optParts: string[] = [`name: "${xmlName}"`];

@@ -8,6 +8,7 @@ import {
   serializerRefkey,
   typeRefkey,
 } from "../../utils/refkeys.js";
+import { normalizePropertyName } from "../../utils/name-policy.js";
 
 /**
  * Props for the {@link JsonPolymorphicSerializer} component.
@@ -71,7 +72,7 @@ export function JsonPolymorphicSerializer(
       ]}
     >
       {buildPolymorphicSwitchBody(
-        discriminatorProp.name,
+        normalizePropertyName(discriminatorProp.name),
         entries,
         serializerRefkey,
         baseSerializerRefkey(model),

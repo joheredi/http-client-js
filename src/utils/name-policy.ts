@@ -318,6 +318,18 @@ export function getEscapedParameterName(name: string): string {
   return cased;
 }
 
+/**
+ * Normalize a property name to match the name policy's camelCase output.
+ *
+ * Use this in serializer/deserializer code where `namekey()` is unavailable
+ * (e.g., string template accessors like `item["propName"]`). Applies the same
+ * `camelCase` transform with the same options as the emitter name policy uses
+ * for `interface-member` and `object-member-data` naming kinds.
+ */
+export function normalizePropertyName(name: string): string {
+  return camelCase(name, caseOptions);
+}
+
 // ---------------------------------------------------------------------------
 // Legacy enum member normalization
 //

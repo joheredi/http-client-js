@@ -16,6 +16,7 @@ import {
   xmlObjectSerializerRefkey,
 } from "../../utils/refkeys.js";
 import { useRuntimeLib } from "../../context/flavor-context.js";
+import { normalizePropertyName } from "../../utils/name-policy.js";
 
 /**
  * Props for the {@link XmlObjectSerializer} component.
@@ -67,7 +68,7 @@ export function XmlObjectSerializer(props: XmlObjectSerializerProps) {
           {(prop) => {
             const xmlOpts = prop.serializationOptions?.xml;
             const xmlName = xmlOpts?.name ?? prop.serializedName;
-            const accessor = `item["${prop.name}"]`;
+            const accessor = `item["${normalizePropertyName(prop.name)}"]`;
             const valueExpr = getXmlObjectSerializationExpression(
               prop.type,
               accessor,

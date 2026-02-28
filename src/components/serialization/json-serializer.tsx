@@ -27,6 +27,7 @@ import {
   getEffectiveClientName,
 } from "../../utils/flatten-collision.js";
 import { useRuntimeLib } from "../../context/flavor-context.js";
+import { normalizePropertyName } from "../../utils/name-policy.js";
 import {
   typeHasDeserializerDeclaration,
   typeHasSerializerDeclaration,
@@ -157,7 +158,7 @@ export function JsonSerializer(props: JsonSerializerProps) {
                     />
                   );
                 }
-                const accessor = `item["${prop.name}"]`;
+                const accessor = `item["${normalizePropertyName(prop.name)}"]`;
                 let valueExpr = getSerializationExpression(
                   prop.type,
                   accessor,
@@ -716,7 +717,7 @@ export function FlattenSerializerHelper(props: FlattenSerializerHelperProps) {
               flattenProp.serializedName,
               prop.name,
             );
-            const accessor = `item["${effectiveName}"]`;
+            const accessor = `item["${normalizePropertyName(effectiveName)}"]`;
             let valueExpr = getSerializationExpression(
               prop.type,
               accessor,
