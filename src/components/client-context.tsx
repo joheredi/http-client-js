@@ -855,9 +855,9 @@ function buildGetClientCall(
   const endpointArg = hasEndpoint ? "endpointUrl" : '""';
 
   if (hasCredential) {
-    return code`${runtimeLib.getClient}(${endpointArg}, credential, updatedOptions);`;
+    return code`${runtimeLib.getClient}(${endpointArg}, credential, updatedOptions)`;
   }
-  return code`${runtimeLib.getClient}(${endpointArg}, updatedOptions);`;
+  return code`${runtimeLib.getClient}(${endpointArg}, updatedOptions)`;
 }
 
 /**

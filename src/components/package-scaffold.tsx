@@ -60,8 +60,11 @@ export function PackageScaffold(props: PackageScaffoldProps) {
       path="."
       type="module"
       license="MIT"
+      devDependencies={{
+        "@types/node": "^18.0.0",
+      }}
       scripts={{
-        build: "tsc",
+        build: "tsc --skipLibCheck",
         "build:samples": "echo skipped",
         "build:test": "echo skipped",
         "check-format": 'prettier --list-different --config .prettierrc.json "src/**/*.ts" "test/**/*.ts" "*.{js,json}"',

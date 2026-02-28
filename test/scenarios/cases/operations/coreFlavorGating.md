@@ -77,7 +77,11 @@ export async function test(
 ## Client Context — no Azure credentials
 
 ```ts clientContext
-import { type Client, type ClientOptions, getClient } from "@typespec/ts-http-runtime";
+import {
+  type Client,
+  type ClientOptions,
+  getClient,
+} from "@typespec/ts-http-runtime";
 
 export interface TestingContext extends Client {}
 
@@ -89,14 +93,15 @@ export function createTesting(
 ): TestingContext {
   const endpointUrl = options.endpoint ?? endpoint;
   const prefixFromOptions = options?.userAgentOptions?.userAgentPrefix;
-  const userAgentPrefix = prefixFromOptions ? `${prefixFromOptions} azsdk-js-api` : `azsdk-js-api`;
+  const userAgentPrefix = prefixFromOptions
+    ? `${prefixFromOptions} azsdk-js-api`
+    : `azsdk-js-api`;
   const { apiVersion: _, ...updatedOptions } = {
-  ...options,
-  userAgentOptions: { userAgentPrefix },
+    ...options,
+    userAgentOptions: { userAgentPrefix },
   };
-  return getClient(endpointUrl, updatedOptions); as TestingContext;
+  return getClient(endpointUrl, updatedOptions) as TestingContext;
 }
-
 ```
 
 # Core flavor LRO generates basic async function

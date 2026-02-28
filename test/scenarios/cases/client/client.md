@@ -23,12 +23,14 @@ export function createTesting(
 ): TestingContext {
   const endpointUrl = options.endpoint ?? endpoint;
   const prefixFromOptions = options?.userAgentOptions?.userAgentPrefix;
-  const userAgentPrefix = prefixFromOptions ? `${prefixFromOptions} azsdk-js-api` : `azsdk-js-api`;
+  const userAgentPrefix = prefixFromOptions
+    ? `${prefixFromOptions} azsdk-js-api`
+    : `azsdk-js-api`;
   const { apiVersion: _, ...updatedOptions } = {
-  ...options,
-  userAgentOptions: { userAgentPrefix },
+    ...options,
+    userAgentOptions: { userAgentPrefix },
   };
-  return getClient(endpointUrl, updatedOptions); as TestingContext;
+  return getClient(endpointUrl, updatedOptions) as TestingContext;
 }
 ```
 

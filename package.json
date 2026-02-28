@@ -49,6 +49,7 @@
     "clean": "rimraf dist/ .temp/",
     "ralph": "node ralph.js --iterations 50",
     "test": "vitest run",
+    "test:smoke": "vitest run --config vitest.smoke.config.ts",
     "test:watch": "vitest -w",
     "watch": "alloy build --watch",
     "lint": "eslint src/ test/ --report-unused-disable-directives --max-warnings=0",
