@@ -41,8 +41,7 @@ function derivePackageName(sdkContext: {
  * to the source directory inside the package.
  */
 export function PackageScaffold(props: PackageScaffoldProps) {
-  const { generateMetadata, packageName, packageVersion } =
-    useEmitterOptions();
+  const { generateMetadata, packageName, packageVersion } = useEmitterOptions();
 
   if (!generateMetadata) {
     return props.children;
@@ -67,12 +66,17 @@ export function PackageScaffold(props: PackageScaffoldProps) {
         build: "tsc --skipLibCheck",
         "build:samples": "echo skipped",
         "build:test": "echo skipped",
-        "check-format": 'prettier --list-different --config .prettierrc.json "src/**/*.ts" "test/**/*.ts" "*.{js,json}"',
-        clean: "rimraf --glob dist dist-browser dist-esm test-dist temp types *.tgz *.log",
-        "extract-api": "rimraf review && mkdirp ./review && api-extractor run --local",
-        format: 'prettier --write --config .prettierrc.json "src/**/*.ts" "test/**/*.ts" "*.{js,json}"',
+        "check-format":
+          'prettier --list-different --config .prettierrc.json "src/**/*.ts" "test/**/*.ts" "*.{js,json}"',
+        clean:
+          "rimraf --glob dist dist-browser dist-esm test-dist temp types *.tgz *.log",
+        "extract-api":
+          "rimraf review && mkdirp ./review && api-extractor run --local",
+        format:
+          'prettier --write --config .prettierrc.json "src/**/*.ts" "test/**/*.ts" "*.{js,json}"',
         lint: "eslint package.json api-extractor.json src test",
-        "lint:fix": "eslint package.json api-extractor.json src test --fix --fix-type [problem,suggestion]",
+        "lint:fix":
+          "eslint package.json api-extractor.json src test --fix --fix-type [problem,suggestion]",
         test: "vitest run",
         "test:node": "vitest run",
         "test:browser": "vitest run --browser",
