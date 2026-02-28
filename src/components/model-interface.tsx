@@ -52,10 +52,14 @@ export interface ModelInterfaceProps {
  */
 export function ModelInterface(props: ModelInterfaceProps) {
   const { model } = props;
+  const { compatibilityMode } = useEmitterOptions();
 
-  const extendsClause = getExtendsClause(model);
+  const extendsClause = getExtendsClause(model, compatibilityMode);
   const doc = getModelDoc(model);
   const properties = getExpandedProperties(model);
+  const additionalPropertiesMember = !compatibilityMode
+    ? getAdditionalPropertiesMember(model)
+    : undefined;
 
   return (
     <InterfaceDeclaration
@@ -68,6 +72,7 @@ export function ModelInterface(props: ModelInterfaceProps) {
       <For each={properties} semicolon hardline enderPunctuation>
         {(prop) => <ModelPropertyMember property={prop} model={model} />}
       </For>
+      {additionalPropertiesMember}
     </InterfaceDeclaration>
   );
 }
@@ -127,11 +132,16 @@ function ModelPropertyMember(props: ModelPropertyMemberProps) {
  * Both can be combined: `extends BaseModel, Record<string, T>`.
  *
  * @param model - The TCGC model type to inspect for inheritance.
+ * @param compatibilityMode - When true, adds Record<string, T> to extends for additionalProperties.
+ *   When false, additionalProperties are handled as an explicit bag property instead.
  * @returns Alloy Children for the extends clause, or undefined if no extends needed.
  */
-function getExtendsClause(model: SdkModelType): Children | undefined {
+function getExtendsClause(
+  model: SdkModelType,
+  compatibilityMode: boolean,
+): Children | undefined {
   const hasBase = !!model.baseModel;
-  const hasAdditional = !!model.additionalProperties;
+  const hasAdditional = compatibilityMode && !!model.additionalProperties;
 
   if (!hasBase && !hasAdditional) return undefined;
 
@@ -180,6 +190,62 @@ function getAdditionalPropertiesRecordType(model: SdkModelType): Children {
   }
 
   return code`Record<string, any>`;
+}
+
+/**
+ * Builds an explicit `additionalProperties` (or `additionalPropertiesBag`)
+ * interface member for non-compatibility mode.
+ *
+ * When a model has `additionalProperties` and compatibility mode is off,
+ * this generates an optional property like:
+ *   `additionalProperties?: Record<string, T>`
+ *
+ * If the model already has a named property called `additionalProperties`,
+ * the bag property is renamed to `additionalPropertiesBag` to avoid conflicts.
+ *
+ * @param model - The TCGC model type with additional properties.
+ * @returns An InterfaceMember element, or undefined if no additionalProperties.
+ */
+function getAdditionalPropertiesMember(
+  model: SdkModelType,
+): Children | undefined {
+  if (!model.additionalProperties) return undefined;
+
+  const apType = model.additionalProperties;
+  const apTypeExpr = getTypeExpression(apType);
+  const name = getAdditionalPropertiesName(model);
+
+  return (
+    <>
+      {"\n"}
+      <InterfaceMember
+        name={name}
+        type={code`Record<string, ${apTypeExpr}>`}
+        optional
+        doc="Additional properties"
+      />
+      {";"}
+    </>
+  );
+}
+
+/**
+ * Returns the property name for the additional properties bag.
+ *
+ * Checks all model properties (own + inherited) for a name conflict
+ * with `additionalProperties`. If a conflict exists, returns
+ * `additionalPropertiesBag` instead.
+ *
+ * Exported for use by serializer and deserializer components that need
+ * to reference the bag property by name.
+ *
+ * @param model - The TCGC model type.
+ * @returns The property name to use for the additional properties bag.
+ */
+export function getAdditionalPropertiesName(model: SdkModelType): string {
+  const allProps = collectAllModelProperties(model);
+  const nameConflict = allProps.find((p) => p.name === "additionalProperties");
+  return nameConflict ? "additionalPropertiesBag" : "additionalProperties";
 }
 
 /**

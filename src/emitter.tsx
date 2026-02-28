@@ -246,6 +246,7 @@ export async function $onEmit(context: EmitContext) {
       context.options?.["include-headers-in-response"] === true,
     experimentalExtensibleEnums:
       context.options?.["experimental-extensible-enums"] === true,
+    compatibilityMode: context.options?.["compatibility-mode"] === true,
     ignoreNullableOnOptional:
       context.options?.["ignore-nullable-on-optional"] ?? flavor === "azure",
     typespecTitleMap: titleMap,

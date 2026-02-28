@@ -302,7 +302,7 @@ describe("Model Interface", () => {
    * When all named property types are compatible with the Record value type,
    * the specific type is used (here: `string` since all props are string).
    */
-  it("should extend Record<string, T> for models with additional properties", async () => {
+  it("should extend Record<string, T> for models with additional properties in compat mode", async () => {
     const { program } = await runner.compile(
       t.code`
         model ${t.model("Metadata")} {
@@ -318,7 +318,7 @@ describe("Model Interface", () => {
     const model = sdkContext.sdkPackage.models[0];
 
     const template = (
-      <SdkTestFile sdkContext={sdkContext}>
+      <SdkTestFile sdkContext={sdkContext} emitterOptions={{ compatibilityMode: true }}>
         <ModelInterface model={model} />
       </SdkTestFile>
     );
@@ -333,6 +333,41 @@ describe("Model Interface", () => {
     `);
   });
 
+  it("should generate additionalProperties bag for models with additional properties in non-compat mode", async () => {
+    const { program } = await runner.compile(
+      t.code`
+        model ${t.model("Metadata")} {
+          name: string;
+          ...Record<string>;
+        }
+
+        op ${t.op("getMetadata")}(): Metadata;
+      `,
+    );
+
+    const sdkContext = await createSdkContextForTest(program);
+    const model = sdkContext.sdkPackage.models[0];
+
+    const template = (
+      <SdkTestFile sdkContext={sdkContext} emitterOptions={{ compatibilityMode: false }}>
+        <ModelInterface model={model} />
+      </SdkTestFile>
+    );
+
+    expect(template).toRenderTo(`
+      /**
+       * model interface Metadata
+       */
+      export interface Metadata {
+        name: string;
+        /**
+         * Additional properties
+         */
+        additionalProperties?: Record<string, string>;
+      }
+    `);
+  });
+
   /**
    * Tests that when a model has BOTH `...Record<T>` (additional properties)
    * and an explicitly declared property named `additionalProperties`, the
@@ -342,7 +377,7 @@ describe("Model Interface", () => {
    * member. No renaming to `additionalPropertiesBag` is needed with the
    * extends Record approach.
    */
-  it("should use extends Record<string, any> when name conflict exists", async () => {
+  it("should use extends Record<string, any> when name conflict exists in compat mode", async () => {
     const { program } = await runner.compile(
       t.code`
         model ${t.model("Metadata")} {
@@ -359,7 +394,7 @@ describe("Model Interface", () => {
     const model = sdkContext.sdkPackage.models[0];
 
     const template = (
-      <SdkTestFile sdkContext={sdkContext}>
+      <SdkTestFile sdkContext={sdkContext} emitterOptions={{ compatibilityMode: true }}>
         <ModelInterface model={model} />
       </SdkTestFile>
     );
@@ -371,6 +406,43 @@ describe("Model Interface", () => {
       export interface Metadata extends Record<string, any> {
         additionalProperties: Record<string, number>;
         name: string;
+      }
+    `);
+  });
+
+  it("should use additionalPropertiesBag when name conflict exists in non-compat mode", async () => {
+    const { program } = await runner.compile(
+      t.code`
+        model ${t.model("Metadata")} {
+          additionalProperties: Record<int32>;
+          name: string;
+          ...Record<string>;
+        }
+
+        op ${t.op("getMetadata")}(): Metadata;
+      `,
+    );
+
+    const sdkContext = await createSdkContextForTest(program);
+    const model = sdkContext.sdkPackage.models[0];
+
+    const template = (
+      <SdkTestFile sdkContext={sdkContext} emitterOptions={{ compatibilityMode: false }}>
+        <ModelInterface model={model} />
+      </SdkTestFile>
+    );
+
+    expect(template).toRenderTo(`
+      /**
+       * model interface Metadata
+       */
+      export interface Metadata {
+        additionalProperties: Record<string, number>;
+        name: string;
+        /**
+         * Additional properties
+         */
+        additionalPropertiesBag?: Record<string, string>;
       }
     `);
   });

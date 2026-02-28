@@ -25,8 +25,10 @@ import {
   getEffectiveClientName,
 } from "../../utils/flatten-collision.js";
 import { useRuntimeLib } from "../../context/flavor-context.js";
+import { useEmitterOptions } from "../../context/emitter-options-context.js";
 import { needsTransformation } from "./json-serializer.js";
 import { isAzureCoreErrorType } from "../../utils/azure-core-error-types.js";
+import { getAdditionalPropertiesName } from "../model-interface.js";
 
 /**
  * Props for the {@link JsonDeserializer} component.
@@ -84,6 +86,7 @@ export interface JsonDeserializerProps {
  */
 export function JsonDeserializer(props: JsonDeserializerProps) {
   const { model, refkeyOverride, nameSuffix, includeParentProperties } = props;
+  const { compatibilityMode } = useEmitterOptions();
   const properties = getDeserializableProperties(
     model,
     includeParentProperties,
@@ -109,10 +112,23 @@ export function JsonDeserializer(props: JsonDeserializerProps) {
           {code`return `}
           <ObjectExpression>
             {hasAdditional ? (
-              <>
-                <ObjectSpreadProperty value="item" />
-                {properties.length > 0 ? code`, ` : undefined}
-              </>
+              compatibilityMode ? (
+                <>
+                  <ObjectSpreadProperty value="item" />
+                  {properties.length > 0 ? code`, ` : undefined}
+                </>
+              ) : (
+                <>
+                  <ObjectProperty
+                    name={getAdditionalPropertiesName(model)}
+                    value={getAdditionalPropertiesDeserializationExpression(
+                      model,
+                      properties,
+                    )}
+                  />
+                  {properties.length > 0 ? code`, ` : undefined}
+                </>
+              )
             ) : undefined}
             <For each={properties} comma softline enderPunctuation>
               {(prop) => {
@@ -220,6 +236,40 @@ function collectAncestorProperties(
   }
 
   return inherited;
+}
+
+/**
+ * Builds the deserialization expression for the additional properties bag
+ * in non-compatibility mode.
+ *
+ * Generates a `deserializeRecord(item, deserializerFn?, ["knownProp1", ...])` call
+ * that collects all unknown properties from the wire object (excluding known
+ * property names) into the `additionalProperties` bag.
+ *
+ * When the additional properties value type needs transformation (e.g., model
+ * or complex type), a deserializer callback is passed.
+ *
+ * @param model - The TCGC model type with additional properties.
+ * @param properties - The known properties to exclude from the bag.
+ * @returns Alloy Children for the deserialization expression.
+ */
+function getAdditionalPropertiesDeserializationExpression(
+  model: SdkModelType,
+  properties: SdkModelPropertyType[],
+): Children {
+  const apType = model.additionalProperties!;
+  const excludeNames = properties
+    .filter((p) => !!p.serializedName)
+    .map((p) => `"${p.serializedName}"`)
+    .join(", ");
+  const excludesArg = `[${excludeNames}]`;
+
+  if (needsTransformation(apType)) {
+    const valueExpr = getDeserializationExpression(apType, "v");
+    return code`${serializationHelperRefkey("deserializeRecord")}(item, (v: any) => ${valueExpr}, ${excludesArg})`;
+  }
+
+  return code`${serializationHelperRefkey("deserializeRecord")}(item, undefined, ${excludesArg})`;
 }
 
 /**

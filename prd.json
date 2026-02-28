@@ -1784,6 +1784,54 @@
       "dependencies": [
         "SMOKE-6"
       ]
+    },
+    {
+      "id": "BUG-1",
+      "title": "Fix array deserialization producing unresolved refkeys",
+      "category": "serialization/JSON",
+      "priority": "P0",
+      "status": "pending",
+      "description": "getDeserializationExpression in json-deserializer.tsx produces <Unresolved Symbol> for array element types that pass needsTransformation() but lack a corresponding deserializer declaration. The root cause is inconsistency across 4 parallel predicate systems (needsTransformation, valueTypeHasNamedDeserializerFn, valueTypeHasNamedDeserializer, and guards in getDeserializationExpression). Recommended fix: Approach A \u2014 create unified typeHasDeserializerDeclaration/typeHasSerializerDeclaration predicate functions as a single source of truth, and wire them into getDeserializationExpression and getSerializationExpression guards. See docs/design-reviews/serialization-and-options-bugs.md Issue 1 for full design review with 3 approaches analyzed.",
+      "source": "investigation",
+      "kind": "bug",
+      "design_review": "docs/design-reviews/serialization-and-options-bugs.md#issue-1",
+      "dependencies": []
+    },
+    {
+      "id": "BUG-2",
+      "title": "Fix deserializer/serializer property keys not matching name policy casing",
+      "category": "serialization/JSON",
+      "priority": "P0",
+      "status": "pending",
+      "description": "Deserializer return object keys use raw TCGC prop.name (e.g., Code, Message) instead of name-policy-normalized camelCase (code, message). Model interfaces go through Alloy InterfaceMember which applies camelCase via name policy, but ObjectProperty in deserializers and string accessors in serializers bypass this. Affects json-deserializer.tsx (line 157), json-serializer.tsx (line 157), xml-object-serializer.tsx, and xml-object-deserializer.tsx. Recommended fix: Approach A \u2014 use namekey(prop.name) for ObjectProperty names + new normalizePropertyName() utility in name-policy.ts for string template accessors. See docs/design-reviews/serialization-and-options-bugs.md Issue 2 for full design review with 3 approaches analyzed.",
+      "source": "investigation",
+      "kind": "bug",
+      "design_review": "docs/design-reviews/serialization-and-options-bugs.md#issue-2",
+      "dependencies": []
+    },
+    {
+      "id": "BUG-3",
+      "title": "Add null guard for optional properties in XML object serializer",
+      "category": "serialization/XML",
+      "priority": "P1",
+      "status": "pending",
+      "description": "XmlObjectSerializer in xml-object-serializer.tsx unconditionally calls nested serializers (e.g., loggingXmlObjectSerializer(item[\"logging\"])) without null/undefined guards. When a property is optional and undefined at runtime, this crashes. The JSON serializer has wrapWithNullCheck() but the XML object serializer lacks it. Legacy emitter adds null checks for XML. Recommended fix: Approach A \u2014 add local wrapWithXmlNullCheck() + xmlNeedsTransformation() predicate to xml-object-serializer.tsx (~20 lines). See docs/design-reviews/serialization-and-options-bugs.md Issue 3 for full design review with 2 approaches analyzed.",
+      "source": "investigation",
+      "kind": "bug",
+      "design_review": "docs/design-reviews/serialization-and-options-bugs.md#issue-3",
+      "dependencies": []
+    },
+    {
+      "id": "BUG-4",
+      "title": "Fix header-based API version accessor generating wrong reference in send function",
+      "category": "operations/send",
+      "priority": "P1",
+      "status": "pending",
+      "description": "When @apiVersion is used on a @header parameter (e.g., @header(\"x-ms-version\") version: string), the send function's getHeaderAccessor() generates \"options?.version\" instead of \"context.apiVersion\". This is because getHeaderAccessor lacks the onClient/isApiVersionParam handling that getParameterAccessor has for path/query params. The version being excluded from DeleteOptionalParams is by design (@apiVersion params are client-level), but the header value injection is broken. Recommended fix: Approach A \u2014 add onClient/isApiVersionParam handling to getHeaderAccessor() in send-operation.tsx mirroring getParameterAccessor pattern (~10 lines). See docs/design-reviews/serialization-and-options-bugs.md Issue 4 for full design review with 2 approaches analyzed.",
+      "source": "investigation",
+      "kind": "bug",
+      "design_review": "docs/design-reviews/serialization-and-options-bugs.md#issue-4",
+      "dependencies": []
     }
   ],
   "phases_metadata": [

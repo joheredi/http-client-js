@@ -28,6 +28,7 @@ import {
 } from "../../utils/flatten-collision.js";
 import { useRuntimeLib } from "../../context/flavor-context.js";
 import { isAzureCoreErrorType } from "../../utils/azure-core-error-types.js";
+import { getAdditionalPropertiesName } from "../model-interface.js";
 
 /**
  * Props for the {@link JsonSerializer} component.
@@ -86,7 +87,7 @@ export interface JsonSerializerProps {
  */
 export function JsonSerializer(props: JsonSerializerProps) {
   const { model, refkeyOverride, nameSuffix, includeParentProperties } = props;
-  const { experimentalExtensibleEnums } = useEmitterOptions();
+  const { experimentalExtensibleEnums, compatibilityMode } = useEmitterOptions();
   const serOpts: SerializationOptions = { experimentalExtensibleEnums };
   const properties = getSerializableProperties(model, includeParentProperties);
   const hasAdditional = hasAdditionalProperties(model);
@@ -111,7 +112,16 @@ export function JsonSerializer(props: JsonSerializerProps) {
           <ObjectExpression>
             {hasAdditional ? (
               <>
-                <ObjectSpreadProperty value="item" />
+                {compatibilityMode ? (
+                  <ObjectSpreadProperty value="item" />
+                ) : (
+                  <ObjectSpreadProperty
+                    value={getAdditionalPropertiesSerializationSpread(
+                      model,
+                      serOpts,
+                    )}
+                  />
+                )}
                 {properties.length > 0 ? code`, ` : undefined}
               </>
             ) : undefined}
@@ -565,6 +575,36 @@ function wrapWithNullCheck(
  */
 function hasAdditionalProperties(model: SdkModelType): boolean {
   return model.additionalProperties !== undefined;
+}
+
+/**
+ * Builds the serialization spread expression for additional properties
+ * in non-compatibility mode.
+ *
+ * Instead of spreading the entire input (`...item`), this spreads only the
+ * serialized additional properties bag:
+ *   `...serializeRecord(item.additionalProperties ?? {}, serializerFn?)`
+ *
+ * When the additional properties value type needs transformation (e.g., model
+ * or complex type), a serializer callback is passed to `serializeRecord`.
+ *
+ * @param model - The TCGC model type with additional properties.
+ * @param options - Serialization options for expression generation.
+ * @returns Alloy Children for the spread expression.
+ */
+function getAdditionalPropertiesSerializationSpread(
+  model: SdkModelType,
+  options?: SerializationOptions,
+): Children {
+  const apType = model.additionalProperties!;
+  const apName = getAdditionalPropertiesName(model);
+
+  if (needsTransformation(apType, options)) {
+    const valueExpr = getSerializationExpression(apType, "v", options);
+    return code`${serializationHelperRefkey("serializeRecord")}(item["${apName}"] ?? {}, (v: any) => ${valueExpr})`;
+  }
+
+  return code`${serializationHelperRefkey("serializeRecord")}(item["${apName}"] ?? {})`;
 }
 
 /**

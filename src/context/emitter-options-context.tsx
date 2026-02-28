@@ -35,6 +35,17 @@ export interface EmitterOptionsValue {
   experimentalExtensibleEnums: boolean;
 
   /**
+   * When true, models with `additionalProperties` extend `Record<string, T>`
+   * directly and serializers spread the entire input object. When false
+   * (default), an explicit `additionalProperties` bag property is generated
+   * on the model interface, and serializers/deserializers use structured
+   * `serializeRecord`/`deserializeRecord` helpers to handle the bag.
+   *
+   * Corresponds to the `compatibility-mode` YAML config option.
+   */
+  compatibilityMode: boolean;
+
+  /**
    * When true, optional properties/parameters that are also nullable have
    * their `| null` union stripped, producing `prop?: T` instead of
    * `prop?: T | null`. This follows the Azure SDK convention where optional
@@ -106,6 +117,7 @@ export interface EmitterOptionsValue {
 const defaultOptions: EmitterOptionsValue = {
   includeHeadersInResponse: false,
   experimentalExtensibleEnums: false,
+  compatibilityMode: false,
   ignoreNullableOnOptional: true,
   generateMetadata: false,
 };

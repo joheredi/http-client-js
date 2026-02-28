@@ -183,24 +183,34 @@ Generated Models.
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
+import { serializeRecord } from "../static-helpers/serializationHelpers.js";
+
 /**
  * model interface SimpleModel
  */
-export interface SimpleModel extends Record<string, string> {
+export interface SimpleModel {
   propA: string;
   propB: string;
+  /**
+   * Additional properties
+   */
+  additionalProperties?: Record<string, string>;
 }
 
 /**
  * model interface ComplexModel
  */
-export interface ComplexModel extends Record<string, SimpleModel> {
+export interface ComplexModel {
   propA: SimpleModel;
+  /**
+   * Additional properties
+   */
+  additionalProperties?: Record<string, SimpleModel>;
 }
 
 export function simpleModelSerializer(item: SimpleModel): any {
   return {
-    ...item,
+    ...serializeRecord(item["additionalProperties"] ?? {}),
     propA: item["propA"],
     propB: item["propB"],
   };
@@ -208,7 +218,9 @@ export function simpleModelSerializer(item: SimpleModel): any {
 
 export function complexModelSerializer(item: ComplexModel): any {
   return {
-    ...item,
+    ...serializeRecord(item["additionalProperties"] ?? {}, (v: any) =>
+      simpleModelSerializer(v),
+    ),
     propA: simpleModelSerializer(item["propA"]),
   };
 }
@@ -319,15 +331,18 @@ Generated Models.
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
+import { serializeRecord } from "../static-helpers/serializationHelpers.js";
+
 /**
  * model interface SimpleModel
  */
-export interface SimpleModel extends Record<
-  string,
-  _SimpleModelAdditionalProperty
-> {
+export interface SimpleModel {
   propA: string;
   propB: string;
+  /**
+   * Additional properties
+   */
+  additionalProperties?: Record<string, _SimpleModelAdditionalProperty>;
 }
 
 /**
@@ -337,7 +352,7 @@ export type _SimpleModelAdditionalProperty = string | number | boolean;
 
 export function simpleModelSerializer(item: SimpleModel): any {
   return {
-    ...item,
+    ...serializeRecord(item["additionalProperties"] ?? {}),
     propA: item["propA"],
     propB: item["propB"],
   };
@@ -396,21 +411,31 @@ Generated Models.
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
+import { serializeRecord } from "../static-helpers/serializationHelpers.js";
+
 /**
  * model interface SimpleModel
  */
-export interface SimpleModel extends Record<string, any> {
+export interface SimpleModel {
   additionalProperties: Record<string, number>;
   propA: string;
   propB: string;
+  /**
+   * Additional properties
+   */
+  additionalPropertiesBag?: Record<string, string>;
 }
 
 /**
  * model interface FooModel
  */
-export interface FooModel extends BarModel, Record<string, any> {
+export interface FooModel extends BarModel {
   propA: string;
   propB: string;
+  /**
+   * Additional properties
+   */
+  additionalPropertiesBag?: Record<string, string>;
 }
 
 /**
@@ -422,7 +447,7 @@ export interface BarModel {
 
 export function simpleModelSerializer(item: SimpleModel): any {
   return {
-    ...item,
+    ...serializeRecord(item["additionalPropertiesBag"] ?? {}),
     additionalProperties: item["additionalProperties"],
     propA: item["propA"],
     propB: item["propB"],
@@ -431,7 +456,7 @@ export function simpleModelSerializer(item: SimpleModel): any {
 
 export function fooModelSerializer(item: FooModel): any {
   return {
-    ...item,
+    ...serializeRecord(item["additionalPropertiesBag"] ?? {}),
     additionalProperties: item["additionalProperties"],
     propA: item["propA"],
     propB: item["propB"],

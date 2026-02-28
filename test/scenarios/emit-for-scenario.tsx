@@ -288,6 +288,7 @@ ${x}
       yamlConfig["include-headers-in-response"] === true,
     experimentalExtensibleEnums:
       yamlConfig["experimental-extensible-enums"] === true,
+    compatibilityMode: yamlConfig["compatibility-mode"] === true,
     ignoreNullableOnOptional:
       (yamlConfig["ignore-nullable-on-optional"] as boolean | undefined) ??
       flavor === "azure",

@@ -80,11 +80,13 @@ function SerializeRecord() {
       parameters={[
         { name: "item", type: "any" },
         { name: "serializer", type: "(item: any) => any", optional: true },
+        { name: "excludes", type: "string[]", optional: true },
       ]}
     >
       {code`const result: Record<string, any> = {};
+const excludeSet = new Set(excludes);
 for (const key of Object.keys(item)) {
-  if (item[key] === undefined) {
+  if (excludeSet.has(key) || item[key] === undefined) {
     continue;
   }
   result[key] = serializer ? serializer(item[key]) : item[key];
@@ -97,7 +99,7 @@ return result;`}
 /**
  * Renders the `deserializeRecord` function that transforms a raw record
  * into a deserialized record, optionally applying a per-value deserializer
- * callback.
+ * callback and excluding specific keys.
  *
  * This is the inverse of `serializeRecord` and is used by model deserializers
  * for dictionary-typed additional properties.
@@ -112,11 +114,13 @@ function DeserializeRecord() {
       parameters={[
         { name: "item", type: "any" },
         { name: "deserializer", type: "(item: any) => any", optional: true },
+        { name: "excludes", type: "string[]", optional: true },
       ]}
     >
       {code`const result: Record<string, any> = {};
+const excludeSet = new Set(excludes);
 for (const key of Object.keys(item)) {
-  if (item[key] === undefined) {
+  if (excludeSet.has(key) || item[key] === undefined) {
     continue;
   }
   result[key] = deserializer ? deserializer(item[key]) : item[key];

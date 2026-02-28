@@ -2748,15 +2748,21 @@ mustEmptyDiagnostic: true
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
+import {
+  deserializeRecord,
+  serializeRecord,
+} from "../static-helpers/serializationHelpers.js";
+
 /**
  * model interface Vegetables
  */
-export interface Vegetables extends Record<
-  string,
-  _VegetablesAdditionalProperty
-> {
+export interface Vegetables {
   carrots: number;
   beans: number;
+  /**
+   * Additional properties
+   */
+  additionalProperties?: Record<string, _VegetablesAdditionalProperty>;
 }
 
 /**
@@ -2766,7 +2772,7 @@ export type _VegetablesAdditionalProperty = number | string;
 
 export function vegetablesSerializer(item: Vegetables): any {
   return {
-    ...item,
+    ...serializeRecord(item["additionalProperties"] ?? {}, (v: any) => v),
     carrots: item["carrots"],
     beans: item["beans"],
   };
@@ -2774,7 +2780,11 @@ export function vegetablesSerializer(item: Vegetables): any {
 
 export function vegetablesDeserializer(item: any): Vegetables {
   return {
-    ...item,
+    additionalProperties: deserializeRecord(
+      item,
+      (v: any) => _vegetablesAdditionalPropertyDeserializer(v),
+      ["carrots", "beans"],
+    ),
     carrots: item["carrots"],
     beans: item["beans"],
   };

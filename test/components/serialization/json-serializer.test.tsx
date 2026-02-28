@@ -46,6 +46,10 @@ import { serializerRefkey, typeRefkey } from "../../../src/utils/refkeys.js";
 import { SdkContextProvider } from "../../../src/context/sdk-context.js";
 import { SdkTestFile } from "../../utils.js";
 import { TesterWithService, createSdkContextForTest } from "../../test-host.js";
+import {
+  EmitterOptionsProvider,
+  type EmitterOptionsValue,
+} from "../../../src/context/emitter-options-context.js";
 
 /**
  * Multi-file test wrapper for serializer tests that need collection helper
@@ -54,16 +58,19 @@ import { TesterWithService, createSdkContextForTest } from "../../test-host.js";
 function SerializerMultiFileWrapper(props: {
   sdkContext: SdkContext<Record<string, any>, SdkHttpOperation>;
   children: Children;
+  emitterOptions?: Partial<EmitterOptionsValue>;
 }) {
   return (
     <Output
       program={props.sdkContext.emitContext.program}
       namePolicy={createTSNamePolicy()}
     >
-      <SdkContextProvider sdkContext={props.sdkContext}>
-        <SerializationHelpersFile />
-        <SourceFile path="test.ts">{props.children}</SourceFile>
-      </SdkContextProvider>
+      <EmitterOptionsProvider options={props.emitterOptions ?? {}}>
+        <SdkContextProvider sdkContext={props.sdkContext}>
+          <SerializationHelpersFile />
+          <SourceFile path="test.ts">{props.children}</SourceFile>
+        </SdkContextProvider>
+      </EmitterOptionsProvider>
     </Output>
   );
 }
@@ -945,7 +952,7 @@ describe("JsonSerializer", () => {
    * serialized versions. This matches the legacy compatibility-mode pattern
    * where `extends Record<string, T>` is used on the interface.
    */
-  it("should spread item in serializer for models with additional properties", async () => {
+  it("should spread item in serializer for models with additional properties in compat mode", async () => {
     const runner = await TesterWithService.createInstance();
     const { program } = await runner.compile(
       t.code`
@@ -965,7 +972,7 @@ describe("JsonSerializer", () => {
     const model = sdkContext.sdkPackage.models[0];
 
     const template = (
-      <SerializerMultiFileWrapper sdkContext={sdkContext}>
+      <SerializerMultiFileWrapper sdkContext={sdkContext} emitterOptions={{ compatibilityMode: true }}>
         <ModelInterface model={model} />
         {"\n\n"}
         <JsonSerializer model={model} />
@@ -977,13 +984,44 @@ describe("JsonSerializer", () => {
     expect(result).toContain(`item: Metadata`);
   });
 
+  it("should use serializeRecord for models with additional properties in non-compat mode", async () => {
+    const runner = await TesterWithService.createInstance();
+    const { program } = await runner.compile(
+      t.code`
+        model ${t.model("Metadata")} {
+          name: string;
+          ...Record<string>;
+        }
+
+        @route("/test")
+        interface D {
+          op ${t.op("bar")}(@body body: Metadata): void;
+        }
+      `,
+    );
+
+    const sdkContext = await createSdkContextForTest(program);
+    const model = sdkContext.sdkPackage.models[0];
+
+    const template = (
+      <SerializerMultiFileWrapper sdkContext={sdkContext} emitterOptions={{ compatibilityMode: false }}>
+        <ModelInterface model={model} />
+        {"\n\n"}
+        <JsonSerializer model={model} />
+      </SerializerMultiFileWrapper>
+    );
+
+    const result = renderToString(template);
+    expect(result).toContain(`serializeRecord(item["additionalProperties"] ?? {})`);
+    expect(result).toContain(`item: Metadata`);
+  });
+
   /**
    * Tests that models with a name conflict on `additionalProperties` still
    * use `...item` spread in the serializer (the extends Record<string, any>
-   * pattern). The named `additionalProperties` property is serialized as a
-   * normal property, while additional properties are captured by the spread.
+   * pattern) when in compatibility mode.
    */
-  it("should spread item in serializer when name conflict on additionalProperties exists", async () => {
+  it("should spread item in serializer when name conflict on additionalProperties exists in compat mode", async () => {
     const runner = await TesterWithService.createInstance();
     const { program } = await runner.compile(
       t.code`
@@ -1004,7 +1042,7 @@ describe("JsonSerializer", () => {
     const model = sdkContext.sdkPackage.models[0];
 
     const template = (
-      <SerializerMultiFileWrapper sdkContext={sdkContext}>
+      <SerializerMultiFileWrapper sdkContext={sdkContext} emitterOptions={{ compatibilityMode: true }}>
         <ModelInterface model={model} />
         {"\n\n"}
         <JsonSerializer model={model} />
@@ -1013,6 +1051,41 @@ describe("JsonSerializer", () => {
 
     const result = renderToString(template);
     expect(result).toContain(`...item`);
+    expect(result).toContain(
+      `additionalProperties: item["additionalProperties"]`,
+    );
+  });
+
+  it("should use additionalPropertiesBag in serializer when name conflict exists in non-compat mode", async () => {
+    const runner = await TesterWithService.createInstance();
+    const { program } = await runner.compile(
+      t.code`
+        model ${t.model("Metadata")} {
+          additionalProperties: Record<int32>;
+          name: string;
+          ...Record<string>;
+        }
+
+        @route("/test")
+        interface D {
+          op ${t.op("bar")}(@body body: Metadata): void;
+        }
+      `,
+    );
+
+    const sdkContext = await createSdkContextForTest(program);
+    const model = sdkContext.sdkPackage.models[0];
+
+    const template = (
+      <SerializerMultiFileWrapper sdkContext={sdkContext} emitterOptions={{ compatibilityMode: false }}>
+        <ModelInterface model={model} />
+        {"\n\n"}
+        <JsonSerializer model={model} />
+      </SerializerMultiFileWrapper>
+    );
+
+    const result = renderToString(template);
+    expect(result).toContain(`serializeRecord(item["additionalPropertiesBag"] ?? {})`);
     expect(result).toContain(
       `additionalProperties: item["additionalProperties"]`,
     );

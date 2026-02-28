@@ -6,6 +6,7 @@ export interface HttpClientJsEmitterOptions {
   "include-headers-in-response"?: boolean;
   "experimental-extensible-enums"?: boolean;
   "ignore-nullable-on-optional"?: boolean;
+  "compatibility-mode"?: boolean;
   "typespec-title-map"?: Record<string, string>;
   "package-name"?: string;
   "package-version"?: string;
@@ -44,6 +45,12 @@ const EmitterOptionsSchema: JSONSchemaType<HttpClientJsEmitterOptions> = {
       nullable: true,
       description:
         "Whether to strip | null from optional properties. Defaults to true for Azure flavor.",
+    },
+    "compatibility-mode": {
+      type: "boolean",
+      nullable: true,
+      description:
+        "Whether to use compatibility mode for additional properties handling. When true, models with additionalProperties extend Record<string, T> directly. When false (default), an explicit additionalProperties bag property is generated.",
     },
     "typespec-title-map": {
       type: "object",
