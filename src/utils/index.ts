@@ -43,3 +43,8 @@ export { getExampleValueCode } from "./example-values.js";
 export { hasXmlSerialization } from "./xml-detection.js";
 
 export { nameConflictResolver } from "./name-conflict-resolver.js";
+
+export {
+  typeHasDeserializerDeclaration,
+  typeHasSerializerDeclaration,
+} from "./serialization-predicates.js";

@@ -27,7 +27,10 @@ import {
   getEffectiveClientName,
 } from "../../utils/flatten-collision.js";
 import { useRuntimeLib } from "../../context/flavor-context.js";
-import { isAzureCoreErrorType } from "../../utils/azure-core-error-types.js";
+import {
+  typeHasDeserializerDeclaration,
+  typeHasSerializerDeclaration,
+} from "../../utils/serialization-predicates.js";
 import { getAdditionalPropertiesName } from "../model-interface.js";
 
 /**
@@ -303,15 +306,7 @@ export function getSerializationExpression(
 ): Children {
   switch (type.kind) {
     case "model":
-      // Azure Core error types are imported from the runtime package and don't
-      // have locally generated serializers. Pass through as-is.
-      if (isAzureCoreErrorType(type)) {
-        return accessor;
-      }
-      // Models without Input usage don't have serializer functions generated.
-      // This happens for read-only types like Azure.ResourceManager.SystemData
-      // that only appear in responses (Output usage). Pass through as-is.
-      if ((type.usage & UsageFlags.Input) === 0) {
+      if (!typeHasSerializerDeclaration(type)) {
         return accessor;
       }
       return code`${serializerRefkey(type)}(${accessor})`;
@@ -385,15 +380,7 @@ export function getSerializationExpression(
     }
 
     case "union":
-      // User-defined named unions with Input usage have pass-through serializer
-      // functions. Call the union serializer refkey so the function is referenced
-      // and Alloy auto-generates the import. Generated unions (e.g., additional
-      // property type wrappers) are excluded — they don't have serializer functions.
-      if (
-        type.name &&
-        !type.isGeneratedName &&
-        (type.usage & UsageFlags.Input) !== 0
-      ) {
+      if (typeHasSerializerDeclaration(type)) {
         return code`${serializerRefkey(type)}(${accessor})`;
       }
       return accessor;
@@ -498,15 +485,8 @@ function valueTypeHasNamedSerializerFn(
 ): boolean {
   switch (type.kind) {
     case "model":
-      // Azure Core error types don't have local serializer functions
-      if (isAzureCoreErrorType(type)) return false;
-      return (type.usage & UsageFlags.Input) !== 0;
     case "union":
-      return !!(
-        type.name &&
-        !type.isGeneratedName &&
-        (type.usage & UsageFlags.Input) !== 0
-      );
+      return typeHasSerializerDeclaration(type);
     case "enum":
       return !!(
         options &&
