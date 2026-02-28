@@ -328,7 +328,14 @@ function buildMethodParamList(
   }
 
   parts.push(code`options?: ${operationOptionsRefkey(method)}`);
-  return code`${parts.join(", ")}`;
+
+  // Use <For> with joiner instead of .join() — Alloy Children objects
+  // are not strings, so .join() would produce [object Object].
+  return (
+    <For each={parts} joiner=", ">
+      {(part) => part}
+    </For>
+  );
 }
 
 /**

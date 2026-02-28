@@ -1701,3 +1701,24 @@ Fixed three major bugs in sample code generation that caused incorrect output ac
 - TCGC may name HTTP body parameters differently from method parameters. Never assume name equality.
 - The spread-body property lookup in `findExampleValue()` can incorrectly match body model properties with unrelated path/query params if not guarded by `correspondingMethodParams.length > 1`.
 - `SCENARIOS_UPDATE=true pnpm test` updates ALL scenario test expectations, including non-sample tests. Always revert unrelated changes with `git checkout -- <dir>`.
+
+---
+### Task SMOKE-1: Fix [object Object] in classic operation group interface method signatures — DONE (2026-02-28)
+
+### What was done
+- Fixed `buildMethodParamList()` in `src/components/classical-operation-groups.tsx` (line 331)
+- The bug: `.join(", ")` was called on a `Children[]` array. JavaScript's `.join()` calls `.toString()` on non-string elements, producing `[object Object]` instead of rendered parameter text.
+- The fix: replaced `.join(", ")` with Alloy's `<For each={parts} joiner=", ">{(part) => part}</For>` which correctly renders Children objects with comma separators.
+- Added regression test "should not contain [object Object] in interface method signatures" that:
+  - Asserts no `[object Object]` in rendered output
+  - Validates the full method signature pattern (e.g., `getWidget:.*id: string.*options?`)
+
+### Patterns used
+- `<For>` with `joiner=", "` for composing Children arrays with separators (idiomatic Alloy pattern from flight-instructor)
+- Never use `.join()` on Alloy Children arrays — they are complex tree objects, not strings
+
+### What next person should know
+- All 12 classical-operation-groups tests pass
+- 16 pre-existing test failures in model-files, operation-files, operation-options-files, unresolved-symbols, and scenario tests — all unrelated to this change
+- The existing tests didn't catch this bug because they used `toContain("id: string")` on the full rendered output, which matched parameter text from SendOperation/PublicOperation components (in api/operations.ts) rather than the interface file
+- SMOKE-6 (import paths off by one level) depends on this fix and can now be addressed

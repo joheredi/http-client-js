@@ -2046,3 +2046,11 @@ const hasCreate = prop.visibility.some((v: any) => {
 **Problem:** The spread body lookup in `findExampleValue()` searches body model properties by name. If a body model has a property like `name` and a path parameter is also called `name`, the lookup incorrectly matches the body property with the path parameter.
 
 **Fix:** Only use spread body lookup when `correspondingMethodParams.length > 1` (indicating TCGC detected a spread body).
+
+## Never Use .join() on Alloy Children Arrays
+
+**Problem:** Calling `.join(", ")` on a `Children[]` array invokes JavaScript's `.toString()` on each element, producing `[object Object]` in generated output instead of rendered code.
+
+**Fix:** Use `<For each={parts} joiner=", ">{(part) => part}</For>` to compose Children arrays with separators. The `<For>` component correctly renders Alloy Children objects. Only use `.join()` on `string[]` arrays (like `buildFactoryParamList` and `buildDelegateArgList` which work with plain strings).
+
+**Affected:** `buildMethodParamList()` in `src/components/classical-operation-groups.tsx` was the instance found. Always verify any `.join()` call is operating on actual strings, not Alloy Children.

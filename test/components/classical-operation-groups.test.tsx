@@ -243,6 +243,35 @@ describe("ClassicalOperationGroups", () => {
     });
 
     /**
+     * Tests that interface method signatures do not contain [object Object].
+     *
+     * This regression test catches the bug where buildMethodParamList() used
+     * .join(", ") on Alloy Children objects, which calls .toString() and
+     * produces [object Object] instead of rendered parameter text.
+     *
+     * The test specifically validates the interface file output to ensure
+     * parameter lists render correctly (e.g., `(id: string, options?: ...)`)
+     * rather than `([object Object], [object Object])`.
+     */
+    it("should not contain [object Object] in interface method signatures", async () => {
+      const template = (
+        <OperationGroupTestWrapper sdkContext={sdkContext}>
+          <SourceFile path="classic/widgets/index.ts">
+            <OperationGroupInterface group={group} />
+          </SourceFile>
+        </OperationGroupTestWrapper>
+      );
+
+      const result = renderToString(template);
+
+      // Must never contain [object Object] — indicates broken Children composition
+      expect(result).not.toContain("[object Object]");
+      // getWidget has a required `id` param — verify it appears in the method signature
+      // by checking the full pattern: `id: string, options?`
+      expect(result).toMatch(/getWidget:.*id: string.*options\?/);
+    });
+
+    /**
      * Tests that the OperationGroupFactory renders a function that returns
      * an object with method delegates. Each method should delegate to the
      * corresponding public API function with `context` bound.
