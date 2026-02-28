@@ -1818,3 +1818,21 @@ Used `namekey(name, { ignoreNamePolicy: true })` on each type parameter individu
 - Any NEW component that declares `typeParameters` MUST use `namekey(name, { ignoreNamePolicy: true })` for the type parameter names. Otherwise the name policy will camelCase them, breaking code body references.
 - The `TypeParameterDescriptor` interface accepts `name: string | Namekey`, so `{ name: namekey("T", { ignoreNamePolicy: true }) }` is the correct pattern.
 - 16 pre-existing test failures remain (model-files, operation-files, operation-options-files, unresolved-symbols, scenarios) — all unrelated to this change.
+
+## SA29: SMOKE-7 Fix empty classic/index.ts barrel file — DONE (2026-02-28)
+
+### What was done
+- Added `<BarrelFile />` inside `<SourceDirectory path="classic">` in `ClassicalOperationGroupFiles` (src/components/classical-operation-groups.tsx)
+- This generates `classic/index.ts` with `export * from "./widgets/index.js"` (and similar for other operation groups)
+- Added import of `BarrelFile` from `@alloy-js/typescript`
+- Added new test "should generate classic/index.ts barrel re-exporting from subdirectories"
+- Updated existing "should generate files under classic/ directory" and "should render multiple operation groups" tests to account for the new barrel file
+
+### Approach
+- Followed the same pattern as `operation-files.tsx` line 122 which uses `<BarrelFile />` inside operation group SourceDirectories
+- BarrelFile auto-discovers `index.ts` files in subdirectories and generates `export * from` statements
+- The legacy emitter used named exports of only interfaces (`export { WidgetsOperations }`) vs our `export *` — acceptable trade-off since all other barrel files in this codebase use `export *`
+
+### Notes for next iteration
+- All 57 PRD tasks are now done (56 were already done, SMOKE-7 was the last pending one)
+- 17 pre-existing test failures remain (model-files, operation-files, operation-options-files, unresolved-symbols, scenarios) — all confirmed pre-existing before this change

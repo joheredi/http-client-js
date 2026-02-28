@@ -1,5 +1,6 @@
 import { Children, code, For, SourceDirectory } from "@alloy-js/core";
 import {
+  BarrelFile,
   FunctionDeclaration,
   InterfaceDeclaration,
   InterfaceMember,
@@ -87,6 +88,7 @@ export function ClassicalOperationGroupFiles(
 
   return (
     <SourceDirectory path="classic">
+      <BarrelFile />
       <For each={groups}>
         {(group) => <ClassicalOperationGroupFile group={group} />}
       </For>

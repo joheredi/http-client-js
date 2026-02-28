@@ -351,6 +351,37 @@ describe("ClassicalOperationGroups", () => {
 
       // The output should contain a file at classic/widgets/index.ts
       expect(template).toRenderTo({
+        "classic/index.ts": expect.stringContaining("export *"),
+        "classic/widgets/index.ts":
+          expect.stringContaining("WidgetsOperations"),
+        "api/testingContext.ts": expect.stringContaining("Testing"),
+        "api/operations.ts": expect.stringContaining("getWidget"),
+      });
+    });
+
+    /**
+     * Tests that the ClassicalOperationGroupFiles orchestrator generates a
+     * barrel file at `classic/index.ts` that re-exports from subdirectories.
+     *
+     * Without this barrel, consumers cannot import operation group types
+     * from `./classic/index.js` — they would have to know the exact
+     * subdirectory path. The barrel file enables the root `src/index.ts`
+     * barrel to transitively re-export all classical operation types.
+     *
+     * This was SMOKE-7: the classic/index.ts was empty or missing because
+     * no BarrelFile was included inside the classic SourceDirectory.
+     */
+    it("should generate classic/index.ts barrel re-exporting from subdirectories", async () => {
+      const template = (
+        <OperationGroupTestWrapper sdkContext={sdkContext}>
+          <ClassicalOperationGroupFiles client={root} />
+        </OperationGroupTestWrapper>
+      );
+
+      expect(template).toRenderTo({
+        "classic/index.ts": expect.stringContaining(
+          'export * from "./widgets/index.js"',
+        ),
         "classic/widgets/index.ts":
           expect.stringContaining("WidgetsOperations"),
         "api/testingContext.ts": expect.stringContaining("Testing"),
@@ -524,6 +555,9 @@ describe("ClassicalOperationGroups", () => {
    * own file and declarations. Services with parallel groups (e.g.,
    * Widgets and Gadgets) should produce separate files.
    *
+   * Also verifies the classic barrel file re-exports from all group
+   * subdirectories, not just one.
+   *
    * This is important for services with multiple top-level namespaces.
    */
   it("should render multiple operation groups at same level", async () => {
@@ -539,8 +573,9 @@ describe("ClassicalOperationGroups", () => {
       </OperationGroupTestWrapper>
     );
 
-    // Both groups should get their own files
+    // Both groups should get their own files, and the barrel should re-export both
     expect(template).toRenderTo({
+      "classic/index.ts": expect.stringContaining("export *"),
       "classic/widgets/index.ts": expect.stringContaining("WidgetsOperations"),
       "classic/gadgets/index.ts": expect.stringContaining("GadgetsOperations"),
       "api/testingContext.ts": expect.stringContaining("Testing"),
