@@ -101,6 +101,8 @@ Alloy is a **declarative, JSX-based code generation framework**. It is NOT React
 
 ### Core Concepts
 
+
+
 #### 1. Refkeys (Most Important Concept)
 
 Refkeys are unique identifiers for declarations that enable automatic cross-file reference resolution and import generation. **You never manually write import statements.**
@@ -139,6 +141,17 @@ code`
 ```
 
 **NEVER use string concatenation to build code — always use `code` templates.**
+
+#### 1.2 alloy components paths (Important Concept)
+We should wrap components in `SourceDirectory` and `SourceFile` to let Alloy compute correct output paths and imports. Instead of path="models/models.ts", use nested SourceDirectory:
+
+```tsx
+<SourceDirectory path="models">
+  <SourceFile path="models.ts">
+    {/* declarations */}
+  </SourceFile>
+</SourceDirectory>
+```
 
 #### 3. External Packages
 
