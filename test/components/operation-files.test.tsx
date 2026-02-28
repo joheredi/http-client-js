@@ -231,6 +231,7 @@ describe("OperationFiles", () => {
     // Operations file should reference the deserializer and model type
     expect(template).toRenderTo({
       "api/operations.ts": expect.stringContaining("widgetDeserializer"),
+      "models/index.ts": expect.any(String),
       "models/models.ts": expect.stringContaining("export interface Widget"),
     });
   });
@@ -265,6 +266,7 @@ describe("OperationFiles", () => {
     // Operations file should reference both serializer and deserializer
     expect(template).toRenderTo({
       "api/operations.ts": expect.stringContaining("widgetSerializer"),
+      "models/index.ts": expect.any(String),
       "models/models.ts": expect.stringContaining("export interface Widget"),
     });
   });
@@ -307,6 +309,7 @@ describe("OperationFiles", () => {
       const normalizedName =
         childName.charAt(0).toLowerCase() + childName.slice(1);
       expect(template).toRenderTo({
+        [`api/${normalizedName}/index.ts`]: expect.any(String),
         [`api/${normalizedName}/operations.ts`]:
           expect.stringContaining("listWidgets"),
       });
@@ -394,6 +397,7 @@ describe("OperationFiles", () => {
 
       // Check that operations file imports options from same-directory flat path
       expect(template).toRenderTo({
+        [`api/${normalizedName}/index.ts`]: expect.any(String),
         [`api/${normalizedName}/operations.ts`]: expect.stringContaining(
           'from "./options.js"',
         ),

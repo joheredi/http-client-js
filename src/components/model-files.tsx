@@ -209,12 +209,20 @@ export function ModelFiles() {
   // When experimentalExtensibleEnums is NOT true, union-as-enum types
   // (TypeSpec unions flattened by TCGC into SdkEnumType with isUnionAsEnum: true)
   // generate pass-through serializer functions matching the legacy emitter's behavior.
-  const inputEnumSerializers = enums.filter(
-    (e) =>
-      e.isUnionAsEnum &&
-      !experimentalExtensibleEnums &&
-      (e.usage & UsageFlags.Input) !== 0,
-  );
+  // Include both regular enums and nullable-wrapped enums (from sdkPackage.unions).
+  const inputEnumSerializers = [
+    ...enums.filter(
+      (e) =>
+        e.isUnionAsEnum &&
+        !experimentalExtensibleEnums &&
+        (e.usage & UsageFlags.Input) !== 0,
+    ),
+    ...nullableEnums.filter(
+      (e) =>
+        e.isUnionAsEnum &&
+        !experimentalExtensibleEnums,
+    ),
+  ];
 
   const hasSerializers =
     regularInputModels.length > 0 ||

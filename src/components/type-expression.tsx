@@ -81,7 +81,7 @@ export function getTypeExpression(type: SdkType): Children {
     // ── Array ────────────────────────────────────────────────────────────
     case "array": {
       const elementType = getTypeExpression(type.valueType);
-      return code`(${elementType})[]`;
+      return code`${elementType}[]`;
     }
 
     // ── Named reference types (resolved via refkey → auto-import) ───────

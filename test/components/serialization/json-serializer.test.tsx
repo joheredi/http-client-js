@@ -484,7 +484,7 @@ describe("JsonSerializer", () => {
          * model interface Item
          */
         export interface Item {
-          tags: (Tag)[];
+          tags: Tag[];
         }
 
         export function tagSerializer(item: Tag): any {
@@ -524,7 +524,7 @@ describe("JsonSerializer", () => {
          * model interface Config
          */
         export interface Config {
-          values: (string)[];
+          values: string[];
         }
 
         export function configSerializer(item: Config): any {

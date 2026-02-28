@@ -90,6 +90,7 @@ describe("ModelFiles", () => {
     );
 
     expect(template).toRenderTo({
+      "models/index.ts": 'export * from "./models.js";',
       "models/models.ts": d`
         /**
          * This file contains only generated model types and their (de)serializers.
@@ -145,6 +146,7 @@ describe("ModelFiles", () => {
     );
 
     expect(template).toRenderTo({
+      "models/index.ts": 'export * from "./models.js";',
       "models/models.ts": d`
         /**
          * This file contains only generated model types and their (de)serializers.
@@ -194,6 +196,7 @@ describe("ModelFiles", () => {
     );
 
     expect(template).toRenderTo({
+      "models/index.ts": 'export * from "./models.js";',
       "models/models.ts": d`
         /**
          * This file contains only generated model types and their (de)serializers.
@@ -274,15 +277,19 @@ describe("ModelFiles", () => {
     // The output should contain the Pet interface, Cat interface, Dog interface,
     // and the PetUnion type alias
     expect(result).toRenderTo({
+      "models/index.ts": expect.any(String),
       "models/models.ts": expect.stringContaining("export interface Pet"),
     });
     expect(result).toRenderTo({
+      "models/index.ts": expect.any(String),
       "models/models.ts": expect.stringContaining("export type PetUnion"),
     });
     expect(result).toRenderTo({
+      "models/index.ts": expect.any(String),
       "models/models.ts": expect.stringContaining("export interface Cat"),
     });
     expect(result).toRenderTo({
+      "models/index.ts": expect.any(String),
       "models/models.ts": expect.stringContaining("export interface Dog"),
     });
   });
@@ -343,6 +350,7 @@ describe("ModelFiles", () => {
     );
 
     expect(template).toRenderTo({
+      "models/index.ts": 'export * from "./models.js";',
       "models/models.ts": d`
         /**
          * This file contains only generated model types and their (de)serializers.
@@ -395,6 +403,7 @@ describe("ModelFiles", () => {
     );
 
     expect(template).toRenderTo({
+      "models/index.ts": 'export * from "./models.js";',
       "models/models.ts": d`
         /**
          * This file contains only generated model types and their (de)serializers.
@@ -468,6 +477,7 @@ describe("ModelFiles", () => {
     // Both models should be in the same file, and Person's address
     // property should reference Address by name
     expect(template).toRenderTo({
+      "models/index.ts": expect.any(String),
       "models/models.ts": expect.stringContaining("address: Address"),
     });
   });

@@ -110,6 +110,5 @@ export function getDirectSubtypes(model: SdkModelType): SdkModelType[] {
  */
 function getPolymorphicDoc(model: SdkModelType): string {
   if (model.doc) return model.doc;
-  const normalizedModelName = normalizePascalCaseName(model.name);
-  return `Alias for ${normalizedModelName}Union`;
+  return `Alias for \`${model.name}\``;
 }

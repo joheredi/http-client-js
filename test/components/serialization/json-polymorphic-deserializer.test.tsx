@@ -130,7 +130,7 @@ describe("JsonPolymorphicDeserializer", () => {
       }
 
       /**
-       * Alias for PetUnion
+       * Alias for \`Pet\`
        */
       export type PetUnion = Cat | Dog | Pet;
 
@@ -242,7 +242,7 @@ describe("JsonPolymorphicDeserializer", () => {
       }
 
       /**
-       * Alias for ShapeUnion
+       * Alias for \`Shape\`
        */
       export type ShapeUnion = Circle | Shape;
 
@@ -340,7 +340,7 @@ describe("JsonPolymorphicDeserializer", () => {
       }
 
       /**
-       * Alias for VehicleUnion
+       * Alias for \`Vehicle\`
        */
       export type VehicleUnion = Car | Vehicle;
 
@@ -440,7 +440,7 @@ describe("JsonPolymorphicDeserializer", () => {
       }
 
       /**
-       * Alias for AnimalUnion
+       * Alias for \`Animal\`
        */
       export type AnimalUnion = Bird | Animal;
 
@@ -539,7 +539,7 @@ describe("JsonPolymorphicDeserializer", () => {
       }
 
       /**
-       * Alias for BaseUnion
+       * Alias for \`Base\`
        */
       export type BaseUnion = Sub | Base;
 

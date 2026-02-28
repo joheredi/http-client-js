@@ -17,7 +17,11 @@ model Test {
 Shouldn't be included in root index file
 
 ```ts root index
-// (file was not generated)
+export * from "./static-helpers/serializationHelpers.js";
+export * from "./static-helpers/multipartHelpers.js";
+export * from "./static-helpers/xmlHelpers.js";
+export * from "./static-helpers/getBinaryResponse.js";
+export * from "./static-helpers/urlTemplate.js";
 ```
 
 # should generate models with `@usage` added for model-only case
@@ -65,7 +69,12 @@ export function testDeserializer(item: any): Test {
 Should be included in root index file
 
 ```ts root index
-export { Test } from "./models/index.js";
+export * from "./static-helpers/serializationHelpers.js";
+export * from "./static-helpers/multipartHelpers.js";
+export * from "./static-helpers/xmlHelpers.js";
+export * from "./static-helpers/getBinaryResponse.js";
+export * from "./static-helpers/urlTemplate.js";
+export * from "./models/index.js";
 ```
 
 # should handle type_literals:boolean -> boolean_literals
@@ -1670,7 +1679,7 @@ export interface Pet {
 }
 
 /**
- * Alias for PetUnion
+ * Alias for `Pet`
  */
 export type PetUnion = PSDog | Pet;
 
@@ -1823,7 +1832,7 @@ export interface Pet {
 }
 
 /**
- * Alias for PetUnion
+ * Alias for `Pet`
  */
 export type PetUnion = Cat | Dog | Pet;
 
@@ -1975,7 +1984,7 @@ export interface Pet {
 }
 
 /**
- * Alias for PetUnion
+ * Alias for `Pet`
  */
 export type PetUnion = Cat | Dog | Pet;
 
@@ -1997,7 +2006,7 @@ export interface Dog extends Pet {
 }
 
 /**
- * Alias for DogUnion
+ * Alias for `Dog`
  */
 export type DogUnion = Gold | Dog;
 
@@ -2900,7 +2909,7 @@ export interface Pet {
 }
 
 /**
- * Alias for PetUnion
+ * Alias for `Pet`
  */
 export type PetUnion = ServicePlacementPolicyDescription | Pet;
 

@@ -270,7 +270,7 @@ describe("Type Expression", () => {
           {getTypeExpression(propType)}
         </SdkTestFile>
       );
-      expect(template).toRenderTo("(string)[]");
+      expect(template).toRenderTo("string[]");
     });
 
     /**
@@ -359,7 +359,7 @@ describe("Type Expression", () => {
           {getTypeExpression(propType)}
         </SdkTestFile>
       );
-      expect(template).toRenderTo("((number)[])[]");
+      expect(template).toRenderTo("number[][]");
     });
   });
 

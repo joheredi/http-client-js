@@ -377,7 +377,7 @@ describe("DeserializeOperation", () => {
 
       export async function _listItemsDeserialize(
         result: PathUncheckedResponse,
-      ): Promise<(Item)[]> {
+      ): Promise<Item[]> {
         const expectedStatuses = ["200"];
         if (!expectedStatuses.includes(result.status)) {
           throw createRestError(result);
@@ -725,7 +725,7 @@ describe("DeserializeOperation", () => {
        * model interface ItemList
        */
       export interface ItemList {
-        items: (Item)[];
+        items: Item[];
       }
 
       export function itemDeserializer(item: any): Item {

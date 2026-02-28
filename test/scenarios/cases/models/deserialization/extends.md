@@ -49,7 +49,7 @@ export interface AWidgetData {
 }
 
 /**
- * Alias for AWidgetDataUnion
+ * Alias for `AWidgetData`
  */
 export type AWidgetDataUnion = AoaiModelConfig | MaasModelConfig | AWidgetData;
 
@@ -194,7 +194,7 @@ export interface DiscountTypeProperties {
 }
 
 /**
- * Alias for DiscountTypePropertiesUnion
+ * Alias for `DiscountTypeProperties`
  */
 export type DiscountTypePropertiesUnion =
   | DiscountTypeProductFamily
@@ -372,7 +372,7 @@ export interface DocumentIngress {
 }
 
 /**
- * Alias for DocumentIngressUnion
+ * Alias for `DocumentIngress`
  */
 export type DocumentIngressUnion = Request | Exception | DocumentIngress;
 
@@ -593,7 +593,7 @@ export interface Animal {
 }
 
 /**
- * Alias for AnimalUnion
+ * Alias for `Animal`
  */
 export type AnimalUnion = Pet | Animal;
 
@@ -609,7 +609,7 @@ export interface Pet extends Animal {
 }
 
 /**
- * Alias for PetUnion
+ * Alias for `Pet`
  */
 export type PetUnion = Dog | Pet;
 

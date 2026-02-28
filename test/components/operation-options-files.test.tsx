@@ -218,6 +218,7 @@ describe("OperationOptionsFiles", () => {
       const normalizedName =
         childName.charAt(0).toLowerCase() + childName.slice(1);
       expect(template).toRenderTo({
+        [`api/${normalizedName}/index.ts`]: expect.any(String),
         [`api/${normalizedName}/options.ts`]: expect.stringContaining(
           "ListWidgetsOptionalParams",
         ),

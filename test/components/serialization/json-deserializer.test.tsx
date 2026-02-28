@@ -449,7 +449,7 @@ describe("JsonDeserializer", () => {
          * model interface Item
          */
         export interface Item {
-          tags: (Tag)[];
+          tags: Tag[];
         }
 
         export function tagDeserializer(item: any): Tag {

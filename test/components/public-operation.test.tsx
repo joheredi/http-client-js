@@ -142,7 +142,7 @@ describe("PublicOperation", () => {
 
       export async function _listItemsDeserialize(
         result: PathUncheckedResponse,
-      ): Promise<(string)[]> {
+      ): Promise<string[]> {
         const expectedStatuses = ["200"];
         if (!expectedStatuses.includes(result.status)) {
           throw createRestError(result);
@@ -154,7 +154,7 @@ describe("PublicOperation", () => {
       export async function listItems(
         context: Client,
         options: ListItemsOptionalParams = { requestOptions: {} },
-      ): Promise<(string)[]> {
+      ): Promise<string[]> {
         const result = await _listItemsSend(context, options);
         return _listItemsDeserialize(result);
       }
@@ -714,7 +714,7 @@ describe("PublicOperation", () => {
 
         export async function _searchDeserialize(
           result: PathUncheckedResponse,
-        ): Promise<(string)[]> {
+        ): Promise<string[]> {
           const expectedStatuses = ["200"];
           if (!expectedStatuses.includes(result.status)) {
             throw createRestError(result);
@@ -726,7 +726,7 @@ describe("PublicOperation", () => {
         export async function search(
           context: Client,
           options: SearchOptionalParams = { requestOptions: {} },
-        ): Promise<(string)[]> {
+        ): Promise<string[]> {
           const result = await _searchSend(context, options);
           return _searchDeserialize(result);
         }

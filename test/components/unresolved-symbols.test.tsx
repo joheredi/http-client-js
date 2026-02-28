@@ -102,6 +102,7 @@ describe("Unresolved Symbol Prevention", () => {
     // Verify the model renders with proper type names for both variants.
     // The nullable variant must have a declared enum type, not an unresolved symbol.
     expect(template).toRenderTo({
+      "models/index.ts": 'export * from "./models.js";',
       "models/models.ts": d`
         /**
          * This file contains only generated model types and their (de)serializers.
@@ -128,6 +129,12 @@ describe("Unresolved Symbol Prevention", () => {
          * Type of TestModelNullableUnion
          */
         export type TestModelNullableUnion = "A" | "B";
+
+        export function testModelNullableUnionSerializer(
+          item: TestModelNullableUnion,
+        ): any {
+          return item;
+        }
 
         export function testModelDeserializer(item: any): TestModel {
           return {
