@@ -1753,7 +1753,7 @@
       "title": "Fix generic type parameter T lowercased to t by name policy in XML helpers",
       "category": "smoke-test/XML",
       "priority": "P1",
-      "status": "pending",
+      "status": "done",
       "description": "In src/components/static-helpers/xml-helpers.tsx, the DeserializeFromXmlFunction and DeserializeXmlObjectFunction components declare typeParameters={[\"T\"]} (uppercase T) on their FunctionDeclaration. However, the generated output has lowercase 't' in the function signature (e.g., `deserializeFromXml<t>`) while the code body still uses uppercase 'T' (e.g., `deserializeXmlObject<T>(...)` and `return result as T`). This produces TS2552: Cannot find name 'T'. Did you mean 't'?\n\nThe root cause is likely the emitter's name policy (src/utils/name-policy.ts, createEmitterNamePolicy()). The name policy applies casing transformations to declarations, and type parameters may be getting lowercased. The fix is to either:\n1. Mark the type parameter with ignoreNamePolicy so it preserves the uppercase T: use namekey(\"T\", { ignoreNamePolicy: true }) or equivalent.\n2. Make the code body references match the transformed name (use lowercase 't' everywhere).\n3. Adjust the name policy to not transform type parameters.\n\nOption 1 is preferred since uppercase single-letter type parameters (T, K, V) are the standard TypeScript convention.\n\nVerification: Run `pnpm build && pnpm test:smoke`. Confirm that src/static-helpers/xmlHelpers.ts in temp/smoke/http-client-js/ has consistent casing for the generic type parameter (either all T or all t, but T is preferred). Also run `pnpm test`.",
       "source": "smoke-test",
       "kind": "bug",

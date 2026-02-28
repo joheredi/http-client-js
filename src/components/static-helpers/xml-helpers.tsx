@@ -1,4 +1,4 @@
-import { code } from "@alloy-js/core";
+import { code, namekey } from "@alloy-js/core";
 import {
   FunctionDeclaration,
   InterfaceDeclaration,
@@ -347,7 +347,7 @@ function DeserializeFromXmlFunction() {
       refkey={serializationHelperRefkey("deserializeFromXml")}
       export
       returnType="any"
-      typeParameters={["T"]}
+      typeParameters={[{ name: namekey("T", { ignoreNamePolicy: true }) }]}
       parameters={[
         { name: "xmlString", type: "string" },
         {
@@ -407,7 +407,7 @@ function DeserializeXmlObjectFunction() {
       refkey={serializationHelperRefkey("deserializeXmlObject")}
       export
       returnType="any"
-      typeParameters={["T"]}
+      typeParameters={[{ name: namekey("T", { ignoreNamePolicy: true }) }]}
       parameters={[
         { name: "xmlObject", type: "Record<string, unknown>" },
         {

@@ -1,4 +1,4 @@
-import { code } from "@alloy-js/core";
+import { code, namekey } from "@alloy-js/core";
 import {
   FunctionDeclaration,
   InterfaceDeclaration,
@@ -77,7 +77,7 @@ function PagedAsyncIterableIteratorInterface() {
       name="PagedAsyncIterableIterator"
       refkey={pagingHelperRefkey("PagedAsyncIterableIterator")}
       export
-      typeParameters={["TElement"]}
+      typeParameters={[{ name: namekey("TElement", { ignoreNamePolicy: true }) }]}
     >
       <InterfaceMember
         name="next"
@@ -149,7 +149,7 @@ function BuildPagedAsyncIteratorFunction() {
       refkey={pagingHelperRefkey("buildPagedAsyncIterator")}
       export
       returnType={code`${pagingHelperRefkey("PagedAsyncIterableIterator")}<TElement>`}
-      typeParameters={["TElement"]}
+      typeParameters={[{ name: namekey("TElement", { ignoreNamePolicy: true }) }]}
       parameters={[
         { name: "client", type: runtimeLib.Client },
         {

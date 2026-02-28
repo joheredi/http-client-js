@@ -1,4 +1,4 @@
-import { Children, code, SourceDirectory } from "@alloy-js/core";
+import { Children, code, namekey, SourceDirectory } from "@alloy-js/core";
 import {
   FunctionDeclaration,
   InterfaceDeclaration,
@@ -119,9 +119,9 @@ function RestorePollerOptionsInterface() {
       refkey={pollingHelperRefkey("RestorePollerOptions")}
       export
       typeParameters={[
-        { name: "TResult" },
+        { name: namekey("TResult", { ignoreNamePolicy: true }) },
         {
-          name: "TResponse",
+          name: namekey("TResponse", { ignoreNamePolicy: true }),
           extends: code`${runtimeLib.PathUncheckedResponse}`,
           default: code`${runtimeLib.PathUncheckedResponse}`,
         },
@@ -190,10 +190,10 @@ function RestorePollerFunction(props: RestorePollerFunctionProps) {
       returnType={returnType}
       typeParameters={[
         {
-          name: "TResponse",
+          name: namekey("TResponse", { ignoreNamePolicy: true }),
           extends: code`${runtimeLib.PathUncheckedResponse}`,
         },
-        { name: "TResult" },
+        { name: namekey("TResult", { ignoreNamePolicy: true }) },
       ]}
       parameters={[
         { name: "client", type: classicalClientRefkey(client) },

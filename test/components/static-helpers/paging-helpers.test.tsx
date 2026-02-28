@@ -84,7 +84,7 @@ describe("PagingHelpersFile", () => {
 
     const result = renderToString(template);
     expect(result).toContain(
-      "export interface PagedAsyncIterableIterator<tElement>",
+      "export interface PagedAsyncIterableIterator<TElement>",
     );
     expect(result).toContain("next");
     expect(result).toContain("byPage");

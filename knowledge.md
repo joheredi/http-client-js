@@ -2074,3 +2074,20 @@ const hasCreate = prop.visibility.some((v: any) => {
 **Rejected:** Importing from a newer version of `@typespec/ts-http-runtime` (function doesn't exist there), using the `uri-template` npm library (wouldn't match legacy output), inlining the logic per operation (overly complex).
 
 **Gotcha:** Static helper refkeys require the declaration component in the render tree. Tests that use `SdkTestFile` without including `UrlTemplateHelpersFile` will get `<Unresolved Symbol>` for expandUrlTemplate. Use `UrlTemplateTestWrapper` (defined in send-operation.test.tsx and public-operation.test.tsx) or include the helper file in your test wrapper.
+
+## Alloy type parameters require namekey ignoreNamePolicy
+**Problem:** Alloy treats type parameters using the "parameter" naming kind, which applies camelCase transformation. This turns `T` → `t`, `TResult` → `tResult`, etc. in function/interface signatures. But code body references (in `code` template literals) use the original uppercase names, causing TypeScript TS2552 errors.
+**Solution:** Always use `namekey(name, { ignoreNamePolicy: true })` for type parameter names:
+```tsx
+typeParameters={[{ name: namekey("T", { ignoreNamePolicy: true }) }]}
+```
+**Why:** Standard TypeScript convention uses uppercase single-letter or PascalCase type parameters (T, TResult, TElement). The name policy's camelCase transformation breaks this convention and creates mismatches with code body references.
+
+## Design Decisions
+
+### SMOKE-5: Type parameter casing fix approach
+**Chosen approach:** Per-site `namekey(name, { ignoreNamePolicy: true })` on each type parameter.
+**Rejected approaches:**
+1. Modifying the name policy to skip single-letter names — too fragile, doesn't handle multi-letter params like TResult.
+2. Changing Alloy's type parameter handling to use a "type-parameter" naming kind — requires submodule changes (forbidden).
+3. Using `$DO_NOT_NORMALIZE$` marker prefix — uncertain compatibility with TypeParameterDescriptor processing.

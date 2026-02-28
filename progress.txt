@@ -1796,3 +1796,25 @@ Used `reduceRight` on the prefixes array to build nested SourceDirectories inste
 - The Alloy gotcha about SourceFile paths with slashes is critical: NEVER use `<SourceFile path="subdir/file.ts">`. Always use nested `<SourceDirectory>` components. This is documented in knowledge.md.
 - SMOKE-7 (empty classic/index.ts barrel file) may still be affected by having separate `<SourceDirectory path="classic">` nodes for each ClassicalOperationGroupFiles render (one per client). This is a separate issue from import paths.
 - There are 16 pre-existing scenario test failures (models, enum unions, samples, operations, anonymous types) unrelated to this change.
+
+## SMOKE-5: Fix generic type parameter T lowercased to t by name policy — DONE (2026-02-28)
+
+### What was done
+- Fixed type parameter casing across ALL files that use `typeParameters` in Alloy declaration components.
+- Root cause: Alloy treats type parameters as "parameter" naming kind, which applies camelCase transformation. This lowercased `T` to `t`, `TResult` to `tResult`, etc. in function/interface signatures, while code bodies used the original uppercase names, causing TypeScript compilation errors.
+- Fix: Wrapped all type parameter names with `namekey(name, { ignoreNamePolicy: true })` to preserve original casing.
+- Files changed:
+  1. `src/components/static-helpers/xml-helpers.tsx` — 2 typeParameters (T)
+  2. `src/components/static-helpers/polling-helpers.tsx` — 4 typeParameters (TResult, TState, TResponse)
+  3. `src/components/static-helpers/paging-helpers.tsx` — 2 typeParameters (TElement)
+  4. `src/components/restore-poller.tsx` — 2 typeParameters (TResult, TResponse)
+- Updated test expectations in polling-helpers.test.tsx and paging-helpers.test.tsx to expect uppercase type parameter names.
+- All 30 tests across the 4 affected test files pass. Smoke test passes (tsp compile → npm install → npm run build succeeds).
+
+### Key design decision
+Used `namekey(name, { ignoreNamePolicy: true })` on each type parameter individually rather than modifying the name policy itself. This is the established pattern in the codebase (used in enum-declaration, sub-enum-declaration, client-name-utils, model-name) and doesn't require changes to Alloy's submodule code.
+
+### Important for next person
+- Any NEW component that declares `typeParameters` MUST use `namekey(name, { ignoreNamePolicy: true })` for the type parameter names. Otherwise the name policy will camelCase them, breaking code body references.
+- The `TypeParameterDescriptor` interface accepts `name: string | Namekey`, so `{ name: namekey("T", { ignoreNamePolicy: true }) }` is the correct pattern.
+- 16 pre-existing test failures remain (model-files, operation-files, operation-options-files, unresolved-symbols, scenarios) — all unrelated to this change.

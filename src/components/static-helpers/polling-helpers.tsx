@@ -1,4 +1,4 @@
-import { code } from "@alloy-js/core";
+import { code, namekey } from "@alloy-js/core";
 import {
   FunctionDeclaration,
   InterfaceDeclaration,
@@ -55,7 +55,7 @@ function OperationStateInterface() {
       name="OperationState"
       refkey={pollingHelperRefkey("OperationState")}
       export
-      typeParameters={["TResult"]}
+      typeParameters={[{ name: namekey("TResult", { ignoreNamePolicy: true }) }]}
     >
       <InterfaceMember
         name="status"
@@ -87,10 +87,10 @@ function PollerLikeInterface() {
       export
       typeParameters={[
         {
-          name: "TState",
+          name: namekey("TState", { ignoreNamePolicy: true }),
           extends: code`${pollingHelperRefkey("OperationState")}<TResult>`,
         },
-        { name: "TResult" },
+        { name: namekey("TResult", { ignoreNamePolicy: true }) },
       ]}
     >
       <InterfaceMember name="getOperationState" type={code`() => TState`} />
@@ -123,7 +123,7 @@ function GetLongRunningPollerOptionsInterface() {
       name="GetLongRunningPollerOptions"
       refkey={pollingHelperRefkey("GetLongRunningPollerOptions")}
       export
-      typeParameters={["TResponse"]}
+      typeParameters={[{ name: namekey("TResponse", { ignoreNamePolicy: true }) }]}
     >
       <InterfaceMember name="updateIntervalInMs" type="number" optional />
       {"\n"}
@@ -169,7 +169,7 @@ function GetLongRunningPollerFunction() {
       export
       async
       returnType={code`${pollingHelperRefkey("PollerLike")}<${pollingHelperRefkey("OperationState")}<TResponse>, TResponse>`}
-      typeParameters={["TResponse"]}
+      typeParameters={[{ name: namekey("TResponse", { ignoreNamePolicy: true }) }]}
       parameters={[
         { name: "client", type: runtimeLib.Client },
         {
