@@ -42,11 +42,8 @@ import { BarrelFile } from "@alloy-js/typescript";
  *
  * Azure SDKs split runtime symbols across multiple packages, so all
  * must be registered as externals for Alloy's import resolution to work.
- * The `httpRuntimeLib` is still included because `expandUrlTemplate`
- * has no Azure equivalent.
  */
 export const azureExternals = [
-  httpRuntimeLib,
   azureCoreClientLib,
   azureCorePipelineLib,
   azureCoreAuthLib,

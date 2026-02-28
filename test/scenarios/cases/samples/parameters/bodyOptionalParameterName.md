@@ -160,7 +160,7 @@ import {
   type StreamableMethod,
 } from "@azure-rest/core-client";
 import { OperationState, PollerLike } from "@azure/core-lro";
-import { expandUrlTemplate } from "@typespec/ts-http-runtime";
+import { expandUrlTemplate } from "../../static-helpers/urlTemplate.js";
 
 export function _backupSend(
   context: Client,

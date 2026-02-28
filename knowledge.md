@@ -2063,3 +2063,14 @@ const hasCreate = prop.visibility.some((v: any) => {
 **Why**: The name policy transforms ParameterDescriptor names in function signatures, but `code` template interpolations bypass the name policy. Required endpoint parameters become function parameters (name-policy-transformed), while optional/defaulted args get local variables (raw name via string interpolation). A `Map<string, string>` tracks which args are local vars vs parameters.
 
 **Rejected**: Using Alloy's refkey/namekey system to resolve parameter names — too complex for simple variable references in code templates, and ParameterDescriptor doesn't support refkeys for this purpose.
+
+## Design Decisions
+
+### expandUrlTemplate as Static Helper (SMOKE-4)
+**Chosen approach:** Emit `expandUrlTemplate` as a static helper file (`static-helpers/urlTemplate.ts`) using the same pattern as serialization/multipart/xml helpers. The function is registered with `urlTemplateHelperRefkey("expandUrlTemplate")` and referenced via the RuntimeLib abstraction.
+
+**Why:** `expandUrlTemplate` does NOT exist in `@typespec/ts-http-runtime` (any version). The legacy emitter emits it as a static file. Our emitter matches this behavior exactly.
+
+**Rejected:** Importing from a newer version of `@typespec/ts-http-runtime` (function doesn't exist there), using the `uri-template` npm library (wouldn't match legacy output), inlining the logic per operation (overly complex).
+
+**Gotcha:** Static helper refkeys require the declaration component in the render tree. Tests that use `SdkTestFile` without including `UrlTemplateHelpersFile` will get `<Unresolved Symbol>` for expandUrlTemplate. Use `UrlTemplateTestWrapper` (defined in send-operation.test.tsx and public-operation.test.tsx) or include the helper file in your test wrapper.

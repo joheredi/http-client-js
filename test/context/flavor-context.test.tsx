@@ -95,8 +95,8 @@ describe("RuntimeLib", () => {
   /**
    * Tests that expandUrlTemplate uses the same refkey in both flavors.
    *
-   * expandUrlTemplate has no Azure equivalent, so it always comes from
-   * @typespec/ts-http-runtime regardless of flavor.
+   * expandUrlTemplate is a static helper emitted into the generated project,
+   * so it uses the same urlTemplateHelperRefkey in both flavors.
    */
   it("should use same refkey for expandUrlTemplate in both flavors", () => {
     const coreLib = createCoreRuntimeLib();

@@ -1757,3 +1757,24 @@ The name policy transforms ParameterDescriptor names in function signatures, but
 ### Notes for next person
 - The `argVarNames` Map in `buildEndpointFromType()` distinguishes local variables (optional/default args use raw name) from function parameters (required args use escaped name). This is critical — don't simplify to always use `getEscapedParameterName()` or the default-value case breaks.
 - 16 pre-existing test failures exist (model-files, operation-files, etc.) — they're unrelated to this fix (about unexpected models/index.ts barrel file).
+
+## SMOKE-4: Fix expandUrlTemplate missing from @typespec/ts-http-runtime — DONE (2026-02-28)
+
+### What was done
+- `expandUrlTemplate` was incorrectly declared as an export of `@typespec/ts-http-runtime` in `external-packages.ts`, but the function does NOT exist in that package (version 0.2.1 or any version). The legacy emitter at `submodules/autorest.typescript/packages/typespec-ts/static/static-helpers/urlTemplate.ts` has it as a static helper.
+- Created `src/components/static-helpers/url-template-helpers.tsx` — a new static helper component that emits the full RFC 6570 URI Template expansion implementation (copied from the legacy emitter).
+- Added `urlTemplateHelperRefkey()` to `src/utils/refkeys.ts` for cross-file reference resolution.
+- Updated `src/components/static-helpers/index.tsx` to include `UrlTemplateHelpersFile` (always emitted, like serialization/multipart/xml/binary helpers).
+- Updated `src/context/flavor-context.tsx` to use `urlTemplateHelperRefkey("expandUrlTemplate")` instead of `httpRuntimeLib.expandUrlTemplate` in both core and Azure RuntimeLib mappings.
+- Removed `expandUrlTemplate` from `httpRuntimeLib` descriptor in `external-packages.ts`.
+- Removed `httpRuntimeLib` from `azureExternals` in `emitter.tsx` since no Azure RuntimeLib symbol references it anymore.
+- Updated 38 test/scenario files to reflect the new import path (`../static-helpers/urlTemplate.js` instead of `@typespec/ts-http-runtime`).
+- Created `UrlTemplateTestWrapper` in send-operation and public-operation tests to provide the `UrlTemplateHelpersFile` component for refkey resolution.
+- Updated static-helpers Azure test to include `urlTemplate.ts` in expected file list.
+
+### Key design decision
+Chose to emit `expandUrlTemplate` as a static helper (matching legacy emitter) rather than trying to find it in a runtime package. The function is always emitted in `static-helpers/urlTemplate.ts` and referenced via Alloy refkeys.
+
+### Important for next person
+- Static helper refkeys (like `urlTemplateHelperRefkey`) require the corresponding helper file component to be in the test render tree. Component-level tests using `SdkTestFile` that render operations with URL templates need a `UrlTemplateTestWrapper` that includes `<UrlTemplateHelpersFile />`.
+- The `toRenderTo` matcher with a string only works for single-file output. Multi-file output (when helpers are included) needs the record format `toRenderTo({ "test.ts": d\`...\`, "static-helpers/urlTemplate.ts": expect.any(String) })`.

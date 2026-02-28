@@ -13,6 +13,7 @@ import {
   azureCoreUtilLib,
   azureAbortControllerLib,
 } from "../utils/external-packages.js";
+import { urlTemplateHelperRefkey } from "../utils/refkeys.js";
 
 /**
  * Identifies which SDK flavor the emitter is generating.
@@ -131,7 +132,7 @@ export function createCoreRuntimeLib(): RuntimeLib {
     KeyCredential: httpRuntimeLib.KeyCredential,
     isKeyCredential: httpRuntimeLib.isKeyCredential,
     TokenCredential: httpRuntimeLib.TokenCredential,
-    expandUrlTemplate: httpRuntimeLib.expandUrlTemplate,
+    expandUrlTemplate: urlTemplateHelperRefkey("expandUrlTemplate"),
   };
 }
 
@@ -144,7 +145,7 @@ export function createCoreRuntimeLib(): RuntimeLib {
  * - Auth types → `@azure/core-auth`
  * - Utility functions → `@azure/core-util`
  * - Abort controller → `@azure/abort-controller`
- * - URI template expansion → `@typespec/ts-http-runtime` (no Azure equivalent)
+ * - URI template expansion → static helper (emitted into the generated project)
  */
 export function createAzureRuntimeLib(): RuntimeLib {
   return {
@@ -165,7 +166,7 @@ export function createAzureRuntimeLib(): RuntimeLib {
     KeyCredential: azureCoreAuthLib.KeyCredential,
     isKeyCredential: azureCoreClientLib.isKeyCredential,
     TokenCredential: azureCoreAuthLib.TokenCredential,
-    expandUrlTemplate: httpRuntimeLib.expandUrlTemplate,
+    expandUrlTemplate: urlTemplateHelperRefkey("expandUrlTemplate"),
   };
 }
 

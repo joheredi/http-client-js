@@ -1742,7 +1742,7 @@
       "title": "Fix expandUrlTemplate missing from @typespec/ts-http-runtime",
       "category": "smoke-test/Operations",
       "priority": "P0",
-      "status": "pending",
+      "status": "done",
       "description": "In src/utils/external-packages.ts line 56, the httpRuntimeLib external package descriptor declares 'expandUrlTemplate' as a named export of @typespec/ts-http-runtime. However, this function does NOT exist in @typespec/ts-http-runtime@0.2.1. The generated operations file imports it, causing TS2305: Module has no exported member 'expandUrlTemplate'.\n\nThe emitter uses expandUrlTemplate in src/components/send-operation.tsx to build URL template expansion (e.g., replacing {id} in /widgets/{id} with the actual parameter value). The generated code is:\n```\nconst path = expandUrlTemplate(\"/widgets/{id}\", { \"id\": id }, { allowReserved: options?.requestOptions?.skipUrlEncoding });\n```\n\nPossible fixes:\n1. If expandUrlTemplate will be added to a newer version of @typespec/ts-http-runtime, update the package version dependency in the smoke test scaffold (check test/smoke/ for the package.json template or tspconfig.yaml).\n2. If the function exists under a different name or in a different package, update the external-packages.ts descriptor.\n3. If the function needs to be emitted as a static helper (like serializationHelpers.ts), add it to the static helpers.\n4. Check submodules/typespec/ to see if a newer version of the runtime exports this function.\n\nVerification: Run `pnpm build && pnpm test:smoke`. Confirm that src/api/widgets/operations.ts in temp/smoke/http-client-js/ compiles without the expandUrlTemplate import error. Also run `pnpm test`.",
       "source": "smoke-test",
       "kind": "bug",

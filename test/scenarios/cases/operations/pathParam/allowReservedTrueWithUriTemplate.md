@@ -20,11 +20,11 @@ import type { TemplateOptionalParams } from "./options.js";
 import {
   type Client,
   createRestError,
-  expandUrlTemplate,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
+import { expandUrlTemplate } from "../static-helpers/urlTemplate.js";
 
 export function _templateSend(
   context: Client,

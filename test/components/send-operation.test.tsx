@@ -47,6 +47,7 @@ import { OperationOptionsDeclaration } from "../../src/components/operation-opti
 import { ModelInterface } from "../../src/components/model-interface.js";
 import { JsonSerializer } from "../../src/components/serialization/json-serializer.js";
 import { SerializationHelpersFile } from "../../src/components/static-helpers/serialization-helpers.js";
+import { UrlTemplateHelpersFile } from "../../src/components/static-helpers/url-template-helpers.js";
 import { sendOperationRefkey } from "../../src/utils/refkeys.js";
 import { httpRuntimeLib } from "../../src/utils/external-packages.js";
 import { SdkContextProvider } from "../../src/context/sdk-context.js";
@@ -61,10 +62,11 @@ import { SdkTestFile } from "../utils.jsx";
 import { renderToString } from "@alloy-js/core/testing";
 
 /**
- * Multi-file test wrapper that renders SerializationHelpersFile and a test
- * SourceFile as siblings under the same Output. This is needed when testing
- * components that reference serialization helper refkeys, since Alloy requires
- * the helper declarations to exist for import resolution.
+ * Multi-file test wrapper that renders SerializationHelpersFile,
+ * UrlTemplateHelpersFile, and a test SourceFile as siblings under
+ * the same Output. This is needed when testing components that
+ * reference static helper refkeys, since Alloy requires the helper
+ * declarations to exist for import resolution.
  */
 function MultiFileTestWrapper(props: {
   sdkContext: SdkContext<Record<string, any>, SdkHttpOperation>;
@@ -80,6 +82,34 @@ function MultiFileTestWrapper(props: {
         <EmitterOptionsProvider options={{}}>
           <SdkContextProvider sdkContext={props.sdkContext}>
             <SerializationHelpersFile />
+            <UrlTemplateHelpersFile />
+            <SourceFile path="test.ts">{props.children}</SourceFile>
+          </SdkContextProvider>
+        </EmitterOptionsProvider>
+      </FlavorProvider>
+    </Output>
+  );
+}
+
+/**
+ * Test wrapper for operations that use URL template expansion.
+ * Includes UrlTemplateHelpersFile so that the expandUrlTemplate refkey
+ * resolves. Uses toRenderTo with record format since there are 2 files.
+ */
+function UrlTemplateTestWrapper(props: {
+  sdkContext: SdkContext<Record<string, any>, SdkHttpOperation>;
+  children: Children;
+}) {
+  return (
+    <Output
+      program={props.sdkContext.emitContext.program}
+      namePolicy={createTSNamePolicy()}
+      externals={[httpRuntimeLib]}
+    >
+      <FlavorProvider flavor="core">
+        <EmitterOptionsProvider options={{}}>
+          <SdkContextProvider sdkContext={props.sdkContext}>
+            <UrlTemplateHelpersFile />
             <SourceFile path="test.ts">{props.children}</SourceFile>
           </SdkContextProvider>
         </EmitterOptionsProvider>
@@ -174,30 +204,34 @@ describe("SendOperation", () => {
     const method = getFirstMethod(sdkContext);
 
     const template = (
-      <SdkTestFile sdkContext={sdkContext} externals={[httpRuntimeLib]}>
+      <UrlTemplateTestWrapper sdkContext={sdkContext}>
         <OperationOptionsDeclaration method={method} />
         {"\n\n"}
         <SendOperation method={method} />
-      </SdkTestFile>
+      </UrlTemplateTestWrapper>
     );
 
-    expect(template).toRenderTo(d`
-      import { type Client, expandUrlTemplate, type OperationOptions, operationOptionsToRequestParameters, type StreamableMethod } from "@typespec/ts-http-runtime";
+    expect(template).toRenderTo({
+      "test.ts": d`
+        import { type Client, type OperationOptions, operationOptionsToRequestParameters, type StreamableMethod } from "@typespec/ts-http-runtime";
+        import { expandUrlTemplate } from "./static-helpers/urlTemplate.js";
 
-      /**
-       * Optional parameters for the getItem operation.
-       */
-      export interface GetItemOptionalParams extends OperationOptions {}
+        /**
+         * Optional parameters for the getItem operation.
+         */
+        export interface GetItemOptionalParams extends OperationOptions {}
 
-      export function _getItemSend(
-        context: Client,
-        id: string,
-        options: GetItemOptionalParams = { requestOptions: {} },
-      ): StreamableMethod {
-        const path = expandUrlTemplate("/items/{id}", { "id": id }, { allowReserved: options?.requestOptions?.skipUrlEncoding });
-        return context.path(path).get({ ...operationOptionsToRequestParameters(options), headers: { accept: "text/plain", ...options.requestOptions?.headers } });
-      }
-    `);
+        export function _getItemSend(
+          context: Client,
+          id: string,
+          options: GetItemOptionalParams = { requestOptions: {} },
+        ): StreamableMethod {
+          const path = expandUrlTemplate("/items/{id}", { "id": id }, { allowReserved: options?.requestOptions?.skipUrlEncoding });
+          return context.path(path).get({ ...operationOptionsToRequestParameters(options), headers: { accept: "text/plain", ...options.requestOptions?.headers } });
+        }
+      `,
+      "static-helpers/urlTemplate.ts": expect.any(String),
+    });
   });
 
   /**
@@ -217,32 +251,36 @@ describe("SendOperation", () => {
     const method = getFirstMethod(sdkContext);
 
     const template = (
-      <SdkTestFile sdkContext={sdkContext} externals={[httpRuntimeLib]}>
+      <UrlTemplateTestWrapper sdkContext={sdkContext}>
         <OperationOptionsDeclaration method={method} />
         {"\n\n"}
         <SendOperation method={method} />
-      </SdkTestFile>
+      </UrlTemplateTestWrapper>
     );
 
-    expect(template).toRenderTo(d`
-      import { type Client, expandUrlTemplate, type OperationOptions, operationOptionsToRequestParameters, type StreamableMethod } from "@typespec/ts-http-runtime";
+    expect(template).toRenderTo({
+      "test.ts": d`
+        import { type Client, type OperationOptions, operationOptionsToRequestParameters, type StreamableMethod } from "@typespec/ts-http-runtime";
+        import { expandUrlTemplate } from "./static-helpers/urlTemplate.js";
 
-      /**
-       * Optional parameters for the listItems operation.
-       */
-      export interface ListItemsOptionalParams extends OperationOptions {
-        skip?: number;
-        top?: number;
-      }
+        /**
+         * Optional parameters for the listItems operation.
+         */
+        export interface ListItemsOptionalParams extends OperationOptions {
+          skip?: number;
+          top?: number;
+        }
 
-      export function _listItemsSend(
-        context: Client,
-        options: ListItemsOptionalParams = { requestOptions: {} },
-      ): StreamableMethod {
-        const path = expandUrlTemplate("/{?skip,top}", { "skip": options?.skip, "top": options?.top }, { allowReserved: options?.requestOptions?.skipUrlEncoding });
-        return context.path(path).get({ ...operationOptionsToRequestParameters(options), headers: { accept: "application/json", ...options.requestOptions?.headers } });
-      }
-    `);
+        export function _listItemsSend(
+          context: Client,
+          options: ListItemsOptionalParams = { requestOptions: {} },
+        ): StreamableMethod {
+          const path = expandUrlTemplate("/{?skip,top}", { "skip": options?.skip, "top": options?.top }, { allowReserved: options?.requestOptions?.skipUrlEncoding });
+          return context.path(path).get({ ...operationOptionsToRequestParameters(options), headers: { accept: "application/json", ...options.requestOptions?.headers } });
+        }
+      `,
+      "static-helpers/urlTemplate.ts": expect.any(String),
+    });
   });
 
   /**
@@ -496,32 +534,36 @@ describe("SendOperation", () => {
     const method = getFirstMethod(sdkContext);
 
     const template = (
-      <SdkTestFile sdkContext={sdkContext} externals={[httpRuntimeLib]}>
+      <UrlTemplateTestWrapper sdkContext={sdkContext}>
         <OperationOptionsDeclaration method={method} />
         {"\n\n"}
         <SendOperation method={method} />
-      </SdkTestFile>
+      </UrlTemplateTestWrapper>
     );
 
-    expect(template).toRenderTo(d`
-      import { type Client, expandUrlTemplate, type OperationOptions, operationOptionsToRequestParameters, type StreamableMethod } from "@typespec/ts-http-runtime";
+    expect(template).toRenderTo({
+      "test.ts": d`
+        import { type Client, type OperationOptions, operationOptionsToRequestParameters, type StreamableMethod } from "@typespec/ts-http-runtime";
+        import { expandUrlTemplate } from "./static-helpers/urlTemplate.js";
 
-      /**
-       * Optional parameters for the getItem operation.
-       */
-      export interface GetItemOptionalParams extends OperationOptions {
-        expand?: string;
-      }
+        /**
+         * Optional parameters for the getItem operation.
+         */
+        export interface GetItemOptionalParams extends OperationOptions {
+          expand?: string;
+        }
 
-      export function _getItemSend(
-        context: Client,
-        id: string,
-        options: GetItemOptionalParams = { requestOptions: {} },
-      ): StreamableMethod {
-        const path = expandUrlTemplate("/items/{id}{?expand}", { "id": id, "expand": options?.expand }, { allowReserved: options?.requestOptions?.skipUrlEncoding });
-        return context.path(path).get({ ...operationOptionsToRequestParameters(options), headers: { accept: "text/plain", ...options.requestOptions?.headers } });
-      }
-    `);
+        export function _getItemSend(
+          context: Client,
+          id: string,
+          options: GetItemOptionalParams = { requestOptions: {} },
+        ): StreamableMethod {
+          const path = expandUrlTemplate("/items/{id}{?expand}", { "id": id, "expand": options?.expand }, { allowReserved: options?.requestOptions?.skipUrlEncoding });
+          return context.path(path).get({ ...operationOptionsToRequestParameters(options), headers: { accept: "text/plain", ...options.requestOptions?.headers } });
+        }
+      `,
+      "static-helpers/urlTemplate.ts": expect.any(String),
+    });
   });
 
   /**
@@ -549,7 +591,7 @@ describe("SendOperation", () => {
     )!;
 
     const template = (
-      <SdkTestFile sdkContext={sdkContext} externals={[httpRuntimeLib]}>
+      <UrlTemplateTestWrapper sdkContext={sdkContext}>
         <ModelInterface model={patchModel} />
         {"\n\n"}
         <JsonSerializer model={patchModel} />
@@ -557,41 +599,45 @@ describe("SendOperation", () => {
         <OperationOptionsDeclaration method={method} />
         {"\n\n"}
         <SendOperation method={method} />
-      </SdkTestFile>
+      </UrlTemplateTestWrapper>
     );
 
-    expect(template).toRenderTo(d`
-      import { type Client, expandUrlTemplate, type OperationOptions, operationOptionsToRequestParameters, type StreamableMethod } from "@typespec/ts-http-runtime";
+    expect(template).toRenderTo({
+      "test.ts": d`
+        import { type Client, type OperationOptions, operationOptionsToRequestParameters, type StreamableMethod } from "@typespec/ts-http-runtime";
+        import { expandUrlTemplate } from "./static-helpers/urlTemplate.js";
 
-      /**
-       * model interface PatchData
-       */
-      export interface PatchData {
-        name?: string;
-      }
+        /**
+         * model interface PatchData
+         */
+        export interface PatchData {
+          name?: string;
+        }
 
-      export function patchDataSerializer(item: PatchData): any {
-        return {
-          name: item["name"],
-        };
-      }
+        export function patchDataSerializer(item: PatchData): any {
+          return {
+            name: item["name"],
+          };
+        }
 
-      /**
-       * Optional parameters for the updateItem operation.
-       */
-      export interface UpdateItemOptionalParams extends OperationOptions {
-        body?: PatchData;
-      }
+        /**
+         * Optional parameters for the updateItem operation.
+         */
+        export interface UpdateItemOptionalParams extends OperationOptions {
+          body?: PatchData;
+        }
 
-      export function _updateItemSend(
-        context: Client,
-        id: string,
-        options: UpdateItemOptionalParams = { requestOptions: {} },
-      ): StreamableMethod {
-        const path = expandUrlTemplate("/items/{id}", { "id": id }, { allowReserved: options?.requestOptions?.skipUrlEncoding });
-        return context.path(path).patch({ ...operationOptionsToRequestParameters(options), contentType: "application/json", headers: { accept: "text/plain", ...options.requestOptions?.headers }, body: !options?.body ? options?.body : patchDataSerializer(options?.body) });
-      }
-    `);
+        export function _updateItemSend(
+          context: Client,
+          id: string,
+          options: UpdateItemOptionalParams = { requestOptions: {} },
+        ): StreamableMethod {
+          const path = expandUrlTemplate("/items/{id}", { "id": id }, { allowReserved: options?.requestOptions?.skipUrlEncoding });
+          return context.path(path).patch({ ...operationOptionsToRequestParameters(options), contentType: "application/json", headers: { accept: "text/plain", ...options.requestOptions?.headers }, body: !options?.body ? options?.body : patchDataSerializer(options?.body) });
+        }
+      `,
+      "static-helpers/urlTemplate.ts": expect.any(String),
+    });
   });
 
   /**

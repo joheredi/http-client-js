@@ -31,11 +31,11 @@ import type { GetWidgetOptionalParams } from "./options.js";
 import {
   type Client,
   createRestError,
-  expandUrlTemplate,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
+import { expandUrlTemplate } from "../static-helpers/urlTemplate.js";
 
 export function _getWidgetSend(
   context: Client,
@@ -116,11 +116,11 @@ import type { GetDocumentOptionalParams } from "./options.js";
 import {
   type Client,
   createRestError,
-  expandUrlTemplate,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
+import { expandUrlTemplate } from "../static-helpers/urlTemplate.js";
 
 export function _getDocumentSend(
   context: Client,
@@ -194,11 +194,11 @@ import type { GetItemOptionalParams } from "./options.js";
 import {
   type Client,
   createRestError,
-  expandUrlTemplate,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
+import { expandUrlTemplate } from "../static-helpers/urlTemplate.js";
 
 export function _getItemSend(
   context: Client,

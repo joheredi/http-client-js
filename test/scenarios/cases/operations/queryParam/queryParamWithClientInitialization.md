@@ -167,7 +167,7 @@ import {
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@azure-rest/core-client";
-import { expandUrlTemplate } from "@typespec/ts-http-runtime";
+import { expandUrlTemplate } from "../../static-helpers/urlTemplate.js";
 
 export function _getSend(
   context: Client,
@@ -405,7 +405,7 @@ import {
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@azure-rest/core-client";
-import { expandUrlTemplate } from "@typespec/ts-http-runtime";
+import { expandUrlTemplate } from "../../static-helpers/urlTemplate.js";
 
 export function _getSend(
   context: Client,

@@ -175,6 +175,8 @@ describe("StaticHelpers", () => {
       "static-helpers/xmlHelpers.ts": expect.stringContaining("serializeToXml"),
       "static-helpers/getBinaryResponse.ts":
         expect.stringContaining("getBinaryResponse"),
+      "static-helpers/urlTemplate.ts":
+        expect.stringContaining("expandUrlTemplate"),
     });
   });
 

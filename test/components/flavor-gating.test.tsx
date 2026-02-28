@@ -175,15 +175,12 @@ describe("Azure Extension", () => {
       // Azure SDK should import from @azure-rest/core-client
       expect(result).toContain("@azure-rest/core-client");
 
-      // Should NOT import Client/getClient from @typespec/ts-http-runtime
-      // (expandUrlTemplate is OK to come from there)
+      // Should NOT import any types from @typespec/ts-http-runtime
+      // (expandUrlTemplate is now a static helper, not from the runtime)
       const lines = result.split("\n");
-      const httpRuntimeImports = lines.filter(
-        (l) =>
-          l.includes("@typespec/ts-http-runtime") &&
-          !l.includes("expandUrlTemplate"),
+      const httpRuntimeImports = lines.filter((l) =>
+        l.includes("@typespec/ts-http-runtime"),
       );
-      // All runtime imports except expandUrlTemplate should be from Azure packages
       expect(httpRuntimeImports.length).toBe(0);
     });
 

@@ -504,11 +504,11 @@ import type { TestOptionalParams } from "./options.js";
 import {
   type Client,
   createRestError,
-  expandUrlTemplate,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
+import { expandUrlTemplate } from "../static-helpers/urlTemplate.js";
 
 export function _testSend(
   context: Client,
@@ -646,11 +646,11 @@ import type { TestOptionalParams } from "./options.js";
 import {
   type Client,
   createRestError,
-  expandUrlTemplate,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
+import { expandUrlTemplate } from "../static-helpers/urlTemplate.js";
 
 export function _testSend(
   context: Client,
@@ -782,11 +782,11 @@ import type { Test1OptionalParams, TestOptionalParams } from "./options.js";
 import {
   type Client,
   createRestError,
-  expandUrlTemplate,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
+import { expandUrlTemplate } from "../static-helpers/urlTemplate.js";
 
 export function _testSend(
   context: Client,
@@ -1042,7 +1042,7 @@ import {
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@azure-rest/core-client";
-import { expandUrlTemplate } from "@typespec/ts-http-runtime";
+import { expandUrlTemplate } from "../../static-helpers/urlTemplate.js";
 
 export function _listSend(
   context: Client,

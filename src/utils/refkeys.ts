@@ -387,6 +387,20 @@ export function binaryResponseHelperRefkey(name: string): Refkey {
 }
 
 /**
+ * Creates a refkey for a URL template helper function.
+ *
+ * URL template helpers implement RFC 6570 URI Template expansion,
+ * which is used by send functions to build request URLs from
+ * template strings and parameter values.
+ *
+ * @param name - The URL template helper function name (e.g., `"expandUrlTemplate"`).
+ * @returns A stable refkey for the named URL template helper declaration.
+ */
+export function urlTemplateHelperRefkey(name: string): Refkey {
+  return refkey("urlTemplateHelper", name);
+}
+
+/**
  * Creates a refkey for an operation group's `XxxOperations` interface.
  *
  * Each operation group (represented as a child client in TCGC) gets an

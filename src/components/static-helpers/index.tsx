@@ -6,6 +6,7 @@ import { PollingHelpersFile } from "./polling-helpers.js";
 import { MultipartHelpersFile } from "./multipart-helpers.js";
 import { XmlHelpersFile } from "./xml-helpers.js";
 import { BinaryResponseHelpersFile } from "./binary-response-helpers.js";
+import { UrlTemplateHelpersFile } from "./url-template-helpers.js";
 
 /**
  * Orchestrator component that renders all static helper source files.
@@ -49,6 +50,7 @@ export function StaticHelpers() {
       <MultipartHelpersFile />
       <XmlHelpersFile />
       <BinaryResponseHelpersFile />
+      <UrlTemplateHelpersFile />
     </>
   );
 }
@@ -59,3 +61,4 @@ export { PollingHelpersFile } from "./polling-helpers.js";
 export { MultipartHelpersFile } from "./multipart-helpers.js";
 export { XmlHelpersFile } from "./xml-helpers.js";
 export { BinaryResponseHelpersFile } from "./binary-response-helpers.js";
+export { UrlTemplateHelpersFile } from "./url-template-helpers.js";

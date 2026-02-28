@@ -52,9 +52,37 @@ import {
 import { SdkTestFile } from "../utils.jsx";
 import { renderToString } from "@alloy-js/core/testing";
 import { PollingHelpersFile } from "../../src/components/static-helpers/polling-helpers.js";
+import { UrlTemplateHelpersFile } from "../../src/components/static-helpers/url-template-helpers.js";
 import { FlavorProvider } from "../../src/context/flavor-context.js";
 import { EmitterOptionsProvider } from "../../src/context/emitter-options-context.js";
 import { SdkContextProvider } from "../../src/context/sdk-context.js";
+
+/**
+ * Test wrapper for operations that use URL template expansion.
+ * Includes UrlTemplateHelpersFile so that the expandUrlTemplate refkey
+ * resolves. Uses toRenderTo with record format since there are 2 files.
+ */
+function UrlTemplateTestWrapper(props: {
+  sdkContext: { emitContext: { program: any }; [key: string]: any };
+  children: any;
+}) {
+  return (
+    <Output
+      program={props.sdkContext.emitContext.program}
+      namePolicy={createTSNamePolicy()}
+      externals={[httpRuntimeLib]}
+    >
+      <FlavorProvider flavor="core">
+        <EmitterOptionsProvider options={{}}>
+          <SdkContextProvider sdkContext={props.sdkContext as any}>
+            <UrlTemplateHelpersFile />
+            <SourceFile path="test.ts">{props.children}</SourceFile>
+          </SdkContextProvider>
+        </EmitterOptionsProvider>
+      </FlavorProvider>
+    </Output>
+  );
+}
 
 /**
  * Helper to extract the first method from the first client in an SDK context.
@@ -254,7 +282,7 @@ describe("PublicOperation", () => {
     const method = getFirstMethod(sdkContext);
 
     const template = (
-      <SdkTestFile sdkContext={sdkContext} externals={[httpRuntimeLib]}>
+      <UrlTemplateTestWrapper sdkContext={sdkContext}>
         <OperationOptionsDeclaration method={method} />
         {"\n\n"}
         <SendOperation method={method} />
@@ -262,46 +290,50 @@ describe("PublicOperation", () => {
         <DeserializeOperation method={method} />
         {"\n\n"}
         <PublicOperation method={method} />
-      </SdkTestFile>
+      </UrlTemplateTestWrapper>
     );
 
-    expect(template).toRenderTo(d`
-      import { type Client, createRestError, expandUrlTemplate, type OperationOptions, operationOptionsToRequestParameters, type PathUncheckedResponse, type StreamableMethod } from "@typespec/ts-http-runtime";
+    expect(template).toRenderTo({
+      "test.ts": d`
+        import { type Client, createRestError, type OperationOptions, operationOptionsToRequestParameters, type PathUncheckedResponse, type StreamableMethod } from "@typespec/ts-http-runtime";
+        import { expandUrlTemplate } from "./static-helpers/urlTemplate.js";
 
-      /**
-       * Optional parameters for the deleteItem operation.
-       */
-      export interface DeleteItemOptionalParams extends OperationOptions {}
+        /**
+         * Optional parameters for the deleteItem operation.
+         */
+        export interface DeleteItemOptionalParams extends OperationOptions {}
 
-      export function _deleteItemSend(
-        context: Client,
-        id: string,
-        options: DeleteItemOptionalParams = { requestOptions: {} },
-      ): StreamableMethod {
-        const path = expandUrlTemplate("/items/{id}", { "id": id }, { allowReserved: options?.requestOptions?.skipUrlEncoding });
-        return context.path(path).delete({ ...operationOptionsToRequestParameters(options) });
-      }
-
-      export async function _deleteItemDeserialize(
-        result: PathUncheckedResponse,
-      ): Promise<void> {
-        const expectedStatuses = ["204"];
-        if (!expectedStatuses.includes(result.status)) {
-          throw createRestError(result);
+        export function _deleteItemSend(
+          context: Client,
+          id: string,
+          options: DeleteItemOptionalParams = { requestOptions: {} },
+        ): StreamableMethod {
+          const path = expandUrlTemplate("/items/{id}", { "id": id }, { allowReserved: options?.requestOptions?.skipUrlEncoding });
+          return context.path(path).delete({ ...operationOptionsToRequestParameters(options) });
         }
 
-        return;
-      }
+        export async function _deleteItemDeserialize(
+          result: PathUncheckedResponse,
+        ): Promise<void> {
+          const expectedStatuses = ["204"];
+          if (!expectedStatuses.includes(result.status)) {
+            throw createRestError(result);
+          }
 
-      export async function deleteItem(
-        context: Client,
-        id: string,
-        options: DeleteItemOptionalParams = { requestOptions: {} },
-      ): Promise<void> {
-        const result = await _deleteItemSend(context, id, options);
-        return _deleteItemDeserialize(result);
-      }
-    `);
+          return;
+        }
+
+        export async function deleteItem(
+          context: Client,
+          id: string,
+          options: DeleteItemOptionalParams = { requestOptions: {} },
+        ): Promise<void> {
+          const result = await _deleteItemSend(context, id, options);
+          return _deleteItemDeserialize(result);
+        }
+      `,
+      "static-helpers/urlTemplate.ts": expect.any(String),
+    });
   });
 
   /**
@@ -465,7 +497,7 @@ describe("PublicOperation", () => {
     const method = getFirstMethod(sdkContext);
 
     const template = (
-      <SdkTestFile sdkContext={sdkContext} externals={[httpRuntimeLib]}>
+      <UrlTemplateTestWrapper sdkContext={sdkContext}>
         <OperationOptionsDeclaration method={method} />
         {"\n\n"}
         <SendOperation method={method} />
@@ -473,48 +505,52 @@ describe("PublicOperation", () => {
         <DeserializeOperation method={method} />
         {"\n\n"}
         <PublicOperation method={method} />
-      </SdkTestFile>
+      </UrlTemplateTestWrapper>
     );
 
-    expect(template).toRenderTo(d`
-      import { type Client, createRestError, expandUrlTemplate, type OperationOptions, operationOptionsToRequestParameters, type PathUncheckedResponse, type StreamableMethod } from "@typespec/ts-http-runtime";
+    expect(template).toRenderTo({
+      "test.ts": d`
+        import { type Client, createRestError, type OperationOptions, operationOptionsToRequestParameters, type PathUncheckedResponse, type StreamableMethod } from "@typespec/ts-http-runtime";
+        import { expandUrlTemplate } from "./static-helpers/urlTemplate.js";
 
-      /**
-       * Optional parameters for the getPost operation.
-       */
-      export interface GetPostOptionalParams extends OperationOptions {}
+        /**
+         * Optional parameters for the getPost operation.
+         */
+        export interface GetPostOptionalParams extends OperationOptions {}
 
-      export function _getPostSend(
-        context: Client,
-        userId: string,
-        postId: string,
-        options: GetPostOptionalParams = { requestOptions: {} },
-      ): StreamableMethod {
-        const path = expandUrlTemplate("/users/{userId}/posts/{postId}", { "userId": userId, "postId": postId }, { allowReserved: options?.requestOptions?.skipUrlEncoding });
-        return context.path(path).get({ ...operationOptionsToRequestParameters(options), headers: { accept: "text/plain", ...options.requestOptions?.headers } });
-      }
-
-      export async function _getPostDeserialize(
-        result: PathUncheckedResponse,
-      ): Promise<string> {
-        const expectedStatuses = ["200"];
-        if (!expectedStatuses.includes(result.status)) {
-          throw createRestError(result);
+        export function _getPostSend(
+          context: Client,
+          userId: string,
+          postId: string,
+          options: GetPostOptionalParams = { requestOptions: {} },
+        ): StreamableMethod {
+          const path = expandUrlTemplate("/users/{userId}/posts/{postId}", { "userId": userId, "postId": postId }, { allowReserved: options?.requestOptions?.skipUrlEncoding });
+          return context.path(path).get({ ...operationOptionsToRequestParameters(options), headers: { accept: "text/plain", ...options.requestOptions?.headers } });
         }
 
-        return result.body;
-      }
+        export async function _getPostDeserialize(
+          result: PathUncheckedResponse,
+        ): Promise<string> {
+          const expectedStatuses = ["200"];
+          if (!expectedStatuses.includes(result.status)) {
+            throw createRestError(result);
+          }
 
-      export async function getPost(
-        context: Client,
-        userId: string,
-        postId: string,
-        options: GetPostOptionalParams = { requestOptions: {} },
-      ): Promise<string> {
-        const result = await _getPostSend(context, userId, postId, options);
-        return _getPostDeserialize(result);
-      }
-    `);
+          return result.body;
+        }
+
+        export async function getPost(
+          context: Client,
+          userId: string,
+          postId: string,
+          options: GetPostOptionalParams = { requestOptions: {} },
+        ): Promise<string> {
+          const result = await _getPostSend(context, userId, postId, options);
+          return _getPostDeserialize(result);
+        }
+      `,
+      "static-helpers/urlTemplate.ts": expect.any(String),
+    });
   });
 
   /**
@@ -545,7 +581,7 @@ describe("PublicOperation", () => {
     )!;
 
     const template = (
-      <SdkTestFile sdkContext={sdkContext} externals={[httpRuntimeLib]}>
+      <UrlTemplateTestWrapper sdkContext={sdkContext}>
         <ModelInterface model={itemModel} />
         {"\n\n"}
         <JsonSerializer model={itemModel} />
@@ -559,67 +595,71 @@ describe("PublicOperation", () => {
         <DeserializeOperation method={method} />
         {"\n\n"}
         <PublicOperation method={method} />
-      </SdkTestFile>
+      </UrlTemplateTestWrapper>
     );
 
-    expect(template).toRenderTo(d`
-      import { type Client, createRestError, expandUrlTemplate, type OperationOptions, operationOptionsToRequestParameters, type PathUncheckedResponse, type StreamableMethod } from "@typespec/ts-http-runtime";
+    expect(template).toRenderTo({
+      "test.ts": d`
+        import { type Client, createRestError, type OperationOptions, operationOptionsToRequestParameters, type PathUncheckedResponse, type StreamableMethod } from "@typespec/ts-http-runtime";
+        import { expandUrlTemplate } from "./static-helpers/urlTemplate.js";
 
-      /**
-       * model interface Item
-       */
-      export interface Item {
-        name: string;
-      }
-
-      export function itemSerializer(item: Item): any {
-        return {
-          name: item["name"],
-        };
-      }
-
-      export function itemDeserializer(item: any): Item {
-        return {
-          name: item["name"],
-        };
-      }
-
-      /**
-       * Optional parameters for the createUserItem operation.
-       */
-      export interface CreateUserItemOptionalParams extends OperationOptions {}
-
-      export function _createUserItemSend(
-        context: Client,
-        userId: string,
-        body: Item,
-        options: CreateUserItemOptionalParams = { requestOptions: {} },
-      ): StreamableMethod {
-        const path = expandUrlTemplate("/users/{userId}/items", { "userId": userId }, { allowReserved: options?.requestOptions?.skipUrlEncoding });
-        return context.path(path).post({ ...operationOptionsToRequestParameters(options), contentType: "application/json", headers: { accept: "application/json", ...options.requestOptions?.headers }, body: itemSerializer(body) });
-      }
-
-      export async function _createUserItemDeserialize(
-        result: PathUncheckedResponse,
-      ): Promise<Item> {
-        const expectedStatuses = ["200"];
-        if (!expectedStatuses.includes(result.status)) {
-          throw createRestError(result);
+        /**
+         * model interface Item
+         */
+        export interface Item {
+          name: string;
         }
 
-        return itemDeserializer(result.body);
-      }
+        export function itemSerializer(item: Item): any {
+          return {
+            name: item["name"],
+          };
+        }
 
-      export async function createUserItem(
-        context: Client,
-        userId: string,
-        body: Item,
-        options: CreateUserItemOptionalParams = { requestOptions: {} },
-      ): Promise<Item> {
-        const result = await _createUserItemSend(context, userId, body, options);
-        return _createUserItemDeserialize(result);
-      }
-    `);
+        export function itemDeserializer(item: any): Item {
+          return {
+            name: item["name"],
+          };
+        }
+
+        /**
+         * Optional parameters for the createUserItem operation.
+         */
+        export interface CreateUserItemOptionalParams extends OperationOptions {}
+
+        export function _createUserItemSend(
+          context: Client,
+          userId: string,
+          body: Item,
+          options: CreateUserItemOptionalParams = { requestOptions: {} },
+        ): StreamableMethod {
+          const path = expandUrlTemplate("/users/{userId}/items", { "userId": userId }, { allowReserved: options?.requestOptions?.skipUrlEncoding });
+          return context.path(path).post({ ...operationOptionsToRequestParameters(options), contentType: "application/json", headers: { accept: "application/json", ...options.requestOptions?.headers }, body: itemSerializer(body) });
+        }
+
+        export async function _createUserItemDeserialize(
+          result: PathUncheckedResponse,
+        ): Promise<Item> {
+          const expectedStatuses = ["200"];
+          if (!expectedStatuses.includes(result.status)) {
+            throw createRestError(result);
+          }
+
+          return itemDeserializer(result.body);
+        }
+
+        export async function createUserItem(
+          context: Client,
+          userId: string,
+          body: Item,
+          options: CreateUserItemOptionalParams = { requestOptions: {} },
+        ): Promise<Item> {
+          const result = await _createUserItemSend(context, userId, body, options);
+          return _createUserItemDeserialize(result);
+        }
+      `,
+      "static-helpers/urlTemplate.ts": expect.any(String),
+    });
   });
 
   /**
@@ -640,7 +680,7 @@ describe("PublicOperation", () => {
     const method = getFirstMethod(sdkContext);
 
     const template = (
-      <SdkTestFile sdkContext={sdkContext} externals={[httpRuntimeLib]}>
+      <UrlTemplateTestWrapper sdkContext={sdkContext}>
         <OperationOptionsDeclaration method={method} />
         {"\n\n"}
         <SendOperation method={method} />
@@ -648,47 +688,51 @@ describe("PublicOperation", () => {
         <DeserializeOperation method={method} />
         {"\n\n"}
         <PublicOperation method={method} />
-      </SdkTestFile>
+      </UrlTemplateTestWrapper>
     );
 
-    expect(template).toRenderTo(d`
-      import { type Client, createRestError, expandUrlTemplate, type OperationOptions, operationOptionsToRequestParameters, type PathUncheckedResponse, type StreamableMethod } from "@typespec/ts-http-runtime";
+    expect(template).toRenderTo({
+      "test.ts": d`
+        import { type Client, createRestError, type OperationOptions, operationOptionsToRequestParameters, type PathUncheckedResponse, type StreamableMethod } from "@typespec/ts-http-runtime";
+        import { expandUrlTemplate } from "./static-helpers/urlTemplate.js";
 
-      /**
-       * Optional parameters for the search operation.
-       */
-      export interface SearchOptionalParams extends OperationOptions {
-        query?: string;
-        limit?: number;
-      }
-
-      export function _searchSend(
-        context: Client,
-        options: SearchOptionalParams = { requestOptions: {} },
-      ): StreamableMethod {
-        const path = expandUrlTemplate("/{?query,limit}", { "query": options?.query, "limit": options?.limit }, { allowReserved: options?.requestOptions?.skipUrlEncoding });
-        return context.path(path).get({ ...operationOptionsToRequestParameters(options), headers: { accept: "application/json", ...options.requestOptions?.headers } });
-      }
-
-      export async function _searchDeserialize(
-        result: PathUncheckedResponse,
-      ): Promise<(string)[]> {
-        const expectedStatuses = ["200"];
-        if (!expectedStatuses.includes(result.status)) {
-          throw createRestError(result);
+        /**
+         * Optional parameters for the search operation.
+         */
+        export interface SearchOptionalParams extends OperationOptions {
+          query?: string;
+          limit?: number;
         }
 
-        return result.body;
-      }
+        export function _searchSend(
+          context: Client,
+          options: SearchOptionalParams = { requestOptions: {} },
+        ): StreamableMethod {
+          const path = expandUrlTemplate("/{?query,limit}", { "query": options?.query, "limit": options?.limit }, { allowReserved: options?.requestOptions?.skipUrlEncoding });
+          return context.path(path).get({ ...operationOptionsToRequestParameters(options), headers: { accept: "application/json", ...options.requestOptions?.headers } });
+        }
 
-      export async function search(
-        context: Client,
-        options: SearchOptionalParams = { requestOptions: {} },
-      ): Promise<(string)[]> {
-        const result = await _searchSend(context, options);
-        return _searchDeserialize(result);
-      }
-    `);
+        export async function _searchDeserialize(
+          result: PathUncheckedResponse,
+        ): Promise<(string)[]> {
+          const expectedStatuses = ["200"];
+          if (!expectedStatuses.includes(result.status)) {
+            throw createRestError(result);
+          }
+
+          return result.body;
+        }
+
+        export async function search(
+          context: Client,
+          options: SearchOptionalParams = { requestOptions: {} },
+        ): Promise<(string)[]> {
+          const result = await _searchSend(context, options);
+          return _searchDeserialize(result);
+        }
+      `,
+      "static-helpers/urlTemplate.ts": expect.any(String),
+    });
   });
 
   describe("User model with response headers", () => {
