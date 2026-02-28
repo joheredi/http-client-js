@@ -1778,3 +1778,21 @@ Chose to emit `expandUrlTemplate` as a static helper (matching legacy emitter) r
 ### Important for next person
 - Static helper refkeys (like `urlTemplateHelperRefkey`) require the corresponding helper file component to be in the test render tree. Component-level tests using `SdkTestFile` that render operations with URL templates need a `UrlTemplateTestWrapper` that includes `<UrlTemplateHelpersFile />`.
 - The `toRenderTo` matcher with a string only works for single-file output. Multi-file output (when helpers are included) needs the record format `toRenderTo({ "test.ts": d\`...\`, "static-helpers/urlTemplate.ts": expect.any(String) })`.
+
+## SMOKE-6: Fix classic operation group file import paths — DONE (2026-02-28)
+
+### What was done
+- Fixed `ClassicalOperationGroupFile` in `src/components/classical-operation-groups.tsx` to use nested `<SourceDirectory>` components for each prefix instead of putting slashes in the `<SourceFile>` path.
+- Before: `<SourceFile path="widgets/index.ts">` — Alloy computed imports from `classic/` (wrong)
+- After: `<SourceDirectory path="widgets"><SourceFile path="index.ts">` — Alloy computes imports from `classic/widgets/` (correct)
+- Used `group.prefixes.reduceRight()` to programmatically build nested SourceDirectory chain, supporting arbitrarily deep nesting (e.g., `widgets/parts` → two nested SourceDirectories).
+- Import paths in `src/classic/widgets/index.ts` now correctly use `../../` (to reach `src/`) instead of `../` (which only reached `src/classic/`).
+- All 12 classical operation group tests pass. Smoke test no longer has import path errors (only SMOKE-5 xmlHelpers T/t issue remains).
+
+### Key design decision
+Used `reduceRight` on the prefixes array to build nested SourceDirectories instead of restructuring to a tree-based rendering approach. This is the minimal fix that directly addresses the known Alloy gotcha (documented in knowledge.md) about slashes in SourceFile paths.
+
+### Important for next person
+- The Alloy gotcha about SourceFile paths with slashes is critical: NEVER use `<SourceFile path="subdir/file.ts">`. Always use nested `<SourceDirectory>` components. This is documented in knowledge.md.
+- SMOKE-7 (empty classic/index.ts barrel file) may still be affected by having separate `<SourceDirectory path="classic">` nodes for each ClassicalOperationGroupFiles render (one per client). This is a separate issue from import paths.
+- There are 16 pre-existing scenario test failures (models, enum unions, samples, operations, anonymous types) unrelated to this change.

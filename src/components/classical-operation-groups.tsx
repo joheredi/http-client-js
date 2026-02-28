@@ -109,19 +109,36 @@ interface ClassicalOperationGroupFileProps {
  * one level of the client hierarchy. The file path is derived from the
  * accumulated prefixes (e.g., `["widgets", "parts"]` → `widgets/parts/index.ts`).
  *
+ * Uses nested `<SourceDirectory>` components for each prefix instead of
+ * putting slashes in the SourceFile path. This is required because Alloy
+ * computes relative import paths from the nearest parent SourceDirectory,
+ * not from slashes in the SourceFile path. Using `<SourceFile path="widgets/index.ts">`
+ * would cause imports to be off by one directory level.
+ *
  * @param props - Component props containing the operation group info.
  * @returns An Alloy JSX tree for the operation group source file.
  */
 function ClassicalOperationGroupFile(props: ClassicalOperationGroupFileProps) {
   const { group } = props;
-  const filePath = `${group.prefixes.join("/")}/index.ts`;
 
-  return (
-    <SourceFile path={filePath}>
+  const fileContent: Children = (
+    <SourceFile path="index.ts">
       <OperationGroupInterface group={group} />
       {"\n\n"}
       <OperationGroupFactory group={group} />
     </SourceFile>
+  );
+
+  // Wrap in nested SourceDirectories from innermost to outermost.
+  // e.g., prefixes ["widgets", "parts"] produces:
+  //   <SourceDirectory path="widgets">
+  //     <SourceDirectory path="parts">
+  //       <SourceFile path="index.ts">...
+  return group.prefixes.reduceRight<Children>(
+    (content, prefix) => (
+      <SourceDirectory path={prefix}>{content}</SourceDirectory>
+    ),
+    fileContent,
   );
 }
 
