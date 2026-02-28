@@ -134,7 +134,7 @@ export function createBillingBenefits(
   endpointParam: string,
   options: BillingBenefitsClientOptionalParams = {},
 ): BillingBenefitsContext {
-  const endpointUrl = options.endpoint ?? endpoint;
+  const endpointUrl = options.endpoint ?? endpointParam;
   const prefixFromOptions = options?.userAgentOptions?.userAgentPrefix;
   const userAgentPrefix = prefixFromOptions
     ? `${prefixFromOptions} azsdk-js-api`
@@ -375,7 +375,7 @@ export function createBillingBenefits(
   $expand: string,
   options: BillingBenefitsClientOptionalParams = {},
 ): BillingBenefitsContext {
-  const endpointUrl = options.endpoint ?? endpoint;
+  const endpointUrl = options.endpoint ?? endpointParam;
   const prefixFromOptions = options?.userAgentOptions?.userAgentPrefix;
   const userAgentPrefix = prefixFromOptions
     ? `${prefixFromOptions} azsdk-js-api`

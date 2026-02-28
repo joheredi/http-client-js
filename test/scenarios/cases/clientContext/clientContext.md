@@ -82,7 +82,7 @@ export function createService(
 ): ServiceContext {
   const client = options.client ?? "default";
   const endpointUrl =
-    options.endpoint ?? `${endpoint}/client/structure/${client}`;
+    options.endpoint ?? `${endpointParam}/client/structure/${client}`;
   const prefixFromOptions = options?.userAgentOptions?.userAgentPrefix;
   const userAgentPrefix = prefixFromOptions
     ? `${prefixFromOptions} azsdk-js-api`
@@ -296,7 +296,7 @@ export function createTesting(
 ): TestingContext {
   const client = options.client ?? "default";
   const endpointUrl =
-    options.endpoint ?? `${endpoint}/client/structure/${client}`;
+    options.endpoint ?? `${endpointParam}/client/structure/${client}`;
   const prefixFromOptions = options?.userAgentOptions?.userAgentPrefix;
   const userAgentPrefix = prefixFromOptions
     ? `${prefixFromOptions} azsdk-js-api`

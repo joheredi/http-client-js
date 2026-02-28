@@ -81,7 +81,7 @@ export function createDataMapService(
   endpointParam: string,
   options: DataMapServiceClientOptionalParams = {},
 ): DataMapServiceContext {
-  const endpointUrl = options.endpoint ?? endpoint;
+  const endpointUrl = options.endpoint ?? endpointParam;
   const prefixFromOptions = options?.userAgentOptions?.userAgentPrefix;
   const userAgentPrefix = prefixFromOptions
     ? `${prefixFromOptions} azsdk-js-api`

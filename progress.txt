@@ -1722,3 +1722,38 @@ Fixed three major bugs in sample code generation that caused incorrect output ac
 - 16 pre-existing test failures in model-files, operation-files, operation-options-files, unresolved-symbols, and scenario tests — all unrelated to this change
 - The existing tests didn't catch this bug because they used `toContain("id: string")` on the full rendered output, which matched parameter text from SendOperation/PublicOperation components (in api/operations.ts) rather than the interface file
 - SMOKE-6 (import paths off by one level) depends on this fix and can now be addressed
+
+## 2026-02-28: SMOKE-3 — Fix hardcoded endpoint variable name ignoring name policy transformation
+
+### What was done
+- Fixed `buildEndpointFromType()` in `src/components/client-context.tsx` to use `getEscapedParameterName()` for required endpoint parameter references in code templates. The name policy transforms "endpoint" → "endpointParam", but the code body was hardcoding "endpoint".
+- Fixed `buildNonOptionsArguments()` in `src/components/classical-client.tsx` to use `getEscapedParameterName()` for endpoint and method parameter args passed from the constructor to the factory function.
+- Updated 7 scenario markdown files to expect `endpointParam` in generated output.
+- Added 2 regression tests using `createEmitterNamePolicy()` to validate the fix.
+
+### Key insight
+The name policy transforms ParameterDescriptor names in function signatures, but `code` template string interpolations bypass the name policy. When the code body references a function parameter, it must use the escaped name (via `getEscapedParameterName()`) to match the rendered signature. For optional/defaulted args, local variables are created with the raw name, so those are unaffected.
+
+### Patterns used
+- `getEscapedParameterName(arg.name)` from `src/utils/name-policy.ts` to mirror the emitter's custom name policy transformation
+- `argVarNames` Map to track which args have local variables (raw name) vs function parameters (escaped name)
+
+### Files modified
+- `src/components/client-context.tsx` — import + `buildEndpointFromType()` fix
+- `src/components/classical-client.tsx` — import + `buildNonOptionsArguments()` fix
+- `test/scenarios/cases/clientContext/clientContext.md` — updated expected output
+- `test/scenarios/cases/client/client.md` — updated expected output
+- `test/scenarios/cases/classicClient/classicClient.md` — updated expected output
+- `test/scenarios/cases/classicClient/reservedWordOperations.md` — updated expected output
+- `test/scenarios/cases/apiOperations/apiOperations.md` — updated expected output
+- `test/scenarios/cases/operations/coreFlavorGating.md` — updated expected output
+- `test/scenarios/cases/operations/headerParam/headerParamWithClientInitialization.md` — updated expected output
+- `test/scenarios/cases/operations/queryParam/queryParamWithClientInitialization.md` — updated expected output
+- `test/scenarios/cases/clientContext/optionalApiVersion.md` — updated expected output
+- `test/scenarios/cases/samples/parameters/clientConstructorArgs.md` — updated expected output
+- `test/components/client-context.test.tsx` — added regression test
+- `test/components/classical-client.test.tsx` — added regression test
+
+### Notes for next person
+- The `argVarNames` Map in `buildEndpointFromType()` distinguishes local variables (optional/default args use raw name) from function parameters (required args use escaped name). This is critical — don't simplify to always use `getEscapedParameterName()` or the default-value case breaks.
+- 16 pre-existing test failures exist (model-files, operation-files, etc.) — they're unrelated to this fix (about unexpected models/index.ts barrel file).

@@ -15,6 +15,7 @@ import type {
   SdkPathParameter,
 } from "@azure-tools/typespec-client-generator-core";
 import { useFlavorContext, useRuntimeLib } from "../context/flavor-context.js";
+import { getEscapedParameterName } from "../utils/name-policy.js";
 import {
   clientContextRefkey,
   clientOptionsRefkey,
@@ -705,6 +706,11 @@ function buildEndpointFromType(endpointType: {
   const { serverUrl, templateArguments } = endpointType;
   const parts: Children[] = [];
 
+  // Track the variable name used for each template argument in the code body.
+  // Optional/defaulted args get local variables (raw name, not policy-transformed).
+  // Required args reference the function parameter (name-policy-transformed).
+  const argVarNames = new Map<string, string>();
+
   // Extract optional/defaulted template args from options
   for (const arg of templateArguments) {
     if (arg.clientDefaultValue !== undefined) {
@@ -715,15 +721,22 @@ function buildEndpointFromType(endpointType: {
       parts.push(
         code`const ${arg.name} = options.${arg.name} ?? ${defaultVal};`,
       );
+      argVarNames.set(arg.name, arg.name);
     } else if (arg.optional) {
       parts.push(code`const ${arg.name} = options.${arg.name};`);
+      argVarNames.set(arg.name, arg.name);
+    } else {
+      // Required parameter — name is transformed by the name policy
+      argVarNames.set(arg.name, getEscapedParameterName(arg.name));
     }
   }
 
-  // Build the template URL by replacing {paramName} with ${paramName}
+  // Build the template URL by replacing {paramName} with ${varName}
+  // where varName is the local variable or escaped parameter name
   let templateUrl = serverUrl;
   for (const arg of templateArguments) {
-    templateUrl = templateUrl.replace(`{${arg.name}}`, `\${${arg.name}}`);
+    const varName = argVarNames.get(arg.name) ?? arg.name;
+    templateUrl = templateUrl.replace(`{${arg.name}}`, `\${${varName}}`);
   }
 
   // If the template is just `{endpoint}` with no other params,
@@ -735,12 +748,13 @@ function buildEndpointFromType(endpointType: {
 
   if (hasOnlyEndpoint) {
     const arg = templateArguments[0];
+    const varName = argVarNames.get(arg.name) ?? arg.name;
     if (arg.clientDefaultValue !== undefined) {
-      // Already extracted above, just reference the variable
-      parts.push(code`const endpointUrl = options.endpoint ?? endpoint;`);
+      // Already extracted above, just reference the local variable
+      parts.push(code`const endpointUrl = options.endpoint ?? ${varName};`);
     } else {
-      // Required endpoint parameter
-      parts.push(code`const endpointUrl = options.endpoint ?? endpoint;`);
+      // Required or optional endpoint — reference local var or escaped parameter
+      parts.push(code`const endpointUrl = options.endpoint ?? ${varName};`);
     }
   } else {
     parts.push(

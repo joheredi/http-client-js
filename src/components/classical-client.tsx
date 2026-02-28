@@ -14,6 +14,7 @@ import type {
   SdkServiceMethod,
 } from "@azure-tools/typespec-client-generator-core";
 import { useRuntimeLib } from "../context/flavor-context.js";
+import { getEscapedParameterName } from "../utils/name-policy.js";
 import {
   classicalClientRefkey,
   clientContextRefkey,
@@ -340,7 +341,7 @@ function buildNonOptionsArguments(
   );
   if (endpointParam) {
     for (const arg of getRequiredEndpointArgs(endpointParam)) {
-      args.push(arg.name);
+      args.push(getEscapedParameterName(arg.name));
     }
   }
 
@@ -352,7 +353,7 @@ function buildNonOptionsArguments(
   }
 
   for (const methodParam of getRequiredMethodParams(client)) {
-    args.push(methodParam.name);
+    args.push(getEscapedParameterName(methodParam.name));
   }
 
   return args;

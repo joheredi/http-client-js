@@ -89,7 +89,7 @@ export class MachineLearningServicesClient {
       ? `${prefixFromOptions} azsdk-js-client`
       : `azsdk-js-client`;
     this._client = createMachineLearningServices(
-      endpoint,
+      endpointParam,
       subscriptionId,
       resourceGroupName,
       workspaceName,

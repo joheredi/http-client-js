@@ -2054,3 +2054,12 @@ const hasCreate = prop.visibility.some((v: any) => {
 **Fix:** Use `<For each={parts} joiner=", ">{(part) => part}</For>` to compose Children arrays with separators. The `<For>` component correctly renders Alloy Children objects. Only use `.join()` on `string[]` arrays (like `buildFactoryParamList` and `buildDelegateArgList` which work with plain strings).
 
 **Affected:** `buildMethodParamList()` in `src/components/classical-operation-groups.tsx` was the instance found. Always verify any `.join()` call is operating on actual strings, not Alloy Children.
+
+## Design Decisions
+
+### SMOKE-3: Endpoint parameter name escaping in code templates
+**Chosen approach**: Use `getEscapedParameterName(arg.name)` from `name-policy.ts` for required parameter references in code templates (code\`...\`), while keeping raw `arg.name` for local variable references.
+
+**Why**: The name policy transforms ParameterDescriptor names in function signatures, but `code` template interpolations bypass the name policy. Required endpoint parameters become function parameters (name-policy-transformed), while optional/defaulted args get local variables (raw name via string interpolation). A `Map<string, string>` tracks which args are local vars vs parameters.
+
+**Rejected**: Using Alloy's refkey/namekey system to resolve parameter names — too complex for simple variable references in code templates, and ParameterDescriptor doesn't support refkeys for this purpose.

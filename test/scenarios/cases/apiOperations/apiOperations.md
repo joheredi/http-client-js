@@ -564,7 +564,7 @@ export function createTesting(
   endpointParam: string,
   options: TestingClientOptionalParams = {},
 ): TestingContext {
-  const endpointUrl = options.endpoint ?? endpoint;
+  const endpointUrl = options.endpoint ?? endpointParam;
   const prefixFromOptions = options?.userAgentOptions?.userAgentPrefix;
   const userAgentPrefix = prefixFromOptions
     ? `${prefixFromOptions} azsdk-js-api`
@@ -602,7 +602,7 @@ export class TestingClient {
     const userAgentPrefix = prefixFromOptions
       ? `${prefixFromOptions} azsdk-js-client`
       : `azsdk-js-client`;
-    this._client = createTesting(endpoint, {
+    this._client = createTesting(endpointParam, {
       ...options,
       userAgentOptions: { userAgentPrefix },
     });
@@ -706,7 +706,7 @@ export function createTesting(
   endpointParam: string,
   options: TestingClientOptionalParams = {},
 ): TestingContext {
-  const endpointUrl = options.endpoint ?? endpoint;
+  const endpointUrl = options.endpoint ?? endpointParam;
   const prefixFromOptions = options?.userAgentOptions?.userAgentPrefix;
   const userAgentPrefix = prefixFromOptions
     ? `${prefixFromOptions} azsdk-js-api`
@@ -744,7 +744,7 @@ export class TestingClient {
     const userAgentPrefix = prefixFromOptions
       ? `${prefixFromOptions} azsdk-js-client`
       : `azsdk-js-client`;
-    this._client = createTesting(endpoint, {
+    this._client = createTesting(endpointParam, {
       ...options,
       userAgentOptions: { userAgentPrefix },
     });
@@ -871,7 +871,7 @@ export function createTesting(
   endpointParam: string,
   options: TestingClientOptionalParams = {},
 ): TestingContext {
-  const endpointUrl = options.endpoint ?? endpoint;
+  const endpointUrl = options.endpoint ?? endpointParam;
   const prefixFromOptions = options?.userAgentOptions?.userAgentPrefix;
   const userAgentPrefix = prefixFromOptions
     ? `${prefixFromOptions} azsdk-js-api`
@@ -909,7 +909,7 @@ export class TestingClient {
     const userAgentPrefix = prefixFromOptions
       ? `${prefixFromOptions} azsdk-js-client`
       : `azsdk-js-client`;
-    this._client = createTesting(endpoint, {
+    this._client = createTesting(endpointParam, {
       ...options,
       userAgentOptions: { userAgentPrefix },
     });

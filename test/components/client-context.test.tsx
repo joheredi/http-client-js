@@ -47,6 +47,7 @@ import {
   clientOptionsRefkey,
   createClientRefkey,
 } from "../../src/utils/refkeys.js";
+import { createEmitterNamePolicy } from "../../src/utils/name-policy.js";
 import {
   httpRuntimeLib,
   azureCoreClientLib,
@@ -366,6 +367,50 @@ describe("ClientContext", () => {
       // But should still have user agent options
       expect(result).toContain("userAgentOptions");
     });
+  });
+
+  /**
+   * Tests that the factory function uses the name-policy-transformed parameter
+   * name for endpoint references in the code body. The emitter's custom name
+   * policy transforms "endpoint" to "endpointParam" (since "endpoint" is a
+   * reserved SDK parameter name). This test validates that the code body
+   * references match the function signature parameter name, preventing
+   * "endpoint is not defined" runtime errors.
+   *
+   * Regression test for SMOKE-3: hardcoded "endpoint" in factory body while
+   * the function parameter was "endpointParam" due to the name policy.
+   */
+  it("should use name-policy-escaped endpoint parameter name in factory body", async () => {
+    const runner = await TesterWithService.createInstance();
+    const { program } = await runner.compile(
+      t.code`
+        @get op getItem(): string;
+      `,
+    );
+    const sdkContext = await createSdkContextForTest(program);
+    const client = getFirstClient(sdkContext);
+
+    const template = (
+      <Output
+        program={sdkContext.emitContext.program}
+        namePolicy={createEmitterNamePolicy()}
+        externals={[httpRuntimeLib]}
+      >
+        <SdkContextProvider sdkContext={sdkContext}>
+          <SourceFile path="test.ts">
+            <ClientContextFactory client={client} />
+          </SourceFile>
+        </SdkContextProvider>
+      </Output>
+    );
+
+    const result = renderToString(template);
+    // The function parameter should be "endpointParam" (emitter name policy escaping)
+    expect(result).toContain("endpointParam: string");
+    // The code body should reference "endpointParam", NOT the raw "endpoint"
+    expect(result).toContain("options.endpoint ?? endpointParam");
+    // Should NOT have the raw parameter name in a position where it references the parameter
+    expect(result).not.toMatch(/\?\?\s+endpoint[^PpUu]/);
   });
 
   /**

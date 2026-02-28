@@ -49,6 +49,7 @@ import { PublicOperation } from "../../src/components/public-operation.js";
 import { SendOperation } from "../../src/components/send-operation.js";
 import { DeserializeOperation } from "../../src/components/deserialize-operation.js";
 import { classicalClientRefkey } from "../../src/utils/refkeys.js";
+import { createEmitterNamePolicy } from "../../src/utils/name-policy.js";
 import { httpRuntimeLib } from "../../src/utils/external-packages.js";
 import {
   TesterWithService,
@@ -646,5 +647,53 @@ describe("ClassicalClient ARM constructor", () => {
     expect(result).toContain('subscriptionId ?? ""');
     // Should have options fallback
     expect(result).toContain("options = options ?? {}");
+  });
+
+  /**
+   * Tests that the classical client constructor uses the name-policy-escaped
+   * endpoint parameter name when calling the factory function. The emitter's
+   * custom name policy transforms "endpoint" to "endpointParam" since
+   * "endpoint" is a reserved SDK parameter name. The constructor must forward
+   * the escaped parameter name to the factory call.
+   *
+   * Regression test for SMOKE-3: the constructor body used "endpoint" (the raw
+   * TCGC name) when calling the factory function, but the constructor
+   * parameter was declared as "endpointParam" by the name policy.
+   */
+  it("should use name-policy-escaped endpoint parameter in factory call", async () => {
+    const runner = await TesterWithService.createInstance();
+    const { program } = await runner.compile(
+      t.code`
+        @get op getItem(): string;
+      `,
+    );
+
+    const sdkContext = await createSdkContextForTest(program);
+    const client = getFirstClient(sdkContext);
+
+    const template = (
+      <Output
+        program={sdkContext.emitContext.program}
+        namePolicy={createEmitterNamePolicy()}
+        externals={[httpRuntimeLib]}
+      >
+        <SdkContextProvider sdkContext={sdkContext}>
+          <SourceFile path="api/testingClientContext.ts">
+            <ClientContextDeclaration client={client} />
+            <ClientContextOptionsDeclaration client={client} />
+            <ClientContextFactory client={client} />
+          </SourceFile>
+          <SourceFile path="testingClient.ts">
+            <ClassicalClientDeclaration client={client} />
+          </SourceFile>
+        </SdkContextProvider>
+      </Output>
+    );
+
+    const result = renderToString(template);
+    // The constructor parameter should be "endpointParam" (emitter name policy)
+    expect(result).toContain("endpointParam: string");
+    // The factory call should use "endpointParam", NOT the raw "endpoint"
+    expect(result).toContain("createTesting(endpointParam, {");
   });
 });
