@@ -494,6 +494,22 @@
         "count": "TBD",
         "description": "Pure function tests for utilities (refkey helpers, type mapping, etc.).",
         "pattern": "src/utils/*.test.ts"
+      },
+      {
+        "category": "Spector Integration Tests (E2E)",
+        "count": 48,
+        "description": "End-to-end tests ported from legacy emitter's modularIntegration suite. Each test generates a client library from a Spector TypeSpec spec, then exercises the generated client against the Spector mock server to validate runtime behavior. Uses Vitest with globalSetup for server lifecycle.",
+        "source": "submodules/autorest.typescript/packages/typespec-ts/test/modularIntegration/",
+        "pattern": "test/e2e/**/*.test.ts",
+        "infrastructure": {
+          "generation_script": "eng/scripts/emit-e2e.ts",
+          "vitest_config": "vitest.config.e2e.ts",
+          "global_setup": "test/e2e/setup/global-setup.ts",
+          "generated_code_dir": "test/e2e/generated/",
+          "test_files_dir": "test/e2e/http/",
+          "mock_server": "tsp-spector on port 3002",
+          "coverage_file": "temp/spector-coverage.json"
+        }
       }
     ],
     "test_infrastructure": {
@@ -798,6 +814,130 @@
       "status": "pending",
       "priority": "P0",
       "phase": "smoke-fix"
+    },
+    {
+      "id": "SPECTOR-1",
+      "title": "Create emit-e2e generation script with spec auto-discovery",
+      "category": "testing/spector-infrastructure",
+      "priority": "P0",
+      "status": "pending",
+      "kind": "feature",
+      "dependencies": [],
+      "design_review": null,
+      "source": "design",
+      "description": "Create `eng/scripts/emit-e2e.ts` \u2014 a standalone script that discovers and generates client libraries from all Spector specs.\n\n## What it does\n1. Auto-discovers specs by globbing `node_modules/@typespec/http-specs/specs/**/{main,client}.tsp` (prefer client.tsp over main.tsp per directory)\n2. Filters specs against a `.testignore` file at `test/e2e/.testignore`\n3. Runs `tsp compile` for each spec with configurable parallelism (pLimit based on os.cpus().length)\n4. Outputs generated code to `test/e2e/generated/{spec-path}/` (e.g., `test/e2e/generated/authentication/api-key/src/...`)\n5. Reports results: X succeeded, Y failed, Z skipped\n6. Writes error logs to `temp/emit-e2e-logs/{spec-path}/error.log`\n\n## Key implementation details\n\n### Spec discovery\n- Use `globby` or Node fs.glob to find `**/{main,client}.tsp` under the http-specs package\n- If both `client.tsp` and `main.tsp` exist in same directory, prefer `client.tsp`\n- The http-specs package is at `node_modules/@typespec/http-specs/specs`\n\n### .testignore format\nOne spec path per line (relative to specs dir). Lines starting with # are comments. Example:\n```\n# Streaming not supported yet\nstreaming/jsonl\n# Multipart needs work\npayload/multipart\n```\n\n### tsp compile invocation\nFor each spec, run:\n```bash\nnpx tsp compile <spec-path> --emit <emitter-path> --output-dir <output-dir>\n```\nWhere:\n- `<spec-path>` is the absolute path to the main.tsp or client.tsp file\n- `<emitter-path>` is the root of this repo (resolve from import.meta.dirname up to repo root). The emitter is loaded from `dist/` so the project MUST be built first.\n- `<output-dir>` is `test/e2e/generated/{relative-spec-path}/`\n\nPass emitter options via the `--option` flag or via a tspconfig.yaml. The emitter needs these options:\n- `generate-metadata: true` (generates package.json, tsconfig.json)\n- `flavor: core` (standard non-Azure flavor)\n\n### Parallelism\nUse `p-limit` (or similar) to run up to `os.cpus().length` compilations in parallel. Each compilation is a child process via `child_process.execFile` or `execa`.\n\n### CLI interface\nSupport these flags:\n- `--filter <glob>` \u2014 only process specs matching this pattern (e.g., `--filter 'type/array'`)\n- No flags = process all non-ignored specs\n\n### Error handling\n- If a spec fails to compile, log stderr to `temp/emit-e2e-logs/` and continue with remaining specs\n- Exit with code 1 if any spec failed\n- Print summary at end: 'N/M specs succeeded, K skipped, J failed'\n\n## Reference implementations\n- **Primary reference**: `submodules/typespec/packages/http-client-js/eng/scripts/emit-e2e.js` \u2014 the reference emitter's generation script. Study its spec discovery (globby for `**/*.client.tsp` or `**/*.main.tsp`), pLimit(4) parallelism, error logging to temp/emit-e2e-logs/, and Prettier post-processing.\n- **Legacy reference**: `submodules/autorest.typescript/packages/typespec-ts/test/commands/gen-cadl-ranch.js` \u2014 uses a hardcoded spec list (`cadl-ranch-list.js`). We do NOT want this approach; prefer auto-discovery.\n\n## Files to create\n- `eng/scripts/emit-e2e.ts`\n- `test/e2e/.testignore` (initial ignore list for unsupported specs)\n\n## Files to modify\n- `package.json` \u2014 add script: `\"emit:e2e\": \"tsx eng/scripts/emit-e2e.ts\"`\n- `.gitignore` \u2014 add `test/e2e/generated/`\n\n## Validation\n- Run `pnpm build && pnpm emit:e2e` and verify generated code appears in `test/e2e/generated/`\n- At least a few specs should generate successfully (e.g., authentication/api-key, routes, type/array)\n- Failed specs should produce error logs in `temp/emit-e2e-logs/`"
+    },
+    {
+      "id": "SPECTOR-2",
+      "title": "Create Vitest e2e config with Spector server globalSetup",
+      "category": "testing/spector-infrastructure",
+      "priority": "P0",
+      "status": "pending",
+      "kind": "feature",
+      "dependencies": [
+        "SPECTOR-1"
+      ],
+      "design_review": null,
+      "source": "design",
+      "description": "Create the Vitest configuration and globalSetup/teardown for running Spector integration tests.\n\n## What it does\n1. `vitest.config.e2e.ts` \u2014 Vitest config that includes only `test/e2e/**/*.test.ts` files\n2. `test/e2e/setup/global-setup.ts` \u2014 starts the Spector mock server before tests\n3. `test/e2e/setup/global-teardown.ts` \u2014 stops the server and collects coverage after tests\n\n## vitest.config.e2e.ts\n```typescript\nimport { defineConfig } from 'vitest/config';\n\nexport default defineConfig({\n  test: {\n    environment: 'node',\n    include: ['test/e2e/**/*.test.ts'],\n    globalSetup: ['test/e2e/setup/global-setup.ts'],\n    testTimeout: 30_000,\n    isolate: false,  // faster: tests share process\n  },\n});\n```\n\n## global-setup.ts\nThe setup must:\n1. Start the Spector mock server using `tsp-spector server start`\n2. Pass the specs path: `node_modules/@typespec/http-specs/specs`\n3. Use port 3002 (matches legacy convention, avoids conflicts with dev servers)\n4. Enable coverage tracking: `--coverageFile temp/spector-coverage.json`\n5. Poll for server readiness by making HTTP GET requests to a known endpoint\n6. The readiness endpoint: `http://localhost:3002/routes/in-interface/fixed` should return 204\n7. Retry up to 30 times with 1s delay between retries\n8. Export the `setup()` and `teardown()` functions as Vitest globalSetup expects\n\n### Server start command\n```bash\nnpx tsp-spector server start node_modules/@typespec/http-specs/specs --port 3002 --coverageFile temp/spector-coverage.json\n```\n\n### Server stop command (in teardown)\n```bash\nnpx tsp-spector server stop --port 3002\n```\n\n## Reference implementations\n- **Primary reference**: `submodules/typespec/packages/http-client-js/eng/scripts/run-e2e-tests.js` \u2014 see `waitForServer()` function (polls with retries + delay), server spawn, and cleanup logic.\n- **Spector CLI**: `submodules/typespec/packages/spector/src/cli/cli.ts` \u2014 the `server start` command starts in background, `server stop` stops it. Default port is 3000 but we use 3002.\n\n## Files to create\n- `vitest.config.e2e.ts`\n- `test/e2e/setup/global-setup.ts`\n\n## Files to modify\n- `package.json` \u2014 add scripts:\n  - `\"test:e2e\": \"pnpm emit:e2e && vitest run --config vitest.config.e2e.ts\"`\n  - `\"test:e2e:only\": \"vitest run --config vitest.config.e2e.ts\"` (skip generation)\n\n## Validation\n- Run `pnpm test:e2e:only` with no test files yet \u2014 it should start the server, find no tests, and stop cleanly\n- Verify the server starts on port 3002 and responds to health checks\n- Verify the server stops cleanly in teardown\n- Verify `temp/spector-coverage.json` is created"
+    },
+    {
+      "id": "SPECTOR-3",
+      "title": "Port first Spector test as proof-of-concept: authentication/api-key",
+      "category": "testing/spector-integration",
+      "priority": "P0",
+      "status": "pending",
+      "kind": "feature",
+      "dependencies": [
+        "SPECTOR-2"
+      ],
+      "design_review": null,
+      "source": "design",
+      "description": "Port the `authentication/api-key` Spector test as a proof-of-concept to validate the entire e2e pipeline.\n\n## What this test validates\nThe API key authentication spec tests that the generated client:\n1. Can make authenticated requests with a valid API key (header `x-ms-api-key`)\n2. Correctly receives a 403 error when using an invalid API key\n\n## Test file to create\n`test/e2e/http/authentication/api-key/main.test.ts`\n\n## Legacy test to port from\n`submodules/autorest.typescript/packages/typespec-ts/test/modularIntegration/authApiKey.spec.ts`\n\nThe legacy test pattern:\n```typescript\nimport { ApiKeyClient } from './generated/authentication/api-key/src/index.js';\nimport { assert } from 'chai';\n\ndescribe('ApiKeyClient', () => {\n  let client: ApiKeyClient;\n  beforeEach(() => {\n    client = new ApiKeyClient({ key: 'valid-key' }, {\n      endpoint: 'http://localhost:3002',\n      allowInsecureConnection: true,\n    });\n  });\n  it('should authenticate with valid key', async () => {\n    const result = await client.valid();\n    assert.isUndefined(result);\n  });\n  it('should reject invalid key', async () => {\n    client = new ApiKeyClient({ key: 'invalid-key' }, { ... });\n    try { await client.invalid(); assert.fail('expected error'); }\n    catch (err) { assert.strictEqual(err.statusCode, 403); }\n  });\n});\n```\n\n## Porting guidelines\n- Use Vitest (`describe`, `it`, `expect`, `beforeEach`) instead of Mocha + Chai\n- Import from relative path to generated code: `../../../generated/authentication/api-key/src/index.js`\n- Use same port 3002 and `allowInsecureConnection: true`\n- The client constructor and method signatures come from the generated code. Build first (`pnpm emit:e2e`) and inspect `test/e2e/generated/authentication/api-key/src/index.ts` to see actual exports.\n\n## Spector mock server expectation\nSee `submodules/typespec/packages/http-specs/specs/authentication/api-key/mockapi.ts`:\n- `GET /authentication/api-key/valid` expects header `x-ms-api-key: valid-key`, returns 204\n- `GET /authentication/api-key/invalid` returns 403\n\n## Reference test from reference emitter\n`submodules/typespec/packages/http-client-js/test/e2e/http/authentication/api-key/main.test.ts`\n\n## Validation\n1. Run `pnpm build && pnpm emit:e2e --filter authentication/api-key`\n2. Inspect generated code at `test/e2e/generated/authentication/api-key/src/`\n3. Run `pnpm test:e2e:only` \u2014 the test should pass against the mock server\n4. This validates the full pipeline: generation \u2192 build \u2192 server \u2192 test"
+    },
+    {
+      "id": "SPECTOR-4",
+      "title": "Port authentication and server Spector tests",
+      "category": "testing/spector-integration",
+      "priority": "P1",
+      "status": "pending",
+      "kind": "feature",
+      "dependencies": [
+        "SPECTOR-3"
+      ],
+      "design_review": null,
+      "source": "design",
+      "description": "Port the authentication and server-related Spector integration tests.\n\n## Tests to port (7 test files)\n\n### Authentication tests\n| Legacy test file | Spector spec | New test path |\n|---|---|---|\n| `authApiKey.spec.ts` | `authentication/api-key` | Already done in SPECTOR-3 |\n| `authHttpCustom.spec.ts` | `authentication/http/custom` | `test/e2e/http/authentication/http/custom/main.test.ts` |\n| `authOauth2.spec.ts` | `authentication/oauth2` | `test/e2e/http/authentication/oauth2/main.test.ts` |\n| `authUnion.spec.ts` | `authentication/union` | `test/e2e/http/authentication/union/main.test.ts` |\n\n### Server tests\n| Legacy test file | Spector spec | New test path |\n|---|---|---|\n| `server.spec.ts` | `server/path/single`, `server/path/multiple`, `server/versions/versioned`, `server/versions/not-versioned` | `test/e2e/http/server/path/single/main.test.ts`, etc. |\n| `serverEndpointNotDefined.spec.ts` | `server/endpoint/not-defined` | `test/e2e/http/server/endpoint/not-defined/main.test.ts` |\n\n## Porting pattern\nFor each test:\n1. Read the legacy test in `submodules/autorest.typescript/packages/typespec-ts/test/modularIntegration/`\n2. Read the Spector spec mockapi.ts in `submodules/typespec/packages/http-specs/specs/` to understand expected behavior\n3. Optionally reference the test from `submodules/typespec/packages/http-client-js/test/e2e/http/` as a secondary reference\n4. Write the new test using Vitest (`describe`, `it`, `expect`, `beforeEach`)\n5. Import the generated client from `../../../generated/{spec-path}/src/index.js` (adjust relative depth as needed)\n6. Use `endpoint: 'http://localhost:3002'` and `allowInsecureConnection: true`\n\n## Key differences from legacy tests\n- Vitest instead of Mocha + Chai\n- `expect(result).toBeUndefined()` instead of `assert.isUndefined(result)`\n- `expect(result).toBe(value)` instead of `assert.strictEqual(result, value)`\n- `expect(result).toEqual(obj)` instead of `assert.deepEqual(result, obj)`\n- `expect(() => ...).rejects.toThrow()` for error assertions\n\n## Validation\nRun `pnpm build && pnpm test:e2e` and verify all ported tests pass."
+    },
+    {
+      "id": "SPECTOR-5",
+      "title": "Port type system Spector tests (type/array, type/dictionary, type/enum, type/model, type/property, type/scalar, type/union)",
+      "category": "testing/spector-integration",
+      "priority": "P1",
+      "status": "pending",
+      "kind": "feature",
+      "dependencies": [
+        "SPECTOR-3"
+      ],
+      "design_review": null,
+      "source": "design",
+      "description": "Port all type-system related Spector integration tests. This is the largest batch (~15 test files).\n\n## Tests to port\n\n| Legacy test file | Spector spec | New test path |\n|---|---|---|\n| `arrayItemTypes.spec.ts` | `type/array` | `test/e2e/http/type/array/main.test.ts` |\n| `dictionaryTypes.spec.ts` | `type/dictionary` | `test/e2e/http/type/dictionary/main.test.ts` |\n| `extensibleEnums.spec.ts` | `type/enum/extensible` | `test/e2e/http/type/enum/extensible/main.test.ts` |\n| `fixedEnums.spec.ts` | `type/enum/fixed` | `test/e2e/http/type/enum/fixed/main.test.ts` |\n| `modelsEmpty.spec.ts` | `type/model/empty` | `test/e2e/http/type/model/empty/main.test.ts` |\n| `modelInheritanceEnumDiscriminator.spec.ts` | `type/model/inheritance/enum-discriminator` | `test/e2e/http/type/model/inheritance/enum-discriminator/main.test.ts` |\n| `modelInheritanceNestedDiscriminator.spec.ts` | `type/model/inheritance/nested-discriminator` | `test/e2e/http/type/model/inheritance/nested-discriminator/main.test.ts` |\n| `modelInheritanceNotDiscriminated.spec.ts` | `type/model/inheritance/not-discriminated` | `test/e2e/http/type/model/inheritance/not-discriminated/main.test.ts` |\n| `modelInheritanceRecursive.spec.ts` | `type/model/inheritance/recursive` | `test/e2e/http/type/model/inheritance/recursive/main.test.ts` |\n| `modelInheritanceSingleDiscriminator.spec.ts` | `type/model/inheritance/single-discriminator` | `test/e2e/http/type/model/inheritance/single-discriminator/main.test.ts` |\n| `modelPropertyAdditional.spec.ts` | `type/property/additional-properties` | `test/e2e/http/type/property/additional-properties/main.test.ts` |\n| `modelPropertyType.spec.ts` | `type/property/value-types` | `test/e2e/http/type/property/value-types/main.test.ts` |\n| `nullableProperties.spec.ts` | `type/property/nullable` | `test/e2e/http/type/property/nullable/main.test.ts` |\n| `optionalProperties.spec.ts` | `type/property/optionality` | `test/e2e/http/type/property/optionality/main.test.ts` |\n| `scalar.spec.ts` | `type/scalar` | `test/e2e/http/type/scalar/main.test.ts` |\n| `unions.spec.ts` | `type/union` | `test/e2e/http/type/union/main.test.ts` |\n| `usage.spec.ts` | `type/model/usage` | `test/e2e/http/type/model/usage/main.test.ts` |\n\n## Porting guidelines\nSame pattern as SPECTOR-4. For each test:\n1. Read legacy test from `submodules/autorest.typescript/packages/typespec-ts/test/modularIntegration/`\n2. Read mockapi.ts from `submodules/typespec/packages/http-specs/specs/` for expected behavior\n3. Reference test from `submodules/typespec/packages/http-client-js/test/e2e/http/` if available\n4. Write Vitest test at the path in the table above\n5. Import generated client from relative path to `test/e2e/generated/{spec-path}/src/index.js`\n\n## Complex tests to watch out for\n- **modelInheritanceSingleDiscriminator**: Has complex discriminated union assertions with `assert.deepEqual`. Convert carefully to `expect().toEqual()`.\n- **modelPropertyType**: Very large test file with many property type sub-tests. May have 50+ test cases.\n- **modelPropertyAdditional**: Tests additional properties (open models). Watch for spread operator and dynamic property handling.\n\n## Validation\nRun `pnpm build && pnpm test:e2e` \u2014 all type tests should pass."
+    },
+    {
+      "id": "SPECTOR-6",
+      "title": "Port encode and serialization Spector tests",
+      "category": "testing/spector-integration",
+      "priority": "P1",
+      "status": "pending",
+      "kind": "feature",
+      "dependencies": [
+        "SPECTOR-3"
+      ],
+      "design_review": null,
+      "source": "design",
+      "description": "Port all encoding and serialization related Spector integration tests (6 test files).\n\n## Tests to port\n\n| Legacy test file | Spector spec | New test path |\n|---|---|---|\n| `encodeArray.spec.ts` | `encode/array` | `test/e2e/http/encode/array/main.test.ts` |\n| `encodeBytes.spec.ts` | `encode/bytes` | `test/e2e/http/encode/bytes/main.test.ts` |\n| `encodeDatetime.spec.ts` | `encode/datetime` | `test/e2e/http/encode/datetime/main.test.ts` |\n| `encodeDuration.spec.ts` | `encode/duration` | `test/e2e/http/encode/duration/main.test.ts` |\n| `encodeNumeric.spec.ts` | `encode/numeric` | `test/e2e/http/encode/numeric/main.test.ts` |\n| `serializationEncodeNameJson.spec.ts` | `serialization/encoded-name/json` | `test/e2e/http/serialization/encoded-name/json/main.test.ts` |\n\n## Porting guidelines\nSame pattern as SPECTOR-4. These tests validate that the emitter correctly handles:\n- Byte encoding (base64, base64url, hex)\n- Datetime encoding (rfc3339, rfc7231, unixTimestamp)\n- Duration encoding (ISO 8601, seconds, float seconds)\n- Numeric encoding (safeint, uint8, string encoding for large ints)\n- Array encoding (CSV, SSV, TSV, pipes in headers/query)\n- JSON property name encoding (@encodedName)\n\n## Reference files\n- Legacy tests: `submodules/autorest.typescript/packages/typespec-ts/test/modularIntegration/encode*.spec.ts`\n- Spector specs: `submodules/typespec/packages/http-specs/specs/encode/*/mockapi.ts`\n- Reference tests: `submodules/typespec/packages/http-client-js/test/e2e/http/encode/*/main.test.ts`\n\n## Validation\nRun `pnpm build && pnpm test:e2e` \u2014 all encode/serialization tests should pass."
+    },
+    {
+      "id": "SPECTOR-7",
+      "title": "Port parameters, payload, and routes Spector tests",
+      "category": "testing/spector-integration",
+      "priority": "P1",
+      "status": "pending",
+      "kind": "feature",
+      "dependencies": [
+        "SPECTOR-3"
+      ],
+      "design_review": null,
+      "source": "design",
+      "description": "Port parameters, payload, and routing Spector integration tests (9 test files).\n\n## Tests to port\n\n### Parameters\n| Legacy test file | Spector spec | New test path |\n|---|---|---|\n| `basicParameters.spec.ts` | `parameters/basic` | `test/e2e/http/parameters/basic/main.test.ts` |\n| `bodyOptionality.spec.ts` | `parameters/body-optionality` | `test/e2e/http/parameters/body-optionality/main.test.ts` |\n| `collectionFormat.spec.ts` | `parameters/collection-format` | `test/e2e/http/parameters/collection-format/main.test.ts` |\n| `spreadParameters.spec.ts` | `parameters/spread` | `test/e2e/http/parameters/spread/main.test.ts` |\n\n### Payload\n| Legacy test file | Spector spec | New test path |\n|---|---|---|\n| `payloadContentNegotiation.spec.ts` | `payload/content-negotiation` | `test/e2e/http/payload/content-negotiation/main.test.ts` |\n| `payloadMediaType.spec.ts` | `payload/media-type` | `test/e2e/http/payload/media-type/main.test.ts` |\n| `payloadMultipart.spec.ts` | `payload/multipart` | `test/e2e/http/payload/multipart/main.test.ts` |\n| `payloadPageable.spec.ts` | `payload/pageable` | `test/e2e/http/payload/pageable/main.test.ts` |\n\n### Routes\n| Legacy test file | Spector spec | New test path |\n|---|---|---|\n| `routes.spec.ts` | `routes` | `test/e2e/http/routes/main.test.ts` |\n\n## Notes\n- `payloadMultipart` is complex \u2014 uses `fs.createReadStream()` for file uploads. Tests need access to test assets. Create `test/e2e/assets/` with image.jpg and image.png files, or reference them from the existing spector spec assets.\n- `payloadPageable` tests pagination. Verify the generated client has paging helpers.\n- `routes` is a comprehensive test with many sub-tests for path/query expansion modes.\n- `spreadParameters` tests TypeSpec spread operator for parameter destructuring.\n\n## Reference files\n- Legacy tests: `submodules/autorest.typescript/packages/typespec-ts/test/modularIntegration/`\n- Spector specs: `submodules/typespec/packages/http-specs/specs/`\n- Reference tests: `submodules/typespec/packages/http-client-js/test/e2e/http/`\n\n## Validation\nRun `pnpm build && pnpm test:e2e` \u2014 all parameter/payload/routes tests should pass."
+    },
+    {
+      "id": "SPECTOR-8",
+      "title": "Port versioning and special Spector tests",
+      "category": "testing/spector-integration",
+      "priority": "P1",
+      "status": "pending",
+      "kind": "feature",
+      "dependencies": [
+        "SPECTOR-3"
+      ],
+      "design_review": null,
+      "source": "design",
+      "description": "Port versioning, special-words, and special-headers Spector integration tests (10 test files).\n\n## Tests to port\n\n### Versioning\n| Legacy test file | Spector spec | New test path |\n|---|---|---|\n| `versioningAdded.spec.ts` | `versioning/added` | `test/e2e/http/versioning/added/main.test.ts` |\n| `versioningMadeOptional.spec.ts` | `versioning/madeOptional` | `test/e2e/http/versioning/madeOptional/main.test.ts` |\n| `versioningRemovedV1.spec.ts` | `versioning/removed` (v1 config) | `test/e2e/http/versioning/removed/v1/main.test.ts` |\n| `versioningRemovedV2.spec.ts` | `versioning/removed` (v2 config) | `test/e2e/http/versioning/removed/v2/main.test.ts` |\n| `versioningRemovedV2Preview.spec.ts` | `versioning/removed` (v2preview config) | `test/e2e/http/versioning/removed/v2preview/main.test.ts` |\n| `versioningRenamedFrom.spec.ts` | `versioning/renamedFrom` | `test/e2e/http/versioning/renamedFrom/main.test.ts` |\n| `versioningReturnTypeChangedFrom.spec.ts` | `versioning/returnTypeChangedFrom` | `test/e2e/http/versioning/returnTypeChangedFrom/main.test.ts` |\n| `versioningTypeChangedFrom.spec.ts` | `versioning/typeChangedFrom` | `test/e2e/http/versioning/typeChangedFrom/main.test.ts` |\n\n### Special\n| Legacy test file | Spector spec | New test path |\n|---|---|---|\n| `specialWords.spec.ts` | `special-words` | `test/e2e/http/special-words/main.test.ts` |\n| `headersRepeatability.spec.ts` | `special-headers/repeatability` | `test/e2e/http/special-headers/repeatability/main.test.ts` |\n\n## Notes on versioning tests\nThe `versioning/removed` spec generates 3 different client variants based on version configuration:\n- v1: Only the operations/types from version 1\n- v2: Operations/types up to version 2 (v1 removed items are gone)\n- v2preview: Preview version with additional preview operations\n\nIn the legacy emitter, these are 3 separate entries in cadl-ranch-list.js with different outputPaths but the same inputPath. In the new emitter, the generation script needs to compile the same spec 3 times with different version options. This may require special handling in the emit-e2e script or version-specific tspconfig.yaml files.\n\n## Reference files\n- Legacy tests: `submodules/autorest.typescript/packages/typespec-ts/test/modularIntegration/versioning*.spec.ts`, `specialWords.spec.ts`, `headersRepeatability.spec.ts`\n- Legacy cadl-ranch-list.js: Shows how versioning/removed is split into 3 entries with different outputPaths\n- Spector specs: `submodules/typespec/packages/http-specs/specs/versioning/`, `special-words/`, `special-headers/`\n\n## Validation\nRun `pnpm build && pnpm test:e2e` \u2014 all versioning and special tests should pass."
+    },
+    {
+      "id": "SPECTOR-9",
+      "title": "Add e2e test CI integration and coverage reporting",
+      "category": "testing/spector-infrastructure",
+      "priority": "P2",
+      "status": "pending",
+      "kind": "feature",
+      "dependencies": [
+        "SPECTOR-3"
+      ],
+      "design_review": null,
+      "source": "design",
+      "description": "Integrate the Spector e2e tests into the CI pipeline and set up coverage reporting.\n\n## What to do\n1. Add a CI step that runs `pnpm build && pnpm test:e2e` in the existing CI workflow\n2. Ensure the Spector coverage file (`temp/spector-coverage.json`) is captured as a CI artifact\n3. Add a script to parse and summarize coverage: which Spector scenarios are covered vs not\n\n## Coverage reporting\nAfter tests complete, the Spector server writes coverage data to `temp/spector-coverage.json`. This file tracks which mock API scenarios were hit during testing.\n\nCreate `eng/scripts/calculate-coverage.ts` that:\n1. Reads `temp/spector-coverage.json`\n2. Prints a summary: N/M scenarios covered\n3. Lists uncovered scenarios\n\n## Reference\n- `submodules/typespec/packages/http-client-js/eng/scripts/calculate-coverage.js` \u2014 reference implementation\n- Spector coverage format: `CoverageReport[]` from `@typespec/spector`\n\n## Package.json script\nAdd: `\"test:e2e:ci\": \"pnpm build && pnpm test:e2e\"`\n\n## Validation\n- CI runs e2e tests successfully\n- Coverage artifact is captured"
     }
   ],
   "phases_metadata": [
@@ -916,6 +1056,13 @@
         8,
         9
       ],
+      "status": "pending"
+    },
+    {
+      "phase": 13,
+      "name": "Spector Integration Tests \u2014 End-to-End Validation",
+      "description": "Set up infrastructure to generate client libraries from Spector specs, run them against the Spector mock server, and validate end-to-end behavior. Uses Approach C (Hybrid): separate generation script + Vitest globalSetup for server lifecycle. This replaces the legacy emitter's modularIntegration test suite.",
+      "dependencies": [],
       "status": "pending"
     }
   ],

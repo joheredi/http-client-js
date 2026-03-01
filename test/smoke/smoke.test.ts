@@ -78,9 +78,11 @@ emit:
 options:
   http-client-js:
     generate-metadata: true
+    flavor: azure
     package-name: smoke-test-sdk
     package-version: "1.0.0"
     emitter-output-dir: "{output-dir}/http-client-js"
+    examples-dir: "{project-root}/examples"
 `;
       await writeFile(join(smokeOutputDir, "tspconfig.yaml"), tspConfig);
 
