@@ -282,4 +282,181 @@ describe("XmlObjectSerializer", () => {
     expect(result).toContain("toISOString()");
     expect(result).not.toContain("Unresolved Symbol");
   });
+
+  /**
+   * Tests that optional nested model properties are wrapped with a null guard
+   * to prevent calling the nested serializer on `undefined`.
+   * Without this guard, `nestedXmlObjectSerializer(undefined)` would throw.
+   */
+  it("should add null guard for optional nested model properties", async () => {
+    const childModel = createMockXmlModel("Logging", [
+      {
+        name: "version",
+        serializedName: "version",
+        xmlName: "Version",
+        type: { kind: "string" },
+      },
+    ]);
+
+    const parentModel = createMockXmlModel("BlobServiceProperties", [
+      {
+        name: "logging",
+        serializedName: "logging",
+        xmlName: "Logging",
+        type: childModel,
+        optional: true,
+      },
+    ]);
+
+    const template = (
+      <Output program={program} namePolicy={createTSNamePolicy()}>
+        <XmlHelpersFile />
+        <SourceFile path="test.ts">
+          <ModelInterface model={childModel} />
+          {"\n\n"}
+          <XmlObjectSerializer model={childModel} />
+          {"\n\n"}
+          <ModelInterface model={parentModel} />
+          {"\n\n"}
+          <XmlObjectSerializer model={parentModel} />
+        </SourceFile>
+      </Output>
+    );
+
+    const result = renderToString(template);
+    expect(result).toContain('!item["logging"] ? item["logging"] : logging');
+    expect(result).not.toContain("Unresolved Symbol");
+  });
+
+  /**
+   * Tests that nullable nested model properties also get a null guard.
+   */
+  it("should add null guard for nullable nested model properties", async () => {
+    const childModel = createMockXmlModel("Metrics", [
+      {
+        name: "enabled",
+        serializedName: "enabled",
+        xmlName: "Enabled",
+        type: { kind: "boolean" },
+      },
+    ]);
+
+    const parentModel = createMockXmlModel("ServiceProperties", [
+      {
+        name: "metrics",
+        serializedName: "metrics",
+        xmlName: "HourMetrics",
+        type: { kind: "nullable", type: childModel },
+      },
+    ]);
+
+    const template = (
+      <Output program={program} namePolicy={createTSNamePolicy()}>
+        <XmlHelpersFile />
+        <SourceFile path="test.ts">
+          <ModelInterface model={childModel} />
+          {"\n\n"}
+          <XmlObjectSerializer model={childModel} />
+          {"\n\n"}
+          <ModelInterface model={parentModel} />
+          {"\n\n"}
+          <XmlObjectSerializer model={parentModel} />
+        </SourceFile>
+      </Output>
+    );
+
+    const result = renderToString(template);
+    expect(result).toContain('!item["metrics"] ? item["metrics"] : metrics');
+    expect(result).not.toContain("Unresolved Symbol");
+  });
+
+  /**
+   * Tests that optional array-of-models properties get a null guard.
+   * The array `.map()` call would throw on `undefined` without this check.
+   */
+  it("should add null guard for optional array-of-models properties", async () => {
+    const itemModel = createMockXmlModel("CorsRule", [
+      {
+        name: "allowedOrigins",
+        serializedName: "allowedOrigins",
+        xmlName: "AllowedOrigins",
+        type: { kind: "string" },
+      },
+    ]);
+
+    const parentModel = createMockXmlModel("ServiceProperties", [
+      {
+        name: "cors",
+        serializedName: "cors",
+        xmlName: "Cors",
+        type: { kind: "array", valueType: itemModel },
+        optional: true,
+      },
+    ]);
+
+    const template = (
+      <Output program={program} namePolicy={createTSNamePolicy()}>
+        <XmlHelpersFile />
+        <SourceFile path="test.ts">
+          <ModelInterface model={itemModel} />
+          {"\n\n"}
+          <XmlObjectSerializer model={itemModel} />
+          {"\n\n"}
+          <ModelInterface model={parentModel} />
+          {"\n\n"}
+          <XmlObjectSerializer model={parentModel} />
+        </SourceFile>
+      </Output>
+    );
+
+    const result = renderToString(template);
+    expect(result).toContain('!item["cors"] ? item["cors"] :');
+    expect(result).toContain("?.map(");
+    expect(result).not.toContain("Unresolved Symbol");
+  });
+
+  /**
+   * Tests that non-optional model properties are NOT wrapped with a null guard.
+   * Required properties should call the nested serializer directly.
+   */
+  it("should not add null guard for required nested model properties", async () => {
+    const childModel = createMockXmlModel("Inner", [
+      {
+        name: "value",
+        serializedName: "value",
+        xmlName: "Value",
+        type: { kind: "string" },
+      },
+    ]);
+
+    const parentModel = createMockXmlModel("Outer", [
+      {
+        name: "inner",
+        serializedName: "inner",
+        xmlName: "Inner",
+        type: childModel,
+        optional: false,
+      },
+    ]);
+
+    const template = (
+      <Output program={program} namePolicy={createTSNamePolicy()}>
+        <XmlHelpersFile />
+        <SourceFile path="test.ts">
+          <ModelInterface model={childModel} />
+          {"\n\n"}
+          <XmlObjectSerializer model={childModel} />
+          {"\n\n"}
+          <ModelInterface model={parentModel} />
+          {"\n\n"}
+          <XmlObjectSerializer model={parentModel} />
+        </SourceFile>
+      </Output>
+    );
+
+    const result = renderToString(template);
+    expect(result).not.toContain('!item["inner"]');
+    expect(result).toContain("innerXmlObjectSerializer(item");
+    expect(result).not.toContain("Unresolved Symbol");
+  });
 });

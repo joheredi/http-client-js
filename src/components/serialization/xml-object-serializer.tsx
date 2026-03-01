@@ -69,11 +69,12 @@ export function XmlObjectSerializer(props: XmlObjectSerializerProps) {
             const xmlOpts = prop.serializationOptions?.xml;
             const xmlName = xmlOpts?.name ?? prop.serializedName;
             const accessor = `item["${normalizePropertyName(prop.name)}"]`;
-            const valueExpr = getXmlObjectSerializationExpression(
+            let valueExpr = getXmlObjectSerializationExpression(
               prop.type,
               accessor,
               prop,
             );
+            valueExpr = wrapWithXmlNullCheck(valueExpr, accessor, prop);
             return <ObjectProperty name={xmlName} value={valueExpr} />;
           }}
         </For>
@@ -142,6 +143,46 @@ function getXmlObjectSerializationExpression(
 
     default:
       return accessor;
+  }
+}
+
+/**
+ * Wraps a serialization expression with a null check for optional/nullable
+ * properties that need transformation. Prevents calling nested serializers
+ * on `undefined` values.
+ */
+function wrapWithXmlNullCheck(
+  expression: Children,
+  accessor: string,
+  property: SdkModelPropertyType,
+): Children {
+  const isNullable = property.type.kind === "nullable" || property.optional;
+  if (isNullable && xmlNeedsTransformation(property.type)) {
+    return code`!${accessor} ? ${accessor} : ${expression}`;
+  }
+  return expression;
+}
+
+/**
+ * Determines whether an XML property type needs a serialization transformation
+ * (i.e., is not a simple pass-through). Used to decide whether a null guard
+ * is needed around the serialization expression.
+ */
+function xmlNeedsTransformation(type: SdkType): boolean {
+  switch (type.kind) {
+    case "model":
+      return true;
+    case "array":
+      return true;
+    case "utcDateTime":
+    case "plainDate":
+      return true;
+    case "bytes":
+      return true;
+    case "nullable":
+      return xmlNeedsTransformation(type.type);
+    default:
+      return false;
   }
 }
 
