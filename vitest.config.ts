@@ -4,15 +4,10 @@ import { defineConfig } from "vitest/config";
 export default defineConfig({
   test: {
     include: ["test/**/*.test.ts", "test/**/*.test.tsx"],
-    exclude: ["test/smoke/**"],
+    exclude: [],
     passWithNoTests: true,
     testTimeout: 30000,
     pool: "forks",
-    poolOptions: {
-      forks: {
-        isolate: false,
-      },
-    },
   },
   esbuild: {
     jsx: "preserve",

@@ -1943,3 +1943,21 @@ The 4 predicate systems mentioned in BUG-1 description (needsTransformation, val
 **Verification**: All 1010 tests pass (3 skipped). Both scenario tests and unit tests confirm correct behavior.
 
 **PRD Status**: All tasks in prd.json are now marked as done. 0 tasks remaining.
+
+## SA29: Smoke Test Failure Triage — DONE (2026-03-01)
+
+### What was done
+- Ran `pnpm test` and discovered the smoke test (`pnpm test:smoke`) fails with multiple TypeScript compilation errors in the generated Azure Blob Storage client.
+- All 1010 unit tests pass (72 test files). Only the smoke test (end-to-end tsp compile → npm install → npm run build) fails.
+- Categorized 6 distinct failure categories and created tracking tasks in `prd.json`:
+  1. **SMOKE-PAGING-HELPERS** — pagingHelpers.ts has 'Cannot find name client' and missing [Symbol.asyncIterator]
+  2. **SMOKE-POLLING-HELPERS** — pollingHelpers.ts imports RestError from wrong package, TResult naming issue
+  3. **SMOKE-API-VERSION-IN-OPS** — operations access options?.version and client.apiVersion which don't exist on types
+  4. **SMOKE-PROPERTY-CASING** — operations use wire-name casing (BlobTagsString) instead of camelCase (blobTagsString)
+  5. **SMOKE-PAGING-RETURN-TYPES** — classic wrappers type paged ops as Promise<T[]> instead of PagedAsyncIterableIterator<T>
+  6. **SMOKE-ARRAY-PARAM-TYPES** — buildCsvCollection rejects enum array types (FilterBlobsIncludeItem[])
+
+### Notes for next iteration
+- The `pnpm test` script runs smoke first (`test:smoke`) then unit tests (`vitest run`). To run unit tests only, use `npx vitest run`.
+- Generated output is preserved at `temp/smoke/http-client-js/` after running smoke tests.
+- These are all critical priority tasks blocking the smoke test.

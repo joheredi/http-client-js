@@ -956,6 +956,60 @@
       "status": "done",
       "priority": "P0",
       "dependencies": []
+    },
+    {
+      "id": "SMOKE-PAGING-HELPERS",
+      "title": "Fix pagingHelpers.ts static helper compilation errors",
+      "category": "smoke-fix",
+      "status": "not-started",
+      "priority": "critical",
+      "dependencies": [],
+      "description": "The generated pagingHelpers.ts has TypeScript compilation errors: (1) 'Cannot find name client' on lines 39-40 \u2014 likely a missing parameter or wrong variable reference in buildPagedAsyncIterator, (2) '[Symbol.asyncIterator]' does not exist in type 'PagedAsyncIterableIterator<TElement>' \u2014 the interface is missing the async iterator symbol. These errors prevent the smoke test from passing."
+    },
+    {
+      "id": "SMOKE-POLLING-HELPERS",
+      "title": "Fix pollingHelpers.ts static helper compilation errors",
+      "category": "smoke-fix",
+      "status": "not-started",
+      "priority": "critical",
+      "dependencies": [],
+      "description": "The generated pollingHelpers.ts has TypeScript compilation errors: (1) Module '@azure-rest/core-client' has no exported member 'RestError' \u2014 wrong import source for RestError, (2) 'Cannot find name TResult, did you mean TResult_1' \u2014 type parameter naming issue in generic function. These errors prevent the smoke test from passing."
+    },
+    {
+      "id": "SMOKE-API-VERSION-IN-OPS",
+      "title": "Fix operations accessing non-existent version/apiVersion on options/client",
+      "category": "smoke-fix",
+      "status": "not-started",
+      "priority": "critical",
+      "dependencies": [],
+      "description": "Generated operations access 'options?.version' for the x-ms-version header, but the options interfaces don't have a 'version' property. Also 'client.apiVersion' is accessed but Client type doesn't have it. The emitter needs to correctly resolve where apiVersion comes from (likely the client context, not individual options). Affects all operations in service/, container/, pageBlob/, blockBlob/, appendBlob/, blob/."
+    },
+    {
+      "id": "SMOKE-PROPERTY-CASING",
+      "title": "Fix operations using wrong property casing for option params",
+      "category": "smoke-fix",
+      "status": "not-started",
+      "priority": "critical",
+      "dependencies": [],
+      "description": "Generated operations access option properties with wrong casing: 'BlobTagsString' should be 'blobTagsString', 'PreventEncryptionScopeOverride' should be 'preventEncryptionScopeOverride', 'transactionalContentMD5' should be 'transactionalContentMd5'. The operation send function uses the original wire name instead of the camelCase name from the options interface. This is a name policy consistency issue between model interfaces and operation code."
+    },
+    {
+      "id": "SMOKE-PAGING-RETURN-TYPES",
+      "title": "Fix classic wrapper return types for paged operations",
+      "category": "smoke-fix",
+      "status": "not-started",
+      "priority": "critical",
+      "dependencies": [],
+      "description": "Classic wrapper methods for paged operations are typed as returning Promise<T[]> but the underlying API operations return PagedAsyncIterableIterator<T>. Affects container/index.ts (listBlobs, listBlobHierarchySegment) and service/index.ts (listContainers). The classic wrapper needs to propagate the correct paged return type."
+    },
+    {
+      "id": "SMOKE-ARRAY-PARAM-TYPES",
+      "title": "Fix buildCsvCollection called with enum array types",
+      "category": "smoke-fix",
+      "status": "not-started",
+      "priority": "critical",
+      "dependencies": [],
+      "description": "buildCsvCollection is called with FilterBlobsIncludeItem[] | undefined and ListBlobsIncludeItem[] | undefined, but its signature only accepts string[] | number[]. The enum array types are not compatible. Either buildCsvCollection needs to accept broader types, or the enum arrays need to be cast/mapped to strings before passing."
     }
   ],
   "phases_metadata": [

@@ -105,7 +105,7 @@ print(f'Marked {TASK_ID} as done')
 
 ## Phase 7: EXIT
 
-Exit the copilot CLI. If the PRD is complete (no remaining not-started tasks), output `<promise>COMPLETED</promise>` before exiting.
+Exit the copilot CLI. If the PRD is complete (no remaining not-started or pending tasks), output `<promise>COMPLETED</promise>` before exiting.
 
 ---
 

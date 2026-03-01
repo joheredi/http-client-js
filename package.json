@@ -48,7 +48,7 @@
     "build": "alloy build",
     "clean": "rimraf dist/ .temp/",
     "ralph": "node ralph.js --iterations 50",
-    "test": "npm run test:smoke && vitest run",
+    "test": "vitest run",
     "test:smoke": "vitest run --config vitest.smoke.config.ts",
     "test:watch": "vitest -w",
     "watch": "alloy build --watch",
