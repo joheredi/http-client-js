@@ -7,6 +7,7 @@ export default defineConfig({
     exclude: ["test/e2e/**"],
     passWithNoTests: true,
     testTimeout: 30000,
+    hookTimeout: 30000,
     pool: "forks",
   },
   esbuild: {

@@ -3095,6 +3095,642 @@
       "kind": "bug",
       "design_review": "docs/design-reviews/serialization-and-options-bugs.md#issue-4",
       "dependencies": []
+    },
+    {
+      "id": "FIX-ROOTCLIENT-BUILD",
+      "title": "Fix build errors: missing rootClient prop on SendOperation, PublicOperation, and HeaderDeserializationBlock components",
+      "description": "The build is failing with 15 TS2741 errors. The rootClient prop (SdkClientType<SdkHttpOperation>) was added to SendOperationProps, PublicOperationProps, and OperationDeclarationsProps but callers were not updated. Affected files: (1) src/components/operation-files.tsx line 167 - HeaderDeserializationBlock called without rootClient, (2) test/components/classical-client.test.tsx lines 140,144,779,783,854,858 - SendOperation and PublicOperation called without rootClient, (3) test/components/classical-operation-groups.test.tsx lines 133,137,689,693,765,769 - same issue, (4) test/components/sample-files.test.tsx lines 115,119 - same issue. Fix: pass the root client object to these components. In tests, use the client variable already in scope. In operation-files.tsx, pass rootClient from the parent props.",
+      "category": "bug-fix",
+      "priority": "critical",
+      "status": "done",
+      "dependencies": []
+    },
+    {
+      "id": "BUG-1",
+      "title": "Fix array deserialization producing unresolved refkeys",
+      "category": "serialization/JSON",
+      "priority": "P0",
+      "status": "done",
+      "description": "getDeserializationExpression in json-deserializer.tsx produces <Unresolved Symbol> for array element types that pass needsTransformation() but lack a corresponding deserializer declaration. The root cause is inconsistency across 4 parallel predicate systems (needsTransformation, valueTypeHasNamedDeserializerFn, valueTypeHasNamedDeserializer, and guards in getDeserializationExpression). Recommended fix: Approach A \u2014 create unified typeHasDeserializerDeclaration/typeHasSerializerDeclaration predicate functions as a single source of truth, and wire them into getDeserializationExpression and getSerializationExpression guards. See docs/design-reviews/serialization-and-options-bugs.md Issue 1 for full design review with 3 approaches analyzed.",
+      "source": "investigation",
+      "kind": "bug",
+      "design_review": "docs/design-reviews/serialization-and-options-bugs.md#issue-1",
+      "dependencies": []
+    },
+    {
+      "id": "BUG-2",
+      "title": "Fix deserializer/serializer property keys not matching name policy casing",
+      "category": "serialization/JSON",
+      "priority": "P0",
+      "status": "done",
+      "description": "Deserializer return object keys use raw TCGC prop.name (e.g., Code, Message) instead of name-policy-normalized camelCase (code, message). Model interfaces go through Alloy InterfaceMember which applies camelCase via name policy, but ObjectProperty in deserializers and string accessors in serializers bypass this. Affects json-deserializer.tsx (line 157), json-serializer.tsx (line 157), xml-object-serializer.tsx, and xml-object-deserializer.tsx. Recommended fix: Approach A \u2014 use namekey(prop.name) for ObjectProperty names + new normalizePropertyName() utility in name-policy.ts for string template accessors. See docs/design-reviews/serialization-and-options-bugs.md Issue 2 for full design review with 3 approaches analyzed.",
+      "source": "investigation",
+      "kind": "bug",
+      "design_review": "docs/design-reviews/serialization-and-options-bugs.md#issue-2",
+      "dependencies": []
+    },
+    {
+      "id": "SMOKE-1",
+      "title": "Send function uses JSON serializerRefkey for XML body operations",
+      "description": "buildBodyExpression() in send-operation.tsx (line ~834) calls getSerializationExpression() from json-serializer.tsx, which always uses serializerRefkey(type) \u2014 the JSON serializer refkey. For operations with XML content type (contentType: 'application/xml'), the body should be serialized with xmlSerializerRefkey(type) instead. XML input models are excluded from JSON serializer generation (model-files.tsx line ~173), so serializerRefkey(type) has no declaration \u2192 unresolved symbol in output.\n\nAffected operations (6 unresolved symbols, 54 cascade TS errors):\n- api/service/operations.ts _setPropertiesSend: body should use storageServicePropertiesXmlSerializer\n- api/service/operations.ts _getUserDelegationKeySend: body should use keyInfoXmlSerializer\n- api/blob/operations.ts _setTagsSend: body should use XML serializer for tags\n- api/container/operations.ts _setAccessPolicySend: body should use XML serializer for containerAcl\n- api/blockBlob/operations.ts _commitBlockListSend: body should use blockLookupListXmlSerializer\n- api/blockBlob/operations.ts _querySend: body should use queryRequestXmlSerializer\n\nFix approach: Make buildBodyExpression() in send-operation.tsx content-type-aware. When the operation's body content type is 'application/xml', use xmlSerializerRefkey(type) from src/utils/refkeys.ts instead of serializerRefkey(type). The XML serializer functions already exist in generated output \u2014 they just aren't referenced. The content type is available from the SdkBodyParameter or SdkHttpOperation metadata. Look at how contentType is already extracted in send-operation.tsx for the contentType request option to determine the XML branch.\n\nKey files:\n- src/components/send-operation.tsx: buildBodyExpression() (line ~834), getBodyContentType()\n- src/components/serialization/json-serializer.tsx: getSerializationExpression() (line ~303)\n- src/utils/refkeys.ts: serializerRefkey() vs xmlSerializerRefkey()\n\nTest: After fix, run pnpm build && pnpm test:smoke \u2014 the 6 unresolved symbols in operations.ts files should disappear.",
+      "status": "done",
+      "priority": "P0",
+      "phase": "smoke-fix"
+    },
+    {
+      "id": "SMOKE-2",
+      "title": "Array serializer helpers generated for XML-only types reference non-existent JSON serializers",
+      "description": "The JsonArraySerializer component (src/components/serialization/json-array-record-helpers.tsx line ~60) generates array helper functions like corsRuleArraySerializer() that internally call getSerializationExpression(type.valueType, 'item'), producing serializerRefkey(CorsRule). But CorsRule is an XML-only model that only has corsRuleXmlObjectSerializer, not corsRuleSerializer \u2192 unresolved symbol.\n\nAffected array serializers (4 unresolved symbols, 24 cascade TS errors in models/models.ts):\n- corsRuleArraySerializer \u2192 references missing corsRuleSerializer (only XML exists)\n- blobTagArraySerializer \u2192 references missing blobTagSerializer (only XML exists)\n- signedIdentifierArraySerializer \u2192 references missing signedIdentifierSerializer (only XML exists)\n- arrowFieldArraySerializer \u2192 references missing arrowFieldSerializer (only XML exists)\n\nFix approach (two options, pick one):\n\nOption A (Recommended): Don't generate JSON array serializers for XML-only types. In model-files.tsx where array/record serializer helpers are generated, filter out types whose element type is XML-only (hasXmlSerialization() from src/utils/xml-detection.ts). These array serializers are dead code anyway because the send functions also reference the wrong serializer (SMOKE-1). XML array serialization is handled inline by XmlObjectSerializer (xml-object-serializer.tsx line ~114) using xmlObjectSerializerRefkey(inner) in the .map() call.\n\nOption B: Make array serializer reference xmlObjectSerializerRefkey when the item type is XML-only. The .map() callback would call xmlObjectSerializerRefkey(itemType) instead of serializerRefkey(itemType).\n\nKey files:\n- src/components/serialization/json-array-record-helpers.tsx: JsonArraySerializer component (line ~40-70)\n- src/components/model-files.tsx: where array serializer helpers are rendered\n- src/utils/xml-detection.ts: hasXmlSerialization() helper\n\nDependency: This may be resolved as a side effect of SMOKE-1 if the approach also prevents array helper generation for XML types.\n\nTest: After fix, run pnpm build && pnpm test:smoke \u2014 the 4 unresolved symbols in models/models.ts should disappear.",
+      "status": "done",
+      "priority": "P0",
+      "phase": "smoke-fix"
+    },
+    {
+      "id": "SPECTOR-1",
+      "title": "Create emit-e2e generation script with spec auto-discovery",
+      "category": "testing/spector-infrastructure",
+      "priority": "P0",
+      "status": "done",
+      "kind": "feature",
+      "dependencies": [],
+      "design_review": null,
+      "source": "design",
+      "description": "Create `eng/scripts/emit-e2e.ts` \u2014 a standalone script that discovers and generates client libraries from all Spector specs.\n\n## What it does\n1. Auto-discovers specs by globbing `node_modules/@typespec/http-specs/specs/**/{main,client}.tsp` (prefer client.tsp over main.tsp per directory)\n2. Filters specs against a `.testignore` file at `test/e2e/.testignore`\n3. Runs `tsp compile` for each spec with configurable parallelism (pLimit based on os.cpus().length)\n4. Outputs generated code to `test/e2e/generated/{spec-path}/` (e.g., `test/e2e/generated/authentication/api-key/src/...`)\n5. Reports results: X succeeded, Y failed, Z skipped\n6. Writes error logs to `temp/emit-e2e-logs/{spec-path}/error.log`\n\n## Key implementation details\n\n### Spec discovery\n- Use `globby` or Node fs.glob to find `**/{main,client}.tsp` under the http-specs package\n- If both `client.tsp` and `main.tsp` exist in same directory, prefer `client.tsp`\n- The http-specs package is at `node_modules/@typespec/http-specs/specs`\n\n### .testignore format\nOne spec path per line (relative to specs dir). Lines starting with # are comments. Example:\n```\n# Streaming not supported yet\nstreaming/jsonl\n# Multipart needs work\npayload/multipart\n```\n\n### tsp compile invocation\nFor each spec, run:\n```bash\nnpx tsp compile <spec-path> --emit <emitter-path> --output-dir <output-dir>\n```\nWhere:\n- `<spec-path>` is the absolute path to the main.tsp or client.tsp file\n- `<emitter-path>` is the root of this repo (resolve from import.meta.dirname up to repo root). The emitter is loaded from `dist/` so the project MUST be built first.\n- `<output-dir>` is `test/e2e/generated/{relative-spec-path}/`\n\nPass emitter options via the `--option` flag or via a tspconfig.yaml. The emitter needs these options:\n- `generate-metadata: true` (generates package.json, tsconfig.json)\n- `flavor: core` (standard non-Azure flavor)\n\n### Parallelism\nUse `p-limit` (or similar) to run up to `os.cpus().length` compilations in parallel. Each compilation is a child process via `child_process.execFile` or `execa`.\n\n### CLI interface\nSupport these flags:\n- `--filter <glob>` \u2014 only process specs matching this pattern (e.g., `--filter 'type/array'`)\n- No flags = process all non-ignored specs\n\n### Error handling\n- If a spec fails to compile, log stderr to `temp/emit-e2e-logs/` and continue with remaining specs\n- Exit with code 1 if any spec failed\n- Print summary at end: 'N/M specs succeeded, K skipped, J failed'\n\n## Reference implementations\n- **Primary reference**: `submodules/typespec/packages/http-client-js/eng/scripts/emit-e2e.js` \u2014 the reference emitter's generation script. Study its spec discovery (globby for `**/*.client.tsp` or `**/*.main.tsp`), pLimit(4) parallelism, error logging to temp/emit-e2e-logs/, and Prettier post-processing.\n- **Legacy reference**: `submodules/autorest.typescript/packages/typespec-ts/test/commands/gen-cadl-ranch.js` \u2014 uses a hardcoded spec list (`cadl-ranch-list.js`). We do NOT want this approach; prefer auto-discovery.\n\n## Files to create\n- `eng/scripts/emit-e2e.ts`\n- `test/e2e/.testignore` (initial ignore list for unsupported specs)\n\n## Files to modify\n- `package.json` \u2014 add script: `\"emit:e2e\": \"tsx eng/scripts/emit-e2e.ts\"`\n- `.gitignore` \u2014 add `test/e2e/generated/`\n\n## Validation\n- Run `pnpm build && pnpm emit:e2e` and verify generated code appears in `test/e2e/generated/`\n- At least a few specs should generate successfully (e.g., authentication/api-key, routes, type/array)\n- Failed specs should produce error logs in `temp/emit-e2e-logs/`"
+    },
+    {
+      "id": "SPECTOR-2",
+      "title": "Create Vitest e2e config with Spector server globalSetup",
+      "category": "testing/spector-infrastructure",
+      "priority": "P0",
+      "status": "done",
+      "kind": "feature",
+      "dependencies": [
+        "SPECTOR-1"
+      ],
+      "design_review": null,
+      "source": "design",
+      "description": "Create the Vitest configuration and globalSetup/teardown for running Spector integration tests.\n\n## What it does\n1. `vitest.config.e2e.ts` \u2014 Vitest config that includes only `test/e2e/**/*.test.ts` files\n2. `test/e2e/setup/global-setup.ts` \u2014 starts the Spector mock server before tests\n3. `test/e2e/setup/global-teardown.ts` \u2014 stops the server and collects coverage after tests\n\n## vitest.config.e2e.ts\n```typescript\nimport { defineConfig } from 'vitest/config';\n\nexport default defineConfig({\n  test: {\n    environment: 'node',\n    include: ['test/e2e/**/*.test.ts'],\n    globalSetup: ['test/e2e/setup/global-setup.ts'],\n    testTimeout: 30_000,\n    isolate: false,  // faster: tests share process\n  },\n});\n```\n\n## global-setup.ts\nThe setup must:\n1. Start the Spector mock server using `tsp-spector server start`\n2. Pass the specs path: `node_modules/@typespec/http-specs/specs`\n3. Use port 3002 (matches legacy convention, avoids conflicts with dev servers)\n4. Enable coverage tracking: `--coverageFile temp/spector-coverage.json`\n5. Poll for server readiness by making HTTP GET requests to a known endpoint\n6. The readiness endpoint: `http://localhost:3002/routes/in-interface/fixed` should return 204\n7. Retry up to 30 times with 1s delay between retries\n8. Export the `setup()` and `teardown()` functions as Vitest globalSetup expects\n\n### Server start command\n```bash\nnpx tsp-spector server start node_modules/@typespec/http-specs/specs --port 3002 --coverageFile temp/spector-coverage.json\n```\n\n### Server stop command (in teardown)\n```bash\nnpx tsp-spector server stop --port 3002\n```\n\n## Reference implementations\n- **Primary reference**: `submodules/typespec/packages/http-client-js/eng/scripts/run-e2e-tests.js` \u2014 see `waitForServer()` function (polls with retries + delay), server spawn, and cleanup logic.\n- **Spector CLI**: `submodules/typespec/packages/spector/src/cli/cli.ts` \u2014 the `server start` command starts in background, `server stop` stops it. Default port is 3000 but we use 3002.\n\n## Files to create\n- `vitest.config.e2e.ts`\n- `test/e2e/setup/global-setup.ts`\n\n## Files to modify\n- `package.json` \u2014 add scripts:\n  - `\"test:e2e\": \"pnpm emit:e2e && vitest run --config vitest.config.e2e.ts\"`\n  - `\"test:e2e:only\": \"vitest run --config vitest.config.e2e.ts\"` (skip generation)\n\n## Validation\n- Run `pnpm test:e2e:only` with no test files yet \u2014 it should start the server, find no tests, and stop cleanly\n- Verify the server starts on port 3002 and responds to health checks\n- Verify the server stops cleanly in teardown\n- Verify `temp/spector-coverage.json` is created"
+    },
+    {
+      "id": "SPECTOR-3",
+      "title": "Port first Spector test as proof-of-concept: authentication/api-key",
+      "category": "testing/spector-integration",
+      "priority": "P0",
+      "status": "done",
+      "kind": "feature",
+      "dependencies": [
+        "SPECTOR-2"
+      ],
+      "design_review": null,
+      "source": "design",
+      "description": "Port the `authentication/api-key` Spector test as a proof-of-concept to validate the entire e2e pipeline.\n\n## What this test validates\nThe API key authentication spec tests that the generated client:\n1. Can make authenticated requests with a valid API key (header `x-ms-api-key`)\n2. Correctly receives a 403 error when using an invalid API key\n\n## Test file to create\n`test/e2e/http/authentication/api-key/main.test.ts`\n\n## Legacy test to port from\n`submodules/autorest.typescript/packages/typespec-ts/test/modularIntegration/authApiKey.spec.ts`\n\nThe legacy test pattern:\n```typescript\nimport { ApiKeyClient } from './generated/authentication/api-key/src/index.js';\nimport { assert } from 'chai';\n\ndescribe('ApiKeyClient', () => {\n  let client: ApiKeyClient;\n  beforeEach(() => {\n    client = new ApiKeyClient({ key: 'valid-key' }, {\n      endpoint: 'http://localhost:3002',\n      allowInsecureConnection: true,\n    });\n  });\n  it('should authenticate with valid key', async () => {\n    const result = await client.valid();\n    assert.isUndefined(result);\n  });\n  it('should reject invalid key', async () => {\n    client = new ApiKeyClient({ key: 'invalid-key' }, { ... });\n    try { await client.invalid(); assert.fail('expected error'); }\n    catch (err) { assert.strictEqual(err.statusCode, 403); }\n  });\n});\n```\n\n## Porting guidelines\n- Use Vitest (`describe`, `it`, `expect`, `beforeEach`) instead of Mocha + Chai\n- Import from relative path to generated code: `../../../generated/authentication/api-key/src/index.js`\n- Use same port 3002 and `allowInsecureConnection: true`\n- The client constructor and method signatures come from the generated code. Build first (`pnpm emit:e2e`) and inspect `test/e2e/generated/authentication/api-key/src/index.ts` to see actual exports.\n\n## Spector mock server expectation\nSee `submodules/typespec/packages/http-specs/specs/authentication/api-key/mockapi.ts`:\n- `GET /authentication/api-key/valid` expects header `x-ms-api-key: valid-key`, returns 204\n- `GET /authentication/api-key/invalid` returns 403\n\n## Reference test from reference emitter\n`submodules/typespec/packages/http-client-js/test/e2e/http/authentication/api-key/main.test.ts`\n\n## Validation\n1. Run `pnpm build && pnpm emit:e2e --filter authentication/api-key`\n2. Inspect generated code at `test/e2e/generated/authentication/api-key/src/`\n3. Run `pnpm test:e2e:only` \u2014 the test should pass against the mock server\n4. This validates the full pipeline: generation \u2192 build \u2192 server \u2192 test"
+    },
+    {
+      "id": "SPECTOR-4",
+      "title": "Port authentication and server Spector tests",
+      "category": "testing/spector-integration",
+      "priority": "P1",
+      "status": "done",
+      "kind": "feature",
+      "dependencies": [
+        "SPECTOR-3"
+      ],
+      "design_review": null,
+      "source": "design",
+      "description": "Port the authentication and server-related Spector integration tests.\n\n## Tests to port (7 test files)\n\n### Authentication tests\n| Legacy test file | Spector spec | New test path |\n|---|---|---|\n| `authApiKey.spec.ts` | `authentication/api-key` | Already done in SPECTOR-3 |\n| `authHttpCustom.spec.ts` | `authentication/http/custom` | `test/e2e/http/authentication/http/custom/main.test.ts` |\n| `authOauth2.spec.ts` | `authentication/oauth2` | `test/e2e/http/authentication/oauth2/main.test.ts` |\n| `authUnion.spec.ts` | `authentication/union` | `test/e2e/http/authentication/union/main.test.ts` |\n\n### Server tests\n| Legacy test file | Spector spec | New test path |\n|---|---|---|\n| `server.spec.ts` | `server/path/single`, `server/path/multiple`, `server/versions/versioned`, `server/versions/not-versioned` | `test/e2e/http/server/path/single/main.test.ts`, etc. |\n| `serverEndpointNotDefined.spec.ts` | `server/endpoint/not-defined` | `test/e2e/http/server/endpoint/not-defined/main.test.ts` |\n\n## Porting pattern\nFor each test:\n1. Read the legacy test in `submodules/autorest.typescript/packages/typespec-ts/test/modularIntegration/`\n2. Read the Spector spec mockapi.ts in `submodules/typespec/packages/http-specs/specs/` to understand expected behavior\n3. Optionally reference the test from `submodules/typespec/packages/http-client-js/test/e2e/http/` as a secondary reference\n4. Write the new test using Vitest (`describe`, `it`, `expect`, `beforeEach`)\n5. Import the generated client from `../../../generated/{spec-path}/src/index.js` (adjust relative depth as needed)\n6. Use `endpoint: 'http://localhost:3002'` and `allowInsecureConnection: true`\n\n## Key differences from legacy tests\n- Vitest instead of Mocha + Chai\n- `expect(result).toBeUndefined()` instead of `assert.isUndefined(result)`\n- `expect(result).toBe(value)` instead of `assert.strictEqual(result, value)`\n- `expect(result).toEqual(obj)` instead of `assert.deepEqual(result, obj)`\n- `expect(() => ...).rejects.toThrow()` for error assertions\n\n## Validation\nRun `pnpm build && pnpm test:e2e` and verify all ported tests pass."
+    },
+    {
+      "id": "SPECTOR-6",
+      "title": "Port encode and serialization Spector tests",
+      "category": "testing/spector-integration",
+      "priority": "P1",
+      "status": "done",
+      "kind": "feature",
+      "dependencies": [
+        "SPECTOR-3"
+      ],
+      "design_review": null,
+      "source": "design",
+      "description": "Port all encoding and serialization related Spector integration tests (6 test files).\n\n## Tests to port\n\n| Legacy test file | Spector spec | New test path |\n|---|---|---|\n| `encodeArray.spec.ts` | `encode/array` | `test/e2e/http/encode/array/main.test.ts` |\n| `encodeBytes.spec.ts` | `encode/bytes` | `test/e2e/http/encode/bytes/main.test.ts` |\n| `encodeDatetime.spec.ts` | `encode/datetime` | `test/e2e/http/encode/datetime/main.test.ts` |\n| `encodeDuration.spec.ts` | `encode/duration` | `test/e2e/http/encode/duration/main.test.ts` |\n| `encodeNumeric.spec.ts` | `encode/numeric` | `test/e2e/http/encode/numeric/main.test.ts` |\n| `serializationEncodeNameJson.spec.ts` | `serialization/encoded-name/json` | `test/e2e/http/serialization/encoded-name/json/main.test.ts` |\n\n## Porting guidelines\nSame pattern as SPECTOR-4. These tests validate that the emitter correctly handles:\n- Byte encoding (base64, base64url, hex)\n- Datetime encoding (rfc3339, rfc7231, unixTimestamp)\n- Duration encoding (ISO 8601, seconds, float seconds)\n- Numeric encoding (safeint, uint8, string encoding for large ints)\n- Array encoding (CSV, SSV, TSV, pipes in headers/query)\n- JSON property name encoding (@encodedName)\n\n## Reference files\n- Legacy tests: `submodules/autorest.typescript/packages/typespec-ts/test/modularIntegration/encode*.spec.ts`\n- Spector specs: `submodules/typespec/packages/http-specs/specs/encode/*/mockapi.ts`\n- Reference tests: `submodules/typespec/packages/http-client-js/test/e2e/http/encode/*/main.test.ts`\n\n## Validation\nRun `pnpm build && pnpm test:e2e` \u2014 all encode/serialization tests should pass."
+    },
+    {
+      "id": "FIX-CLIENT-INIT-HEADERS",
+      "title": "Fix clientInitialization header params reading from context instead of options",
+      "description": "3 scenario tests fail because header parameters with clientInitialization are generated as context[\"param\"] instead of options?.param. Affected tests: (1) apiVersion/apiVersionAsFixedEnum - generates context.apiVersion instead of options?.apiVersion, (2-3) headerParam/headerParamWithClientInitialization (optional + required) - generates context[\"$expand\"] instead of options?.$expand. The send function should read these from options, not from context.",
+      "category": "bug-fix",
+      "status": "done",
+      "priority": "P0",
+      "dependencies": []
+    },
+    {
+      "id": "FIX-XML-ARRAY-SERIALIZER-NULL-GUARD",
+      "title": "Fix XML object serializer adding unnecessary null guards around array .map()",
+      "description": "Scenario test xml/xmlArrayItemTypes fails because the XML object serializer wraps array .map() calls with !item[\"prop\"] ? item[\"prop\"] : item[\"prop\"]?.map(...) instead of just item[\"prop\"]?.map(...). The extra null-guard pattern is not expected by the legacy emitter output. Affected test: payload/scenarios.test.ts > xml/xmlArrayItemTypes.md > XML Arrays with Typed Items > blockLookupListXmlObjectSerializer.",
+      "category": "bug-fix",
+      "status": "done",
+      "priority": "P0",
+      "dependencies": []
+    },
+    {
+      "id": "SMOKE-PAGING-HELPERS",
+      "title": "Fix pagingHelpers.ts static helper compilation errors",
+      "category": "smoke-fix",
+      "status": "done",
+      "priority": "critical",
+      "dependencies": [],
+      "description": "The generated pagingHelpers.ts has TypeScript compilation errors: (1) 'Cannot find name client' on lines 39-40 \u2014 likely a missing parameter or wrong variable reference in buildPagedAsyncIterator, (2) '[Symbol.asyncIterator]' does not exist in type 'PagedAsyncIterableIterator<TElement>' \u2014 the interface is missing the async iterator symbol. These errors prevent the smoke test from passing."
+    },
+    {
+      "id": "SMOKE-POLLING-HELPERS",
+      "title": "Fix pollingHelpers.ts static helper compilation errors",
+      "category": "smoke-fix",
+      "status": "done",
+      "priority": "critical",
+      "dependencies": [],
+      "description": "The generated pollingHelpers.ts has TypeScript compilation errors: (1) Module '@azure-rest/core-client' has no exported member 'RestError' \u2014 wrong import source for RestError, (2) 'Cannot find name TResult, did you mean TResult_1' \u2014 type parameter naming issue in generic function. These errors prevent the smoke test from passing."
+    },
+    {
+      "id": "SMOKE-API-VERSION-IN-OPS",
+      "title": "Fix operations accessing non-existent version/apiVersion on options/client",
+      "category": "smoke-fix",
+      "status": "done",
+      "priority": "critical",
+      "dependencies": [],
+      "description": "Generated operations access 'options?.version' for the x-ms-version header, but the options interfaces don't have a 'version' property. Also 'client.apiVersion' is accessed but Client type doesn't have it. The emitter needs to correctly resolve where apiVersion comes from (likely the client context, not individual options). Affects all operations in service/, container/, pageBlob/, blockBlob/, appendBlob/, blob/."
+    },
+    {
+      "id": "SMOKE-PROPERTY-CASING",
+      "title": "Fix operations using wrong property casing for option params",
+      "category": "smoke-fix",
+      "status": "done",
+      "priority": "critical",
+      "dependencies": [],
+      "description": "Generated operations access option properties with wrong casing: 'BlobTagsString' should be 'blobTagsString', 'PreventEncryptionScopeOverride' should be 'preventEncryptionScopeOverride', 'transactionalContentMD5' should be 'transactionalContentMd5'. The operation send function uses the original wire name instead of the camelCase name from the options interface. This is a name policy consistency issue between model interfaces and operation code."
+    },
+    {
+      "id": "SMOKE-PAGING-RETURN-TYPES",
+      "title": "Fix classic wrapper return types for paged operations",
+      "category": "smoke-fix",
+      "status": "done",
+      "priority": "critical",
+      "dependencies": [],
+      "description": "Classic wrapper methods for paged operations are typed as returning Promise<T[]> but the underlying API operations return PagedAsyncIterableIterator<T>. Affects container/index.ts (listBlobs, listBlobHierarchySegment) and service/index.ts (listContainers). The classic wrapper needs to propagate the correct paged return type."
+    },
+    {
+      "id": "SMOKE-ARRAY-PARAM-TYPES",
+      "title": "Fix buildCsvCollection called with enum array types",
+      "category": "smoke-fix",
+      "status": "done",
+      "priority": "critical",
+      "dependencies": [],
+      "description": "buildCsvCollection is called with FilterBlobsIncludeItem[] | undefined and ListBlobsIncludeItem[] | undefined, but its signature only accepts string[] | number[]. The enum array types are not compatible. Either buildCsvCollection needs to accept broader types, or the enum arrays need to be cast/mapped to strings before passing."
+    },
+    {
+      "id": "FIX-CONTEXT-PARAM-TYPE",
+      "title": "Fix operation context parameter type from Client to specific context type",
+      "description": "Operations type the context parameter as base Client from runtime lib, but should use the specific context type (e.g., BlobContext) so that custom properties like version/apiVersion are available without as-any casts. Requires updating buildFunctionParameters in send-operation.tsx and public-operation.tsx to use clientContextRefkey(rootClient), and updating 49+ scenario test expectations.",
+      "category": "smoke-fix",
+      "status": "done",
+      "priority": "low",
+      "dependencies": []
+    },
+    {
+      "id": "SMOKE-PROMISELIKE-TYPE",
+      "title": "Fix PromiseLike vs Promise type mismatch in send functions",
+      "description": "The smoke test shows 3 TypeScript errors where send functions return PromiseLike<PathUncheckedResponse> but the variable expects Promise<PathUncheckedResponse>. PromiseLike is missing catch, finally, and [Symbol.toStringTag]. Need to ensure send functions return Promise instead of PromiseLike.",
+      "status": "done",
+      "category": "smoke-fix",
+      "priority": "critical",
+      "dependencies": []
+    },
+    {
+      "id": "SPECTOR-5A",
+      "title": "Port simple type Spector tests (array, dictionary, enum, scalar, union)",
+      "category": "testing/spector-integration",
+      "priority": "P1",
+      "status": "done",
+      "kind": "feature",
+      "dependencies": [
+        "SPECTOR-3"
+      ],
+      "design_review": null,
+      "source": "design",
+      "description": "Port 6 simple type-system Spector e2e tests. These test basic container and value types.\n\n## Tests to port\n\n| Legacy test file | Spector spec | New test path | Test cases |\n|---|---|---|---|\n| `arrayItemTypes.spec.ts` | `type/array` | `test/e2e/http/type/array/main.test.ts` | ~14 (dynamic) |\n| `dictionaryTypes.spec.ts` | `type/dictionary` | `test/e2e/http/type/dictionary/main.test.ts` | 19 |\n| `extensibleEnums.spec.ts` | `type/enum/extensible` | `test/e2e/http/type/enum/extensible/main.test.ts` | 4 |\n| `fixedEnums.spec.ts` | `type/enum/fixed` | `test/e2e/http/type/enum/fixed/main.test.ts` | 3 |\n| `scalar.spec.ts` | `type/scalar` | `test/e2e/http/type/scalar/main.test.ts` | 14 |\n| `unions.spec.ts` | `type/union` | `test/e2e/http/type/union/main.test.ts` | 20 |\n\n## Porting guidelines\nSame pattern as existing e2e tests (e.g., test/e2e/http/authentication/api-key/main.test.ts).\n- Use Vitest (describe, it, expect)\n- Import generated client from relative path to test/e2e/generated/{spec-path}/src/index.js\n- Use endpoint: 'http://localhost:3002', allowInsecureConnection: true\n- Reference tests at submodules/typespec/packages/http-client-js/test/e2e/http/type/\n- Legacy tests at submodules/autorest.typescript/packages/typespec-ts/test/modularIntegration/\n\n## Validation\nRun `pnpm build && pnpm test:e2e`"
+    },
+    {
+      "id": "SPECTOR-5B",
+      "title": "Port model type Spector tests (empty, usage, inheritance/*)",
+      "category": "testing/spector-integration",
+      "priority": "P1",
+      "status": "done",
+      "kind": "feature",
+      "dependencies": [
+        "SPECTOR-3"
+      ],
+      "design_review": null,
+      "source": "design",
+      "description": "Port 7 model type Spector e2e tests. These test model structure, usage tracking, and discriminated/non-discriminated inheritance.\n\n## Tests to port\n\n| Legacy test file | Spector spec | New test path | Test cases |\n|---|---|---|---|\n| `modelsEmpty.spec.ts` | `type/model/empty` | `test/e2e/http/type/model/empty/main.test.ts` | 3 |\n| `usage.spec.ts` | `type/model/usage` | `test/e2e/http/type/model/usage/main.test.ts` | 6 |\n| `modelInheritanceEnumDiscriminator.spec.ts` | `type/model/inheritance/enum-discriminator` | `test/e2e/http/type/model/inheritance/enum-discriminator/main.test.ts` | 8 |\n| `modelInheritanceNestedDiscriminator.spec.ts` | `type/model/inheritance/nested-discriminator` | `test/e2e/http/type/model/inheritance/nested-discriminator/main.test.ts` | 6 |\n| `modelInheritanceNotDiscriminated.spec.ts` | `type/model/inheritance/not-discriminated` | `test/e2e/http/type/model/inheritance/not-discriminated/main.test.ts` | 3 |\n| `modelInheritanceRecursive.spec.ts` | `type/model/inheritance/recursive` | `test/e2e/http/type/model/inheritance/recursive/main.test.ts` | 2 |\n| `modelInheritanceSingleDiscriminator.spec.ts` | `type/model/inheritance/single-discriminator` | `test/e2e/http/type/model/inheritance/single-discriminator/main.test.ts` | 7 |\n\n## Complex tests to watch out for\n- **enum-discriminator**: Tests discriminated unions with enum discriminator properties\n- **nested-discriminator**: Multi-level discriminated inheritance\n- **single-discriminator**: Complex discriminated union assertions with deepEqual\n\n## Validation\nRun `pnpm build && pnpm test:e2e`"
+    },
+    {
+      "id": "SPECTOR-5C",
+      "title": "Port property type Spector tests (value-types, nullable, optionality, additional-properties)",
+      "category": "testing/spector-integration",
+      "priority": "P1",
+      "status": "done",
+      "kind": "feature",
+      "dependencies": [
+        "SPECTOR-3"
+      ],
+      "design_review": null,
+      "source": "design",
+      "description": "Port 4 property type Spector e2e tests. These are the most test-case-dense files in the type system batch.\n\n## Tests to port\n\n| Legacy test file | Spector spec | New test path | Test cases |\n|---|---|---|---|\n| `modelPropertyType.spec.ts` | `type/property/value-types` | `test/e2e/http/type/property/value-types/main.test.ts` | ~58 (dynamic) |\n| `nullableProperties.spec.ts` | `type/property/nullable` | `test/e2e/http/type/property/nullable/main.test.ts` | 7 |\n| `optionalProperties.spec.ts` | `type/property/optionality` | `test/e2e/http/type/property/optionality/main.test.ts` | 16 |\n| `modelPropertyAdditional.spec.ts` | `type/property/additional-properties` | `test/e2e/http/type/property/additional-properties/main.test.ts` | 52 |\n\n## Complex tests to watch out for\n- **value-types**: Very large (393 lines legacy). Uses loops to dynamically generate ~58 test cases for get/put of various property types (boolean, string, int, float, datetime, enum, model, collections, etc.)\n- **additional-properties**: Largest file (734 lines, 52 tests). Tests open models with additional properties. 4 tests skipped in legacy due to spread record union issues.\n- **nullable**: Tests nullable property handling with 7 scenarios\n- **optionality**: Tests optional vs required property semantics with 16 test cases\n\n## Validation\nRun `pnpm build && pnpm test:e2e`"
+    }
+  ],
+  "archived_requirements": [
+    {
+      "id": "FR1",
+      "title": "TypeSpec Emitter Integration",
+      "description": "Implement $onEmit hook that receives TypeSpec EmitContext, initializes TCGC SdkContext, builds Alloy JSX component tree, and writes output files.",
+      "priority": "P0",
+      "acceptance_criteria": [
+        "Emitter registers via TypeSpec lib definition",
+        "Calls createSdkContext() to initialize TCGC",
+        "Extracts SdkPackage with clients, models, enums",
+        "Renders JSX tree via writeOutput()",
+        "Emits TypeScript files to configured output directory"
+      ],
+      "status": "done",
+      "implementation_notes": "Emitter entry point ($onEmit) implemented in emitter.tsx. Registers with TypeSpec compiler, calls createSdkContext(), builds JSX tree, renders via writeOutput()."
+    },
+    {
+      "id": "FR2",
+      "title": "Model Type Generation",
+      "description": "Generate TypeScript interfaces from SdkModelType, including properties, inheritance, discriminators, additional properties, and documentation.",
+      "priority": "P0",
+      "acceptance_criteria": [
+        "SdkModelType \u2192 ts.InterfaceDeclaration with correct properties",
+        "Base model inheritance via extends",
+        "Discriminator property marked correctly",
+        "Additional properties support (Record types)",
+        "Flattened properties expanded inline",
+        "Optional/readonly modifiers applied",
+        "JSDoc documentation from SDK model doc/summary"
+      ],
+      "status": "done"
+    },
+    {
+      "id": "FR3",
+      "title": "Enum Type Generation",
+      "description": "Generate TypeScript enums from SdkEnumType with the KnownXXX pattern for extensible enums.",
+      "priority": "P0",
+      "acceptance_criteria": [
+        "Fixed enums \u2192 standard TypeScript enum",
+        "Extensible enums \u2192 KnownXXX enum + type XXX = string alias",
+        "Enum values correctly mapped",
+        "Enum members have JSDoc documentation"
+      ],
+      "status": "done",
+      "implementation_notes": "EnumDeclaration component generates type alias + KnownXXX enum from SdkEnumType. Handles fixed (union of literals) and extensible (base type) patterns. 7 unit tests."
+    },
+    {
+      "id": "FR4",
+      "title": "Union Type Generation",
+      "description": "Generate TypeScript union type aliases from SdkUnionType.",
+      "priority": "P0",
+      "acceptance_criteria": [
+        "SdkUnionType \u2192 type XXX = A | B | C",
+        "Variant types correctly referenced via refkeys",
+        "Nullable types include | null"
+      ],
+      "status": "done",
+      "implementation_notes": "UnionDeclaration component generates type alias from SdkUnionType using <For> with joiner for pipe-separated variant types. Uses getTypeExpression() for variant resolution and typeRefkey() for declaration identity. 7 unit tests cover mixed primitives, model variants, JSDoc docs, single-variant edge case, and cross-reference via refkey."
+    },
+    {
+      "id": "FR5",
+      "title": "JSON Serialization",
+      "description": "Generate serializer and deserializer functions for all model types used in request/response bodies.",
+      "priority": "P0",
+      "acceptance_criteria": [
+        "Serializer function per model with Input usage",
+        "Deserializer function per model with Output/Exception usage",
+        "Property name mapping (client name \u2192 wire name and vice versa)",
+        "Nested model types call child serializer refkeys",
+        "Array types use .map() with child serializer",
+        "Dictionary types use serializeRecord() helper",
+        "Null checks for nullable properties",
+        "Additional properties spread",
+        "Flatten property handling"
+      ],
+      "status": "done",
+      "implementation_notes": "JsonSerializer and JsonDeserializer components generate serializer/deserializer functions from SdkModelType. Serializers map client names to wire names, deserializers reverse. Handles nested models (child serializer calls via refkey), arrays (.map() with child serializer), optional properties (null-check ternary guards), and simple passthrough types. Uses Alloy ObjectExpression/ObjectProperty for proper formatting. Integrated into ModelFiles orchestrator with Usage flag filtering (Input for serializers, Output/Exception for deserializers). 15 unit tests."
+    },
+    {
+      "id": "FR6",
+      "title": "Polymorphic Serialization",
+      "description": "Generate discriminated union serializers that switch on discriminator property to route to subtype serializers.",
+      "priority": "P0",
+      "acceptance_criteria": [
+        "Switch statement on discriminator property",
+        "Each case routes to subtype serializer/deserializer refkey",
+        "Parameter type uses polymorphicTypeRefkey (union type, not base)"
+      ],
+      "status": "done"
+    },
+    {
+      "id": "FR7",
+      "title": "XML Serialization",
+      "description": "Generate XML serializer/deserializer functions (4 per type) using metadata-driven approach.",
+      "priority": "P1",
+      "acceptance_criteria": [
+        "4 functions per type: serializer, objectSerializer, deserializer, objectDeserializer",
+        "Property metadata arrays with XML options",
+        "Uses serializeToXml/deserializeFromXml static helpers",
+        "XML namespace handling"
+      ],
+      "status": "done",
+      "implementation_notes": "XML serialization implemented via XmlSerializer, XmlObjectSerializer, XmlDeserializer, XmlObjectDeserializer components. Metadata-driven approach with 4 functions per model. XmlHelpersFile provides static helper functions. 14 unit tests."
+    },
+    {
+      "id": "FR8",
+      "title": "Operation Generation",
+      "description": "Generate operation functions with the send/deserialize/public pattern for each API operation.",
+      "priority": "P0",
+      "acceptance_criteria": [
+        "_sendXXX function builds HTTP request (URL, headers, query, body)",
+        "_deserializeXXX function processes response (status check, body parse, headers)",
+        "Public xxx function calls send \u2192 deserialize",
+        "Operations grouped by operation group path",
+        "Each group in separate source file under src/api/"
+      ],
+      "status": "done",
+      "notes": "Send function (3.2), Deserialize function (3.3), and Public operation function (3.4) are all implemented. Remaining: Operations orchestrator (3.5) to group operations into files.",
+      "implementation_notes": "All 5 sub-tasks complete: OperationOptionsDeclaration (3.1), SendOperation (3.2), DeserializeOperation (3.3), PublicOperation (3.4), OperationFiles orchestrator (3.5). Operations grouped by path prefix into separate source files under api/."
+    },
+    {
+      "id": "FR9",
+      "title": "Operation Options",
+      "description": "Generate TypeScript interfaces for optional operation parameters.",
+      "priority": "P0",
+      "acceptance_criteria": [
+        "Interface extends OperationOptions",
+        "Optional method parameters included",
+        "LRO operations get updateIntervalInMs",
+        "Dual-format operations get contentType",
+        "JSDoc documentation from parameter docs"
+      ],
+      "status": "done",
+      "notes": "OperationOptionsDeclaration component generates OptionalParams interfaces. Supports LRO updateIntervalInMs, dual-format contentType, JSDoc, and OperationOptions extension."
+    },
+    {
+      "id": "FR10",
+      "title": "Client Context",
+      "description": "Generate client context interface and factory function.",
+      "priority": "P0",
+      "acceptance_criteria": [
+        "Context interface extends Client",
+        "Required properties from clientInitialization",
+        "API version property for versioned services",
+        "Factory function with endpoint, credentials, options parameters",
+        "Credential handling (API key, bearer, OAuth2)",
+        "Pipeline configuration"
+      ],
+      "status": "done",
+      "implementation_notes": "ClientContextFile generates context interface extending Client, options interface extending ClientOptions, and factory function with endpoint/credential/options handling. Handles URL templates, API version, telemetry."
+    },
+    {
+      "id": "FR11",
+      "title": "Classical Client Class",
+      "description": "Generate the user-facing client class wrapping operation-level API.",
+      "priority": "P0",
+      "acceptance_criteria": [
+        "Class with private _client field",
+        "Public pipeline property",
+        "Constructor calling factory function",
+        "Constructor overloads for subscriptionId (ARM)",
+        "Operation methods delegating to API functions",
+        "Operation group getters for nested groups",
+        "Child client getters"
+      ],
+      "status": "done",
+      "implementation_notes": "ClassicalClientFile generates class with private _client field, public pipeline property, constructor calling factory function, operation methods delegating to API functions, and operation group getters."
+    },
+    {
+      "id": "FR12",
+      "title": "Classical Operation Groups",
+      "description": "Generate operation group interfaces and factory functions for hierarchical client APIs.",
+      "priority": "P0",
+      "acceptance_criteria": [
+        "Interface per operation group level",
+        "Factory function returning operation methods",
+        "Nested group properties",
+        "LRO helper methods (begin_*, begin_*_andWait)"
+      ],
+      "status": "done",
+      "implementation_notes": "ClassicalOperationGroupFiles generates interface per group level, factory function returning operation methods, nested group properties, and LRO helper methods."
+    },
+    {
+      "id": "FR13",
+      "title": "LRO Support",
+      "description": "Support long-running operations with polling and restore capabilities.",
+      "priority": "P0",
+      "acceptance_criteria": [
+        "LRO operations wrapped with getLongRunningPoller",
+        "RestorePoller helper generated for state restoration",
+        "Operation-to-deserializer mapping for poller restore",
+        "URL template matching for operation routing"
+      ],
+      "status": "done",
+      "implementation_notes": "RestorePollerFile generates LRO restore poller helper. PollingHelpersFile provides getLongRunningPoller. Operations wrapped with getLongRunningPoller via PublicOperation component."
+    },
+    {
+      "id": "FR14",
+      "title": "Paging Support",
+      "description": "Support paginated operations with async iterators.",
+      "priority": "P0",
+      "acceptance_criteria": [
+        "Paging operations wrapped with buildPagedAsyncIterator",
+        "Combined LRO+paging operations supported",
+        "PageSettings, ContinuablePage types exported"
+      ],
+      "status": "done",
+      "implementation_notes": "PagingHelpersFile provides buildPagedAsyncIterator, PagedAsyncIterableIterator, PageSettings. Paging operations wrapped in PublicOperation component."
+    },
+    {
+      "id": "FR15",
+      "title": "Multipart Support",
+      "description": "Support multipart form data request bodies.",
+      "priority": "P1",
+      "acceptance_criteria": [
+        "Multipart body parameters detected",
+        "File part descriptors generated",
+        "createFilePartDescriptor helper used"
+      ],
+      "status": "done",
+      "implementation_notes": "MultipartSerializer generates multipart form-data serialization. MultipartHelpersFile provides FileContents type and createFilePartDescriptor function. 6 unit tests."
+    },
+    {
+      "id": "FR16",
+      "title": "Index/Barrel Files",
+      "description": "Generate proper export structure with root and subpath index files.",
+      "priority": "P0",
+      "acceptance_criteria": [
+        "Root index.ts exports clients, models, options, helper types",
+        "Subpath index.ts in api/, models/, classic/",
+        "Internal symbols (_prefixed) excluded from exports",
+        "Serializer functions excluded from public exports"
+      ],
+      "status": "done",
+      "implementation_notes": "IndexFiles generates root index.ts, models/index.ts, api/index.ts, classic/index.ts barrel files with selective exports. Internal _prefixed symbols excluded."
+    },
+    {
+      "id": "FR17",
+      "title": "Static Helper Files",
+      "description": "Emit static helper source files (serialization utils, collection builders, URL template, etc.).",
+      "priority": "P0",
+      "acceptance_criteria": [
+        "All 21 static helper files emittable",
+        "Each helper has refkey declaration for cross-file reference",
+        "Helpers only included when referenced",
+        "Import remapping for Azure vs non-Azure packages"
+      ],
+      "status": "done",
+      "implementation_notes": "StaticHelpers orchestrator renders 5 helper files: serializationHelpers.ts, pagingHelpers.ts, pollingHelpers.ts, multipartHelpers.ts, xmlHelpers.ts. Each uses refkeys for cross-file reference."
+    },
+    {
+      "id": "FR18",
+      "title": "Sample Generation",
+      "description": "Generate per-operation sample TypeScript files.",
+      "priority": "P2",
+      "acceptance_criteria": [
+        "Sample file per operation",
+        "Client construction code",
+        "Parameter setup from examples",
+        "API call invocation"
+      ],
+      "status": "done",
+      "implementation_notes": "SampleFiles generates per-operation sample files in samples-dev/. Handles OAuth2/API key credentials, endpoint env vars, operation calls. 18 unit tests."
+    },
+    {
+      "id": "FR19",
+      "title": "Logger File",
+      "description": "Generate logger module for Azure-flavored SDKs.",
+      "priority": "P1",
+      "acceptance_criteria": [
+        "Only emitted for Azure flavor",
+        "Uses createClientLogger from @azure/logger",
+        "Package name derived from package details"
+      ],
+      "status": "done",
+      "implementation_notes": "LoggerFile component generates logger.ts with createClientLogger() from @azure/logger. Takes packageName prop for the logger namespace. Exports logger via refkey for cross-file references. 7 unit tests cover import generation, export, package name embedding, const declaration, refkey resolution, and legacy output parity."
+    }
+  ],
+  "archived_phases": [
+    {
+      "phase": 0,
+      "name": "Project Foundation & Infrastructure",
+      "description": "Set up dependencies, emitter entry point, context system, refkey helpers, external packages, and test infrastructure.",
+      "dependencies": [],
+      "status": "done"
+    },
+    {
+      "phase": 1,
+      "name": "Models & Type Declarations",
+      "description": "Generate TypeScript interfaces, enums, type aliases, and union types from TCGC types.",
+      "dependencies": [
+        0
+      ],
+      "status": "done"
+    },
+    {
+      "phase": 2,
+      "name": "Serialization & Deserialization",
+      "description": "Generate JSON and XML serializer/deserializer functions for all model types.",
+      "dependencies": [
+        1
+      ],
+      "status": "done"
+    },
+    {
+      "phase": 3,
+      "name": "Operations",
+      "description": "Generate operation functions with send/deserialize pattern.",
+      "dependencies": [
+        2
+      ],
+      "status": "done"
+    },
+    {
+      "phase": 4,
+      "name": "Client Infrastructure",
+      "description": "Generate client context interface, factory function, and logger.",
+      "dependencies": [
+        3
+      ],
+      "status": "done"
+    },
+    {
+      "phase": 5,
+      "name": "Classical Client",
+      "description": "Generate user-facing client class and operation groups.",
+      "dependencies": [
+        4
+      ],
+      "status": "done"
+    },
+    {
+      "phase": 6,
+      "name": "Advanced Features",
+      "description": "Implement LRO restore, multipart, and sample generation.",
+      "dependencies": [
+        5
+      ],
+      "status": "done"
+    },
+    {
+      "phase": 7,
+      "name": "Index & Barrel Files",
+      "description": "Generate proper export structure.",
+      "dependencies": [
+        6
+      ],
+      "status": "done"
+    },
+    {
+      "phase": 8,
+      "name": "Azure Flavor Extension",
+      "description": "Design and implement Azure-specific extensions via composition.",
+      "dependencies": [
+        7
+      ],
+      "status": "done"
+    },
+    {
+      "phase": 9,
+      "name": "Test Porting & Validation",
+      "description": "Port all 101 scenario tests and validate output parity.",
+      "dependencies": [
+        0
+      ],
+      "status": "done"
+    },
+    {
+      "id": 10,
+      "name": "Validation Fixes \u2014 Remaining 124 Test Failures",
+      "description": "Tasks to fix the remaining 124 scenario test failures identified during validation. Categorized by root cause. Total: 124 failures across 9 categories.",
+      "status": "done"
+    },
+    {
+      "id": 11,
+      "name": "Scenario Test Parity \u2014 Audit Findings",
+      "description": "Tasks derived from the scenario test audit comparing 102 test files between the new Alloy emitter and the legacy autorest.typescript emitter. Each task represents a category of semantic differences that must be resolved to achieve output parity.",
+      "status": "done"
+    },
+    {
+      "phase": 12,
+      "title": "Scenario Test Parity \u2014 Root Cause Fixes",
+      "description": "Address all semantic differences identified by the scenario audit, recategorized by root cause. Each task maps to a specific code location and a single fix. 36 tasks total.",
+      "status": "done",
+      "name": "Remaining Corrections"
     }
   ]
 }

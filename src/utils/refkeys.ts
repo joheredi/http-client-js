@@ -472,6 +472,8 @@ function getTypeSignature(type: unknown): string {
       return getTypeSignature(t.type);
     case "union":
       return `union:${t.name ?? "anon"}`;
+    case "enum":
+      return `enum:${t.name ?? "anon"}`;
     default:
       return t.kind;
   }

@@ -344,4 +344,87 @@ describe("Unresolved Symbol Prevention", () => {
     // Input+Output models have a deserializer
     expect(typeHasDeserializerDeclaration(bothModel)).toBe(true);
   });
+
+  /**
+   * Regression test for extensible enum array serialization producing
+   * unresolved symbols. When a model has a property of type `Array<UnionAsEnum>`,
+   * the model serializer previously generated `arraySerializerRefkey(enumType)`,
+   * but no corresponding `JsonArraySerializer` was rendered because
+   * `collectArrayTypes` didn't recognize enum types. This caused the output to
+   * contain `<Unresolved Symbol: refkey[sarraySerializer...senum]>`, breaking
+   * the generated TypeScript.
+   *
+   * The fix removes the `enum` case from `valueTypeHasNamedSerializerFn` so that
+   * array elements of enum type use inline `.map()` with the element serializer
+   * reference instead of referencing a non-existent named array helper function.
+   *
+   * This was the root cause of 12 skipped e2e tests in Encode.Array — the entire
+   * client was unusable because models.ts contained unresolved symbol text that
+   * caused esbuild parse failures.
+   */
+  it("should resolve extensible enum array types in model serializers", async () => {
+    const runner = await TesterWithService.createInstance();
+    const { program } = await runner.compile(
+      t.code`
+        union ${t.union("Colors")} {
+          "blue",
+          "red",
+          "green",
+          string,
+        }
+
+        model ${t.model("TestModel")} {
+          colors: Colors[];
+        }
+
+        op ${t.op("createTest")}(@body body: TestModel): void;
+      `,
+    );
+
+    const sdkContext = await createSdkContextForTest(program);
+
+    const template = (
+      <ModelFilesTestWrapper sdkContext={sdkContext}>
+        <ModelFiles />
+      </ModelFilesTestWrapper>
+    );
+
+    // Verify the model renders without unresolved symbol references.
+    // Before the fix, arrays of extensible enum types produced
+    // `<Unresolved Symbol: refkey[sarraySerializer⁣senum]>` in the serializer.
+    expect(template).toRenderTo({
+      "models/index.ts": 'export * from "./models.js";',
+      "models/models.ts": d`
+        /**
+         * This file contains only generated model types and their (de)serializers.
+         * Disable the following rules for internal models with '_' prefix and deserializers which require 'any' for raw JSON input.
+         */
+        /* eslint-disable @typescript-eslint/naming-convention */
+        /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
+
+        /**
+         * model interface TestModel
+         */
+        export interface TestModel {
+          colors: Colors[];
+        }
+
+        /**
+         * Type of Colors
+         */
+        export type Colors = \"blue\" | \"red\" | \"green\";
+
+        export function testModelSerializer(item: TestModel): any {
+          return {
+            colors: item[\"colors\"].map((p: any) => { return colorsSerializer(p); }),
+          };
+        }
+
+        export function colorsSerializer(item: Colors): any {
+          return item;
+        }
+      `,
+    });
+  });
 });

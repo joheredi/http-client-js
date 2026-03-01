@@ -429,6 +429,8 @@ function getTypeSignatureForCollection(type: SdkType): string {
       return getTypeSignatureForCollection(type.type);
     case "union":
       return `union:${type.name ?? "anon"}`;
+    case "enum":
+      return `enum:${type.name ?? "anon"}`;
     default:
       return type.kind;
   }

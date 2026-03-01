@@ -7,6 +7,7 @@ export default defineConfig({
     include: ["test/e2e/**/*.test.ts"],
     globalSetup: ["test/e2e/setup/global-setup.ts"],
     testTimeout: 30_000,
+    hookTimeout: 30_000,
     isolate: false,
     passWithNoTests: true,
     pool: "forks",

@@ -84,284 +84,7 @@
     }
   ],
   "requirements": {
-    "functional": [
-      {
-        "id": "FR1",
-        "title": "TypeSpec Emitter Integration",
-        "description": "Implement $onEmit hook that receives TypeSpec EmitContext, initializes TCGC SdkContext, builds Alloy JSX component tree, and writes output files.",
-        "priority": "P0",
-        "acceptance_criteria": [
-          "Emitter registers via TypeSpec lib definition",
-          "Calls createSdkContext() to initialize TCGC",
-          "Extracts SdkPackage with clients, models, enums",
-          "Renders JSX tree via writeOutput()",
-          "Emits TypeScript files to configured output directory"
-        ],
-        "status": "done",
-        "implementation_notes": "Emitter entry point ($onEmit) implemented in emitter.tsx. Registers with TypeSpec compiler, calls createSdkContext(), builds JSX tree, renders via writeOutput()."
-      },
-      {
-        "id": "FR2",
-        "title": "Model Type Generation",
-        "description": "Generate TypeScript interfaces from SdkModelType, including properties, inheritance, discriminators, additional properties, and documentation.",
-        "priority": "P0",
-        "acceptance_criteria": [
-          "SdkModelType → ts.InterfaceDeclaration with correct properties",
-          "Base model inheritance via extends",
-          "Discriminator property marked correctly",
-          "Additional properties support (Record types)",
-          "Flattened properties expanded inline",
-          "Optional/readonly modifiers applied",
-          "JSDoc documentation from SDK model doc/summary"
-        ],
-        "status": "done"
-      },
-      {
-        "id": "FR3",
-        "title": "Enum Type Generation",
-        "description": "Generate TypeScript enums from SdkEnumType with the KnownXXX pattern for extensible enums.",
-        "priority": "P0",
-        "acceptance_criteria": [
-          "Fixed enums → standard TypeScript enum",
-          "Extensible enums → KnownXXX enum + type XXX = string alias",
-          "Enum values correctly mapped",
-          "Enum members have JSDoc documentation"
-        ],
-        "status": "done",
-        "implementation_notes": "EnumDeclaration component generates type alias + KnownXXX enum from SdkEnumType. Handles fixed (union of literals) and extensible (base type) patterns. 7 unit tests."
-      },
-      {
-        "id": "FR4",
-        "title": "Union Type Generation",
-        "description": "Generate TypeScript union type aliases from SdkUnionType.",
-        "priority": "P0",
-        "acceptance_criteria": [
-          "SdkUnionType → type XXX = A | B | C",
-          "Variant types correctly referenced via refkeys",
-          "Nullable types include | null"
-        ],
-        "status": "done",
-        "implementation_notes": "UnionDeclaration component generates type alias from SdkUnionType using <For> with joiner for pipe-separated variant types. Uses getTypeExpression() for variant resolution and typeRefkey() for declaration identity. 7 unit tests cover mixed primitives, model variants, JSDoc docs, single-variant edge case, and cross-reference via refkey."
-      },
-      {
-        "id": "FR5",
-        "title": "JSON Serialization",
-        "description": "Generate serializer and deserializer functions for all model types used in request/response bodies.",
-        "priority": "P0",
-        "acceptance_criteria": [
-          "Serializer function per model with Input usage",
-          "Deserializer function per model with Output/Exception usage",
-          "Property name mapping (client name → wire name and vice versa)",
-          "Nested model types call child serializer refkeys",
-          "Array types use .map() with child serializer",
-          "Dictionary types use serializeRecord() helper",
-          "Null checks for nullable properties",
-          "Additional properties spread",
-          "Flatten property handling"
-        ],
-        "status": "done",
-        "implementation_notes": "JsonSerializer and JsonDeserializer components generate serializer/deserializer functions from SdkModelType. Serializers map client names to wire names, deserializers reverse. Handles nested models (child serializer calls via refkey), arrays (.map() with child serializer), optional properties (null-check ternary guards), and simple passthrough types. Uses Alloy ObjectExpression/ObjectProperty for proper formatting. Integrated into ModelFiles orchestrator with Usage flag filtering (Input for serializers, Output/Exception for deserializers). 15 unit tests."
-      },
-      {
-        "id": "FR6",
-        "title": "Polymorphic Serialization",
-        "description": "Generate discriminated union serializers that switch on discriminator property to route to subtype serializers.",
-        "priority": "P0",
-        "acceptance_criteria": [
-          "Switch statement on discriminator property",
-          "Each case routes to subtype serializer/deserializer refkey",
-          "Parameter type uses polymorphicTypeRefkey (union type, not base)"
-        ],
-        "status": "done"
-      },
-      {
-        "id": "FR7",
-        "title": "XML Serialization",
-        "description": "Generate XML serializer/deserializer functions (4 per type) using metadata-driven approach.",
-        "priority": "P1",
-        "acceptance_criteria": [
-          "4 functions per type: serializer, objectSerializer, deserializer, objectDeserializer",
-          "Property metadata arrays with XML options",
-          "Uses serializeToXml/deserializeFromXml static helpers",
-          "XML namespace handling"
-        ],
-        "status": "done",
-        "implementation_notes": "XML serialization implemented via XmlSerializer, XmlObjectSerializer, XmlDeserializer, XmlObjectDeserializer components. Metadata-driven approach with 4 functions per model. XmlHelpersFile provides static helper functions. 14 unit tests."
-      },
-      {
-        "id": "FR8",
-        "title": "Operation Generation",
-        "description": "Generate operation functions with the send/deserialize/public pattern for each API operation.",
-        "priority": "P0",
-        "acceptance_criteria": [
-          "_sendXXX function builds HTTP request (URL, headers, query, body)",
-          "_deserializeXXX function processes response (status check, body parse, headers)",
-          "Public xxx function calls send → deserialize",
-          "Operations grouped by operation group path",
-          "Each group in separate source file under src/api/"
-        ],
-        "status": "done",
-        "notes": "Send function (3.2), Deserialize function (3.3), and Public operation function (3.4) are all implemented. Remaining: Operations orchestrator (3.5) to group operations into files.",
-        "implementation_notes": "All 5 sub-tasks complete: OperationOptionsDeclaration (3.1), SendOperation (3.2), DeserializeOperation (3.3), PublicOperation (3.4), OperationFiles orchestrator (3.5). Operations grouped by path prefix into separate source files under api/."
-      },
-      {
-        "id": "FR9",
-        "title": "Operation Options",
-        "description": "Generate TypeScript interfaces for optional operation parameters.",
-        "priority": "P0",
-        "acceptance_criteria": [
-          "Interface extends OperationOptions",
-          "Optional method parameters included",
-          "LRO operations get updateIntervalInMs",
-          "Dual-format operations get contentType",
-          "JSDoc documentation from parameter docs"
-        ],
-        "status": "done",
-        "notes": "OperationOptionsDeclaration component generates OptionalParams interfaces. Supports LRO updateIntervalInMs, dual-format contentType, JSDoc, and OperationOptions extension."
-      },
-      {
-        "id": "FR10",
-        "title": "Client Context",
-        "description": "Generate client context interface and factory function.",
-        "priority": "P0",
-        "acceptance_criteria": [
-          "Context interface extends Client",
-          "Required properties from clientInitialization",
-          "API version property for versioned services",
-          "Factory function with endpoint, credentials, options parameters",
-          "Credential handling (API key, bearer, OAuth2)",
-          "Pipeline configuration"
-        ],
-        "status": "done",
-        "implementation_notes": "ClientContextFile generates context interface extending Client, options interface extending ClientOptions, and factory function with endpoint/credential/options handling. Handles URL templates, API version, telemetry."
-      },
-      {
-        "id": "FR11",
-        "title": "Classical Client Class",
-        "description": "Generate the user-facing client class wrapping operation-level API.",
-        "priority": "P0",
-        "acceptance_criteria": [
-          "Class with private _client field",
-          "Public pipeline property",
-          "Constructor calling factory function",
-          "Constructor overloads for subscriptionId (ARM)",
-          "Operation methods delegating to API functions",
-          "Operation group getters for nested groups",
-          "Child client getters"
-        ],
-        "status": "done",
-        "implementation_notes": "ClassicalClientFile generates class with private _client field, public pipeline property, constructor calling factory function, operation methods delegating to API functions, and operation group getters."
-      },
-      {
-        "id": "FR12",
-        "title": "Classical Operation Groups",
-        "description": "Generate operation group interfaces and factory functions for hierarchical client APIs.",
-        "priority": "P0",
-        "acceptance_criteria": [
-          "Interface per operation group level",
-          "Factory function returning operation methods",
-          "Nested group properties",
-          "LRO helper methods (begin_*, begin_*_andWait)"
-        ],
-        "status": "done",
-        "implementation_notes": "ClassicalOperationGroupFiles generates interface per group level, factory function returning operation methods, nested group properties, and LRO helper methods."
-      },
-      {
-        "id": "FR13",
-        "title": "LRO Support",
-        "description": "Support long-running operations with polling and restore capabilities.",
-        "priority": "P0",
-        "acceptance_criteria": [
-          "LRO operations wrapped with getLongRunningPoller",
-          "RestorePoller helper generated for state restoration",
-          "Operation-to-deserializer mapping for poller restore",
-          "URL template matching for operation routing"
-        ],
-        "status": "done",
-        "implementation_notes": "RestorePollerFile generates LRO restore poller helper. PollingHelpersFile provides getLongRunningPoller. Operations wrapped with getLongRunningPoller via PublicOperation component."
-      },
-      {
-        "id": "FR14",
-        "title": "Paging Support",
-        "description": "Support paginated operations with async iterators.",
-        "priority": "P0",
-        "acceptance_criteria": [
-          "Paging operations wrapped with buildPagedAsyncIterator",
-          "Combined LRO+paging operations supported",
-          "PageSettings, ContinuablePage types exported"
-        ],
-        "status": "done",
-        "implementation_notes": "PagingHelpersFile provides buildPagedAsyncIterator, PagedAsyncIterableIterator, PageSettings. Paging operations wrapped in PublicOperation component."
-      },
-      {
-        "id": "FR15",
-        "title": "Multipart Support",
-        "description": "Support multipart form data request bodies.",
-        "priority": "P1",
-        "acceptance_criteria": [
-          "Multipart body parameters detected",
-          "File part descriptors generated",
-          "createFilePartDescriptor helper used"
-        ],
-        "status": "done",
-        "implementation_notes": "MultipartSerializer generates multipart form-data serialization. MultipartHelpersFile provides FileContents type and createFilePartDescriptor function. 6 unit tests."
-      },
-      {
-        "id": "FR16",
-        "title": "Index/Barrel Files",
-        "description": "Generate proper export structure with root and subpath index files.",
-        "priority": "P0",
-        "acceptance_criteria": [
-          "Root index.ts exports clients, models, options, helper types",
-          "Subpath index.ts in api/, models/, classic/",
-          "Internal symbols (_prefixed) excluded from exports",
-          "Serializer functions excluded from public exports"
-        ],
-        "status": "done",
-        "implementation_notes": "IndexFiles generates root index.ts, models/index.ts, api/index.ts, classic/index.ts barrel files with selective exports. Internal _prefixed symbols excluded."
-      },
-      {
-        "id": "FR17",
-        "title": "Static Helper Files",
-        "description": "Emit static helper source files (serialization utils, collection builders, URL template, etc.).",
-        "priority": "P0",
-        "acceptance_criteria": [
-          "All 21 static helper files emittable",
-          "Each helper has refkey declaration for cross-file reference",
-          "Helpers only included when referenced",
-          "Import remapping for Azure vs non-Azure packages"
-        ],
-        "status": "done",
-        "implementation_notes": "StaticHelpers orchestrator renders 5 helper files: serializationHelpers.ts, pagingHelpers.ts, pollingHelpers.ts, multipartHelpers.ts, xmlHelpers.ts. Each uses refkeys for cross-file reference."
-      },
-      {
-        "id": "FR18",
-        "title": "Sample Generation",
-        "description": "Generate per-operation sample TypeScript files.",
-        "priority": "P2",
-        "acceptance_criteria": [
-          "Sample file per operation",
-          "Client construction code",
-          "Parameter setup from examples",
-          "API call invocation"
-        ],
-        "status": "done",
-        "implementation_notes": "SampleFiles generates per-operation sample files in samples-dev/. Handles OAuth2/API key credentials, endpoint env vars, operation calls. 18 unit tests."
-      },
-      {
-        "id": "FR19",
-        "title": "Logger File",
-        "description": "Generate logger module for Azure-flavored SDKs.",
-        "priority": "P1",
-        "acceptance_criteria": [
-          "Only emitted for Azure flavor",
-          "Uses createClientLogger from @azure/logger",
-          "Package name derived from package details"
-        ],
-        "status": "done",
-        "implementation_notes": "LoggerFile component generates logger.ts with createClientLogger() from @azure/logger. Takes packageName prop for the logger namespace. Exports logger via refkey for cross-file references. 7 unit tests cover import generation, export, package name embedding, const declaration, refkey resolution, and legacy output parity."
-      }
-    ],
+    "functional": [],
     "non_functional": [
       {
         "id": "NFR1",
@@ -409,7 +132,7 @@
       "package": "@azure-tools/typespec-client-generator-core",
       "description": "Provides SdkPackage object model that pre-computes data from TypeSpec definitions. Language-agnostic SDK type system with clients, operations, models, enums, and type metadata."
     },
-    "data_flow": "TypeSpec Input → Compiler → TCGC SdkPackage → Alloy JSX Components → Symbol Tree → TypeScript Files",
+    "data_flow": "TypeSpec Input \u2192 Compiler \u2192 TCGC SdkPackage \u2192 Alloy JSX Components \u2192 Symbol Tree \u2192 TypeScript Files",
     "key_concepts": {
       "refkeys": "Symbolic reference keys created via refkey(entity, discriminator). Each declaration gets a refkey; references use the same refkey. Alloy resolves cross-file references and auto-generates imports.",
       "code_templates": "Tagged template literals (code`...`) that treat interpolated refkeys as live symbolic references. Alloy tracks them and resolves imports automatically.",
@@ -513,10 +236,10 @@
       }
     ],
     "test_infrastructure": {
-      "test_host": "test/test-host.ts — Tester instance with TypeSpec library imports",
-      "test_utils": "test/utils.tsx — TestFile, DeclarationTestFile wrappers, testHelper()",
-      "custom_matchers": "test/vitest.d.ts — toRenderTo, toRenderToAsync from @alloy-js/core/testing",
-      "scenario_harness": "test/scenarios/scenarios.spec.ts — MD file parser + assertion engine"
+      "test_host": "test/test-host.ts \u2014 Tester instance with TypeSpec library imports",
+      "test_utils": "test/utils.tsx \u2014 TestFile, DeclarationTestFile wrappers, testHelper()",
+      "custom_matchers": "test/vitest.d.ts \u2014 toRenderTo, toRenderToAsync from @alloy-js/core/testing",
+      "scenario_harness": "test/scenarios/scenarios.spec.ts \u2014 MD file parser + assertion engine"
     },
     "acceptable_differences": [
       "Import statement ordering",
@@ -776,123 +499,6 @@
   },
   "tasks": [
     {
-      "id": "FIX-ROOTCLIENT-BUILD",
-      "title": "Fix build errors: missing rootClient prop on SendOperation, PublicOperation, and HeaderDeserializationBlock components",
-      "description": "The build is failing with 15 TS2741 errors. The rootClient prop (SdkClientType<SdkHttpOperation>) was added to SendOperationProps, PublicOperationProps, and OperationDeclarationsProps but callers were not updated. Affected files: (1) src/components/operation-files.tsx line 167 - HeaderDeserializationBlock called without rootClient, (2) test/components/classical-client.test.tsx lines 140,144,779,783,854,858 - SendOperation and PublicOperation called without rootClient, (3) test/components/classical-operation-groups.test.tsx lines 133,137,689,693,765,769 - same issue, (4) test/components/sample-files.test.tsx lines 115,119 - same issue. Fix: pass the root client object to these components. In tests, use the client variable already in scope. In operation-files.tsx, pass rootClient from the parent props.",
-      "category": "bug-fix",
-      "priority": "critical",
-      "status": "done",
-      "dependencies": []
-    },
-    {
-      "id": "BUG-1",
-      "title": "Fix array deserialization producing unresolved refkeys",
-      "category": "serialization/JSON",
-      "priority": "P0",
-      "status": "done",
-      "description": "getDeserializationExpression in json-deserializer.tsx produces <Unresolved Symbol> for array element types that pass needsTransformation() but lack a corresponding deserializer declaration. The root cause is inconsistency across 4 parallel predicate systems (needsTransformation, valueTypeHasNamedDeserializerFn, valueTypeHasNamedDeserializer, and guards in getDeserializationExpression). Recommended fix: Approach A — create unified typeHasDeserializerDeclaration/typeHasSerializerDeclaration predicate functions as a single source of truth, and wire them into getDeserializationExpression and getSerializationExpression guards. See docs/design-reviews/serialization-and-options-bugs.md Issue 1 for full design review with 3 approaches analyzed.",
-      "source": "investigation",
-      "kind": "bug",
-      "design_review": "docs/design-reviews/serialization-and-options-bugs.md#issue-1",
-      "dependencies": []
-    },
-    {
-      "id": "BUG-2",
-      "title": "Fix deserializer/serializer property keys not matching name policy casing",
-      "category": "serialization/JSON",
-      "priority": "P0",
-      "status": "done",
-      "description": "Deserializer return object keys use raw TCGC prop.name (e.g., Code, Message) instead of name-policy-normalized camelCase (code, message). Model interfaces go through Alloy InterfaceMember which applies camelCase via name policy, but ObjectProperty in deserializers and string accessors in serializers bypass this. Affects json-deserializer.tsx (line 157), json-serializer.tsx (line 157), xml-object-serializer.tsx, and xml-object-deserializer.tsx. Recommended fix: Approach A — use namekey(prop.name) for ObjectProperty names + new normalizePropertyName() utility in name-policy.ts for string template accessors. See docs/design-reviews/serialization-and-options-bugs.md Issue 2 for full design review with 3 approaches analyzed.",
-      "source": "investigation",
-      "kind": "bug",
-      "design_review": "docs/design-reviews/serialization-and-options-bugs.md#issue-2",
-      "dependencies": []
-    },
-    {
-      "id": "SMOKE-1",
-      "title": "Send function uses JSON serializerRefkey for XML body operations",
-      "description": "buildBodyExpression() in send-operation.tsx (line ~834) calls getSerializationExpression() from json-serializer.tsx, which always uses serializerRefkey(type) — the JSON serializer refkey. For operations with XML content type (contentType: 'application/xml'), the body should be serialized with xmlSerializerRefkey(type) instead. XML input models are excluded from JSON serializer generation (model-files.tsx line ~173), so serializerRefkey(type) has no declaration → unresolved symbol in output.\n\nAffected operations (6 unresolved symbols, 54 cascade TS errors):\n- api/service/operations.ts _setPropertiesSend: body should use storageServicePropertiesXmlSerializer\n- api/service/operations.ts _getUserDelegationKeySend: body should use keyInfoXmlSerializer\n- api/blob/operations.ts _setTagsSend: body should use XML serializer for tags\n- api/container/operations.ts _setAccessPolicySend: body should use XML serializer for containerAcl\n- api/blockBlob/operations.ts _commitBlockListSend: body should use blockLookupListXmlSerializer\n- api/blockBlob/operations.ts _querySend: body should use queryRequestXmlSerializer\n\nFix approach: Make buildBodyExpression() in send-operation.tsx content-type-aware. When the operation's body content type is 'application/xml', use xmlSerializerRefkey(type) from src/utils/refkeys.ts instead of serializerRefkey(type). The XML serializer functions already exist in generated output — they just aren't referenced. The content type is available from the SdkBodyParameter or SdkHttpOperation metadata. Look at how contentType is already extracted in send-operation.tsx for the contentType request option to determine the XML branch.\n\nKey files:\n- src/components/send-operation.tsx: buildBodyExpression() (line ~834), getBodyContentType()\n- src/components/serialization/json-serializer.tsx: getSerializationExpression() (line ~303)\n- src/utils/refkeys.ts: serializerRefkey() vs xmlSerializerRefkey()\n\nTest: After fix, run pnpm build && pnpm test:smoke — the 6 unresolved symbols in operations.ts files should disappear.",
-      "status": "done",
-      "priority": "P0",
-      "phase": "smoke-fix"
-    },
-    {
-      "id": "SMOKE-2",
-      "title": "Array serializer helpers generated for XML-only types reference non-existent JSON serializers",
-      "description": "The JsonArraySerializer component (src/components/serialization/json-array-record-helpers.tsx line ~60) generates array helper functions like corsRuleArraySerializer() that internally call getSerializationExpression(type.valueType, 'item'), producing serializerRefkey(CorsRule). But CorsRule is an XML-only model that only has corsRuleXmlObjectSerializer, not corsRuleSerializer → unresolved symbol.\n\nAffected array serializers (4 unresolved symbols, 24 cascade TS errors in models/models.ts):\n- corsRuleArraySerializer → references missing corsRuleSerializer (only XML exists)\n- blobTagArraySerializer → references missing blobTagSerializer (only XML exists)\n- signedIdentifierArraySerializer → references missing signedIdentifierSerializer (only XML exists)\n- arrowFieldArraySerializer → references missing arrowFieldSerializer (only XML exists)\n\nFix approach (two options, pick one):\n\nOption A (Recommended): Don't generate JSON array serializers for XML-only types. In model-files.tsx where array/record serializer helpers are generated, filter out types whose element type is XML-only (hasXmlSerialization() from src/utils/xml-detection.ts). These array serializers are dead code anyway because the send functions also reference the wrong serializer (SMOKE-1). XML array serialization is handled inline by XmlObjectSerializer (xml-object-serializer.tsx line ~114) using xmlObjectSerializerRefkey(inner) in the .map() call.\n\nOption B: Make array serializer reference xmlObjectSerializerRefkey when the item type is XML-only. The .map() callback would call xmlObjectSerializerRefkey(itemType) instead of serializerRefkey(itemType).\n\nKey files:\n- src/components/serialization/json-array-record-helpers.tsx: JsonArraySerializer component (line ~40-70)\n- src/components/model-files.tsx: where array serializer helpers are rendered\n- src/utils/xml-detection.ts: hasXmlSerialization() helper\n\nDependency: This may be resolved as a side effect of SMOKE-1 if the approach also prevents array helper generation for XML types.\n\nTest: After fix, run pnpm build && pnpm test:smoke — the 4 unresolved symbols in models/models.ts should disappear.",
-      "status": "done",
-      "priority": "P0",
-      "phase": "smoke-fix"
-    },
-    {
-      "id": "SPECTOR-1",
-      "title": "Create emit-e2e generation script with spec auto-discovery",
-      "category": "testing/spector-infrastructure",
-      "priority": "P0",
-      "status": "done",
-      "kind": "feature",
-      "dependencies": [],
-      "design_review": null,
-      "source": "design",
-      "description": "Create `eng/scripts/emit-e2e.ts` — a standalone script that discovers and generates client libraries from all Spector specs.\n\n## What it does\n1. Auto-discovers specs by globbing `node_modules/@typespec/http-specs/specs/**/{main,client}.tsp` (prefer client.tsp over main.tsp per directory)\n2. Filters specs against a `.testignore` file at `test/e2e/.testignore`\n3. Runs `tsp compile` for each spec with configurable parallelism (pLimit based on os.cpus().length)\n4. Outputs generated code to `test/e2e/generated/{spec-path}/` (e.g., `test/e2e/generated/authentication/api-key/src/...`)\n5. Reports results: X succeeded, Y failed, Z skipped\n6. Writes error logs to `temp/emit-e2e-logs/{spec-path}/error.log`\n\n## Key implementation details\n\n### Spec discovery\n- Use `globby` or Node fs.glob to find `**/{main,client}.tsp` under the http-specs package\n- If both `client.tsp` and `main.tsp` exist in same directory, prefer `client.tsp`\n- The http-specs package is at `node_modules/@typespec/http-specs/specs`\n\n### .testignore format\nOne spec path per line (relative to specs dir). Lines starting with # are comments. Example:\n```\n# Streaming not supported yet\nstreaming/jsonl\n# Multipart needs work\npayload/multipart\n```\n\n### tsp compile invocation\nFor each spec, run:\n```bash\nnpx tsp compile <spec-path> --emit <emitter-path> --output-dir <output-dir>\n```\nWhere:\n- `<spec-path>` is the absolute path to the main.tsp or client.tsp file\n- `<emitter-path>` is the root of this repo (resolve from import.meta.dirname up to repo root). The emitter is loaded from `dist/` so the project MUST be built first.\n- `<output-dir>` is `test/e2e/generated/{relative-spec-path}/`\n\nPass emitter options via the `--option` flag or via a tspconfig.yaml. The emitter needs these options:\n- `generate-metadata: true` (generates package.json, tsconfig.json)\n- `flavor: core` (standard non-Azure flavor)\n\n### Parallelism\nUse `p-limit` (or similar) to run up to `os.cpus().length` compilations in parallel. Each compilation is a child process via `child_process.execFile` or `execa`.\n\n### CLI interface\nSupport these flags:\n- `--filter <glob>` — only process specs matching this pattern (e.g., `--filter 'type/array'`)\n- No flags = process all non-ignored specs\n\n### Error handling\n- If a spec fails to compile, log stderr to `temp/emit-e2e-logs/` and continue with remaining specs\n- Exit with code 1 if any spec failed\n- Print summary at end: 'N/M specs succeeded, K skipped, J failed'\n\n## Reference implementations\n- **Primary reference**: `submodules/typespec/packages/http-client-js/eng/scripts/emit-e2e.js` — the reference emitter's generation script. Study its spec discovery (globby for `**/*.client.tsp` or `**/*.main.tsp`), pLimit(4) parallelism, error logging to temp/emit-e2e-logs/, and Prettier post-processing.\n- **Legacy reference**: `submodules/autorest.typescript/packages/typespec-ts/test/commands/gen-cadl-ranch.js` — uses a hardcoded spec list (`cadl-ranch-list.js`). We do NOT want this approach; prefer auto-discovery.\n\n## Files to create\n- `eng/scripts/emit-e2e.ts`\n- `test/e2e/.testignore` (initial ignore list for unsupported specs)\n\n## Files to modify\n- `package.json` — add script: `\"emit:e2e\": \"tsx eng/scripts/emit-e2e.ts\"`\n- `.gitignore` — add `test/e2e/generated/`\n\n## Validation\n- Run `pnpm build && pnpm emit:e2e` and verify generated code appears in `test/e2e/generated/`\n- At least a few specs should generate successfully (e.g., authentication/api-key, routes, type/array)\n- Failed specs should produce error logs in `temp/emit-e2e-logs/`"
-    },
-    {
-      "id": "SPECTOR-2",
-      "title": "Create Vitest e2e config with Spector server globalSetup",
-      "category": "testing/spector-infrastructure",
-      "priority": "P0",
-      "status": "done",
-      "kind": "feature",
-      "dependencies": [
-        "SPECTOR-1"
-      ],
-      "design_review": null,
-      "source": "design",
-      "description": "Create the Vitest configuration and globalSetup/teardown for running Spector integration tests.\n\n## What it does\n1. `vitest.config.e2e.ts` — Vitest config that includes only `test/e2e/**/*.test.ts` files\n2. `test/e2e/setup/global-setup.ts` — starts the Spector mock server before tests\n3. `test/e2e/setup/global-teardown.ts` — stops the server and collects coverage after tests\n\n## vitest.config.e2e.ts\n```typescript\nimport { defineConfig } from 'vitest/config';\n\nexport default defineConfig({\n  test: {\n    environment: 'node',\n    include: ['test/e2e/**/*.test.ts'],\n    globalSetup: ['test/e2e/setup/global-setup.ts'],\n    testTimeout: 30_000,\n    isolate: false,  // faster: tests share process\n  },\n});\n```\n\n## global-setup.ts\nThe setup must:\n1. Start the Spector mock server using `tsp-spector server start`\n2. Pass the specs path: `node_modules/@typespec/http-specs/specs`\n3. Use port 3002 (matches legacy convention, avoids conflicts with dev servers)\n4. Enable coverage tracking: `--coverageFile temp/spector-coverage.json`\n5. Poll for server readiness by making HTTP GET requests to a known endpoint\n6. The readiness endpoint: `http://localhost:3002/routes/in-interface/fixed` should return 204\n7. Retry up to 30 times with 1s delay between retries\n8. Export the `setup()` and `teardown()` functions as Vitest globalSetup expects\n\n### Server start command\n```bash\nnpx tsp-spector server start node_modules/@typespec/http-specs/specs --port 3002 --coverageFile temp/spector-coverage.json\n```\n\n### Server stop command (in teardown)\n```bash\nnpx tsp-spector server stop --port 3002\n```\n\n## Reference implementations\n- **Primary reference**: `submodules/typespec/packages/http-client-js/eng/scripts/run-e2e-tests.js` — see `waitForServer()` function (polls with retries + delay), server spawn, and cleanup logic.\n- **Spector CLI**: `submodules/typespec/packages/spector/src/cli/cli.ts` — the `server start` command starts in background, `server stop` stops it. Default port is 3000 but we use 3002.\n\n## Files to create\n- `vitest.config.e2e.ts`\n- `test/e2e/setup/global-setup.ts`\n\n## Files to modify\n- `package.json` — add scripts:\n  - `\"test:e2e\": \"pnpm emit:e2e && vitest run --config vitest.config.e2e.ts\"`\n  - `\"test:e2e:only\": \"vitest run --config vitest.config.e2e.ts\"` (skip generation)\n\n## Validation\n- Run `pnpm test:e2e:only` with no test files yet — it should start the server, find no tests, and stop cleanly\n- Verify the server starts on port 3002 and responds to health checks\n- Verify the server stops cleanly in teardown\n- Verify `temp/spector-coverage.json` is created"
-    },
-    {
-      "id": "SPECTOR-3",
-      "title": "Port first Spector test as proof-of-concept: authentication/api-key",
-      "category": "testing/spector-integration",
-      "priority": "P0",
-      "status": "done",
-      "kind": "feature",
-      "dependencies": [
-        "SPECTOR-2"
-      ],
-      "design_review": null,
-      "source": "design",
-      "description": "Port the `authentication/api-key` Spector test as a proof-of-concept to validate the entire e2e pipeline.\n\n## What this test validates\nThe API key authentication spec tests that the generated client:\n1. Can make authenticated requests with a valid API key (header `x-ms-api-key`)\n2. Correctly receives a 403 error when using an invalid API key\n\n## Test file to create\n`test/e2e/http/authentication/api-key/main.test.ts`\n\n## Legacy test to port from\n`submodules/autorest.typescript/packages/typespec-ts/test/modularIntegration/authApiKey.spec.ts`\n\nThe legacy test pattern:\n```typescript\nimport { ApiKeyClient } from './generated/authentication/api-key/src/index.js';\nimport { assert } from 'chai';\n\ndescribe('ApiKeyClient', () => {\n  let client: ApiKeyClient;\n  beforeEach(() => {\n    client = new ApiKeyClient({ key: 'valid-key' }, {\n      endpoint: 'http://localhost:3002',\n      allowInsecureConnection: true,\n    });\n  });\n  it('should authenticate with valid key', async () => {\n    const result = await client.valid();\n    assert.isUndefined(result);\n  });\n  it('should reject invalid key', async () => {\n    client = new ApiKeyClient({ key: 'invalid-key' }, { ... });\n    try { await client.invalid(); assert.fail('expected error'); }\n    catch (err) { assert.strictEqual(err.statusCode, 403); }\n  });\n});\n```\n\n## Porting guidelines\n- Use Vitest (`describe`, `it`, `expect`, `beforeEach`) instead of Mocha + Chai\n- Import from relative path to generated code: `../../../generated/authentication/api-key/src/index.js`\n- Use same port 3002 and `allowInsecureConnection: true`\n- The client constructor and method signatures come from the generated code. Build first (`pnpm emit:e2e`) and inspect `test/e2e/generated/authentication/api-key/src/index.ts` to see actual exports.\n\n## Spector mock server expectation\nSee `submodules/typespec/packages/http-specs/specs/authentication/api-key/mockapi.ts`:\n- `GET /authentication/api-key/valid` expects header `x-ms-api-key: valid-key`, returns 204\n- `GET /authentication/api-key/invalid` returns 403\n\n## Reference test from reference emitter\n`submodules/typespec/packages/http-client-js/test/e2e/http/authentication/api-key/main.test.ts`\n\n## Validation\n1. Run `pnpm build && pnpm emit:e2e --filter authentication/api-key`\n2. Inspect generated code at `test/e2e/generated/authentication/api-key/src/`\n3. Run `pnpm test:e2e:only` — the test should pass against the mock server\n4. This validates the full pipeline: generation → build → server → test"
-    },
-    {
-      "id": "SPECTOR-4",
-      "title": "Port authentication and server Spector tests",
-      "category": "testing/spector-integration",
-      "priority": "P1",
-      "status": "done",
-      "kind": "feature",
-      "dependencies": [
-        "SPECTOR-3"
-      ],
-      "design_review": null,
-      "source": "design",
-      "description": "Port the authentication and server-related Spector integration tests.\n\n## Tests to port (7 test files)\n\n### Authentication tests\n| Legacy test file | Spector spec | New test path |\n|---|---|---|\n| `authApiKey.spec.ts` | `authentication/api-key` | Already done in SPECTOR-3 |\n| `authHttpCustom.spec.ts` | `authentication/http/custom` | `test/e2e/http/authentication/http/custom/main.test.ts` |\n| `authOauth2.spec.ts` | `authentication/oauth2` | `test/e2e/http/authentication/oauth2/main.test.ts` |\n| `authUnion.spec.ts` | `authentication/union` | `test/e2e/http/authentication/union/main.test.ts` |\n\n### Server tests\n| Legacy test file | Spector spec | New test path |\n|---|---|---|\n| `server.spec.ts` | `server/path/single`, `server/path/multiple`, `server/versions/versioned`, `server/versions/not-versioned` | `test/e2e/http/server/path/single/main.test.ts`, etc. |\n| `serverEndpointNotDefined.spec.ts` | `server/endpoint/not-defined` | `test/e2e/http/server/endpoint/not-defined/main.test.ts` |\n\n## Porting pattern\nFor each test:\n1. Read the legacy test in `submodules/autorest.typescript/packages/typespec-ts/test/modularIntegration/`\n2. Read the Spector spec mockapi.ts in `submodules/typespec/packages/http-specs/specs/` to understand expected behavior\n3. Optionally reference the test from `submodules/typespec/packages/http-client-js/test/e2e/http/` as a secondary reference\n4. Write the new test using Vitest (`describe`, `it`, `expect`, `beforeEach`)\n5. Import the generated client from `../../../generated/{spec-path}/src/index.js` (adjust relative depth as needed)\n6. Use `endpoint: 'http://localhost:3002'` and `allowInsecureConnection: true`\n\n## Key differences from legacy tests\n- Vitest instead of Mocha + Chai\n- `expect(result).toBeUndefined()` instead of `assert.isUndefined(result)`\n- `expect(result).toBe(value)` instead of `assert.strictEqual(result, value)`\n- `expect(result).toEqual(obj)` instead of `assert.deepEqual(result, obj)`\n- `expect(() => ...).rejects.toThrow()` for error assertions\n\n## Validation\nRun `pnpm build && pnpm test:e2e` and verify all ported tests pass."
-    },
-    {
-      "id": "SPECTOR-6",
-      "title": "Port encode and serialization Spector tests",
-      "category": "testing/spector-integration",
-      "priority": "P1",
-      "status": "done",
-      "kind": "feature",
-      "dependencies": [
-        "SPECTOR-3"
-      ],
-      "design_review": null,
-      "source": "design",
-      "description": "Port all encoding and serialization related Spector integration tests (6 test files).\n\n## Tests to port\n\n| Legacy test file | Spector spec | New test path |\n|---|---|---|\n| `encodeArray.spec.ts` | `encode/array` | `test/e2e/http/encode/array/main.test.ts` |\n| `encodeBytes.spec.ts` | `encode/bytes` | `test/e2e/http/encode/bytes/main.test.ts` |\n| `encodeDatetime.spec.ts` | `encode/datetime` | `test/e2e/http/encode/datetime/main.test.ts` |\n| `encodeDuration.spec.ts` | `encode/duration` | `test/e2e/http/encode/duration/main.test.ts` |\n| `encodeNumeric.spec.ts` | `encode/numeric` | `test/e2e/http/encode/numeric/main.test.ts` |\n| `serializationEncodeNameJson.spec.ts` | `serialization/encoded-name/json` | `test/e2e/http/serialization/encoded-name/json/main.test.ts` |\n\n## Porting guidelines\nSame pattern as SPECTOR-4. These tests validate that the emitter correctly handles:\n- Byte encoding (base64, base64url, hex)\n- Datetime encoding (rfc3339, rfc7231, unixTimestamp)\n- Duration encoding (ISO 8601, seconds, float seconds)\n- Numeric encoding (safeint, uint8, string encoding for large ints)\n- Array encoding (CSV, SSV, TSV, pipes in headers/query)\n- JSON property name encoding (@encodedName)\n\n## Reference files\n- Legacy tests: `submodules/autorest.typescript/packages/typespec-ts/test/modularIntegration/encode*.spec.ts`\n- Spector specs: `submodules/typespec/packages/http-specs/specs/encode/*/mockapi.ts`\n- Reference tests: `submodules/typespec/packages/http-client-js/test/e2e/http/encode/*/main.test.ts`\n\n## Validation\nRun `pnpm build && pnpm test:e2e` — all encode/serialization tests should pass."
-    },
-    {
       "id": "SPECTOR-7",
       "title": "Port parameters, payload, and routes Spector tests",
       "category": "testing/spector-integration",
@@ -904,7 +510,7 @@
       ],
       "design_review": null,
       "source": "design",
-      "description": "Port parameters, payload, and routing Spector integration tests (9 test files).\n\n## Tests to port\n\n### Parameters\n| Legacy test file | Spector spec | New test path |\n|---|---|---|\n| `basicParameters.spec.ts` | `parameters/basic` | `test/e2e/http/parameters/basic/main.test.ts` |\n| `bodyOptionality.spec.ts` | `parameters/body-optionality` | `test/e2e/http/parameters/body-optionality/main.test.ts` |\n| `collectionFormat.spec.ts` | `parameters/collection-format` | `test/e2e/http/parameters/collection-format/main.test.ts` |\n| `spreadParameters.spec.ts` | `parameters/spread` | `test/e2e/http/parameters/spread/main.test.ts` |\n\n### Payload\n| Legacy test file | Spector spec | New test path |\n|---|---|---|\n| `payloadContentNegotiation.spec.ts` | `payload/content-negotiation` | `test/e2e/http/payload/content-negotiation/main.test.ts` |\n| `payloadMediaType.spec.ts` | `payload/media-type` | `test/e2e/http/payload/media-type/main.test.ts` |\n| `payloadMultipart.spec.ts` | `payload/multipart` | `test/e2e/http/payload/multipart/main.test.ts` |\n| `payloadPageable.spec.ts` | `payload/pageable` | `test/e2e/http/payload/pageable/main.test.ts` |\n\n### Routes\n| Legacy test file | Spector spec | New test path |\n|---|---|---|\n| `routes.spec.ts` | `routes` | `test/e2e/http/routes/main.test.ts` |\n\n## Notes\n- `payloadMultipart` is complex — uses `fs.createReadStream()` for file uploads. Tests need access to test assets. Create `test/e2e/assets/` with image.jpg and image.png files, or reference them from the existing spector spec assets.\n- `payloadPageable` tests pagination. Verify the generated client has paging helpers.\n- `routes` is a comprehensive test with many sub-tests for path/query expansion modes.\n- `spreadParameters` tests TypeSpec spread operator for parameter destructuring.\n\n## Reference files\n- Legacy tests: `submodules/autorest.typescript/packages/typespec-ts/test/modularIntegration/`\n- Spector specs: `submodules/typespec/packages/http-specs/specs/`\n- Reference tests: `submodules/typespec/packages/http-client-js/test/e2e/http/`\n\n## Validation\nRun `pnpm build && pnpm test:e2e` — all parameter/payload/routes tests should pass."
+      "description": "Port parameters, payload, and routing Spector integration tests (9 test files).\n\n## Tests to port\n\n### Parameters\n| Legacy test file | Spector spec | New test path |\n|---|---|---|\n| `basicParameters.spec.ts` | `parameters/basic` | `test/e2e/http/parameters/basic/main.test.ts` |\n| `bodyOptionality.spec.ts` | `parameters/body-optionality` | `test/e2e/http/parameters/body-optionality/main.test.ts` |\n| `collectionFormat.spec.ts` | `parameters/collection-format` | `test/e2e/http/parameters/collection-format/main.test.ts` |\n| `spreadParameters.spec.ts` | `parameters/spread` | `test/e2e/http/parameters/spread/main.test.ts` |\n\n### Payload\n| Legacy test file | Spector spec | New test path |\n|---|---|---|\n| `payloadContentNegotiation.spec.ts` | `payload/content-negotiation` | `test/e2e/http/payload/content-negotiation/main.test.ts` |\n| `payloadMediaType.spec.ts` | `payload/media-type` | `test/e2e/http/payload/media-type/main.test.ts` |\n| `payloadMultipart.spec.ts` | `payload/multipart` | `test/e2e/http/payload/multipart/main.test.ts` |\n| `payloadPageable.spec.ts` | `payload/pageable` | `test/e2e/http/payload/pageable/main.test.ts` |\n\n### Routes\n| Legacy test file | Spector spec | New test path |\n|---|---|---|\n| `routes.spec.ts` | `routes` | `test/e2e/http/routes/main.test.ts` |\n\n## Notes\n- `payloadMultipart` is complex \u2014 uses `fs.createReadStream()` for file uploads. Tests need access to test assets. Create `test/e2e/assets/` with image.jpg and image.png files, or reference them from the existing spector spec assets.\n- `payloadPageable` tests pagination. Verify the generated client has paging helpers.\n- `routes` is a comprehensive test with many sub-tests for path/query expansion modes.\n- `spreadParameters` tests TypeSpec spread operator for parameter destructuring.\n\n## Reference files\n- Legacy tests: `submodules/autorest.typescript/packages/typespec-ts/test/modularIntegration/`\n- Spector specs: `submodules/typespec/packages/http-specs/specs/`\n- Reference tests: `submodules/typespec/packages/http-client-js/test/e2e/http/`\n\n## Validation\nRun `pnpm build && pnpm test:e2e` \u2014 all parameter/payload/routes tests should pass."
     },
     {
       "id": "SPECTOR-8",
@@ -918,7 +524,7 @@
       ],
       "design_review": null,
       "source": "design",
-      "description": "Port versioning, special-words, and special-headers Spector integration tests (10 test files).\n\n## Tests to port\n\n### Versioning\n| Legacy test file | Spector spec | New test path |\n|---|---|---|\n| `versioningAdded.spec.ts` | `versioning/added` | `test/e2e/http/versioning/added/main.test.ts` |\n| `versioningMadeOptional.spec.ts` | `versioning/madeOptional` | `test/e2e/http/versioning/madeOptional/main.test.ts` |\n| `versioningRemovedV1.spec.ts` | `versioning/removed` (v1 config) | `test/e2e/http/versioning/removed/v1/main.test.ts` |\n| `versioningRemovedV2.spec.ts` | `versioning/removed` (v2 config) | `test/e2e/http/versioning/removed/v2/main.test.ts` |\n| `versioningRemovedV2Preview.spec.ts` | `versioning/removed` (v2preview config) | `test/e2e/http/versioning/removed/v2preview/main.test.ts` |\n| `versioningRenamedFrom.spec.ts` | `versioning/renamedFrom` | `test/e2e/http/versioning/renamedFrom/main.test.ts` |\n| `versioningReturnTypeChangedFrom.spec.ts` | `versioning/returnTypeChangedFrom` | `test/e2e/http/versioning/returnTypeChangedFrom/main.test.ts` |\n| `versioningTypeChangedFrom.spec.ts` | `versioning/typeChangedFrom` | `test/e2e/http/versioning/typeChangedFrom/main.test.ts` |\n\n### Special\n| Legacy test file | Spector spec | New test path |\n|---|---|---|\n| `specialWords.spec.ts` | `special-words` | `test/e2e/http/special-words/main.test.ts` |\n| `headersRepeatability.spec.ts` | `special-headers/repeatability` | `test/e2e/http/special-headers/repeatability/main.test.ts` |\n\n## Notes on versioning tests\nThe `versioning/removed` spec generates 3 different client variants based on version configuration:\n- v1: Only the operations/types from version 1\n- v2: Operations/types up to version 2 (v1 removed items are gone)\n- v2preview: Preview version with additional preview operations\n\nIn the legacy emitter, these are 3 separate entries in cadl-ranch-list.js with different outputPaths but the same inputPath. In the new emitter, the generation script needs to compile the same spec 3 times with different version options. This may require special handling in the emit-e2e script or version-specific tspconfig.yaml files.\n\n## Reference files\n- Legacy tests: `submodules/autorest.typescript/packages/typespec-ts/test/modularIntegration/versioning*.spec.ts`, `specialWords.spec.ts`, `headersRepeatability.spec.ts`\n- Legacy cadl-ranch-list.js: Shows how versioning/removed is split into 3 entries with different outputPaths\n- Spector specs: `submodules/typespec/packages/http-specs/specs/versioning/`, `special-words/`, `special-headers/`\n\n## Validation\nRun `pnpm build && pnpm test:e2e` — all versioning and special tests should pass."
+      "description": "Port versioning, special-words, and special-headers Spector integration tests (10 test files).\n\n## Tests to port\n\n### Versioning\n| Legacy test file | Spector spec | New test path |\n|---|---|---|\n| `versioningAdded.spec.ts` | `versioning/added` | `test/e2e/http/versioning/added/main.test.ts` |\n| `versioningMadeOptional.spec.ts` | `versioning/madeOptional` | `test/e2e/http/versioning/madeOptional/main.test.ts` |\n| `versioningRemovedV1.spec.ts` | `versioning/removed` (v1 config) | `test/e2e/http/versioning/removed/v1/main.test.ts` |\n| `versioningRemovedV2.spec.ts` | `versioning/removed` (v2 config) | `test/e2e/http/versioning/removed/v2/main.test.ts` |\n| `versioningRemovedV2Preview.spec.ts` | `versioning/removed` (v2preview config) | `test/e2e/http/versioning/removed/v2preview/main.test.ts` |\n| `versioningRenamedFrom.spec.ts` | `versioning/renamedFrom` | `test/e2e/http/versioning/renamedFrom/main.test.ts` |\n| `versioningReturnTypeChangedFrom.spec.ts` | `versioning/returnTypeChangedFrom` | `test/e2e/http/versioning/returnTypeChangedFrom/main.test.ts` |\n| `versioningTypeChangedFrom.spec.ts` | `versioning/typeChangedFrom` | `test/e2e/http/versioning/typeChangedFrom/main.test.ts` |\n\n### Special\n| Legacy test file | Spector spec | New test path |\n|---|---|---|\n| `specialWords.spec.ts` | `special-words` | `test/e2e/http/special-words/main.test.ts` |\n| `headersRepeatability.spec.ts` | `special-headers/repeatability` | `test/e2e/http/special-headers/repeatability/main.test.ts` |\n\n## Notes on versioning tests\nThe `versioning/removed` spec generates 3 different client variants based on version configuration:\n- v1: Only the operations/types from version 1\n- v2: Operations/types up to version 2 (v1 removed items are gone)\n- v2preview: Preview version with additional preview operations\n\nIn the legacy emitter, these are 3 separate entries in cadl-ranch-list.js with different outputPaths but the same inputPath. In the new emitter, the generation script needs to compile the same spec 3 times with different version options. This may require special handling in the emit-e2e script or version-specific tspconfig.yaml files.\n\n## Reference files\n- Legacy tests: `submodules/autorest.typescript/packages/typespec-ts/test/modularIntegration/versioning*.spec.ts`, `specialWords.spec.ts`, `headersRepeatability.spec.ts`\n- Legacy cadl-ranch-list.js: Shows how versioning/removed is split into 3 entries with different outputPaths\n- Spector specs: `submodules/typespec/packages/http-specs/specs/versioning/`, `special-words/`, `special-headers/`\n\n## Validation\nRun `pnpm build && pnpm test:e2e` \u2014 all versioning and special tests should pass."
     },
     {
       "id": "SPECTOR-9",
@@ -932,139 +538,7 @@
       ],
       "design_review": null,
       "source": "design",
-      "description": "Integrate the Spector e2e tests into the CI pipeline and set up coverage reporting.\n\n## What to do\n1. Add a CI step that runs `pnpm build && pnpm test:e2e` in the existing CI workflow\n2. Ensure the Spector coverage file (`temp/spector-coverage.json`) is captured as a CI artifact\n3. Add a script to parse and summarize coverage: which Spector scenarios are covered vs not\n\n## Coverage reporting\nAfter tests complete, the Spector server writes coverage data to `temp/spector-coverage.json`. This file tracks which mock API scenarios were hit during testing.\n\nCreate `eng/scripts/calculate-coverage.ts` that:\n1. Reads `temp/spector-coverage.json`\n2. Prints a summary: N/M scenarios covered\n3. Lists uncovered scenarios\n\n## Reference\n- `submodules/typespec/packages/http-client-js/eng/scripts/calculate-coverage.js` — reference implementation\n- Spector coverage format: `CoverageReport[]` from `@typespec/spector`\n\n## Package.json script\nAdd: `\"test:e2e:ci\": \"pnpm build && pnpm test:e2e\"`\n\n## Validation\n- CI runs e2e tests successfully\n- Coverage artifact is captured"
-    },
-    {
-      "id": "FIX-CLIENT-INIT-HEADERS",
-      "title": "Fix clientInitialization header params reading from context instead of options",
-      "description": "3 scenario tests fail because header parameters with clientInitialization are generated as context[\"param\"] instead of options?.param. Affected tests: (1) apiVersion/apiVersionAsFixedEnum - generates context.apiVersion instead of options?.apiVersion, (2-3) headerParam/headerParamWithClientInitialization (optional + required) - generates context[\"$expand\"] instead of options?.$expand. The send function should read these from options, not from context.",
-      "category": "bug-fix",
-      "status": "done",
-      "priority": "P0",
-      "dependencies": []
-    },
-    {
-      "id": "FIX-XML-ARRAY-SERIALIZER-NULL-GUARD",
-      "title": "Fix XML object serializer adding unnecessary null guards around array .map()",
-      "description": "Scenario test xml/xmlArrayItemTypes fails because the XML object serializer wraps array .map() calls with !item[\"prop\"] ? item[\"prop\"] : item[\"prop\"]?.map(...) instead of just item[\"prop\"]?.map(...). The extra null-guard pattern is not expected by the legacy emitter output. Affected test: payload/scenarios.test.ts > xml/xmlArrayItemTypes.md > XML Arrays with Typed Items > blockLookupListXmlObjectSerializer.",
-      "category": "bug-fix",
-      "status": "done",
-      "priority": "P0",
-      "dependencies": []
-    },
-    {
-      "id": "SMOKE-PAGING-HELPERS",
-      "title": "Fix pagingHelpers.ts static helper compilation errors",
-      "category": "smoke-fix",
-      "status": "done",
-      "priority": "critical",
-      "dependencies": [],
-      "description": "The generated pagingHelpers.ts has TypeScript compilation errors: (1) 'Cannot find name client' on lines 39-40 — likely a missing parameter or wrong variable reference in buildPagedAsyncIterator, (2) '[Symbol.asyncIterator]' does not exist in type 'PagedAsyncIterableIterator<TElement>' — the interface is missing the async iterator symbol. These errors prevent the smoke test from passing."
-    },
-    {
-      "id": "SMOKE-POLLING-HELPERS",
-      "title": "Fix pollingHelpers.ts static helper compilation errors",
-      "category": "smoke-fix",
-      "status": "done",
-      "priority": "critical",
-      "dependencies": [],
-      "description": "The generated pollingHelpers.ts has TypeScript compilation errors: (1) Module '@azure-rest/core-client' has no exported member 'RestError' — wrong import source for RestError, (2) 'Cannot find name TResult, did you mean TResult_1' — type parameter naming issue in generic function. These errors prevent the smoke test from passing."
-    },
-    {
-      "id": "SMOKE-API-VERSION-IN-OPS",
-      "title": "Fix operations accessing non-existent version/apiVersion on options/client",
-      "category": "smoke-fix",
-      "status": "done",
-      "priority": "critical",
-      "dependencies": [],
-      "description": "Generated operations access 'options?.version' for the x-ms-version header, but the options interfaces don't have a 'version' property. Also 'client.apiVersion' is accessed but Client type doesn't have it. The emitter needs to correctly resolve where apiVersion comes from (likely the client context, not individual options). Affects all operations in service/, container/, pageBlob/, blockBlob/, appendBlob/, blob/."
-    },
-    {
-      "id": "SMOKE-PROPERTY-CASING",
-      "title": "Fix operations using wrong property casing for option params",
-      "category": "smoke-fix",
-      "status": "done",
-      "priority": "critical",
-      "dependencies": [],
-      "description": "Generated operations access option properties with wrong casing: 'BlobTagsString' should be 'blobTagsString', 'PreventEncryptionScopeOverride' should be 'preventEncryptionScopeOverride', 'transactionalContentMD5' should be 'transactionalContentMd5'. The operation send function uses the original wire name instead of the camelCase name from the options interface. This is a name policy consistency issue between model interfaces and operation code."
-    },
-    {
-      "id": "SMOKE-PAGING-RETURN-TYPES",
-      "title": "Fix classic wrapper return types for paged operations",
-      "category": "smoke-fix",
-      "status": "done",
-      "priority": "critical",
-      "dependencies": [],
-      "description": "Classic wrapper methods for paged operations are typed as returning Promise<T[]> but the underlying API operations return PagedAsyncIterableIterator<T>. Affects container/index.ts (listBlobs, listBlobHierarchySegment) and service/index.ts (listContainers). The classic wrapper needs to propagate the correct paged return type."
-    },
-    {
-      "id": "SMOKE-ARRAY-PARAM-TYPES",
-      "title": "Fix buildCsvCollection called with enum array types",
-      "category": "smoke-fix",
-      "status": "done",
-      "priority": "critical",
-      "dependencies": [],
-      "description": "buildCsvCollection is called with FilterBlobsIncludeItem[] | undefined and ListBlobsIncludeItem[] | undefined, but its signature only accepts string[] | number[]. The enum array types are not compatible. Either buildCsvCollection needs to accept broader types, or the enum arrays need to be cast/mapped to strings before passing."
-    },
-    {
-      "id": "FIX-CONTEXT-PARAM-TYPE",
-      "title": "Fix operation context parameter type from Client to specific context type",
-      "description": "Operations type the context parameter as base Client from runtime lib, but should use the specific context type (e.g., BlobContext) so that custom properties like version/apiVersion are available without as-any casts. Requires updating buildFunctionParameters in send-operation.tsx and public-operation.tsx to use clientContextRefkey(rootClient), and updating 49+ scenario test expectations.",
-      "category": "smoke-fix",
-      "status": "done",
-      "priority": "low",
-      "dependencies": []
-    },
-    {
-      "id": "SMOKE-PROMISELIKE-TYPE",
-      "title": "Fix PromiseLike vs Promise type mismatch in send functions",
-      "description": "The smoke test shows 3 TypeScript errors where send functions return PromiseLike<PathUncheckedResponse> but the variable expects Promise<PathUncheckedResponse>. PromiseLike is missing catch, finally, and [Symbol.toStringTag]. Need to ensure send functions return Promise instead of PromiseLike.",
-      "status": "done",
-      "category": "smoke-fix",
-      "priority": "critical",
-      "dependencies": []
-    },
-    {
-      "id": "SPECTOR-5A",
-      "title": "Port simple type Spector tests (array, dictionary, enum, scalar, union)",
-      "category": "testing/spector-integration",
-      "priority": "P1",
-      "status": "done",
-      "kind": "feature",
-      "dependencies": [
-        "SPECTOR-3"
-      ],
-      "design_review": null,
-      "source": "design",
-      "description": "Port 6 simple type-system Spector e2e tests. These test basic container and value types.\n\n## Tests to port\n\n| Legacy test file | Spector spec | New test path | Test cases |\n|---|---|---|---|\n| `arrayItemTypes.spec.ts` | `type/array` | `test/e2e/http/type/array/main.test.ts` | ~14 (dynamic) |\n| `dictionaryTypes.spec.ts` | `type/dictionary` | `test/e2e/http/type/dictionary/main.test.ts` | 19 |\n| `extensibleEnums.spec.ts` | `type/enum/extensible` | `test/e2e/http/type/enum/extensible/main.test.ts` | 4 |\n| `fixedEnums.spec.ts` | `type/enum/fixed` | `test/e2e/http/type/enum/fixed/main.test.ts` | 3 |\n| `scalar.spec.ts` | `type/scalar` | `test/e2e/http/type/scalar/main.test.ts` | 14 |\n| `unions.spec.ts` | `type/union` | `test/e2e/http/type/union/main.test.ts` | 20 |\n\n## Porting guidelines\nSame pattern as existing e2e tests (e.g., test/e2e/http/authentication/api-key/main.test.ts).\n- Use Vitest (describe, it, expect)\n- Import generated client from relative path to test/e2e/generated/{spec-path}/src/index.js\n- Use endpoint: 'http://localhost:3002', allowInsecureConnection: true\n- Reference tests at submodules/typespec/packages/http-client-js/test/e2e/http/type/\n- Legacy tests at submodules/autorest.typescript/packages/typespec-ts/test/modularIntegration/\n\n## Validation\nRun `pnpm build && pnpm test:e2e`"
-    },
-    {
-      "id": "SPECTOR-5B",
-      "title": "Port model type Spector tests (empty, usage, inheritance/*)",
-      "category": "testing/spector-integration",
-      "priority": "P1",
-      "status": "done",
-      "kind": "feature",
-      "dependencies": [
-        "SPECTOR-3"
-      ],
-      "design_review": null,
-      "source": "design",
-      "description": "Port 7 model type Spector e2e tests. These test model structure, usage tracking, and discriminated/non-discriminated inheritance.\n\n## Tests to port\n\n| Legacy test file | Spector spec | New test path | Test cases |\n|---|---|---|---|\n| `modelsEmpty.spec.ts` | `type/model/empty` | `test/e2e/http/type/model/empty/main.test.ts` | 3 |\n| `usage.spec.ts` | `type/model/usage` | `test/e2e/http/type/model/usage/main.test.ts` | 6 |\n| `modelInheritanceEnumDiscriminator.spec.ts` | `type/model/inheritance/enum-discriminator` | `test/e2e/http/type/model/inheritance/enum-discriminator/main.test.ts` | 8 |\n| `modelInheritanceNestedDiscriminator.spec.ts` | `type/model/inheritance/nested-discriminator` | `test/e2e/http/type/model/inheritance/nested-discriminator/main.test.ts` | 6 |\n| `modelInheritanceNotDiscriminated.spec.ts` | `type/model/inheritance/not-discriminated` | `test/e2e/http/type/model/inheritance/not-discriminated/main.test.ts` | 3 |\n| `modelInheritanceRecursive.spec.ts` | `type/model/inheritance/recursive` | `test/e2e/http/type/model/inheritance/recursive/main.test.ts` | 2 |\n| `modelInheritanceSingleDiscriminator.spec.ts` | `type/model/inheritance/single-discriminator` | `test/e2e/http/type/model/inheritance/single-discriminator/main.test.ts` | 7 |\n\n## Complex tests to watch out for\n- **enum-discriminator**: Tests discriminated unions with enum discriminator properties\n- **nested-discriminator**: Multi-level discriminated inheritance\n- **single-discriminator**: Complex discriminated union assertions with deepEqual\n\n## Validation\nRun `pnpm build && pnpm test:e2e`"
-    },
-    {
-      "id": "SPECTOR-5C",
-      "title": "Port property type Spector tests (value-types, nullable, optionality, additional-properties)",
-      "category": "testing/spector-integration",
-      "priority": "P1",
-      "status": "done",
-      "kind": "feature",
-      "dependencies": [
-        "SPECTOR-3"
-      ],
-      "design_review": null,
-      "source": "design",
-      "description": "Port 4 property type Spector e2e tests. These are the most test-case-dense files in the type system batch.\n\n## Tests to port\n\n| Legacy test file | Spector spec | New test path | Test cases |\n|---|---|---|---|\n| `modelPropertyType.spec.ts` | `type/property/value-types` | `test/e2e/http/type/property/value-types/main.test.ts` | ~58 (dynamic) |\n| `nullableProperties.spec.ts` | `type/property/nullable` | `test/e2e/http/type/property/nullable/main.test.ts` | 7 |\n| `optionalProperties.spec.ts` | `type/property/optionality` | `test/e2e/http/type/property/optionality/main.test.ts` | 16 |\n| `modelPropertyAdditional.spec.ts` | `type/property/additional-properties` | `test/e2e/http/type/property/additional-properties/main.test.ts` | 52 |\n\n## Complex tests to watch out for\n- **value-types**: Very large (393 lines legacy). Uses loops to dynamically generate ~58 test cases for get/put of various property types (boolean, string, int, float, datetime, enum, model, collections, etc.)\n- **additional-properties**: Largest file (734 lines, 52 tests). Tests open models with additional properties. 4 tests skipped in legacy due to spread record union issues.\n- **nullable**: Tests nullable property handling with 7 scenarios\n- **optionality**: Tests optional vs required property semantics with 16 test cases\n\n## Validation\nRun `pnpm build && pnpm test:e2e`"
+      "description": "Integrate the Spector e2e tests into the CI pipeline and set up coverage reporting.\n\n## What to do\n1. Add a CI step that runs `pnpm build && pnpm test:e2e` in the existing CI workflow\n2. Ensure the Spector coverage file (`temp/spector-coverage.json`) is captured as a CI artifact\n3. Add a script to parse and summarize coverage: which Spector scenarios are covered vs not\n\n## Coverage reporting\nAfter tests complete, the Spector server writes coverage data to `temp/spector-coverage.json`. This file tracks which mock API scenarios were hit during testing.\n\nCreate `eng/scripts/calculate-coverage.ts` that:\n1. Reads `temp/spector-coverage.json`\n2. Prints a summary: N/M scenarios covered\n3. Lists uncovered scenarios\n\n## Reference\n- `submodules/typespec/packages/http-client-js/eng/scripts/calculate-coverage.js` \u2014 reference implementation\n- Spector coverage format: `CoverageReport[]` from `@typespec/spector`\n\n## Package.json script\nAdd: `\"test:e2e:ci\": \"pnpm build && pnpm test:e2e\"`\n\n## Validation\n- CI runs e2e tests successfully\n- Coverage artifact is captured"
     },
     {
       "id": "E2E-FIX-CONTENT-TYPE-BARE-SCALAR",
@@ -1076,7 +550,7 @@
       "dependencies": [],
       "design_review": null,
       "source": "e2e-test-investigation",
-      "description": "Fix 6 skipped e2e tests caused by incorrect Content-Type header for PUT operations on bare scalar types.\n\n## Problem\n\nWhen a TypeSpec operation accepts a bare scalar body (string, enum, unknown — not wrapped in a model), the Spector mock server expects `Content-Type: text/plain`. The emitter always generates `contentType: \"application/json\"` regardless of body type.\n\n## Affected Tests (6)\n\n| Test file | Test name | Line |\n|-----------|-----------|------|\n| `test/e2e/http/type/enum/fixed/main.test.ts` | should put a known enum value | 32 |\n| `test/e2e/http/type/enum/fixed/main.test.ts` | should put an unknown enum value and receive 500 | 37 |\n| `test/e2e/http/type/enum/extensible/main.test.ts` | should put a known enum value | 34 |\n| `test/e2e/http/type/enum/extensible/main.test.ts` | should put an unknown enum value | 39 |\n| `test/e2e/http/type/scalar/main.test.ts` | should put a string value | 29 |\n| `test/e2e/http/type/scalar/main.test.ts` | should put an unknown value | 52 |\n\n## Mock Server Expectations (from mockapi.ts)\n\n- `type/enum/fixed` mockapi.ts: PUT expects `\"Content-Type\": \"application/json\"` with `json(\"Monday\")`\n- `type/enum/extensible` mockapi.ts: PUT expects `\"Content-Type\": \"text/plain\"` with `json(\"Monday\")`\n- `type/scalar/string` mockapi.ts: PUT expects `\"Content-Type\": \"text/plain\"` with `json(\"test\")`\n- `type/scalar/unknown` mockapi.ts: PUT expects `\"Content-Type\": \"text/plain\"` with `json(\"test\")`\n\n## Current Generated Code (broken)\n\nAll PUT operations generate: `contentType: \"application/json\", body: body`\n\nFor example, in `test/e2e/generated/type/enum/extensible/src/api/operations.ts`:\n```typescript\nreturn context.path(\"/type/enum/extensible/string/known-value\").put({\n  contentType: \"application/json\",\n  body: body,\n});\n```\n\n## Root Cause\n\nThe emitter operation generation component always emits `contentType: \"application/json\"` without checking whether the body is a bare scalar type. When the body is a bare scalar (not a model/object), the content-type should be `text/plain` per the TypeSpec HTTP specification.\n\n## Recommended Fix\n\nIn the operation _send function generation code (likely in `src/components/` — look for where `contentType` is set in the request options), detect when the request body parameter type is a bare scalar:\n\n1. Check the TCGC `SdkHttpOperation`'s body parameter type via `operation.bodyParam.type.kind`\n2. If the body type kind is `\"string\"`, `\"enum\"`, `\"unknown\"`, or another scalar type (not `\"model\"`, `\"array\"`, `\"dict\"`), emit `contentType: \"text/plain\"`\n3. Otherwise, keep `contentType: \"application/json\"`\n\nThe TCGC body parameter has a `type` field with a `kind` property that distinguishes scalars from complex types.\n\n## After Fix\n\nRemove `it.skip` from all 6 tests and verify they pass against the Spector mock server.\n\n## Validation\n\n```bash\npnpm build && pnpm test:e2e -- --grep \"Type.Enum.Fixed|Type.Enum.Extensible|Type.Scalar\"\n```"
+      "description": "Fix 6 skipped e2e tests caused by incorrect Content-Type header for PUT operations on bare scalar types.\n\n## Problem\n\nWhen a TypeSpec operation accepts a bare scalar body (string, enum, unknown \u2014 not wrapped in a model), the Spector mock server expects `Content-Type: text/plain`. The emitter always generates `contentType: \"application/json\"` regardless of body type.\n\n## Affected Tests (6)\n\n| Test file | Test name | Line |\n|-----------|-----------|------|\n| `test/e2e/http/type/enum/fixed/main.test.ts` | should put a known enum value | 32 |\n| `test/e2e/http/type/enum/fixed/main.test.ts` | should put an unknown enum value and receive 500 | 37 |\n| `test/e2e/http/type/enum/extensible/main.test.ts` | should put a known enum value | 34 |\n| `test/e2e/http/type/enum/extensible/main.test.ts` | should put an unknown enum value | 39 |\n| `test/e2e/http/type/scalar/main.test.ts` | should put a string value | 29 |\n| `test/e2e/http/type/scalar/main.test.ts` | should put an unknown value | 52 |\n\n## Mock Server Expectations (from mockapi.ts)\n\n- `type/enum/fixed` mockapi.ts: PUT expects `\"Content-Type\": \"application/json\"` with `json(\"Monday\")`\n- `type/enum/extensible` mockapi.ts: PUT expects `\"Content-Type\": \"text/plain\"` with `json(\"Monday\")`\n- `type/scalar/string` mockapi.ts: PUT expects `\"Content-Type\": \"text/plain\"` with `json(\"test\")`\n- `type/scalar/unknown` mockapi.ts: PUT expects `\"Content-Type\": \"text/plain\"` with `json(\"test\")`\n\n## Current Generated Code (broken)\n\nAll PUT operations generate: `contentType: \"application/json\", body: body`\n\nFor example, in `test/e2e/generated/type/enum/extensible/src/api/operations.ts`:\n```typescript\nreturn context.path(\"/type/enum/extensible/string/known-value\").put({\n  contentType: \"application/json\",\n  body: body,\n});\n```\n\n## Root Cause\n\nThe emitter operation generation component always emits `contentType: \"application/json\"` without checking whether the body is a bare scalar type. When the body is a bare scalar (not a model/object), the content-type should be `text/plain` per the TypeSpec HTTP specification.\n\n## Recommended Fix\n\nIn the operation _send function generation code (likely in `src/components/` \u2014 look for where `contentType` is set in the request options), detect when the request body parameter type is a bare scalar:\n\n1. Check the TCGC `SdkHttpOperation`'s body parameter type via `operation.bodyParam.type.kind`\n2. If the body type kind is `\"string\"`, `\"enum\"`, `\"unknown\"`, or another scalar type (not `\"model\"`, `\"array\"`, `\"dict\"`), emit `contentType: \"text/plain\"`\n3. Otherwise, keep `contentType: \"application/json\"`\n\nThe TCGC body parameter has a `type` field with a `kind` property that distinguishes scalars from complex types.\n\n## After Fix\n\nRemove `it.skip` from all 6 tests and verify they pass against the Spector mock server.\n\n## Validation\n\n```bash\npnpm build && pnpm test:e2e -- --grep \"Type.Enum.Fixed|Type.Enum.Extensible|Type.Scalar\"\n```"
     },
     {
       "id": "E2E-FIX-QUERY-PARAM-ENCODING",
@@ -1088,7 +562,7 @@
       "dependencies": [],
       "design_review": null,
       "source": "e2e-test-investigation",
-      "description": "Fix 13 skipped e2e tests caused by raw typed objects (Date, number, Uint8Array) being passed directly to `expandUrlTemplate()` without encoding conversion.\n\n## Problem\n\nThe emitter passes raw JavaScript objects to URL template expansion without converting them to the wire-format string. `Date` objects serialize to `[object Object]`, `Uint8Array` objects to `[object Uint8Array]`, etc.\n\n## Affected Tests (13)\n\n### Datetime Query Params (5)\n| Test file | Test name | Line | Expected encoding |\n|-----------|-----------|------|-------------------|\n| `encode/datetime/main.test.ts` | default (rfc3339) query param | 21 | `value.toISOString()` → `2022-08-26T18:38:00.000Z` |\n| `encode/datetime/main.test.ts` | rfc3339 query param | 25 | `value.toISOString()` → `2022-08-26T18:38:00.000Z` |\n| `encode/datetime/main.test.ts` | rfc7231 query param | 29 | `value.toUTCString()` → `Fri, 26 Aug 2022 14:38:00 GMT` |\n| `encode/datetime/main.test.ts` | unixTimestamp query param | 33 | `Math.floor(value.getTime()/1000)` → `1686566864` |\n| `encode/datetime/main.test.ts` | unixTimestamp array query param | 37 | Each element unix-converted then CSV-joined |\n\n### Duration Query Params (4)\n| Test file | Test name | Line | Expected encoding |\n|-----------|-----------|------|-------------------|\n| `encode/duration/main.test.ts` | int32 seconds query param | 24 | `input=36` (numeric to string) |\n| `encode/duration/main.test.ts` | float seconds query param | 28 | `input=35.625` |\n| `encode/duration/main.test.ts` | float64 seconds query param | 32 | `input=35.625` |\n| `encode/duration/main.test.ts` | int32 seconds array query param | 36 | `input=36,47` (CSV joined) |\n\n### Bytes Query Params (4)\n| Test file | Test name | Line | Expected encoding |\n|-----------|-----------|------|-------------------|\n| `encode/bytes/main.test.ts` | default (base64) query param | 51 | `uint8ArrayToString(value, \"base64\")` → `dGVzdA==` |\n| `encode/bytes/main.test.ts` | base64 query param | 55 | `uint8ArrayToString(value, \"base64\")` → `dGVzdA==` |\n| `encode/bytes/main.test.ts` | base64url query param | 59 | `uint8ArrayToString(value, \"base64url\")` → `dGVzdA` |\n| `encode/bytes/main.test.ts` | base64url array query param | 63 | Each element base64url-encoded then CSV-joined |\n\n## Current Generated Code (broken)\n\nIn `test/e2e/generated/encode/datetime/src/api/query/operations.ts`:\n```typescript\nconst path = expandUrlTemplate(\"/encode/datetime/query/default{?value}\", { \"value\": value });\n// value is a Date object — serializes to garbage in URL\n```\n\nIn `test/e2e/generated/encode/bytes/src/api/query/operations.ts`:\n```typescript\nconst path = expandUrlTemplate(\"/encode/bytes/query/default{?value}\", { \"value\": value });\n// value is a Uint8Array — serializes to \"[object Uint8Array]\"\n```\n\n## Mock Server Expectations\n\nFrom `node_modules/@typespec/http-specs/specs/encode/datetime/mockapi.ts`:\n- `Encode_Datetime_Query_default`: expects query `value=2022-08-26T18:38:00.000Z` (rfc3339)\n- `Encode_Datetime_Query_rfc7231`: expects `value=Fri, 26 Aug 2022 14:38:00 GMT`\n- `Encode_Datetime_Query_unixTimestamp`: expects `value=1686566864` (unix seconds, numeric)\n\nFrom `node_modules/@typespec/http-specs/specs/encode/bytes/mockapi.ts`:\n- `Encode_Bytes_Query_default`: expects `value=dGVzdA==`\n- `Encode_Bytes_Query_base64url`: expects `value=dGVzdA`\n\nFrom `node_modules/@typespec/http-specs/specs/encode/duration/mockapi.ts`:\n- `Encode_Duration_Query_int32Seconds`: expects `input=36`\n- `Encode_Duration_Query_floatSeconds`: expects `input=35.625`\n\n## Root Cause\n\nThe emitter's operation `_send` function generation passes raw parameter values into `expandUrlTemplate()` without applying the encoding transformation. TCGC provides `encode` info on each parameter's type (e.g., `type.encode === \"rfc3339\"`, `type.encode === \"unixTimestamp\"`, `type.encode === \"base64url\"`), but the operation generation code doesn't use it for query parameters.\n\n## Recommended Fix\n\nIn the emitter's operation generation code that builds the URL template variables object:\n\n1. For each query parameter, check `param.type.kind` and `param.type.encode`:\n   - `utcDateTime` + `rfc3339` (or default): Generate `value.toISOString()`\n   - `utcDateTime` + `rfc7231`: Generate `value.toUTCString()`\n   - `utcDateTime` + `unixTimestamp`: Generate `Math.floor(value.getTime() / 1000)`\n   - `duration` + numeric encoding: Generate `value` (number auto-stringified by URL)\n   - `bytes` + `base64`: Generate `uint8ArrayToString(value, \"base64\")` (import from runtime)\n   - `bytes` + `base64url`: Generate `uint8ArrayToString(value, \"base64url\")`\n2. For array params, apply element-level encoding before joining with `buildCsvCollection`\n\nLook at how the emitter handles these encodings for JSON body properties in `src/components/serialization/json-serializer.tsx` — apply the same pattern.\n\n## Key Files to Investigate\n\n- `src/components/` — find where `expandUrlTemplate` call is generated with query params\n- `src/components/serialization/json-serializer.tsx` — existing encoding logic to reuse\n- `test/e2e/generated/encode/datetime/src/api/query/operations.ts` — see current broken output\n\n## After Fix\n\nRemove `it.skip` from all 13 tests. Regenerate test clients if needed.\n\n## Validation\n\n```bash\npnpm build && pnpm test:e2e -- --grep \"Encode.Datetime|Encode.Duration|Encode.Bytes\"\n```"
+      "description": "Fix 13 skipped e2e tests caused by raw typed objects (Date, number, Uint8Array) being passed directly to `expandUrlTemplate()` without encoding conversion.\n\n## Problem\n\nThe emitter passes raw JavaScript objects to URL template expansion without converting them to the wire-format string. `Date` objects serialize to `[object Object]`, `Uint8Array` objects to `[object Uint8Array]`, etc.\n\n## Affected Tests (13)\n\n### Datetime Query Params (5)\n| Test file | Test name | Line | Expected encoding |\n|-----------|-----------|------|-------------------|\n| `encode/datetime/main.test.ts` | default (rfc3339) query param | 21 | `value.toISOString()` \u2192 `2022-08-26T18:38:00.000Z` |\n| `encode/datetime/main.test.ts` | rfc3339 query param | 25 | `value.toISOString()` \u2192 `2022-08-26T18:38:00.000Z` |\n| `encode/datetime/main.test.ts` | rfc7231 query param | 29 | `value.toUTCString()` \u2192 `Fri, 26 Aug 2022 14:38:00 GMT` |\n| `encode/datetime/main.test.ts` | unixTimestamp query param | 33 | `Math.floor(value.getTime()/1000)` \u2192 `1686566864` |\n| `encode/datetime/main.test.ts` | unixTimestamp array query param | 37 | Each element unix-converted then CSV-joined |\n\n### Duration Query Params (4)\n| Test file | Test name | Line | Expected encoding |\n|-----------|-----------|------|-------------------|\n| `encode/duration/main.test.ts` | int32 seconds query param | 24 | `input=36` (numeric to string) |\n| `encode/duration/main.test.ts` | float seconds query param | 28 | `input=35.625` |\n| `encode/duration/main.test.ts` | float64 seconds query param | 32 | `input=35.625` |\n| `encode/duration/main.test.ts` | int32 seconds array query param | 36 | `input=36,47` (CSV joined) |\n\n### Bytes Query Params (4)\n| Test file | Test name | Line | Expected encoding |\n|-----------|-----------|------|-------------------|\n| `encode/bytes/main.test.ts` | default (base64) query param | 51 | `uint8ArrayToString(value, \"base64\")` \u2192 `dGVzdA==` |\n| `encode/bytes/main.test.ts` | base64 query param | 55 | `uint8ArrayToString(value, \"base64\")` \u2192 `dGVzdA==` |\n| `encode/bytes/main.test.ts` | base64url query param | 59 | `uint8ArrayToString(value, \"base64url\")` \u2192 `dGVzdA` |\n| `encode/bytes/main.test.ts` | base64url array query param | 63 | Each element base64url-encoded then CSV-joined |\n\n## Current Generated Code (broken)\n\nIn `test/e2e/generated/encode/datetime/src/api/query/operations.ts`:\n```typescript\nconst path = expandUrlTemplate(\"/encode/datetime/query/default{?value}\", { \"value\": value });\n// value is a Date object \u2014 serializes to garbage in URL\n```\n\nIn `test/e2e/generated/encode/bytes/src/api/query/operations.ts`:\n```typescript\nconst path = expandUrlTemplate(\"/encode/bytes/query/default{?value}\", { \"value\": value });\n// value is a Uint8Array \u2014 serializes to \"[object Uint8Array]\"\n```\n\n## Mock Server Expectations\n\nFrom `node_modules/@typespec/http-specs/specs/encode/datetime/mockapi.ts`:\n- `Encode_Datetime_Query_default`: expects query `value=2022-08-26T18:38:00.000Z` (rfc3339)\n- `Encode_Datetime_Query_rfc7231`: expects `value=Fri, 26 Aug 2022 14:38:00 GMT`\n- `Encode_Datetime_Query_unixTimestamp`: expects `value=1686566864` (unix seconds, numeric)\n\nFrom `node_modules/@typespec/http-specs/specs/encode/bytes/mockapi.ts`:\n- `Encode_Bytes_Query_default`: expects `value=dGVzdA==`\n- `Encode_Bytes_Query_base64url`: expects `value=dGVzdA`\n\nFrom `node_modules/@typespec/http-specs/specs/encode/duration/mockapi.ts`:\n- `Encode_Duration_Query_int32Seconds`: expects `input=36`\n- `Encode_Duration_Query_floatSeconds`: expects `input=35.625`\n\n## Root Cause\n\nThe emitter's operation `_send` function generation passes raw parameter values into `expandUrlTemplate()` without applying the encoding transformation. TCGC provides `encode` info on each parameter's type (e.g., `type.encode === \"rfc3339\"`, `type.encode === \"unixTimestamp\"`, `type.encode === \"base64url\"`), but the operation generation code doesn't use it for query parameters.\n\n## Recommended Fix\n\nIn the emitter's operation generation code that builds the URL template variables object:\n\n1. For each query parameter, check `param.type.kind` and `param.type.encode`:\n   - `utcDateTime` + `rfc3339` (or default): Generate `value.toISOString()`\n   - `utcDateTime` + `rfc7231`: Generate `value.toUTCString()`\n   - `utcDateTime` + `unixTimestamp`: Generate `Math.floor(value.getTime() / 1000)`\n   - `duration` + numeric encoding: Generate `value` (number auto-stringified by URL)\n   - `bytes` + `base64`: Generate `uint8ArrayToString(value, \"base64\")` (import from runtime)\n   - `bytes` + `base64url`: Generate `uint8ArrayToString(value, \"base64url\")`\n2. For array params, apply element-level encoding before joining with `buildCsvCollection`\n\nLook at how the emitter handles these encodings for JSON body properties in `src/components/serialization/json-serializer.tsx` \u2014 apply the same pattern.\n\n## Key Files to Investigate\n\n- `src/components/` \u2014 find where `expandUrlTemplate` call is generated with query params\n- `src/components/serialization/json-serializer.tsx` \u2014 existing encoding logic to reuse\n- `test/e2e/generated/encode/datetime/src/api/query/operations.ts` \u2014 see current broken output\n\n## After Fix\n\nRemove `it.skip` from all 13 tests. Regenerate test clients if needed.\n\n## Validation\n\n```bash\npnpm build && pnpm test:e2e -- --grep \"Encode.Datetime|Encode.Duration|Encode.Bytes\"\n```"
     },
     {
       "id": "E2E-FIX-HEADER-PARAM-ENCODING",
@@ -1100,7 +574,7 @@
       "dependencies": [],
       "design_review": null,
       "source": "e2e-test-investigation",
-      "description": "Fix 9 skipped e2e tests caused by raw typed objects (Date arrays, numbers, Uint8Array) being passed directly into HTTP headers without string conversion.\n\n## Problem\n\nThe emitter generates header assignments that pass raw typed objects instead of string-encoded values. HTTP headers require string values.\n\n## Affected Tests (9)\n\n### Datetime Headers (2)\n| Test file | Test name | Line | Expected |\n|-----------|-----------|------|----------|\n| `encode/datetime/main.test.ts` | unixTimestamp header | 94 | `Math.floor(value.getTime()/1000).toString()` → `\"1686566864\"` |\n| `encode/datetime/main.test.ts` | unixTimestamp array header | 98 | Each element unix-converted, then CSV-joined → `\"1686566864,1686734256\"` |\n\n### Duration Headers (3)\n| Test file | Test name | Line | Expected |\n|-----------|-----------|------|----------|\n| `encode/duration/main.test.ts` | int32 seconds header | 104 | `duration.toString()` → `\"36\"` |\n| `encode/duration/main.test.ts` | float seconds header | 108 | `duration.toString()` → `\"35.625\"` |\n| `encode/duration/main.test.ts` | float64 seconds header | 112 | `duration.toString()` → `\"35.625\"` |\n\n### Bytes Headers (4)\n| Test file | Test name | Line | Expected |\n|-----------|-----------|------|----------|\n| `encode/bytes/main.test.ts` | default (base64) header | 103 | `uint8ArrayToString(value, \"base64\")` → `\"dGVzdA==\"` |\n| `encode/bytes/main.test.ts` | base64 header | 107 | `uint8ArrayToString(value, \"base64\")` → `\"dGVzdA==\"` |\n| `encode/bytes/main.test.ts` | base64url header | 111 | `uint8ArrayToString(value, \"base64url\")` → `\"dGVzdA\"` |\n| `encode/bytes/main.test.ts` | base64url array header | 115 | Each element base64url-encoded, CSV-joined → `\"dGVzdA,dGVzdA\"` |\n\n## Current Generated Code (broken)\n\nIn `test/e2e/generated/encode/duration/src/api/header/operations.ts`:\n```typescript\nheaders: { \"duration\": duration, ...options.requestOptions?.headers }\n// duration is a number — HTTP headers require strings\n```\n\nIn `test/e2e/generated/encode/bytes/src/api/header/operations.ts`:\n```typescript\nheaders: { \"value\": value, ...options.requestOptions?.headers }\n// value is a Uint8Array — headers need base64 string\n```\n\nIn `test/e2e/generated/encode/datetime/src/api/header/operations.ts`:\n```typescript\nheaders: { \"value\": buildCsvCollection(value), ...options.requestOptions?.headers }\n// value is Date[] — buildCsvCollection needs string/number elements, not Date objects\n```\n\n## Mock Server Expectations\n\nFrom duration mockapi.ts:\n- `Encode_Duration_Header_int32Seconds`: expects `duration: \"36\"`\n- `Encode_Duration_Header_floatSeconds`: expects `duration: \"35.625\"`\n\nFrom bytes mockapi.ts:\n- `Encode_Bytes_Header_default`: expects `value: \"dGVzdA==\"`\n- `Encode_Bytes_Header_base64urlArray`: expects `value: \"dGVzdA,dGVzdA\"`\n\nFrom datetime mockapi.ts:\n- `Encode_Datetime_Header_unixTimestamp`: expects `value: \"1686566864\"`\n- `Encode_Datetime_Header_unixTimestampArray`: expects `value: \"1686566864,1686734256\"`\n\n## Root Cause\n\nSame underlying issue as E2E-FIX-QUERY-PARAM-ENCODING — the emitter doesn't apply `@encode` transformations when generating header parameter assignments. Headers require string values but the emitter passes raw SDK types (number, Date, Uint8Array) directly.\n\n## Recommended Fix\n\nIn the emitter's operation generation code that builds the headers object, apply encoding based on param type:\n- `utcDateTime` + `unixTimestamp`: `String(Math.floor(value.getTime() / 1000))`\n- `duration` + numeric encoding: `value.toString()`\n- `bytes` + `base64`/`base64url`: `uint8ArrayToString(value, encoding)`\n- For array headers, encode each element before passing to `buildCsvCollection`\n\nCoordinate with E2E-FIX-QUERY-PARAM-ENCODING since encoding logic is identical — consider extracting a shared helper.\n\n## Key Files\n\n- Same emitter operation generation code as query params\n- `test/e2e/generated/encode/*/src/api/header/operations.ts` — current broken output\n\n## Validation\n\n```bash\npnpm build && pnpm test:e2e -- --grep \"Encode.Datetime|Encode.Duration|Encode.Bytes\"\n```"
+      "description": "Fix 9 skipped e2e tests caused by raw typed objects (Date arrays, numbers, Uint8Array) being passed directly into HTTP headers without string conversion.\n\n## Problem\n\nThe emitter generates header assignments that pass raw typed objects instead of string-encoded values. HTTP headers require string values.\n\n## Affected Tests (9)\n\n### Datetime Headers (2)\n| Test file | Test name | Line | Expected |\n|-----------|-----------|------|----------|\n| `encode/datetime/main.test.ts` | unixTimestamp header | 94 | `Math.floor(value.getTime()/1000).toString()` \u2192 `\"1686566864\"` |\n| `encode/datetime/main.test.ts` | unixTimestamp array header | 98 | Each element unix-converted, then CSV-joined \u2192 `\"1686566864,1686734256\"` |\n\n### Duration Headers (3)\n| Test file | Test name | Line | Expected |\n|-----------|-----------|------|----------|\n| `encode/duration/main.test.ts` | int32 seconds header | 104 | `duration.toString()` \u2192 `\"36\"` |\n| `encode/duration/main.test.ts` | float seconds header | 108 | `duration.toString()` \u2192 `\"35.625\"` |\n| `encode/duration/main.test.ts` | float64 seconds header | 112 | `duration.toString()` \u2192 `\"35.625\"` |\n\n### Bytes Headers (4)\n| Test file | Test name | Line | Expected |\n|-----------|-----------|------|----------|\n| `encode/bytes/main.test.ts` | default (base64) header | 103 | `uint8ArrayToString(value, \"base64\")` \u2192 `\"dGVzdA==\"` |\n| `encode/bytes/main.test.ts` | base64 header | 107 | `uint8ArrayToString(value, \"base64\")` \u2192 `\"dGVzdA==\"` |\n| `encode/bytes/main.test.ts` | base64url header | 111 | `uint8ArrayToString(value, \"base64url\")` \u2192 `\"dGVzdA\"` |\n| `encode/bytes/main.test.ts` | base64url array header | 115 | Each element base64url-encoded, CSV-joined \u2192 `\"dGVzdA,dGVzdA\"` |\n\n## Current Generated Code (broken)\n\nIn `test/e2e/generated/encode/duration/src/api/header/operations.ts`:\n```typescript\nheaders: { \"duration\": duration, ...options.requestOptions?.headers }\n// duration is a number \u2014 HTTP headers require strings\n```\n\nIn `test/e2e/generated/encode/bytes/src/api/header/operations.ts`:\n```typescript\nheaders: { \"value\": value, ...options.requestOptions?.headers }\n// value is a Uint8Array \u2014 headers need base64 string\n```\n\nIn `test/e2e/generated/encode/datetime/src/api/header/operations.ts`:\n```typescript\nheaders: { \"value\": buildCsvCollection(value), ...options.requestOptions?.headers }\n// value is Date[] \u2014 buildCsvCollection needs string/number elements, not Date objects\n```\n\n## Mock Server Expectations\n\nFrom duration mockapi.ts:\n- `Encode_Duration_Header_int32Seconds`: expects `duration: \"36\"`\n- `Encode_Duration_Header_floatSeconds`: expects `duration: \"35.625\"`\n\nFrom bytes mockapi.ts:\n- `Encode_Bytes_Header_default`: expects `value: \"dGVzdA==\"`\n- `Encode_Bytes_Header_base64urlArray`: expects `value: \"dGVzdA,dGVzdA\"`\n\nFrom datetime mockapi.ts:\n- `Encode_Datetime_Header_unixTimestamp`: expects `value: \"1686566864\"`\n- `Encode_Datetime_Header_unixTimestampArray`: expects `value: \"1686566864,1686734256\"`\n\n## Root Cause\n\nSame underlying issue as E2E-FIX-QUERY-PARAM-ENCODING \u2014 the emitter doesn't apply `@encode` transformations when generating header parameter assignments. Headers require string values but the emitter passes raw SDK types (number, Date, Uint8Array) directly.\n\n## Recommended Fix\n\nIn the emitter's operation generation code that builds the headers object, apply encoding based on param type:\n- `utcDateTime` + `unixTimestamp`: `String(Math.floor(value.getTime() / 1000))`\n- `duration` + numeric encoding: `value.toString()`\n- `bytes` + `base64`/`base64url`: `uint8ArrayToString(value, encoding)`\n- For array headers, encode each element before passing to `buildCsvCollection`\n\nCoordinate with E2E-FIX-QUERY-PARAM-ENCODING since encoding logic is identical \u2014 consider extracting a shared helper.\n\n## Key Files\n\n- Same emitter operation generation code as query params\n- `test/e2e/generated/encode/*/src/api/header/operations.ts` \u2014 current broken output\n\n## Validation\n\n```bash\npnpm build && pnpm test:e2e -- --grep \"Encode.Datetime|Encode.Duration|Encode.Bytes\"\n```"
     },
     {
       "id": "E2E-FIX-RESPONSE-HEADER-DESER",
@@ -1112,7 +586,7 @@
       "dependencies": [],
       "design_review": null,
       "source": "e2e-test-investigation",
-      "description": "Fix 4 skipped e2e tests caused by missing response header extraction and deserialization.\n\n## Problem\n\nOperations that return typed response headers generate `void` return types and no code to extract/parse header values.\n\n## Affected Tests (4)\n\n| Test file | Test name | Line | Expected header |\n|-----------|-----------|------|----------------|\n| `encode/datetime/main.test.ts` | default (rfc7231) response header | 119 | `value: \"Fri, 26 Aug 2022 14:38:00 GMT\"` → `Date` |\n| `encode/datetime/main.test.ts` | rfc3339 response header | 131 | `value: \"2022-08-26T18:38:00.000Z\"` → `Date` |\n| `encode/datetime/main.test.ts` | rfc7231 response header | 143 | `value: \"Fri, 26 Aug 2022 14:38:00 GMT\"` → `Date` |\n| `encode/datetime/main.test.ts` | unixTimestamp response header | 155 | `value: \"1686566864\"` → `Date` (via `new Date(parseInt(v)*1000)`) |\n\n## Current Generated Code (broken)\n\nIn `test/e2e/generated/encode/datetime/src/api/responseHeader/operations.ts`:\n```typescript\nexport async function $default(\n  context: DatetimeContext,\n  options: DefaultOptionalParams = { requestOptions: {} },\n): Promise<void> {  // Returns void — should return { value: Date }\n  const result = await _defaultSend(context, options);\n  return _defaultDeserialize(result);\n}\n\nexport async function _defaultDeserialize(\n  result: PathUncheckedResponse,\n): Promise<void> {\n  const expectedStatuses = [\"204\"];\n  if (!expectedStatuses.includes(result.status)) {\n    throw createRestError(result);\n  }\n  // No code to extract headers!\n}\n```\n\n## Mock Server Expectations\n\nFrom `node_modules/@typespec/http-specs/specs/encode/datetime/mockapi.ts`:\n- `Encode_Datetime_ResponseHeader_default`: Returns response header `value: \"Fri, 26 Aug 2022 14:38:00 GMT\"` with status 204\n- `Encode_Datetime_ResponseHeader_rfc3339`: Returns header `value: \"2022-08-26T18:38:00.000Z\"`\n- `Encode_Datetime_ResponseHeader_unixTimestamp`: Returns header `value: \"1686566864\"` (unix seconds as string)\n\n## Root Cause\n\nThe emitter's deserialize function generation doesn't handle response headers. When an operation's response includes `@header` properties, the emitter should generate a response type with header fields, extract values from `result.headers[\"name\"]`, and apply type-appropriate deserialization.\n\n## Recommended Fix\n\n1. In operation deserialize function generation, check TCGC's `operation.responses[].headers` for response header definitions\n2. If headers exist, generate a response model type with the header fields\n3. In `_deserialize`, extract headers from `result.headers[\"headerName\"]`\n4. Apply encoding-aware deserialization:\n   - `utcDateTime` + default/rfc7231: `new Date(result.headers[\"value\"])`\n   - `utcDateTime` + rfc3339: `new Date(result.headers[\"value\"])`\n   - `utcDateTime` + unixTimestamp: `new Date(parseInt(result.headers[\"value\"]) * 1000)`\n5. Change return type from `void` to response header model\n\n## Key Files\n\n- Look for where `_deserialize` functions are generated in the emitter\n- Check how TCGC exposes response headers: `operation.responses[].headers`\n- Reference: `submodules/flight-instructor/` for how response headers are handled\n\n## Validation\n\n```bash\npnpm build && pnpm test:e2e -- --grep \"Encode.Datetime\"\n```"
+      "description": "Fix 4 skipped e2e tests caused by missing response header extraction and deserialization.\n\n## Problem\n\nOperations that return typed response headers generate `void` return types and no code to extract/parse header values.\n\n## Affected Tests (4)\n\n| Test file | Test name | Line | Expected header |\n|-----------|-----------|------|----------------|\n| `encode/datetime/main.test.ts` | default (rfc7231) response header | 119 | `value: \"Fri, 26 Aug 2022 14:38:00 GMT\"` \u2192 `Date` |\n| `encode/datetime/main.test.ts` | rfc3339 response header | 131 | `value: \"2022-08-26T18:38:00.000Z\"` \u2192 `Date` |\n| `encode/datetime/main.test.ts` | rfc7231 response header | 143 | `value: \"Fri, 26 Aug 2022 14:38:00 GMT\"` \u2192 `Date` |\n| `encode/datetime/main.test.ts` | unixTimestamp response header | 155 | `value: \"1686566864\"` \u2192 `Date` (via `new Date(parseInt(v)*1000)`) |\n\n## Current Generated Code (broken)\n\nIn `test/e2e/generated/encode/datetime/src/api/responseHeader/operations.ts`:\n```typescript\nexport async function $default(\n  context: DatetimeContext,\n  options: DefaultOptionalParams = { requestOptions: {} },\n): Promise<void> {  // Returns void \u2014 should return { value: Date }\n  const result = await _defaultSend(context, options);\n  return _defaultDeserialize(result);\n}\n\nexport async function _defaultDeserialize(\n  result: PathUncheckedResponse,\n): Promise<void> {\n  const expectedStatuses = [\"204\"];\n  if (!expectedStatuses.includes(result.status)) {\n    throw createRestError(result);\n  }\n  // No code to extract headers!\n}\n```\n\n## Mock Server Expectations\n\nFrom `node_modules/@typespec/http-specs/specs/encode/datetime/mockapi.ts`:\n- `Encode_Datetime_ResponseHeader_default`: Returns response header `value: \"Fri, 26 Aug 2022 14:38:00 GMT\"` with status 204\n- `Encode_Datetime_ResponseHeader_rfc3339`: Returns header `value: \"2022-08-26T18:38:00.000Z\"`\n- `Encode_Datetime_ResponseHeader_unixTimestamp`: Returns header `value: \"1686566864\"` (unix seconds as string)\n\n## Root Cause\n\nThe emitter's deserialize function generation doesn't handle response headers. When an operation's response includes `@header` properties, the emitter should generate a response type with header fields, extract values from `result.headers[\"name\"]`, and apply type-appropriate deserialization.\n\n## Recommended Fix\n\n1. In operation deserialize function generation, check TCGC's `operation.responses[].headers` for response header definitions\n2. If headers exist, generate a response model type with the header fields\n3. In `_deserialize`, extract headers from `result.headers[\"headerName\"]`\n4. Apply encoding-aware deserialization:\n   - `utcDateTime` + default/rfc7231: `new Date(result.headers[\"value\"])`\n   - `utcDateTime` + rfc3339: `new Date(result.headers[\"value\"])`\n   - `utcDateTime` + unixTimestamp: `new Date(parseInt(result.headers[\"value\"]) * 1000)`\n5. Change return type from `void` to response header model\n\n## Key Files\n\n- Look for where `_deserialize` functions are generated in the emitter\n- Check how TCGC exposes response headers: `operation.responses[].headers`\n- Reference: `submodules/flight-instructor/` for how response headers are handled\n\n## Validation\n\n```bash\npnpm build && pnpm test:e2e -- --grep \"Encode.Datetime\"\n```"
     },
     {
       "id": "E2E-FIX-NUMERIC-STRING-ENCODE",
@@ -1124,7 +598,7 @@
       "dependencies": [],
       "design_review": null,
       "source": "e2e-test-investigation",
-      "description": "Fix 3 skipped e2e tests caused by missing support for `@encode(string)` on integer types.\n\n## Problem\n\nWhen integer types have `@encode(string)` in TypeSpec, the wire format is a string (e.g., `\"10000000000\"`) but the SDK should expose the value as a `number`. The emitter generates no-op passthrough serializers.\n\n## Affected Tests (3)\n\n| Test file | Test name | Line | Wire value | SDK value |\n|-----------|-----------|------|-----------|----------|\n| `encode/numeric/main.test.ts` | safeint as string | 15 | `\"10000000000\"` | `10000000000` |\n| `encode/numeric/main.test.ts` | optional uint32 as string | 21 | `\"1\"` | `1` |\n| `encode/numeric/main.test.ts` | uint8 as string | 27 | `\"255\"` | `255` |\n\n## Current Generated Code (broken)\n\nIn `test/e2e/generated/encode/numeric/src/models/models.ts`:\n```typescript\nexport interface SafeintAsStringProperty {\n  value: string;  // Should be number\n}\nexport function safeintAsStringPropertySerializer(item: SafeintAsStringProperty): any {\n  return { value: item[\"value\"] };  // No conversion\n}\nexport function safeintAsStringPropertyDeserializer(item: any): SafeintAsStringProperty {\n  return { value: item[\"value\"] };  // No conversion\n}\n```\n\n## Mock Server Expectations\n\nFrom `node_modules/@typespec/http-specs/specs/encode/numeric/mockapi.ts`:\n```\nEncode_Numeric_Property_safeintAsString: POST /encode/numeric/property/safeint with { value: \"10000000000\" }\nEncode_Numeric_Property_uint32AsStringOptional: POST /encode/numeric/property/uint32 with { value: \"1\" }\nEncode_Numeric_Property_uint8AsString: POST /encode/numeric/property/uint8 with { value: \"255\" }\n```\n\n## Root Cause\n\nIn `src/components/serialization/json-serializer.tsx`, `getSerializationExpression()` handles `@encode` for `utcDateTime` and `bytes` but has no case for integer types with `@encode(\"string\")`. Same gap in `json-deserializer.tsx`.\n\n## Recommended Fix\n\n### 1. Model type generation\nChange generated TypeScript type from `string` to `number`.\n\n### 2. Serializer (`json-serializer.tsx`)\nIn `getSerializationExpression()`, add integer+string encoding case:\n```typescript\n// When type is integer-like and encode === \"string\":\nreturn code`${accessor}.toString()`;\n```\nAlso update `needsTransformation()` to return `true`.\n\n### 3. Deserializer (`json-deserializer.tsx`)\nIn `getDeserializationExpression()`, add:\n```typescript\nreturn code`Number(${accessor})`;\n```\n\n### Reference Pattern\nLook at how `utcDateTime` + `unixTimestamp` encoding is handled — same pattern.\n\n## Key Files\n\n- `src/components/serialization/json-serializer.tsx` — `getSerializationExpression()`, `needsTransformation()`\n- `src/components/serialization/json-deserializer.tsx` — `getDeserializationExpression()`\n\n## Validation\n\n```bash\npnpm build && pnpm test:e2e -- --grep \"Encode.Numeric\"\n```"
+      "description": "Fix 3 skipped e2e tests caused by missing support for `@encode(string)` on integer types.\n\n## Problem\n\nWhen integer types have `@encode(string)` in TypeSpec, the wire format is a string (e.g., `\"10000000000\"`) but the SDK should expose the value as a `number`. The emitter generates no-op passthrough serializers.\n\n## Affected Tests (3)\n\n| Test file | Test name | Line | Wire value | SDK value |\n|-----------|-----------|------|-----------|----------|\n| `encode/numeric/main.test.ts` | safeint as string | 15 | `\"10000000000\"` | `10000000000` |\n| `encode/numeric/main.test.ts` | optional uint32 as string | 21 | `\"1\"` | `1` |\n| `encode/numeric/main.test.ts` | uint8 as string | 27 | `\"255\"` | `255` |\n\n## Current Generated Code (broken)\n\nIn `test/e2e/generated/encode/numeric/src/models/models.ts`:\n```typescript\nexport interface SafeintAsStringProperty {\n  value: string;  // Should be number\n}\nexport function safeintAsStringPropertySerializer(item: SafeintAsStringProperty): any {\n  return { value: item[\"value\"] };  // No conversion\n}\nexport function safeintAsStringPropertyDeserializer(item: any): SafeintAsStringProperty {\n  return { value: item[\"value\"] };  // No conversion\n}\n```\n\n## Mock Server Expectations\n\nFrom `node_modules/@typespec/http-specs/specs/encode/numeric/mockapi.ts`:\n```\nEncode_Numeric_Property_safeintAsString: POST /encode/numeric/property/safeint with { value: \"10000000000\" }\nEncode_Numeric_Property_uint32AsStringOptional: POST /encode/numeric/property/uint32 with { value: \"1\" }\nEncode_Numeric_Property_uint8AsString: POST /encode/numeric/property/uint8 with { value: \"255\" }\n```\n\n## Root Cause\n\nIn `src/components/serialization/json-serializer.tsx`, `getSerializationExpression()` handles `@encode` for `utcDateTime` and `bytes` but has no case for integer types with `@encode(\"string\")`. Same gap in `json-deserializer.tsx`.\n\n## Recommended Fix\n\n### 1. Model type generation\nChange generated TypeScript type from `string` to `number`.\n\n### 2. Serializer (`json-serializer.tsx`)\nIn `getSerializationExpression()`, add integer+string encoding case:\n```typescript\n// When type is integer-like and encode === \"string\":\nreturn code`${accessor}.toString()`;\n```\nAlso update `needsTransformation()` to return `true`.\n\n### 3. Deserializer (`json-deserializer.tsx`)\nIn `getDeserializationExpression()`, add:\n```typescript\nreturn code`Number(${accessor})`;\n```\n\n### Reference Pattern\nLook at how `utcDateTime` + `unixTimestamp` encoding is handled \u2014 same pattern.\n\n## Key Files\n\n- `src/components/serialization/json-serializer.tsx` \u2014 `getSerializationExpression()`, `needsTransformation()`\n- `src/components/serialization/json-deserializer.tsx` \u2014 `getDeserializationExpression()`\n\n## Validation\n\n```bash\npnpm build && pnpm test:e2e -- --grep \"Encode.Numeric\"\n```"
     },
     {
       "id": "E2E-FIX-EXTENSIBLE-ENUM-ARRAY-REFKEY",
@@ -1136,7 +610,7 @@
       "dependencies": [],
       "design_review": null,
       "source": "e2e-test-investigation",
-      "description": "Fix 12 skipped e2e tests caused by unresolved symbol references in generated extensible enum array serializers. This is a CRITICAL bug — the generated code contains literal `<Unresolved Symbol: ...>` text that causes esbuild parse failures, making the entire client unusable.\n\n## Problem\n\nThe generated `models.ts` for encode/array contains broken code:\n```typescript\nexport function commaDelimitedExtensibleEnumArrayPropertySerializer(...) {\n  return {\n    value: buildCsvCollection(<Unresolved Symbol: refkey[sarraySerializer⁣senum]>(item[\"value\"])),\n  };\n}\n```\nThis appears 4 times (lines 173, 181, 189, 197).\n\n## Affected Tests (12)\n\nAll tests in `test/e2e/http/encode/array/main.test.ts` (entire `describe.skip` block):\n- string array: comma, space, pipe, newline delimiter (4)\n- enum array: comma, space, pipe, newline delimiter (4)\n- extensible enum array: comma, space, pipe, newline delimiter (4)\n\n## Mock Server Expectations\n\nFrom `node_modules/@typespec/http-specs/specs/encode/array/mockapi.ts`:\nEach test POSTs `{ value: \"blue,red,green\" }` (or space/pipe/newline delimited) and expects same echoed back.\n\n## Root Cause\n\nIn `src/utils/refkeys.ts`, `getTypeSignature()` returns just `\"enum\"` for ALL enum types (regular and extensible). The execution flow:\n\n1. Serializer generation encounters extensible enum array property\n2. `getSerializationExpression()` checks `needsTransformation(type.valueType)` → true\n3. `valueTypeHasNamedSerializerFn(type.valueType)` → true for extensible enums\n4. Generates: `code\\`\\${arraySerializerRefkey(type.valueType)}(\\${accessor})\\``\n5. `arraySerializerRefkey()` calls `refkey(\"arraySerializer\", getTypeSignature(type.valueType))`\n6. `getTypeSignature()` returns `\"enum\"` — NOT unique per enum type\n7. No `JsonArraySerializer` component declared with matching refkey → UNRESOLVED\n\nThe specific code in `src/utils/refkeys.ts`:\n```typescript\ndefault:\n  return t.kind;  // Returns \"enum\" for ALL enum types\n```\n\n## Recommended Fix\n\nIn `src/utils/refkeys.ts`, update `getTypeSignature()` for enum case:\n```typescript\ncase \"enum\":\n  return `enum:${t.name}`;  // e.g., \"enum:ColorsExtensibleEnum\"\n```\n\nThis ensures each enum type gets a unique refkey. Then verify `JsonArraySerializer` in `src/components/serialization/json-array-record-helpers.tsx` is rendered for extensible enum types.\n\n## Key Files\n\n- `src/utils/refkeys.ts` — `getTypeSignature()` function\n- `src/components/serialization/json-array-record-helpers.tsx` — `JsonArraySerializer` rendering\n- `src/components/serialization/json-serializer.tsx` — `valueTypeHasNamedSerializerFn()`\n\n## After Fix\n\nChange `describe.skip` to `describe` in test. Regenerate test clients.\n\n## Validation\n\n```bash\npnpm build && pnpm test:e2e -- --grep \"Encode.Array\"\n```"
+      "description": "Fix 12 skipped e2e tests caused by unresolved symbol references in generated extensible enum array serializers. This is a CRITICAL bug \u2014 the generated code contains literal `<Unresolved Symbol: ...>` text that causes esbuild parse failures, making the entire client unusable.\n\n## Problem\n\nThe generated `models.ts` for encode/array contains broken code:\n```typescript\nexport function commaDelimitedExtensibleEnumArrayPropertySerializer(...) {\n  return {\n    value: buildCsvCollection(<Unresolved Symbol: refkey[sarraySerializer\u2063senum]>(item[\"value\"])),\n  };\n}\n```\nThis appears 4 times (lines 173, 181, 189, 197).\n\n## Affected Tests (12)\n\nAll tests in `test/e2e/http/encode/array/main.test.ts` (entire `describe.skip` block):\n- string array: comma, space, pipe, newline delimiter (4)\n- enum array: comma, space, pipe, newline delimiter (4)\n- extensible enum array: comma, space, pipe, newline delimiter (4)\n\n## Mock Server Expectations\n\nFrom `node_modules/@typespec/http-specs/specs/encode/array/mockapi.ts`:\nEach test POSTs `{ value: \"blue,red,green\" }` (or space/pipe/newline delimited) and expects same echoed back.\n\n## Root Cause\n\nIn `src/utils/refkeys.ts`, `getTypeSignature()` returns just `\"enum\"` for ALL enum types (regular and extensible). The execution flow:\n\n1. Serializer generation encounters extensible enum array property\n2. `getSerializationExpression()` checks `needsTransformation(type.valueType)` \u2192 true\n3. `valueTypeHasNamedSerializerFn(type.valueType)` \u2192 true for extensible enums\n4. Generates: `code\\`\\${arraySerializerRefkey(type.valueType)}(\\${accessor})\\``\n5. `arraySerializerRefkey()` calls `refkey(\"arraySerializer\", getTypeSignature(type.valueType))`\n6. `getTypeSignature()` returns `\"enum\"` \u2014 NOT unique per enum type\n7. No `JsonArraySerializer` component declared with matching refkey \u2192 UNRESOLVED\n\nThe specific code in `src/utils/refkeys.ts`:\n```typescript\ndefault:\n  return t.kind;  // Returns \"enum\" for ALL enum types\n```\n\n## Recommended Fix\n\nIn `src/utils/refkeys.ts`, update `getTypeSignature()` for enum case:\n```typescript\ncase \"enum\":\n  return `enum:${t.name}`;  // e.g., \"enum:ColorsExtensibleEnum\"\n```\n\nThis ensures each enum type gets a unique refkey. Then verify `JsonArraySerializer` in `src/components/serialization/json-array-record-helpers.tsx` is rendered for extensible enum types.\n\n## Key Files\n\n- `src/utils/refkeys.ts` \u2014 `getTypeSignature()` function\n- `src/components/serialization/json-array-record-helpers.tsx` \u2014 `JsonArraySerializer` rendering\n- `src/components/serialization/json-serializer.tsx` \u2014 `valueTypeHasNamedSerializerFn()`\n\n## After Fix\n\nChange `describe.skip` to `describe` in test. Regenerate test clients.\n\n## Validation\n\n```bash\npnpm build && pnpm test:e2e -- --grep \"Encode.Array\"\n```"
     },
     {
       "id": "E2E-FIX-ADDITIONAL-PROPS-DERIVED",
@@ -1148,7 +622,7 @@
       "dependencies": [],
       "design_review": null,
       "source": "e2e-test-investigation",
-      "description": "Fix 16 skipped e2e tests caused by derived types losing their `additionalProperties` bag during serialization/deserialization.\n\n## Problem\n\nWhen a model extends a base type with additional properties (Record<string, unknown>), base type serializers/deserializers correctly use `serializeRecord()`/`deserializeRecord()`. But derived types do NOT include this logic, silently discarding additional properties.\n\n## Affected Tests (16)\n\n### Derived Unknown Additional Properties (4)\n| Test file | Test name | Line |\n|-----------|-----------|------|\n| `type/property/additional-properties/main.test.ts` | get derived unknown additional props | 54 |\n| `type/property/additional-properties/main.test.ts` | put derived unknown additional props | 59 |\n| `type/property/additional-properties/main.test.ts` | get derived unknown additional props (is) | 113 |\n| `type/property/additional-properties/main.test.ts` | put derived unknown additional props (is) | 118 |\n\n### Discriminated Unknown Additional Properties (4)\n| Test file | Test name | Line |\n|-----------|-----------|------|\n| `type/property/additional-properties/main.test.ts` | get discriminated unknown additional props | 76 |\n| `type/property/additional-properties/main.test.ts` | put discriminated unknown additional props | 81 |\n| `type/property/additional-properties/main.test.ts` | get discriminated unknown additional props (is) | 133 |\n| `type/property/additional-properties/main.test.ts` | put discriminated unknown additional props (is) | 138 |\n\n### Different Spread Types (8)\n| Test file | Test name | Line |\n|-----------|-----------|------|\n| `type/property/additional-properties/main.test.ts` | get/put derived different spread string | 419-424 |\n| `type/property/additional-properties/main.test.ts` | get/put derived different spread float | 437-442 |\n| `type/property/additional-properties/main.test.ts` | get/put derived different spread model | 455-460 |\n| `type/property/additional-properties/main.test.ts` | get/put derived different spread model array | 473-478 |\n\n## Current Generated Code\n\n### Base type (WORKING):\n```typescript\nexport function extendsUnknownAdditionalPropertiesDeserializer(item: any) {\n  return {\n    additionalProperties: deserializeRecord(item, undefined, [\"name\"]),\n    name: item[\"name\"],\n  };\n}\n```\n\n### Derived type (BROKEN):\n```typescript\nexport function extendsUnknownAdditionalPropertiesDerivedDeserializer(item: any) {\n  return {\n    name: item[\"name\"],\n    index: item[\"index\"],\n    age: item[\"age\"],\n    // MISSING: additionalProperties: deserializeRecord(item, undefined, [\"name\", \"index\", \"age\"])\n  };\n}\n```\n\n## Mock Server Expectations\n\nFrom `node_modules/@typespec/http-specs/specs/type/property/additional-properties/mockapi.ts`:\nTests expect round-trip of additional properties. E.g., derived type: `{ name: \"abc\", index: 1, age: 2.5, prop1: 32, prop2: true }` where prop1/prop2 are additional properties that must be preserved.\n\n## Root Cause\n\nIn the serialization/deserialization components, when generating serializers for a model type, the code checks `type.additionalProperties` but doesn't walk the inheritance chain (`type.baseModel`) to detect inherited additional properties.\n\n## Recommended Fix\n\nIn serializer/deserializer generation:\n1. Walk the inheritance chain to detect inherited additional properties\n2. Generate `serializeRecord()`/`deserializeRecord()` with combined known property names from full hierarchy\n\nFor serializers: `...serializeRecord(item[\"additionalProperties\"] ?? {})`\nFor deserializers: `additionalProperties: deserializeRecord(item, valueDeserializer, [\"name\", \"index\", \"age\"])`\n\nThe 4 discriminated union tests are fixed automatically once derived deserializers are fixed.\n\n## Key Files\n\n- `src/components/serialization/json-serializer.tsx` — model serializer generation\n- `src/components/serialization/json-deserializer.tsx` — model deserializer generation\n- Check TCGC: `type.additionalProperties` vs `type.baseModel.additionalProperties`\n\n## Validation\n\n```bash\npnpm build && pnpm test:e2e -- --grep \"AdditionalProperties\"\n```"
+      "description": "Fix 16 skipped e2e tests caused by derived types losing their `additionalProperties` bag during serialization/deserialization.\n\n## Problem\n\nWhen a model extends a base type with additional properties (Record<string, unknown>), base type serializers/deserializers correctly use `serializeRecord()`/`deserializeRecord()`. But derived types do NOT include this logic, silently discarding additional properties.\n\n## Affected Tests (16)\n\n### Derived Unknown Additional Properties (4)\n| Test file | Test name | Line |\n|-----------|-----------|------|\n| `type/property/additional-properties/main.test.ts` | get derived unknown additional props | 54 |\n| `type/property/additional-properties/main.test.ts` | put derived unknown additional props | 59 |\n| `type/property/additional-properties/main.test.ts` | get derived unknown additional props (is) | 113 |\n| `type/property/additional-properties/main.test.ts` | put derived unknown additional props (is) | 118 |\n\n### Discriminated Unknown Additional Properties (4)\n| Test file | Test name | Line |\n|-----------|-----------|------|\n| `type/property/additional-properties/main.test.ts` | get discriminated unknown additional props | 76 |\n| `type/property/additional-properties/main.test.ts` | put discriminated unknown additional props | 81 |\n| `type/property/additional-properties/main.test.ts` | get discriminated unknown additional props (is) | 133 |\n| `type/property/additional-properties/main.test.ts` | put discriminated unknown additional props (is) | 138 |\n\n### Different Spread Types (8)\n| Test file | Test name | Line |\n|-----------|-----------|------|\n| `type/property/additional-properties/main.test.ts` | get/put derived different spread string | 419-424 |\n| `type/property/additional-properties/main.test.ts` | get/put derived different spread float | 437-442 |\n| `type/property/additional-properties/main.test.ts` | get/put derived different spread model | 455-460 |\n| `type/property/additional-properties/main.test.ts` | get/put derived different spread model array | 473-478 |\n\n## Current Generated Code\n\n### Base type (WORKING):\n```typescript\nexport function extendsUnknownAdditionalPropertiesDeserializer(item: any) {\n  return {\n    additionalProperties: deserializeRecord(item, undefined, [\"name\"]),\n    name: item[\"name\"],\n  };\n}\n```\n\n### Derived type (BROKEN):\n```typescript\nexport function extendsUnknownAdditionalPropertiesDerivedDeserializer(item: any) {\n  return {\n    name: item[\"name\"],\n    index: item[\"index\"],\n    age: item[\"age\"],\n    // MISSING: additionalProperties: deserializeRecord(item, undefined, [\"name\", \"index\", \"age\"])\n  };\n}\n```\n\n## Mock Server Expectations\n\nFrom `node_modules/@typespec/http-specs/specs/type/property/additional-properties/mockapi.ts`:\nTests expect round-trip of additional properties. E.g., derived type: `{ name: \"abc\", index: 1, age: 2.5, prop1: 32, prop2: true }` where prop1/prop2 are additional properties that must be preserved.\n\n## Root Cause\n\nIn the serialization/deserialization components, when generating serializers for a model type, the code checks `type.additionalProperties` but doesn't walk the inheritance chain (`type.baseModel`) to detect inherited additional properties.\n\n## Recommended Fix\n\nIn serializer/deserializer generation:\n1. Walk the inheritance chain to detect inherited additional properties\n2. Generate `serializeRecord()`/`deserializeRecord()` with combined known property names from full hierarchy\n\nFor serializers: `...serializeRecord(item[\"additionalProperties\"] ?? {})`\nFor deserializers: `additionalProperties: deserializeRecord(item, valueDeserializer, [\"name\", \"index\", \"age\"])`\n\nThe 4 discriminated union tests are fixed automatically once derived deserializers are fixed.\n\n## Key Files\n\n- `src/components/serialization/json-serializer.tsx` \u2014 model serializer generation\n- `src/components/serialization/json-deserializer.tsx` \u2014 model deserializer generation\n- Check TCGC: `type.additionalProperties` vs `type.baseModel.additionalProperties`\n\n## Validation\n\n```bash\npnpm build && pnpm test:e2e -- --grep \"AdditionalProperties\"\n```"
     },
     {
       "id": "E2E-FIX-ADDITIONAL-PROPS-UNION",
@@ -1162,7 +636,7 @@
       ],
       "design_review": null,
       "source": "e2e-test-investigation",
-      "description": "Fix 6 skipped e2e tests caused by non-discriminated union deserializers returning raw data without type discrimination.\n\n## Problem\n\nNon-discriminated union deserializers are generated as simple passthroughs (`return item`), but wire data contains union types needing proper deserialization (e.g., Date parsing).\n\n## Affected Tests (6)\n\n| Test file | Test name | Line |\n|-----------|-----------|------|\n| `type/property/additional-properties/main.test.ts` | get non-discriminated union spread | 526 |\n| `type/property/additional-properties/main.test.ts` | put non-discriminated union spread | 537 |\n| `type/property/additional-properties/main.test.ts` | get non-discriminated union2 spread | 549 |\n| `type/property/additional-properties/main.test.ts` | put non-discriminated union2 spread | 564 |\n| `type/property/additional-properties/main.test.ts` | get non-discriminated union3 spread | 580 |\n| `type/property/additional-properties/main.test.ts` | put non-discriminated union3 spread | 598 |\n\n## Current Generated Code (broken)\n\n```typescript\nexport function _spreadRecordForNonDiscriminatedUnionAdditionalPropertyDeserializer(\n  item: any,\n): _SpreadRecordForNonDiscriminatedUnionAdditionalProperty {\n  return item;  // No discrimination, no deserialization!\n}\n```\n\nUnion members include:\n- `WidgetData0`: `{ kind: \"kind0\", fooProp: string }`\n- `WidgetData1`: `{ kind: \"kind1\", start: Date, end?: Date }`\n- `WidgetData2`: `{ kind: \"kind1\", start: string }` (overlapping discriminator!)\n\n## Mock Server Expectations\n\nFrom additional-properties mockapi.ts:\n- `recordUnionBody`: `{ flag: true, prop1: \"abc\", prop2: 43.125 }`\n- `recordDiscriminatedUnionBody`: `{ name: \"abc\", prop1: { kind: \"kind0\", fooProp: \"abc\" }, prop2: { kind: \"kind1\", start: \"2021-01-01T00:00:00Z\", end: \"2021-01-02T00:00:00Z\" } }`\n\n## Root Cause\n\nThe emitter doesn't generate type discrimination logic for non-discriminated unions. Members with overlapping `kind` fields need secondary property checks.\n\n## Recommended Fix\n\nGenerate union deserialization that:\n1. Uses `kind` field for initial dispatch when members have distinct values\n2. For overlapping `kind` values, use secondary property checks (e.g., presence of `end` field)\n3. Apply member-specific deserialization (e.g., ISO date parsing)\n\nThis depends on E2E-FIX-ADDITIONAL-PROPS-DERIVED being completed first.\n\n## Key Files\n\n- `src/components/serialization/json-deserializer.tsx` — union deserialization generation\n- `src/components/serialization/json-serializer.tsx` — union serialization generation\n\n## Validation\n\n```bash\npnpm build && pnpm test:e2e -- --grep \"AdditionalProperties\"\n```"
+      "description": "Fix 6 skipped e2e tests caused by non-discriminated union deserializers returning raw data without type discrimination.\n\n## Problem\n\nNon-discriminated union deserializers are generated as simple passthroughs (`return item`), but wire data contains union types needing proper deserialization (e.g., Date parsing).\n\n## Affected Tests (6)\n\n| Test file | Test name | Line |\n|-----------|-----------|------|\n| `type/property/additional-properties/main.test.ts` | get non-discriminated union spread | 526 |\n| `type/property/additional-properties/main.test.ts` | put non-discriminated union spread | 537 |\n| `type/property/additional-properties/main.test.ts` | get non-discriminated union2 spread | 549 |\n| `type/property/additional-properties/main.test.ts` | put non-discriminated union2 spread | 564 |\n| `type/property/additional-properties/main.test.ts` | get non-discriminated union3 spread | 580 |\n| `type/property/additional-properties/main.test.ts` | put non-discriminated union3 spread | 598 |\n\n## Current Generated Code (broken)\n\n```typescript\nexport function _spreadRecordForNonDiscriminatedUnionAdditionalPropertyDeserializer(\n  item: any,\n): _SpreadRecordForNonDiscriminatedUnionAdditionalProperty {\n  return item;  // No discrimination, no deserialization!\n}\n```\n\nUnion members include:\n- `WidgetData0`: `{ kind: \"kind0\", fooProp: string }`\n- `WidgetData1`: `{ kind: \"kind1\", start: Date, end?: Date }`\n- `WidgetData2`: `{ kind: \"kind1\", start: string }` (overlapping discriminator!)\n\n## Mock Server Expectations\n\nFrom additional-properties mockapi.ts:\n- `recordUnionBody`: `{ flag: true, prop1: \"abc\", prop2: 43.125 }`\n- `recordDiscriminatedUnionBody`: `{ name: \"abc\", prop1: { kind: \"kind0\", fooProp: \"abc\" }, prop2: { kind: \"kind1\", start: \"2021-01-01T00:00:00Z\", end: \"2021-01-02T00:00:00Z\" } }`\n\n## Root Cause\n\nThe emitter doesn't generate type discrimination logic for non-discriminated unions. Members with overlapping `kind` fields need secondary property checks.\n\n## Recommended Fix\n\nGenerate union deserialization that:\n1. Uses `kind` field for initial dispatch when members have distinct values\n2. For overlapping `kind` values, use secondary property checks (e.g., presence of `end` field)\n3. Apply member-specific deserialization (e.g., ISO date parsing)\n\nThis depends on E2E-FIX-ADDITIONAL-PROPS-DERIVED being completed first.\n\n## Key Files\n\n- `src/components/serialization/json-deserializer.tsx` \u2014 union deserialization generation\n- `src/components/serialization/json-serializer.tsx` \u2014 union serialization generation\n\n## Validation\n\n```bash\npnpm build && pnpm test:e2e -- --grep \"AdditionalProperties\"\n```"
     },
     {
       "id": "E2E-FIX-PARAM-NAME-SHADOWING",
@@ -1174,7 +648,7 @@
       "dependencies": [],
       "design_review": null,
       "source": "e2e-test-investigation",
-      "description": "Fix 1 skipped e2e test caused by a generated method parameter shadowing an imported operation function.\n\n## Problem\n\nThe generated `UsageClient` class has `input(input: InputRecord, ...)` where parameter `input` shadows imported function `input` from `./api/operations.js`. At runtime: `TypeError: input is not a function`.\n\n## Affected Test (1)\n\n| Test file | Test name | Line |\n|-----------|-----------|------|\n| `type/model/usage/main.test.ts` | should send an input-only model | 29 |\n\n## Current Generated Code (broken)\n\nIn `test/e2e/generated/type/model/usage/src/usageClient.ts`:\n```typescript\nimport { input, output, inputAndOutput } from \"./api/operations.js\";\n\nexport class UsageClient {\n  input(\n    input: InputRecord,  // Parameter \"input\" shadows imported function \"input\"\n    options: InputOptionalParams = { requestOptions: {} },\n  ): Promise<void> {\n    return input(this._client, input, options);  // Calls parameter, NOT function!\n  }\n}\n```\n\n## Mock Server Expectations\n\nFrom `node_modules/@typespec/http-specs/specs/type/model/usage/mockapi.ts`:\n```\nType_Model_Usage_input: POST /type/model/usage/input with { requiredProp: \"example-value\" } → 204\n```\n\n## Root Cause\n\nIn client class method generation, when method body calls `operationName(this._client, param, options)`, if any parameter has the same name as the operation function, JS scoping causes shadowing.\n\n## Recommended Fix\n\nIn client class method generation, detect parameter/operation name collision. If collision exists, rename the parameter using the model name or add a suffix. E.g., `inputRecord` instead of `input`.\n\nAlternatively, import with aliases: `import { input as inputOp } from \"./api/operations.js\"`.\n\nThe existing name policy (`src/utils/name-policy.ts`) already handles reserved word conflicts — extend for operation name conflicts.\n\n## Key Files\n\n- `src/components/client.tsx` or `src/components/classical-client.tsx` — client class method generation\n- `src/utils/name-policy.ts` — name conflict resolution\n\n## Validation\n\n```bash\npnpm build && pnpm test:e2e -- --grep \"Type.Model.Usage\"\n```"
+      "description": "Fix 1 skipped e2e test caused by a generated method parameter shadowing an imported operation function.\n\n## Problem\n\nThe generated `UsageClient` class has `input(input: InputRecord, ...)` where parameter `input` shadows imported function `input` from `./api/operations.js`. At runtime: `TypeError: input is not a function`.\n\n## Affected Test (1)\n\n| Test file | Test name | Line |\n|-----------|-----------|------|\n| `type/model/usage/main.test.ts` | should send an input-only model | 29 |\n\n## Current Generated Code (broken)\n\nIn `test/e2e/generated/type/model/usage/src/usageClient.ts`:\n```typescript\nimport { input, output, inputAndOutput } from \"./api/operations.js\";\n\nexport class UsageClient {\n  input(\n    input: InputRecord,  // Parameter \"input\" shadows imported function \"input\"\n    options: InputOptionalParams = { requestOptions: {} },\n  ): Promise<void> {\n    return input(this._client, input, options);  // Calls parameter, NOT function!\n  }\n}\n```\n\n## Mock Server Expectations\n\nFrom `node_modules/@typespec/http-specs/specs/type/model/usage/mockapi.ts`:\n```\nType_Model_Usage_input: POST /type/model/usage/input with { requiredProp: \"example-value\" } \u2192 204\n```\n\n## Root Cause\n\nIn client class method generation, when method body calls `operationName(this._client, param, options)`, if any parameter has the same name as the operation function, JS scoping causes shadowing.\n\n## Recommended Fix\n\nIn client class method generation, detect parameter/operation name collision. If collision exists, rename the parameter using the model name or add a suffix. E.g., `inputRecord` instead of `input`.\n\nAlternatively, import with aliases: `import { input as inputOp } from \"./api/operations.js\"`.\n\nThe existing name policy (`src/utils/name-policy.ts`) already handles reserved word conflicts \u2014 extend for operation name conflicts.\n\n## Key Files\n\n- `src/components/client.tsx` or `src/components/classical-client.tsx` \u2014 client class method generation\n- `src/utils/name-policy.ts` \u2014 name conflict resolution\n\n## Validation\n\n```bash\npnpm build && pnpm test:e2e -- --grep \"Type.Model.Usage\"\n```"
     },
     {
       "id": "E2E-FIX-INT64-SERIALIZATION",
@@ -1198,7 +672,7 @@
       "dependencies": [],
       "design_review": null,
       "source": "e2e-test-investigation",
-      "description": "Fix 2 skipped e2e tests caused by array serializers/deserializers crashing on null elements.\n\n## Problem\n\nWhen an array contains nullable model elements (`(InnerModel | null)[]`), the `.map()` calls model serializer/deserializer on every element including `null`, causing `TypeError: Cannot read properties of null`.\n\n## Affected Tests (2)\n\n| Test file | Test name | Line |\n|-----------|-----------|------|\n| `type/array/main.test.ts` | should get an array of nullable model values | 174 |\n| `type/array/main.test.ts` | should put an array of nullable model values | 181 |\n\n## Current Generated Code (broken)\n\nIn `test/e2e/generated/type/array/src/models/models.ts`:\n```typescript\nexport function innerModelArrayDeserializer(result: Array<InnerModel>): any[] {\n  return result.map((item) => { return innerModelDeserializer(item); });\n  // CRASH when item is null!\n}\n```\n\n## Mock Server Expectations\n\nFrom array mockapi.ts:\n```\nType_Array_Nullable_Model: [{property: \"hello\"}, null, {property: \"world\"}]\n```\n\n## Root Cause\n\nArray serializer/deserializer generation doesn't check for nullable element types. The TCGC type model indicates nullable via `SdkNullableType` wrapping the element type.\n\n## Recommended Fix\n\nWhen element type is nullable, generate null guard:\n```typescript\nreturn result.map((item) => item === null ? null : innerModelDeserializer(item));\n```\n\nOnly add when TCGC indicates nullable elements (`type.valueType.kind === \"nullable\"`).\n\n## Key Files\n\n- `src/components/serialization/json-serializer.tsx` — array type in `getSerializationExpression()`\n- `src/components/serialization/json-deserializer.tsx` — array type in `getDeserializationExpression()`\n- `src/components/serialization/json-array-record-helpers.tsx` — `JsonArraySerializer`/`JsonArrayDeserializer`\n\n## Validation\n\n```bash\npnpm build && pnpm test:e2e -- --grep \"Type.Array\"\n```"
+      "description": "Fix 2 skipped e2e tests caused by array serializers/deserializers crashing on null elements.\n\n## Problem\n\nWhen an array contains nullable model elements (`(InnerModel | null)[]`), the `.map()` calls model serializer/deserializer on every element including `null`, causing `TypeError: Cannot read properties of null`.\n\n## Affected Tests (2)\n\n| Test file | Test name | Line |\n|-----------|-----------|------|\n| `type/array/main.test.ts` | should get an array of nullable model values | 174 |\n| `type/array/main.test.ts` | should put an array of nullable model values | 181 |\n\n## Current Generated Code (broken)\n\nIn `test/e2e/generated/type/array/src/models/models.ts`:\n```typescript\nexport function innerModelArrayDeserializer(result: Array<InnerModel>): any[] {\n  return result.map((item) => { return innerModelDeserializer(item); });\n  // CRASH when item is null!\n}\n```\n\n## Mock Server Expectations\n\nFrom array mockapi.ts:\n```\nType_Array_Nullable_Model: [{property: \"hello\"}, null, {property: \"world\"}]\n```\n\n## Root Cause\n\nArray serializer/deserializer generation doesn't check for nullable element types. The TCGC type model indicates nullable via `SdkNullableType` wrapping the element type.\n\n## Recommended Fix\n\nWhen element type is nullable, generate null guard:\n```typescript\nreturn result.map((item) => item === null ? null : innerModelDeserializer(item));\n```\n\nOnly add when TCGC indicates nullable elements (`type.valueType.kind === \"nullable\"`).\n\n## Key Files\n\n- `src/components/serialization/json-serializer.tsx` \u2014 array type in `getSerializationExpression()`\n- `src/components/serialization/json-deserializer.tsx` \u2014 array type in `getDeserializationExpression()`\n- `src/components/serialization/json-array-record-helpers.tsx` \u2014 `JsonArraySerializer`/`JsonArrayDeserializer`\n\n## Validation\n\n```bash\npnpm build && pnpm test:e2e -- --grep \"Type.Array\"\n```"
     },
     {
       "id": "E2E-FIX-CUSTOM-HTTP-AUTH",
@@ -1210,7 +684,7 @@
       "dependencies": [],
       "design_review": null,
       "source": "e2e-test-investigation",
-      "description": "Fix 2 skipped e2e tests caused by custom HTTP authentication schemes not being recognized by the runtime auth policy.\n\n## Problem\n\nThe emitter generates `{ kind: \"http\", scheme: \"sharedaccesskey\" }` for custom HTTP auth, but the runtime only recognizes `kind: \"apiKey\"` for key-based auth and `kind: \"http\"` for basic/bearer.\n\n## Affected Tests (2)\n\n| Test file | Test name | Line |\n|-----------|-----------|------|\n| `authentication/http/custom/main.test.ts` | should authenticate with a valid custom key | 37 |\n| `authentication/http/custom/main.test.ts` | should return error for an invalid custom key | 50 |\n\n## Current Generated Code (broken)\n\nIn `test/e2e/generated/authentication/http/custom/src/customClientContext.ts`:\n```typescript\nreturn getClient(endpointUrl, {\n  ...updatedOptions,\n  credential,\n  authSchemes: [{ kind: \"http\", scheme: \"sharedaccesskey\" }]  // Not recognized\n});\n```\n\nWorking comparison (API Key auth):\n```typescript\nauthSchemes: [{ kind: \"apiKey\", apiKeyLocation: \"header\", name: \"x-ms-api-key\" }]  // Works\n```\n\n## Mock Server Expectations\n\nFrom `node_modules/@typespec/http-specs/specs/authentication/http/custom/mockapi.ts`:\n- Valid: GET `/authentication/http/custom/valid` with header `Authorization: SharedAccessKey valid-key` → 204\n- Invalid: GET `/authentication/http/custom/invalid` with header `Authorization: SharedAccessKey invalid-key` → 403\n\n## Root Cause\n\nIn `src/components/client-context.tsx`, `buildAuthSchemesLiteral()` has:\n```typescript\ncase \"http\":\n  return `{ kind: \"http\", scheme: \"${scheme.scheme.toLowerCase()}\" }`;\n```\nThis generates `kind: \"http\"` for ALL HTTP schemes, but custom schemes need `kind: \"apiKey\"`.\n\n## Recommended Fix\n\nUpdate `buildAuthSchemesLiteral()` in `src/components/client-context.tsx`:\n```typescript\ncase \"http\": {\n  const schemeName = (scheme.scheme ?? \"\").toLowerCase();\n  if (schemeName === \"basic\" || schemeName === \"bearer\") {\n    return `{ kind: \"http\", scheme: \"${schemeName}\" }`;\n  }\n  return `{ kind: \"apiKey\", apiKeyLocation: \"header\", name: \"Authorization\" }`;\n}\n```\n\n## Key Files\n\n- `src/components/client-context.tsx` — `buildAuthSchemesLiteral()` function\n\n## Validation\n\n```bash\npnpm build && pnpm test:e2e -- --grep \"Authentication.Http.Custom\"\n```"
+      "description": "Fix 2 skipped e2e tests caused by custom HTTP authentication schemes not being recognized by the runtime auth policy.\n\n## Problem\n\nThe emitter generates `{ kind: \"http\", scheme: \"sharedaccesskey\" }` for custom HTTP auth, but the runtime only recognizes `kind: \"apiKey\"` for key-based auth and `kind: \"http\"` for basic/bearer.\n\n## Affected Tests (2)\n\n| Test file | Test name | Line |\n|-----------|-----------|------|\n| `authentication/http/custom/main.test.ts` | should authenticate with a valid custom key | 37 |\n| `authentication/http/custom/main.test.ts` | should return error for an invalid custom key | 50 |\n\n## Current Generated Code (broken)\n\nIn `test/e2e/generated/authentication/http/custom/src/customClientContext.ts`:\n```typescript\nreturn getClient(endpointUrl, {\n  ...updatedOptions,\n  credential,\n  authSchemes: [{ kind: \"http\", scheme: \"sharedaccesskey\" }]  // Not recognized\n});\n```\n\nWorking comparison (API Key auth):\n```typescript\nauthSchemes: [{ kind: \"apiKey\", apiKeyLocation: \"header\", name: \"x-ms-api-key\" }]  // Works\n```\n\n## Mock Server Expectations\n\nFrom `node_modules/@typespec/http-specs/specs/authentication/http/custom/mockapi.ts`:\n- Valid: GET `/authentication/http/custom/valid` with header `Authorization: SharedAccessKey valid-key` \u2192 204\n- Invalid: GET `/authentication/http/custom/invalid` with header `Authorization: SharedAccessKey invalid-key` \u2192 403\n\n## Root Cause\n\nIn `src/components/client-context.tsx`, `buildAuthSchemesLiteral()` has:\n```typescript\ncase \"http\":\n  return `{ kind: \"http\", scheme: \"${scheme.scheme.toLowerCase()}\" }`;\n```\nThis generates `kind: \"http\"` for ALL HTTP schemes, but custom schemes need `kind: \"apiKey\"`.\n\n## Recommended Fix\n\nUpdate `buildAuthSchemesLiteral()` in `src/components/client-context.tsx`:\n```typescript\ncase \"http\": {\n  const schemeName = (scheme.scheme ?? \"\").toLowerCase();\n  if (schemeName === \"basic\" || schemeName === \"bearer\") {\n    return `{ kind: \"http\", scheme: \"${schemeName}\" }`;\n  }\n  return `{ kind: \"apiKey\", apiKeyLocation: \"header\", name: \"Authorization\" }`;\n}\n```\n\n## Key Files\n\n- `src/components/client-context.tsx` \u2014 `buildAuthSchemesLiteral()` function\n\n## Validation\n\n```bash\npnpm build && pnpm test:e2e -- --grep \"Authentication.Http.Custom\"\n```"
     },
     {
       "id": "E2E-FIX-BYTES-BODY-ENCODING",
@@ -1222,120 +696,13 @@
       "dependencies": [],
       "design_review": null,
       "source": "e2e-test-investigation",
-      "description": "Fix 6 skipped e2e tests caused by missing encoding/content-type handling for standalone `@body` bytes parameters.\n\nNOTE: Bytes query (4 tests) and header (4 tests) issues are in E2E-FIX-QUERY-PARAM-ENCODING and E2E-FIX-HEADER-PARAM-ENCODING.\n\n## Problem\n\nWhen a TypeSpec operation has a bare `@body bytes` with `@encode`, the emitter passes raw `Uint8Array` directly as HTTP body without encoding. For JSON bytes, body should be base64 string. For binary, raw bytes with correct content-type.\n\n## Affected Tests (6)\n\n### Request Body (3)\n| Test file | Test name | Line | Expected |\n|-----------|-----------|------|----------|\n| `encode/bytes/main.test.ts` | default (base64) JSON body request | 127 | `application/json` body `\"dGVzdA==\"` |\n| `encode/bytes/main.test.ts` | base64 body request | 139 | `application/json` body `\"dGVzdA==\"` |\n| `encode/bytes/main.test.ts` | base64url body request | 143 | `application/json` body `\"dGVzdA\"` |\n\n### Response Body (3)\n| Test file | Test name | Line | Expected |\n|-----------|-----------|------|----------|\n| `encode/bytes/main.test.ts` | default (base64) JSON body response | 155 | Binary stream → Uint8Array |\n| `encode/bytes/main.test.ts` | octet-stream response | 160 | Binary stream → Uint8Array |\n| `encode/bytes/main.test.ts` | custom content-type (image/png) response | 165 | Binary stream → Uint8Array |\n\n## Current Generated Code (broken)\n\n```typescript\n// Request: raw Uint8Array, no encoding\nreturn context.path(path).post({ body: value });\n\n// Response (partially working):\nreturn typeof result.body === \"string\"\n  ? stringToUint8Array(result.body, \"base64\")  // Works for JSON\n  : result.body;                                 // Works for binary\n```\n\n## Mock Server Expectations\n\nFrom bytes mockapi.ts:\n- `Encode_Bytes_RequestBody_base64`: expects `application/json` with raw body `'\"dGVzdA==\"'`\n- `Encode_Bytes_RequestBody_default`: expects `application/octet-stream` with raw binary\n- `Encode_Bytes_RequestBody_customContentType`: expects `image/png` with raw binary\n\n## Root Cause\n\nThe emitter handles bytes encoding in model properties (via serializers) but not for standalone `@body bytes` parameters.\n\n## Recommended Fix\n\nIn operation `_send` function generation, when body param is `bytes`:\n1. For `base64`/`base64url` with JSON: `body: JSON.stringify(uint8ArrayToString(value, \"base64\"))`\n2. For binary content types: `body: value` with correct `contentType`\n\n## Key Files\n\n- Operation generation code in `src/components/`\n- `src/components/serialization/json-serializer.tsx` — existing bytes encoding logic\n- `test/e2e/generated/encode/bytes/src/api/requestBody/operations.ts` — current broken output\n\n## Validation\n\n```bash\npnpm build && pnpm test:e2e -- --grep \"Encode.Bytes\"\n```"
+      "description": "Fix 6 skipped e2e tests caused by missing encoding/content-type handling for standalone `@body` bytes parameters.\n\nNOTE: Bytes query (4 tests) and header (4 tests) issues are in E2E-FIX-QUERY-PARAM-ENCODING and E2E-FIX-HEADER-PARAM-ENCODING.\n\n## Problem\n\nWhen a TypeSpec operation has a bare `@body bytes` with `@encode`, the emitter passes raw `Uint8Array` directly as HTTP body without encoding. For JSON bytes, body should be base64 string. For binary, raw bytes with correct content-type.\n\n## Affected Tests (6)\n\n### Request Body (3)\n| Test file | Test name | Line | Expected |\n|-----------|-----------|------|----------|\n| `encode/bytes/main.test.ts` | default (base64) JSON body request | 127 | `application/json` body `\"dGVzdA==\"` |\n| `encode/bytes/main.test.ts` | base64 body request | 139 | `application/json` body `\"dGVzdA==\"` |\n| `encode/bytes/main.test.ts` | base64url body request | 143 | `application/json` body `\"dGVzdA\"` |\n\n### Response Body (3)\n| Test file | Test name | Line | Expected |\n|-----------|-----------|------|----------|\n| `encode/bytes/main.test.ts` | default (base64) JSON body response | 155 | Binary stream \u2192 Uint8Array |\n| `encode/bytes/main.test.ts` | octet-stream response | 160 | Binary stream \u2192 Uint8Array |\n| `encode/bytes/main.test.ts` | custom content-type (image/png) response | 165 | Binary stream \u2192 Uint8Array |\n\n## Current Generated Code (broken)\n\n```typescript\n// Request: raw Uint8Array, no encoding\nreturn context.path(path).post({ body: value });\n\n// Response (partially working):\nreturn typeof result.body === \"string\"\n  ? stringToUint8Array(result.body, \"base64\")  // Works for JSON\n  : result.body;                                 // Works for binary\n```\n\n## Mock Server Expectations\n\nFrom bytes mockapi.ts:\n- `Encode_Bytes_RequestBody_base64`: expects `application/json` with raw body `'\"dGVzdA==\"'`\n- `Encode_Bytes_RequestBody_default`: expects `application/octet-stream` with raw binary\n- `Encode_Bytes_RequestBody_customContentType`: expects `image/png` with raw binary\n\n## Root Cause\n\nThe emitter handles bytes encoding in model properties (via serializers) but not for standalone `@body bytes` parameters.\n\n## Recommended Fix\n\nIn operation `_send` function generation, when body param is `bytes`:\n1. For `base64`/`base64url` with JSON: `body: JSON.stringify(uint8ArrayToString(value, \"base64\"))`\n2. For binary content types: `body: value` with correct `contentType`\n\n## Key Files\n\n- Operation generation code in `src/components/`\n- `src/components/serialization/json-serializer.tsx` \u2014 existing bytes encoding logic\n- `test/e2e/generated/encode/bytes/src/api/requestBody/operations.ts` \u2014 current broken output\n\n## Validation\n\n```bash\npnpm build && pnpm test:e2e -- --grep \"Encode.Bytes\"\n```"
     }
   ],
   "phases_metadata": [
     {
-      "phase": 0,
-      "name": "Project Foundation & Infrastructure",
-      "description": "Set up dependencies, emitter entry point, context system, refkey helpers, external packages, and test infrastructure.",
-      "dependencies": [],
-      "status": "done"
-    },
-    {
-      "phase": 1,
-      "name": "Models & Type Declarations",
-      "description": "Generate TypeScript interfaces, enums, type aliases, and union types from TCGC types.",
-      "dependencies": [
-        0
-      ],
-      "status": "done"
-    },
-    {
-      "phase": 2,
-      "name": "Serialization & Deserialization",
-      "description": "Generate JSON and XML serializer/deserializer functions for all model types.",
-      "dependencies": [
-        1
-      ],
-      "status": "done"
-    },
-    {
-      "phase": 3,
-      "name": "Operations",
-      "description": "Generate operation functions with send/deserialize pattern.",
-      "dependencies": [
-        2
-      ],
-      "status": "done"
-    },
-    {
-      "phase": 4,
-      "name": "Client Infrastructure",
-      "description": "Generate client context interface, factory function, and logger.",
-      "dependencies": [
-        3
-      ],
-      "status": "done"
-    },
-    {
-      "phase": 5,
-      "name": "Classical Client",
-      "description": "Generate user-facing client class and operation groups.",
-      "dependencies": [
-        4
-      ],
-      "status": "done"
-    },
-    {
-      "phase": 6,
-      "name": "Advanced Features",
-      "description": "Implement LRO restore, multipart, and sample generation.",
-      "dependencies": [
-        5
-      ],
-      "status": "done"
-    },
-    {
-      "phase": 7,
-      "name": "Index & Barrel Files",
-      "description": "Generate proper export structure.",
-      "dependencies": [
-        6
-      ],
-      "status": "done"
-    },
-    {
-      "phase": 8,
-      "name": "Azure Flavor Extension",
-      "description": "Design and implement Azure-specific extensions via composition.",
-      "dependencies": [
-        7
-      ],
-      "status": "done"
-    },
-    {
-      "phase": 9,
-      "name": "Test Porting & Validation",
-      "description": "Port all 101 scenario tests and validate output parity.",
-      "dependencies": [
-        0
-      ],
-      "status": "done"
-    },
-    {
-      "id": 10,
-      "name": "Validation Fixes — Remaining 124 Test Failures",
-      "description": "Tasks to fix the remaining 124 scenario test failures identified during validation. Categorized by root cause. Total: 124 failures across 9 categories.",
-      "status": "done"
-    },
-    {
-      "id": 11,
-      "name": "Scenario Test Parity — Audit Findings",
-      "description": "Tasks derived from the scenario test audit comparing 102 test files between the new Alloy emitter and the legacy autorest.typescript emitter. Each task represents a category of semantic differences that must be resolved to achieve output parity.",
-      "status": "done"
-    },
-    {
-      "phase": 12,
-      "title": "Scenario Test Parity — Root Cause Fixes",
-      "description": "Address all semantic differences identified by the scenario audit, recategorized by root cause. Each task maps to a specific code location and a single fix. 36 tasks total.",
-      "status": "done",
-      "name": "Remaining Corrections"
-    },
-    {
       "phase": 10,
-      "name": "Flavor Parity — Match Legacy Emitter Flavor Behavior",
+      "name": "Flavor Parity \u2014 Match Legacy Emitter Flavor Behavior",
       "description": "Ensure the new emitter correctly handles the 'flavor' option ('core' vs 'azure') with full parity to the legacy emitter. Core flavor should use @typespec/ts-http-runtime and NOT generate Azure-specific features (LRO, paging, logger, DefaultAzureCredential). Azure flavor should use Azure SDK packages. No 'branded' option support. Flavor must be set explicitly or not at all (defaulting to 'core').",
       "dependencies": [
         8,
@@ -1345,7 +712,7 @@
     },
     {
       "phase": 13,
-      "name": "Spector Integration Tests — End-to-End Validation",
+      "name": "Spector Integration Tests \u2014 End-to-End Validation",
       "description": "Set up infrastructure to generate client libraries from Spector specs, run them against the Spector mock server, and validate end-to-end behavior. Uses Approach C (Hybrid): separate generation script + Vitest globalSetup for server lifecycle. This replaces the legacy emitter's modularIntegration test suite.",
       "dependencies": [],
       "status": "pending"
@@ -1386,7 +753,7 @@
     "intentional_changes": [
       {
         "id": "SA-INT1",
-        "title": "INTENTIONAL: Runtime Package Migration (@azure-rest/core-client → @typespec/ts-http-runtime)",
+        "title": "INTENTIONAL: Runtime Package Migration (@azure-rest/core-client \u2192 @typespec/ts-http-runtime)",
         "category": "Intentional",
         "priority": "N/A",
         "status": "INTENTIONAL",

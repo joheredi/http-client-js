@@ -488,12 +488,11 @@ function valueTypeHasNamedSerializerFn(
     case "model":
     case "union":
       return typeHasSerializerDeclaration(type);
-    case "enum":
-      return !!(
-        options &&
-        (type as SdkEnumType).isUnionAsEnum &&
-        !options.experimentalExtensibleEnums
-      );
+    // Note: enum types are intentionally excluded here. Enum serializers are
+    // pass-through functions (return item unchanged), so generating named array
+    // helpers for enum arrays would produce no-op wrappers. Instead, arrays of
+    // enums use inline .map() with the element serializer reference, which keeps
+    // all refkeys resolvable and avoids generating unnecessary helper functions.
     case "array":
       return (
         needsTransformation(type.valueType, options) &&

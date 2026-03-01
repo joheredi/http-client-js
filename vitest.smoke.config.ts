@@ -6,6 +6,7 @@ export default defineConfig({
     include: ["test/smoke/**/*.test.ts", "test/smoke/**/*.test.tsx"],
     passWithNoTests: true,
     testTimeout: 180000,
+    hookTimeout: 180000,
     pool: "forks",
   },
   esbuild: {
