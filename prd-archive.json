@@ -3071,6 +3071,30 @@
       "dependencies": [
         "SMOKE-6"
       ]
+    },
+    {
+      "id": "BUG-3",
+      "title": "Add null guard for optional properties in XML object serializer",
+      "category": "serialization/XML",
+      "priority": "P1",
+      "status": "done",
+      "description": "XmlObjectSerializer in xml-object-serializer.tsx unconditionally calls nested serializers (e.g., loggingXmlObjectSerializer(item[\"logging\"])) without null/undefined guards. When a property is optional and undefined at runtime, this crashes. The JSON serializer has wrapWithNullCheck() but the XML object serializer lacks it. Legacy emitter adds null checks for XML. Recommended fix: Approach A \u2014 add local wrapWithXmlNullCheck() + xmlNeedsTransformation() predicate to xml-object-serializer.tsx (~20 lines). See docs/design-reviews/serialization-and-options-bugs.md Issue 3 for full design review with 2 approaches analyzed.",
+      "source": "investigation",
+      "kind": "bug",
+      "design_review": "docs/design-reviews/serialization-and-options-bugs.md#issue-3",
+      "dependencies": []
+    },
+    {
+      "id": "BUG-4",
+      "title": "Fix header-based API version accessor generating wrong reference in send function",
+      "category": "operations/send",
+      "priority": "P1",
+      "status": "done",
+      "description": "When @apiVersion is used on a @header parameter (e.g., @header(\"x-ms-version\") version: string), the send function's getHeaderAccessor() generates \"options?.version\" instead of \"context.apiVersion\". This is because getHeaderAccessor lacks the onClient/isApiVersionParam handling that getParameterAccessor has for path/query params. The version being excluded from DeleteOptionalParams is by design (@apiVersion params are client-level), but the header value injection is broken. Recommended fix: Approach A \u2014 add onClient/isApiVersionParam handling to getHeaderAccessor() in send-operation.tsx mirroring getParameterAccessor pattern (~10 lines). See docs/design-reviews/serialization-and-options-bugs.md Issue 4 for full design review with 2 approaches analyzed.",
+      "source": "investigation",
+      "kind": "bug",
+      "design_review": "docs/design-reviews/serialization-and-options-bugs.md#issue-4",
+      "dependencies": []
     }
   ]
 }

@@ -784,28 +784,20 @@
       "dependencies": []
     },
     {
-      "id": "BUG-3",
-      "title": "Add null guard for optional properties in XML object serializer",
-      "category": "serialization/XML",
-      "priority": "P1",
+      "id": "SMOKE-1",
+      "title": "Send function uses JSON serializerRefkey for XML body operations",
+      "description": "buildBodyExpression() in send-operation.tsx (line ~834) calls getSerializationExpression() from json-serializer.tsx, which always uses serializerRefkey(type) \u2014 the JSON serializer refkey. For operations with XML content type (contentType: 'application/xml'), the body should be serialized with xmlSerializerRefkey(type) instead. XML input models are excluded from JSON serializer generation (model-files.tsx line ~173), so serializerRefkey(type) has no declaration \u2192 unresolved symbol in output.\n\nAffected operations (6 unresolved symbols, 54 cascade TS errors):\n- api/service/operations.ts _setPropertiesSend: body should use storageServicePropertiesXmlSerializer\n- api/service/operations.ts _getUserDelegationKeySend: body should use keyInfoXmlSerializer\n- api/blob/operations.ts _setTagsSend: body should use XML serializer for tags\n- api/container/operations.ts _setAccessPolicySend: body should use XML serializer for containerAcl\n- api/blockBlob/operations.ts _commitBlockListSend: body should use blockLookupListXmlSerializer\n- api/blockBlob/operations.ts _querySend: body should use queryRequestXmlSerializer\n\nFix approach: Make buildBodyExpression() in send-operation.tsx content-type-aware. When the operation's body content type is 'application/xml', use xmlSerializerRefkey(type) from src/utils/refkeys.ts instead of serializerRefkey(type). The XML serializer functions already exist in generated output \u2014 they just aren't referenced. The content type is available from the SdkBodyParameter or SdkHttpOperation metadata. Look at how contentType is already extracted in send-operation.tsx for the contentType request option to determine the XML branch.\n\nKey files:\n- src/components/send-operation.tsx: buildBodyExpression() (line ~834), getBodyContentType()\n- src/components/serialization/json-serializer.tsx: getSerializationExpression() (line ~303)\n- src/utils/refkeys.ts: serializerRefkey() vs xmlSerializerRefkey()\n\nTest: After fix, run pnpm build && pnpm test:smoke \u2014 the 6 unresolved symbols in operations.ts files should disappear.",
       "status": "pending",
-      "description": "XmlObjectSerializer in xml-object-serializer.tsx unconditionally calls nested serializers (e.g., loggingXmlObjectSerializer(item[\"logging\"])) without null/undefined guards. When a property is optional and undefined at runtime, this crashes. The JSON serializer has wrapWithNullCheck() but the XML object serializer lacks it. Legacy emitter adds null checks for XML. Recommended fix: Approach A \u2014 add local wrapWithXmlNullCheck() + xmlNeedsTransformation() predicate to xml-object-serializer.tsx (~20 lines). See docs/design-reviews/serialization-and-options-bugs.md Issue 3 for full design review with 2 approaches analyzed.",
-      "source": "investigation",
-      "kind": "bug",
-      "design_review": "docs/design-reviews/serialization-and-options-bugs.md#issue-3",
-      "dependencies": []
+      "priority": "P0",
+      "phase": "smoke-fix"
     },
     {
-      "id": "BUG-4",
-      "title": "Fix header-based API version accessor generating wrong reference in send function",
-      "category": "operations/send",
-      "priority": "P1",
+      "id": "SMOKE-2",
+      "title": "Array serializer helpers generated for XML-only types reference non-existent JSON serializers",
+      "description": "The JsonArraySerializer component (src/components/serialization/json-array-record-helpers.tsx line ~60) generates array helper functions like corsRuleArraySerializer() that internally call getSerializationExpression(type.valueType, 'item'), producing serializerRefkey(CorsRule). But CorsRule is an XML-only model that only has corsRuleXmlObjectSerializer, not corsRuleSerializer \u2192 unresolved symbol.\n\nAffected array serializers (4 unresolved symbols, 24 cascade TS errors in models/models.ts):\n- corsRuleArraySerializer \u2192 references missing corsRuleSerializer (only XML exists)\n- blobTagArraySerializer \u2192 references missing blobTagSerializer (only XML exists)\n- signedIdentifierArraySerializer \u2192 references missing signedIdentifierSerializer (only XML exists)\n- arrowFieldArraySerializer \u2192 references missing arrowFieldSerializer (only XML exists)\n\nFix approach (two options, pick one):\n\nOption A (Recommended): Don't generate JSON array serializers for XML-only types. In model-files.tsx where array/record serializer helpers are generated, filter out types whose element type is XML-only (hasXmlSerialization() from src/utils/xml-detection.ts). These array serializers are dead code anyway because the send functions also reference the wrong serializer (SMOKE-1). XML array serialization is handled inline by XmlObjectSerializer (xml-object-serializer.tsx line ~114) using xmlObjectSerializerRefkey(inner) in the .map() call.\n\nOption B: Make array serializer reference xmlObjectSerializerRefkey when the item type is XML-only. The .map() callback would call xmlObjectSerializerRefkey(itemType) instead of serializerRefkey(itemType).\n\nKey files:\n- src/components/serialization/json-array-record-helpers.tsx: JsonArraySerializer component (line ~40-70)\n- src/components/model-files.tsx: where array serializer helpers are rendered\n- src/utils/xml-detection.ts: hasXmlSerialization() helper\n\nDependency: This may be resolved as a side effect of SMOKE-1 if the approach also prevents array helper generation for XML types.\n\nTest: After fix, run pnpm build && pnpm test:smoke \u2014 the 4 unresolved symbols in models/models.ts should disappear.",
       "status": "pending",
-      "description": "When @apiVersion is used on a @header parameter (e.g., @header(\"x-ms-version\") version: string), the send function's getHeaderAccessor() generates \"options?.version\" instead of \"context.apiVersion\". This is because getHeaderAccessor lacks the onClient/isApiVersionParam handling that getParameterAccessor has for path/query params. The version being excluded from DeleteOptionalParams is by design (@apiVersion params are client-level), but the header value injection is broken. Recommended fix: Approach A \u2014 add onClient/isApiVersionParam handling to getHeaderAccessor() in send-operation.tsx mirroring getParameterAccessor pattern (~10 lines). See docs/design-reviews/serialization-and-options-bugs.md Issue 4 for full design review with 2 approaches analyzed.",
-      "source": "investigation",
-      "kind": "bug",
-      "design_review": "docs/design-reviews/serialization-and-options-bugs.md#issue-4",
-      "dependencies": []
+      "priority": "P0",
+      "phase": "smoke-fix"
     }
   ],
   "phases_metadata": [
