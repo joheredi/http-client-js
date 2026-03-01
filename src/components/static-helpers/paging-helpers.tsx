@@ -154,11 +154,11 @@ function BuildPagedAsyncIteratorFunction() {
         { name: namekey("client", { ignoreNamePolicy: true }), type: runtimeLib.Client },
         {
           name: "getInitialResponse",
-          type: code`() => Promise<${runtimeLib.PathUncheckedResponse}>`,
+          type: code`() => PromiseLike<${runtimeLib.PathUncheckedResponse}>`,
         },
         {
           name: "processResponseBody",
-          type: code`(result: ${runtimeLib.PathUncheckedResponse}) => Promise<unknown>`,
+          type: code`(result: ${runtimeLib.PathUncheckedResponse}) => PromiseLike<unknown>`,
         },
         { name: "expectedStatuses", type: "string[]" },
         {

@@ -1006,7 +1006,7 @@
       "id": "SMOKE-ARRAY-PARAM-TYPES",
       "title": "Fix buildCsvCollection called with enum array types",
       "category": "smoke-fix",
-      "status": "not-started",
+      "status": "done",
       "priority": "critical",
       "dependencies": [],
       "description": "buildCsvCollection is called with FilterBlobsIncludeItem[] | undefined and ListBlobsIncludeItem[] | undefined, but its signature only accepts string[] | number[]. The enum array types are not compatible. Either buildCsvCollection needs to accept broader types, or the enum arrays need to be cast/mapped to strings before passing."
@@ -1018,6 +1018,15 @@
       "category": "smoke-fix",
       "status": "not-started",
       "priority": "low",
+      "dependencies": []
+    },
+    {
+      "id": "SMOKE-PROMISELIKE-TYPE",
+      "title": "Fix PromiseLike vs Promise type mismatch in send functions",
+      "description": "The smoke test shows 3 TypeScript errors where send functions return PromiseLike<PathUncheckedResponse> but the variable expects Promise<PathUncheckedResponse>. PromiseLike is missing catch, finally, and [Symbol.toStringTag]. Need to ensure send functions return Promise instead of PromiseLike.",
+      "status": "done",
+      "category": "smoke-fix",
+      "priority": "critical",
       "dependencies": []
     }
   ],

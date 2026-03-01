@@ -2172,3 +2172,15 @@ declarations are actually generated.
 
 ### Testing Azure Flavor in Classical Components
 **Pattern**: Use `azureExternals` from `src/emitter.js` (not just `httpRuntimeLib`) when testing with `FlavorProvider flavor="azure"`. Include `PagingHelpersFile` in the render tree so that `pagingHelperRefkey("PagedAsyncIterableIterator")` resolves.
+
+## Design Decisions
+
+### buildCsvCollection undefined handling (2026-03-01)
+**Decision**: Changed collection builder functions to accept `undefined` parameter and return `string | undefined`.
+**Why**: Optional query parameters produce `EnumType[] | undefined` at call sites. Fixing the helper signature is simpler than guarding every call site.
+**Rejected**: Adding `!== undefined` guards at each call site (more verbose generated code, more places to maintain).
+
+### buildPagedAsyncIterator uses PromiseLike (2026-03-01)
+**Decision**: Changed `getInitialResponse` and `processResponseBody` parameter types from `Promise` to `PromiseLike`.
+**Why**: Send functions return `StreamableMethod` which extends `PromiseLike<PathUncheckedResponse>`, not `Promise`. The legacy emitter also uses `PromiseLike`. `await` works with `PromiseLike`.
+**Rejected**: Wrapping send calls with `async () => await send(...)` (unnecessary runtime overhead, differs from legacy output).

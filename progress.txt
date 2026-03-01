@@ -2075,3 +2075,36 @@ Fixed the `getMethodReturnType` function in both `classical-client.tsx` and `cla
 - The 3 classic wrapper return type errors (PagedAsyncIterableIterator vs Promise) are now resolved
 - TCGC modifies `method.response.type` for paging operations: it becomes the items array type (e.g., `Item[]`), NOT the wrapper model (e.g., `ItemList`). This is why `getPagingItemType` extracts from `pagingMetadata.pageItemsSegments` instead of using `response.type` directly.
 - For tests with azure flavor, use `azureExternals` from `src/emitter.js` as the externals prop, NOT just `httpRuntimeLib`
+
+---
+
+## RC24: Fix smoke test — buildCsvCollection undefined params + PromiseLike types — DONE (2026-03-01)
+
+### What was done
+Fixed two categories of smoke test TypeScript compilation errors (8 errors total → 0):
+
+**1. buildCsvCollection enum array type errors (5 errors)**
+Changed all collection builder helper functions (buildCsvCollection, buildPipeCollection, buildSsvCollection, buildTsvCollection, buildNewlineCollection) to accept `undefined` parameter values:
+- Parameter type: `string[] | number[]` → `string[] | number[] | undefined`
+- Return type: `string` → `string | undefined`
+- Added early return: `if (!items) { return undefined; }`
+
+The root cause was that optional query parameters like `options?.include` produce `EnumType[] | undefined`, but the collection builders only accepted `string[] | number[]`. The `undefined` branch was the actual type error (not the enum type — `FilterBlobsIncludeItem[]` IS assignable to `string[]` via covariance).
+
+**2. PromiseLike vs Promise type errors (3 errors)**
+Changed `buildPagedAsyncIterator` parameter types from `Promise<PathUncheckedResponse>` to `PromiseLike<PathUncheckedResponse>`, matching the legacy emitter's signature. The send functions return `StreamableMethod` (which is `PromiseLike<PathUncheckedResponse>`), not `Promise<PathUncheckedResponse>`.
+
+### Files changed
+- `src/components/static-helpers/serialization-helpers.tsx` — Updated 5 collection builder functions to accept `undefined`
+- `src/components/static-helpers/paging-helpers.tsx` — Changed `getInitialResponse` and `processResponseBody` parameter types from `Promise` to `PromiseLike`
+- `prd.json` — Created SMOKE-PROMISELIKE-TYPE task, marked both tasks as done
+
+### Patterns used
+- Minimal fix: changed helper signatures rather than guarding every call site
+- Matched legacy emitter output: the legacy `buildPagedAsyncIterator` also uses `PromiseLike`
+
+### What the next person should know
+- The smoke test now passes with 0 TypeScript compilation errors
+- All 1,015 unit tests pass (3 skipped)
+- The collection builder functions now return `string | undefined` instead of `string` — callers that pass the result to URL template expansion handle `undefined` correctly (omits the query param)
+- `PromiseLike` is the correct type for the paging callback because `StreamableMethod` only extends `PromiseLike`, not `Promise`

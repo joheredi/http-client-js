@@ -140,10 +140,13 @@ function BuildCsvCollection() {
       name="buildCsvCollection"
       refkey={serializationHelperRefkey("buildCsvCollection")}
       export
-      returnType="string"
-      parameters={[{ name: "items", type: "string[] | number[]" }]}
+      returnType="string | undefined"
+      parameters={[{ name: "items", type: "string[] | number[] | undefined" }]}
     >
-      {code`return items.join(",");`}
+      {code`
+        if (!items) { return undefined; }
+        return items.join(",");
+      `}
     </FunctionDeclaration>
   );
 }
@@ -187,10 +190,13 @@ function BuildPipeCollection() {
       name="buildPipeCollection"
       refkey={serializationHelperRefkey("buildPipeCollection")}
       export
-      returnType="string"
-      parameters={[{ name: "items", type: "string[] | number[]" }]}
+      returnType="string | undefined"
+      parameters={[{ name: "items", type: "string[] | number[] | undefined" }]}
     >
-      {code`return items.join("|");`}
+      {code`
+        if (!items) { return undefined; }
+        return items.join("|");
+      `}
     </FunctionDeclaration>
   );
 }
@@ -205,10 +211,13 @@ function BuildSsvCollection() {
       name="buildSsvCollection"
       refkey={serializationHelperRefkey("buildSsvCollection")}
       export
-      returnType="string"
-      parameters={[{ name: "items", type: "string[] | number[]" }]}
+      returnType="string | undefined"
+      parameters={[{ name: "items", type: "string[] | number[] | undefined" }]}
     >
-      {code`return items.join(" ");`}
+      {code`
+        if (!items) { return undefined; }
+        return items.join(" ");
+      `}
     </FunctionDeclaration>
   );
 }
@@ -223,10 +232,13 @@ function BuildTsvCollection() {
       name="buildTsvCollection"
       refkey={serializationHelperRefkey("buildTsvCollection")}
       export
-      returnType="string"
-      parameters={[{ name: "items", type: "string[] | number[]" }]}
+      returnType="string | undefined"
+      parameters={[{ name: "items", type: "string[] | number[] | undefined" }]}
     >
-      {code`return items.join("\\t");`}
+      {code`
+        if (!items) { return undefined; }
+        return items.join("\\t");
+      `}
     </FunctionDeclaration>
   );
 }
@@ -241,10 +253,13 @@ function BuildNewlineCollection() {
       name="buildNewlineCollection"
       refkey={serializationHelperRefkey("buildNewlineCollection")}
       export
-      returnType="string"
-      parameters={[{ name: "items", type: "string[] | number[]" }]}
+      returnType="string | undefined"
+      parameters={[{ name: "items", type: "string[] | number[] | undefined" }]}
     >
-      {code`return items.join("\\n");`}
+      {code`
+        if (!items) { return undefined; }
+        return items.join("\\n");
+      `}
     </FunctionDeclaration>
   );
 }
