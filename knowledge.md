@@ -2184,3 +2184,20 @@ declarations are actually generated.
 **Decision**: Changed `getInitialResponse` and `processResponseBody` parameter types from `Promise` to `PromiseLike`.
 **Why**: Send functions return `StreamableMethod` which extends `PromiseLike<PathUncheckedResponse>`, not `Promise`. The legacy emitter also uses `PromiseLike`. `await` works with `PromiseLike`.
 **Rejected**: Wrapping send calls with `async () => await send(...)` (unnecessary runtime overhead, differs from legacy output).
+
+## Design Decisions
+
+### Spector stub for @typespec/spector (2026-03-01)
+**Decision**: Created a minimal stub package at `eng/spector-stub/` instead of installing `@typespec/spector` from npm.
+**Why**: The npm-published `@typespec/http-specs` (v0.37.2) depends on `@typespec/spec` which doesn't exist on npm. Alpha versions target compiler ~0.64.0, incompatible with our 1.9.0. The stub provides no-op decorator implementations for `@scenario`, `@scenarioDoc`, `@scenarioService`.
+**Key gotcha**: The `tsp-index.js` (loaded by the compiler via `lib/main.tsp`) must NOT export `$`-prefixed decorator functions as top-level exports. This causes "ambiguous-symbol" errors when specs use `using Spector;`. Instead, use only the `$decorators` map for namespace-qualified registration, and put `$`-prefixed exports in a separate `decorators.js` that's re-exported from `index.js` (for JS consumers like `special-words/dec.js`).
+**Rejected**: Installing from npm (dependency issues), building spector from submodule (too many workspace dependencies).
+
+### emit-e2e uses --option CLI flags instead of tspconfig.yaml (2026-03-01)
+**Decision**: Pass emitter options via `--option http-client-js.emitter-output-dir=...` CLI flags instead of a `--config tspconfig.yaml`.
+**Why**: The `emitter-output-dir` option in tspconfig.yaml wasn't being picked up when using `--emit <path>` on the CLI. Using `--option` flags directly works reliably and puts output in the correct directory without the extra `http-client-js/` subdirectory.
+**Rejected**: tspconfig.yaml approach (emitter-output-dir not respected).
+
+### Specs sourced from submodule, not npm (2026-03-01)
+**Decision**: The emit-e2e script reads specs from `submodules/typespec/packages/http-specs/specs/` instead of `node_modules/@typespec/http-specs/specs/`.
+**Why**: `@typespec/http-specs` can't be installed from npm due to unresolvable transitive dependency on `@typespec/spec`. The submodule already has the specs available.

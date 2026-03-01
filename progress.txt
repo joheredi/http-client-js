@@ -2135,3 +2135,28 @@ Changed `buildPagedAsyncIterator` parameter types from `Promise<PathUncheckedRes
 - The context file name: `{camelCase(clientName)}Context.ts`
 - Alloy generates `import type { XxxContext }` for type-only usage, `import { XxxContext }` when used in JSDoc `@param`
 - The duplicate `Client` model name scenario in modelsGenerator.md no longer needs `_1`/`_2` aliases since the runtime `Client` type is no longer imported in operations files
+
+## SA29: SPECTOR-1 Create emit-e2e generation script — DONE (2026-03-01)
+
+### What was done
+- Created `eng/scripts/emit-e2e.ts` — standalone script that discovers and compiles all Spector specs
+- Created `eng/spector-stub/` — minimal stub of `@typespec/spector` providing no-op decorator implementations
+  - Key pattern: `tsp-index.js` (loaded by compiler) only uses `$decorators` map for namespace registration
+  - Separate `decorators.js` provides `$`-prefixed exports for JS consumers (avoids ambiguous-symbol errors)
+- Created `test/e2e/.testignore` with initial ignore list (streaming, scratch, documentation)
+- Added `pnpm emit:e2e` script (runs via `npx tsx`)
+- Updated `.gitignore` to exclude `test/e2e/generated/`
+- Updated `tsconfig.json` to exclude `test/e2e/generated/` from compilation
+- Installed `globby` and `p-limit` as devDependencies
+
+### Key details
+- Script uses globby for spec discovery, p-limit for parallelism (os.cpus().length concurrent)
+- Supports `--filter <pattern>` flag for targeted generation
+- Specs sourced from `submodules/typespec/packages/http-specs/specs/` (npm version has dependency issues)
+- Uses `--option` CLI flags instead of tspconfig.yaml (emitter-output-dir wasn't respected via config)
+- All 59 non-ignored specs compile successfully in ~10s
+
+### Validation
+- `pnpm emit:e2e` — 59/59 specs succeeded, 3 ignored
+- `pnpm emit:e2e --filter authentication/api-key` — single spec works
+- `pnpm test` — all 1015 tests pass (3 skipped), no regressions

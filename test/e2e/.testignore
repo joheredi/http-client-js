@@ -1,0 +1,11 @@
+# Specs to skip during e2e generation.
+# One path per line (relative to specs root). Lines starting with # are comments.
+
+# Streaming not supported yet
+streaming
+
+# Scratch specs (not real tests)
+scratch
+
+# Documentation specs (not client tests)
+documentation

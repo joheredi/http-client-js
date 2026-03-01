@@ -1,0 +1,15 @@
+{
+  "name": "@typespec/spector",
+  "version": "0.1.0-stub",
+  "description": "Stub of @typespec/spector providing no-op decorator implementations for compiling http-specs.",
+  "type": "module",
+  "exports": {
+    ".": {
+      "typespec": "./lib/main.tsp",
+      "import": "./dist/src/index.js"
+    }
+  },
+  "peerDependencies": {
+    "@typespec/compiler": "^1.9.0"
+  }
+}
