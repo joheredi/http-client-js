@@ -29,12 +29,10 @@ describe("Authentication.Http.Custom", () => {
    * Validates that a request authenticated with a valid SharedAccessKey succeeds.
    * The `valid()` method should complete without error (returns void / undefined).
    *
-   * SKIPPED: The runtime's apiKeyAuthenticationPolicy only matches authSchemes with
-   * `kind: "apiKey"`, but the emitter generates `{ kind: "http", scheme: "sharedaccesskey" }`
-   * for custom HTTP auth. This causes the auth header to not be sent. This needs to be
-   * fixed in the emitter's auth scheme generation to properly map custom HTTP schemes.
+   * The emitter generates a custom pipeline policy that sets the
+   * `Authorization: SharedAccessKey <key>` header for non-standard HTTP auth schemes.
    */
-  it.skip("should authenticate with a valid custom key", async () => {
+  it("should authenticate with a valid custom key", async () => {
     const result = await validClient.valid();
     expect(result).toBeUndefined();
   });
@@ -43,11 +41,8 @@ describe("Authentication.Http.Custom", () => {
    * Validates that a request authenticated with an invalid key is rejected.
    * The mock server returns HTTP 403 with `{"error": "invalid-api-key"}`,
    * and the generated client should throw a RestError with status code 403.
-   *
-   * SKIPPED: Same auth scheme mismatch as above — custom HTTP scheme not recognized
-   * by the runtime. See skip comment on "should authenticate with a valid custom key".
    */
-  it.skip("should return error for an invalid custom key", async () => {
+  it("should return error for an invalid custom key", async () => {
     const invalidClient = new CustomClient(
       { key: "invalid-key" },
       {

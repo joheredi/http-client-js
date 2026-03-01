@@ -2332,3 +2332,9 @@ The Spector mock server (tsp-spector) is **lenient about Content-Type header mat
 ## createRestError Runtime Bug (2026-03-01)
 
 `@typespec/ts-http-runtime@0.2.1` has a bug in `createRestError(result)`: when `result.body` is `undefined` (e.g., 500 response with no body), it crashes with `TypeError: Cannot read properties of undefined (reading 'message')`. The bug is at `internalError.message` which should be `internalError?.message`. The string overload `createRestError("msg", result)` is a safe workaround since it skips body access for the message.
+
+## Runtime Auth API Mismatch (2026-03-01)
+The `@typespec/ts-http-runtime` exports `isApiKeyCredential` and `ApiKeyCredential`, NOT `isKeyCredential` and `KeyCredential`. The external-packages.ts declares `isKeyCredential` as available from the runtime, but it is not actually exported. For generated code that needs a key-credential type guard, use `"key" in credential` duck-type check instead. The `KeyCredential` type declaration works because it matches `ApiKeyCredential` structurally, but the function `isKeyCredential` does not exist in the runtime.
+
+## Custom HTTP Auth Scheme Pattern (2026-03-01)
+For non-standard HTTP auth schemes (not basic/bearer), the emitter generates a custom pipeline policy instead of using `authSchemes`. The runtime only handles `kind: "http"` with `scheme: "basic"` or `scheme: "bearer"`. Custom schemes like "SharedAccessKey" need a manual `clientContext.pipeline.addPolicy()` that sets `Authorization: <SchemeName> <credential.key>`. This matches the legacy emitter's approach from `buildClientContext.ts`.

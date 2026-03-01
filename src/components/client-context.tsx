@@ -625,9 +625,21 @@ function buildFactoryBody(client: SdkClientType<SdkHttpOperation>): Children {
   );
   const shouldWarnApiVersion = flavor === "azure" && !hasApiVersionInContext;
 
-  // 5. Build return statement with optional context member spreading
+  // 5. Detect custom HTTP auth schemes that need a pipeline policy.
+  //    Custom schemes (e.g., SharedAccessKey) are not recognized by the runtime's
+  //    built-in auth policies and require a custom pipeline policy that sets the
+  //    Authorization header with the scheme prefix. This matches the legacy emitter.
+  const customHttpSchemes = credentialParam
+    ? getCustomHttpAuthSchemes(credentialParam)
+    : [];
+  const hasCustomHttpAuth = customHttpSchemes.length > 0;
+
+  // 6. Build return statement with optional context member spreading
   if (contextMembers.length > 0) {
     bodyParts.push(code`const clientContext = ${getClientCall}`);
+    if (hasCustomHttpAuth) {
+      bodyParts.push(buildCustomHttpAuthPolicy(customHttpSchemes));
+    }
     const spreadMembers = contextMembers
       .map((m) => {
         const value = getContextMemberValue(m.name, initParams);
@@ -640,12 +652,22 @@ function buildFactoryBody(client: SdkClientType<SdkHttpOperation>): Children {
   } else if (shouldWarnApiVersion) {
     // No apiVersion in context → emit warning + return without cast
     bodyParts.push(code`const clientContext = ${getClientCall}`);
+    if (hasCustomHttpAuth) {
+      bodyParts.push(buildCustomHttpAuthPolicy(customHttpSchemes));
+    }
     bodyParts.push(
       code`if (options.apiVersion) {
   ${loggerRefkey()}.warning("This client does not support client api-version, please change it at the operation level");
 }`,
     );
     bodyParts.push(code`return clientContext;`);
+  } else if (hasCustomHttpAuth) {
+    // Custom HTTP auth requires the client in a variable to add the pipeline policy
+    bodyParts.push(code`const clientContext = ${getClientCall}`);
+    bodyParts.push(buildCustomHttpAuthPolicy(customHttpSchemes));
+    bodyParts.push(
+      code`return clientContext as ${clientContextRefkey(client)};`,
+    );
   } else {
     bodyParts.push(
       code`return ${getClientCall} as ${clientContextRefkey(client)};`,
@@ -888,6 +910,48 @@ function buildGetClientCall(
 }
 
 /**
+ * Builds a custom pipeline policy for non-standard HTTP auth schemes.
+ *
+ * The runtime's built-in auth policies only handle basic/bearer HTTP schemes.
+ * Custom schemes (e.g., "SharedAccessKey") need a manual pipeline policy that
+ * sets the `Authorization` header with the scheme prefix followed by the key.
+ *
+ * Uses a duck-type check (`"key" in credential`) to guard the policy so it only
+ * applies to key-based credentials in union auth scenarios.
+ *
+ * Generates code like:
+ * ```typescript
+ * if ("key" in credential) {
+ *   clientContext.pipeline.addPolicy({
+ *     name: "customKeyCredentialPolicy",
+ *     async sendRequest(request, next) {
+ *       request.headers.set("Authorization", "SharedAccessKey " + credential.key);
+ *       return next(request);
+ *     },
+ *   });
+ * }
+ * ```
+ *
+ * @param customSchemes - Custom HTTP auth schemes with header name and prefix.
+ * @returns Alloy Children for the pipeline policy code.
+ */
+function buildCustomHttpAuthPolicy(
+  customSchemes: Array<{ headerName: string; prefix: string }>,
+): Children {
+  // Use the first custom scheme — multiple custom HTTP schemes are not expected
+  const scheme = customSchemes[0];
+  return code`if ("key" in credential) {
+  clientContext.pipeline.addPolicy({
+    name: "customKeyCredentialPolicy",
+    async sendRequest(request, next) {
+      request.headers.set("${scheme.headerName}", "${scheme.prefix} " + credential.key);
+      return next(request);
+    },
+  });
+}`;
+}
+
+/**
  * Builds a JavaScript array literal string representing the auth schemes
  * derived from the credential parameter's type information.
  *
@@ -922,8 +986,15 @@ function buildAuthSchemesLiteral(
       switch (scheme.type) {
         case "apiKey":
           return `{ kind: "apiKey", apiKeyLocation: "${scheme.in}", name: "${scheme.name}" }`;
-        case "http":
-          return `{ kind: "http", scheme: "${scheme.scheme.toLowerCase()}" }`;
+        case "http": {
+          const schemeName = scheme.scheme.toLowerCase();
+          if (schemeName === "basic" || schemeName === "bearer") {
+            return `{ kind: "http", scheme: "${schemeName}" }`;
+          }
+          // Custom HTTP schemes are handled via a pipeline policy in buildFactoryBody,
+          // not authSchemes — the runtime only recognizes basic/bearer.
+          return undefined;
+        }
         case "oauth2":
           // OAuth2 flows are complex; for now emit a minimal scheme
           return `{ kind: "oauth2" }`;
@@ -935,6 +1006,46 @@ function buildAuthSchemesLiteral(
 
   if (parts.length === 0) return undefined;
   return `[${parts.join(", ")}]`;
+}
+
+/**
+ * Extracts non-standard HTTP auth schemes from a credential parameter.
+ *
+ * Standard HTTP schemes (basic/bearer) are handled by the runtime's built-in
+ * auth policies via `authSchemes`. Custom schemes (e.g., "SharedAccessKey")
+ * require a custom pipeline policy because the runtime does not recognize them.
+ *
+ * @param credentialParam - The TCGC credential parameter.
+ * @returns An array of custom scheme descriptors with header name and prefix.
+ */
+function getCustomHttpAuthSchemes(
+  credentialParam: SdkCredentialParameter,
+): Array<{ headerName: string; prefix: string }> {
+  const credType = credentialParam.type;
+  const schemes: HttpAuth[] = [];
+
+  if (credType.kind === "credential") {
+    schemes.push(credType.scheme);
+  } else if (credType.kind === "union") {
+    for (const variant of credType.variantTypes) {
+      if (variant.kind === "credential") {
+        schemes.push(variant.scheme);
+      }
+    }
+  }
+
+  const result: Array<{ headerName: string; prefix: string }> = [];
+  for (const s of schemes) {
+    if (s.type === "http") {
+      // TypeScript narrows to BasicAuth | BearerAuth, but at runtime custom
+      // HTTP schemes also have type "http" with a non-standard scheme name.
+      const schemeName = s.scheme.toLowerCase();
+      if (schemeName !== "basic" && schemeName !== "bearer") {
+        result.push({ headerName: "Authorization", prefix: s.scheme });
+      }
+    }
+  }
+  return result;
 }
 
 /**
