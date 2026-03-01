@@ -2174,3 +2174,14 @@ Changed `buildPagedAsyncIterator` parameter types from `Promise<PathUncheckedRes
 **Fix guidance:** Pass the root client object to these components. In tests, use the `client` variable already in scope. In `operation-files.tsx`, pass `rootClient` from parent props.
 
 **Task created:** `FIX-ROOTCLIENT-BUILD` with priority `critical`.
+
+## RC24: Fix rootClient build errors — DONE (2026-03-01)
+- Task: FIX-ROOTCLIENT-BUILD
+- Fixed 15 TS2741 build errors where `rootClient` prop was missing on SendOperation, PublicOperation, and HeaderDeserializationBlock components
+- Changes:
+  - `src/components/operation-files.tsx`: Pass `rootClient` to `<HeaderDeserializationBlock>` (it uses `OperationDeclarationsProps` which requires it)
+  - `test/components/classical-client.test.tsx`: Pass `rootClient={client}` to `<SendOperation>` and `<PublicOperation>` in 3 test wrapper blocks (FullTestWrapper + 2 inline paging tests)
+  - `test/components/classical-operation-groups.test.tsx`: Pass `rootClient={root}` to `<SendOperation>` and `<PublicOperation>` in 3 blocks (OperationGroupTestWrapper + 2 inline paging tests)
+  - `test/components/sample-files.test.tsx`: Pass `rootClient={client}` to `<SendOperation>` and `<PublicOperation>` in SampleTestWrapper
+- Pattern: When new required props are added to component interfaces, all callers (including test wrappers) must be updated
+- Build: 0 errors, Tests: 1015 passed

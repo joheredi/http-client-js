@@ -130,11 +130,11 @@ function OperationGroupTestWrapper(props: {
                 {i > 0 && "\n\n"}
                 <OperationOptionsDeclaration method={method} />
                 {"\n\n"}
-                <SendOperation method={method} />
+                <SendOperation method={method} rootClient={root} />
                 {"\n\n"}
                 <DeserializeOperation method={method} />
                 {"\n\n"}
-                <PublicOperation method={method} />
+                <PublicOperation method={method} rootClient={root} />
               </>
             ))}
           </SourceFile>
@@ -686,11 +686,11 @@ describe("ClassicalOperationGroups paging return types", () => {
                       {i > 0 && "\n\n"}
                       <OperationOptionsDeclaration method={method} />
                       {"\n\n"}
-                      <SendOperation method={method} />
+                      <SendOperation method={method} rootClient={root} />
                       {"\n\n"}
                       <DeserializeOperation method={method} />
                       {"\n\n"}
-                      <PublicOperation method={method} />
+                      <PublicOperation method={method} rootClient={root} />
                     </>
                   ))}
                 </SourceFile>
@@ -762,11 +762,11 @@ describe("ClassicalOperationGroups paging return types", () => {
                       {i > 0 && "\n\n"}
                       <OperationOptionsDeclaration method={method} />
                       {"\n\n"}
-                      <SendOperation method={method} />
+                      <SendOperation method={method} rootClient={root} />
                       {"\n\n"}
                       <DeserializeOperation method={method} />
                       {"\n\n"}
-                      <PublicOperation method={method} />
+                      <PublicOperation method={method} rootClient={root} />
                     </>
                   ))}
                 </SourceFile>

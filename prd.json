@@ -781,7 +781,7 @@
       "description": "The build is failing with 15 TS2741 errors. The rootClient prop (SdkClientType<SdkHttpOperation>) was added to SendOperationProps, PublicOperationProps, and OperationDeclarationsProps but callers were not updated. Affected files: (1) src/components/operation-files.tsx line 167 - HeaderDeserializationBlock called without rootClient, (2) test/components/classical-client.test.tsx lines 140,144,779,783,854,858 - SendOperation and PublicOperation called without rootClient, (3) test/components/classical-operation-groups.test.tsx lines 133,137,689,693,765,769 - same issue, (4) test/components/sample-files.test.tsx lines 115,119 - same issue. Fix: pass the root client object to these components. In tests, use the client variable already in scope. In operation-files.tsx, pass rootClient from the parent props.",
       "category": "bug-fix",
       "priority": "critical",
-      "status": "not-started",
+      "status": "done",
       "dependencies": []
     },
     {

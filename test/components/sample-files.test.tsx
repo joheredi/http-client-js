@@ -112,11 +112,11 @@ function SampleTestWrapper(props: {
                 {i > 0 && "\n\n"}
                 <OperationOptionsDeclaration method={method} />
                 {"\n\n"}
-                <SendOperation method={method} />
+                <SendOperation method={method} rootClient={client} />
                 {"\n\n"}
                 <DeserializeOperation method={method} />
                 {"\n\n"}
-                <PublicOperation method={method} />
+                <PublicOperation method={method} rootClient={client} />
               </>
             ))}
           </SourceFile>

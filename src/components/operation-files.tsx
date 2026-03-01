@@ -164,7 +164,7 @@ function OperationDeclarations(props: OperationDeclarationsProps) {
     <>
       <SendOperation method={method} rootClient={rootClient} />
       {"\n\n"}
-      <HeaderDeserializationBlock method={method} />
+      <HeaderDeserializationBlock method={method} rootClient={rootClient} />
       <DeserializeOperation method={method} />
       {"\n\n"}
       <PublicOperation method={method} rootClient={rootClient} />
