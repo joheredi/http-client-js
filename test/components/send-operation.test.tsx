@@ -29,6 +29,7 @@ import { Output } from "@typespec/emitter-framework";
 import { t } from "@typespec/compiler/testing";
 import { beforeAll, describe, expect, it } from "vitest";
 import type {
+  SdkClientType,
   SdkContext,
   SdkHttpOperation,
   SdkServiceMethod,
@@ -44,6 +45,7 @@ import {
 } from "../../src/components/send-operation.js";
 import { getOptionsParamName } from "../../src/components/send-operation.js";
 import { OperationOptionsDeclaration } from "../../src/components/operation-options.js";
+import { ClientContextDeclaration } from "../../src/components/client-context.js";
 import { ModelInterface } from "../../src/components/model-interface.js";
 import { JsonSerializer } from "../../src/components/serialization/json-serializer.js";
 import { SerializationHelpersFile } from "../../src/components/static-helpers/serialization-helpers.js";
@@ -132,10 +134,19 @@ function getFirstMethod(sdkContext: {
   return sdkContext.sdkPackage.clients[0].methods[0];
 }
 
+function getFirstClient(sdkContext: {
+  sdkPackage: {
+    clients: SdkClientType<SdkHttpOperation>[];
+  };
+}): SdkClientType<SdkHttpOperation> {
+  return sdkContext.sdkPackage.clients[0];
+}
+
 describe("SendOperation", () => {
   describe("basic GET with no parameters", () => {
     let sdkContext: SdkContext<Record<string, any>, SdkHttpOperation>;
     let method: SdkServiceMethod<SdkHttpOperation>;
+    let client: SdkClientType<SdkHttpOperation>;
 
     beforeAll(async () => {
       const runner = await TesterWithService.createInstance();
@@ -146,6 +157,7 @@ describe("SendOperation", () => {
       );
       sdkContext = await createSdkContextForTest(program);
       method = getFirstMethod(sdkContext);
+      client = getFirstClient(sdkContext);
     });
 
     /**
@@ -157,14 +169,18 @@ describe("SendOperation", () => {
     it("should render a basic GET send function", async () => {
       const template = (
         <SdkTestFile sdkContext={sdkContext} externals={[httpRuntimeLib]}>
+          <ClientContextDeclaration client={client} />
+          {"\n\n"}
           <OperationOptionsDeclaration method={method} />
           {"\n\n"}
-          <SendOperation method={method} />
+          <SendOperation method={method} rootClient={client} />
         </SdkTestFile>
       );
 
       expect(template).toRenderTo(d`
         import { type Client, type OperationOptions, operationOptionsToRequestParameters, type StreamableMethod } from "@typespec/ts-http-runtime";
+
+        export interface TestingContext extends Client {}
 
         /**
          * Optional parameters for the listItems operation.
@@ -172,7 +188,7 @@ describe("SendOperation", () => {
         export interface ListItemsOptionalParams extends OperationOptions {}
 
         export function _listItemsSend(
-          context: Client,
+          context: TestingContext,
           options: ListItemsOptionalParams = { requestOptions: {} },
         ): StreamableMethod {
           return context.path("/").get({ ...operationOptionsToRequestParameters(options), headers: { accept: "application/json", ...options.requestOptions?.headers } });
@@ -205,12 +221,15 @@ describe("SendOperation", () => {
 
     const sdkContext = await createSdkContextForTest(program);
     const method = getFirstMethod(sdkContext);
+    const client = getFirstClient(sdkContext);
 
     const template = (
       <UrlTemplateTestWrapper sdkContext={sdkContext}>
+        <ClientContextDeclaration client={client} />
+        {"\n\n"}
         <OperationOptionsDeclaration method={method} />
         {"\n\n"}
-        <SendOperation method={method} />
+        <SendOperation method={method} rootClient={client} />
       </UrlTemplateTestWrapper>
     );
 
@@ -219,13 +238,15 @@ describe("SendOperation", () => {
         import { type Client, type OperationOptions, operationOptionsToRequestParameters, type StreamableMethod } from "@typespec/ts-http-runtime";
         import { expandUrlTemplate } from "./static-helpers/urlTemplate.js";
 
+        export interface TestingContext extends Client {}
+
         /**
          * Optional parameters for the getItem operation.
          */
         export interface GetItemOptionalParams extends OperationOptions {}
 
         export function _getItemSend(
-          context: Client,
+          context: TestingContext,
           id: string,
           options: GetItemOptionalParams = { requestOptions: {} },
         ): StreamableMethod {
@@ -252,12 +273,15 @@ describe("SendOperation", () => {
 
     const sdkContext = await createSdkContextForTest(program);
     const method = getFirstMethod(sdkContext);
+    const client = getFirstClient(sdkContext);
 
     const template = (
       <UrlTemplateTestWrapper sdkContext={sdkContext}>
+        <ClientContextDeclaration client={client} />
+        {"\n\n"}
         <OperationOptionsDeclaration method={method} />
         {"\n\n"}
-        <SendOperation method={method} />
+        <SendOperation method={method} rootClient={client} />
       </UrlTemplateTestWrapper>
     );
 
@@ -265,6 +289,8 @@ describe("SendOperation", () => {
       "test.ts": d`
         import { type Client, type OperationOptions, operationOptionsToRequestParameters, type StreamableMethod } from "@typespec/ts-http-runtime";
         import { expandUrlTemplate } from "./static-helpers/urlTemplate.js";
+
+        export interface TestingContext extends Client {}
 
         /**
          * Optional parameters for the listItems operation.
@@ -275,7 +301,7 @@ describe("SendOperation", () => {
         }
 
         export function _listItemsSend(
-          context: Client,
+          context: TestingContext,
           options: ListItemsOptionalParams = { requestOptions: {} },
         ): StreamableMethod {
           const path = expandUrlTemplate("/{?skip,top}", { "skip": options?.skip, "top": options?.top }, { allowReserved: options?.requestOptions?.skipUrlEncoding });
@@ -306,24 +332,29 @@ describe("SendOperation", () => {
 
     const sdkContext = await createSdkContextForTest(program);
     const method = getFirstMethod(sdkContext);
+    const client = getFirstClient(sdkContext);
     const itemModel = sdkContext.sdkPackage.models.find(
       (m) => m.name === "Item",
     )!;
 
     const template = (
       <SdkTestFile sdkContext={sdkContext} externals={[httpRuntimeLib]}>
+        <ClientContextDeclaration client={client} />
+        {"\n\n"}
         <ModelInterface model={itemModel} />
         {"\n\n"}
         <JsonSerializer model={itemModel} />
         {"\n\n"}
         <OperationOptionsDeclaration method={method} />
         {"\n\n"}
-        <SendOperation method={method} />
+        <SendOperation method={method} rootClient={client} />
       </SdkTestFile>
     );
 
     expect(template).toRenderTo(d`
       import { type Client, type OperationOptions, operationOptionsToRequestParameters, type StreamableMethod } from "@typespec/ts-http-runtime";
+
+      export interface TestingContext extends Client {}
 
       /**
        * model interface Item
@@ -346,7 +377,7 @@ describe("SendOperation", () => {
       export interface CreateItemOptionalParams extends OperationOptions {}
 
       export function _createItemSend(
-        context: Client,
+        context: TestingContext,
         body: Item,
         options: CreateItemOptionalParams = { requestOptions: {} },
       ): StreamableMethod {
@@ -393,6 +424,7 @@ describe("SendOperation", () => {
 
     const sdkContext = await createSdkContextForTest(program);
     const method = getFirstMethod(sdkContext);
+    const client = getFirstClient(sdkContext);
     const model = sdkContext.sdkPackage.models.find(
       (m) => m.name === "ServiceProperties",
     )!;
@@ -408,13 +440,15 @@ describe("SendOperation", () => {
             <SdkContextProvider sdkContext={sdkContext}>
               <XmlHelpersFile />
               <SourceFile path="test.ts">
+                <ClientContextDeclaration client={client} />
+                {"\n\n"}
                 <ModelInterface model={model} />
                 {"\n\n"}
                 <XmlSerializer model={model} />
                 {"\n\n"}
                 <OperationOptionsDeclaration method={method} />
                 {"\n\n"}
-                <SendOperation method={method} />
+                <SendOperation method={method} rootClient={client} />
               </SourceFile>
             </SdkContextProvider>
           </EmitterOptionsProvider>
@@ -447,12 +481,15 @@ describe("SendOperation", () => {
 
     const sdkContext = await createSdkContextForTest(program);
     const method = getFirstMethod(sdkContext);
+    const client = getFirstClient(sdkContext);
 
     const template = (
       <SdkTestFile sdkContext={sdkContext} externals={[httpRuntimeLib]}>
+        <ClientContextDeclaration client={client} />
+        {"\n\n"}
         <OperationOptionsDeclaration method={method} />
         {"\n\n"}
-        <SendOperation method={method} />
+        <SendOperation method={method} rootClient={client} />
         {"\n\n"}
         {code`type TestRef = typeof ${sendOperationRefkey(method)}`}
       </SdkTestFile>
@@ -461,13 +498,15 @@ describe("SendOperation", () => {
     expect(template).toRenderTo(d`
       import { type Client, type OperationOptions, operationOptionsToRequestParameters, type StreamableMethod } from "@typespec/ts-http-runtime";
 
+      export interface TestingContext extends Client {}
+
       /**
        * Optional parameters for the getItem operation.
        */
       export interface GetItemOptionalParams extends OperationOptions {}
 
       export function _getItemSend(
-        context: Client,
+        context: TestingContext,
         options: GetItemOptionalParams = { requestOptions: {} },
       ): StreamableMethod {
         return context.path("/").get({ ...operationOptionsToRequestParameters(options), headers: { accept: "text/plain", ...options.requestOptions?.headers } });
@@ -495,17 +534,22 @@ describe("SendOperation", () => {
 
     const sdkContext = await createSdkContextForTest(program);
     const method = getFirstMethod(sdkContext);
+    const client = getFirstClient(sdkContext);
 
     const template = (
       <SdkTestFile sdkContext={sdkContext} externals={[httpRuntimeLib]}>
+        <ClientContextDeclaration client={client} />
+        {"\n\n"}
         <OperationOptionsDeclaration method={method} />
         {"\n\n"}
-        <SendOperation method={method} />
+        <SendOperation method={method} rootClient={client} />
       </SdkTestFile>
     );
 
     expect(template).toRenderTo(d`
       import { type Client, type OperationOptions, operationOptionsToRequestParameters, type StreamableMethod } from "@typespec/ts-http-runtime";
+
+      export interface TestingContext extends Client {}
 
       /**
        * Optional parameters for the getResource operation.
@@ -515,7 +559,7 @@ describe("SendOperation", () => {
       }
 
       export function _getResourceSend(
-        context: Client,
+        context: TestingContext,
         options: GetResourceOptionalParams = { requestOptions: {} },
       ): StreamableMethod {
         return context.path("/").get({ ...operationOptionsToRequestParameters(options), headers: { accept: "text/plain", ...(options?.ifMatch !== undefined ? { "if-match": options?.ifMatch } : {}), ...options.requestOptions?.headers } });
@@ -545,12 +589,15 @@ describe("SendOperation", () => {
 
     const sdkContext = await createSdkContextForTest(program);
     const method = getFirstMethod(sdkContext);
+    const client = getFirstClient(sdkContext);
 
     const template = (
       <SdkTestFile sdkContext={sdkContext} externals={[httpRuntimeLib]}>
+        <ClientContextDeclaration client={client} />
+        {"\n\n"}
         <OperationOptionsDeclaration method={method} />
         {"\n\n"}
-        <SendOperation method={method} />
+        <SendOperation method={method} rootClient={client} />
       </SdkTestFile>
     );
 
@@ -578,12 +625,15 @@ describe("SendOperation", () => {
 
     const sdkContext = await createSdkContextForTest(program);
     const method = getFirstMethod(sdkContext);
+    const client = getFirstClient(sdkContext);
 
     const template = (
       <SdkTestFile sdkContext={sdkContext} externals={[httpRuntimeLib]}>
+        <ClientContextDeclaration client={client} />
+        {"\n\n"}
         <OperationOptionsDeclaration method={method} />
         {"\n\n"}
-        <SendOperation method={method} />
+        <SendOperation method={method} rootClient={client} />
       </SdkTestFile>
     );
 
@@ -611,12 +661,15 @@ describe("SendOperation", () => {
 
     const sdkContext = await createSdkContextForTest(program);
     const method = getFirstMethod(sdkContext);
+    const client = getFirstClient(sdkContext);
 
     const template = (
       <UrlTemplateTestWrapper sdkContext={sdkContext}>
+        <ClientContextDeclaration client={client} />
+        {"\n\n"}
         <OperationOptionsDeclaration method={method} />
         {"\n\n"}
-        <SendOperation method={method} />
+        <SendOperation method={method} rootClient={client} />
       </UrlTemplateTestWrapper>
     );
 
@@ -624,6 +677,8 @@ describe("SendOperation", () => {
       "test.ts": d`
         import { type Client, type OperationOptions, operationOptionsToRequestParameters, type StreamableMethod } from "@typespec/ts-http-runtime";
         import { expandUrlTemplate } from "./static-helpers/urlTemplate.js";
+
+        export interface TestingContext extends Client {}
 
         /**
          * Optional parameters for the getItem operation.
@@ -633,7 +688,7 @@ describe("SendOperation", () => {
         }
 
         export function _getItemSend(
-          context: Client,
+          context: TestingContext,
           id: string,
           options: GetItemOptionalParams = { requestOptions: {} },
         ): StreamableMethod {
@@ -665,19 +720,22 @@ describe("SendOperation", () => {
 
     const sdkContext = await createSdkContextForTest(program);
     const method = getFirstMethod(sdkContext);
+    const client = getFirstClient(sdkContext);
     const patchModel = sdkContext.sdkPackage.models.find(
       (m) => m.name === "PatchData",
     )!;
 
     const template = (
       <UrlTemplateTestWrapper sdkContext={sdkContext}>
+        <ClientContextDeclaration client={client} />
+        {"\n\n"}
         <ModelInterface model={patchModel} />
         {"\n\n"}
         <JsonSerializer model={patchModel} />
         {"\n\n"}
         <OperationOptionsDeclaration method={method} />
         {"\n\n"}
-        <SendOperation method={method} />
+        <SendOperation method={method} rootClient={client} />
       </UrlTemplateTestWrapper>
     );
 
@@ -685,6 +743,8 @@ describe("SendOperation", () => {
       "test.ts": d`
         import { type Client, type OperationOptions, operationOptionsToRequestParameters, type StreamableMethod } from "@typespec/ts-http-runtime";
         import { expandUrlTemplate } from "./static-helpers/urlTemplate.js";
+
+        export interface TestingContext extends Client {}
 
         /**
          * model interface PatchData
@@ -707,7 +767,7 @@ describe("SendOperation", () => {
         }
 
         export function _updateItemSend(
-          context: Client,
+          context: TestingContext,
           id: string,
           options: UpdateItemOptionalParams = { requestOptions: {} },
         ): StreamableMethod {
@@ -743,17 +803,22 @@ describe("SendOperation", () => {
 
     const sdkContext = await createSdkContextForTest(program);
     const method = getFirstMethod(sdkContext);
+    const client = getFirstClient(sdkContext);
 
     const template = (
       <SdkTestFile sdkContext={sdkContext} externals={[httpRuntimeLib]}>
+        <ClientContextDeclaration client={client} />
+        {"\n\n"}
         <OperationOptionsDeclaration method={method} />
         {"\n\n"}
-        <SendOperation method={method} />
+        <SendOperation method={method} rootClient={client} />
       </SdkTestFile>
     );
 
     expect(template).toRenderTo(d`
       import { type Client, type OperationOptions, operationOptionsToRequestParameters, type StreamableMethod } from "@typespec/ts-http-runtime";
+
+      export interface TestingContext extends Client {}
 
       /**
        * Optional parameters for the createItem operation.
@@ -761,7 +826,7 @@ describe("SendOperation", () => {
       export interface CreateItemOptionalParams extends OperationOptions {}
 
       export function _createItemSend(
-        context: Client,
+        context: TestingContext,
         name: string,
         count: number,
         options: CreateItemOptionalParams = { requestOptions: {} },
@@ -805,20 +870,22 @@ model VersionedHeaderServiceClientOptions {
 
     const sdkContext = await createSdkContextForTest(program);
     const method = getFirstMethod(sdkContext);
+    const client = getFirstClient(sdkContext);
 
     const template = (
       <SdkTestFile sdkContext={sdkContext} externals={[httpRuntimeLib]}>
+        <ClientContextDeclaration client={client} />
+        {"\n\n"}
         <OperationOptionsDeclaration method={method} />
         {"\n\n"}
-        <SendOperation method={method} />
+        <SendOperation method={method} rootClient={client} />
       </SdkTestFile>
     );
 
     const result = renderToString(template);
     // Client-level header params (isApiVersionParam + onClient) are read from
     // context, matching query param behavior in getParameterAccessor.
-    // Uses (context as any) cast since context is typed as base Client.
-    expect(result).toContain("(context as any).apiVersion");
+    expect(result).toContain("context.apiVersion");
     expect(result).toContain("x-ms-version");
     expect(result).not.toContain("options?.apiVersion");
     expect(result).not.toContain("Unresolved Symbol");
@@ -827,6 +894,7 @@ model VersionedHeaderServiceClientOptions {
   describe("@@override parameter grouping", () => {
     let sdkContext: SdkContext<Record<string, any>, SdkHttpOperation>;
     let method: SdkServiceMethod<SdkHttpOperation>;
+    let client: SdkClientType<SdkHttpOperation>;
 
     beforeAll(async () => {
       const runner = await RawTester.createInstance();
@@ -861,6 +929,7 @@ op groupCustomized(
       `);
       sdkContext = await createSdkContextForTest(program);
       method = getFirstMethod(sdkContext);
+      client = getFirstClient(sdkContext);
     });
 
     /**
@@ -876,9 +945,11 @@ op groupCustomized(
     it("should handle @@override parameter grouping with correct naming", async () => {
       const template = (
         <SdkTestFile sdkContext={sdkContext} externals={[httpRuntimeLib]}>
+          <ClientContextDeclaration client={client} />
+          {"\n\n"}
           <OperationOptionsDeclaration method={method} />
           {"\n\n"}
-          <SendOperation method={method} />
+          <SendOperation method={method} rootClient={client} />
         </SdkTestFile>
       );
 
@@ -927,12 +998,15 @@ op groupCustomized(
 
     const sdkContext = await createSdkContextForTest(program);
     const method = getFirstMethod(sdkContext);
+    const client = getFirstClient(sdkContext);
 
     const template = (
       <MultiFileTestWrapper sdkContext={sdkContext}>
+        <ClientContextDeclaration client={client} />
+        {"\n\n"}
         <OperationOptionsDeclaration method={method} />
         {"\n\n"}
-        <SendOperation method={method} />
+        <SendOperation method={method} rootClient={client} />
       </MultiFileTestWrapper>
     );
 
@@ -959,12 +1033,15 @@ op groupCustomized(
 
     const sdkContext = await createSdkContextForTest(program);
     const method = getFirstMethod(sdkContext);
+    const client = getFirstClient(sdkContext);
 
     const template = (
       <MultiFileTestWrapper sdkContext={sdkContext}>
+        <ClientContextDeclaration client={client} />
+        {"\n\n"}
         <OperationOptionsDeclaration method={method} />
         {"\n\n"}
-        <SendOperation method={method} />
+        <SendOperation method={method} rootClient={client} />
       </MultiFileTestWrapper>
     );
 
@@ -990,12 +1067,15 @@ op groupCustomized(
 
     const sdkContext = await createSdkContextForTest(program);
     const method = getFirstMethod(sdkContext);
+    const client = getFirstClient(sdkContext);
 
     const template = (
       <MultiFileTestWrapper sdkContext={sdkContext}>
+        <ClientContextDeclaration client={client} />
+        {"\n\n"}
         <OperationOptionsDeclaration method={method} />
         {"\n\n"}
-        <SendOperation method={method} />
+        <SendOperation method={method} rootClient={client} />
       </MultiFileTestWrapper>
     );
 
@@ -1030,19 +1110,22 @@ op groupCustomized(
 
       const sdkContext = await createSdkContextForTest(program);
       const method = getFirstMethod(sdkContext);
+      const client = getFirstClient(sdkContext);
 
       const template = (
         <SdkTestFile sdkContext={sdkContext} externals={[httpRuntimeLib]}>
+          <ClientContextDeclaration client={client} />
+          {"\n\n"}
           <OperationOptionsDeclaration method={method} />
           {"\n\n"}
-          <SendOperation method={method} />
+          <SendOperation method={method} rootClient={client} />
         </SdkTestFile>
       );
 
       const result = renderToString(template);
       // Constant param should NOT appear in function signature as a parameter
       expect(result).not.toMatch(
-        /createStreamingSend\(\s*context: Client,\s*stream: true/,
+        /createStreamingSend\(\s*context: TestingContext,\s*stream: true/,
       );
       // Constant value should be hardcoded in the body (keys are quoted in spread bodies)
       expect(result).toContain('"stream": true');
@@ -1068,19 +1151,22 @@ op groupCustomized(
 
       const sdkContext = await createSdkContextForTest(program);
       const method = getFirstMethod(sdkContext);
+      const client = getFirstClient(sdkContext);
 
       const template = (
         <SdkTestFile sdkContext={sdkContext} externals={[httpRuntimeLib]}>
+          <ClientContextDeclaration client={client} />
+          {"\n\n"}
           <OperationOptionsDeclaration method={method} />
           {"\n\n"}
-          <SendOperation method={method} />
+          <SendOperation method={method} rootClient={client} />
         </SdkTestFile>
       );
 
       const result = renderToString(template);
       // contentType constant should NOT be a positional parameter before body
       expect(result).not.toMatch(
-        /uploadFileSend\(\s*context: Client,\s*contentType:/,
+        /uploadFileSend\(\s*context: TestingContext,\s*contentType:/,
       );
       // But contentType should still be in the request options
       expect(result).toContain('contentType: "application/octet-stream"');
@@ -1113,18 +1199,21 @@ op groupCustomized(
 
       const sdkContext = await createSdkContextForTest(program);
       const method = getFirstMethod(sdkContext);
+      const client = getFirstClient(sdkContext);
 
       const template = (
         <SdkTestFile sdkContext={sdkContext} externals={[httpRuntimeLib]}>
+          <ClientContextDeclaration client={client} />
+          {"\n\n"}
           <OperationOptionsDeclaration method={method} />
           {"\n\n"}
-          <SendOperation method={method} />
+          <SendOperation method={method} rootClient={client} />
         </SdkTestFile>
       );
 
       const result = renderToString(template);
       // contentType should be a positional parameter (user-defined, non-constant)
-      expect(result).toMatch(/sendSend\(\s*context: Client,\s*contentType:/);
+      expect(result).toMatch(/sendSend\(\s*context: TestingContext,\s*contentType:/);
       // contentType in request options should use the variable, NOT a hardcoded literal
       expect(result).toContain("contentType: contentType");
       // Should NOT hardcode a literal like contentType: "application/json"
@@ -1152,19 +1241,22 @@ op groupCustomized(
 
       const sdkContext = await createSdkContextForTest(program);
       const method = getFirstMethod(sdkContext);
+      const client = getFirstClient(sdkContext);
 
       const template = (
         <SdkTestFile sdkContext={sdkContext} externals={[httpRuntimeLib]}>
+          <ClientContextDeclaration client={client} />
+          {"\n\n"}
           <OperationOptionsDeclaration method={method} />
           {"\n\n"}
-          <SendOperation method={method} />
+          <SendOperation method={method} rootClient={client} />
         </SdkTestFile>
       );
 
       const result = renderToString(template);
       // contentType should be a positional parameter
       expect(result).toMatch(
-        /uploadFileSend\(\s*context: Client,\s*contentType:/,
+        /uploadFileSend\(\s*context: TestingContext,\s*contentType:/,
       );
       // contentType in request options should use the variable reference
       expect(result).toContain("contentType: contentType");
@@ -1189,19 +1281,22 @@ op groupCustomized(
 
       const sdkContext = await createSdkContextForTest(program);
       const method = getFirstMethod(sdkContext);
+      const client = getFirstClient(sdkContext);
 
       const template = (
         <SdkTestFile sdkContext={sdkContext} externals={[httpRuntimeLib]}>
+          <ClientContextDeclaration client={client} />
+          {"\n\n"}
           <OperationOptionsDeclaration method={method} />
           {"\n\n"}
-          <SendOperation method={method} />
+          <SendOperation method={method} rootClient={client} />
         </SdkTestFile>
       );
 
       const result = renderToString(template);
       // Constant path param should NOT be in function signature
       expect(result).not.toMatch(
-        /readItemSend\(\s*context: Client,\s*strDefault:/,
+        /readItemSend\(\s*context: TestingContext,\s*strDefault:/,
       );
       // Literal should be hardcoded in URL expansion (key is quoted in expansion object)
       expect(result).toContain('"strDefault": "foobar"');

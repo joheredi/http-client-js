@@ -115,15 +115,15 @@ import {
 } from "../../models/models.js";
 import type { GetAssetChainSummaryOptionalParams } from "./options.js";
 import {
-  type Client,
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@azure-rest/core-client";
+import type { TestServiceContext } from "../../testServiceClientContext.js";
 
 export function _getAssetChainSummarySend(
-  context: Client,
+  context: TestServiceContext,
   options: GetAssetChainSummaryOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
   return context.path("/assetChainSummary").get({
@@ -147,7 +147,7 @@ export async function _getAssetChainSummaryDeserialize(
 }
 
 export async function getAssetChainSummary(
-  context: Client,
+  context: TestServiceContext,
   options: GetAssetChainSummaryOptionalParams = { requestOptions: {} },
 ): Promise<AssetChainSummaryResult> {
   const result = await _getAssetChainSummarySend(context, options);

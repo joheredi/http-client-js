@@ -28,6 +28,7 @@ import { t } from "@typespec/compiler/testing";
 import { Output } from "@typespec/emitter-framework";
 import { beforeAll, describe, expect, it } from "vitest";
 import type {
+  SdkClientType,
   SdkHttpOperation,
   SdkServiceMethod,
 } from "@azure-tools/typespec-client-generator-core";
@@ -50,6 +51,7 @@ import {
   createSdkContextForTest,
 } from "../test-host.js";
 import { SdkTestFile } from "../utils.jsx";
+import { ClientContextDeclaration } from "../../src/components/client-context.js";
 import { renderToString } from "@alloy-js/core/testing";
 import { PollingHelpersFile } from "../../src/components/static-helpers/polling-helpers.js";
 import { UrlTemplateHelpersFile } from "../../src/components/static-helpers/url-template-helpers.js";
@@ -95,6 +97,14 @@ function getFirstMethod(sdkContext: {
   return sdkContext.sdkPackage.clients[0].methods[0];
 }
 
+function getFirstClient(sdkContext: {
+  sdkPackage: {
+    clients: SdkClientType<SdkHttpOperation>[];
+  };
+}): SdkClientType<SdkHttpOperation> {
+  return sdkContext.sdkPackage.clients[0];
+}
+
 describe("PublicOperation", () => {
   /**
    * Tests the simplest case: a GET operation returning a primitive type.
@@ -112,21 +122,26 @@ describe("PublicOperation", () => {
 
     const sdkContext = await createSdkContextForTest(program);
     const method = getFirstMethod(sdkContext);
+    const client = getFirstClient(sdkContext);
 
     const template = (
       <SdkTestFile sdkContext={sdkContext} externals={[httpRuntimeLib]}>
+        <ClientContextDeclaration client={client} />
+        {"\n\n"}
         <OperationOptionsDeclaration method={method} />
         {"\n\n"}
-        <SendOperation method={method} />
+        <SendOperation method={method} rootClient={client} />
         {"\n\n"}
         <DeserializeOperation method={method} />
         {"\n\n"}
-        <PublicOperation method={method} />
+        <PublicOperation method={method} rootClient={client} />
       </SdkTestFile>
     );
 
     expect(template).toRenderTo(d`
       import { type Client, createRestError, type OperationOptions, operationOptionsToRequestParameters, type PathUncheckedResponse, type StreamableMethod } from "@typespec/ts-http-runtime";
+
+      export interface TestingContext extends Client {}
 
       /**
        * Optional parameters for the listItems operation.
@@ -134,7 +149,7 @@ describe("PublicOperation", () => {
       export interface ListItemsOptionalParams extends OperationOptions {}
 
       export function _listItemsSend(
-        context: Client,
+        context: TestingContext,
         options: ListItemsOptionalParams = { requestOptions: {} },
       ): StreamableMethod {
         return context.path("/").get({ ...operationOptionsToRequestParameters(options), headers: { accept: "application/json", ...options.requestOptions?.headers } });
@@ -152,7 +167,7 @@ describe("PublicOperation", () => {
       }
 
       export async function listItems(
-        context: Client,
+        context: TestingContext,
         options: ListItemsOptionalParams = { requestOptions: {} },
       ): Promise<string[]> {
         const result = await _listItemsSend(context, options);
@@ -182,12 +197,15 @@ describe("PublicOperation", () => {
 
     const sdkContext = await createSdkContextForTest(program);
     const method = getFirstMethod(sdkContext);
+    const client = getFirstClient(sdkContext);
     const itemModel = sdkContext.sdkPackage.models.find(
       (m) => m.name === "Item",
     )!;
 
     const template = (
       <SdkTestFile sdkContext={sdkContext} externals={[httpRuntimeLib]}>
+        <ClientContextDeclaration client={client} />
+        {"\n\n"}
         <ModelInterface model={itemModel} />
         {"\n\n"}
         <JsonSerializer model={itemModel} />
@@ -196,16 +214,18 @@ describe("PublicOperation", () => {
         {"\n\n"}
         <OperationOptionsDeclaration method={method} />
         {"\n\n"}
-        <SendOperation method={method} />
+        <SendOperation method={method} rootClient={client} />
         {"\n\n"}
         <DeserializeOperation method={method} />
         {"\n\n"}
-        <PublicOperation method={method} />
+        <PublicOperation method={method} rootClient={client} />
       </SdkTestFile>
     );
 
     expect(template).toRenderTo(d`
       import { type Client, createRestError, type OperationOptions, operationOptionsToRequestParameters, type PathUncheckedResponse, type StreamableMethod } from "@typespec/ts-http-runtime";
+
+      export interface TestingContext extends Client {}
 
       /**
        * model interface Item
@@ -235,7 +255,7 @@ describe("PublicOperation", () => {
       export interface CreateItemOptionalParams extends OperationOptions {}
 
       export function _createItemSend(
-        context: Client,
+        context: TestingContext,
         body: Item,
         options: CreateItemOptionalParams = { requestOptions: {} },
       ): StreamableMethod {
@@ -254,7 +274,7 @@ describe("PublicOperation", () => {
       }
 
       export async function createItem(
-        context: Client,
+        context: TestingContext,
         body: Item,
         options: CreateItemOptionalParams = { requestOptions: {} },
       ): Promise<Item> {
@@ -280,16 +300,19 @@ describe("PublicOperation", () => {
 
     const sdkContext = await createSdkContextForTest(program);
     const method = getFirstMethod(sdkContext);
+    const client = getFirstClient(sdkContext);
 
     const template = (
       <UrlTemplateTestWrapper sdkContext={sdkContext}>
+        <ClientContextDeclaration client={client} />
+        {"\n\n"}
         <OperationOptionsDeclaration method={method} />
         {"\n\n"}
-        <SendOperation method={method} />
+        <SendOperation method={method} rootClient={client} />
         {"\n\n"}
         <DeserializeOperation method={method} />
         {"\n\n"}
-        <PublicOperation method={method} />
+        <PublicOperation method={method} rootClient={client} />
       </UrlTemplateTestWrapper>
     );
 
@@ -298,13 +321,15 @@ describe("PublicOperation", () => {
         import { type Client, createRestError, type OperationOptions, operationOptionsToRequestParameters, type PathUncheckedResponse, type StreamableMethod } from "@typespec/ts-http-runtime";
         import { expandUrlTemplate } from "./static-helpers/urlTemplate.js";
 
+        export interface TestingContext extends Client {}
+
         /**
          * Optional parameters for the deleteItem operation.
          */
         export interface DeleteItemOptionalParams extends OperationOptions {}
 
         export function _deleteItemSend(
-          context: Client,
+          context: TestingContext,
           id: string,
           options: DeleteItemOptionalParams = { requestOptions: {} },
         ): StreamableMethod {
@@ -324,7 +349,7 @@ describe("PublicOperation", () => {
         }
 
         export async function deleteItem(
-          context: Client,
+          context: TestingContext,
           id: string,
           options: DeleteItemOptionalParams = { requestOptions: {} },
         ): Promise<void> {
@@ -352,21 +377,26 @@ describe("PublicOperation", () => {
 
     const sdkContext = await createSdkContextForTest(program);
     const method = getFirstMethod(sdkContext);
+    const client = getFirstClient(sdkContext);
 
     const template = (
       <SdkTestFile sdkContext={sdkContext} externals={[httpRuntimeLib]}>
+        <ClientContextDeclaration client={client} />
+        {"\n\n"}
         <OperationOptionsDeclaration method={method} />
         {"\n\n"}
-        <SendOperation method={method} />
+        <SendOperation method={method} rootClient={client} />
         {"\n\n"}
         <DeserializeOperation method={method} />
         {"\n\n"}
-        <PublicOperation method={method} />
+        <PublicOperation method={method} rootClient={client} />
       </SdkTestFile>
     );
 
     expect(template).toRenderTo(d`
-      import { Client, createRestError, type OperationOptions, operationOptionsToRequestParameters, type PathUncheckedResponse, type StreamableMethod } from "@typespec/ts-http-runtime";
+      import { type Client, createRestError, type OperationOptions, operationOptionsToRequestParameters, type PathUncheckedResponse, type StreamableMethod } from "@typespec/ts-http-runtime";
+
+      export interface TestingContext extends Client {}
 
       /**
        * Optional parameters for the getGreeting operation.
@@ -374,7 +404,7 @@ describe("PublicOperation", () => {
       export interface GetGreetingOptionalParams extends OperationOptions {}
 
       export function _getGreetingSend(
-        context: Client,
+        context: TestingContext,
         options: GetGreetingOptionalParams = { requestOptions: {} },
       ): StreamableMethod {
         return context.path("/").get({ ...operationOptionsToRequestParameters(options), headers: { accept: "text/plain", ...options.requestOptions?.headers } });
@@ -394,11 +424,11 @@ describe("PublicOperation", () => {
       /**
        * Retrieves a greeting message.
        *
-       * @param {Client} context
+       * @param {TestingContext} context
        * @param {GetGreetingOptionalParams} options
        */
       export async function getGreeting(
-        context: Client,
+        context: TestingContext,
         options: GetGreetingOptionalParams = { requestOptions: {} },
       ): Promise<string> {
         const result = await _getGreetingSend(context, options);
@@ -423,16 +453,19 @@ describe("PublicOperation", () => {
 
     const sdkContext = await createSdkContextForTest(program);
     const method = getFirstMethod(sdkContext);
+    const client = getFirstClient(sdkContext);
 
     const template = (
       <SdkTestFile sdkContext={sdkContext} externals={[httpRuntimeLib]}>
+        <ClientContextDeclaration client={client} />
+        {"\n\n"}
         <OperationOptionsDeclaration method={method} />
         {"\n\n"}
-        <SendOperation method={method} />
+        <SendOperation method={method} rootClient={client} />
         {"\n\n"}
         <DeserializeOperation method={method} />
         {"\n\n"}
-        <PublicOperation method={method} />
+        <PublicOperation method={method} rootClient={client} />
         {"\n\n"}
         {code`type TestRef = typeof ${publicOperationRefkey(method)}`}
       </SdkTestFile>
@@ -441,13 +474,15 @@ describe("PublicOperation", () => {
     expect(template).toRenderTo(d`
       import { type Client, createRestError, type OperationOptions, operationOptionsToRequestParameters, type PathUncheckedResponse, type StreamableMethod } from "@typespec/ts-http-runtime";
 
+      export interface TestingContext extends Client {}
+
       /**
        * Optional parameters for the getItem operation.
        */
       export interface GetItemOptionalParams extends OperationOptions {}
 
       export function _getItemSend(
-        context: Client,
+        context: TestingContext,
         options: GetItemOptionalParams = { requestOptions: {} },
       ): StreamableMethod {
         return context.path("/").get({ ...operationOptionsToRequestParameters(options), headers: { accept: "text/plain", ...options.requestOptions?.headers } });
@@ -465,7 +500,7 @@ describe("PublicOperation", () => {
       }
 
       export async function getItem(
-        context: Client,
+        context: TestingContext,
         options: GetItemOptionalParams = { requestOptions: {} },
       ): Promise<string> {
         const result = await _getItemSend(context, options);
@@ -495,16 +530,19 @@ describe("PublicOperation", () => {
 
     const sdkContext = await createSdkContextForTest(program);
     const method = getFirstMethod(sdkContext);
+    const client = getFirstClient(sdkContext);
 
     const template = (
       <UrlTemplateTestWrapper sdkContext={sdkContext}>
+        <ClientContextDeclaration client={client} />
+        {"\n\n"}
         <OperationOptionsDeclaration method={method} />
         {"\n\n"}
-        <SendOperation method={method} />
+        <SendOperation method={method} rootClient={client} />
         {"\n\n"}
         <DeserializeOperation method={method} />
         {"\n\n"}
-        <PublicOperation method={method} />
+        <PublicOperation method={method} rootClient={client} />
       </UrlTemplateTestWrapper>
     );
 
@@ -513,13 +551,15 @@ describe("PublicOperation", () => {
         import { type Client, createRestError, type OperationOptions, operationOptionsToRequestParameters, type PathUncheckedResponse, type StreamableMethod } from "@typespec/ts-http-runtime";
         import { expandUrlTemplate } from "./static-helpers/urlTemplate.js";
 
+        export interface TestingContext extends Client {}
+
         /**
          * Optional parameters for the getPost operation.
          */
         export interface GetPostOptionalParams extends OperationOptions {}
 
         export function _getPostSend(
-          context: Client,
+          context: TestingContext,
           userId: string,
           postId: string,
           options: GetPostOptionalParams = { requestOptions: {} },
@@ -540,7 +580,7 @@ describe("PublicOperation", () => {
         }
 
         export async function getPost(
-          context: Client,
+          context: TestingContext,
           userId: string,
           postId: string,
           options: GetPostOptionalParams = { requestOptions: {} },
@@ -576,12 +616,15 @@ describe("PublicOperation", () => {
 
     const sdkContext = await createSdkContextForTest(program);
     const method = getFirstMethod(sdkContext);
+    const client = getFirstClient(sdkContext);
     const itemModel = sdkContext.sdkPackage.models.find(
       (m) => m.name === "Item",
     )!;
 
     const template = (
       <UrlTemplateTestWrapper sdkContext={sdkContext}>
+        <ClientContextDeclaration client={client} />
+        {"\n\n"}
         <ModelInterface model={itemModel} />
         {"\n\n"}
         <JsonSerializer model={itemModel} />
@@ -590,11 +633,11 @@ describe("PublicOperation", () => {
         {"\n\n"}
         <OperationOptionsDeclaration method={method} />
         {"\n\n"}
-        <SendOperation method={method} />
+        <SendOperation method={method} rootClient={client} />
         {"\n\n"}
         <DeserializeOperation method={method} />
         {"\n\n"}
-        <PublicOperation method={method} />
+        <PublicOperation method={method} rootClient={client} />
       </UrlTemplateTestWrapper>
     );
 
@@ -602,6 +645,8 @@ describe("PublicOperation", () => {
       "test.ts": d`
         import { type Client, createRestError, type OperationOptions, operationOptionsToRequestParameters, type PathUncheckedResponse, type StreamableMethod } from "@typespec/ts-http-runtime";
         import { expandUrlTemplate } from "./static-helpers/urlTemplate.js";
+
+        export interface TestingContext extends Client {}
 
         /**
          * model interface Item
@@ -628,7 +673,7 @@ describe("PublicOperation", () => {
         export interface CreateUserItemOptionalParams extends OperationOptions {}
 
         export function _createUserItemSend(
-          context: Client,
+          context: TestingContext,
           userId: string,
           body: Item,
           options: CreateUserItemOptionalParams = { requestOptions: {} },
@@ -649,7 +694,7 @@ describe("PublicOperation", () => {
         }
 
         export async function createUserItem(
-          context: Client,
+          context: TestingContext,
           userId: string,
           body: Item,
           options: CreateUserItemOptionalParams = { requestOptions: {} },
@@ -678,16 +723,19 @@ describe("PublicOperation", () => {
 
     const sdkContext = await createSdkContextForTest(program);
     const method = getFirstMethod(sdkContext);
+    const client = getFirstClient(sdkContext);
 
     const template = (
       <UrlTemplateTestWrapper sdkContext={sdkContext}>
+        <ClientContextDeclaration client={client} />
+        {"\n\n"}
         <OperationOptionsDeclaration method={method} />
         {"\n\n"}
-        <SendOperation method={method} />
+        <SendOperation method={method} rootClient={client} />
         {"\n\n"}
         <DeserializeOperation method={method} />
         {"\n\n"}
-        <PublicOperation method={method} />
+        <PublicOperation method={method} rootClient={client} />
       </UrlTemplateTestWrapper>
     );
 
@@ -695,6 +743,8 @@ describe("PublicOperation", () => {
       "test.ts": d`
         import { type Client, createRestError, type OperationOptions, operationOptionsToRequestParameters, type PathUncheckedResponse, type StreamableMethod } from "@typespec/ts-http-runtime";
         import { expandUrlTemplate } from "./static-helpers/urlTemplate.js";
+
+        export interface TestingContext extends Client {}
 
         /**
          * Optional parameters for the search operation.
@@ -705,7 +755,7 @@ describe("PublicOperation", () => {
         }
 
         export function _searchSend(
-          context: Client,
+          context: TestingContext,
           options: SearchOptionalParams = { requestOptions: {} },
         ): StreamableMethod {
           const path = expandUrlTemplate("/{?query,limit}", { "query": options?.query, "limit": options?.limit }, { allowReserved: options?.requestOptions?.skipUrlEncoding });
@@ -724,7 +774,7 @@ describe("PublicOperation", () => {
         }
 
         export async function search(
-          context: Client,
+          context: TestingContext,
           options: SearchOptionalParams = { requestOptions: {} },
         ): Promise<string[]> {
           const result = await _searchSend(context, options);
@@ -738,6 +788,7 @@ describe("PublicOperation", () => {
   describe("User model with response headers", () => {
     let sdkContext: Awaited<ReturnType<typeof createSdkContextForTest>>;
     let method: SdkServiceMethod<SdkHttpOperation>;
+    let client: SdkClientType<SdkHttpOperation>;
     let userModel: (typeof sdkContext.sdkPackage.models)[number];
 
     beforeAll(async () => {
@@ -754,6 +805,7 @@ describe("PublicOperation", () => {
 
       sdkContext = await createSdkContextForTest(program);
       method = getFirstMethod(sdkContext);
+      client = getFirstClient(sdkContext);
       userModel = sdkContext.sdkPackage.models.find((m) => m.name === "User")!;
     });
 
@@ -774,24 +826,28 @@ describe("PublicOperation", () => {
           externals={[httpRuntimeLib]}
           emitterOptions={{ includeHeadersInResponse: true }}
         >
+          <ClientContextDeclaration client={client} />
+          {"\n\n"}
           <ModelInterface model={userModel} />
           {"\n\n"}
           <JsonDeserializer model={userModel} />
           {"\n\n"}
           <OperationOptionsDeclaration method={method} />
           {"\n\n"}
-          <SendOperation method={method} />
+          <SendOperation method={method} rootClient={client} />
           {"\n\n"}
           <DeserializeHeaders method={method} />
           {"\n\n"}
           <DeserializeOperation method={method} />
           {"\n\n"}
-          <PublicOperation method={method} />
+          <PublicOperation method={method} rootClient={client} />
         </SdkTestFile>
       );
 
       expect(template).toRenderTo(d`
         import { type Client, createRestError, type OperationOptions, operationOptionsToRequestParameters, type PathUncheckedResponse, type StreamableMethod } from "@typespec/ts-http-runtime";
+
+        export interface TestingContext extends Client {}
 
         /**
          * model interface User
@@ -812,7 +868,7 @@ describe("PublicOperation", () => {
         export interface GetUserOptionalParams extends OperationOptions {}
 
         export function _getUserSend(
-          context: Client,
+          context: TestingContext,
           options: GetUserOptionalParams = { requestOptions: {} },
         ): StreamableMethod {
           return context.path("/").get({ ...operationOptionsToRequestParameters(options), headers: { accept: "application/json", ...options.requestOptions?.headers } });
@@ -836,7 +892,7 @@ describe("PublicOperation", () => {
         }
 
         export async function getUser(
-          context: Client,
+          context: TestingContext,
           options: GetUserOptionalParams = { requestOptions: {} },
         ): Promise<{ name: string; requestId: string }> {
           const result = await _getUserSend(context, options);
@@ -860,22 +916,26 @@ describe("PublicOperation", () => {
           externals={[httpRuntimeLib]}
           emitterOptions={{ includeHeadersInResponse: false }}
         >
+          <ClientContextDeclaration client={client} />
+          {"\n\n"}
           <ModelInterface model={userModel} />
           {"\n\n"}
           <JsonDeserializer model={userModel} />
           {"\n\n"}
           <OperationOptionsDeclaration method={method} />
           {"\n\n"}
-          <SendOperation method={method} />
+          <SendOperation method={method} rootClient={client} />
           {"\n\n"}
           <DeserializeOperation method={method} />
           {"\n\n"}
-          <PublicOperation method={method} />
+          <PublicOperation method={method} rootClient={client} />
         </SdkTestFile>
       );
 
       expect(template).toRenderTo(d`
         import { type Client, createRestError, type OperationOptions, operationOptionsToRequestParameters, type PathUncheckedResponse, type StreamableMethod } from "@typespec/ts-http-runtime";
+
+        export interface TestingContext extends Client {}
 
         /**
          * model interface User
@@ -896,7 +956,7 @@ describe("PublicOperation", () => {
         export interface GetUserOptionalParams extends OperationOptions {}
 
         export function _getUserSend(
-          context: Client,
+          context: TestingContext,
           options: GetUserOptionalParams = { requestOptions: {} },
         ): StreamableMethod {
           return context.path("/").get({ ...operationOptionsToRequestParameters(options), headers: { accept: "application/json", ...options.requestOptions?.headers } });
@@ -914,7 +974,7 @@ describe("PublicOperation", () => {
         }
 
         export async function getUser(
-          context: Client,
+          context: TestingContext,
           options: GetUserOptionalParams = { requestOptions: {} },
         ): Promise<User> {
           const result = await _getUserSend(context, options);
@@ -946,6 +1006,7 @@ describe("PublicOperation", () => {
 
     const sdkContext = await createSdkContextForTest(program);
     const method = getFirstMethod(sdkContext);
+    const client = getFirstClient(sdkContext);
 
     const template = (
       <SdkTestFile
@@ -953,20 +1014,24 @@ describe("PublicOperation", () => {
         externals={[httpRuntimeLib]}
         emitterOptions={{ includeHeadersInResponse: true }}
       >
+        <ClientContextDeclaration client={client} />
+        {"\n\n"}
         <OperationOptionsDeclaration method={method} />
         {"\n\n"}
-        <SendOperation method={method} />
+        <SendOperation method={method} rootClient={client} />
         {"\n\n"}
         <DeserializeHeaders method={method} />
         {"\n\n"}
         <DeserializeOperation method={method} />
         {"\n\n"}
-        <PublicOperation method={method} />
+        <PublicOperation method={method} rootClient={client} />
       </SdkTestFile>
     );
 
     expect(template).toRenderTo(d`
       import { type Client, createRestError, type OperationOptions, operationOptionsToRequestParameters, type PathUncheckedResponse, type StreamableMethod } from "@typespec/ts-http-runtime";
+
+      export interface TestingContext extends Client {}
 
       /**
        * Optional parameters for the deleteUser operation.
@@ -974,7 +1039,7 @@ describe("PublicOperation", () => {
       export interface DeleteUserOptionalParams extends OperationOptions {}
 
       export function _deleteUserSend(
-        context: Client,
+        context: TestingContext,
         options: DeleteUserOptionalParams = { requestOptions: {} },
       ): StreamableMethod {
         return context.path("/").delete({ ...operationOptionsToRequestParameters(options) });
@@ -998,7 +1063,7 @@ describe("PublicOperation", () => {
       }
 
       export async function deleteUser(
-        context: Client,
+        context: TestingContext,
         options: DeleteUserOptionalParams = { requestOptions: {} },
       ): Promise<{ requestId: string }> {
         const result = await _deleteUserSend(context, options);
@@ -1048,16 +1113,19 @@ op groupCustomized(
     const sdkContext = await createSdkContextForTest(program);
     const method = sdkContext.sdkPackage.clients[0]
       .methods[0] as SdkServiceMethod<SdkHttpOperation>;
+    const client = getFirstClient(sdkContext);
 
     const template = (
       <SdkTestFile sdkContext={sdkContext} externals={[httpRuntimeLib]}>
+        <ClientContextDeclaration client={client} />
+        {"\n\n"}
         <OperationOptionsDeclaration method={method} />
         {"\n\n"}
-        <SendOperation method={method} />
+        <SendOperation method={method} rootClient={client} />
         {"\n\n"}
         <DeserializeOperation method={method} />
         {"\n\n"}
-        <PublicOperation method={method} />
+        <PublicOperation method={method} rootClient={client} />
       </SdkTestFile>
     );
 
@@ -1090,23 +1158,26 @@ op groupCustomized(
 
     const sdkContext = await createSdkContextForTest(program);
     const method = getFirstMethod(sdkContext);
+    const client = getFirstClient(sdkContext);
 
     const template = (
       <SdkTestFile sdkContext={sdkContext} externals={[httpRuntimeLib]}>
+        <ClientContextDeclaration client={client} />
+        {"\n\n"}
         <OperationOptionsDeclaration method={method} />
         {"\n\n"}
-        <SendOperation method={method} />
+        <SendOperation method={method} rootClient={client} />
         {"\n\n"}
         <DeserializeOperation method={method} />
         {"\n\n"}
-        <PublicOperation method={method} />
+        <PublicOperation method={method} rootClient={client} />
       </SdkTestFile>
     );
 
     const rendered = renderToString(template);
     // Constant param 'stream' should NOT appear in public function signature
     expect(rendered).not.toMatch(
-      /createStreaming\(\s*context: Client,\s*stream: true/,
+      /createStreaming\(\s*context: TestingContext,\s*stream: true/,
     );
     // Call to send function should only pass context and options
     expect(rendered).toContain("_createStreamingSend(context, options)");
@@ -1167,6 +1238,7 @@ interface TestResources {
     ]);
     const lroMethod = allMethods.find((m: any) => m.kind === "lro");
     expect(lroMethod).toBeDefined();
+    const client = getFirstClient(sdkContext);
 
     // Use custom Output with SourceDirectory to allow PollingHelpersFile
     // (which has its own SourceFile) alongside the operation code.
@@ -1182,13 +1254,15 @@ interface TestResources {
               <SourceDirectory path="src">
                 <PollingHelpersFile />
                 <SourceFile path="operations.ts">
+                  <ClientContextDeclaration client={client} />
+                  {"\n\n"}
                   <OperationOptionsDeclaration method={lroMethod} />
                   {"\n\n"}
-                  <SendOperation method={lroMethod} />
+                  <SendOperation method={lroMethod} rootClient={client} />
                   {"\n\n"}
                   <DeserializeOperation method={lroMethod} />
                   {"\n\n"}
-                  <PublicOperation method={lroMethod} />
+                  <PublicOperation method={lroMethod} rootClient={client} />
                 </SourceFile>
               </SourceDirectory>
             </SdkContextProvider>
@@ -1203,7 +1277,7 @@ interface TestResources {
     // the array should also contain "202".
     expect(rendered).toContain('"202"');
     // Verify apiVersion is present in poller options
-    expect(rendered).toContain("apiVersion: (context as any).apiVersion");
+    expect(rendered).toContain("apiVersion: context.apiVersion");
   });
 
   /**
@@ -1262,6 +1336,7 @@ interface TestResources {
     ]);
     const lroMethod = allMethods.find((m: any) => m.kind === "lro");
     expect(lroMethod).toBeDefined();
+    const client = getFirstClient(sdkContext);
 
     // Render with CORE flavor — LRO should become a basic async function
     const template = (
@@ -1275,13 +1350,15 @@ interface TestResources {
             <SdkContextProvider sdkContext={sdkContext}>
               <SourceDirectory path="src">
                 <SourceFile path="operations.ts">
+                  <ClientContextDeclaration client={client} />
+                  {"\n\n"}
                   <OperationOptionsDeclaration method={lroMethod} />
                   {"\n\n"}
-                  <SendOperation method={lroMethod} />
+                  <SendOperation method={lroMethod} rootClient={client} />
                   {"\n\n"}
                   <DeserializeOperation method={lroMethod} />
                   {"\n\n"}
-                  <PublicOperation method={lroMethod} />
+                  <PublicOperation method={lroMethod} rootClient={client} />
                 </SourceFile>
               </SourceDirectory>
             </SdkContextProvider>
@@ -1342,6 +1419,7 @@ interface TestResources {
 
     const sdkContext = await createSdkContextForTest(program);
     const method = getFirstMethod(sdkContext);
+    const client = getFirstClient(sdkContext);
     expect(method.kind).toBe("paging");
 
     // Render with CORE flavor — paging should become a basic async function
@@ -1356,13 +1434,15 @@ interface TestResources {
             <SdkContextProvider sdkContext={sdkContext}>
               <SourceDirectory path="src">
                 <SourceFile path="operations.ts">
+                  <ClientContextDeclaration client={client} />
+                  {"\n\n"}
                   <OperationOptionsDeclaration method={method} />
                   {"\n\n"}
-                  <SendOperation method={method} />
+                  <SendOperation method={method} rootClient={client} />
                   {"\n\n"}
                   <DeserializeOperation method={method} />
                   {"\n\n"}
-                  <PublicOperation method={method} />
+                  <PublicOperation method={method} rootClient={client} />
                 </SourceFile>
               </SourceDirectory>
             </SdkContextProvider>

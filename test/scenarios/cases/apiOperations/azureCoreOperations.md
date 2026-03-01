@@ -57,16 +57,16 @@ import {
 } from "../../models/models.js";
 import { GetWidgetOperationStatusOptionalParams } from "./options.js";
 import {
-  Client,
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@azure-rest/core-client";
 import { expandUrlTemplate } from "../../static-helpers/urlTemplate.js";
+import { TestingContext } from "../../testingClientContext.js";
 
 export function _getWidgetOperationStatusSend(
-  context: Client,
+  context: TestingContext,
   apiVersion: string,
   name: string,
   operationId: string,
@@ -102,14 +102,14 @@ export async function _getWidgetOperationStatusDeserialize(
 /**
  * Get the status of a long-running operation on widgets.
  *
- * @param {Client} context
+ * @param {TestingContext} context
  * @param {string} apiVersion
  * @param {string} name
  * @param {string} operationId
  * @param {GetWidgetOperationStatusOptionalParams} options
  */
 export async function getWidgetOperationStatus(
-  context: Client,
+  context: TestingContext,
   apiVersion: string,
   name: string,
   operationId: string,

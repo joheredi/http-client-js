@@ -61,16 +61,16 @@ withRawContent: true
 ```ts operations
 import type { CheckNameAvailabilityOptionalParams } from "./options.js";
 import {
-  type Client,
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@azure-rest/core-client";
 import { expandUrlTemplate } from "../static-helpers/urlTemplate.js";
+import type { ContosoContext } from "../contosoClientContext.js";
 
 export function _checkNameAvailabilitySend(
-  context: Client,
+  context: ContosoContext,
   apiVersion: string,
   name: string,
   typeParam: string,
@@ -100,7 +100,7 @@ export async function _checkNameAvailabilityDeserialize(
 }
 
 export async function checkNameAvailability(
-  context: Client,
+  context: ContosoContext,
   apiVersion: string,
   name: string,
   typeParam: string,

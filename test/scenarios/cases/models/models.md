@@ -63,16 +63,16 @@ import {
 } from "../models/models.js";
 import type { ReadOptionalParams } from "./options.js";
 import {
-  type Client,
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
 import { expandUrlTemplate } from "../static-helpers/urlTemplate.js";
+import type { TestingContext } from "../testingClientContext.js";
 
 export function _readSend(
-  context: Client,
+  context: TestingContext,
   id: string,
   body: StreamingChatCompletionOptions,
   options: ReadOptionalParams = { requestOptions: {} },
@@ -105,7 +105,7 @@ export async function _readDeserialize(
 }
 
 export async function read(
-  context: Client,
+  context: TestingContext,
   id: string,
   body: StreamingChatCompletionOptions,
   options: ReadOptionalParams = { requestOptions: {} },
@@ -155,15 +155,15 @@ export interface StreamingChatCompletionOptions {
 ```ts operations
 import type { ReadOptionalParams } from "./options.js";
 import {
-  type Client,
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
+import type { TestingContext } from "../testingClientContext.js";
 
 export function _readSend(
-  context: Client,
+  context: TestingContext,
   options: ReadOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
   return context.path("/").post({
@@ -186,7 +186,7 @@ export async function _readDeserialize(
 }
 
 export async function read(
-  context: Client,
+  context: TestingContext,
   options: ReadOptionalParams = { requestOptions: {} },
 ): Promise<true> {
   const result = await _readSend(context, options);

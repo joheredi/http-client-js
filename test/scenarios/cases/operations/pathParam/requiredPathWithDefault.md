@@ -34,16 +34,16 @@ Should generate operations correctly:
 ```ts operations
 import { ReadOptionalParams } from "./options.js";
 import {
-  Client,
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
 import { expandUrlTemplate } from "../static-helpers/urlTemplate.js";
+import { TestingContext } from "../testingClientContext.js";
 
 export function _readSend(
-  context: Client,
+  context: TestingContext,
   options: ReadOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
   const path = expandUrlTemplate(
@@ -70,11 +70,11 @@ export async function _readDeserialize(
 /**
  * show example demo
  *
- * @param {Client} context
+ * @param {TestingContext} context
  * @param {ReadOptionalParams} options
  */
 export async function read(
-  context: Client,
+  context: TestingContext,
   options: ReadOptionalParams = { requestOptions: {} },
 ): Promise<void> {
   const result = await _readSend(context, options);

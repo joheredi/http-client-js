@@ -1016,7 +1016,7 @@
       "title": "Fix operation context parameter type from Client to specific context type",
       "description": "Operations type the context parameter as base Client from runtime lib, but should use the specific context type (e.g., BlobContext) so that custom properties like version/apiVersion are available without as-any casts. Requires updating buildFunctionParameters in send-operation.tsx and public-operation.tsx to use clientContextRefkey(rootClient), and updating 49+ scenario test expectations.",
       "category": "smoke-fix",
-      "status": "not-started",
+      "status": "done",
       "priority": "low",
       "dependencies": []
     },

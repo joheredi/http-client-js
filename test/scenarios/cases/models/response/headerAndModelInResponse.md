@@ -28,7 +28,7 @@ export interface User {
 
 ```ts operations function getUser
 export async function getUser(
-  context: Client,
+  context: TestingContext,
   options: GetUserOptionalParams = { requestOptions: {} },
 ): Promise<{ name: string; email: string; requestId: string }> {
   const result = await _getUserSend(context, options);

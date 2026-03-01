@@ -507,21 +507,21 @@ import {
 } from "../../static-helpers/pagingHelpers.js";
 import { ListOptionalParams } from "./options.js";
 import {
-  Client,
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@azure-rest/core-client";
 import { expandUrlTemplate } from "../../static-helpers/urlTemplate.js";
+import { ContosoContext } from "../../contosoClientContext.js";
 
 export function _listSend(
-  context: Client,
+  context: ContosoContext,
   options: ListOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
   const path = expandUrlTemplate(
     "/providers/Microsoft.Contoso/operations{?api%2Dversion}",
-    { "api%2Dversion": (context as any).apiVersion ?? "2021-10-01-preview" },
+    { "api%2Dversion": context.apiVersion ?? "2021-10-01-preview" },
     { allowReserved: options?.requestOptions?.skipUrlEncoding },
   );
   return context.path(path).get({
@@ -547,11 +547,11 @@ export async function _listDeserialize(
 /**
  * List the operations for the provider
  *
- * @param {Client} context
+ * @param {ContosoContext} context
  * @param {ListOptionalParams} options
  */
 export function list(
-  context: Client,
+  context: ContosoContext,
   options: ListOptionalParams = { requestOptions: {} },
 ): PagedAsyncIterableIterator<Operation> {
   return buildPagedAsyncIterator(
@@ -562,7 +562,7 @@ export function list(
     {
       itemName: "value",
       nextLinkName: "nextLink",
-      apiVersion: (context as any).apiVersion ?? "2021-10-01-preview",
+      apiVersion: context.apiVersion ?? "2021-10-01-preview",
     },
   );
 }

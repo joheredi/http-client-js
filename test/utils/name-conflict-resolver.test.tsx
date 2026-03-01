@@ -33,9 +33,12 @@ import { nameConflictResolver } from "../../src/utils/name-conflict-resolver.js"
 import { TesterWithService, createSdkContextForTest } from "../test-host.js";
 import { t } from "@typespec/compiler/testing";
 import { SdkContextProvider } from "../../src/context/sdk-context.js";
+import { FlavorProvider } from "../../src/context/flavor-context.js";
+import { EmitterOptionsProvider } from "../../src/context/emitter-options-context.js";
 import { OperationFiles } from "../../src/components/operation-files.js";
+import { ClientContextFile } from "../../src/components/client-context.js";
 import { httpRuntimeLib } from "../../src/utils/external-packages.js";
-import { SourceDirectory } from "@alloy-js/core";
+import { SourceDirectory, For } from "@alloy-js/core";
 
 /**
  * Helper to collect rendered files from an Alloy output directory tree.
@@ -148,9 +151,16 @@ describe("nameConflictResolver", () => {
         externals={[httpRuntimeLib]}
       >
         <SdkContextProvider sdkContext={sdkContext}>
-          <SourceDirectory path="src">
-            <OperationFiles />
-          </SourceDirectory>
+          <FlavorProvider flavor="core">
+            <EmitterOptionsProvider options={{}}>
+              <SourceDirectory path="src">
+                <OperationFiles />
+                <For each={sdkContext.sdkPackage.clients}>
+                  {(client) => <ClientContextFile client={client} />}
+                </For>
+              </SourceDirectory>
+            </EmitterOptionsProvider>
+          </FlavorProvider>
         </SdkContextProvider>
       </EmitterOutput>
     );
@@ -164,8 +174,8 @@ describe("nameConflictResolver", () => {
     expect(ops).not.toContain("createRestError_1");
     expect(ops).not.toContain("operationOptionsToRequestParameters_1");
     expect(ops).not.toContain("PathUncheckedResponse_1");
-    // But should contain the clean names
-    expect(ops).toContain("Client");
+    // Should contain the context type (imported from context file)
+    expect(ops).toContain("TestingContext");
     expect(ops).toContain("StreamableMethod");
     expect(ops).toContain("createRestError");
   });

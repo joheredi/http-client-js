@@ -25,15 +25,15 @@ Should normal path parameter:
 ```ts operations
 import type { TestOptionalParams } from "./options.js";
 import {
-  type Client,
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
+import type { TestingContext } from "../testingClientContext.js";
 
 export function _testSend(
-  context: Client,
+  context: TestingContext,
   options: TestOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
   return context.path("/").get({
@@ -54,7 +54,7 @@ export async function _testDeserialize(
 }
 
 export async function test(
-  context: Client,
+  context: TestingContext,
   options: TestOptionalParams = { requestOptions: {} },
 ): Promise<string> {
   const result = await _testSend(context, options);

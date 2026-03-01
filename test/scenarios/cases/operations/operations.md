@@ -13,15 +13,15 @@ op read(@body param: void): void;
 ```ts operations
 import type { ReadOptionalParams } from "./options.js";
 import {
-  type Client,
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
+import type { TestingContext } from "../testingClientContext.js";
 
 export function _readSend(
-  context: Client,
+  context: TestingContext,
   options: ReadOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
   return context
@@ -41,7 +41,7 @@ export async function _readDeserialize(
 }
 
 export async function read(
-  context: Client,
+  context: TestingContext,
   options: ReadOptionalParams = { requestOptions: {} },
 ): Promise<void> {
   const result = await _readSend(context, options);
@@ -62,15 +62,15 @@ op read(): { @body _: void;};
 ```ts operations
 import type { ReadOptionalParams } from "./options.js";
 import {
-  type Client,
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
+import type { TestingContext } from "../testingClientContext.js";
 
 export function _readSend(
-  context: Client,
+  context: TestingContext,
   options: ReadOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
   return context
@@ -90,7 +90,7 @@ export async function _readDeserialize(
 }
 
 export async function read(
-  context: Client,
+  context: TestingContext,
   options: ReadOptionalParams = { requestOptions: {} },
 ): Promise<void> {
   const result = await _readSend(context, options);
@@ -137,15 +137,15 @@ mustEmptyDiagnostic: false
 import { buildCsvCollection } from "../static-helpers/serializationHelpers.js";
 import type { ReadOptionalParams } from "./options.js";
 import {
-  type Client,
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
+import type { TestingContext } from "../testingClientContext.js";
 
 export function _readSend(
-  context: Client,
+  context: TestingContext,
   requiredHeader: string,
   bytesHeader: Uint8Array,
   value: Uint8Array,
@@ -207,7 +207,7 @@ export async function _readDeserialize(
 }
 
 export async function read(
-  context: Client,
+  context: TestingContext,
   requiredHeader: string,
   bytesHeader: Uint8Array,
   value: Uint8Array,
@@ -251,15 +251,15 @@ mustEmptyDiagnostic: false
 ```ts operations
 import type { ReadOptionalParams } from "./options.js";
 import {
-  type Client,
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
+import type { TestingContext } from "../testingClientContext.js";
 
 export function _readSend(
-  context: Client,
+  context: TestingContext,
   nullableRequiredHeader: string | null,
   options: ReadOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
@@ -286,7 +286,7 @@ export async function _readDeserialize(
 }
 
 export async function read(
-  context: Client,
+  context: TestingContext,
   nullableRequiredHeader: string | null,
   options: ReadOptionalParams = { requestOptions: {} },
 ): Promise<void> {
@@ -313,15 +313,15 @@ op read(@body bars?: Bar[]): OkResponse;
 import { barArraySerializer } from "../models/models.js";
 import type { ReadOptionalParams } from "./options.js";
 import {
-  type Client,
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
+import type { TestingContext } from "../testingClientContext.js";
 
 export function _readSend(
-  context: Client,
+  context: TestingContext,
   options: ReadOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
   return context.path("/").post({
@@ -343,7 +343,7 @@ export async function _readDeserialize(
 }
 
 export async function read(
-  context: Client,
+  context: TestingContext,
   options: ReadOptionalParams = { requestOptions: {} },
 ): Promise<void> {
   const result = await _readSend(context, options);
@@ -369,15 +369,15 @@ op read(@body bars: Bar[]): OkResponse;
 import { type Bar, barArraySerializer } from "../models/models.js";
 import type { ReadOptionalParams } from "./options.js";
 import {
-  type Client,
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
+import type { TestingContext } from "../testingClientContext.js";
 
 export function _readSend(
-  context: Client,
+  context: TestingContext,
   bars: Bar[],
   options: ReadOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
@@ -400,7 +400,7 @@ export async function _readDeserialize(
 }
 
 export async function read(
-  context: Client,
+  context: TestingContext,
   bars: Bar[],
   options: ReadOptionalParams = { requestOptions: {} },
 ): Promise<void> {
@@ -430,15 +430,15 @@ import {
 } from "../models/models.js";
 import type { ReadOptionalParams } from "./options.js";
 import {
-  type Client,
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
+import type { TestingContext } from "../testingClientContext.js";
 
 export function _readSend(
-  context: Client,
+  context: TestingContext,
   options: ReadOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
   return context.path("/").get({
@@ -462,7 +462,7 @@ export async function _readDeserialize(
 }
 
 export async function read(
-  context: Client,
+  context: TestingContext,
   options: ReadOptionalParams = { requestOptions: {} },
 ): Promise<_ReadResponse[]> {
   const result = await _readSend(context, options);
@@ -492,15 +492,15 @@ import {
 } from "../models/models.js";
 import type { ReadOptionalParams } from "./options.js";
 import {
-  type Client,
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
+import type { TestingContext } from "../testingClientContext.js";
 
 export function _readSend(
-  context: Client,
+  context: TestingContext,
   options: ReadOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
   return context.path("/").post({
@@ -526,7 +526,7 @@ export async function _readDeserialize(
 }
 
 export async function read(
-  context: Client,
+  context: TestingContext,
   options: ReadOptionalParams = { requestOptions: {} },
 ): Promise<Bar[]> {
   const result = await _readSend(context, options);
@@ -558,15 +558,15 @@ op read(@body body: Foo): OkResponse;
 import { type Foo, fooSerializer } from "../models/models.js";
 import type { ReadOptionalParams } from "./options.js";
 import {
-  type Client,
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
+import type { TestingContext } from "../testingClientContext.js";
 
 export function _readSend(
-  context: Client,
+  context: TestingContext,
   body: Foo,
   options: ReadOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
@@ -589,7 +589,7 @@ export async function _readDeserialize(
 }
 
 export async function read(
-  context: Client,
+  context: TestingContext,
   body: Foo,
   options: ReadOptionalParams = { requestOptions: {} },
 ): Promise<void> {
@@ -622,15 +622,15 @@ op read(): Foo;
 import { type Foo, fooDeserializer } from "../models/models.js";
 import type { ReadOptionalParams } from "./options.js";
 import {
-  type Client,
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
+import type { TestingContext } from "../testingClientContext.js";
 
 export function _readSend(
-  context: Client,
+  context: TestingContext,
   options: ReadOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
   return context.path("/").get({
@@ -654,7 +654,7 @@ export async function _readDeserialize(
 }
 
 export async function read(
-  context: Client,
+  context: TestingContext,
   options: ReadOptionalParams = { requestOptions: {} },
 ): Promise<Foo> {
   const result = await _readSend(context, options);
@@ -699,15 +699,15 @@ import {
 } from "../static-helpers/pagingHelpers.js";
 import type { TestOptionalParams } from "./options.js";
 import {
-  type Client,
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@azure-rest/core-client";
+import type { TestingContext } from "../testingClientContext.js";
 
 export function _testSend(
-  context: Client,
+  context: TestingContext,
   options: TestOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
   return context.path("/").post({
@@ -731,7 +731,7 @@ export async function _testDeserialize(
 }
 
 export function test(
-  context: Client,
+  context: TestingContext,
   options: TestOptionalParams = { requestOptions: {} },
 ): PagedAsyncIterableIterator<string> {
   return buildPagedAsyncIterator(
@@ -788,15 +788,15 @@ import {
 } from "../static-helpers/pagingHelpers.js";
 import type { TestOptionalParams } from "./options.js";
 import {
-  type Client,
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@azure-rest/core-client";
+import type { TestingContext } from "../testingClientContext.js";
 
 export function _testSend(
-  context: Client,
+  context: TestingContext,
   options: TestOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
   return context.path("/").post({
@@ -820,7 +820,7 @@ export async function _testDeserialize(
 }
 
 export function test(
-  context: Client,
+  context: TestingContext,
   options: TestOptionalParams = { requestOptions: {} },
 ): PagedAsyncIterableIterator<string> {
   return buildPagedAsyncIterator(
@@ -899,15 +899,15 @@ import {
 } from "../models/models.js";
 import type { GetOptionalParams } from "./options.js";
 import {
-  type Client,
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
+import type { TestingContext } from "../testingClientContext.js";
 
 export function _getSend(
-  context: Client,
+  context: TestingContext,
   options: GetOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
   return context.path("/").get({
@@ -931,7 +931,7 @@ export async function _getDeserialize(
 }
 
 export async function get(
-  context: Client,
+  context: TestingContext,
   options: GetOptionalParams = { requestOptions: {} },
 ): Promise<TestArrayModel> {
   const result = await _getSend(context, options);
@@ -1010,15 +1010,15 @@ import {
 } from "../models/models.js";
 import type { GetOptionalParams } from "./options.js";
 import {
-  type Client,
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
+import type { TestingContext } from "../testingClientContext.js";
 
 export function _getSend(
-  context: Client,
+  context: TestingContext,
   options: GetOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
   return context.path("/").get({
@@ -1042,7 +1042,7 @@ export async function _getDeserialize(
 }
 
 export async function get(
-  context: Client,
+  context: TestingContext,
   options: GetOptionalParams = { requestOptions: {} },
 ): Promise<TestDictionary> {
   const result = await _getSend(context, options);
@@ -1110,16 +1110,16 @@ import {
 } from "../models/models.js";
 import type { CreateOrUpdateEndpointOptionalParams } from "./options.js";
 import {
-  type Client,
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
 import { expandUrlTemplate } from "../static-helpers/urlTemplate.js";
+import type { TestingContext } from "../testingClientContext.js";
 
 export function _createOrUpdateEndpointSend(
-  context: Client,
+  context: TestingContext,
   endpointName: string,
   endpointParam: Endpoint,
   options: CreateOrUpdateEndpointOptionalParams = { requestOptions: {} },
@@ -1152,7 +1152,7 @@ export async function _createOrUpdateEndpointDeserialize(
 }
 
 export async function createOrUpdateEndpoint(
-  context: Client,
+  context: TestingContext,
   endpointName: string,
   endpointParam: Endpoint,
   options: CreateOrUpdateEndpointOptionalParams = { requestOptions: {} },
@@ -1272,15 +1272,15 @@ import {
 } from "../static-helpers/pagingHelpers.js";
 import type { BarOptionalParams, FooOptionalParams } from "./options.js";
 import {
-  type Client,
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@azure-rest/core-client";
+import type { TestServiceContext } from "../testServiceClientContext.js";
 
 export function _barSend(
-  context: Client,
+  context: TestServiceContext,
   options: BarOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
   return context.path("/list-get").post({
@@ -1304,7 +1304,7 @@ export async function _barDeserialize(
 }
 
 export function bar(
-  context: Client,
+  context: TestServiceContext,
   options: BarOptionalParams = { requestOptions: {} },
 ): PagedAsyncIterableIterator<Test> {
   return buildPagedAsyncIterator(
@@ -1317,7 +1317,7 @@ export function bar(
 }
 
 export function _fooSend(
-  context: Client,
+  context: TestServiceContext,
   options: FooOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
   return context.path("/list-post").post({
@@ -1341,7 +1341,7 @@ export async function _fooDeserialize(
 }
 
 export function foo(
-  context: Client,
+  context: TestServiceContext,
   options: FooOptionalParams = { requestOptions: {} },
 ): PagedAsyncIterableIterator<Test> {
   return buildPagedAsyncIterator(

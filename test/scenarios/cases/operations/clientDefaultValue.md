@@ -67,16 +67,16 @@ import type {
   TestQueryOptionalParams,
 } from "./options.js";
 import {
-  type Client,
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
 import { expandUrlTemplate } from "../../static-helpers/urlTemplate.js";
+import type { TestingContext } from "../../testingClientContext.js";
 
 export function _testQuerySend(
-  context: Client,
+  context: TestingContext,
   options: TestQueryOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
   const path = expandUrlTemplate(
@@ -114,7 +114,7 @@ export async function _testQueryDeserialize(
 }
 
 export async function testQuery(
-  context: Client,
+  context: TestingContext,
   options: TestQueryOptionalParams = { requestOptions: {} },
 ): Promise<Configuration> {
   const result = await _testQuerySend(context, options);
@@ -122,7 +122,7 @@ export async function testQuery(
 }
 
 export function _createSend(
-  context: Client,
+  context: TestingContext,
   options: CreateOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
   return context.path("/api/create").post({
@@ -145,7 +145,7 @@ export async function _createDeserialize(
 }
 
 export async function create(
-  context: Client,
+  context: TestingContext,
   options: CreateOptionalParams = { requestOptions: {} },
 ): Promise<string> {
   const result = await _createSend(context, options);
@@ -205,16 +205,16 @@ import type {
   TestRequiredOptionalParams,
 } from "./options.js";
 import {
-  type Client,
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
 import { expandUrlTemplate } from "../../static-helpers/urlTemplate.js";
+import type { TestingContext } from "../../testingClientContext.js";
 
 export function _testRequiredSend(
-  context: Client,
+  context: TestingContext,
   limit: number,
   options: TestRequiredOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
@@ -245,7 +245,7 @@ export async function _testRequiredDeserialize(
 }
 
 export async function testRequired(
-  context: Client,
+  context: TestingContext,
   limit: number,
   options: TestRequiredOptionalParams = { requestOptions: {} },
 ): Promise<Configuration> {
@@ -254,7 +254,7 @@ export async function testRequired(
 }
 
 export function _createRequiredSend(
-  context: Client,
+  context: TestingContext,
   options: CreateRequiredOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
   return context.path("/api/createRequired").post({
@@ -277,7 +277,7 @@ export async function _createRequiredDeserialize(
 }
 
 export async function createRequired(
-  context: Client,
+  context: TestingContext,
   options: CreateRequiredOptionalParams = { requestOptions: {} },
 ): Promise<string> {
   const result = await _createRequiredSend(context, options);

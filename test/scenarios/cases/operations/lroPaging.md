@@ -409,7 +409,6 @@ import {
 import { getLongRunningPoller } from "../../static-helpers/pollingHelpers.js";
 import { SuspendOptionalParams } from "./options.js";
 import {
-  Client,
   createRestError,
   operationOptionsToRequestParameters,
   PathUncheckedResponse,
@@ -417,9 +416,10 @@ import {
 } from "@azure-rest/core-client";
 import { OperationState, PollerLike } from "@azure/core-lro";
 import { expandUrlTemplate } from "../../static-helpers/urlTemplate.js";
+import { WebContext } from "../../webClientContext.js";
 
 export function _suspendSend(
-  context: Client,
+  context: WebContext,
   resourceGroupName: string,
   name: string,
   options: SuspendOptionalParams = { requestOptions: {} },
@@ -427,7 +427,7 @@ export function _suspendSend(
   const path = expandUrlTemplate(
     "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/suspend{?api%2Dversion}",
     {
-      "api%2Dversion": (context as any).apiVersion ?? "2023-12-01",
+      "api%2Dversion": context.apiVersion ?? "2023-12-01",
       subscriptionId: context["subscriptionId"],
       resourceGroupName: resourceGroupName,
       name: name,
@@ -457,13 +457,13 @@ export async function _suspendDeserialize(
 /**
  * A long-running resource action.
  *
- * @param {Client} context
+ * @param {WebContext} context
  * @param {string} resourceGroupName
  * @param {string} name
  * @param {SuspendOptionalParams} options
  */
 export function suspend(
-  context: Client,
+  context: WebContext,
   resourceGroupName: string,
   name: string,
   options: SuspendOptionalParams = { requestOptions: {} },
@@ -478,7 +478,7 @@ export function suspend(
       getInitialResponse: () =>
         _suspendSend(context, resourceGroupName, name, options),
       resourceLocationConfig: "location",
-      apiVersion: (context as any).apiVersion ?? "2023-12-01",
+      apiVersion: context.apiVersion ?? "2023-12-01",
     },
   ) as PollerLike<OperationState<PathUncheckedResponse>, PathUncheckedResponse>;
 
@@ -490,7 +490,7 @@ export function suspend(
     {
       itemName: "value",
       nextLinkName: "nextLink",
-      apiVersion: (context as any).apiVersion ?? "2023-12-01",
+      apiVersion: context.apiVersion ?? "2023-12-01",
     },
   );
 }

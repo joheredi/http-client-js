@@ -275,15 +275,15 @@ import {
 } from "../../models/models.js";
 import type { PublishOptionalParams } from "./options.js";
 import {
-  type Client,
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
+import type { TestingContext } from "../../testingClientContext.js";
 
 export function _publishSend(
-  context: Client,
+  context: TestingContext,
   endpointParam: DocumentBase,
   options: PublishOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
@@ -306,7 +306,7 @@ export async function _publishDeserialize(
 }
 
 export async function publish(
-  context: Client,
+  context: TestingContext,
   endpointParam: DocumentBase,
   options: PublishOptionalParams = { requestOptions: {} },
 ): Promise<void> {

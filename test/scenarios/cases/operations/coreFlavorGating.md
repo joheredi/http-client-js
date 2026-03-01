@@ -34,15 +34,15 @@ flavor: core
 import { type Bar, barDeserializer } from "../models/models.js";
 import type { TestOptionalParams } from "./options.js";
 import {
-  type Client,
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
+import type { TestingContext } from "../testingClientContext.js";
 
 export function _testSend(
-  context: Client,
+  context: TestingContext,
   options: TestOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
   return context.path("/").post({
@@ -66,7 +66,7 @@ export async function _testDeserialize(
 }
 
 export async function test(
-  context: Client,
+  context: TestingContext,
   options: TestOptionalParams = { requestOptions: {} },
 ): Promise<string[]> {
   const result = await _testSend(context, options);
@@ -161,23 +161,23 @@ flavor: core
 import { User, userDeserializer, userSerializer } from "../models/models.js";
 import { CreateOrReplaceOptionalParams } from "./options.js";
 import {
-  Client,
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
 import { expandUrlTemplate } from "../static-helpers/urlTemplate.js";
+import { TestLroContext } from "../testLroClientContext.js";
 
 export function _createOrReplaceSend(
-  context: Client,
+  context: TestLroContext,
   name: string,
   resource: User,
   options: CreateOrReplaceOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
   const path = expandUrlTemplate(
     "/users/{name}{?api%2Dversion}",
-    { "api%2Dversion": (context as any).apiVersion ?? "1.0", name: name },
+    { "api%2Dversion": context.apiVersion ?? "1.0", name: name },
     { allowReserved: options?.requestOptions?.skipUrlEncoding },
   );
   return context.path(path).put({
@@ -205,13 +205,13 @@ export async function _createOrReplaceDeserialize(
 /**
  * Long-running resource create or replace operation template.
  *
- * @param {Client} context
+ * @param {TestLroContext} context
  * @param {string} name
  * @param {User} resource
  * @param {CreateOrReplaceOptionalParams} options
  */
 export async function createOrReplace(
-  context: Client,
+  context: TestLroContext,
   name: string,
   resource: User,
   options: CreateOrReplaceOptionalParams = { requestOptions: {} },
@@ -292,16 +292,16 @@ import {
 } from "../../models/models.js";
 import { SuspendOptionalParams } from "./options.js";
 import {
-  Client,
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
 import { expandUrlTemplate } from "../../static-helpers/urlTemplate.js";
+import { WebContext } from "../../webClientContext.js";
 
 export function _suspendSend(
-  context: Client,
+  context: WebContext,
   resourceGroupName: string,
   name: string,
   options: SuspendOptionalParams = { requestOptions: {} },
@@ -309,7 +309,7 @@ export function _suspendSend(
   const path = expandUrlTemplate(
     "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/suspend{?api%2Dversion}",
     {
-      "api%2Dversion": (context as any).apiVersion ?? "2023-12-01",
+      "api%2Dversion": context.apiVersion ?? "2023-12-01",
       subscriptionId: context["subscriptionId"],
       resourceGroupName: resourceGroupName,
       name: name,
@@ -339,13 +339,13 @@ export async function _suspendDeserialize(
 /**
  * A long-running resource action.
  *
- * @param {Client} context
+ * @param {WebContext} context
  * @param {string} resourceGroupName
  * @param {string} name
  * @param {SuspendOptionalParams} options
  */
 export async function suspend(
-  context: Client,
+  context: WebContext,
   resourceGroupName: string,
   name: string,
   options: SuspendOptionalParams = { requestOptions: {} },

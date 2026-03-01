@@ -14,16 +14,16 @@ op read(@path pathParam: string, @query("key-name")
 ```ts operations
 import type { ReadOptionalParams } from "./options.js";
 import {
-  type Client,
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
 import { expandUrlTemplate } from "../static-helpers/urlTemplate.js";
+import type { TestingContext } from "../testingClientContext.js";
 
 export function _readSend(
-  context: Client,
+  context: TestingContext,
   pathParam: string,
   keyName: string,
   keyVersion: string,
@@ -58,7 +58,7 @@ export async function _readDeserialize(
 }
 
 export async function read(
-  context: Client,
+  context: TestingContext,
   pathParam: string,
   keyName: string,
   keyVersion: string,

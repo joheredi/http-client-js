@@ -5,6 +5,7 @@ import {
 } from "@alloy-js/typescript";
 import type {
   SdkBodyParameter,
+  SdkClientType,
   SdkConstantType,
   SdkHeaderParameter,
   SdkHttpOperation,
@@ -17,6 +18,7 @@ import type {
 } from "@azure-tools/typespec-client-generator-core";
 import { useRuntimeLib } from "../context/flavor-context.js";
 import {
+  clientContextRefkey,
   operationOptionsRefkey,
   sendOperationRefkey,
   serializationHelperRefkey,
@@ -40,6 +42,8 @@ import {
 export interface SendOperationProps {
   /** The TCGC service method whose send function should be rendered. */
   method: SdkServiceMethod<SdkHttpOperation>;
+  /** The root-level client entity, used for the context type reference. */
+  rootClient: SdkClientType<SdkHttpOperation>;
 }
 
 /**
@@ -55,8 +59,7 @@ export interface SendOperationProps {
  * The function follows the legacy emitter's pattern:
  * ```typescript
  * export function _getItemSend(
- *   context: Client,
- *   id: string,
+ *   context: TestingContext, *   id: string,
  *   options: GetItemOptionalParams = { requestOptions: {} },
  * ): StreamableMethod {
  *   const path = expandUrlTemplate("/items/{id}", { id }, {
@@ -74,12 +77,12 @@ export interface SendOperationProps {
  */
 export function SendOperation(props: SendOperationProps) {
   const runtimeLib = useRuntimeLib();
-  const { method } = props;
+  const { method, rootClient } = props;
   const operation = method.operation;
   const functionName = namekey(`_${getEscapedOperationName(method.name)}Send`, {
     ignoreNamePolicy: true,
   });
-  const parameters = buildFunctionParameters(method);
+  const parameters = buildFunctionParameters(method, rootClient);
   const verb = operation.verb;
 
   const urlTemplateParams = getUrlTemplateParameters(method);
@@ -163,11 +166,11 @@ export function getOptionsParamName(
  */
 function buildFunctionParameters(
   method: SdkServiceMethod<SdkHttpOperation>,
+  rootClient: SdkClientType<SdkHttpOperation>,
 ): ParameterDescriptor[] {
-  const runtimeLib = useRuntimeLib();
   const optionsName = getOptionsParamName(method);
   const params: ParameterDescriptor[] = [
-    { name: "context", type: runtimeLib.Client },
+    { name: "context", type: clientContextRefkey(rootClient) },
   ];
 
   // Add required method-level parameters (excludes cookie params)
@@ -378,16 +381,14 @@ function getParameterAccessor(
     if (correspondingParam.isApiVersionParam) {
       // When the apiVersion has a default value (from @versioned enum), generate
       // a nullish coalescing fallback to match legacy behavior:
-      //   (context as any).apiVersion ?? "2022-05-15-preview"
+      //   context.apiVersion ?? "2022-05-15-preview"
       // Uses the param's actual name (e.g., "apiVersion" or "version") to match
-      // the property name generated on the client context interface. The `as any`
-      // cast is needed because context is typed as base `Client` which doesn't
-      // have apiVersion; the actual context type extends Client with this property.
+      // the property name generated on the client context interface.
       const defaultValue = correspondingParam.clientDefaultValue;
       if (defaultValue !== undefined) {
-        return `(context as any).${correspondingParam.name} ?? "${defaultValue}"`;
+        return `context.${correspondingParam.name} ?? "${defaultValue}"`;
       }
-      return `(context as any).${correspondingParam.name}`;
+      return `context.${correspondingParam.name}`;
     }
     return `context["${correspondingParam.name}"]`;
   }
@@ -746,17 +747,15 @@ function getHeaderAccessor(
     // API version header params (e.g., x-ms-version) that are client-level
     // must be read from context, not from options. The options interface
     // excludes apiVersion params (isOptionalParameter returns false), so
-    // referencing options?.version would cause TS2339. The `as any` cast
-    // is needed because the context parameter is typed as the base `Client`
-    // interface; the actual context type (e.g., BlobContext) extends Client
-    // with the version property. TODO: Fix context parameter type to use
-    // the specific client context refkey (requires updating 49+ scenario tests).
+    // referencing options?.version would cause TS2339. The context parameter
+    // is typed as the specific client context (e.g., BlobContext) which extends
+    // Client with the version property.
     if (corresponding.onClient && corresponding.isApiVersionParam) {
       const defaultValue = corresponding.clientDefaultValue;
       if (defaultValue !== undefined) {
-        return `(context as any).${corresponding.name} ?? "${defaultValue}"`;
+        return `context.${corresponding.name} ?? "${defaultValue}"`;
       }
-      return `(context as any).${corresponding.name}`;
+      return `context.${corresponding.name}`;
     }
     // Non-apiVersion header params (including onClient ones like $expand)
     // read from options or direct args.

@@ -23,7 +23,7 @@ op getResultFile(
 
 ```ts operations function _getResultFileSend
 export function _getResultFileSend(
-  context: Client,
+  context: TestingContext,
   operationId: string,
   path: string,
   options: GetResultFileOptionalParams = { requestOptions: {} },

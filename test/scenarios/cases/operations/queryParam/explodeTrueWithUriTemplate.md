@@ -28,16 +28,16 @@ import type {
   RecordOptionalParams,
 } from "./options.js";
 import {
-  type Client,
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
 import { expandUrlTemplate } from "../static-helpers/urlTemplate.js";
+import type { TestingContext } from "../testingClientContext.js";
 
 export function _primitiveSend(
-  context: Client,
+  context: TestingContext,
   param: string,
   options: PrimitiveOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
@@ -63,7 +63,7 @@ export async function _primitiveDeserialize(
 }
 
 export async function primitive(
-  context: Client,
+  context: TestingContext,
   param: string,
   options: PrimitiveOptionalParams = { requestOptions: {} },
 ): Promise<void> {
@@ -72,7 +72,7 @@ export async function primitive(
 }
 
 export function _arraySend(
-  context: Client,
+  context: TestingContext,
   param: string[],
   options: ArrayOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
@@ -98,7 +98,7 @@ export async function _arrayDeserialize(
 }
 
 export async function array(
-  context: Client,
+  context: TestingContext,
   param: string[],
   options: ArrayOptionalParams = { requestOptions: {} },
 ): Promise<void> {
@@ -107,7 +107,7 @@ export async function array(
 }
 
 export function _recordSend(
-  context: Client,
+  context: TestingContext,
   param: Record<string, number>,
   options: RecordOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
@@ -133,7 +133,7 @@ export async function _recordDeserialize(
 }
 
 export async function record(
-  context: Client,
+  context: TestingContext,
   param: Record<string, number>,
   options: RecordOptionalParams = { requestOptions: {} },
 ): Promise<void> {

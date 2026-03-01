@@ -2108,3 +2108,30 @@ Changed `buildPagedAsyncIterator` parameter types from `Promise<PathUncheckedRes
 - All 1,015 unit tests pass (3 skipped)
 - The collection builder functions now return `string | undefined` instead of `string` — callers that pass the result to URL template expansion handle `undefined` correctly (omits the query param)
 - `PromiseLike` is the correct type for the paging callback because `StreamableMethod` only extends `PromiseLike`, not `Promise`
+
+## RC25: Fix context parameter type from Client to specific context type — DONE (2026-03-01)
+
+### What was done
+- Changed operation functions to use the specific client context type (e.g., `TestingContext`, `BlobContext`) instead of the base `Client` type from runtime lib
+- The context type is determined from the root client entity via `clientContextRefkey(rootClient)`
+- Removed all `(context as any).xxx` casts since the specific context type now has the properties
+
+### Files changed
+- `src/components/operation-files.tsx` — Added `rootClient` tracking to `OperationGroup` and `collectOperationGroups`; threaded through component hierarchy
+- `src/components/send-operation.tsx` — Added `rootClient` prop; `buildFunctionParameters` uses `clientContextRefkey(rootClient)` instead of `runtimeLib.Client`; removed `as any` casts
+- `src/components/public-operation.tsx` — Same changes; updated all sub-components (BasicOperation, LroOperation, PagingOperation, LroPagingOperation)
+- `test/components/send-operation.test.tsx` — Added `ClientContextDeclaration` to test render tree; updated 14+ expected outputs
+- `test/components/public-operation.test.tsx` — Same; updated 12+ expected outputs
+- `test/utils/name-conflict-resolver.test.tsx` — Added `ClientContextFile` to render tree
+- 49 scenario .md files — Updated `context: Client` → `context: XxxContext`; updated imports; removed `as any` casts
+
+### Patterns used
+- Threading `rootClient` through component hierarchy via props (same pattern as `classical-operation-groups.tsx`)
+- `clientContextRefkey(rootClient)` for the context type — Alloy auto-resolves imports
+- For unit tests: `ClientContextDeclaration` rendered inside same SourceFile to register refkey
+
+### Notes for next person
+- The context type name follows TCGC convention: `{namespace_last_part}Context` (PascalCase)
+- The context file name: `{camelCase(clientName)}Context.ts`
+- Alloy generates `import type { XxxContext }` for type-only usage, `import { XxxContext }` when used in JSDoc `@param`
+- The duplicate `Client` model name scenario in modelsGenerator.md no longer needs `_1`/`_2` aliases since the runtime `Client` type is no longer imported in operations files

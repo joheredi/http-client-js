@@ -4,6 +4,7 @@ import {
   type ParameterDescriptor,
 } from "@alloy-js/typescript";
 import type {
+  SdkClientType,
   SdkHttpOperation,
   SdkLroPagingServiceMethod,
   SdkLroServiceMethod,
@@ -23,6 +24,7 @@ import {
   buildHeaderReturnType,
 } from "./deserialize-headers.js";
 import {
+  clientContextRefkey,
   deserializeHeadersRefkey,
   deserializeOperationRefkey,
   binaryResponseHelperRefkey,
@@ -65,6 +67,8 @@ function getOperationDoc(
 export interface PublicOperationProps {
   /** The TCGC service method whose public operation function should be rendered. */
   method: SdkServiceMethod<SdkHttpOperation>;
+  /** The root-level client entity, used for the context type reference. */
+  rootClient: SdkClientType<SdkHttpOperation>;
 }
 
 /**
@@ -85,7 +89,7 @@ export interface PublicOperationProps {
  * Example output for a standard operation:
  * ```typescript
  * export async function getItem(
- *   context: Client,
+ *   context: TestingContext,
  *   id: string,
  *   options: GetItemOptionalParams = { requestOptions: {} },
  * ): Promise<Item> {
@@ -98,7 +102,7 @@ export interface PublicOperationProps {
  * @returns An Alloy JSX tree representing the public operation function.
  */
 export function PublicOperation(props: PublicOperationProps) {
-  const { method } = props;
+  const { method, rootClient } = props;
   const { flavor } = useFlavorContext();
 
   // Core flavor does not support Azure-specific LRO/paging patterns.
@@ -110,28 +114,31 @@ export function PublicOperation(props: PublicOperationProps) {
       method.kind === "lropaging" ||
       method.kind === "paging")
   ) {
-    return <BasicOperation method={method} />;
+    return <BasicOperation method={method} rootClient={rootClient} />;
   }
 
   switch (method.kind) {
     case "basic":
-      return <BasicOperation method={method} />;
+      return <BasicOperation method={method} rootClient={rootClient} />;
     case "lro":
       return (
         <LroOperation
           method={method as SdkLroServiceMethod<SdkHttpOperation>}
+          rootClient={rootClient}
         />
       );
     case "paging":
       return (
         <PagingOperation
           method={method as SdkPagingServiceMethod<SdkHttpOperation>}
+          rootClient={rootClient}
         />
       );
     case "lropaging":
       return (
         <LroPagingOperation
           method={method as SdkLroPagingServiceMethod<SdkHttpOperation>}
+          rootClient={rootClient}
         />
       );
   }
@@ -161,10 +168,13 @@ export function PublicOperation(props: PublicOperationProps) {
  * @param props - The component props containing the TCGC service method.
  * @returns An Alloy JSX tree for the standard async operation function.
  */
-function BasicOperation(props: { method: SdkServiceMethod<SdkHttpOperation> }) {
-  const { method } = props;
+function BasicOperation(props: {
+  method: SdkServiceMethod<SdkHttpOperation>;
+  rootClient: SdkClientType<SdkHttpOperation>;
+}) {
+  const { method, rootClient } = props;
   const { includeHeadersInResponse } = useEmitterOptions();
-  const parameters = buildFunctionParameters(method);
+  const parameters = buildFunctionParameters(method, rootClient);
   const callArgs = buildCallArguments(method);
   const hasBody = !!method.response.type;
 
@@ -257,7 +267,7 @@ function BasicOperation(props: { method: SdkServiceMethod<SdkHttpOperation> }) {
  * The generated pattern matches the legacy emitter:
  * ```typescript
  * export function createResource(
- *   context: Client,
+ *   context: TestingContext,
  *   body: Resource,
  *   options: CreateResourceOptionalParams = { requestOptions: {} },
  * ): PollerLike<OperationState<Resource>, Resource> {
@@ -275,9 +285,10 @@ function BasicOperation(props: { method: SdkServiceMethod<SdkHttpOperation> }) {
  */
 function LroOperation(props: {
   method: SdkLroServiceMethod<SdkHttpOperation>;
+  rootClient: SdkClientType<SdkHttpOperation>;
 }) {
-  const { method } = props;
-  const parameters = buildFunctionParameters(method);
+  const { method, rootClient } = props;
+  const parameters = buildFunctionParameters(method, rootClient);
   const innerType = getReturnType(method);
   const callArgs = buildCallArguments(method);
   const expectedStatuses = buildExpectedStatusArray(method);
@@ -320,7 +331,7 @@ function LroOperation(props: {
  * The generated pattern matches the legacy emitter:
  * ```typescript
  * export function listItems(
- *   context: Client,
+ *   context: TestingContext,
  *   options: ListItemsOptionalParams = { requestOptions: {} },
  * ): PagedAsyncIterableIterator<Item> {
  *   return buildPagedAsyncIterator(
@@ -338,9 +349,10 @@ function LroOperation(props: {
  */
 function PagingOperation(props: {
   method: SdkPagingServiceMethod<SdkHttpOperation>;
+  rootClient: SdkClientType<SdkHttpOperation>;
 }) {
-  const { method } = props;
-  const parameters = buildFunctionParameters(method);
+  const { method, rootClient } = props;
+  const parameters = buildFunctionParameters(method, rootClient);
   const innerType = getPagingItemType(method);
   const callArgs = buildCallArguments(method);
   const expectedStatuses = buildExpectedStatusArray(method);
@@ -390,9 +402,10 @@ function PagingOperation(props: {
  */
 function LroPagingOperation(props: {
   method: SdkLroPagingServiceMethod<SdkHttpOperation>;
+  rootClient: SdkClientType<SdkHttpOperation>;
 }) {
-  const { method } = props;
-  const parameters = buildFunctionParameters(method);
+  const { method, rootClient } = props;
+  const parameters = buildFunctionParameters(method, rootClient);
   const innerType = getPagingItemType(method);
   const callArgs = buildCallArguments(method);
   const expectedStatuses = buildExpectedStatusArray(method);
@@ -436,7 +449,7 @@ function LroPagingOperation(props: {
  * Builds the parameter list for the public operation function signature.
  *
  * The parameter order follows the legacy emitter convention:
- * 1. `context: Client` — the HTTP client context
+ * 1. `context: XxxContext` — the specific client context type
  * 2. Required method parameters (path, required body, required query/header)
  * 3. `options: XxxOptionalParams = { requestOptions: {} }` — optional parameters
  *
@@ -444,15 +457,16 @@ function LroPagingOperation(props: {
  * function forwards all arguments to the send function.
  *
  * @param method - The TCGC service method.
+ * @param rootClient - The root-level client entity for the context type reference.
  * @returns An array of Alloy ParameterDescriptor objects.
  */
 function buildFunctionParameters(
   method: SdkServiceMethod<SdkHttpOperation>,
+  rootClient: SdkClientType<SdkHttpOperation>,
 ): ParameterDescriptor[] {
-  const runtimeLib = useRuntimeLib();
   const optionsName = getOptionsParamName(method);
   const params: ParameterDescriptor[] = [
-    { name: "context", type: runtimeLib.Client },
+    { name: "context", type: clientContextRefkey(rootClient) },
   ];
 
   for (const param of method.parameters) {
@@ -841,13 +855,12 @@ function getApiVersionExpression(
 
   if (correspondingParam.kind === "method" && correspondingParam.onClient) {
     // Uses the param's actual name (e.g., "apiVersion" or "version") to match
-    // the property name generated on the client context interface. The `as any`
-    // cast is needed because context is typed as base `Client`.
+    // the property name generated on the client context interface.
     const defaultValue = correspondingParam.clientDefaultValue;
     if (defaultValue !== undefined) {
-      return `(context as any).${correspondingParam.name} ?? "${defaultValue}"`;
+      return `context.${correspondingParam.name} ?? "${defaultValue}"`;
     }
-    return `(context as any).${correspondingParam.name}`;
+    return `context.${correspondingParam.name}`;
   }
 
   return undefined;

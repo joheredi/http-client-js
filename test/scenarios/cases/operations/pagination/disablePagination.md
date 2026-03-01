@@ -99,15 +99,15 @@ import {
 } from "../models/models.js";
 import type { BarOptionalParams, FooOptionalParams } from "./options.js";
 import {
-  type Client,
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
+import type { TestServiceContext } from "../testServiceClientContext.js";
 
 export function _barSend(
-  context: Client,
+  context: TestServiceContext,
   options: BarOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
   return context.path("/list-get").post({
@@ -131,7 +131,7 @@ export async function _barDeserialize(
 }
 
 export async function bar(
-  context: Client,
+  context: TestServiceContext,
   options: BarOptionalParams = { requestOptions: {} },
 ): Promise<ListTestResult> {
   const result = await _barSend(context, options);
@@ -139,7 +139,7 @@ export async function bar(
 }
 
 export function _fooSend(
-  context: Client,
+  context: TestServiceContext,
   options: FooOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
   return context.path("/list-post").post({
@@ -163,7 +163,7 @@ export async function _fooDeserialize(
 }
 
 export async function foo(
-  context: Client,
+  context: TestServiceContext,
   options: FooOptionalParams = { requestOptions: {} },
 ): Promise<ListTestResult> {
   const result = await _fooSend(context, options);

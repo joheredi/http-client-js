@@ -15,15 +15,15 @@ op continue(): Test;
 import { type Test, testDeserializer } from "../models/models.js";
 import { ContinueOptionalParams } from "./options.js";
 import {
-  Client,
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
+import { TestingContext } from "../testingClientContext.js";
 
 export function _$continueSend(
-  context: Client,
+  context: TestingContext,
   options: ContinueOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
   return context.path("/").get({
@@ -51,11 +51,11 @@ export async function _$continueDeserialize(
  * Please add @clientName("clientName") or @clientName("<JS-Specific-Name>",
  * "javascript") to the operation to override the generated name.
  *
- * @param {Client} context
+ * @param {TestingContext} context
  * @param {ContinueOptionalParams} options
  */
 export async function $continue(
-  context: Client,
+  context: TestingContext,
   options: ContinueOptionalParams = { requestOptions: {} },
 ): Promise<Test> {
   const result = await _$continueSend(context, options);
@@ -80,15 +80,15 @@ op `return`(): Test;
 import { type Test, testDeserializer } from "../models/models.js";
 import { ReturnOptionalParams } from "./options.js";
 import {
-  Client,
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
+import { TestingContext } from "../testingClientContext.js";
 
 export function _$returnSend(
-  context: Client,
+  context: TestingContext,
   options: ReturnOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
   return context.path("/").get({
@@ -116,11 +116,11 @@ export async function _$returnDeserialize(
  * Please add @clientName("clientName") or @clientName("<JS-Specific-Name>",
  * "javascript") to the operation to override the generated name.
  *
- * @param {Client} context
+ * @param {TestingContext} context
  * @param {ReturnOptionalParams} options
  */
 export async function $return(
-  context: Client,
+  context: TestingContext,
   options: ReturnOptionalParams = { requestOptions: {} },
 ): Promise<Test> {
   const result = await _$returnSend(context, options);
@@ -145,15 +145,15 @@ op global(): Test;
 import { type Test, testDeserializer } from "../models/models.js";
 import type { GlobalOptionalParams } from "./options.js";
 import {
-  type Client,
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
+import type { TestingContext } from "../testingClientContext.js";
 
 export function _globalSend(
-  context: Client,
+  context: TestingContext,
   options: GlobalOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
   return context.path("/").get({
@@ -177,7 +177,7 @@ export async function _globalDeserialize(
 }
 
 export async function global(
-  context: Client,
+  context: TestingContext,
   options: GlobalOptionalParams = { requestOptions: {} },
 ): Promise<Test> {
   const result = await _globalSend(context, options);

@@ -29,16 +29,16 @@ op getWidget(@path id: string): Widget | StorageError;
 import { type Widget, widgetDeserializer } from "../models/models.js";
 import type { GetWidgetOptionalParams } from "./options.js";
 import {
-  type Client,
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
 import { expandUrlTemplate } from "../static-helpers/urlTemplate.js";
+import type { TestingContext } from "../testingClientContext.js";
 
 export function _getWidgetSend(
-  context: Client,
+  context: TestingContext,
   id: string,
   options: GetWidgetOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
@@ -68,7 +68,7 @@ export async function _getWidgetDeserialize(
 }
 
 export async function getWidget(
-  context: Client,
+  context: TestingContext,
   id: string,
   options: GetWidgetOptionalParams = { requestOptions: {} },
 ): Promise<Widget> {
@@ -114,16 +114,16 @@ op getDocument(@path id: string): {
 import { type Document, documentDeserializer } from "../models/models.js";
 import type { GetDocumentOptionalParams } from "./options.js";
 import {
-  type Client,
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
 import { expandUrlTemplate } from "../static-helpers/urlTemplate.js";
+import type { TestingContext } from "../testingClientContext.js";
 
 export function _getDocumentSend(
-  context: Client,
+  context: TestingContext,
   id: string,
   options: GetDocumentOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
@@ -153,7 +153,7 @@ export async function _getDocumentDeserialize(
 }
 
 export async function getDocument(
-  context: Client,
+  context: TestingContext,
   id: string,
   options: GetDocumentOptionalParams = { requestOptions: {} },
 ): Promise<Document> {
@@ -192,16 +192,16 @@ op getItem(@path id: string): Item | SimpleError;
 import { type Item, itemDeserializer } from "../models/models.js";
 import type { GetItemOptionalParams } from "./options.js";
 import {
-  type Client,
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
 import { expandUrlTemplate } from "../static-helpers/urlTemplate.js";
+import type { TestingContext } from "../testingClientContext.js";
 
 export function _getItemSend(
-  context: Client,
+  context: TestingContext,
   id: string,
   options: GetItemOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
@@ -231,7 +231,7 @@ export async function _getItemDeserialize(
 }
 
 export async function getItem(
-  context: Client,
+  context: TestingContext,
   id: string,
   options: GetItemOptionalParams = { requestOptions: {} },
 ): Promise<Item> {

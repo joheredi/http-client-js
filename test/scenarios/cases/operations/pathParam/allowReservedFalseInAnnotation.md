@@ -18,16 +18,16 @@ Should normal path parameter:
 ```ts operations
 import type { AnnotationWithFalseOptionalParams } from "./options.js";
 import {
-  type Client,
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
 import { expandUrlTemplate } from "../static-helpers/urlTemplate.js";
+import type { TestingContext } from "../testingClientContext.js";
 
 export function _annotationWithFalseSend(
-  context: Client,
+  context: TestingContext,
   param: string,
   options: AnnotationWithFalseOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
@@ -53,7 +53,7 @@ export async function _annotationWithFalseDeserialize(
 }
 
 export async function annotationWithFalse(
-  context: Client,
+  context: TestingContext,
   param: string,
   options: AnnotationWithFalseOptionalParams = { requestOptions: {} },
 ): Promise<void> {

@@ -70,16 +70,16 @@ import {
 } from "../../models/models.js";
 import { UpdateOptionalParams } from "./options.js";
 import {
-  Client,
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@azure-rest/core-client";
 import { expandUrlTemplate } from "../../static-helpers/urlTemplate.js";
+import { TestArmPatchContext } from "../../testArmPatchClientContext.js";
 
 export function _updateSend(
-  context: Client,
+  context: TestArmPatchContext,
   apiVersion: string,
   resourceGroupName: string,
   partnerTopicName: string,
@@ -121,7 +121,7 @@ export async function _updateDeserialize(
 /**
  * Update a PartnerTopic
  *
- * @param {Client} context
+ * @param {TestArmPatchContext} context
  * @param {string} apiVersion
  * @param {string} resourceGroupName
  * @param {string} partnerTopicName
@@ -129,7 +129,7 @@ export async function _updateDeserialize(
  * @param {UpdateOptionalParams} options
  */
 export async function update(
-  context: Client,
+  context: TestArmPatchContext,
   apiVersion: string,
   resourceGroupName: string,
   partnerTopicName: string,

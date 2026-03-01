@@ -53,16 +53,16 @@ withVersionedApiVersion: true
 import { type KeyBundle, keyBundleDeserializer } from "../models/models.js";
 import { UpdateKeyOptionalParams } from "./options.js";
 import {
-  Client,
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@azure-rest/core-client";
 import { expandUrlTemplate } from "../static-helpers/urlTemplate.js";
+import { TestingContext } from "../testingClientContext.js";
 
 export function _updateKeySend(
-  context: Client,
+  context: TestingContext,
   keyName: string,
   keyVersion: string,
   parameters: string,
@@ -71,7 +71,7 @@ export function _updateKeySend(
   const path = expandUrlTemplate(
     "/keys/{key-name}/{key-version}{?api%2Dversion}",
     {
-      "api%2Dversion": (context as any).apiVersion ?? "2022-05-15-preview",
+      "api%2Dversion": context.apiVersion ?? "2022-05-15-preview",
       "key-name": keyName,
       "key-version": keyVersion,
     },
@@ -102,14 +102,14 @@ export async function _updateKeyDeserialize(
 /**
  * The most basic operation.
  *
- * @param {Client} context
+ * @param {TestingContext} context
  * @param {string} keyName
  * @param {string} keyVersion
  * @param {string} parameters
  * @param {UpdateKeyOptionalParams} options
  */
 export async function updateKey(
-  context: Client,
+  context: TestingContext,
   keyName: string,
   keyVersion: string,
   parameters: string,

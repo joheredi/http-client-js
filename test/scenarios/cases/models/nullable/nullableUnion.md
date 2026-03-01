@@ -64,15 +64,15 @@ import {
 } from "../models/models.js";
 import type { PostOptionalParams } from "./options.js";
 import {
-  type Client,
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
+import type { TestingContext } from "../testingClientContext.js";
 
 export function _postSend(
-  context: Client,
+  context: TestingContext,
   body: _PostRequest | null,
   options: PostOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
@@ -99,7 +99,7 @@ export async function _postDeserialize(
 }
 
 export async function post(
-  context: Client,
+  context: TestingContext,
   body: _PostRequest | null,
   options: PostOptionalParams = { requestOptions: {} },
 ): Promise<_PostRequest | null> {

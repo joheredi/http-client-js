@@ -383,15 +383,15 @@ model StreamingChatCompletionOptions {
 ```ts operations
 import type { CreateStreamingOptionalParams } from "./options.js";
 import {
-  type Client,
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
+import type { TestingContext } from "../testingClientContext.js";
 
 export function _createStreamingSend(
-  context: Client,
+  context: TestingContext,
   options: CreateStreamingOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
   return context.path("/createStreaming").post({
@@ -413,7 +413,7 @@ export async function _createStreamingDeserialize(
 }
 
 export async function createStreaming(
-  context: Client,
+  context: TestingContext,
   options: CreateStreamingOptionalParams = { requestOptions: {} },
 ): Promise<void> {
   const result = await _createStreamingSend(context, options);
@@ -478,15 +478,15 @@ export function fooDeserializer(item: any): Foo {
 import { type Foo, fooDeserializer, fooSerializer } from "../models/models.js";
 import type { ReadOptionalParams } from "./options.js";
 import {
-  type Client,
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
+import type { TestingContext } from "../testingClientContext.js";
 
 export function _readSend(
-  context: Client,
+  context: TestingContext,
   body: Foo,
   options: ReadOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
@@ -513,7 +513,7 @@ export async function _readDeserialize(
 }
 
 export async function read(
-  context: Client,
+  context: TestingContext,
   body: Foo,
   options: ReadOptionalParams = { requestOptions: {} },
 ): Promise<Foo> {
@@ -535,15 +535,15 @@ op read(@header prop: utcDateTime): OkResponse;
 ```ts operations
 import type { ReadOptionalParams } from "./options.js";
 import {
-  type Client,
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
+import type { TestingContext } from "../testingClientContext.js";
 
 export function _readSend(
-  context: Client,
+  context: TestingContext,
   prop: Date,
   options: ReadOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
@@ -565,7 +565,7 @@ export async function _readDeserialize(
 }
 
 export async function read(
-  context: Client,
+  context: TestingContext,
   prop: Date,
   options: ReadOptionalParams = { requestOptions: {} },
 ): Promise<void> {
@@ -614,15 +614,15 @@ export function fooSerializer(item: Foo): any {
 import { type Foo, fooDeserializer, fooSerializer } from "../models/models.js";
 import type { ReadOptionalParams } from "./options.js";
 import {
-  type Client,
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
+import type { TestingContext } from "../testingClientContext.js";
 
 export function _readSend(
-  context: Client,
+  context: TestingContext,
   body: Foo,
   options: ReadOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
@@ -649,7 +649,7 @@ export async function _readDeserialize(
 }
 
 export async function read(
-  context: Client,
+  context: TestingContext,
   body: Foo,
   options: ReadOptionalParams = { requestOptions: {} },
 ): Promise<Foo> {
@@ -698,15 +698,15 @@ export function fooSerializer(item: Foo): any {
 import { type Foo, fooDeserializer, fooSerializer } from "../models/models.js";
 import type { ReadOptionalParams } from "./options.js";
 import {
-  type Client,
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
+import type { TestingContext } from "../testingClientContext.js";
 
 export function _readSend(
-  context: Client,
+  context: TestingContext,
   body: Foo,
   options: ReadOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
@@ -733,7 +733,7 @@ export async function _readDeserialize(
 }
 
 export async function read(
-  context: Client,
+  context: TestingContext,
   body: Foo,
   options: ReadOptionalParams = { requestOptions: {} },
 ): Promise<Foo> {
@@ -778,15 +778,15 @@ export function fooSerializer(item: Foo): any {
 import { type Foo, fooDeserializer, fooSerializer } from "../models/models.js";
 import type { ReadOptionalParams } from "./options.js";
 import {
-  type Client,
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
+import type { TestingContext } from "../testingClientContext.js";
 
 export function _readSend(
-  context: Client,
+  context: TestingContext,
   body: Foo,
   options: ReadOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
@@ -813,7 +813,7 @@ export async function _readDeserialize(
 }
 
 export async function read(
-  context: Client,
+  context: TestingContext,
   body: Foo,
   options: ReadOptionalParams = { requestOptions: {} },
 ): Promise<Foo> {
@@ -847,15 +847,15 @@ export interface Foo {
 import { type Foo, fooDeserializer, fooSerializer } from "../models/models.js";
 import type { ReadOptionalParams } from "./options.js";
 import {
-  type Client,
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
+import type { TestingContext } from "../testingClientContext.js";
 
 export function _readSend(
-  context: Client,
+  context: TestingContext,
   body: Foo,
   options: ReadOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
@@ -882,7 +882,7 @@ export async function _readDeserialize(
 }
 
 export async function read(
-  context: Client,
+  context: TestingContext,
   body: Foo,
   options: ReadOptionalParams = { requestOptions: {} },
 ): Promise<Foo> {
@@ -917,15 +917,15 @@ export interface Foo {
 import { type Foo, fooDeserializer, fooSerializer } from "../models/models.js";
 import type { ReadOptionalParams } from "./options.js";
 import {
-  type Client,
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
+import type { TestingContext } from "../testingClientContext.js";
 
 export function _readSend(
-  context: Client,
+  context: TestingContext,
   body: Foo,
   options: ReadOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
@@ -952,7 +952,7 @@ export async function _readDeserialize(
 }
 
 export async function read(
-  context: Client,
+  context: TestingContext,
   body: Foo,
   options: ReadOptionalParams = { requestOptions: {} },
 ): Promise<Foo> {
@@ -990,15 +990,15 @@ export interface Foo {
 import { type Foo, fooDeserializer, fooSerializer } from "../models/models.js";
 import type { ReadOptionalParams } from "./options.js";
 import {
-  type Client,
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
+import type { TestingContext } from "../testingClientContext.js";
 
 export function _readSend(
-  context: Client,
+  context: TestingContext,
   body: Foo,
   options: ReadOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
@@ -1025,7 +1025,7 @@ export async function _readDeserialize(
 }
 
 export async function read(
-  context: Client,
+  context: TestingContext,
   body: Foo,
   options: ReadOptionalParams = { requestOptions: {} },
 ): Promise<Foo> {
@@ -1082,15 +1082,15 @@ export function fooDeserializer(item: any): Foo {
 import { type Foo, fooDeserializer, fooSerializer } from "../models/models.js";
 import type { ReadOptionalParams } from "./options.js";
 import {
-  type Client,
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
+import type { TestingContext } from "../testingClientContext.js";
 
 export function _readSend(
-  context: Client,
+  context: TestingContext,
   body: Foo,
   options: ReadOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
@@ -1117,7 +1117,7 @@ export async function _readDeserialize(
 }
 
 export async function read(
-  context: Client,
+  context: TestingContext,
   body: Foo,
   options: ReadOptionalParams = { requestOptions: {} },
 ): Promise<Foo> {
@@ -1175,15 +1175,15 @@ export function fooDeserializer(item: any): Foo {
 import { type Foo, fooDeserializer, fooSerializer } from "../models/models.js";
 import type { ReadOptionalParams } from "./options.js";
 import {
-  type Client,
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
+import type { TestingContext } from "../testingClientContext.js";
 
 export function _readSend(
-  context: Client,
+  context: TestingContext,
   body: Foo,
   options: ReadOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
@@ -1210,7 +1210,7 @@ export async function _readDeserialize(
 }
 
 export async function read(
-  context: Client,
+  context: TestingContext,
   body: Foo,
   options: ReadOptionalParams = { requestOptions: {} },
 ): Promise<Foo> {
@@ -1268,15 +1268,15 @@ export function fooDeserializer(item: any): Foo {
 import { type Foo, fooDeserializer, fooSerializer } from "../models/models.js";
 import type { ReadOptionalParams } from "./options.js";
 import {
-  type Client,
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
+import type { TestingContext } from "../testingClientContext.js";
 
 export function _readSend(
-  context: Client,
+  context: TestingContext,
   body: Foo,
   options: ReadOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
@@ -1303,7 +1303,7 @@ export async function _readDeserialize(
 }
 
 export async function read(
-  context: Client,
+  context: TestingContext,
   body: Foo,
   options: ReadOptionalParams = { requestOptions: {} },
 ): Promise<Foo> {
@@ -1470,15 +1470,15 @@ export function petDeserializer(item: any): Pet {
 import { type Cat, catDeserializer } from "../models/models.js";
 import type { ReadOptionalParams } from "./options.js";
 import {
-  type Client,
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
+import type { TestingContext } from "../testingClientContext.js";
 
 export function _readSend(
-  context: Client,
+  context: TestingContext,
   options: ReadOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
   return context.path("/").get({
@@ -1502,7 +1502,7 @@ export async function _readDeserialize(
 }
 
 export async function read(
-  context: Client,
+  context: TestingContext,
   options: ReadOptionalParams = { requestOptions: {} },
 ): Promise<Cat> {
   const result = await _readSend(context, options);
@@ -1589,15 +1589,15 @@ export function animalDeserializer(item: any): Animal {
 import { type Cat, catDeserializer } from "../models/models.js";
 import type { ReadOptionalParams } from "./options.js";
 import {
-  type Client,
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
+import type { TestingContext } from "../testingClientContext.js";
 
 export function _readSend(
-  context: Client,
+  context: TestingContext,
   options: ReadOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
   return context.path("/").get({
@@ -1621,7 +1621,7 @@ export async function _readDeserialize(
 }
 
 export async function read(
-  context: Client,
+  context: TestingContext,
   options: ReadOptionalParams = { requestOptions: {} },
 ): Promise<Cat> {
   const result = await _readSend(context, options);
@@ -1746,15 +1746,15 @@ import {
 } from "../models/models.js";
 import type { ReadOptionalParams } from "./options.js";
 import {
-  type Client,
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
+import type { TestingContext } from "../testingClientContext.js";
 
 export function _readSend(
-  context: Client,
+  context: TestingContext,
   body: PSDog,
   options: ReadOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
@@ -1781,7 +1781,7 @@ export async function _readDeserialize(
 }
 
 export async function read(
-  context: Client,
+  context: TestingContext,
   body: PSDog,
   options: ReadOptionalParams = { requestOptions: {} },
 ): Promise<PSDog> {
@@ -1896,15 +1896,15 @@ export function petUnionDeserializer(item: any): PetUnion {
 import { type Pet, petUnionDeserializer } from "../models/models.js";
 import type { ReadOptionalParams } from "./options.js";
 import {
-  type Client,
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
+import type { TestingContext } from "../testingClientContext.js";
 
 export function _readSend(
-  context: Client,
+  context: TestingContext,
   options: ReadOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
   return context.path("/").get({
@@ -1928,7 +1928,7 @@ export async function _readDeserialize(
 }
 
 export async function read(
-  context: Client,
+  context: TestingContext,
   options: ReadOptionalParams = { requestOptions: {} },
 ): Promise<Pet> {
   const result = await _readSend(context, options);
@@ -2089,15 +2089,15 @@ export function petArrayDeserializer(result: Array<Pet>): any[] {
 import { type Pet, petUnionDeserializer } from "../models/models.js";
 import type { ReadOptionalParams } from "./options.js";
 import {
-  type Client,
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
+import type { TestingContext } from "../testingClientContext.js";
 
 export function _readSend(
-  context: Client,
+  context: TestingContext,
   options: ReadOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
   return context.path("/").get({
@@ -2121,7 +2121,7 @@ export async function _readDeserialize(
 }
 
 export async function read(
-  context: Client,
+  context: TestingContext,
   options: ReadOptionalParams = { requestOptions: {} },
 ): Promise<Pet> {
   const result = await _readSend(context, options);
@@ -2192,15 +2192,15 @@ export function barDeserializer(item: any): Bar {
 import { type Foo, fooDeserializer } from "../models/models.js";
 import type { ReadOptionalParams } from "./options.js";
 import {
-  type Client,
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
+import type { TestingContext } from "../testingClientContext.js";
 
 export function _readSend(
-  context: Client,
+  context: TestingContext,
   options: ReadOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
   return context.path("/").get({
@@ -2224,7 +2224,7 @@ export async function _readDeserialize(
 }
 
 export async function read(
-  context: Client,
+  context: TestingContext,
   options: ReadOptionalParams = { requestOptions: {} },
 ): Promise<Foo> {
   const result = await _readSend(context, options);
@@ -2301,15 +2301,15 @@ export function schemaContentTypeValuesSerializer(
 import type { SchemaContentTypeValues } from "../models/models.js";
 import type { GetOptionalParams } from "./options.js";
 import {
-  type Client,
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
+import type { DemoServiceContext } from "../demoServiceClientContext.js";
 
 export function _getSend(
-  context: Client,
+  context: DemoServiceContext,
   contentType: SchemaContentTypeValues,
   body: string,
   options: GetOptionalParams = { requestOptions: {} },
@@ -2333,7 +2333,7 @@ export async function _getDeserialize(
 }
 
 export async function get(
-  context: Client,
+  context: DemoServiceContext,
   contentType: SchemaContentTypeValues,
   body: string,
   options: GetOptionalParams = { requestOptions: {} },
@@ -2470,15 +2470,15 @@ export function getRequestTestHeaderSerializer(
 import type { GetRequestTestHeader } from "../models/models.js";
 import type { GetOptionalParams } from "./options.js";
 import {
-  type Client,
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
+import type { DemoServiceContext } from "../demoServiceClientContext.js";
 
 export function _getSend(
-  context: Client,
+  context: DemoServiceContext,
   testHeader: GetRequestTestHeader,
   body: string,
   options: GetOptionalParams = { requestOptions: {} },
@@ -2506,7 +2506,7 @@ export async function _getDeserialize(
 }
 
 export async function get(
-  context: Client,
+  context: DemoServiceContext,
   testHeader: GetRequestTestHeader,
   body: string,
   options: GetOptionalParams = { requestOptions: {} },
@@ -3074,13 +3074,13 @@ export function clientDeserializer(item: any): Client {
 
 ```ts operations
 import {
-  type Client as Client_2,
+  type Client,
   clientDeserializer,
   clientSerializer,
 } from "../models/models.js";
+import type { TestingContext } from "../testingClientContext.js";
 import type { ReadOptionalParams } from "./options.js";
 import {
-  type Client as Client_1,
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
@@ -3088,8 +3088,8 @@ import {
 } from "@typespec/ts-http-runtime";
 
 export function _readSend(
-  context: Client_1,
-  body: Client_2,
+  context: TestingContext,
+  body: Client,
   options: ReadOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
   return context.path("/").post({
@@ -3105,7 +3105,7 @@ export function _readSend(
 
 export async function _readDeserialize(
   result: PathUncheckedResponse,
-): Promise<Client_2> {
+): Promise<Client> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
     throw createRestError(result);
@@ -3115,10 +3115,10 @@ export async function _readDeserialize(
 }
 
 export async function read(
-  context: Client_1,
-  body: Client_2,
+  context: TestingContext,
+  body: Client,
   options: ReadOptionalParams = { requestOptions: {} },
-): Promise<Client_2> {
+): Promise<Client> {
   const result = await _readSend(context, body, options);
   return _readDeserialize(result);
 }

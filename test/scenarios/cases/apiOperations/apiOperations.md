@@ -17,15 +17,15 @@ Api operations should handle contentTypes has binary data
 ```ts operations
 import type { UploadFileViaBodyOptionalParams } from "./options.js";
 import {
-  type Client,
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
+import type { TestingContext } from "../testingClientContext.js";
 
 export function _uploadFileViaBodySend(
-  context: Client,
+  context: TestingContext,
   body: Uint8Array,
   options: UploadFileViaBodyOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
@@ -48,7 +48,7 @@ export async function _uploadFileViaBodyDeserialize(
 }
 
 export async function uploadFileViaBody(
-  context: Client,
+  context: TestingContext,
   body: Uint8Array,
   options: UploadFileViaBodyOptionalParams = { requestOptions: {} },
 ): Promise<void> {
@@ -77,15 +77,15 @@ scalar BinaryBytes extends bytes;
 ```ts operations
 import type { UploadFileViaBodyOptionalParams } from "./options.js";
 import {
-  type Client,
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
+import type { TestingContext } from "../testingClientContext.js";
 
 export function _uploadFileViaBodySend(
-  context: Client,
+  context: TestingContext,
   body: Uint8Array,
   options: UploadFileViaBodyOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
@@ -108,7 +108,7 @@ export async function _uploadFileViaBodyDeserialize(
 }
 
 export async function uploadFileViaBody(
-  context: Client,
+  context: TestingContext,
   body: Uint8Array,
   options: UploadFileViaBodyOptionalParams = { requestOptions: {} },
 ): Promise<void> {
@@ -162,15 +162,15 @@ import {
 } from "../models/models.js";
 import type { UploadFileOptionalParams } from "./options.js";
 import {
-  type Client,
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
+import type { TestingContext } from "../testingClientContext.js";
 
 export function _uploadFileSend(
-  context: Client,
+  context: TestingContext,
   body: _UploadFileRequest,
   options: UploadFileOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
@@ -193,7 +193,7 @@ export async function _uploadFileDeserialize(
 }
 
 export async function uploadFile(
-  context: Client,
+  context: TestingContext,
   body: _UploadFileRequest,
   options: UploadFileOptionalParams = { requestOptions: {} },
 ): Promise<void> {
@@ -256,15 +256,15 @@ import {
 } from "../models/models.js";
 import type { UploadFilesOptionalParams } from "./options.js";
 import {
-  type Client,
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
+import type { TestingContext } from "../testingClientContext.js";
 
 export function _uploadFilesSend(
-  context: Client,
+  context: TestingContext,
   body: _UploadFilesRequest,
   options: UploadFilesOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
@@ -287,7 +287,7 @@ export async function _uploadFilesDeserialize(
 }
 
 export async function uploadFiles(
-  context: Client,
+  context: TestingContext,
   body: _UploadFilesRequest,
   options: UploadFilesOptionalParams = { requestOptions: {} },
 ): Promise<void> {
@@ -315,15 +315,15 @@ op downloadFile(): {
 import { getBinaryResponse } from "../static-helpers/getBinaryResponse.js";
 import type { DownloadFileOptionalParams } from "./options.js";
 import {
-  type Client,
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
+import type { TestingContext } from "../testingClientContext.js";
 
 export function _downloadFileSend(
-  context: Client,
+  context: TestingContext,
   options: DownloadFileOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
   return context.path("/downloadFile").post({
@@ -347,7 +347,7 @@ export async function _downloadFileDeserialize(
 }
 
 export async function downloadFile(
-  context: Client,
+  context: TestingContext,
   options: DownloadFileOptionalParams = { requestOptions: {} },
 ): Promise<Uint8Array> {
   const streamableMethod = _downloadFileSend(context, options);
@@ -378,15 +378,15 @@ op downloadFile(): {
 import { getBinaryResponse } from "../static-helpers/getBinaryResponse.js";
 import type { DownloadFileOptionalParams } from "./options.js";
 import {
-  type Client,
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
+import type { TestingContext } from "../testingClientContext.js";
 
 export function _downloadFileSend(
-  context: Client,
+  context: TestingContext,
   options: DownloadFileOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
   return context.path("/downloadFile").post({
@@ -410,7 +410,7 @@ export async function _downloadFileDeserialize(
 }
 
 export async function downloadFile(
-  context: Client,
+  context: TestingContext,
   options: DownloadFileOptionalParams = { requestOptions: {} },
 ): Promise<Uint8Array> {
   const streamableMethod = _downloadFileSend(context, options);
@@ -438,15 +438,15 @@ Api operations should handle contentTypes has default value
 ```ts operations
 import type { UploadFileViaBodyOptionalParams } from "./options.js";
 import {
-  type Client,
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
+import type { TestingContext } from "../testingClientContext.js";
 
 export function _uploadFileViaBodySend(
-  context: Client,
+  context: TestingContext,
   contentType: string,
   body: Uint8Array,
   options: UploadFileViaBodyOptionalParams = { requestOptions: {} },
@@ -470,7 +470,7 @@ export async function _uploadFileViaBodyDeserialize(
 }
 
 export async function uploadFileViaBody(
-  context: Client,
+  context: TestingContext,
   contentType: string,
   body: Uint8Array,
   options: UploadFileViaBodyOptionalParams = { requestOptions: {} },
@@ -502,16 +502,16 @@ op test(...ApiVersionParameter): string;
 ```ts operations
 import type { TestOptionalParams } from "./options.js";
 import {
-  type Client,
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
 import { expandUrlTemplate } from "../static-helpers/urlTemplate.js";
+import type { TestingContext } from "../testingClientContext.js";
 
 export function _testSend(
-  context: Client,
+  context: TestingContext,
   apiVersion: string,
   options: TestOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
@@ -538,7 +538,7 @@ export async function _testDeserialize(
 }
 
 export async function test(
-  context: Client,
+  context: TestingContext,
   apiVersion: string,
   options: TestOptionalParams = { requestOptions: {} },
 ): Promise<string> {
@@ -644,16 +644,16 @@ withRawContent: false
 ```ts operations
 import type { TestOptionalParams } from "./options.js";
 import {
-  type Client,
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
 import { expandUrlTemplate } from "../static-helpers/urlTemplate.js";
+import type { TestingContext } from "../testingClientContext.js";
 
 export function _testSend(
-  context: Client,
+  context: TestingContext,
   apiVersion: string,
   options: TestOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
@@ -680,7 +680,7 @@ export async function _testDeserialize(
 }
 
 export async function test(
-  context: Client,
+  context: TestingContext,
   apiVersion: string,
   options: TestOptionalParams = { requestOptions: {} },
 ): Promise<string> {
@@ -780,16 +780,16 @@ op test1(): string;
 ```ts operations
 import type { Test1OptionalParams, TestOptionalParams } from "./options.js";
 import {
-  type Client,
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
 import { expandUrlTemplate } from "../static-helpers/urlTemplate.js";
+import type { TestingContext } from "../testingClientContext.js";
 
 export function _testSend(
-  context: Client,
+  context: TestingContext,
   apiVersion: string,
   options: TestOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
@@ -816,7 +816,7 @@ export async function _testDeserialize(
 }
 
 export async function test(
-  context: Client,
+  context: TestingContext,
   apiVersion: string,
   options: TestOptionalParams = { requestOptions: {} },
 ): Promise<string> {
@@ -825,7 +825,7 @@ export async function test(
 }
 
 export function _test1Send(
-  context: Client,
+  context: TestingContext,
   options: Test1OptionalParams = { requestOptions: {} },
 ): StreamableMethod {
   return context.path("/test1").get({
@@ -846,7 +846,7 @@ export async function _test1Deserialize(
 }
 
 export async function test1(
-  context: Client,
+  context: TestingContext,
   options: Test1OptionalParams = { requestOptions: {} },
 ): Promise<string> {
   const result = await _test1Send(context, options);
@@ -1036,21 +1036,21 @@ import {
 } from "../../static-helpers/pagingHelpers.js";
 import { ListOptionalParams } from "./options.js";
 import {
-  Client,
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@azure-rest/core-client";
 import { expandUrlTemplate } from "../../static-helpers/urlTemplate.js";
+import { ContosoContext } from "../../contosoClientContext.js";
 
 export function _listSend(
-  context: Client,
+  context: ContosoContext,
   options: ListOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
   const path = expandUrlTemplate(
     "/providers/Microsoft.Contoso/operations{?api%2Dversion}",
-    { "api%2Dversion": (context as any).apiVersion ?? "2021-10-01-preview" },
+    { "api%2Dversion": context.apiVersion ?? "2021-10-01-preview" },
     { allowReserved: options?.requestOptions?.skipUrlEncoding },
   );
   return context.path(path).get({
@@ -1076,11 +1076,11 @@ export async function _listDeserialize(
 /**
  * List the operations for the provider
  *
- * @param {Client} context
+ * @param {ContosoContext} context
  * @param {ListOptionalParams} options
  */
 export function list(
-  context: Client,
+  context: ContosoContext,
   options: ListOptionalParams = { requestOptions: {} },
 ): PagedAsyncIterableIterator<Operation> {
   return buildPagedAsyncIterator(
@@ -1091,7 +1091,7 @@ export function list(
     {
       itemName: "value",
       nextLinkName: "nextLink",
-      apiVersion: (context as any).apiVersion ?? "2021-10-01-preview",
+      apiVersion: context.apiVersion ?? "2021-10-01-preview",
     },
   );
 }

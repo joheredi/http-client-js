@@ -36,16 +36,16 @@ import type {
   RequiredOptionalParams,
 } from "./options.js";
 import {
-  type Client,
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
 import { expandUrlTemplate } from "../static-helpers/urlTemplate.js";
+import type { TestingContext } from "../testingClientContext.js";
 
 export function _optionalSend(
-  context: Client,
+  context: TestingContext,
   foo: string,
   apiVersion: string,
   options: OptionalOptionalParams = { requestOptions: {} },
@@ -72,7 +72,7 @@ export async function _optionalDeserialize(
 }
 
 export async function optional(
-  context: Client,
+  context: TestingContext,
   foo: string,
   apiVersion: string,
   options: OptionalOptionalParams = { requestOptions: {} },
@@ -82,7 +82,7 @@ export async function optional(
 }
 
 export function _requiredSend(
-  context: Client,
+  context: TestingContext,
   select: string[],
   options: RequiredOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
@@ -108,7 +108,7 @@ export async function _requiredDeserialize(
 }
 
 export async function required(
-  context: Client,
+  context: TestingContext,
   select: string[],
   options: RequiredOptionalParams = { requestOptions: {} },
 ): Promise<void> {

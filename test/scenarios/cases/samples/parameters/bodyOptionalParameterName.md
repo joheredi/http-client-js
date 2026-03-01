@@ -153,7 +153,6 @@ import {
 import { getLongRunningPoller } from "../../static-helpers/pollingHelpers.js";
 import { BackupOptionalParams } from "./options.js";
 import {
-  Client,
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
@@ -161,9 +160,10 @@ import {
 } from "@azure-rest/core-client";
 import { OperationState, PollerLike } from "@azure/core-lro";
 import { expandUrlTemplate } from "../../static-helpers/urlTemplate.js";
+import { HardwareSecurityModulesContext } from "../../hardwareSecurityModulesClientContext.js";
 
 export function _backupSend(
-  context: Client,
+  context: HardwareSecurityModulesContext,
   resourceGroupName: string,
   cloudHsmClusterName: string,
   options: BackupOptionalParams = { requestOptions: {} },
@@ -171,7 +171,7 @@ export function _backupSend(
   const path = expandUrlTemplate(
     "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.HardwareSecurityModules/cloudHsmClusters/{cloudHsmClusterName}/backup{?api%2Dversion}",
     {
-      "api%2Dversion": (context as any).apiVersion ?? "2021-10-01-preview",
+      "api%2Dversion": context.apiVersion ?? "2021-10-01-preview",
       subscriptionId: context["subscriptionId"],
       resourceGroupName: resourceGroupName,
       cloudHsmClusterName: cloudHsmClusterName,
@@ -205,13 +205,13 @@ export async function _backupDeserialize(
 /**
  * A long-running resource action.
  *
- * @param {Client} context
+ * @param {HardwareSecurityModulesContext} context
  * @param {string} resourceGroupName
  * @param {string} cloudHsmClusterName
  * @param {BackupOptionalParams} options
  */
 export function backup(
-  context: Client,
+  context: HardwareSecurityModulesContext,
   resourceGroupName: string,
   cloudHsmClusterName: string,
   options: BackupOptionalParams = { requestOptions: {} },
@@ -226,7 +226,7 @@ export function backup(
       getInitialResponse: () =>
         _backupSend(context, resourceGroupName, cloudHsmClusterName, options),
       resourceLocationConfig: "azure-async-operation",
-      apiVersion: (context as any).apiVersion ?? "2021-10-01-preview",
+      apiVersion: context.apiVersion ?? "2021-10-01-preview",
     },
   ) as PollerLike<OperationState<BackupResult>, BackupResult>;
 }

@@ -161,16 +161,16 @@ import {
 } from "../../models/models.js";
 import { GetOptionalParams } from "./options.js";
 import {
-  Client,
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@azure-rest/core-client";
 import { expandUrlTemplate } from "../../static-helpers/urlTemplate.js";
+import { BillingBenefitsContext } from "../../billingBenefitsClientContext.js";
 
 export function _getSend(
-  context: Client,
+  context: BillingBenefitsContext,
   apiVersion: string,
   subscriptionId: string,
   resourceGroupName: string,
@@ -213,7 +213,7 @@ export async function _getDeserialize(
 /**
  * Get savings plan.
  *
- * @param {Client} context
+ * @param {BillingBenefitsContext} context
  * @param {string} apiVersion
  * @param {string} subscriptionId
  * @param {string} resourceGroupName
@@ -222,7 +222,7 @@ export async function _getDeserialize(
  * @param {GetOptionalParams} options
  */
 export async function get(
-  context: Client,
+  context: BillingBenefitsContext,
   apiVersion: string,
   subscriptionId: string,
   resourceGroupName: string,
@@ -399,16 +399,16 @@ import {
 } from "../../models/models.js";
 import { GetOptionalParams } from "./options.js";
 import {
-  Client,
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@azure-rest/core-client";
 import { expandUrlTemplate } from "../../static-helpers/urlTemplate.js";
+import { BillingBenefitsContext } from "../../billingBenefitsClientContext.js";
 
 export function _getSend(
-  context: Client,
+  context: BillingBenefitsContext,
   apiVersion: string,
   subscriptionId: string,
   resourceGroupName: string,
@@ -451,7 +451,7 @@ export async function _getDeserialize(
 /**
  * Get savings plan.
  *
- * @param {Client} context
+ * @param {BillingBenefitsContext} context
  * @param {string} apiVersion
  * @param {string} subscriptionId
  * @param {string} resourceGroupName
@@ -460,7 +460,7 @@ export async function _getDeserialize(
  * @param {GetOptionalParams} options
  */
 export async function get(
-  context: Client,
+  context: BillingBenefitsContext,
   apiVersion: string,
   subscriptionId: string,
   resourceGroupName: string,

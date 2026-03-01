@@ -18,16 +18,16 @@ Should enable `allowReserved:true` for path parameter:
 ```ts operations
 import type { AnnotationOptionalParams } from "./options.js";
 import {
-  type Client,
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
 import { expandUrlTemplate } from "../static-helpers/urlTemplate.js";
+import type { TestingContext } from "../testingClientContext.js";
 
 export function _annotationSend(
-  context: Client,
+  context: TestingContext,
   param: string,
   options: AnnotationOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
@@ -53,7 +53,7 @@ export async function _annotationDeserialize(
 }
 
 export async function annotation(
-  context: Client,
+  context: TestingContext,
   param: string,
   options: AnnotationOptionalParams = { requestOptions: {} },
 ): Promise<void> {

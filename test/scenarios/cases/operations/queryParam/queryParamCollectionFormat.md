@@ -43,16 +43,16 @@ import {
 } from "../../static-helpers/serializationHelpers.js";
 import type { CreateOptionalParams, ReadOptionalParams } from "./options.js";
 import {
-  type Client,
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
 import { expandUrlTemplate } from "../../static-helpers/urlTemplate.js";
+import type { TestingContext } from "../../testingClientContext.js";
 
 export function _readSend(
-  context: Client,
+  context: TestingContext,
   simpleArray: string[],
   options: ReadOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
@@ -81,7 +81,7 @@ export async function _readDeserialize(
 }
 
 export async function read(
-  context: Client,
+  context: TestingContext,
   simpleArray: string[],
   options: ReadOptionalParams = { requestOptions: {} },
 ): Promise<void> {
@@ -90,7 +90,7 @@ export async function read(
 }
 
 export function _createSend(
-  context: Client,
+  context: TestingContext,
   ssvArray: number[],
   pipeArray: string[],
   options: CreateOptionalParams = { requestOptions: {} },
@@ -121,7 +121,7 @@ export async function _createDeserialize(
 }
 
 export async function create(
-  context: Client,
+  context: TestingContext,
   ssvArray: number[],
   pipeArray: string[],
   options: CreateOptionalParams = { requestOptions: {} },
@@ -156,16 +156,16 @@ interface QueryOperations {
 ```ts operations
 import type { ReadOptionalParams } from "./options.js";
 import {
-  type Client,
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
 import { expandUrlTemplate } from "../../static-helpers/urlTemplate.js";
+import type { TestingContext } from "../../testingClientContext.js";
 
 export function _readSend(
-  context: Client,
+  context: TestingContext,
   ssvArray: number[],
   options: ReadOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
@@ -191,7 +191,7 @@ export async function _readDeserialize(
 }
 
 export async function read(
-  context: Client,
+  context: TestingContext,
   ssvArray: number[],
   options: ReadOptionalParams = { requestOptions: {} },
 ): Promise<void> {

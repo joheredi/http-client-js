@@ -89,16 +89,16 @@ import {
 } from "../models/models.js";
 import { ReadOptionalParams } from "./options.js";
 import {
-  Client,
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
 import { expandUrlTemplate } from "../static-helpers/urlTemplate.js";
+import { TestingContext } from "../testingClientContext.js";
 
 export function _readSend(
-  context: Client,
+  context: TestingContext,
   name: string,
   requiredQuery: string,
   widget: BodyParameter,
@@ -134,14 +134,14 @@ export async function _readDeserialize(
 /**
  * show example demo
  *
- * @param {Client} context
+ * @param {TestingContext} context
  * @param {string} name
  * @param {string} requiredQuery
  * @param {BodyParameter} widget
  * @param {ReadOptionalParams} options
  */
 export async function read(
-  context: Client,
+  context: TestingContext,
   name: string,
   requiredQuery: string,
   widget: BodyParameter,

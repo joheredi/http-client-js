@@ -67,15 +67,15 @@ export function schemaContentTypeValuesSerializer(
 import type { SchemaContentTypeValues } from "../models/models.js";
 import type { GetOptionalParams } from "./options.js";
 import {
-  type Client,
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
+import type { DemoServiceContext } from "../demoServiceClientContext.js";
 
 export function _getSend(
-  context: Client,
+  context: DemoServiceContext,
   contentType: SchemaContentTypeValues,
   body: string,
   options: GetOptionalParams = { requestOptions: {} },
@@ -99,7 +99,7 @@ export async function _getDeserialize(
 }
 
 export async function get(
-  context: Client,
+  context: DemoServiceContext,
   contentType: SchemaContentTypeValues,
   body: string,
   options: GetOptionalParams = { requestOptions: {} },
@@ -642,15 +642,15 @@ export function getRequestTestHeaderSerializer(
 import type { GetRequestTestHeader } from "../models/models.js";
 import type { GetOptionalParams } from "./options.js";
 import {
-  type Client,
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
+import type { DemoServiceContext } from "../demoServiceClientContext.js";
 
 export function _getSend(
-  context: Client,
+  context: DemoServiceContext,
   testHeader: GetRequestTestHeader,
   body: string,
   options: GetOptionalParams = { requestOptions: {} },
@@ -678,7 +678,7 @@ export async function _getDeserialize(
 }
 
 export async function get(
-  context: Client,
+  context: DemoServiceContext,
   testHeader: GetRequestTestHeader,
   body: string,
   options: GetOptionalParams = { requestOptions: {} },
@@ -775,15 +775,15 @@ export enum KnownGetResponseTestHeader {
 import type { GetRequestTestHeader } from "../models/models.js";
 import type { GetOptionalParams } from "./options.js";
 import {
-  type Client,
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
+import type { DemoServiceContext } from "../demoServiceClientContext.js";
 
 export function _getSend(
-  context: Client,
+  context: DemoServiceContext,
   testHeader: GetRequestTestHeader,
   body: string,
   options: GetOptionalParams = { requestOptions: {} },
@@ -811,7 +811,7 @@ export async function _getDeserialize(
 }
 
 export async function get(
-  context: Client,
+  context: DemoServiceContext,
   testHeader: GetRequestTestHeader,
   body: string,
   options: GetOptionalParams = { requestOptions: {} },

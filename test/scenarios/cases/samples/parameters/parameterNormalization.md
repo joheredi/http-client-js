@@ -49,16 +49,16 @@ Operations
 import { listCredentialsRequestSerializer } from "../models/models.js";
 import { PostOptionalParams } from "./options.js";
 import {
-  Client,
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
 import { expandUrlTemplate } from "../static-helpers/urlTemplate.js";
+import { TestingContext } from "../testingClientContext.js";
 
 export function _postSend(
-  context: Client,
+  context: TestingContext,
   options: PostOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
   const path = expandUrlTemplate(
@@ -95,11 +95,11 @@ export async function _postDeserialize(
 /**
  * show example demo
  *
- * @param {Client} context
+ * @param {TestingContext} context
  * @param {PostOptionalParams} options
  */
 export async function post(
-  context: Client,
+  context: TestingContext,
   options: PostOptionalParams = { requestOptions: {} },
 ): Promise<void> {
   const result = await _postSend(context, options);

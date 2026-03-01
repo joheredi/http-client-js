@@ -57,16 +57,16 @@ export interface GetSecretOriginalOptionalParams extends OperationOptions {}
 ```ts operations
 import type { GetSecretOriginalOptionalParams } from "./options.js";
 import {
-  type Client,
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
 import { expandUrlTemplate } from "../static-helpers/urlTemplate.js";
+import type { KeyVaultContext } from "../keyVaultClientContext.js";
 
 export function _getSecretOriginalSend(
-  context: Client,
+  context: KeyVaultContext,
   secretName: string,
   options: GetSecretOriginalOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
@@ -92,7 +92,7 @@ export async function _getSecretOriginalDeserialize(
 }
 
 export async function getSecretOriginal(
-  context: Client,
+  context: KeyVaultContext,
   secretName: string,
   options: GetSecretOriginalOptionalParams = { requestOptions: {} },
 ): Promise<void> {
@@ -195,16 +195,16 @@ export interface GroupOriginalOptionalParams extends OperationOptions {}
 import type { GroupParametersOptions } from "../models/models.js";
 import type { GroupOriginalOptionalParams } from "./options.js";
 import {
-  type Client,
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
 import { expandUrlTemplate } from "../static-helpers/urlTemplate.js";
+import type { OverrideContext } from "../overrideClientContext.js";
 
 export function _groupOriginalSend(
-  context: Client,
+  context: OverrideContext,
   options: GroupParametersOptions,
   optionalParams: GroupOriginalOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
@@ -230,7 +230,7 @@ export async function _groupOriginalDeserialize(
 }
 
 export async function groupOriginal(
-  context: Client,
+  context: OverrideContext,
   options: GroupParametersOptions,
   optionalParams: GroupOriginalOptionalParams = { requestOptions: {} },
 ): Promise<void> {
@@ -306,16 +306,16 @@ export interface RemoveOptionalOriginalOptionalParams extends OperationOptions {
 ```ts operations
 import type { RemoveOptionalOriginalOptionalParams } from "./options.js";
 import {
-  type Client,
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
 import { expandUrlTemplate } from "../static-helpers/urlTemplate.js";
+import type { OverrideContext } from "../overrideClientContext.js";
 
 export function _removeOptionalOriginalSend(
-  context: Client,
+  context: OverrideContext,
   param1: string,
   options: RemoveOptionalOriginalOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
@@ -346,7 +346,7 @@ export async function _removeOptionalOriginalDeserialize(
 }
 
 export async function removeOptionalOriginal(
-  context: Client,
+  context: OverrideContext,
   param1: string,
   options: RemoveOptionalOriginalOptionalParams = { requestOptions: {} },
 ): Promise<void> {

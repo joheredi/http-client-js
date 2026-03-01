@@ -59,21 +59,21 @@ Should normal operation with enum parameter:
 ```ts operations
 import type { FooOptionalParams } from "./options.js";
 import {
-  type Client,
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
+import type { ContosoContext } from "../contosoClientContext.js";
 
 export function _fooSend(
-  context: Client,
+  context: ContosoContext,
   options: FooOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
   return context.path("/").get({
     ...operationOptionsToRequestParameters(options),
     headers: {
-      "api-version": (context as any).apiVersion ?? "2021-10-01-preview",
+      "api-version": context.apiVersion ?? "2021-10-01-preview",
       ...options.requestOptions?.headers,
     },
   });
@@ -91,7 +91,7 @@ export async function _fooDeserialize(
 }
 
 export async function foo(
-  context: Client,
+  context: ContosoContext,
   options: FooOptionalParams = { requestOptions: {} },
 ): Promise<void> {
   const result = await _fooSend(context, options);

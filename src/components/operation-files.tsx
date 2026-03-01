@@ -28,6 +28,8 @@ interface OperationGroup {
   prefixPath: string;
   /** The operations belonging to this group. */
   operations: SdkServiceMethod<SdkHttpOperation>[];
+  /** The root-level client entity, used for the context type reference. */
+  rootClient: SdkClientType<SdkHttpOperation>;
 }
 
 /**
@@ -109,7 +111,7 @@ function OperationGroupFile(props: OperationGroupFileProps) {
   const content = (
     <SourceFile path="operations.ts">
       <For each={group.operations} doubleHardline>
-        {(method) => <OperationDeclarations method={method} />}
+        {(method) => <OperationDeclarations method={method} rootClient={group.rootClient} />}
       </For>
     </SourceFile>
   );
@@ -133,6 +135,8 @@ function OperationGroupFile(props: OperationGroupFileProps) {
 interface OperationDeclarationsProps {
   /** The TCGC service method to render all declarations for. */
   method: SdkServiceMethod<SdkHttpOperation>;
+  /** The root-level client entity, used for the context type reference. */
+  rootClient: SdkClientType<SdkHttpOperation>;
 }
 
 /**
@@ -154,16 +158,16 @@ interface OperationDeclarationsProps {
  * @returns An Alloy JSX tree with all operation declarations.
  */
 function OperationDeclarations(props: OperationDeclarationsProps) {
-  const { method } = props;
+  const { method, rootClient } = props;
 
   return (
     <>
-      <SendOperation method={method} />
+      <SendOperation method={method} rootClient={rootClient} />
       {"\n\n"}
       <HeaderDeserializationBlock method={method} />
       <DeserializeOperation method={method} />
       {"\n\n"}
-      <PublicOperation method={method} />
+      <PublicOperation method={method} rootClient={rootClient} />
     </>
   );
 }
@@ -246,37 +250,39 @@ function HeaderDeserializationBlock(props: OperationDeclarationsProps) {
 function collectOperationGroups(
   clients: SdkClientType<SdkHttpOperation>[],
 ): OperationGroup[] {
-  const groupMap = new Map<string, SdkServiceMethod<SdkHttpOperation>[]>();
+  const groupMap = new Map<
+    string,
+    { operations: SdkServiceMethod<SdkHttpOperation>[]; rootClient: SdkClientType<SdkHttpOperation> }
+  >();
 
-  // BFS queue: [prefixes, client]
-  const queue: [string[], SdkClientType<SdkHttpOperation>][] = clients.map(
-    (c) => [[], c],
-  );
+  // BFS queue: [prefixes, currentClient, rootClient]
+  const queue: [string[], SdkClientType<SdkHttpOperation>, SdkClientType<SdkHttpOperation>][] =
+    clients.map((c) => [[], c, c]);
 
   while (queue.length > 0) {
-    const [prefixes, client] = queue.shift()!;
+    const [prefixes, client, rootClient] = queue.shift()!;
     const prefixKey = prefixes.join("/");
 
     // Collect methods from this client
     for (const method of client.methods) {
       if (!groupMap.has(prefixKey)) {
-        groupMap.set(prefixKey, []);
+        groupMap.set(prefixKey, { operations: [], rootClient });
       }
-      groupMap.get(prefixKey)!.push(method);
+      groupMap.get(prefixKey)!.operations.push(method);
     }
 
     // Enqueue child clients (operation groups) with extended prefix
     if (client.children) {
       for (const child of client.children) {
-        queue.push([[...prefixes, normalizeName(child.name)], child]);
+        queue.push([[...prefixes, normalizeName(child.name)], child, rootClient]);
       }
     }
   }
 
   // Convert map to sorted array of OperationGroup objects
   return Array.from(groupMap.entries())
-    .filter(([, ops]) => ops.length > 0)
-    .map(([prefixPath, operations]) => ({ prefixPath, operations }));
+    .filter(([, group]) => group.operations.length > 0)
+    .map(([prefixPath, group]) => ({ prefixPath, operations: group.operations, rootClient: group.rootClient }));
 }
 
 /**

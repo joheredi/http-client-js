@@ -92,16 +92,16 @@ You can extract the entire operations file using `ts operations`:
 import { type Example, exampleDeserializer } from "../models/models.js";
 import type { ReadOptionalParams } from "./options.js";
 import {
-  type Client,
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
 import { expandUrlTemplate } from "../static-helpers/urlTemplate.js";
+import type { TestingContext } from "../testingClientContext.js";
 
 export function _readSend(
-  context: Client,
+  context: TestingContext,
   id: string,
   options: ReadOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
@@ -131,7 +131,7 @@ export async function _readDeserialize(
 }
 
 export async function read(
-  context: Client,
+  context: TestingContext,
   id: string,
   options: ReadOptionalParams = { requestOptions: {} },
 ): Promise<Example> {
@@ -144,7 +144,7 @@ Or you can extract a specific operation using `ts operations function <operation
 
 ```ts operations function read
 export async function read(
-  context: Client,
+  context: TestingContext,
   id: string,
   options: ReadOptionalParams = { requestOptions: {} },
 ): Promise<Example> {

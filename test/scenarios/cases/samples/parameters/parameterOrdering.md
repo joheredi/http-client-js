@@ -73,23 +73,23 @@ import {
 } from "../../models/models.js";
 import { VerifyOptionalParams } from "./options.js";
 import {
-  Client,
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@azure-rest/core-client";
 import { expandUrlTemplate } from "../../static-helpers/urlTemplate.js";
+import { TestingContext } from "../../testingClientContext.js";
 
 export function _verifySend(
-  context: Client,
+  context: TestingContext,
   body: TestVerificationContent,
   apcGatewayId: string,
   options: VerifyOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
   const path = expandUrlTemplate(
     "/device-location/location:verify{?api%2Dversion}",
-    { "api%2Dversion": (context as any).apiVersion ?? "2022-05-15-preview" },
+    { "api%2Dversion": context.apiVersion ?? "2022-05-15-preview" },
     { allowReserved: options?.requestOptions?.skipUrlEncoding },
   );
   return context.path(path).post({
@@ -121,13 +121,13 @@ export async function _verifyDeserialize(
 /**
  * Resource action operation template.
  *
- * @param {Client} context
+ * @param {TestingContext} context
  * @param {TestVerificationContent} body
  * @param {string} apcGatewayId
  * @param {VerifyOptionalParams} options
  */
 export async function verify(
-  context: Client,
+  context: TestingContext,
   body: TestVerificationContent,
   apcGatewayId: string,
   options: VerifyOptionalParams = { requestOptions: {} },
