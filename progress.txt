@@ -1931,3 +1931,15 @@ The 4 predicate systems mentioned in BUG-1 description (needsTransformation, val
 - The clientInitialization issue likely lives in the send function generation (probably in src/components/ where operation send functions are rendered)
 - The XML null-guard issue is in the XML serializer code path
 - All other 1006 tests pass, so these are isolated regressions
+
+---
+### 2026-03-01: FIX-CLIENT-INIT-HEADERS & FIX-XML-ARRAY-SERIALIZER-NULL-GUARD — DONE (verified)
+**Status**: Both bugs were already fixed in commit 529946b ("fix tests") prior to this session.
+
+**FIX-CLIENT-INIT-HEADERS**: The `getHeaderAccessor` function in `send-operation.tsx` had an incorrect `onClient` check added (commit 6edddfd) that resolved header params to `context["param"]` / `context.apiVersion`. This was reverted in 529946b — header params now always read from `options` (or direct args), with a comment explaining the client wrapper forwards context values into options.
+
+**FIX-XML-ARRAY-SERIALIZER-NULL-GUARD**: `xmlNeedsTransformation` in `xml-object-serializer.tsx` returned `true` for arrays, causing them to be wrapped with `!item["prop"] ? item["prop"] : item["prop"]?.map(...)`. Changed to `false` since `?.map()` already handles null/undefined gracefully.
+
+**Verification**: All 1010 tests pass (3 skipped). Both scenario tests and unit tests confirm correct behavior.
+
+**PRD Status**: All tasks in prd.json are now marked as done. 0 tasks remaining.

@@ -944,7 +944,7 @@
       "title": "Fix clientInitialization header params reading from context instead of options",
       "description": "3 scenario tests fail because header parameters with clientInitialization are generated as context[\"param\"] instead of options?.param. Affected tests: (1) apiVersion/apiVersionAsFixedEnum - generates context.apiVersion instead of options?.apiVersion, (2-3) headerParam/headerParamWithClientInitialization (optional + required) - generates context[\"$expand\"] instead of options?.$expand. The send function should read these from options, not from context.",
       "category": "bug-fix",
-      "status": "not-started",
+      "status": "done",
       "priority": "P0",
       "dependencies": []
     },
@@ -953,7 +953,7 @@
       "title": "Fix XML object serializer adding unnecessary null guards around array .map()",
       "description": "Scenario test xml/xmlArrayItemTypes fails because the XML object serializer wraps array .map() calls with !item[\"prop\"] ? item[\"prop\"] : item[\"prop\"]?.map(...) instead of just item[\"prop\"]?.map(...). The extra null-guard pattern is not expected by the legacy emitter output. Affected test: payload/scenarios.test.ts > xml/xmlArrayItemTypes.md > XML Arrays with Typed Items > blockLookupListXmlObjectSerializer.",
       "category": "bug-fix",
-      "status": "not-started",
+      "status": "done",
       "priority": "P0",
       "dependencies": []
     }
