@@ -1915,3 +1915,19 @@ The 4 predicate systems mentioned in BUG-1 description (needsTransformation, val
 #### Patterns / Knowledge
 - `typeHasSerializerDeclaration` must mirror the filtering logic in `model-files.tsx`. XML models are excluded from `jsonInputModels` there, so the predicate must also exclude them.
 - XML-only models have `serializationOptions.xml` on model or properties — detected by `hasXmlSerialization()` from `src/utils/xml-detection.ts`.
+
+## SA29: Test Failure Tracking Tasks Created (2026-03-01)
+
+### What was done
+- Ran `pnpm test` and found 4 test failures across 3 test files (1006 passed, 4 failed)
+- Identified 2 distinct root causes:
+  1. **clientInitialization header params** (3 failures): Header params with clientInitialization are generated as `context["param"]` instead of `options?.param`. Affects apiVersion/apiVersionAsFixedEnum and headerParam/headerParamWithClientInitialization scenarios.
+  2. **XML object serializer null guards** (1 failure): XML object serializer wraps `.map()` calls with unnecessary `!item["prop"] ? item["prop"] : item["prop"]?.map(...)` pattern instead of just `item["prop"]?.map(...)`. Affects xml/xmlArrayItemTypes scenario.
+- Created 2 P0 tasks in prd.json: FIX-CLIENT-INIT-HEADERS and FIX-XML-ARRAY-SERIALIZER-NULL-GUARD
+- Per Rule 9, no other work was done this loop
+
+### What the next person should know
+- These failures must be fixed before any other work proceeds (P0 priority)
+- The clientInitialization issue likely lives in the send function generation (probably in src/components/ where operation send functions are rendered)
+- The XML null-guard issue is in the XML serializer code path
+- All other 1006 tests pass, so these are isolated regressions

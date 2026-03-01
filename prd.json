@@ -938,6 +938,24 @@
       "design_review": null,
       "source": "design",
       "description": "Integrate the Spector e2e tests into the CI pipeline and set up coverage reporting.\n\n## What to do\n1. Add a CI step that runs `pnpm build && pnpm test:e2e` in the existing CI workflow\n2. Ensure the Spector coverage file (`temp/spector-coverage.json`) is captured as a CI artifact\n3. Add a script to parse and summarize coverage: which Spector scenarios are covered vs not\n\n## Coverage reporting\nAfter tests complete, the Spector server writes coverage data to `temp/spector-coverage.json`. This file tracks which mock API scenarios were hit during testing.\n\nCreate `eng/scripts/calculate-coverage.ts` that:\n1. Reads `temp/spector-coverage.json`\n2. Prints a summary: N/M scenarios covered\n3. Lists uncovered scenarios\n\n## Reference\n- `submodules/typespec/packages/http-client-js/eng/scripts/calculate-coverage.js` \u2014 reference implementation\n- Spector coverage format: `CoverageReport[]` from `@typespec/spector`\n\n## Package.json script\nAdd: `\"test:e2e:ci\": \"pnpm build && pnpm test:e2e\"`\n\n## Validation\n- CI runs e2e tests successfully\n- Coverage artifact is captured"
+    },
+    {
+      "id": "FIX-CLIENT-INIT-HEADERS",
+      "title": "Fix clientInitialization header params reading from context instead of options",
+      "description": "3 scenario tests fail because header parameters with clientInitialization are generated as context[\"param\"] instead of options?.param. Affected tests: (1) apiVersion/apiVersionAsFixedEnum - generates context.apiVersion instead of options?.apiVersion, (2-3) headerParam/headerParamWithClientInitialization (optional + required) - generates context[\"$expand\"] instead of options?.$expand. The send function should read these from options, not from context.",
+      "category": "bug-fix",
+      "status": "not-started",
+      "priority": "P0",
+      "dependencies": []
+    },
+    {
+      "id": "FIX-XML-ARRAY-SERIALIZER-NULL-GUARD",
+      "title": "Fix XML object serializer adding unnecessary null guards around array .map()",
+      "description": "Scenario test xml/xmlArrayItemTypes fails because the XML object serializer wraps array .map() calls with !item[\"prop\"] ? item[\"prop\"] : item[\"prop\"]?.map(...) instead of just item[\"prop\"]?.map(...). The extra null-guard pattern is not expected by the legacy emitter output. Affected test: payload/scenarios.test.ts > xml/xmlArrayItemTypes.md > XML Arrays with Typed Items > blockLookupListXmlObjectSerializer.",
+      "category": "bug-fix",
+      "status": "not-started",
+      "priority": "P0",
+      "dependencies": []
     }
   ],
   "phases_metadata": [
