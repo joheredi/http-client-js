@@ -2045,3 +2045,33 @@ Tests: All 1010 unit tests pass. pollingHelpers.ts errors eliminated from smoke 
 - **Updated scenarios**: All 7 scenario files with `context.apiVersion` expectations updated to `(context as any).apiVersion`
 - **Smoke result**: All `Property 'version' does not exist` errors eliminated. Remaining smoke errors are SMOKE-ARRAY-PARAM-TYPES and SMOKE-PAGING-RETURN-TYPES
 - **Patterns**: Header apiVersion params follow same accessor logic as query/path apiVersion params; use param.name (not hardcoded "apiVersion") for context property access
+
+## RC23: Fix classic wrapper return types for paged operations — DONE (2026-03-01)
+
+### What was done
+Fixed the `getMethodReturnType` function in both `classical-client.tsx` and `classical-operation-groups.tsx` to handle paging, LRO, and LRO+paging operation kinds correctly.
+
+**Before**: All operations returned `Promise<T>` regardless of method kind.
+**After**: Method kind is checked:
+- `paging` / `lropaging` (azure flavor) → `PagedAsyncIterableIterator<T>`
+- `lro` (azure flavor) → `PollerLike<OperationState<T>, T>`
+- `basic` or any kind in core flavor → `Promise<T>`
+
+### Files changed
+- `src/components/public-operation.tsx` — exported `getPagingItemType` function
+- `src/components/classical-client.tsx` — updated `getMethodReturnType`, added imports for TCGC paging types, flavor context, paging refkeys, and LRO external package
+- `src/components/classical-operation-groups.tsx` — same updates as classical-client
+- `test/components/classical-client.test.tsx` — added 2 tests: azure flavor paging returns PagedAsyncIterableIterator, core flavor paging returns Promise
+- `test/components/classical-operation-groups.test.tsx` — added 2 tests: same pattern for operation group interfaces
+
+### Patterns used
+- Reused `getPagingItemType` from `public-operation.tsx` to extract paging element type from TCGC metadata
+- Used `useFlavorContext()` to gate paging/LRO return types behind azure flavor
+- Used `pagingHelperRefkey("PagedAsyncIterableIterator")` for paging return type (Alloy auto-imports)
+- Used `azureCoreLroLib.PollerLike` / `azureCoreLroLib.OperationState` for LRO return types
+
+### What the next person should know
+- The smoke test still fails with 8 errors: 4 `buildCsvCollection` type errors (SMOKE-ARRAY-PARAM-TYPES) and 3 `PromiseLike` vs `Promise` errors + 1 more enum array error
+- The 3 classic wrapper return type errors (PagedAsyncIterableIterator vs Promise) are now resolved
+- TCGC modifies `method.response.type` for paging operations: it becomes the items array type (e.g., `Item[]`), NOT the wrapper model (e.g., `ItemList`). This is why `getPagingItemType` extracts from `pagingMetadata.pageItemsSegments` instead of using `response.type` directly.
+- For tests with azure flavor, use `azureExternals` from `src/emitter.js` as the externals prop, NOT just `httpRuntimeLib`

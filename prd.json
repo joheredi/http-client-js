@@ -997,7 +997,7 @@
       "id": "SMOKE-PAGING-RETURN-TYPES",
       "title": "Fix classic wrapper return types for paged operations",
       "category": "smoke-fix",
-      "status": "not-started",
+      "status": "done",
       "priority": "critical",
       "dependencies": [],
       "description": "Classic wrapper methods for paged operations are typed as returning Promise<T[]> but the underlying API operations return PagedAsyncIterableIterator<T>. Affects container/index.ts (listBlobs, listBlobHierarchySegment) and service/index.ts (listContainers). The classic wrapper needs to propagate the correct paged return type."

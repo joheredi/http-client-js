@@ -51,6 +51,7 @@ import { DeserializeOperation } from "../../src/components/deserialize-operation
 import { classicalClientRefkey } from "../../src/utils/refkeys.js";
 import { createEmitterNamePolicy } from "../../src/utils/name-policy.js";
 import { httpRuntimeLib } from "../../src/utils/external-packages.js";
+import { azureExternals } from "../../src/emitter.js";
 import {
   TesterWithService,
   RawTester,
@@ -58,6 +59,9 @@ import {
 } from "../test-host.js";
 import { SdkTestFile } from "../utils.jsx";
 import { SdkContextProvider } from "../../src/context/sdk-context.js";
+import { FlavorProvider } from "../../src/context/flavor-context.js";
+import { EmitterOptionsProvider } from "../../src/context/emitter-options-context.js";
+import { PagingHelpersFile } from "../../src/components/static-helpers/paging-helpers.js";
 
 /**
  * Helper to extract the first client from an SDK context.
@@ -695,5 +699,180 @@ describe("ClassicalClient ARM constructor", () => {
     expect(result).toContain("endpointParam: string");
     // The factory call should use "endpointParam", NOT the raw "endpoint"
     expect(result).toContain("createTesting(endpointParam, {");
+  });
+});
+
+/**
+ * Test suite for paging and LRO return types in classical client methods.
+ *
+ * The classical client must propagate the correct return type from the
+ * public API function. For Azure flavor:
+ * - Paging operations return PagedAsyncIterableIterator<T>
+ * - LRO operations return PollerLike<OperationState<T>, T>
+ * For core flavor, all operations return Promise<T>.
+ *
+ * What is tested:
+ * - Paging operation method returns PagedAsyncIterableIterator<T> in azure flavor
+ * - Paging operation method returns Promise<T> in core flavor
+ *
+ * Why this matters:
+ * The classical client is a thin wrapper around the public API. If the
+ * return types don't match, TypeScript will report type errors because
+ * the non-async class method returns the API function's result directly.
+ * For paging ops, the API returns PagedAsyncIterableIterator (not Promise),
+ * so the class method must declare the same return type.
+ */
+describe("ClassicalClient paging/LRO return types", () => {
+  /**
+   * Tests that a paging operation in azure flavor generates the correct
+   * PagedAsyncIterableIterator<T> return type on the classical client method.
+   *
+   * Without this, the classical client would declare Promise<ItemList> as
+   * the return type, but the underlying API function returns
+   * PagedAsyncIterableIterator<Item>, causing a TypeScript type mismatch.
+   */
+  it("should return PagedAsyncIterableIterator for paging ops in azure flavor", async () => {
+    const runner = await TesterWithService.createInstance();
+    const { program } = await runner.compile(
+      t.code`
+        using Azure.ClientGenerator.Core;
+
+        model ItemList {
+          @pageItems
+          items: Item[];
+        }
+
+        model Item {
+          name: string;
+          value: int32;
+        }
+
+        @list @post op ${t.op("listItems")}(): ItemList;
+      `,
+    );
+
+    const sdkContext = await createSdkContextForTest(program);
+    const client = getFirstClient(sdkContext);
+    const methods = client.methods;
+
+    const template = (
+      <Output
+        program={sdkContext.emitContext.program}
+        namePolicy={createTSNamePolicy()}
+        externals={azureExternals}
+      >
+        <FlavorProvider flavor="azure">
+          <EmitterOptionsProvider options={{}}>
+            <SdkContextProvider sdkContext={sdkContext}>
+              <PagingHelpersFile />
+              <SourceFile path="api/testingClientContext.ts">
+                <ClientContextDeclaration client={client} />
+                <ClientContextOptionsDeclaration client={client} />
+                <ClientContextFactory client={client} />
+              </SourceFile>
+              <SourceFile path="api/operations.ts">
+                {methods.map((method: any, i: number) => (
+                  <>
+                    {i > 0 && "\n\n"}
+                    <OperationOptionsDeclaration method={method} />
+                    {"\n\n"}
+                    <SendOperation method={method} />
+                    {"\n\n"}
+                    <DeserializeOperation method={method} />
+                    {"\n\n"}
+                    <PublicOperation method={method} />
+                  </>
+                ))}
+              </SourceFile>
+              <SourceFile path="testingClient.ts">
+                <ClassicalClientDeclaration client={client} />
+              </SourceFile>
+            </SdkContextProvider>
+          </EmitterOptionsProvider>
+        </FlavorProvider>
+      </Output>
+    );
+
+    const result = renderToString(template);
+
+    // The classical client method return type should use PagedAsyncIterableIterator
+    // The output contains all files; check that the paging-specific return type
+    // appears somewhere in the classical client's listItems method
+    expect(result).toContain("PagedAsyncIterableIterator");
+    // Verify it's used as a method return type (closing paren followed by return type)
+    expect(result).toContain("): PagedAsyncIterableIterator");
+  });
+
+  /**
+   * Tests that a paging operation in core flavor falls back to Promise<T>,
+   * since core flavor does not support Azure-specific paging patterns.
+   */
+  it("should return Promise<T> for paging ops in core flavor", async () => {
+    const runner = await TesterWithService.createInstance();
+    const { program } = await runner.compile(
+      t.code`
+        using Azure.ClientGenerator.Core;
+
+        model ItemList {
+          @pageItems
+          items: Item[];
+        }
+
+        model Item {
+          name: string;
+          value: int32;
+        }
+
+        @list @post op ${t.op("listItems")}(): ItemList;
+      `,
+    );
+
+    const sdkContext = await createSdkContextForTest(program);
+    const client = getFirstClient(sdkContext);
+    const methods = client.methods;
+
+    const template = (
+      <Output
+        program={sdkContext.emitContext.program}
+        namePolicy={createTSNamePolicy()}
+        externals={[httpRuntimeLib]}
+      >
+        <FlavorProvider flavor="core">
+          <EmitterOptionsProvider options={{}}>
+            <SdkContextProvider sdkContext={sdkContext}>
+              <SourceFile path="api/testingClientContext.ts">
+                <ClientContextDeclaration client={client} />
+                <ClientContextOptionsDeclaration client={client} />
+                <ClientContextFactory client={client} />
+              </SourceFile>
+              <SourceFile path="api/operations.ts">
+                {methods.map((method: any, i: number) => (
+                  <>
+                    {i > 0 && "\n\n"}
+                    <OperationOptionsDeclaration method={method} />
+                    {"\n\n"}
+                    <SendOperation method={method} />
+                    {"\n\n"}
+                    <DeserializeOperation method={method} />
+                    {"\n\n"}
+                    <PublicOperation method={method} />
+                  </>
+                ))}
+              </SourceFile>
+              <SourceFile path="testingClient.ts">
+                <ClassicalClientDeclaration client={client} />
+              </SourceFile>
+            </SdkContextProvider>
+          </EmitterOptionsProvider>
+        </FlavorProvider>
+      </Output>
+    );
+
+    const result = renderToString(template);
+
+    // Core flavor should NOT use PagedAsyncIterableIterator anywhere
+    expect(result).not.toContain("PagedAsyncIterableIterator");
+    // Core flavor should use Promise for the return type (closing paren + return type)
+    expect(result).toContain("): Promise<");
   });
 });

@@ -2162,3 +2162,13 @@ declarations are actually generated.
 
 ## Context parameter typing TODO
 - Operations in send-operation.tsx and public-operation.tsx type the context parameter as `runtimeLib.Client` (the base REST client interface). The actual context type at runtime is the specific client context (e.g., `BlobContext extends Client`) which has custom properties like `version`. Fixing this requires using `clientContextRefkey(rootClient)` and updating 49+ scenario test expectations. See task FIX-CONTEXT-PARAM-TYPE.
+
+## Design Decisions
+
+### Classical Wrapper Return Types for Paging/LRO (RC23)
+**Approach chosen**: Export `getPagingItemType` from `public-operation.tsx` and reuse it in both classical files. Use `useFlavorContext()` to gate Azure-specific return types.
+**Why**: DRY approach with single source of truth for paging element type extraction. The classical layer naturally depends on the public operation layer's type computations.
+**Rejected**: Duplicating `getPagingItemType` inline in each file (would create maintenance burden and risk divergence).
+
+### Testing Azure Flavor in Classical Components
+**Pattern**: Use `azureExternals` from `src/emitter.js` (not just `httpRuntimeLib`) when testing with `FlavorProvider flavor="azure"`. Include `PagingHelpersFile` in the render tree so that `pagingHelperRefkey("PagedAsyncIterableIterator")` resolves.

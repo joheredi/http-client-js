@@ -55,8 +55,12 @@ import {
   operationGroupFactoryRefkey,
 } from "../../src/utils/refkeys.js";
 import { httpRuntimeLib } from "../../src/utils/external-packages.js";
+import { azureExternals } from "../../src/emitter.js";
 import { TesterWithService, createSdkContextForTest } from "../test-host.js";
 import { SdkContextProvider } from "../../src/context/sdk-context.js";
+import { FlavorProvider } from "../../src/context/flavor-context.js";
+import { EmitterOptionsProvider } from "../../src/context/emitter-options-context.js";
+import { PagingHelpersFile } from "../../src/components/static-helpers/paging-helpers.js";
 
 /**
  * Helper to extract the first client from an SDK context.
@@ -606,5 +610,179 @@ describe("ClassicalOperationGroups", () => {
     // Should not produce classic/ files
     const result = renderToString(template);
     expect(result).not.toContain("classic/");
+  });
+});
+
+/**
+ * Test suite for paging return types in operation group interfaces.
+ *
+ * The operation group interface method signatures must match the public
+ * API function return types. For Azure flavor:
+ * - Paging operations return PagedAsyncIterableIterator<T>
+ * For core flavor, all operations return Promise<T>.
+ *
+ * What is tested:
+ * - Paging operation in azure flavor generates PagedAsyncIterableIterator<T>
+ *   in the interface method signature instead of Promise<T>.
+ * - Paging operation in core flavor falls back to Promise<T>.
+ *
+ * Why this matters:
+ * The operation group interface defines the contract for the operation group
+ * object. If the return type is wrong, TypeScript will reject the factory
+ * function's return value because the underlying public API function returns
+ * PagedAsyncIterableIterator (not Promise) for paged operations.
+ */
+describe("ClassicalOperationGroups paging return types", () => {
+  /**
+   * Tests that a paging operation in azure flavor generates the correct
+   * PagedAsyncIterableIterator<T> return type in the operation group interface.
+   */
+  it("should return PagedAsyncIterableIterator for paging ops in azure flavor", async () => {
+    const runner = await TesterWithService.createInstance();
+    const { program } = await runner.compile(
+      t.code`
+        using Azure.ClientGenerator.Core;
+
+        model ItemList {
+          @pageItems
+          items: Item[];
+        }
+
+        model Item {
+          name: string;
+          value: int32;
+        }
+
+        @route("/widgets")
+        namespace Widgets {
+          @list @get op ${t.op("listWidgets")}(): ItemList;
+        }
+      `,
+    );
+
+    const sdkContext = await createSdkContextForTest(program);
+    const root = getFirstClient(sdkContext);
+    const allMethods = collectAllMethods(root);
+
+    const template = (
+      <Output
+        program={sdkContext.emitContext.program}
+        namePolicy={createTSNamePolicy()}
+        externals={azureExternals}
+      >
+        <FlavorProvider flavor="azure">
+          <EmitterOptionsProvider options={{}}>
+            <SdkContextProvider sdkContext={sdkContext}>
+              <PagingHelpersFile />
+              <SourceFile path="api/testingContext.ts">
+                <ClientContextDeclaration client={root} />
+                <ClientContextOptionsDeclaration client={root} />
+                <ClientContextFactory client={root} />
+              </SourceFile>
+              {allMethods.length > 0 && (
+                <SourceFile path="api/operations.ts">
+                  {allMethods.map((method: any, i: number) => (
+                    <>
+                      {i > 0 && "\n\n"}
+                      <OperationOptionsDeclaration method={method} />
+                      {"\n\n"}
+                      <SendOperation method={method} />
+                      {"\n\n"}
+                      <DeserializeOperation method={method} />
+                      {"\n\n"}
+                      <PublicOperation method={method} />
+                    </>
+                  ))}
+                </SourceFile>
+              )}
+              <ClassicalOperationGroupFiles client={root} />
+            </SdkContextProvider>
+          </EmitterOptionsProvider>
+        </FlavorProvider>
+      </Output>
+    );
+
+    const result = renderToString(template);
+
+    // The interface method should use PagedAsyncIterableIterator for the paging operation
+    expect(result).toContain("PagedAsyncIterableIterator");
+    // Verify it's used as the return type in the interface method signature
+    expect(result).toContain("=> PagedAsyncIterableIterator");
+  });
+
+  /**
+   * Tests that a paging operation in core flavor falls back to Promise<T>,
+   * since core flavor does not support Azure-specific paging patterns.
+   */
+  it("should return Promise<T> for paging ops in core flavor", async () => {
+    const runner = await TesterWithService.createInstance();
+    const { program } = await runner.compile(
+      t.code`
+        using Azure.ClientGenerator.Core;
+
+        model ItemList {
+          @pageItems
+          items: Item[];
+        }
+
+        model Item {
+          name: string;
+          value: int32;
+        }
+
+        @route("/widgets")
+        namespace Widgets {
+          @list @get op ${t.op("listWidgets")}(): ItemList;
+        }
+      `,
+    );
+
+    const sdkContext = await createSdkContextForTest(program);
+    const root = getFirstClient(sdkContext);
+    const allMethods = collectAllMethods(root);
+
+    const template = (
+      <Output
+        program={sdkContext.emitContext.program}
+        namePolicy={createTSNamePolicy()}
+        externals={[httpRuntimeLib]}
+      >
+        <FlavorProvider flavor="core">
+          <EmitterOptionsProvider options={{}}>
+            <SdkContextProvider sdkContext={sdkContext}>
+              <SourceFile path="api/testingContext.ts">
+                <ClientContextDeclaration client={root} />
+                <ClientContextOptionsDeclaration client={root} />
+                <ClientContextFactory client={root} />
+              </SourceFile>
+              {allMethods.length > 0 && (
+                <SourceFile path="api/operations.ts">
+                  {allMethods.map((method: any, i: number) => (
+                    <>
+                      {i > 0 && "\n\n"}
+                      <OperationOptionsDeclaration method={method} />
+                      {"\n\n"}
+                      <SendOperation method={method} />
+                      {"\n\n"}
+                      <DeserializeOperation method={method} />
+                      {"\n\n"}
+                      <PublicOperation method={method} />
+                    </>
+                  ))}
+                </SourceFile>
+              )}
+              <ClassicalOperationGroupFiles client={root} />
+            </SdkContextProvider>
+          </EmitterOptionsProvider>
+        </FlavorProvider>
+      </Output>
+    );
+
+    const result = renderToString(template);
+
+    // Core flavor should NOT use PagedAsyncIterableIterator anywhere
+    expect(result).not.toContain("PagedAsyncIterableIterator");
+    // Core flavor should use Promise in the interface method
+    expect(result).toContain("=> Promise<");
   });
 });

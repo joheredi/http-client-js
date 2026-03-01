@@ -655,7 +655,7 @@ function collectAllProperties(model: SdkModelType): SdkModelPropertyType[] {
  * @param method - The TCGC paging service method.
  * @returns Alloy Children representing the element type.
  */
-function getPagingItemType(
+export function getPagingItemType(
   method:
     | SdkPagingServiceMethod<SdkHttpOperation>
     | SdkLroPagingServiceMethod<SdkHttpOperation>,

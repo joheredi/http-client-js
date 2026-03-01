@@ -11,9 +11,13 @@ import type {
   SdkCredentialParameter,
   SdkEndpointParameter,
   SdkHttpOperation,
+  SdkLroPagingServiceMethod,
+  SdkLroServiceMethod,
+  SdkPagingServiceMethod,
   SdkServiceMethod,
 } from "@azure-tools/typespec-client-generator-core";
-import { useRuntimeLib } from "../context/flavor-context.js";
+import { useFlavorContext, useRuntimeLib } from "../context/flavor-context.js";
+import { azureCoreLroLib } from "../utils/external-packages.js";
 import { getEscapedParameterName } from "../utils/name-policy.js";
 import {
   classicalClientRefkey,
@@ -23,9 +27,11 @@ import {
   operationGroupFactoryRefkey,
   operationGroupInterfaceRefkey,
   operationOptionsRefkey,
+  pagingHelperRefkey,
   publicOperationRefkey,
 } from "../utils/refkeys.js";
 import { getClientName, getRequiredMethodParams } from "./client-context.js";
+import { getPagingItemType } from "./public-operation.js";
 import {
   getOptionsParamName,
   isRequiredSignatureParameter,
@@ -413,8 +419,10 @@ function buildMethodParameters(
  *
  * The return type matches the public operation function's return type:
  * - Basic operations: `Promise<T>` (or `Promise<void>`)
- * - Paging operations: `PagedAsyncIterableIterator<T>`
- * - LRO operations: `PollerLike<OperationState<T>, T>`
+ * - Paging operations (azure flavor): `PagedAsyncIterableIterator<T>`
+ * - LRO operations (azure flavor): `PollerLike<OperationState<T>, T>`
+ * - LRO+Paging operations (azure flavor): `PagedAsyncIterableIterator<T>`
+ * - Core flavor: always `Promise<T>` regardless of method kind
  *
  * For basic operations, `Promise<...>` is manually constructed since
  * the class method is NOT async (it returns the promise from the API
@@ -426,10 +434,28 @@ function buildMethodParameters(
 function getMethodReturnType(
   method: SdkServiceMethod<SdkHttpOperation>,
 ): Children {
+  const { flavor } = useFlavorContext();
+
+  // Azure flavor supports paging and LRO-specific return types
+  if (flavor !== "core") {
+    if (method.kind === "paging" || method.kind === "lropaging") {
+      const innerType = getPagingItemType(
+        method as
+          | SdkPagingServiceMethod<SdkHttpOperation>
+          | SdkLroPagingServiceMethod<SdkHttpOperation>,
+      );
+      return code`${pagingHelperRefkey("PagedAsyncIterableIterator")}<${innerType}>`;
+    }
+    if (method.kind === "lro") {
+      const responseType = method.response.type;
+      const innerType = responseType ? getTypeExpression(responseType) : "void";
+      return code`${azureCoreLroLib.PollerLike}<${azureCoreLroLib.OperationState}<${innerType}>, ${innerType}>`;
+    }
+  }
+
+  // Basic operations and core flavor: Promise<T>
   const responseType = method.response.type;
   const innerType = responseType ? getTypeExpression(responseType) : "void";
-
-  // Basic operations return Promise<T>
   return code`Promise<${innerType}>`;
 }
 
