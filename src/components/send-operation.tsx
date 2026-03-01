@@ -31,6 +31,7 @@ import {
 import {
   getEscapedOperationName,
   getEscapedParameterName,
+  normalizePropertyName,
 } from "../utils/name-policy.js";
 
 /**
@@ -408,9 +409,10 @@ function getParameterAccessor(
     return getEscapedParameterName(correspondingParam.name);
   }
 
-  // Optional params come from the options bag
+  // Optional params come from the options bag. Use normalizePropertyName to match
+  // the camelCase name policy applied by Alloy to interface-member names.
   const optionsName = getOptionsParamName(method);
-  const accessor = `${optionsName}?.${correspondingParam.name}`;
+  const accessor = `${optionsName}?.${normalizePropertyName(correspondingParam.name)}`;
   return applyClientDefault(accessor, correspondingParam as SdkMethodParameter);
 }
 
@@ -591,7 +593,7 @@ function getContentTypeExpression(
           return getEscapedParameterName(corresponding.name);
         }
         const optionsName = getOptionsParamName(method);
-        const accessor = `${optionsName}?.${corresponding.name}`;
+        const accessor = `${optionsName}?.${normalizePropertyName(corresponding.name)}`;
         return applyClientDefault(accessor, corresponding);
       }
     }
@@ -742,7 +744,7 @@ function getHeaderAccessor(
     const isRequired = isRequiredSignatureParameter(corresponding);
     const optionsName = getOptionsParamName(method);
     if (isRequired) return getEscapedParameterName(corresponding.name);
-    const accessor = `${optionsName}?.${corresponding.name}`;
+    const accessor = `${optionsName}?.${normalizePropertyName(corresponding.name)}`;
     return applyClientDefault(accessor, corresponding);
   }
 
@@ -971,7 +973,7 @@ function getBodyAccessor(
     const isRequired = isRequiredSignatureParameter(corresponding);
     const optionsName = getOptionsParamName(method);
     if (isRequired) return getEscapedParameterName(corresponding.name);
-    const accessor = `${optionsName}?.${corresponding.name}`;
+    const accessor = `${optionsName}?.${normalizePropertyName(corresponding.name)}`;
     return applyClientDefault(accessor, corresponding);
   }
 

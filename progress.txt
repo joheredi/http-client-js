@@ -2005,3 +2005,32 @@ Fixes (in `src/components/static-helpers/polling-helpers.tsx`):
 Pattern for future: When two interfaces in the same SourceFile need type parameters with the same name, use different names to avoid Alloy's name conflict resolver. Type parameter names are just labels — consumers pass their own type arguments. Also, prefer built-in `Error` type over `runtimeLib.RestError` for interface error fields since not all runtime packages export `RestError`.
 
 Tests: All 1010 unit tests pass. pollingHelpers.ts errors eliminated from smoke test. Remaining smoke errors are from other tasks.
+
+---
+
+## 2026-03-01 — RC24: Fix operations using wrong property casing for option params (SMOKE-PROPERTY-CASING)
+
+### What was done
+- Fixed property name casing mismatch between options interfaces and operation code in `send-operation.tsx`
+- Options interfaces use Alloy's name policy which applies `camelCase()` to interface-member names
+- Operation code was using raw TCGC `corresponding.name` when building `options?.propName` accessors
+- Added `normalizePropertyName()` calls at all 4 option accessor sites:
+  - `getParameterAccessor` (query params)
+  - `getContentTypeExpression` (content type params)
+  - `getHeaderAccessor` (header params)
+  - `getBodyAccessor` (body params)
+- Updated scenario test `parameterNormalization.md` to expect the corrected camelCase names
+
+### Patterns used
+- `normalizePropertyName(name)` from `src/utils/name-policy.ts` applies the same `camelCase(name, caseOptions)` as Alloy's name policy for `interface-member` elements
+- This ensures operation code references match the options interface property names
+
+### Results
+- All 1010 unit/scenario tests pass
+- Smoke test: eliminated all property casing compilation errors (BlobTagsString, transactionalContentMD5, PreventEncryptionScopeOverride)
+- Remaining smoke test errors are tracked by other tasks (SMOKE-API-VERSION-IN-OPS, SMOKE-PAGING-RETURN-TYPES, SMOKE-ARRAY-PARAM-TYPES)
+
+### Notes for next person
+- When accessing option properties in generated code, always use `normalizePropertyName()` to match Alloy's name policy
+- The `getEscapedParameterName()` function already applies camelCase for required function parameters
+- Only optional parameters accessed via `options?.` needed the fix since required params already went through `getEscapedParameterName()`

@@ -2144,3 +2144,13 @@ declarations are actually generated.
 **Problem**: The `@azure-rest/core-client` package does not export `RestError` as a named export. Using `runtimeLib.RestError` in Azure-flavored output causes `TS2305: Module has no exported member 'RestError'`.
 
 **Fix**: For interface type annotations (like `OperationState.error`), use the built-in `Error` type instead of `runtimeLib.RestError`. The legacy `@azure/core-lro` OperationState also uses plain `Error`. Only use `runtimeLib.createRestError()` (function call) which IS properly exported.
+
+## Design Decision: Option Property Accessor Normalization (SMOKE-PROPERTY-CASING)
+
+**Problem**: Options interface property names go through Alloy's name policy (`camelCase()` for `interface-member`), but `send-operation.tsx` was using raw TCGC `corresponding.name` for `options?.propName` accessors, causing casing mismatches (e.g., `BlobTagsString` vs `blobTagsString`).
+
+**Chosen approach**: Use `normalizePropertyName()` from `name-policy.ts` at all 4 option accessor sites in `send-operation.tsx`. This function applies the exact same `camelCase(name, caseOptions)` transformation as Alloy's name policy for interface members.
+
+**Rejected approach**: Modifying the options interface to skip the name policy — this would break the convention that all interface members use camelCase and would be inconsistent with the rest of the codebase.
+
+**Key rule**: When referencing options properties in generated operation code, ALWAYS use `normalizePropertyName()` to match the camelCase name policy. Required parameters (direct function args) already use `getEscapedParameterName()` which applies camelCase.

@@ -988,7 +988,7 @@
       "id": "SMOKE-PROPERTY-CASING",
       "title": "Fix operations using wrong property casing for option params",
       "category": "smoke-fix",
-      "status": "not-started",
+      "status": "done",
       "priority": "critical",
       "dependencies": [],
       "description": "Generated operations access option properties with wrong casing: 'BlobTagsString' should be 'blobTagsString', 'PreventEncryptionScopeOverride' should be 'preventEncryptionScopeOverride', 'transactionalContentMD5' should be 'transactionalContentMd5'. The operation send function uses the original wire name instead of the camelCase name from the options interface. This is a name policy consistency issue between model interfaces and operation code."

@@ -63,21 +63,21 @@ export function _postSend(
 ): StreamableMethod {
   const path = expandUrlTemplate(
     "{/PATH_PARAM}{?QUERY_PARAM}",
-    { QUERY_PARAM: options?.QUERY_PARAM, PATH_PARAM: options?.PATH_PARAM },
+    { QUERY_PARAM: options?.queryParam, PATH_PARAM: options?.pathParam },
     { allowReserved: options?.requestOptions?.skipUrlEncoding },
   );
   return context.path(path).post({
     ...operationOptionsToRequestParameters(options),
     contentType: "application/json",
     headers: {
-      ...(options?.HEADER_PARAM !== undefined
-        ? { header_param: options?.HEADER_PARAM }
+      ...(options?.headerParam !== undefined
+        ? { header_param: options?.headerParam }
         : {}),
       ...options.requestOptions?.headers,
     },
-    body: !options?.ListCredentialsRequest
-      ? options?.ListCredentialsRequest
-      : listCredentialsRequestSerializer(options?.ListCredentialsRequest),
+    body: !options?.listCredentialsRequest
+      ? options?.listCredentialsRequest
+      : listCredentialsRequestSerializer(options?.listCredentialsRequest),
   });
 }
 
