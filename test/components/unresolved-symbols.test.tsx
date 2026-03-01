@@ -270,4 +270,78 @@ describe("Unresolved Symbol Prevention", () => {
     expect(typeof result).not.toBe("string");
     expect(needsTransformation(inputModel)).toBe(true);
   });
+
+  /**
+   * Regression test for BUG-1: Array deserialization of models without
+   * deserializer declarations must not produce unresolved refkeys.
+   *
+   * When a model has only Input usage (no Output/Exception), it has no
+   * JsonDeserializer declaration. If such a model appears as an array element
+   * type, `getDeserializationExpression` must return a passthrough for the
+   * element — NOT a deserializerRefkey reference that would be unresolved.
+   *
+   * The fix uses the unified `typeHasDeserializerDeclaration` predicate in
+   * all code paths (getDeserializationExpression, valueTypeHasNamedDeserializerFn,
+   * collectArrayTypes) so they agree on which types have declarations.
+   */
+  it("should passthrough input-only model properties in deserializers (BUG-1)", async () => {
+    const { getDeserializationExpression } =
+      await import("../../src/components/serialization/json-deserializer.js");
+
+    // Create a mock model type with only Input usage (no Output/Exception).
+    // This model would NOT get a JsonDeserializer declaration.
+    const inputOnlyModel = {
+      kind: "model" as const,
+      usage: UsageFlags.Input,
+      name: "InputOnlyModel",
+      properties: [],
+    } as unknown as SdkModelType;
+
+    // Deserialization of an input-only model should return the accessor as-is
+    // (passthrough) since there's no deserializer for Input-only models.
+    const result = getDeserializationExpression(
+      inputOnlyModel,
+      'item["data"]',
+    );
+    expect(result).toBe('item["data"]');
+  });
+
+  /**
+   * Regression test for BUG-1: Verifies that the unified predicate
+   * `typeHasDeserializerDeclaration` correctly identifies which types
+   * have deserializer declarations, preventing unresolved refkeys in
+   * array/dict deserialization.
+   */
+  it("should agree on deserializer declaration presence across predicates (BUG-1)", async () => {
+    const { typeHasDeserializerDeclaration } =
+      await import("../../src/utils/serialization-predicates.js");
+
+    const inputOnly = {
+      kind: "model" as const,
+      usage: UsageFlags.Input,
+      name: "InputModel",
+      properties: [],
+    } as unknown as SdkModelType;
+
+    const outputModel = {
+      kind: "model" as const,
+      usage: UsageFlags.Output,
+      name: "OutputModel",
+      properties: [],
+    } as unknown as SdkModelType;
+
+    const bothModel = {
+      kind: "model" as const,
+      usage: UsageFlags.Input | UsageFlags.Output,
+      name: "BothModel",
+      properties: [],
+    } as unknown as SdkModelType;
+
+    // Input-only models have no deserializer
+    expect(typeHasDeserializerDeclaration(inputOnly)).toBe(false);
+    // Output models have a deserializer
+    expect(typeHasDeserializerDeclaration(outputModel)).toBe(true);
+    // Input+Output models have a deserializer
+    expect(typeHasDeserializerDeclaration(bothModel)).toBe(true);
+  });
 });

@@ -780,7 +780,7 @@
       "title": "Fix array deserialization producing unresolved refkeys",
       "category": "serialization/JSON",
       "priority": "P0",
-      "status": "pending",
+      "status": "done",
       "description": "getDeserializationExpression in json-deserializer.tsx produces <Unresolved Symbol> for array element types that pass needsTransformation() but lack a corresponding deserializer declaration. The root cause is inconsistency across 4 parallel predicate systems (needsTransformation, valueTypeHasNamedDeserializerFn, valueTypeHasNamedDeserializer, and guards in getDeserializationExpression). Recommended fix: Approach A \u2014 create unified typeHasDeserializerDeclaration/typeHasSerializerDeclaration predicate functions as a single source of truth, and wire them into getDeserializationExpression and getSerializationExpression guards. See docs/design-reviews/serialization-and-options-bugs.md Issue 1 for full design review with 3 approaches analyzed.",
       "source": "investigation",
       "kind": "bug",

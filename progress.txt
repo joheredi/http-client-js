@@ -1836,3 +1836,29 @@ Used `namekey(name, { ignoreNamePolicy: true })` on each type parameter individu
 ### Notes for next iteration
 - All 57 PRD tasks are now done (56 were already done, SMOKE-7 was the last pending one)
 - 17 pre-existing test failures remain (model-files, operation-files, operation-options-files, unresolved-symbols, scenarios) — all confirmed pre-existing before this change
+
+## SA30: BUG-1 Verify array deserialization unified predicates — DONE (2026-03-01)
+
+### What was done
+- Verified that BUG-1 (array deserialization producing unresolved refkeys) is already resolved
+- The unified predicates `typeHasDeserializerDeclaration` and `typeHasSerializerDeclaration` exist in `src/utils/serialization-predicates.ts` and are properly wired into all 6 code paths:
+  - `getDeserializationExpression()` model/union guards (json-deserializer.tsx)
+  - `getSerializationExpression()` model/union guards (json-serializer.tsx)
+  - `valueTypeHasNamedDeserializerFn()` (json-deserializer.tsx)
+  - `valueTypeHasNamedSerializerFn()` (json-serializer.tsx)
+  - `valueTypeHasNamedDeserializer()` / `valueTypeHasNamedSerializer()` (json-array-record-helpers.tsx)
+  - `collectArrayTypes()` / `collectDictTypes()` (json-array-record-helpers.tsx)
+- Added 2 regression tests in `test/components/unresolved-symbols.test.tsx`:
+  1. "should passthrough input-only model properties in deserializers (BUG-1)" — verifies getDeserializationExpression returns passthrough for models without deserializer declarations
+  2. "should agree on deserializer declaration presence across predicates (BUG-1)" — verifies typeHasDeserializerDeclaration returns correct results for Input-only, Output-only, and Input+Output models
+
+### Key insight
+The 4 predicate systems mentioned in BUG-1 description (needsTransformation, valueTypeHasNamedDeserializerFn, valueTypeHasNamedDeserializer, getDeserializationExpression guards) are now all unified through `typeHasDeserializerDeclaration`. `needsTransformation()` returns true for ALL models (even those without declarations), but this is safe because:
+1. Array path: valueTypeHasNamedDeserializerFn checks declaration → false → falls to inline .map()
+2. Inline .map(): calls getDeserializationExpression(model) → checks declaration → false → returns passthrough
+3. Result: `items.map((p) => { return p; })` — no unresolved symbol, just a no-op
+
+### Pre-existing failures (4, unchanged)
+- apiVersion/apiVersionAsFixedEnum: context vs options issue
+- headerParam/headerParamWithClientInitialization (x2): context vs options issue
+- xml/xmlArrayItemTypes: extra null-check in XML serializer
