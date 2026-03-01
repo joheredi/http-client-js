@@ -545,7 +545,7 @@
       "title": "Fix Content-Type for bare scalar body parameters (text/plain vs application/json)",
       "category": "bug-fix/emitter",
       "priority": "P1",
-      "status": "pending",
+      "status": "done",
       "kind": "feature",
       "dependencies": [],
       "design_review": null,
@@ -697,6 +697,18 @@
       "design_review": null,
       "source": "e2e-test-investigation",
       "description": "Fix 6 skipped e2e tests caused by missing encoding/content-type handling for standalone `@body` bytes parameters.\n\nNOTE: Bytes query (4 tests) and header (4 tests) issues are in E2E-FIX-QUERY-PARAM-ENCODING and E2E-FIX-HEADER-PARAM-ENCODING.\n\n## Problem\n\nWhen a TypeSpec operation has a bare `@body bytes` with `@encode`, the emitter passes raw `Uint8Array` directly as HTTP body without encoding. For JSON bytes, body should be base64 string. For binary, raw bytes with correct content-type.\n\n## Affected Tests (6)\n\n### Request Body (3)\n| Test file | Test name | Line | Expected |\n|-----------|-----------|------|----------|\n| `encode/bytes/main.test.ts` | default (base64) JSON body request | 127 | `application/json` body `\"dGVzdA==\"` |\n| `encode/bytes/main.test.ts` | base64 body request | 139 | `application/json` body `\"dGVzdA==\"` |\n| `encode/bytes/main.test.ts` | base64url body request | 143 | `application/json` body `\"dGVzdA\"` |\n\n### Response Body (3)\n| Test file | Test name | Line | Expected |\n|-----------|-----------|------|----------|\n| `encode/bytes/main.test.ts` | default (base64) JSON body response | 155 | Binary stream \u2192 Uint8Array |\n| `encode/bytes/main.test.ts` | octet-stream response | 160 | Binary stream \u2192 Uint8Array |\n| `encode/bytes/main.test.ts` | custom content-type (image/png) response | 165 | Binary stream \u2192 Uint8Array |\n\n## Current Generated Code (broken)\n\n```typescript\n// Request: raw Uint8Array, no encoding\nreturn context.path(path).post({ body: value });\n\n// Response (partially working):\nreturn typeof result.body === \"string\"\n  ? stringToUint8Array(result.body, \"base64\")  // Works for JSON\n  : result.body;                                 // Works for binary\n```\n\n## Mock Server Expectations\n\nFrom bytes mockapi.ts:\n- `Encode_Bytes_RequestBody_base64`: expects `application/json` with raw body `'\"dGVzdA==\"'`\n- `Encode_Bytes_RequestBody_default`: expects `application/octet-stream` with raw binary\n- `Encode_Bytes_RequestBody_customContentType`: expects `image/png` with raw binary\n\n## Root Cause\n\nThe emitter handles bytes encoding in model properties (via serializers) but not for standalone `@body bytes` parameters.\n\n## Recommended Fix\n\nIn operation `_send` function generation, when body param is `bytes`:\n1. For `base64`/`base64url` with JSON: `body: JSON.stringify(uint8ArrayToString(value, \"base64\"))`\n2. For binary content types: `body: value` with correct `contentType`\n\n## Key Files\n\n- Operation generation code in `src/components/`\n- `src/components/serialization/json-serializer.tsx` \u2014 existing bytes encoding logic\n- `test/e2e/generated/encode/bytes/src/api/requestBody/operations.ts` \u2014 current broken output\n\n## Validation\n\n```bash\npnpm build && pnpm test:e2e -- --grep \"Encode.Bytes\"\n```"
+    },
+    {
+      "id": "E2E-FIX-EMPTY-BODY-REST-ERROR",
+      "title": "Fix createRestError crash on empty-body error responses (e.g., 500 with no body)",
+      "category": "bug-fix/emitter",
+      "priority": "P2",
+      "status": "pending",
+      "kind": "feature",
+      "dependencies": [],
+      "design_review": null,
+      "source": "e2e-test-investigation",
+      "description": "Fix 1 skipped e2e test caused by runtime crash when handling error responses with no body.\n\n## Problem\n\nThe `createRestError(result)` call in `@typespec/ts-http-runtime@0.2.1` crashes with `TypeError: Cannot read properties of undefined (reading 'message')` when `result.body` is undefined. This happens when a server returns an error status (e.g., 500) with no response body.\n\n## Affected Tests (1)\n\n| Test file | Test name | Line |\n|-----------|-----------|------|\n| `test/e2e/http/type/enum/fixed/main.test.ts` | should put an unknown enum value and receive 500 | 39 |\n\n## Root Cause\n\nIn `createRestError(result)`, when `result.body` is undefined:\n- `const internalError = resp.body?.error ?? resp.body` \u2192 undefined\n- `internalError.message` \u2192 TypeError (accessing property of undefined)\n\nThe runtime function lacks a null check for `internalError` before accessing `.message`.\n\n## Options\n\n1. **Fix in runtime**: Add `internalError?.message` (preferred but requires upstream PR to ts-http-runtime)\n2. **Fix in emitter**: Change generated error handling to use string overload: `createRestError('Unexpected status code: ' + result.status, result)` \u2014 but this changes all scenario test expectations\n3. **Workaround**: Generate conditional: `throw result.body !== undefined ? createRestError(result) : createRestError('Unexpected status code: ' + result.status, result)`\n\n## Validation\n\nAfter fix, unskip the test and run:\n```bash\npnpm build && pnpm test:e2e -- --grep \"Type.Enum.Fixed\"\n```"
     }
   ],
   "phases_metadata": [

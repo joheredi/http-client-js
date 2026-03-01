@@ -30,13 +30,11 @@ describe("Type.Enum.Extensible", () => {
     expect(response).toBe("Weekend");
   });
 
-  // Spector mock server issue with content-type for string body
-  it.skip("should put a known enum value", async () => {
+  it("should put a known enum value", async () => {
     await client.string.putKnownValue("Monday");
   });
 
-  // Spector mock server issue with content-type for string body
-  it.skip("should put an unknown enum value", async () => {
+  it("should put an unknown enum value", async () => {
     await client.string.putUnknownValue("Weekend");
   });
 });

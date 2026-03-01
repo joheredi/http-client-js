@@ -25,8 +25,7 @@ describe("Type.Scalar", () => {
       expect(response).toBe("test");
     });
 
-    // Spector mock server issue with plain/text content-type
-    it.skip("should put a string value", async () => {
+    it("should put a string value", async () => {
       await client.string.put("test");
     });
   });
@@ -48,8 +47,7 @@ describe("Type.Scalar", () => {
       expect(response).toBe("test");
     });
 
-    // Spector mock server issue with plain/text content-type
-    it.skip("should put an unknown value", async () => {
+    it("should put an unknown value", async () => {
       await client.unknown.put("test");
     });
   });

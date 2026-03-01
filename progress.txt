@@ -2435,3 +2435,25 @@ Ported 4 property type Spector e2e test files covering ~212 test cases:
 - All 1016 unit tests pass
 - Smoke test passes
 - E2E: 356 passed (up from 354), 77 skipped (down from 79)
+
+---
+
+## E2E-FIX-CONTENT-TYPE-BARE-SCALAR — DONE (2026-03-01)
+
+### What was done
+- Investigated 6 skipped e2e tests attributed to incorrect Content-Type for bare scalar body parameters
+- Discovered the root cause was WRONG: Spector mock server is lenient about Content-Type matching
+- 5 of 6 tests pass immediately when unskipped (extensible enum PUT ×2, fixed enum putKnownValue, scalar string PUT, scalar unknown PUT)
+- The 6th test (fixed enum putUnknownValue returning 500) fails due to a runtime bug in `@typespec/ts-http-runtime@0.2.1` — `createRestError(result)` crashes with TypeError when `result.body` is undefined
+- Created new task `E2E-FIX-EMPTY-BODY-REST-ERROR` to track the runtime bug
+
+### Changes
+- `test/e2e/http/type/enum/extensible/main.test.ts`: Unskipped 2 PUT tests
+- `test/e2e/http/type/enum/fixed/main.test.ts`: Unskipped putKnownValue, updated putUnknownValue skip reason to explain actual issue (runtime bug, not content-type)
+- `test/e2e/http/type/scalar/main.test.ts`: Unskipped 2 PUT tests (string and unknown)
+- `prd.json`: Added E2E-FIX-EMPTY-BODY-REST-ERROR task
+
+### Key findings
+- TCGC provides `defaultContentType` based on TypeSpec explicit `@header contentType` annotations; the extensible enum/scalar TypeSpec specs explicitly annotate `contentType: "application/json"` but Spector accepts any Content-Type
+- `createRestError` in ts-http-runtime@0.2.1 has a bug: `(internalError.message ?? fallback)` should be `(internalError?.message ?? fallback)`
+- The e2e tests now have 5 more passing tests (from 356 to 361)

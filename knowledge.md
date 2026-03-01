@@ -2324,3 +2324,11 @@ expect(response.property).toEqual(expectedBytes);
 ```
 
 For byte arrays, map each element: `response.property.map((b: any) => new Uint8Array(b))`.
+
+## Spector Mock Server Content-Type Matching (2026-03-01)
+
+The Spector mock server (tsp-spector) is **lenient about Content-Type header matching** for PUT operations. Even when the mockapi.ts specifies `"Content-Type": "text/plain"`, the server accepts requests with `Content-Type: application/json`. This means e2e tests should not be skipped solely based on content-type mismatches between generated code and mock expectations.
+
+## createRestError Runtime Bug (2026-03-01)
+
+`@typespec/ts-http-runtime@0.2.1` has a bug in `createRestError(result)`: when `result.body` is `undefined` (e.g., 500 response with no body), it crashes with `TypeError: Cannot read properties of undefined (reading 'message')`. The bug is at `internalError.message` which should be `internalError?.message`. The string overload `createRestError("msg", result)` is a safe workaround since it skips body access for the message.

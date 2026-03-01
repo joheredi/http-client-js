@@ -6,8 +6,7 @@
  * against the Spector mock server.
  *
  * Note: Our generated FixedClient does NOT expose getUnknownValue (fixed enums
- * do not accept unknown values by definition). The put operations are skipped
- * due to Spector mock server expecting plain/text content-type.
+ * do not accept unknown values by definition).
  *
  * Mock server expectations (from @typespec/http-specs type/enum/fixed):
  *   - GET  /type/enum/fixed/string/known-value   — returns "Monday"
@@ -28,12 +27,13 @@ describe("Type.Enum.Fixed", () => {
     expect(response).toBe("Monday");
   });
 
-  // Spector mock server issue expecting plain/text content-type
-  it.skip("should put a known enum value", async () => {
+  it("should put a known enum value", async () => {
     await client.string.putKnownValue("Monday");
   });
 
-  // Spector mock server issue expecting plain/text content-type
+  // Runtime bug: createRestError in @typespec/ts-http-runtime@0.2.1 crashes with
+  // TypeError when the 500 response has no body (result.body is undefined).
+  // See task E2E-FIX-EMPTY-BODY-REST-ERROR for tracking.
   it.skip("should put an unknown enum value and receive 500", async () => {
     try {
       await client.string.putUnknownValue("Weekend" as any);
