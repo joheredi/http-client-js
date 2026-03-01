@@ -2110,3 +2110,15 @@ content type string) ensures the serializer choice is always consistent with whi
 declarations are actually generated.
 
 **Date:** 2026-03-01
+
+## Design Decisions
+
+### SMOKE-2: XML-only models and typeHasSerializerDeclaration
+
+**Problem**: XML-only models (CorsRule, BlobTag, etc.) have `UsageFlags.Input` but only get `XmlObjectSerializer` declarations, not `JsonSerializer`. The `typeHasSerializerDeclaration` predicate was returning `true` for these, causing `JsonArraySerializer` to reference non-existent `serializerRefkey(model)`.
+
+**Approach chosen**: Option A — Don't generate JSON array serializers for XML-only types. Fixed at the root in `typeHasSerializerDeclaration()` by adding `hasXmlSerialization(type)` check. This is the single source of truth, so all callers (collectArrayTypes, valueTypeHasNamedSerializer, getSerializationExpression) automatically benefit.
+
+**Rejected**: Option B (Make array serializer reference xmlObjectSerializerRefkey for XML items) — Would require changes in multiple places (json-array-record-helpers.tsx, json-serializer.tsx) and would generate dead code since XML array serialization is already handled inline by XmlObjectSerializer.
+
+**Key invariant**: `typeHasSerializerDeclaration` must mirror the filtering in `model-files.tsx`. If a model is excluded from `jsonInputModels` there, the predicate must return `false`.

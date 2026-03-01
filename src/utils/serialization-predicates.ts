@@ -1,6 +1,7 @@
 import type { SdkType } from "@azure-tools/typespec-client-generator-core";
 import { UsageFlags } from "@azure-tools/typespec-client-generator-core";
 import { isAzureCoreErrorType } from "./azure-core-error-types.js";
+import { hasXmlSerialization } from "./xml-detection.js";
 
 /**
  * Determines whether a type has a deserializer declaration rendered in the output.
@@ -53,6 +54,10 @@ export function typeHasSerializerDeclaration(type: SdkType): boolean {
   switch (type.kind) {
     case "model":
       if (isAzureCoreErrorType(type)) return false;
+      // XML-only models get XmlObjectSerializer (xmlObjectSerializerRefkey), not
+      // JsonSerializer (serializerRefkey). Returning true here would cause callers
+      // to reference serializerRefkey(model) which is never declared → unresolved symbol.
+      if (hasXmlSerialization(type)) return false;
       return (type.usage & UsageFlags.Input) !== 0;
     case "union":
       return !!(

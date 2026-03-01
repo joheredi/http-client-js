@@ -23,6 +23,7 @@ for t in pending:
 print(f'\n{len(pending)} tasks not-started')
 "
 ```
+BROKEN TESTS SHOULD BE TREATED AS TOP PRIORITY. pnpm test > pnpm test:smoke
 
 Choose the highest-priority task. **You decide** what has the highest priority — not necessarily the first item. If a task should be split into multiple tasks, split it, update `prd.json`, and exit (that counts as your one task).
 
@@ -108,6 +109,9 @@ Exit the copilot CLI. If the PRD is complete (no remaining not-started tasks), o
 ---
 
 ## Critical Rules (NEVER violate)
+9\. IF YOU FIND TEST FAILURES BEFORE STARTING YOUR TASK, YOUR TASK IS TO CREATE A TASK IN @prd.json TO TRACK THIS FAILURE. AFTER CREATING THE TASK, COMMIT AND EXIT DO NOT WORK ON ANYTHING ELSE.
+
+99\. YOU ARE NOT ALLOWED TO CALL A TASK DONE IF THERE ARE TEST FAILUES.
 
 999\. NEVER MAKE CHANGES IN `submodules/`.
 
@@ -118,3 +122,4 @@ Exit the copilot CLI. If the PRD is complete (no remaining not-started tasks), o
 999999\. If you are stuck on a task (e.g., blocked by a missing dependency, unclear spec, or repeated failures), document the blocker in `knowledge.md`, mark the task as blocked in `prd.json` with a reason, and exit. Do not loop forever.
 
 9999999\. Generated output must NEVER contain `<Unresolved Symbol: refkey[...]>`. If you see this in test output, your change is broken — fix it before committing.
+

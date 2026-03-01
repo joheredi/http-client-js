@@ -1896,3 +1896,22 @@ The 4 predicate systems mentioned in BUG-1 description (needsTransformation, val
 **Validation**: All 6 operations in smoke test now use correct XML serializers (`blobServicePropertiesXmlSerializer`, `keyInfoXmlSerializer`, `blobTagsXmlSerializer`, `signedIdentifiersXmlSerializer`, `blockLookupListXmlSerializer`, `queryRequestXmlSerializer`). Zero unresolved symbols in `api/` operations. 4 remaining unresolved symbols in `models/models.ts` are SMOKE-2's scope (array serializer helpers for XML-only types).
 
 **Design decision**: Used `hasXmlSerialization(bodyType)` rather than checking content type string because it's consistent with `model-files.tsx`'s model classification (same function used to split models into XML vs JSON serializer buckets).
+
+---
+### SMOKE-2: Array serializer helpers for XML-only types — DONE (2026-03-01)
+
+#### What was done
+- Fixed `typeHasSerializerDeclaration()` in `src/utils/serialization-predicates.ts` to return `false` for XML-only models
+- Added `hasXmlSerialization(type)` check: XML-only models get `XmlObjectSerializer` (via `xmlObjectSerializerRefkey`), not `JsonSerializer` (via `serializerRefkey`). Without this check, `JsonArraySerializer` components would reference `serializerRefkey(model)` which is never declared → `<Unresolved Symbol>` in output.
+- This is a root-cause fix: `typeHasSerializerDeclaration` is the single source of truth used by `valueTypeHasNamedSerializer`, `valueTypeHasNamedSerializerFn`, `getSerializationExpression`, and `collectArrayTypes`. Fixing it here propagates correctly to all callers.
+- Added unit test in `test/utils/serialization-predicates.test.ts` covering JSON Input, XML-only Input, Output-only, Input+Output JSON, and Input+Output XML models.
+
+#### Results
+- 4 unresolved symbols eliminated from smoke test output (`corsRuleArraySerializer`, `blobTagArraySerializer`, `signedIdentifierArraySerializer`, `arrowFieldArraySerializer`)
+- No unresolved symbols in any generated file
+- 2 pre-existing test failures fixed by this change (XML model serialization scenarios now passing)
+- 4 pre-existing failures remain (apiVersion, headerParam, xmlArrayItemTypes) — unrelated to this fix
+
+#### Patterns / Knowledge
+- `typeHasSerializerDeclaration` must mirror the filtering logic in `model-files.tsx`. XML models are excluded from `jsonInputModels` there, so the predicate must also exclude them.
+- XML-only models have `serializationOptions.xml` on model or properties — detected by `hasXmlSerialization()` from `src/utils/xml-detection.ts`.
