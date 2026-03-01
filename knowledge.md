@@ -2122,3 +2122,9 @@ declarations are actually generated.
 **Rejected**: Option B (Make array serializer reference xmlObjectSerializerRefkey for XML items) — Would require changes in multiple places (json-array-record-helpers.tsx, json-serializer.tsx) and would generate dead code since XML array serialization is already handled inline by XmlObjectSerializer.
 
 **Key invariant**: `typeHasSerializerDeclaration` must mirror the filtering in `model-files.tsx`. If a model is excluded from `jsonInputModels` there, the predicate must return `false`.
+
+## Name Policy Gotchas for Static Helpers
+
+- **Reserved parameter names in static helpers**: The name policy renames `client` → `clientParam`, `endpoint` → `endpointParam`, etc. In static helper files where the parameter name appears in both the function signature AND the code body, this causes mismatches (signature says `clientParam`, body says `client`). Fix: use `namekey("client", { ignoreNamePolicy: true })` for the parameter descriptor.
+
+- **Computed property names in interfaces**: `InterfaceMember` with `name="[Symbol.asyncIterator]"` goes through the name policy and gets mangled (e.g., `symbolAsyncIterator`). Use the `indexer` prop instead: `<InterfaceMember indexer="Symbol.asyncIterator" type={...} />`. The `indexer` prop bypasses the name policy entirely and renders as `[Symbol.asyncIterator]: type`.

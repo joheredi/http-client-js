@@ -1961,3 +1961,22 @@ The 4 predicate systems mentioned in BUG-1 description (needsTransformation, val
 - The `pnpm test` script runs smoke first (`test:smoke`) then unit tests (`vitest run`). To run unit tests only, use `npx vitest run`.
 - Generated output is preserved at `temp/smoke/http-client-js/` after running smoke tests.
 - These are all critical priority tasks blocking the smoke test.
+
+## RC23: Fix pagingHelpers.ts static helper compilation errors — DONE (2026-03-01)
+
+**Task**: SMOKE-PAGING-HELPERS
+**Problem**: The generated `pagingHelpers.ts` had 3 TS compilation errors:
+1. `Cannot find name 'client'` — name policy renamed `client` → `clientParam` in function parameter, but function body still referenced `client`
+2. `[Symbol.asyncIterator] does not exist` — `InterfaceMember` with `name="[Symbol.asyncIterator]"` was rendered as `symbolAsyncIterator` by name policy
+
+**Root causes**:
+- `client` is in the reserved parameter words list in `name-policy.ts` (line 152), so it gets `Param` suffix
+- `InterfaceMember` passes `name` through `PropertyName` which applies name policy → camelCase conversion mangled `[Symbol.asyncIterator]`
+
+**Fixes** (in `src/components/static-helpers/paging-helpers.tsx`):
+1. Used `namekey("client", { ignoreNamePolicy: true })` for the parameter name to prevent renaming
+2. Changed `[Symbol.asyncIterator]` member from `name` prop to `indexer` prop on `InterfaceMember` — `indexer` renders content directly as `[Symbol.asyncIterator]` without name policy transformation
+
+**Pattern for future**: When a static helper has parameter names that match reserved words (e.g., `client`, `endpoint`), use `namekey(name, { ignoreNamePolicy: true })`. For computed property names like `[Symbol.asyncIterator]`, use `InterfaceMember`'s `indexer` prop instead of `name`.
+
+**Tests**: All 1010 unit tests pass. pagingHelpers.ts errors eliminated from smoke test.

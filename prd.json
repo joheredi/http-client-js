@@ -961,7 +961,7 @@
       "id": "SMOKE-PAGING-HELPERS",
       "title": "Fix pagingHelpers.ts static helper compilation errors",
       "category": "smoke-fix",
-      "status": "not-started",
+      "status": "done",
       "priority": "critical",
       "dependencies": [],
       "description": "The generated pagingHelpers.ts has TypeScript compilation errors: (1) 'Cannot find name client' on lines 39-40 \u2014 likely a missing parameter or wrong variable reference in buildPagedAsyncIterator, (2) '[Symbol.asyncIterator]' does not exist in type 'PagedAsyncIterableIterator<TElement>' \u2014 the interface is missing the async iterator symbol. These errors prevent the smoke test from passing."

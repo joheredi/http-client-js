@@ -85,7 +85,7 @@ function PagedAsyncIterableIteratorInterface() {
       />
       {"\n"}
       <InterfaceMember
-        name="[Symbol.asyncIterator]"
+        indexer="Symbol.asyncIterator"
         type={code`() => PagedAsyncIterableIterator<TElement>`}
       />
       {"\n"}
@@ -151,7 +151,7 @@ function BuildPagedAsyncIteratorFunction() {
       returnType={code`${pagingHelperRefkey("PagedAsyncIterableIterator")}<TElement>`}
       typeParameters={[{ name: namekey("TElement", { ignoreNamePolicy: true }) }]}
       parameters={[
-        { name: "client", type: runtimeLib.Client },
+        { name: namekey("client", { ignoreNamePolicy: true }), type: runtimeLib.Client },
         {
           name: "getInitialResponse",
           type: code`() => Promise<${runtimeLib.PathUncheckedResponse}>`,

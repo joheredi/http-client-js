@@ -87,6 +87,7 @@ describe("PagingHelpersFile", () => {
       "export interface PagedAsyncIterableIterator<TElement>",
     );
     expect(result).toContain("next");
+    expect(result).toContain("[Symbol.asyncIterator]");
     expect(result).toContain("byPage");
   });
 
@@ -137,6 +138,8 @@ describe("PagingHelpersFile", () => {
 
     const result = renderToString(template);
     expect(result).toContain("export function buildPagedAsyncIterator");
+    // Verify the client parameter is not renamed by name policy
+    expect(result).toMatch(/function buildPagedAsyncIterator[^)]*\bclient\b/);
     expect(result).toContain("expectedStatuses");
     // Verify nextLinkMethod support — the function should check whether to use POST or GET
     expect(result).toContain("nextLinkMethod");
