@@ -841,7 +841,7 @@
       "title": "Create Vitest e2e config with Spector server globalSetup",
       "category": "testing/spector-infrastructure",
       "priority": "P0",
-      "status": "pending",
+      "status": "done",
       "kind": "feature",
       "dependencies": [
         "SPECTOR-1"

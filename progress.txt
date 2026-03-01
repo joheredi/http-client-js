@@ -2185,3 +2185,41 @@ Changed `buildPagedAsyncIterator` parameter types from `Promise<PathUncheckedRes
   - `test/components/sample-files.test.tsx`: Pass `rootClient={client}` to `<SendOperation>` and `<PublicOperation>` in SampleTestWrapper
 - Pattern: When new required props are added to component interfaces, all callers (including test wrappers) must be updated
 - Build: 0 errors, Tests: 1015 passed
+
+## 2026-03-01: SPECTOR-2 — Create Vitest e2e config with Spector server globalSetup
+
+### What was done
+- Installed `@typespec/spector` from npm (replacing the `eng/spector-stub` stub package) and `@typespec/http-specs` for mock handlers
+- Created `vitest.config.e2e.ts` — Vitest config for e2e tests with globalSetup, isolation disabled, 30s timeout, alloy plugin
+- Created `test/e2e/setup/global-setup.ts` — starts tsp-spector server on port 3002, polls health endpoint for 204 response, stops server on teardown
+- Created `test/e2e/setup/server-health.test.ts` — minimal health-check test validating server lifecycle
+- Added `test:e2e` and `test:e2e:only` npm scripts to package.json
+- Excluded `test/e2e/**` from the main vitest.config.ts to prevent e2e tests from running in `pnpm test`
+
+### Key details
+- Server port: 3002 (avoids conflicts with dev servers)
+- Health endpoint: GET http://localhost:3002/routes/in-interface/fixed → 204
+- Server start: `tsp-spector server start <specs-path> --port 3002 --coverageFile temp/spector-coverage.json`
+- Server stop: `tsp-spector server stop --port 3002`
+- Coverage file: temp/spector-coverage.json (51KB generated on first run)
+- The real @typespec/spector replaces the stub — this is needed for the CLI binary
+
+### Patterns used
+- Vitest globalSetup with `setup()`/`teardown()` exports
+- `child_process.spawn` with `detached: true` and `unref()` for background server
+- HTTP polling with configurable retries/delay for server readiness
+- `execFile` (promisified) for clean server shutdown via CLI
+
+### Files created
+- `vitest.config.e2e.ts`
+- `test/e2e/setup/global-setup.ts`
+- `test/e2e/setup/server-health.test.ts`
+
+### Files modified
+- `package.json` — added test:e2e, test:e2e:only scripts; replaced spector stub with real npm package; added @typespec/http-specs dep
+- `vitest.config.ts` — added `test/e2e/**` to exclude list
+
+### Next person should know
+- The `eng/spector-stub/` directory is now unused but still exists — it can be cleaned up
+- The emit:e2e script still uses submodule specs path for .tsp compilation (different from server specs path)
+- SPECTOR-3 should port the first real e2e test (authentication/api-key)
