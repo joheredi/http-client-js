@@ -2160,3 +2160,17 @@ Changed `buildPagedAsyncIterator` parameter types from `Promise<PathUncheckedRes
 - `pnpm emit:e2e` — 59/59 specs succeeded, 3 ignored
 - `pnpm emit:e2e --filter authentication/api-key` — single spec works
 - `pnpm test` — all 1015 tests pass (3 skipped), no regressions
+
+## RC23: Created tracking task for rootClient build failures — DONE (2026-03-01)
+
+**What happened:** Build (`pnpm build`) is failing with 15 TS2741 errors. The `rootClient` prop was added to `SendOperationProps`, `PublicOperationProps`, and `OperationDeclarationsProps` but callers in test files and in `operation-files.tsx` were not updated to pass it.
+
+**Affected files:**
+- `src/components/operation-files.tsx:167` — `HeaderDeserializationBlock` called without `rootClient`
+- `test/components/classical-client.test.tsx` — 6 locations (lines 140, 144, 779, 783, 854, 858)
+- `test/components/classical-operation-groups.test.tsx` — 6 locations (lines 133, 137, 689, 693, 765, 769)
+- `test/components/sample-files.test.tsx` — 2 locations (lines 115, 119)
+
+**Fix guidance:** Pass the root client object to these components. In tests, use the `client` variable already in scope. In `operation-files.tsx`, pass `rootClient` from parent props.
+
+**Task created:** `FIX-ROOTCLIENT-BUILD` with priority `critical`.
