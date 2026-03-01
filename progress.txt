@@ -2251,3 +2251,34 @@ Changed `buildPagedAsyncIterator` parameter types from `Promise<PathUncheckedRes
 - E2e test follows reference emitter pattern: `describe > it` with Vitest
 - Mock server on port 3002 with `allowInsecureConnection: true`
 - Flavor-aware code generation using `useFlavorContext().flavor`
+
+## SA30: SPECTOR-4 Port authentication/server e2e tests — DONE (2026-03-01)
+
+### What was done
+Ported 8 e2e test files for authentication and server Spector specs:
+
+**Authentication tests (3 new files):**
+- `test/e2e/http/authentication/http/custom/main.test.ts` — SharedAccessKey auth (2 tests SKIPPED, see below)
+- `test/e2e/http/authentication/oauth2/main.test.ts` — OAuth2 bearer token auth (2 tests)
+- `test/e2e/http/authentication/union/main.test.ts` — Union auth (API key + OAuth2, 2 tests)
+
+**Server tests (5 new files):**
+- `test/e2e/http/server/path/single/main.test.ts` — Single server path (1 test)
+- `test/e2e/http/server/path/multiple/main.test.ts` — Multiple server paths with API version in URL (2 tests)
+- `test/e2e/http/server/versions/versioned/main.test.ts` — Versioned server with query/path api-version (4 tests)
+- `test/e2e/http/server/versions/not-versioned/main.test.ts` — Not-versioned server with explicit api-version (3 tests)
+- `test/e2e/http/server/endpoint/not-defined/main.test.ts` — Endpoint provided at runtime (1 test)
+
+### Patterns used
+- All tests follow the api-key test pattern from SPECTOR-3
+- OAuth2 credential uses `{ getOAuth2Token: async () => "token" } as any` to satisfy TokenCredential type
+- Server tests pass endpoint as first constructor arg (not in options)
+- VersionedClient `withQueryOldApiVersion` test uses separate client instance with `apiVersion: "2021-01-01-preview"`
+- NotVersionedClient passes apiVersion as method parameter
+
+### Known issues
+- **Custom HTTP auth (SharedAccessKey)**: 2 tests skipped. The runtime's `apiKeyAuthenticationPolicy` only matches `kind: "apiKey"` auth schemes, but the emitter generates `{ kind: "http", scheme: "sharedaccesskey" }`. The auth header is never sent. This needs an emitter fix to properly map custom HTTP schemes to the runtime's supported auth policies.
+
+### Results
+- E2e: 18 passed, 2 skipped (10 test files)
+- Unit: 1015 passed, 3 skipped (73 test files)

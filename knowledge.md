@@ -2219,3 +2219,16 @@ The core runtime's `createDefaultPipeline` reads `credential` + `authSchemes` fr
 
 ### Type name mismatch: KeyCredential vs ApiKeyCredential (2026-03-01)
 The emitter's external packages declare `KeyCredential` and `TokenCredential` as exports from `@typespec/ts-http-runtime`, but the actual runtime 0.2.1 exports `ApiKeyCredential`, `BearerTokenCredential`, `BasicCredential`, `OAuth2TokenCredential`, and `ClientCredential`. The generated code compiles because `skipLibCheck: true` hides the type mismatch. This should be fixed in a future task to align type names with the actual runtime exports.
+
+## Custom HTTP Auth Scheme Mismatch (SharedAccessKey)
+
+**Issue**: The emitter generates `{ kind: "http", scheme: "sharedaccesskey" }` for custom HTTP auth schemes, but the `@typespec/ts-http-runtime` only supports these auth scheme kinds:
+- `apiKey` → `apiKeyAuthenticationPolicy` (matches `kind: "apiKey"`)
+- `http` with `scheme: "basic"` → `basicAuthenticationPolicy`
+- `http` with `scheme: "bearer"` → `bearerAuthenticationPolicy`
+- `oauth2` → `oauth2AuthenticationPolicy`
+
+Custom HTTP schemes like `sharedaccesskey` are not matched by any policy, so the Authorization header is never set. The credential (`{ key: "..." }`) is recognized as an `ApiKeyCredential` via `isApiKeyCredential()`, and `apiKeyAuthenticationPolicy` is added to the pipeline, but it only activates for `kind: "apiKey"` auth schemes — not `kind: "http"`.
+
+**Impact**: `authentication/http/custom` e2e tests are skipped.
+**Fix needed**: The emitter should either map custom HTTP auth schemes to `kind: "apiKey"` where appropriate, or the runtime needs to support arbitrary HTTP auth schemes.
