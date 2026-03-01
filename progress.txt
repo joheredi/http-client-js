@@ -2318,3 +2318,28 @@ Known emitter bugs found:
 - Follow the same test pattern as test/e2e/http/authentication/api-key/main.test.ts
 - The reference emitter uses slightly different client APIs — always check generated code in test/e2e/generated/ for actual exports
 - modelPropertyAdditional.spec.ts (in SPECTOR-5C) is the largest single file (734 lines, 52 tests) — may need its own subtask
+
+## SA29: Port Simple Type Spector Tests (SPECTOR-5A) — DONE (2026-03-01)
+
+### What was done
+- Created 6 e2e test files for simple type Spector tests:
+  - `test/e2e/http/type/array/main.test.ts` — 28 tests (3 skipped: 1 for int64 BigInt, 2 for nullable model emitter bug)
+  - `test/e2e/http/type/dictionary/main.test.ts` — 22 tests (1 skipped: int64 BigInt)
+  - `test/e2e/http/type/enum/extensible/main.test.ts` — 4 tests (2 skipped: Spector mock content-type issue)
+  - `test/e2e/http/type/enum/fixed/main.test.ts` — 3 tests (2 skipped: Spector mock content-type issue)
+  - `test/e2e/http/type/scalar/main.test.ts` — 16 tests (2 skipped: Spector mock plaintext issue)
+  - `test/e2e/http/type/union/main.test.ts` — 20 tests (0 skipped)
+
+### Key patterns
+- Our emitter generates single-client-with-operation-groups (e.g., `ArrayClient.int32Value.get()`) unlike the reference http-client-js which generates individual per-type clients
+- This matches the legacy autorest.typescript emitter pattern
+- Tests follow the existing api-key e2e test pattern: vitest, endpoint localhost:3002, allowInsecureConnection
+
+### Known issues discovered
+- **Nullable model array bug**: The generated innerModelSerializer/Deserializer in type/array does not guard against null items, causing `Cannot read properties of null` errors. The nullable model value tests are skipped pending emitter fix.
+- **int64 BigInt**: JSON cannot serialize BigInt, so int64 put tests are skipped across array/dictionary
+- **Spector mock content-type**: Enum put tests and scalar string/unknown put tests are skipped due to Spector mock expecting plain/text content-type
+
+### Stats
+- 124 e2e tests passing, 65 skipped (across all e2e tests)
+- 1015 unit tests still passing

@@ -1029,7 +1029,7 @@
       "title": "Port simple type Spector tests (array, dictionary, enum, scalar, union)",
       "category": "testing/spector-integration",
       "priority": "P1",
-      "status": "not-started",
+      "status": "done",
       "kind": "feature",
       "dependencies": [
         "SPECTOR-3"

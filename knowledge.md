@@ -2263,3 +2263,11 @@ The generated response header operations accept optional params with `operationO
 ### 5. Buffer vs Uint8Array in byte responses
 The runtime deserializes base64-encoded bytes as Node.js `Buffer` instead of `Uint8Array`. Tests must wrap responses with `new Uint8Array(response.value)` for strict equality comparisons.
 **Affected**: All encode/bytes property and responseBody operations
+
+## Known Issue: Nullable Model Array Serialization Bug (2026-03-01)
+
+The generated serializer/deserializer for nullable model arrays (e.g., `InnerModel[] | null[]`) does not guard against null items. When an array contains `[{ property: "hello" }, null, { property: "world" }]`, the deserializer calls `item["property"]` on the null element, causing `TypeError: Cannot read properties of null`. This affects `type/array` nullable model value tests. The bug is in the generated code at `test/e2e/generated/type/array/src/models/models.ts` (innerModelSerializer/Deserializer). This needs to be fixed in the emitter source, likely in the serialization component that generates per-model serializers.
+
+## Design Decision: E2E Test Client Pattern (2026-03-01)
+
+Our emitter generates single-client-with-operation-groups (e.g., `new ArrayClient().int32Value.get()`), unlike the reference http-client-js emitter which generates individual per-type clients (e.g., `new Int32ValueClient().get()`). E2E tests must use our emitter's pattern. The reference tests are useful for expected values/assertions but NOT for client API patterns.
