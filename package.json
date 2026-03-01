@@ -56,14 +56,14 @@
     "test": "vitest run",
     "test:smoke": "vitest run --config vitest.smoke.config.ts",
     "test:e2e": "pnpm emit:e2e && vitest run --config vitest.config.e2e.ts",
-    "test:e2e:only": "vitest run --config vitest.config.e2e.ts",
     "emit:e2e": "npx tsx eng/scripts/emit-e2e.ts",
     "test:watch": "vitest -w",
     "watch": "alloy build --watch",
     "lint": "eslint src/ test/ --report-unused-disable-directives --max-warnings=0",
     "lint:fix": "eslint . --report-unused-disable-directives --fix",
     "format": "prettier .  --write",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "ci": "pnpm build && vitest run && pnpm test:smoke && pnpm test:e2e"
   },
   "exports": {
     ".": {

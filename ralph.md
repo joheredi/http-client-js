@@ -1,6 +1,18 @@
-@alloy-guide-final.md
+Read `@alloy-guide-final.md` before starting any task — it defines the Alloy framework patterns you must follow.
 
-IMPORTANT: Complete ONE task per loop. After completion, exit the copilot CLI. NEVER work on a second task.
+Complete ONE task per loop. After completion, exit the copilot CLI. NEVER work on a second task.
+
+## RULES (NEVER violate)
+
+1. `pnpm ci` must be all passing at the end of each session. You are NOT allowed to complete a session with broken tests.
+2. If you find test failures BEFORE starting your task, create a task in `prd.json` to track it, commit, and exit. Do not work on anything else.
+3. You are NOT allowed to call a task done if there are test failures.
+4. NEVER make changes in `submodules/`.
+5. DO NOT implement placeholder, stub, or minimal implementations. Write full, complete implementations. If you can't fully implement something, document what's missing in `knowledge.md` and move on.
+6. Use up to 500 parallel subagents for exploring, studying, or searching code. Use only **1 subagent** for build and test operations.
+7. If you are stuck (blocked by missing dependency, unclear spec, repeated failures), document the blocker in `knowledge.md`, mark the task as blocked in `prd.json` with a reason, and exit. Do not loop forever.
+8. Generated output must NEVER contain `<Unresolved Symbol: refkey[...]>`. If you see this in test output, your change is broken — fix it before committing.
+9. Scenario tests in `submodules/autorest.typescript/packages/typespec-ts/test/unitTestModular/scenarios/*` are the **ground truth** for legacy output consistency. Trust them over static analysis or scenarios in the new emitter. Always let scenario test expectations be the final arbiter.
 
 ---
 
@@ -8,22 +20,12 @@ IMPORTANT: Complete ONE task per loop. After completion, exit the copilot CLI. N
 
 Use a subagent to read the last entry in `progress.txt` for context on what was done last.
 
-List pending tasks:
-
 ```bash
-python3 -c "
-import json
-with open('prd.json') as f:
-    tasks = json.load(f)['tasks']
-pending = [t for t in tasks if t['status'] == 'not-started']
-for t in pending:
-    pri = t.get('priority', '')
-    deps = ', '.join(t.get('dependencies', []))
-    print(f'[{t[\"id\"]}] {t[\"title\"]} | {t[\"category\"]} | pri={pri} | deps=[{deps}]')
-print(f'\n{len(pending)} tasks not-started')
-"
+python3 eng/scripts/list-tasks.py          # lists not-started tasks
+python3 eng/scripts/list-tasks.py pending  # or filter by status
 ```
-BROKEN TESTS SHOULD BE TREATED AS TOP PRIORITY. pnpm test > pnpm test:smoke
+
+Priority order for broken tests: `pnpm test` > `pnpm test:smoke` > `pnpm test:e2e`
 
 Choose the highest-priority task. **You decide** what has the highest priority — not necessarily the first item. If a task should be split into multiple tasks, split it, update `prd.json`, and exit (that counts as your one task).
 
@@ -31,29 +33,13 @@ Choose the highest-priority task. **You decide** what has the highest priority �
 
 ## Phase 2: STUDY — Research before coding
 
-Use up to 500 parallel subagents to study the codebase. **Do NOT assume something is not implemented** — always search first using subagents. Think hard.
+Use up to 500 parallel subagents to study the codebase. **Do NOT assume something is not implemented** — always search first.
 
 1. Search the codebase for existing implementations related to your task.
-2. Study how the functionality is implemented in the legacy emitter and the output it produces (`submodules/autorest.typescript/packages/typespec-ts`).
-   2.1 Matching legacy emitter output is a priority
-3. If the task is already done, mark it as done in `prd.json` and exit.
-4. Consult `knowledge.md` via a subagent for known gotchas related to your task.
-
-### Verifying Legacy Consistency (CRITICAL PROCESS)
-
-When deciding how to implement or fix something, you **must** verify that your approach produces output consistent with the legacy emitter. Follow this process:
-
-1. **Find the relevant scenario tests first.** Scenario tests in `test/scenarios/cases/` define the expected TypeScript output for given TypeSpec inputs. These expectations were written to match the legacy emitter's actual output. They are the **ground truth** for what the new emitter must produce.
-
-2. **Study the legacy emitter code paths, but trust scenario tests over code analysis.** The legacy emitter code is complex with many fallback paths (e.g., `buildModelSerializer()` → `serializeRequestValue()` → default). Static analysis of the legacy code can be misleading — a function may appear to return `undefined` for a type, but a fallback handler may process it differently. The scenario tests capture the **actual end-to-end output**, which is what matters.
-
-3. **Cross-reference multiple scenario files.** For any feature (e.g., enum serialization), there are usually multiple scenario files covering different configurations (e.g., with/without `experimental-extensible-enums`, nullable vs. non-nullable, inline vs. named types). Check ALL relevant scenarios before concluding how a feature should behave.
-
-4. **Run the scenario tests to validate.** After making any change, run `npx vitest run test/scenarios/` to verify that the generated output matches all scenario expectations. A passing scenario test suite means your output is consistent with the legacy emitter.
-
-5. **When in doubt, add a scenario test.** If there's no existing scenario covering a specific case, create one. Write the TypeSpec input, run the legacy emitter to capture the expected output, and add it as a new scenario `.md` file.
-
-**Example — the enum serialization lesson:** During analysis, static code reading of the legacy emitter suggested enums always used direct pass-through (`item["prop"]`). But the scenario tests revealed that union-as-enum types actually generate pass-through serializer functions that are called from model serializers (`enumSerializer(item["prop"])`). The scenario tests were right; the static analysis was misleading due to TCGC type flattening and complex fallback paths in the legacy code. **Always let scenario test expectations be the final arbiter.**
+2. Study the legacy emitter output (`submodules/autorest.typescript/packages/typespec-ts`). Matching legacy output is a priority.
+3. **Check scenario tests in `test/scenarios/cases/`** — they define expected output and are more reliable than reading legacy source code. Cross-reference multiple scenario files for the same feature.
+4. If the task is already done, mark it as done in `prd.json` and exit.
+5. Consult `knowledge.md` via a subagent for known gotchas related to your task.
 
 ---
 
@@ -63,11 +49,11 @@ Before writing any code, do a design review using subagents:
 
 1. Identify at least **2 viable approaches** for implementing the task.
 2. For each approach, evaluate against these criteria (in priority order):
-   - **Output consistency with the legacy emitter** — the generated code must match the legacy emitter's public API surface. This is the top priority. **Verify by checking scenario test expectations in `test/scenarios/cases/`**, not just by reading legacy source code.
-   - **Idiomatic Alloy** — follows patterns from `flight-instructor` and `alloy-guide-final.md` (refkeys, `code` templates, `<For>`, no string concatenation, no manual imports).
+   - **Output consistency** — verified by scenario test expectations in `test/scenarios/cases/`, not just legacy source reading.
+   - **Idiomatic Alloy** — follows patterns from `flight-instructor` and `alloy-guide-final.md`.
    - **Completeness** — covers all edge cases visible in the legacy implementation.
-   - **Simplicity** — fewer moving parts, less indirection, easier for future loops to understand.
-3. Choose the approach that best satisfies the criteria above. Record your decision in `knowledge.md` under a `## Design Decisions` section (approach chosen, why, and what was rejected) so future loops don't revisit the same question.
+   - **Simplicity** — fewer moving parts, less indirection.
+3. Record your decision in `knowledge.md` under `## Design Decisions` so future loops don't revisit the same question.
 
 ---
 
@@ -75,7 +61,7 @@ Before writing any code, do a design review using subagents:
 
 1. Every component must have a unit test.
 2. Every function must have JSDoc explaining what it does and why.
-3. Every test must document **why it is important and what it validates** — future loops will not have your reasoning context. Capture this in docstrings/comments on the test.
+3. Every test must document **why it is important and what it validates** — future loops will not have your reasoning context.
 4. You may add temporary logging if needed to debug issues.
 
 ---
@@ -85,44 +71,20 @@ Before writing any code, do a design review using subagents:
 Run validation with a **single subagent** (do not fan out builds/tests to multiple subagents — it causes backpressure):
 
 ```bash
-pnpm build && pnpm test
+pnpm ci
 ```
 
 If tests unrelated to your work fail, it is **your job** to resolve them as part of this increment of change.
-
-### Scenario Tests as Consistency Gate
-
-After any change that affects generated output, **always run scenario tests**:
-
-```bash
-npx vitest run test/scenarios/
-```
-
-These tests compare the new emitter's generated TypeScript against expected output that matches the legacy emitter. If scenario tests fail, your change breaks legacy consistency — fix it before proceeding. If scenario tests pass, you have high confidence your output matches the legacy emitter.
 
 ---
 
 ## Phase 6: RECORD — Document and commit
 
-1. Update `prd.json` — mark your task as done:
-
-```bash
-python3 -c "
-import json
-TASK_ID = 'REPLACE_ME'
-with open('prd.json') as f:
-    prd = json.load(f)
-for t in prd['tasks']:
-    if t['id'] == TASK_ID:
-        t['status'] = 'done'
-        break
-with open('prd.json', 'w') as f:
-    json.dump(prd, f, indent=2)
-print(f'Marked {TASK_ID} as done')
-"
-```
-
-2. Append your progress to `progress.txt` — leave a note for the next iteration describing what was done, patterns used, and anything the next person should know.
+1. Mark your task as done:
+   ```bash
+   python3 eng/scripts/mark-task-done.py TASK_ID
+   ```
+2. Append your progress to `progress.txt` — describe what was done, patterns used, and anything the next person should know.
 3. If you discovered a failure mode, gotcha, or learning, record it in `knowledge.md`.
 4. If `progress.txt` or `knowledge.md` are becoming very large (>200 entries), use a subagent to summarize old entries and keep only the last 20 detailed entries.
 5. `git add -A && git commit` with a descriptive message.
@@ -132,21 +94,4 @@ print(f'Marked {TASK_ID} as done')
 ## Phase 7: EXIT
 
 Exit the copilot CLI. If the PRD is complete (no remaining not-started or pending tasks), output `<promise>COMPLETED</promise>` before exiting.
-
----
-
-## Critical Rules (NEVER violate)
-9\. IF YOU FIND TEST FAILURES BEFORE STARTING YOUR TASK, YOUR TASK IS TO CREATE A TASK IN @prd.json TO TRACK THIS FAILURE. AFTER CREATING THE TASK, COMMIT AND EXIT DO NOT WORK ON ANYTHING ELSE.
-
-99\. YOU ARE NOT ALLOWED TO CALL A TASK DONE IF THERE ARE TEST FAILUES.
-
-999\. NEVER MAKE CHANGES IN `submodules/`.
-
-9999\. DO NOT IMPLEMENT PLACEHOLDER, STUB, OR MINIMAL IMPLEMENTATIONS. Write full, complete implementations. If you can't fully implement something, document what's missing in `knowledge.md` and move on.
-
-99999\. Use up to 500 parallel subagents for exploring, studying, or searching code. Use only **1 subagent** for build and test operations.
-
-999999\. If you are stuck on a task (e.g., blocked by a missing dependency, unclear spec, or repeated failures), document the blocker in `knowledge.md`, mark the task as blocked in `prd.json` with a reason, and exit. Do not loop forever.
-
-9999999\. Generated output must NEVER contain `<Unresolved Symbol: refkey[...]>`. If you see this in test output, your change is broken — fix it before committing.
 
