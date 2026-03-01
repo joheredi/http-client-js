@@ -3,25 +3,85 @@
  * serializes arrays with different delimiters (comma, space, pipe, newline)
  * across string, enum, and extensible enum variants.
  *
- * SKIPPED: The generated extensible enum serializers contain unresolved symbol
- * references (`<Unresolved Symbol: refkey[sarraySerializer⁣senum]>`) in
- * models.ts lines 173-197, which cause esbuild parse failures. Since models.ts
- * is imported by all operations, the entire client is unusable until the emitter
- * bug is fixed. See knowledge.md for details.
+ * Previously skipped due to unresolved symbol references in extensible enum
+ * serializers. Fixed by the JsonEnumSerializer component which now generates
+ * proper pass-through serializer functions for union-as-enum types.
  */
-import { describe, it } from "vitest";
+import { describe, expect, it } from "vitest";
+import { ArrayClient } from "../../../generated/encode/array/src/index.js";
 
-describe.skip("Encode.Array", () => {
-  it("should encode string array with comma delimiter", () => {});
-  it("should encode string array with space delimiter", () => {});
-  it("should encode string array with pipe delimiter", () => {});
-  it("should encode string array with newline delimiter", () => {});
-  it("should encode enum array with comma delimiter", () => {});
-  it("should encode enum array with space delimiter", () => {});
-  it("should encode enum array with pipe delimiter", () => {});
-  it("should encode enum array with newline delimiter", () => {});
-  it("should encode extensible enum array with comma delimiter", () => {});
-  it("should encode extensible enum array with space delimiter", () => {});
-  it("should encode extensible enum array with pipe delimiter", () => {});
-  it("should encode extensible enum array with newline delimiter", () => {});
+describe("Encode.Array", () => {
+  const client = new ArrayClient({
+    endpoint: "http://localhost:3002",
+    allowInsecureConnection: true,
+  });
+
+  describe("string arrays", () => {
+    // String array collection format encoding sends delimiter-joined strings
+    // (e.g., "a,b,c") but the Spector mock expects JSON arrays (["a","b","c"]).
+    // This is a separate emitter bug with string collection format body encoding.
+    it.skip("should encode string array with comma delimiter", async () => {
+      const result = await client.property.commaDelimited({ value: ["a", "b", "c"] });
+      expect(result.value).toEqual(["a", "b", "c"]);
+    });
+
+    it.skip("should encode string array with space delimiter", async () => {
+      const result = await client.property.spaceDelimited({ value: ["a", "b", "c"] });
+      expect(result.value).toEqual(["a", "b", "c"]);
+    });
+
+    it.skip("should encode string array with pipe delimiter", async () => {
+      const result = await client.property.pipeDelimited({ value: ["a", "b", "c"] });
+      expect(result.value).toEqual(["a", "b", "c"]);
+    });
+
+    it.skip("should encode string array with newline delimiter", async () => {
+      const result = await client.property.newlineDelimited({ value: ["a", "b", "c"] });
+      expect(result.value).toEqual(["a", "b", "c"]);
+    });
+  });
+
+  describe("enum arrays", () => {
+    it("should encode enum array with comma delimiter", async () => {
+      const result = await client.property.enumCommaDelimited({ value: ["blue", "red", "green"] });
+      expect(result.value).toEqual(["blue", "red", "green"]);
+    });
+
+    it("should encode enum array with space delimiter", async () => {
+      const result = await client.property.enumSpaceDelimited({ value: ["blue", "red", "green"] });
+      expect(result.value).toEqual(["blue", "red", "green"]);
+    });
+
+    it("should encode enum array with pipe delimiter", async () => {
+      const result = await client.property.enumPipeDelimited({ value: ["blue", "red", "green"] });
+      expect(result.value).toEqual(["blue", "red", "green"]);
+    });
+
+    it("should encode enum array with newline delimiter", async () => {
+      const result = await client.property.enumNewlineDelimited({ value: ["blue", "red", "green"] });
+      expect(result.value).toEqual(["blue", "red", "green"]);
+    });
+  });
+
+  describe("extensible enum arrays", () => {
+    it("should encode extensible enum array with comma delimiter", async () => {
+      const result = await client.property.extensibleEnumCommaDelimited({ value: ["blue", "red", "green"] });
+      expect(result.value).toEqual(["blue", "red", "green"]);
+    });
+
+    it("should encode extensible enum array with space delimiter", async () => {
+      const result = await client.property.extensibleEnumSpaceDelimited({ value: ["blue", "red", "green"] });
+      expect(result.value).toEqual(["blue", "red", "green"]);
+    });
+
+    it("should encode extensible enum array with pipe delimiter", async () => {
+      const result = await client.property.extensibleEnumPipeDelimited({ value: ["blue", "red", "green"] });
+      expect(result.value).toEqual(["blue", "red", "green"]);
+    });
+
+    it("should encode extensible enum array with newline delimiter", async () => {
+      const result = await client.property.extensibleEnumNewlineDelimited({ value: ["blue", "red", "green"] });
+      expect(result.value).toEqual(["blue", "red", "green"]);
+    });
+  });
 });
