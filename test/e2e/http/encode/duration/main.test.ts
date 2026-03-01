@@ -21,19 +21,19 @@ describe("Encode.Duration", () => {
       await client.query.iso8601("P40D");
     });
 
-    it.skip("should test int32 seconds encode for a duration parameter", async () => {
+    it("should test int32 seconds encode for a duration parameter", async () => {
       await client.query.int32Seconds(36);
     });
 
-    it.skip("should test float seconds encode for a duration parameter", async () => {
+    it("should test float seconds encode for a duration parameter", async () => {
       await client.query.floatSeconds(35.625);
     });
 
-    it.skip("should test float64 seconds encode for a duration parameter", async () => {
+    it("should test float64 seconds encode for a duration parameter", async () => {
       await client.query.float64Seconds(35.625);
     });
 
-    it.skip("should test int32 seconds encode for a duration array parameter", async () => {
+    it("should test int32 seconds encode for a duration array parameter", async () => {
       await client.query.int32SecondsArray([36, 47]);
     });
   });

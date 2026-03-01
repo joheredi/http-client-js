@@ -10,31 +10,26 @@ import { describe, expect, it } from "vitest";
 import { DatetimeClient } from "../../../generated/encode/datetime/src/index.js";
 
 describe("Encode.Datetime", () => {
-  /**
-   * Query operations are skipped because the generated code passes raw Date objects
-   * to URL template expansion instead of formatting them as RFC3339/RFC7231/unix strings.
-   * This is an emitter bug — the query serializer needs to format dates before interpolation.
-   */
   describe("QueryOperations", () => {
     const client = new DatetimeClient({ endpoint: "http://localhost:3002", allowInsecureConnection: true });
 
-    it.skip("should test default encode (rfc3339) for datetime query parameter", async () => {
+    it("should test default encode (rfc3339) for datetime query parameter", async () => {
       await client.query.default(new Date("2022-08-26T18:38:00.000Z"));
     });
 
-    it.skip("should test rfc3339 encode for datetime query parameter", async () => {
+    it("should test rfc3339 encode for datetime query parameter", async () => {
       await client.query.rfc3339(new Date("2022-08-26T18:38:00.000Z"));
     });
 
-    it.skip("should test rfc7231 encode for datetime query parameter", async () => {
+    it("should test rfc7231 encode for datetime query parameter", async () => {
       await client.query.rfc7231(new Date("2022-08-26T14:38:00.000Z"));
     });
 
-    it.skip("should test unixTimestamp encode for datetime query parameter", async () => {
+    it("should test unixTimestamp encode for datetime query parameter", async () => {
       await client.query.unixTimestamp(new Date("2023-06-12T10:47:44Z"));
     });
 
-    it.skip("should test unixTimestamp encode for datetime array query parameter", async () => {
+    it("should test unixTimestamp encode for datetime array query parameter", async () => {
       const timestamps = [new Date("2023-06-12T10:47:44Z"), new Date("2023-06-14T09:17:36Z")];
       await client.query.unixTimestampArray(timestamps);
     });

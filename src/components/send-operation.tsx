@@ -316,10 +316,15 @@ function getUrlTemplateParameters(
   for (const param of operation.parameters) {
     if (param.kind === "path" || param.kind === "query") {
       const valueExpr = getParameterAccessor(param, method);
+      // Apply type encoding for query params (e.g., Date → toISOString(), bytes → base64)
+      const encodedExpr =
+        param.kind === "query"
+          ? applyQueryParamEncoding(valueExpr, param)
+          : valueExpr;
       const wrappedExpr =
         param.kind === "query"
-          ? wrapWithCollectionFormat(valueExpr, param.collectionFormat)
-          : valueExpr;
+          ? wrapWithCollectionFormat(encodedExpr, param.collectionFormat)
+          : encodedExpr;
       // Query parameter keys must be percent-encoded to match the URI template
       // variable names that TCGC produces (e.g., `{?api%2Dversion}` needs key
       // `"api%2Dversion"`). Path parameter keys are NOT encoded because their
@@ -346,6 +351,66 @@ interface UrlTemplateParam {
   serializedName: string;
   /** The JavaScript expression that provides the parameter value. May be a code template with refkeys when collection format encoding is applied. */
   valueExpression: string | Children;
+}
+
+/**
+ * Applies type-specific encoding transformations to query parameter values
+ * before they are passed to `expandUrlTemplate()`.
+ *
+ * Query parameters with encoded scalar types (Date, Uint8Array) must be
+ * converted to their wire-format string representation before URL expansion.
+ * Without this, raw JavaScript objects are coerced to useless strings like
+ * `"[object Object]"` or `"[object Uint8Array]"`.
+ *
+ * For array-typed query parameters, each element is individually encoded
+ * using `.map()` before being passed to the collection format helper.
+ *
+ * Encoding transformations (delegated to `getSerializationExpression`):
+ * - `utcDateTime` → `.toISOString()`, `.toUTCString()`, or unix timestamp
+ * - `bytes` → `uint8ArrayToString(value, encoding)`
+ * - `plainDate` → `.toISOString().split("T")[0]`
+ * - Other types (including `duration`) → pass through unchanged
+ *
+ * @param accessor - JavaScript expression for the parameter value.
+ * @param param - The TCGC query parameter with type/encoding info.
+ * @returns The encoded expression, or the original accessor if no encoding needed.
+ */
+function applyQueryParamEncoding(
+  accessor: string,
+  param: SdkQueryParameter,
+): string | Children {
+  const rawType = param.type;
+  const type = rawType.kind === "nullable" ? rawType.type : rawType;
+  const isOptional = param.optional || rawType.kind === "nullable";
+
+  // Handle array types — encode each element individually before collection format
+  if (type.kind === "array") {
+    const elementRawType = type.valueType;
+    const elementType =
+      elementRawType.kind === "nullable" ? elementRawType.type : elementRawType;
+    if (needsTransformation(elementType)) {
+      const elementExpr = getSerializationExpression(elementType, "e");
+      return isOptional
+        ? code`${accessor}?.map((e: any) => ${elementExpr})`
+        : code`${accessor}.map((e: any) => ${elementExpr})`;
+    }
+    return accessor;
+  }
+
+  // Handle scalar types needing encoding
+  if (!needsTransformation(type)) {
+    return accessor;
+  }
+
+  const encodedExpr = getSerializationExpression(type, accessor);
+
+  // Guard optional/nullable params against undefined to avoid runtime errors
+  // (e.g., `(undefined).toISOString()` would throw)
+  if (isOptional) {
+    return code`${accessor} !== undefined ? ${encodedExpr} : undefined`;
+  }
+
+  return encodedExpr;
 }
 
 /**
@@ -1017,7 +1082,7 @@ function getBodyAccessor(
  *   containing a refkey to the appropriate collection builder helper.
  */
 export function wrapWithCollectionFormat(
-  accessor: string,
+  accessor: string | Children,
   collectionFormat: string | undefined,
 ): string | Children {
   if (!collectionFormat) return accessor;

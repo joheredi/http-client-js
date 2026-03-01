@@ -557,7 +557,7 @@
       "title": "Fix query parameter type coercion for Date, duration, and bytes types",
       "category": "bug-fix/emitter",
       "priority": "P1",
-      "status": "pending",
+      "status": "done",
       "kind": "feature",
       "dependencies": [],
       "design_review": null,

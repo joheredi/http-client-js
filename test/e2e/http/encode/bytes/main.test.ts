@@ -40,27 +40,22 @@ const str = "test";
 const testUint8Array = new Uint8Array([...str].map((char) => char.charCodeAt(0)));
 
 describe("Encode.Bytes", () => {
-  /**
-   * Query operations are skipped because the generated code passes raw Uint8Array
-   * to URL template expansion instead of base64-encoding it first. This is an
-   * emitter bug — the query serializer needs to encode bytes before interpolation.
-   */
   describe("QueryOperations", () => {
     const client = new BytesClient({ endpoint: "http://localhost:3002", allowInsecureConnection: true });
 
-    it.skip("should test default encode (base64) for bytes query parameter", async () => {
+    it("should test default encode (base64) for bytes query parameter", async () => {
       await client.query.default(testUint8Array);
     });
 
-    it.skip("should test base64 encode for bytes query parameter", async () => {
+    it("should test base64 encode for bytes query parameter", async () => {
       await client.query.base64(testUint8Array);
     });
 
-    it.skip("should test base64url encode for bytes query parameter", async () => {
+    it("should test base64url encode for bytes query parameter", async () => {
       await client.query.base64url(testUint8Array);
     });
 
-    it.skip("should test base64url encode for bytes array query parameter", async () => {
+    it("should test base64url encode for bytes array query parameter", async () => {
       await client.query.base64urlArray([testUint8Array, testUint8Array]);
     });
   });
