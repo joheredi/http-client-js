@@ -374,7 +374,7 @@ describe("XmlObjectSerializer", () => {
    * Tests that optional array-of-models properties get a null guard.
    * The array `.map()` call would throw on `undefined` without this check.
    */
-  it("should add null guard for optional array-of-models properties", async () => {
+  it("should use optional chaining without null guard for optional array-of-models properties", async () => {
     const itemModel = createMockXmlModel("CorsRule", [
       {
         name: "allowedOrigins",
@@ -410,8 +410,9 @@ describe("XmlObjectSerializer", () => {
     );
 
     const result = renderToString(template);
-    expect(result).toContain('!item["cors"] ? item["cors"] :');
-    expect(result).toContain("?.map(");
+    // Arrays use ?.map() which already handles null/undefined — no ternary null guard needed
+    expect(result).not.toContain('!item["cors"] ? item["cors"] :');
+    expect(result).toContain('item["cors"]?.map(');
     expect(result).not.toContain("Unresolved Symbol");
   });
 

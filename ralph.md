@@ -34,7 +34,8 @@ Choose the highest-priority task. **You decide** what has the highest priority â
 Use up to 500 parallel subagents to study the codebase. **Do NOT assume something is not implemented** â€” always search first using subagents. Think hard.
 
 1. Search the codebase for existing implementations related to your task.
-2. Study how the functionality is implemented in the legacy emitter (`submodules/autorest.typescript/packages/typespec-ts`).
+2. Study how the functionality is implemented in the legacy emitter and the output it produces (`submodules/autorest.typescript/packages/typespec-ts`).
+   2.1 Matching legacy emitter output is a priority
 3. If the task is already done, mark it as done in `prd.json` and exit.
 4. Consult `knowledge.md` via a subagent for known gotchas related to your task.
 

@@ -777,7 +777,7 @@ describe("SendOperation", () => {
    * the generated code would reference `options?.version` which doesn't exist in the
    * options interface (apiVersion is excluded from operation options by design).
    */
-  it("should use context.apiVersion for header-based API version parameters", async () => {
+  it("should use options for header-based API version parameters", async () => {
     const runner = await RawTester.createInstance();
     const { program } = await runner.compile(`
 import "@typespec/http";
@@ -813,9 +813,11 @@ model VersionedHeaderServiceClientOptions {
     );
 
     const result = renderToString(template);
-    expect(result).toContain("context.apiVersion");
+    // Header params read from options, not context — the client wrapper
+    // forwards context values into options
+    expect(result).toContain("options?.apiVersion");
     expect(result).toContain("x-ms-version");
-    expect(result).not.toContain("options?.apiVersion");
+    expect(result).not.toContain("context.apiVersion");
     expect(result).not.toContain("Unresolved Symbol");
   });
 

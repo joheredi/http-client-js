@@ -173,7 +173,7 @@ function xmlNeedsTransformation(type: SdkType): boolean {
     case "model":
       return true;
     case "array":
-      return true;
+      return false;
     case "utcDateTime":
     case "plainDate":
       return true;
