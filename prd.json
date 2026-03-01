@@ -667,7 +667,7 @@
       "title": "Add null guard in array serializer/deserializer for nullable model elements",
       "category": "bug-fix/emitter",
       "priority": "P1",
-      "status": "pending",
+      "status": "done",
       "kind": "feature",
       "dependencies": [],
       "design_review": null,

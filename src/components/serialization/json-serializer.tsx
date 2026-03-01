@@ -321,11 +321,15 @@ export function getSerializationExpression(
         if (valueTypeHasNamedSerializerFn(type.valueType, options)) {
           return code`${arraySerializerRefkey(type.valueType)}(${accessor})`;
         }
+        const isNullable = type.valueType.kind === "nullable";
         const elementExpr = getSerializationExpression(
           type.valueType,
           "p",
           options,
         );
+        if (isNullable) {
+          return code`${accessor}.map((p: any) => { return !p ? p : ${elementExpr}; })`;
+        }
         return code`${accessor}.map((p: any) => { return ${elementExpr}; })`;
       }
       return accessor;

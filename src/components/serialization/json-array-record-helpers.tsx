@@ -57,7 +57,11 @@ export interface JsonArraySerializerProps {
  */
 export function JsonArraySerializer(props: JsonArraySerializerProps) {
   const { type } = props;
+  const isNullable = type.valueType.kind === "nullable";
   const elementExpr = getSerializationExpression(type.valueType, "item");
+  const mapBody = isNullable
+    ? code`return !item ? item : ${elementExpr};`
+    : code`return ${elementExpr};`;
 
   return (
     <FunctionDeclaration
@@ -72,7 +76,7 @@ export function JsonArraySerializer(props: JsonArraySerializerProps) {
         },
       ]}
     >
-      {code`return result.map((item) => { return ${elementExpr}; });`}
+      {code`return result.map((item) => { ${mapBody} });`}
     </FunctionDeclaration>
   );
 }
@@ -106,7 +110,11 @@ export interface JsonArrayDeserializerProps {
  */
 export function JsonArrayDeserializer(props: JsonArrayDeserializerProps) {
   const { type } = props;
+  const isNullable = type.valueType.kind === "nullable";
   const elementExpr = getDeserializationExpression(type.valueType, "item");
+  const mapBody = isNullable
+    ? code`return !item ? item : ${elementExpr};`
+    : code`return ${elementExpr};`;
 
   return (
     <FunctionDeclaration
@@ -121,7 +129,7 @@ export function JsonArrayDeserializer(props: JsonArrayDeserializerProps) {
         },
       ]}
     >
-      {code`return result.map((item) => { return ${elementExpr}; });`}
+      {code`return result.map((item) => { ${mapBody} });`}
     </FunctionDeclaration>
   );
 }
@@ -352,6 +360,14 @@ export function collectArrayTypes(
         if (!seen.has(sig)) {
           seen.add(sig);
           result.push(type);
+        } else if (type.valueType.kind === "nullable") {
+          // Prefer the nullable variant so the generated helper includes a null guard.
+          // Both Array<T> and Array<T | null> share the same signature (nullable is unwrapped),
+          // but the helper needs nullable info to generate correct code.
+          const idx = result.findIndex(
+            (t) => getTypeSignatureForCollection(t) === sig,
+          );
+          if (idx >= 0) result[idx] = type;
         }
         // Recurse into value type for nested arrays/dicts
         visit(type.valueType);
@@ -396,6 +412,11 @@ export function collectDictTypes(
         if (!seen.has(sig)) {
           seen.add(sig);
           result.push(type);
+        } else if (type.valueType.kind === "nullable") {
+          const idx = result.findIndex(
+            (t) => getTypeSignatureForCollection(t) === sig,
+          );
+          if (idx >= 0) result[idx] = type;
         }
         // Recurse into value type for nested arrays/dicts
         visit(type.valueType);

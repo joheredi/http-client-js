@@ -2414,3 +2414,24 @@ Ported 4 property type Spector e2e test files covering ~212 test cases:
 **Tests**: Added scenario test `test/scenarios/cases/classicClient/parameterShadowing.md`. Un-skipped e2e test `test/e2e/http/type/model/usage/main.test.ts` "should send an input-only model".
 
 **Pattern**: The same shadowing issue exists in both classical client class methods and operation group factory closures — both use the pattern `${operationRefkey}(context, ${params})` where a parameter name matching the operation function name would shadow the import. The fix applies consistently to both.
+
+## 2026-03-01: E2E-FIX-NULLABLE-MODEL-ARRAY — Add null guard in array serializer/deserializer for nullable model elements
+
+### What was done
+- Fixed array serializer/deserializer functions to add null guard (`!item ? item : expr`) when array elements are nullable
+- Changes in 3 files:
+  - `src/components/serialization/json-array-record-helpers.tsx`: Added null guard in `JsonArraySerializer` and `JsonArrayDeserializer` when `type.valueType.kind === "nullable"`. Also fixed `collectArrayTypes` and `collectDictTypes` to prefer nullable variants when deduping (nullable and non-nullable arrays share same signature/refkey).
+  - `src/components/serialization/json-serializer.tsx`: Added null guard in inline `.map()` path for nullable array elements
+  - `src/components/serialization/json-deserializer.tsx`: Same
+- Unskipped 2 e2e tests in `test/e2e/http/type/array/main.test.ts`
+
+### Key pattern
+- TCGC represents nullable arrays as `{ kind: "array", valueType: { kind: "nullable", type: innerType } }`
+- Both `Array<T>` and `Array<T | null>` share the same refkey/signature (nullable is unwrapped in `getTypeSignature` and `getTypeSignatureForCollection`)
+- The null guard must be in the named helper function since both variants share it
+- `collectArrayTypes` must prefer nullable variants when deduping so the component gets nullable info
+
+### Validation
+- All 1016 unit tests pass
+- Smoke test passes
+- E2E: 356 passed (up from 354), 77 skipped (down from 79)

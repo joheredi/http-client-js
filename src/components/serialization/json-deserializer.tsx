@@ -307,7 +307,11 @@ export function getDeserializationExpression(
         if (valueTypeHasNamedDeserializerFn(type.valueType)) {
           return code`${arrayDeserializerRefkey(type.valueType)}(${accessor})`;
         }
+        const isNullable = type.valueType.kind === "nullable";
         const elementExpr = getDeserializationExpression(type.valueType, "p");
+        if (isNullable) {
+          return code`${accessor}.map((p: any) => { return !p ? p : ${elementExpr}; })`;
+        }
         return code`${accessor}.map((p: any) => { return ${elementExpr}; })`;
       }
       return accessor;

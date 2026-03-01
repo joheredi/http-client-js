@@ -168,17 +168,12 @@ describe("Type.Array", () => {
   });
 
   describe("nullableModelValue", () => {
-    // Emitter bug: generated innerModelDeserializer does not guard against null
-    // items in nullable model arrays — it calls item["property"] on null.
-    // See generated/type/array/src/models/models.ts innerModelDeserializer.
-    it.skip("should get an array of nullable model values", async () => {
+    it("should get an array of nullable model values", async () => {
       const response = await client.nullableModelValue.get();
       expect(response).toEqual([{ property: "hello" }, null, { property: "world" }]);
     });
 
-    // Emitter bug: generated innerModelSerializer does not guard against null
-    // items in nullable model arrays — it calls item["property"] on null.
-    it.skip("should put an array of nullable model values", async () => {
+    it("should put an array of nullable model values", async () => {
       await client.nullableModelValue.put([{ property: "hello" }, null, { property: "world" }]);
     });
   });
