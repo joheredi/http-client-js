@@ -18,5 +18,5 @@
     "emitDeclarationOnly": true
   },
   "include": ["src/**/*.ts", "test/**/*.ts", "src/**/*.tsx", "test/**/*.tsx"],
-  "exclude": ["node_modules", "dist", "test/e2e/generated"]
+  "exclude": ["node_modules", "dist", "test/e2e/generated", "test/e2e/http"]
 }

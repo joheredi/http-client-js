@@ -14,6 +14,7 @@ import type {
   SdkMethodParameter,
   SdkPathParameter,
 } from "@azure-tools/typespec-client-generator-core";
+import type { HttpAuth } from "@typespec/http";
 import { useFlavorContext, useRuntimeLib } from "../context/flavor-context.js";
 import { getEscapedParameterName } from "../utils/name-policy.js";
 import {
@@ -610,7 +611,7 @@ function buildFactoryBody(client: SdkClientType<SdkHttpOperation>): Children {
   // 3. Call getClient with updated options
   const getClientCall = buildGetClientCall(
     endpointParam !== undefined,
-    credentialParam !== undefined,
+    credentialParam,
   );
 
   // 4. Check if the client has apiVersion in its context interface.
@@ -849,29 +850,91 @@ export function buildUserAgentOptions(): Children {
 /**
  * Builds the `getClient(...)` call expression.
  *
- * The call signature varies based on whether credentials are present:
- * - With credentials: `getClient(endpointUrl, credential, updatedOptions)`
- * - Without credentials: `getClient(endpointUrl, updatedOptions)`
+ * The call signature varies based on the runtime flavor:
+ * - **Azure** (`@azure-rest/core-client`): Has a 3-arg overload
+ *   `getClient(endpoint, credential, options)` — credential is passed separately.
+ * - **Core** (`@typespec/ts-http-runtime`): Only has a 2-arg signature
+ *   `getClient(endpoint, options)` — credential and authSchemes must be included
+ *   inside options (used by `createDefaultPipeline` to configure auth policies).
  *
  * Uses `updatedOptions` (which includes the merged user agent prefix)
  * rather than the raw `options` parameter, so the constructed user agent
  * string is forwarded to the HTTP runtime.
  *
  * @param hasEndpoint - Whether the client has an endpoint parameter.
- * @param hasCredential - Whether the client has a credential parameter.
+ * @param credentialParam - The credential parameter if authentication is configured, or undefined.
  * @returns Alloy Children for the getClient call expression.
  */
 function buildGetClientCall(
   hasEndpoint: boolean,
-  hasCredential: boolean,
+  credentialParam: SdkCredentialParameter | undefined,
 ): Children {
   const runtimeLib = useRuntimeLib();
+  const { flavor } = useFlavorContext();
   const endpointArg = hasEndpoint ? "endpointUrl" : '""';
 
-  if (hasCredential) {
-    return code`${runtimeLib.getClient}(${endpointArg}, credential, updatedOptions)`;
+  if (credentialParam) {
+    if (flavor === "azure") {
+      return code`${runtimeLib.getClient}(${endpointArg}, credential, updatedOptions)`;
+    }
+    // Core runtime: credential and authSchemes go inside options
+    const authSchemesLiteral = buildAuthSchemesLiteral(credentialParam);
+    if (authSchemesLiteral) {
+      return code`${runtimeLib.getClient}(${endpointArg}, { ...updatedOptions, credential, authSchemes: ${authSchemesLiteral} })`;
+    }
+    return code`${runtimeLib.getClient}(${endpointArg}, { ...updatedOptions, credential })`;
   }
   return code`${runtimeLib.getClient}(${endpointArg}, updatedOptions)`;
+}
+
+/**
+ * Builds a JavaScript array literal string representing the auth schemes
+ * derived from the credential parameter's type information.
+ *
+ * Maps TCGC auth scheme types to the runtime's expected format:
+ * - `apiKey` → `{ kind: "apiKey", apiKeyLocation: "<in>", name: "<headerName>" }`
+ * - `http` (basic/bearer) → `{ kind: "http", scheme: "<scheme>" }`
+ * - `oauth2` → `{ kind: "oauth2", flows: [...] }`
+ *
+ * @param credentialParam - The TCGC credential parameter.
+ * @returns A string containing the auth schemes array literal, or undefined if no schemes found.
+ */
+function buildAuthSchemesLiteral(
+  credentialParam: SdkCredentialParameter,
+): string | undefined {
+  const credType = credentialParam.type;
+  const schemes: HttpAuth[] = [];
+
+  if (credType.kind === "credential") {
+    schemes.push(credType.scheme);
+  } else if (credType.kind === "union") {
+    for (const variant of credType.variantTypes) {
+      if (variant.kind === "credential") {
+        schemes.push(variant.scheme);
+      }
+    }
+  }
+
+  if (schemes.length === 0) return undefined;
+
+  const parts = schemes
+    .map((scheme) => {
+      switch (scheme.type) {
+        case "apiKey":
+          return `{ kind: "apiKey", apiKeyLocation: "${scheme.in}", name: "${scheme.name}" }`;
+        case "http":
+          return `{ kind: "http", scheme: "${scheme.scheme.toLowerCase()}" }`;
+        case "oauth2":
+          // OAuth2 flows are complex; for now emit a minimal scheme
+          return `{ kind: "oauth2" }`;
+        default:
+          return undefined;
+      }
+    })
+    .filter(Boolean);
+
+  if (parts.length === 0) return undefined;
+  return `[${parts.join(", ")}]`;
 }
 
 /**

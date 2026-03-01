@@ -443,8 +443,11 @@ describe("ClientContext", () => {
     );
 
     const result = renderToString(template);
-    // With credentials, getClient takes three args with updatedOptions last
-    expect(result).toContain("credential, updatedOptions");
+    // Core flavor: credential and authSchemes are merged into options object (2-arg getClient)
+    expect(result).toContain("{ ...updatedOptions, credential, authSchemes:");
+    expect(result).toContain('kind: "apiKey"');
+    expect(result).toContain('apiKeyLocation: "header"');
+    expect(result).toContain('name: "x-api-key"');
     // Should still have user agent prefix construction
     expect(result).toContain("azsdk-js-api");
   });

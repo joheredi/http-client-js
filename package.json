@@ -34,6 +34,7 @@
     "@typespec/openapi": "^1.9.0",
     "@typespec/rest": "^0.79.0",
     "@typespec/spector": "0.1.0-alpha.23",
+    "@typespec/ts-http-runtime": "0.2.1",
     "@typespec/versioning": "^0.79.0",
     "@typespec/xml": "^0.79.0",
     "concurrently": "^9.2.0",

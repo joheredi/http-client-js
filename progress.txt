@@ -2223,3 +2223,31 @@ Changed `buildPagedAsyncIterator` parameter types from `Promise<PathUncheckedRes
 - The `eng/spector-stub/` directory is now unused but still exists — it can be cleaned up
 - The emit:e2e script still uses submodule specs path for .tsp compilation (different from server specs path)
 - SPECTOR-3 should port the first real e2e test (authentication/api-key)
+
+## SA29: SPECTOR-3 Port authentication/api-key e2e test — DONE (2026-03-01)
+
+### What was done
+- Created `test/e2e/http/authentication/api-key/main.test.ts` — first real Spector e2e test
+- Both tests pass: valid API key (204) and invalid API key (403 error)
+- Fixed `buildGetClientCall()` in `src/components/client-context.tsx` to be flavor-aware:
+  - **Azure flavor**: Uses 3-arg `getClient(endpoint, credential, options)` (Azure runtime overload)
+  - **Core flavor**: Uses 2-arg `getClient(endpoint, { ...options, credential, authSchemes })` (core runtime signature)
+- Implemented `buildAuthSchemesLiteral()` — generates runtime auth scheme config from TCGC credential types:
+  - Maps `apiKey` → `{ kind: "apiKey", apiKeyLocation: "header", name: "x-ms-api-key" }`
+  - Maps `http` (basic/bearer) → `{ kind: "http", scheme: "bearer" }`
+  - Maps `oauth2` → `{ kind: "oauth2" }`
+- Added `@typespec/ts-http-runtime@0.2.1` as devDependency (needed by generated e2e code)
+- Added `test/e2e/http` to tsconfig.json exclude (e2e tests run through Vitest/esbuild, not tsc)
+- Updated unit test to verify auth scheme generation in client context
+
+### Key findings
+- The Azure runtime (`@azure-rest/core-client`) has a 3-arg `getClient(endpoint, credential, options)` overload
+- The core runtime (`@typespec/ts-http-runtime`) only has 2-arg `getClient(endpoint, options)` — credential goes inside options
+- The core runtime's `createDefaultPipeline` reads `credential` + `authSchemes` from options to configure auth policies
+- Without `authSchemes`, the API key auth policy has no scheme metadata and skips adding headers
+- The emitter uses `KeyCredential`/`TokenCredential` type names which are from the Azure ecosystem; the core runtime uses `ApiKeyCredential`/`BearerTokenCredential` etc. This works at runtime but has type mismatches (hidden by `skipLibCheck`)
+
+### Patterns used
+- E2e test follows reference emitter pattern: `describe > it` with Vitest
+- Mock server on port 3002 with `allowInsecureConnection: true`
+- Flavor-aware code generation using `useFlavorContext().flavor`

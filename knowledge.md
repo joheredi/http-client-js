@@ -2201,3 +2201,21 @@ declarations are actually generated.
 ### Specs sourced from submodule, not npm (2026-03-01)
 **Decision**: The emit-e2e script reads specs from `submodules/typespec/packages/http-specs/specs/` instead of `node_modules/@typespec/http-specs/specs/`.
 **Why**: `@typespec/http-specs` can't be installed from npm due to unresolvable transitive dependency on `@typespec/spec`. The submodule already has the specs available.
+
+## Design Decisions
+
+### getClient call pattern is flavor-dependent (2026-03-01)
+The `buildGetClientCall()` function generates different patterns based on the runtime flavor:
+- **Azure** (`@azure-rest/core-client`): `getClient(endpoint, credential, updatedOptions)` — 3-arg overload exists
+- **Core** (`@typespec/ts-http-runtime`): `getClient(endpoint, { ...updatedOptions, credential, authSchemes: [...] })` — only 2-arg, credential and authSchemes must be inside options
+
+Rejected approach: Using the same 3-arg call for both flavors. This broke the core runtime because:
+1. The 3rd arg is ignored (core `getClient` only has 2 params)
+2. The credential becomes `clientOptions`, losing `allowInsecureConnection` and other real options
+3. Auth policies never get configured because `authSchemes` is missing
+
+### Core runtime auth scheme generation (2026-03-01)
+The core runtime's `createDefaultPipeline` reads `credential` + `authSchemes` from `ClientOptions` to configure auth policies (apiKey, bearer, basic, oauth2). Without `authSchemes`, the API key auth policy skips adding headers entirely. The `buildAuthSchemesLiteral()` function in `client-context.tsx` generates this config from TCGC's `SdkCredentialType.scheme` (which is `HttpAuth` from `@typespec/http`).
+
+### Type name mismatch: KeyCredential vs ApiKeyCredential (2026-03-01)
+The emitter's external packages declare `KeyCredential` and `TokenCredential` as exports from `@typespec/ts-http-runtime`, but the actual runtime 0.2.1 exports `ApiKeyCredential`, `BearerTokenCredential`, `BasicCredential`, `OAuth2TokenCredential`, and `ClientCredential`. The generated code compiles because `skipLibCheck: true` hides the type mismatch. This should be fixed in a future task to align type names with the actual runtime exports.
