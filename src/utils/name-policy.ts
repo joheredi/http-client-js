@@ -319,6 +319,29 @@ export function getEscapedParameterName(name: string): string {
 }
 
 /**
+ * Get a safe parameter name for use in classical client methods and operation
+ * group closures. When a method parameter has the same name as the method
+ * itself, the parameter would shadow the imported operation function in the
+ * method body, causing a runtime TypeError.
+ *
+ * Appends "Parameter" suffix to resolve the conflict, matching the legacy
+ * emitter's output convention (e.g., `input` → `inputParameter`).
+ *
+ * @param paramName - The original parameter name from TCGC.
+ * @param methodName - The operation method name.
+ * @returns The original name if no conflict, or `${paramName}Parameter` if shadowing.
+ */
+export function getSafeMethodParamName(
+  paramName: string,
+  methodName: string,
+): string {
+  if (paramName === methodName) {
+    return `${paramName}Parameter`;
+  }
+  return paramName;
+}
+
+/**
  * Normalize a property name to match the name policy's camelCase output.
  *
  * Use this in serializer/deserializer code where `namekey()` is unavailable

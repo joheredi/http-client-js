@@ -18,7 +18,7 @@ import type {
 } from "@azure-tools/typespec-client-generator-core";
 import { useFlavorContext, useRuntimeLib } from "../context/flavor-context.js";
 import { azureCoreLroLib } from "../utils/external-packages.js";
-import { getEscapedParameterName } from "../utils/name-policy.js";
+import { getEscapedParameterName, getSafeMethodParamName } from "../utils/name-policy.js";
 import {
   classicalClientRefkey,
   clientContextRefkey,
@@ -399,7 +399,7 @@ function buildMethodParameters(
   for (const param of method.parameters) {
     if (isRequiredSignatureParameter(param, method)) {
       params.push({
-        name: param.name,
+        name: getSafeMethodParamName(param.name, method.name),
         type: getTypeExpression(param.type),
       });
     }
@@ -476,7 +476,7 @@ function buildDelegateArguments(
 
   for (const param of method.parameters) {
     if (isRequiredSignatureParameter(param, method)) {
-      args.push(param.name);
+      args.push(getSafeMethodParamName(param.name, method.name));
     }
   }
 

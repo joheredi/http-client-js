@@ -2402,3 +2402,15 @@ Ported 4 property type Spector e2e test files covering ~212 test cases:
 ## Test results
 - Unit tests: 1015 passed, 3 skipped
 - E2E tests: 345 passed, 88 skipped (30 test files passed)
+
+## 2026-03-01: E2E-FIX-PARAM-NAME-SHADOWING — Fix parameter name shadowing operation function import
+
+**Problem**: When a classical client method had a parameter with the same name as the operation (e.g., `input(input: InputRecord, ...)`), the parameter shadowed the imported operation function in the method body, causing `TypeError` at runtime.
+
+**Fix**: Added `getSafeMethodParamName()` utility in `src/utils/name-policy.ts` that appends "Parameter" suffix when `param.name === method.name`, matching the legacy emitter's output convention (`input` → `inputParameter`). Applied in:
+- `src/components/classical-client.tsx` — `buildMethodParameters()` and `buildDelegateArguments()`
+- `src/components/classical-operation-groups.tsx` — `buildMethodParamList()`, `buildFactoryParamList()`, `buildDelegateArgList()`
+
+**Tests**: Added scenario test `test/scenarios/cases/classicClient/parameterShadowing.md`. Un-skipped e2e test `test/e2e/http/type/model/usage/main.test.ts` "should send an input-only model".
+
+**Pattern**: The same shadowing issue exists in both classical client class methods and operation group factory closures — both use the pattern `${operationRefkey}(context, ${params})` where a parameter name matching the operation function name would shadow the import. The fix applies consistently to both.

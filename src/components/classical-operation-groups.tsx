@@ -31,6 +31,7 @@ import {
   getOptionsParamName,
   isRequiredSignatureParameter,
 } from "./send-operation.js";
+import { getSafeMethodParamName } from "../utils/name-policy.js";
 
 /**
  * Represents a child client (operation group) along with its accumulated
@@ -349,7 +350,7 @@ function buildMethodParamList(
 
   for (const param of method.parameters) {
     if (isRequiredSignatureParameter(param, method)) {
-      parts.push(code`${param.name}: ${getTypeExpression(param.type)}`);
+      parts.push(code`${getSafeMethodParamName(param.name, method.name)}: ${getTypeExpression(param.type)}`);
     }
   }
 
@@ -454,7 +455,7 @@ function buildFactoryParamList(
 
   for (const param of method.parameters) {
     if (isRequiredSignatureParameter(param, method)) {
-      params.push(param.name);
+      params.push(getSafeMethodParamName(param.name, method.name));
     }
   }
 
@@ -478,7 +479,7 @@ function buildDelegateArgList(
 
   for (const param of method.parameters) {
     if (isRequiredSignatureParameter(param, method)) {
-      args.push(param.name);
+      args.push(getSafeMethodParamName(param.name, method.name));
     }
   }
 

@@ -23,10 +23,7 @@ describe("Type.Model.Usage", () => {
     allowInsecureConnection: true,
   });
 
-  // Skipped: The generated usageClient.ts has a naming collision — the method
-  // parameter `input` shadows the imported `input` function from operations.js,
-  // causing "TypeError: input2 is not a function" at runtime.
-  it.skip("should send an input-only model", async () => {
+  it("should send an input-only model", async () => {
     await client.input({ requiredProp: "example-value" });
   });
 
