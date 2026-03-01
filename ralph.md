@@ -39,6 +39,22 @@ Use up to 500 parallel subagents to study the codebase. **Do NOT assume somethin
 3. If the task is already done, mark it as done in `prd.json` and exit.
 4. Consult `knowledge.md` via a subagent for known gotchas related to your task.
 
+### Verifying Legacy Consistency (CRITICAL PROCESS)
+
+When deciding how to implement or fix something, you **must** verify that your approach produces output consistent with the legacy emitter. Follow this process:
+
+1. **Find the relevant scenario tests first.** Scenario tests in `test/scenarios/cases/` define the expected TypeScript output for given TypeSpec inputs. These expectations were written to match the legacy emitter's actual output. They are the **ground truth** for what the new emitter must produce.
+
+2. **Study the legacy emitter code paths, but trust scenario tests over code analysis.** The legacy emitter code is complex with many fallback paths (e.g., `buildModelSerializer()` → `serializeRequestValue()` → default). Static analysis of the legacy code can be misleading — a function may appear to return `undefined` for a type, but a fallback handler may process it differently. The scenario tests capture the **actual end-to-end output**, which is what matters.
+
+3. **Cross-reference multiple scenario files.** For any feature (e.g., enum serialization), there are usually multiple scenario files covering different configurations (e.g., with/without `experimental-extensible-enums`, nullable vs. non-nullable, inline vs. named types). Check ALL relevant scenarios before concluding how a feature should behave.
+
+4. **Run the scenario tests to validate.** After making any change, run `npx vitest run test/scenarios/` to verify that the generated output matches all scenario expectations. A passing scenario test suite means your output is consistent with the legacy emitter.
+
+5. **When in doubt, add a scenario test.** If there's no existing scenario covering a specific case, create one. Write the TypeSpec input, run the legacy emitter to capture the expected output, and add it as a new scenario `.md` file.
+
+**Example — the enum serialization lesson:** During analysis, static code reading of the legacy emitter suggested enums always used direct pass-through (`item["prop"]`). But the scenario tests revealed that union-as-enum types actually generate pass-through serializer functions that are called from model serializers (`enumSerializer(item["prop"])`). The scenario tests were right; the static analysis was misleading due to TCGC type flattening and complex fallback paths in the legacy code. **Always let scenario test expectations be the final arbiter.**
+
 ---
 
 ## Phase 3: DESIGN — Evaluate approaches before coding
@@ -47,7 +63,7 @@ Before writing any code, do a design review using subagents:
 
 1. Identify at least **2 viable approaches** for implementing the task.
 2. For each approach, evaluate against these criteria (in priority order):
-   - **Output consistency with the legacy emitter** — the generated code must match the legacy emitter's public API surface. This is the top priority.
+   - **Output consistency with the legacy emitter** — the generated code must match the legacy emitter's public API surface. This is the top priority. **Verify by checking scenario test expectations in `test/scenarios/cases/`**, not just by reading legacy source code.
    - **Idiomatic Alloy** — follows patterns from `flight-instructor` and `alloy-guide-final.md` (refkeys, `code` templates, `<For>`, no string concatenation, no manual imports).
    - **Completeness** — covers all edge cases visible in the legacy implementation.
    - **Simplicity** — fewer moving parts, less indirection, easier for future loops to understand.
@@ -73,6 +89,16 @@ pnpm build && pnpm test
 ```
 
 If tests unrelated to your work fail, it is **your job** to resolve them as part of this increment of change.
+
+### Scenario Tests as Consistency Gate
+
+After any change that affects generated output, **always run scenario tests**:
+
+```bash
+npx vitest run test/scenarios/
+```
+
+These tests compare the new emitter's generated TypeScript against expected output that matches the legacy emitter. If scenario tests fail, your change breaks legacy consistency — fix it before proceeding. If scenario tests pass, you have high confidence your output matches the legacy emitter.
 
 ---
 
