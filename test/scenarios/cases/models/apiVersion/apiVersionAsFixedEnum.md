@@ -73,7 +73,7 @@ export function _fooSend(
   return context.path("/").get({
     ...operationOptionsToRequestParameters(options),
     headers: {
-      "api-version": options?.apiVersion,
+      "api-version": (context as any).apiVersion ?? "2021-10-01-preview",
       ...options.requestOptions?.headers,
     },
   });

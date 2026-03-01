@@ -840,11 +840,14 @@ function getApiVersionExpression(
   if (!correspondingParam) return undefined;
 
   if (correspondingParam.kind === "method" && correspondingParam.onClient) {
+    // Uses the param's actual name (e.g., "apiVersion" or "version") to match
+    // the property name generated on the client context interface. The `as any`
+    // cast is needed because context is typed as base `Client`.
     const defaultValue = correspondingParam.clientDefaultValue;
     if (defaultValue !== undefined) {
-      return `context.apiVersion ?? "${defaultValue}"`;
+      return `(context as any).${correspondingParam.name} ?? "${defaultValue}"`;
     }
-    return "context.apiVersion";
+    return `(context as any).${correspondingParam.name}`;
   }
 
   return undefined;

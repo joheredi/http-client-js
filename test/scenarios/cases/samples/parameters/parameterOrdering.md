@@ -89,7 +89,7 @@ export function _verifySend(
 ): StreamableMethod {
   const path = expandUrlTemplate(
     "/device-location/location:verify{?api%2Dversion}",
-    { "api%2Dversion": context.apiVersion ?? "2022-05-15-preview" },
+    { "api%2Dversion": (context as any).apiVersion ?? "2022-05-15-preview" },
     { allowReserved: options?.requestOptions?.skipUrlEncoding },
   );
   return context.path(path).post({

@@ -177,7 +177,7 @@ export function _createOrReplaceSend(
 ): StreamableMethod {
   const path = expandUrlTemplate(
     "/users/{name}{?api%2Dversion}",
-    { "api%2Dversion": context.apiVersion ?? "1.0", name: name },
+    { "api%2Dversion": (context as any).apiVersion ?? "1.0", name: name },
     { allowReserved: options?.requestOptions?.skipUrlEncoding },
   );
   return context.path(path).put({
@@ -309,7 +309,7 @@ export function _suspendSend(
   const path = expandUrlTemplate(
     "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/suspend{?api%2Dversion}",
     {
-      "api%2Dversion": context.apiVersion ?? "2023-12-01",
+      "api%2Dversion": (context as any).apiVersion ?? "2023-12-01",
       subscriptionId: context["subscriptionId"],
       resourceGroupName: resourceGroupName,
       name: name,

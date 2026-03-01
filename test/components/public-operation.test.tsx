@@ -1203,7 +1203,7 @@ interface TestResources {
     // the array should also contain "202".
     expect(rendered).toContain('"202"');
     // Verify apiVersion is present in poller options
-    expect(rendered).toContain("apiVersion: context.apiVersion");
+    expect(rendered).toContain("apiVersion: (context as any).apiVersion");
   });
 
   /**

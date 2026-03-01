@@ -2154,3 +2154,11 @@ declarations are actually generated.
 **Rejected approach**: Modifying the options interface to skip the name policy — this would break the convention that all interface members use camelCase and would be inconsistent with the rest of the codebase.
 
 **Key rule**: When referencing options properties in generated operation code, ALWAYS use `normalizePropertyName()` to match the camelCase name policy. Required parameters (direct function args) already use `getEscapedParameterName()` which applies camelCase.
+
+## Header-based API version parameters
+- When `x-ms-version` (or similar) is a header parameter with `isApiVersionParam=true` and `onClient=true`, the accessor must read from context (e.g., `context.version`), not from options. The options interface excludes apiVersion params via `isOptionalParameter()`.
+- The parameter name on the context is `param.name` (e.g., "version" for Azure Blob Storage, "apiVersion" for most other services). Do NOT hardcode "apiVersion".
+- Currently uses `(context as any).paramName` because operations type context as base `Client`. Follow-up task FIX-CONTEXT-PARAM-TYPE tracks fixing the context parameter type to use the specific client context refkey.
+
+## Context parameter typing TODO
+- Operations in send-operation.tsx and public-operation.tsx type the context parameter as `runtimeLib.Client` (the base REST client interface). The actual context type at runtime is the specific client context (e.g., `BlobContext extends Client`) which has custom properties like `version`. Fixing this requires using `clientContextRefkey(rootClient)` and updating 49+ scenario test expectations. See task FIX-CONTEXT-PARAM-TYPE.

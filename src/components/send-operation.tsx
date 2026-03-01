@@ -378,12 +378,16 @@ function getParameterAccessor(
     if (correspondingParam.isApiVersionParam) {
       // When the apiVersion has a default value (from @versioned enum), generate
       // a nullish coalescing fallback to match legacy behavior:
-      //   context.apiVersion ?? "2022-05-15-preview"
+      //   (context as any).apiVersion ?? "2022-05-15-preview"
+      // Uses the param's actual name (e.g., "apiVersion" or "version") to match
+      // the property name generated on the client context interface. The `as any`
+      // cast is needed because context is typed as base `Client` which doesn't
+      // have apiVersion; the actual context type extends Client with this property.
       const defaultValue = correspondingParam.clientDefaultValue;
       if (defaultValue !== undefined) {
-        return `context.apiVersion ?? "${defaultValue}"`;
+        return `(context as any).${correspondingParam.name} ?? "${defaultValue}"`;
       }
-      return "context.apiVersion";
+      return `(context as any).${correspondingParam.name}`;
     }
     return `context["${correspondingParam.name}"]`;
   }
@@ -739,8 +743,23 @@ function getHeaderAccessor(
     if (isConstantType(corresponding.type)) {
       return getConstantLiteral(corresponding.type);
     }
-    // Header params always read from options (or direct args), even for onClient
-    // params. The client wrapper forwards context values into options.
+    // API version header params (e.g., x-ms-version) that are client-level
+    // must be read from context, not from options. The options interface
+    // excludes apiVersion params (isOptionalParameter returns false), so
+    // referencing options?.version would cause TS2339. The `as any` cast
+    // is needed because the context parameter is typed as the base `Client`
+    // interface; the actual context type (e.g., BlobContext) extends Client
+    // with the version property. TODO: Fix context parameter type to use
+    // the specific client context refkey (requires updating 49+ scenario tests).
+    if (corresponding.onClient && corresponding.isApiVersionParam) {
+      const defaultValue = corresponding.clientDefaultValue;
+      if (defaultValue !== undefined) {
+        return `(context as any).${corresponding.name} ?? "${defaultValue}"`;
+      }
+      return `(context as any).${corresponding.name}`;
+    }
+    // Non-apiVersion header params (including onClient ones like $expand)
+    // read from options or direct args.
     const isRequired = isRequiredSignatureParameter(corresponding);
     const optionsName = getOptionsParamName(method);
     if (isRequired) return getEscapedParameterName(corresponding.name);

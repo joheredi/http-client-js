@@ -773,11 +773,13 @@ describe("SendOperation", () => {
 
   /**
    * Tests that header-based API version parameters (e.g., `@header("x-ms-version")`)
-   * are resolved via `context.apiVersion` instead of the options bag. Without this fix,
-   * the generated code would reference `options?.version` which doesn't exist in the
-   * options interface (apiVersion is excluded from operation options by design).
+   * that are client-level (`onClient: true`, `isApiVersionParam: true`) are resolved
+   * via the context object (e.g., `context.apiVersion`) instead of the options bag.
+   * Without this fix, the generated code would reference `options?.apiVersion` which
+   * doesn't exist in the options interface (apiVersion is excluded from operation
+   * options by design — see isOptionalParameter in operation-options.tsx).
    */
-  it("should use options for header-based API version parameters", async () => {
+  it("should use context for header-based client-level API version parameters", async () => {
     const runner = await RawTester.createInstance();
     const { program } = await runner.compile(`
 import "@typespec/http";
@@ -813,11 +815,12 @@ model VersionedHeaderServiceClientOptions {
     );
 
     const result = renderToString(template);
-    // Header params read from options, not context — the client wrapper
-    // forwards context values into options
-    expect(result).toContain("options?.apiVersion");
+    // Client-level header params (isApiVersionParam + onClient) are read from
+    // context, matching query param behavior in getParameterAccessor.
+    // Uses (context as any) cast since context is typed as base Client.
+    expect(result).toContain("(context as any).apiVersion");
     expect(result).toContain("x-ms-version");
-    expect(result).not.toContain("context.apiVersion");
+    expect(result).not.toContain("options?.apiVersion");
     expect(result).not.toContain("Unresolved Symbol");
   });
 

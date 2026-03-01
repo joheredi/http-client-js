@@ -427,7 +427,7 @@ export function _suspendSend(
   const path = expandUrlTemplate(
     "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/suspend{?api%2Dversion}",
     {
-      "api%2Dversion": context.apiVersion ?? "2023-12-01",
+      "api%2Dversion": (context as any).apiVersion ?? "2023-12-01",
       subscriptionId: context["subscriptionId"],
       resourceGroupName: resourceGroupName,
       name: name,
@@ -478,7 +478,7 @@ export function suspend(
       getInitialResponse: () =>
         _suspendSend(context, resourceGroupName, name, options),
       resourceLocationConfig: "location",
-      apiVersion: context.apiVersion ?? "2023-12-01",
+      apiVersion: (context as any).apiVersion ?? "2023-12-01",
     },
   ) as PollerLike<OperationState<PathUncheckedResponse>, PathUncheckedResponse>;
 
@@ -490,7 +490,7 @@ export function suspend(
     {
       itemName: "value",
       nextLinkName: "nextLink",
-      apiVersion: context.apiVersion ?? "2023-12-01",
+      apiVersion: (context as any).apiVersion ?? "2023-12-01",
     },
   );
 }

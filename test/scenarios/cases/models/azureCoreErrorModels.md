@@ -521,7 +521,7 @@ export function _listSend(
 ): StreamableMethod {
   const path = expandUrlTemplate(
     "/providers/Microsoft.Contoso/operations{?api%2Dversion}",
-    { "api%2Dversion": context.apiVersion ?? "2021-10-01-preview" },
+    { "api%2Dversion": (context as any).apiVersion ?? "2021-10-01-preview" },
     { allowReserved: options?.requestOptions?.skipUrlEncoding },
   );
   return context.path(path).get({
@@ -562,7 +562,7 @@ export function list(
     {
       itemName: "value",
       nextLinkName: "nextLink",
-      apiVersion: context.apiVersion ?? "2021-10-01-preview",
+      apiVersion: (context as any).apiVersion ?? "2021-10-01-preview",
     },
   );
 }

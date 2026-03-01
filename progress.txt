@@ -2034,3 +2034,14 @@ Tests: All 1010 unit tests pass. pollingHelpers.ts errors eliminated from smoke 
 - When accessing option properties in generated code, always use `normalizePropertyName()` to match Alloy's name policy
 - The `getEscapedParameterName()` function already applies camelCase for required function parameters
 - Only optional parameters accessed via `options?.` needed the fix since required params already went through `getEscapedParameterName()`
+
+## 2026-03-01 — RC25: Fix header-based API version params using context instead of options (SMOKE-API-VERSION-IN-OPS)
+- **Problem**: Generated operations accessed `options?.version` for x-ms-version header, but options interfaces don't have `version` (apiVersion params are filtered out by isOptionalParameter as client-level)
+- **Root cause**: `getHeaderAccessor()` in send-operation.tsx didn't handle `onClient + isApiVersionParam` params. Unlike `getParameterAccessor()` (for query/path params), the header accessor always read from options.
+- **Fix**: Added onClient + isApiVersionParam check to `getHeaderAccessor()` to route header API version params to `context.paramName` (e.g., `context.version`) instead of `options?.paramName`
+- **Type workaround**: Since context parameter is typed as base `Client` (which lacks custom properties), used `(context as any).paramName` cast. Created follow-up task FIX-CONTEXT-PARAM-TYPE to properly fix context parameter type.
+- **Also fixed**: Made `getParameterAccessor()` and `getApiVersionExpression()` in public-operation.tsx use dynamic param names instead of hardcoded `apiVersion`, supporting services with different names (e.g., `version` for Azure Blob Storage)
+- **Updated test**: Changed send-operation test expectation from `options?.apiVersion` to `(context as any).apiVersion`  
+- **Updated scenarios**: All 7 scenario files with `context.apiVersion` expectations updated to `(context as any).apiVersion`
+- **Smoke result**: All `Property 'version' does not exist` errors eliminated. Remaining smoke errors are SMOKE-ARRAY-PARAM-TYPES and SMOKE-PAGING-RETURN-TYPES
+- **Patterns**: Header apiVersion params follow same accessor logic as query/path apiVersion params; use param.name (not hardcoded "apiVersion") for context property access

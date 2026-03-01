@@ -71,7 +71,7 @@ export function _updateKeySend(
   const path = expandUrlTemplate(
     "/keys/{key-name}/{key-version}{?api%2Dversion}",
     {
-      "api%2Dversion": context.apiVersion ?? "2022-05-15-preview",
+      "api%2Dversion": (context as any).apiVersion ?? "2022-05-15-preview",
       "key-name": keyName,
       "key-version": keyVersion,
     },

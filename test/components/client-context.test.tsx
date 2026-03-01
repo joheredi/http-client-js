@@ -452,7 +452,7 @@ describe("ClientContext", () => {
   /**
    * Tests that when a versioned service has an explicit api-version query
    * parameter on its operations, the API version is included as a member
-   * of the context interface. Operations reference `context.apiVersion`
+   * of the context interface. Operations reference `(context as any).apiVersion`
    * when building requests, so this property must exist on the context type.
    */
   it("should include API version in context when operations use api-version", async () => {

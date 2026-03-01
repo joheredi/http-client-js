@@ -171,7 +171,7 @@ export function _backupSend(
   const path = expandUrlTemplate(
     "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.HardwareSecurityModules/cloudHsmClusters/{cloudHsmClusterName}/backup{?api%2Dversion}",
     {
-      "api%2Dversion": context.apiVersion ?? "2021-10-01-preview",
+      "api%2Dversion": (context as any).apiVersion ?? "2021-10-01-preview",
       subscriptionId: context["subscriptionId"],
       resourceGroupName: resourceGroupName,
       cloudHsmClusterName: cloudHsmClusterName,
@@ -226,7 +226,7 @@ export function backup(
       getInitialResponse: () =>
         _backupSend(context, resourceGroupName, cloudHsmClusterName, options),
       resourceLocationConfig: "azure-async-operation",
-      apiVersion: context.apiVersion ?? "2021-10-01-preview",
+      apiVersion: (context as any).apiVersion ?? "2021-10-01-preview",
     },
   ) as PollerLike<OperationState<BackupResult>, BackupResult>;
 }
