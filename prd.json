@@ -1043,7 +1043,7 @@
       "title": "Port model type Spector tests (empty, usage, inheritance/*)",
       "category": "testing/spector-integration",
       "priority": "P1",
-      "status": "not-started",
+      "status": "done",
       "kind": "feature",
       "dependencies": [
         "SPECTOR-3"

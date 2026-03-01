@@ -2271,3 +2271,26 @@ The generated serializer/deserializer for nullable model arrays (e.g., `InnerMod
 ## Design Decision: E2E Test Client Pattern (2026-03-01)
 
 Our emitter generates single-client-with-operation-groups (e.g., `new ArrayClient().int32Value.get()`), unlike the reference http-client-js emitter which generates individual per-type clients (e.g., `new Int32ValueClient().get()`). E2E tests must use our emitter's pattern. The reference tests are useful for expected values/assertions but NOT for client API patterns.
+
+## Known Bug: Client Method Parameter Shadows Imported Function
+
+**Discovered**: SPECTOR-5B (2026-03-01)
+**Location**: Generated `usageClient.ts` for `type/model/usage`
+**Symptom**: `TypeError: input2 is not a function` at runtime
+
+When an operation is named `input` and has a body parameter also named `input`, the generated client method creates a naming collision:
+
+```typescript
+// Generated code — BUG
+import { input } from "./api/operations.js";
+
+class UsageClient {
+  input(input: InputRecord): Promise<void> {
+    return input(this._client, input, options); // `input` resolves to parameter, not function
+  }
+}
+```
+
+The emitter's name conflict resolution should detect when a method parameter name collides with an imported function name and rename one of them. This affects any operation where the operation name matches a parameter name.
+
+**Workaround**: Skip the e2e test for `client.input()` in `type/model/usage`.

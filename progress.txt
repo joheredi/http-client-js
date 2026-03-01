@@ -2343,3 +2343,29 @@ Known emitter bugs found:
 ### Stats
 - 124 e2e tests passing, 65 skipped (across all e2e tests)
 - 1015 unit tests still passing
+
+## SA30: Port Model Type Spector Tests (SPECTOR-5B) — DONE (2026-03-01)
+
+### What was done
+- Created 7 e2e test files for model type Spector tests:
+  - `test/e2e/http/type/model/empty/main.test.ts` — 3 tests (all passing)
+  - `test/e2e/http/type/model/usage/main.test.ts` — 3 tests (1 skipped: emitter naming collision bug)
+  - `test/e2e/http/type/model/inheritance/not-discriminated/main.test.ts` — 3 tests (all passing)
+  - `test/e2e/http/type/model/inheritance/recursive/main.test.ts` — 2 tests (all passing)
+  - `test/e2e/http/type/model/inheritance/enum-discriminator/main.test.ts` — 8 tests (all passing)
+  - `test/e2e/http/type/model/inheritance/nested-discriminator/main.test.ts` — 6 tests (all passing)
+  - `test/e2e/http/type/model/inheritance/single-discriminator/main.test.ts` — 7 tests (all passing)
+
+### Key patterns
+- All tests follow the existing e2e pattern: vitest, endpoint localhost:3002, allowInsecureConnection
+- Generated clients are imported from `test/e2e/generated/type/model/*/src/index.js`
+- Discriminator tests cover simple models, recursive models, missing discriminator, and wrong discriminator edge cases
+- The single-discriminator test also covers the legacy model pattern (Dinosaur/TRex)
+
+### Known issues discovered
+- **UsageClient naming collision bug**: The generated `usageClient.ts` has a method `input(input: InputRecord)` where the parameter `input` shadows the imported `input` function from operations.js. At runtime this causes "TypeError: input2 is not a function". This is an emitter bug in the name conflict resolution — when an operation is named "input" and has a parameter also named "input", the generated client method body references the parameter instead of the function. Test skipped pending emitter fix.
+
+### Stats
+- 32 new e2e tests passing, 1 skipped (emitter bug)
+- 155 total e2e tests passing, 66 skipped
+- 1015 unit tests still passing
