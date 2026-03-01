@@ -731,6 +731,18 @@ function getHeaderAccessor(
   }
 
   if (corresponding.kind === "method") {
+    // Client-level params (e.g., apiVersion set on client constructor)
+    if (corresponding.onClient) {
+      if (corresponding.isApiVersionParam) {
+        const defaultValue = corresponding.clientDefaultValue;
+        if (defaultValue !== undefined) {
+          return `context.apiVersion ?? "${defaultValue}"`;
+        }
+        return "context.apiVersion";
+      }
+      return `context["${corresponding.name}"]`;
+    }
+
     // Constant-type params are hardcoded with their literal value
     if (isConstantType(corresponding.type)) {
       return getConstantLiteral(corresponding.type);

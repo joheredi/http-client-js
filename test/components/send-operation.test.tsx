@@ -692,6 +692,54 @@ describe("SendOperation", () => {
     `);
   });
 
+  /**
+   * Tests that header-based API version parameters (e.g., `@header("x-ms-version")`)
+   * are resolved via `context.apiVersion` instead of the options bag. Without this fix,
+   * the generated code would reference `options?.version` which doesn't exist in the
+   * options interface (apiVersion is excluded from operation options by design).
+   */
+  it("should use context.apiVersion for header-based API version parameters", async () => {
+    const runner = await RawTester.createInstance();
+    const { program } = await runner.compile(`
+import "@typespec/http";
+import "@typespec/versioning";
+import "@azure-tools/typespec-client-generator-core";
+using TypeSpec.Http;
+using TypeSpec.Versioning;
+using Azure.ClientGenerator.Core;
+
+@versioned(Versions)
+@service(#{title: "VersionedHeaderService"})
+namespace VersionedHeaderService;
+
+enum Versions { v2024_01_01: "2024-01-01" }
+
+model VersionedHeaderServiceClientOptions {
+  @header("x-ms-version") apiVersion: string;
+}
+@@clientInitialization(VersionedHeaderService, VersionedHeaderServiceClientOptions);
+
+@get op getItem(@header("x-ms-version") apiVersion: string): string;
+    `);
+
+    const sdkContext = await createSdkContextForTest(program);
+    const method = getFirstMethod(sdkContext);
+
+    const template = (
+      <SdkTestFile sdkContext={sdkContext} externals={[httpRuntimeLib]}>
+        <OperationOptionsDeclaration method={method} />
+        {"\n\n"}
+        <SendOperation method={method} />
+      </SdkTestFile>
+    );
+
+    const result = renderToString(template);
+    expect(result).toContain("context.apiVersion");
+    expect(result).toContain("x-ms-version");
+    expect(result).not.toContain("options?.apiVersion");
+    expect(result).not.toContain("Unresolved Symbol");
+  });
+
   describe("@@override parameter grouping", () => {
     let sdkContext: SdkContext<Record<string, any>, SdkHttpOperation>;
     let method: SdkServiceMethod<SdkHttpOperation>;
