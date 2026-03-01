@@ -2298,3 +2298,23 @@ Known emitter bugs found:
   3. Uint8Array not base64-encoded before URL template expansion in query params
   4. Uint8Array not base64-encoded before header serialization
   5. operationOptions.onResponse callback not invoked for response header inspection
+
+## SA29: Split SPECTOR-5 into subtasks — DONE (2026-03-01)
+
+### What was done
+- Assessed remaining PRD tasks: 4 pending (SPECTOR-5, 7, 8, 9), all Spector e2e test porting
+- SPECTOR-5 had 17 test files with 174+ test cases across ~2,800 lines of legacy test code — too large for one session
+- Analyzed complexity of each legacy test file (test case counts, line counts, dynamic test generation patterns)
+- Split SPECTOR-5 into 3 manageable subtasks:
+  - **SPECTOR-5A**: Simple types (array, dictionary, enum/extensible, enum/fixed, scalar, union) — 6 files, ~62 tests
+  - **SPECTOR-5B**: Model types (empty, usage, 5 inheritance variants) — 7 files, ~35 tests
+  - **SPECTOR-5C**: Property types (value-types, nullable, optionality, additional-properties) — 4 files, ~77 tests (densest)
+- Verified all generated client code exists in test/e2e/generated/type/
+- Verified all 1015 existing tests pass and build succeeds
+
+### Notes for next iteration
+- SPECTOR-5A is the best next task: simple container/value types, moderate test count, well-understood patterns
+- Reference tests exist in submodules/typespec/packages/http-client-js/test/e2e/http/type/
+- Follow the same test pattern as test/e2e/http/authentication/api-key/main.test.ts
+- The reference emitter uses slightly different client APIs — always check generated code in test/e2e/generated/ for actual exports
+- modelPropertyAdditional.spec.ts (in SPECTOR-5C) is the largest single file (734 lines, 52 tests) — may need its own subtask
