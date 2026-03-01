@@ -970,7 +970,7 @@
       "id": "SMOKE-POLLING-HELPERS",
       "title": "Fix pollingHelpers.ts static helper compilation errors",
       "category": "smoke-fix",
-      "status": "not-started",
+      "status": "done",
       "priority": "critical",
       "dependencies": [],
       "description": "The generated pollingHelpers.ts has TypeScript compilation errors: (1) Module '@azure-rest/core-client' has no exported member 'RestError' \u2014 wrong import source for RestError, (2) 'Cannot find name TResult, did you mean TResult_1' \u2014 type parameter naming issue in generic function. These errors prevent the smoke test from passing."

@@ -49,26 +49,21 @@ export function PollingHelpersFile() {
  * Contains the current status string and optional result and error fields.
  */
 function OperationStateInterface() {
-  const runtimeLib = useRuntimeLib();
   return (
     <InterfaceDeclaration
       name="OperationState"
       refkey={pollingHelperRefkey("OperationState")}
       export
-      typeParameters={[{ name: namekey("TResult", { ignoreNamePolicy: true }) }]}
+      typeParameters={[{ name: namekey("T", { ignoreNamePolicy: true }) }]}
     >
       <InterfaceMember
         name="status"
         type={code`"notStarted" | "running" | "succeeded" | "failed" | "canceled"`}
       />
       {"\n"}
-      <InterfaceMember name="result" type="TResult" optional />
+      <InterfaceMember name="result" type="T" optional />
       {"\n"}
-      <InterfaceMember
-        name="error"
-        type={code`${runtimeLib.RestError}`}
-        optional
-      />
+      <InterfaceMember name="error" type="Error" optional />
     </InterfaceDeclaration>
   );
 }
@@ -171,7 +166,7 @@ function GetLongRunningPollerFunction() {
       returnType={code`${pollingHelperRefkey("PollerLike")}<${pollingHelperRefkey("OperationState")}<TResponse>, TResponse>`}
       typeParameters={[{ name: namekey("TResponse", { ignoreNamePolicy: true }) }]}
       parameters={[
-        { name: "client", type: runtimeLib.Client },
+        { name: namekey("client", { ignoreNamePolicy: true }), type: runtimeLib.Client },
         {
           name: "processResponseBody",
           type: code`(result: ${runtimeLib.PathUncheckedResponse}) => Promise<TResponse>`,

@@ -59,7 +59,7 @@ describe("PollingHelpersFile", () => {
     );
 
     const result = renderToString(template);
-    expect(result).toContain("export interface OperationState<TResult>");
+    expect(result).toContain("export interface OperationState<T>");
     expect(result).toContain("status");
     expect(result).toContain("result");
     expect(result).toContain("error");

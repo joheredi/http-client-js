@@ -1980,3 +1980,28 @@ The 4 predicate systems mentioned in BUG-1 description (needsTransformation, val
 **Pattern for future**: When a static helper has parameter names that match reserved words (e.g., `client`, `endpoint`), use `namekey(name, { ignoreNamePolicy: true })`. For computed property names like `[Symbol.asyncIterator]`, use `InterfaceMember`'s `indexer` prop instead of `name`.
 
 **Tests**: All 1010 unit tests pass. pagingHelpers.ts errors eliminated from smoke test.
+
+---
+
+RC24: Fix pollingHelpers.ts static helper compilation errors — DONE (2026-03-01)
+
+Task: SMOKE-POLLING-HELPERS
+
+Problem: The generated `pollingHelpers.ts` had 3 TS compilation errors:
+1. `Module '"@azure-rest/core-client"' has no exported member 'RestError'` — OperationState.error field used `runtimeLib.RestError` which resolves to `@azure-rest/core-client.RestError`, but that package doesn't export `RestError` as a type
+2. `Cannot find name 'TResult'. Did you mean 'TResult_1'?` — Alloy's name conflict resolver renamed PollerLike's `TResult` type parameter to `TResult_1` because OperationState (in the same SourceFile) also declares a `TResult` type parameter
+3. Same as #2 — `pollUntilDone: () => Promise<TResult>` references the unrenamed `TResult`
+
+Root causes:
+- `@azure-rest/core-client` doesn't export `RestError` as a named export (it's in `@azure/core-rest-pipeline`)
+- Alloy's name conflict resolver operates at SourceFile scope and detects 2 type parameter symbols named `TResult` (one from OperationState, one from PollerLike), renaming the second to `TResult_1`
+- The literal text `TResult` in PollerLike's extends clause and member types doesn't get updated when the symbol is renamed
+
+Fixes (in `src/components/static-helpers/polling-helpers.tsx`):
+1. Changed OperationState type parameter from `TResult` to `T` — eliminates name conflict with PollerLike's `TResult`
+2. Updated OperationState member types: `result?: T` and `error?: Error` (removed runtimeLib.RestError dependency)
+3. Used `namekey("client", { ignoreNamePolicy: true })` for the client parameter in getLongRunningPoller (prevents rename to `clientParam`)
+
+Pattern for future: When two interfaces in the same SourceFile need type parameters with the same name, use different names to avoid Alloy's name conflict resolver. Type parameter names are just labels — consumers pass their own type arguments. Also, prefer built-in `Error` type over `runtimeLib.RestError` for interface error fields since not all runtime packages export `RestError`.
+
+Tests: All 1010 unit tests pass. pollingHelpers.ts errors eliminated from smoke test. Remaining smoke errors are from other tasks.

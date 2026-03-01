@@ -2128,3 +2128,19 @@ declarations are actually generated.
 - **Reserved parameter names in static helpers**: The name policy renames `client` → `clientParam`, `endpoint` → `endpointParam`, etc. In static helper files where the parameter name appears in both the function signature AND the code body, this causes mismatches (signature says `clientParam`, body says `client`). Fix: use `namekey("client", { ignoreNamePolicy: true })` for the parameter descriptor.
 
 - **Computed property names in interfaces**: `InterfaceMember` with `name="[Symbol.asyncIterator]"` goes through the name policy and gets mangled (e.g., `symbolAsyncIterator`). Use the `indexer` prop instead: `<InterfaceMember indexer="Symbol.asyncIterator" type={...} />`. The `indexer` prop bypasses the name policy entirely and renders as `[Symbol.asyncIterator]: type`.
+
+## Alloy Type Parameter Name Conflicts Across Interfaces (2026-03-01)
+
+**Problem**: When two interfaces in the same `SourceFile` both declare a type parameter with the same name (e.g., `TResult`), Alloy's name conflict resolver detects 2 symbols with the same name and renames the second one with a `_1` suffix (e.g., `TResult_1`). This breaks the generated TypeScript because literal text references to the original name (in extends clauses, member types) don't get updated.
+
+**Example**: `OperationState<TResult>` + `PollerLike<TState extends OperationState<TResult>, TResult>` in the same file → PollerLike's `TResult` becomes `TResult_1` but member types still reference `TResult`.
+
+**Fix**: Use different type parameter names across interfaces in the same file. Type parameter names are just labels; consumers provide their own type arguments. Changed `OperationState<TResult>` to `OperationState<T>` to avoid conflicting with `PollerLike<..., TResult>`.
+
+**Note**: This does NOT affect function+interface pairs that share a type parameter name (e.g., `GetLongRunningPollerOptions<TResponse>` + function `getLongRunningPoller<TResponse>` work fine). The conflict appears to be specific to interface-interface pairs in the same scope.
+
+## RestError Not Exported from @azure-rest/core-client (2026-03-01)
+
+**Problem**: The `@azure-rest/core-client` package does not export `RestError` as a named export. Using `runtimeLib.RestError` in Azure-flavored output causes `TS2305: Module has no exported member 'RestError'`.
+
+**Fix**: For interface type annotations (like `OperationState.error`), use the built-in `Error` type instead of `runtimeLib.RestError`. The legacy `@azure/core-lro` OperationState also uses plain `Error`. Only use `runtimeLib.createRestError()` (function call) which IS properly exported.
