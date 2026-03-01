@@ -2091,3 +2091,22 @@ typeParameters={[{ name: namekey("T", { ignoreNamePolicy: true }) }]}
 1. Modifying the name policy to skip single-letter names — too fragile, doesn't handle multi-letter params like TResult.
 2. Changing Alloy's type parameter handling to use a "type-parameter" naming kind — requires submodule changes (forbidden).
 3. Using `$DO_NOT_NORMALIZE$` marker prefix — uncertain compatibility with TypeParameterDescriptor processing.
+
+## XML body serialization routing in send-operation.tsx
+
+**Problem**: `buildBodyExpression()` always used JSON `serializerRefkey` for body serialization,
+but XML input models don't have JSON serializer declarations — only XML serializer declarations
+via `xmlSerializerRefkey`. This caused `<Unresolved Symbol>` for any operation with XML content type.
+
+**Fix**: Added `hasXmlSerialization(bodyType)` check in `buildBodyExpression()`. When true, uses
+`xmlSerializerRefkey(bodyType)` instead of `getSerializationExpression(bodyType, accessor)`.
+This is consistent with `model-files.tsx` which uses the same `hasXmlSerialization()` function
+to classify models into XML vs JSON serializer buckets.
+
+**Key insight**: `hasXmlSerialization()` checks TCGC's `serializationOptions.xml` on the model
+and its properties. This metadata is populated by `@Xml.name` decorators AND by TCGC when the
+operation uses `application/xml` content type. Using this function (rather than checking the
+content type string) ensures the serializer choice is always consistent with which serializer
+declarations are actually generated.
+
+**Date:** 2026-03-01

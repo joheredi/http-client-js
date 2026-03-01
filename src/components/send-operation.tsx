@@ -20,7 +20,9 @@ import {
   operationOptionsRefkey,
   sendOperationRefkey,
   serializationHelperRefkey,
+  xmlSerializerRefkey,
 } from "../utils/refkeys.js";
+import { hasXmlSerialization } from "../utils/xml-detection.js";
 import { getTypeExpression } from "./type-expression.js";
 import {
   getSerializationExpression,
@@ -845,7 +847,12 @@ function buildBodyExpression(
 
   // For model types that need serialization
   if (needsTransformation(bodyType)) {
-    const serExpr = getSerializationExpression(bodyType, accessor);
+    // XML body types use dedicated XML serializer functions.
+    // XML input models are excluded from JSON serializer generation (model-files.tsx),
+    // so serializerRefkey would produce an unresolved symbol for XML models.
+    const serExpr = hasXmlSerialization(bodyType)
+      ? code`${xmlSerializerRefkey(bodyType)}(${accessor})`
+      : getSerializationExpression(bodyType, accessor);
     // Wrap with null check for optional bodies
     if (bodyParam.optional) {
       return code`!${accessor} ? ${accessor} : ${serExpr}`;

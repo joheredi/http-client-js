@@ -55,11 +55,14 @@ import { FlavorProvider } from "../../src/context/flavor-context.js";
 import { EmitterOptionsProvider } from "../../src/context/emitter-options-context.js";
 import {
   TesterWithService,
+  Tester,
   RawTester,
   createSdkContextForTest,
 } from "../test-host.js";
 import { SdkTestFile } from "../utils.jsx";
 import { renderToString } from "@alloy-js/core/testing";
+import { XmlSerializer } from "../../src/components/serialization/xml-serializer.js";
+import { XmlHelpersFile } from "../../src/components/static-helpers/xml-helpers.js";
 
 /**
  * Multi-file test wrapper that renders SerializationHelpersFile,
@@ -350,6 +353,82 @@ describe("SendOperation", () => {
         return context.path("/").post({ ...operationOptionsToRequestParameters(options), contentType: "application/json", headers: { accept: "application/json", ...options.requestOptions?.headers }, body: itemSerializer(body) });
       }
     `);
+  });
+
+  /**
+   * Tests that POST operations with an XML body model correctly serialize
+   * the body using the model's XML serializer function (xmlSerializerRefkey)
+   * instead of the JSON serializer function (serializerRefkey).
+   *
+   * This is critical because XML input models are excluded from JSON serializer
+   * generation (model-files.tsx filters them into xmlInputModels). If the send
+   * function references serializerRefkey for an XML model, it produces an
+   * <Unresolved Symbol> in the output — broken TypeScript that cannot compile.
+   *
+   * The fix: buildBodyExpression() checks hasXmlSerialization(bodyType) and
+   * uses xmlSerializerRefkey(type) for XML body types.
+   */
+  it("should use XML serializer for XML body operations", async () => {
+    const runner = await Tester.createInstance();
+    const { program } = await runner.compile(
+      t.code`
+        using TypeSpec.Xml;
+
+        @service(#{title: "Test"})
+        namespace Test;
+
+        @Xml.name("StorageServiceProperties")
+        model ServiceProperties {
+          @Xml.name("Logging") logging?: string;
+          @Xml.name("DefaultServiceVersion") defaultServiceVersion?: string;
+        }
+
+        @route("/properties")
+        @put op ${t.op("setProperties")}(
+          @header contentType: "application/xml",
+          @body body: ServiceProperties,
+        ): void;
+      `,
+    );
+
+    const sdkContext = await createSdkContextForTest(program);
+    const method = getFirstMethod(sdkContext);
+    const model = sdkContext.sdkPackage.models.find(
+      (m) => m.name === "ServiceProperties",
+    )!;
+
+    const template = (
+      <Output
+        program={program}
+        namePolicy={createTSNamePolicy()}
+        externals={[httpRuntimeLib]}
+      >
+        <FlavorProvider flavor="core">
+          <EmitterOptionsProvider options={{}}>
+            <SdkContextProvider sdkContext={sdkContext}>
+              <XmlHelpersFile />
+              <SourceFile path="test.ts">
+                <ModelInterface model={model} />
+                {"\n\n"}
+                <XmlSerializer model={model} />
+                {"\n\n"}
+                <OperationOptionsDeclaration method={method} />
+                {"\n\n"}
+                <SendOperation method={method} />
+              </SourceFile>
+            </SdkContextProvider>
+          </EmitterOptionsProvider>
+        </FlavorProvider>
+      </Output>
+    );
+
+    const result = renderToString(template);
+    // Should use XML serializer, not JSON serializer
+    expect(result).toContain("servicePropertiesXmlSerializer(body)");
+    // Should NOT contain JSON serializer
+    expect(result).not.toContain("servicePropertiesSerializer(body)");
+    // Should NOT contain unresolved symbols
+    expect(result).not.toContain("<Unresolved Symbol");
   });
 
   /**
