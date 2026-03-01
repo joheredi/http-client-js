@@ -1862,3 +1862,23 @@ The 4 predicate systems mentioned in BUG-1 description (needsTransformation, val
 - apiVersion/apiVersionAsFixedEnum: context vs options issue
 - headerParam/headerParamWithClientInitialization (x2): context vs options issue
 - xml/xmlArrayItemTypes: extra null-check in XML serializer
+
+---
+
+## SA31: BUG-2 Mark as already-done — (2026-03-01)
+
+### What was done
+- Verified BUG-2 (deserializer/serializer property keys not matching name policy casing) is already fully implemented
+- `normalizePropertyName()` exists in `src/utils/name-policy.ts` (line 329) and is used in all 6 serializer/deserializer files:
+  - `json-deserializer.tsx` (lines 157, 516) — ObjectProperty names
+  - `json-serializer.tsx` (lines 161, 720) — accessor strings
+  - `xml-object-serializer.tsx` (line 71) — accessor strings
+  - `xml-object-deserializer.tsx` (line 87) — property name metadata
+  - `json-polymorphic-serializer.tsx` (line 75) — discriminator property name
+- Tests exist in `test/components/serialization/json-serializer.test.tsx` and `json-deserializer.test.tsx` validating wire↔client name mapping
+- Marked BUG-2 as done in prd.json
+
+### Pre-existing failures (4, unchanged)
+- apiVersion/context vs options issues (x3)
+- xml/xmlArrayItemTypes: extra null-check in XML serializer
+

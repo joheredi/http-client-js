@@ -792,7 +792,7 @@
       "title": "Fix deserializer/serializer property keys not matching name policy casing",
       "category": "serialization/JSON",
       "priority": "P0",
-      "status": "pending",
+      "status": "done",
       "description": "Deserializer return object keys use raw TCGC prop.name (e.g., Code, Message) instead of name-policy-normalized camelCase (code, message). Model interfaces go through Alloy InterfaceMember which applies camelCase via name policy, but ObjectProperty in deserializers and string accessors in serializers bypass this. Affects json-deserializer.tsx (line 157), json-serializer.tsx (line 157), xml-object-serializer.tsx, and xml-object-deserializer.tsx. Recommended fix: Approach A \u2014 use namekey(prop.name) for ObjectProperty names + new normalizePropertyName() utility in name-policy.ts for string template accessors. See docs/design-reviews/serialization-and-options-bugs.md Issue 2 for full design review with 3 approaches analyzed.",
       "source": "investigation",
       "kind": "bug",
