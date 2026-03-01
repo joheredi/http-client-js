@@ -1057,7 +1057,7 @@
       "title": "Port property type Spector tests (value-types, nullable, optionality, additional-properties)",
       "category": "testing/spector-integration",
       "priority": "P1",
-      "status": "not-started",
+      "status": "done",
       "kind": "feature",
       "dependencies": [
         "SPECTOR-3"

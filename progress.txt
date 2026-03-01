@@ -2369,3 +2369,36 @@ Known emitter bugs found:
 - 32 new e2e tests passing, 1 skipped (emitter bug)
 - 155 total e2e tests passing, 66 skipped
 - 1015 unit tests still passing
+
+---
+2026-03-01: SPECTOR-5C: Port property type Spector e2e tests — DONE
+
+## What was done
+Ported 4 property type Spector e2e test files covering ~212 test cases:
+
+1. **value-types** (58 tests): 29 operation groups testing boolean, string, bytes, int, float, decimal, datetime, duration, enums, models, collections, dictionaries, unknown types, literals, unions
+2. **nullable** (28 tests): 7 operation groups testing nullable properties (getNonNull/getNull/patchNonNull/patchNull)
+3. **optionality** (64 tests): 16 operation groups testing optional properties (getAll/getDefault/putAll/putDefault) + requiredAndOptional
+4. **additional-properties** (62 tests, 22 skipped): 31 operation groups testing extends/is/spread patterns with various value types
+
+## Files created
+- test/e2e/http/type/property/value-types/main.test.ts
+- test/e2e/http/type/property/nullable/main.test.ts
+- test/e2e/http/type/property/optionality/main.test.ts
+- test/e2e/http/type/property/additional-properties/main.test.ts
+
+## Patterns used
+- Single client instance per test file with operation groups (e.g., client.boolean.get())
+- Vitest describe/it/expect
+- Bytes: use `new Uint8Array(response.property)` to normalize Buffer vs Uint8Array in Node
+- Additional properties: use `additionalProperties` wrapper matching legacy modularIntegration pattern
+
+## Known issues (tests skipped)
+- **Bytes comparison**: Node runtime returns Buffer objects, need `new Uint8Array()` wrapper
+- **Derived type additional properties**: Generated derived type deserializers don't extract additionalProperties from wire format (extendsUnknownDerived, isUnknownDerived, 4x extendsDifferentSpread* — 12 tests skipped)
+- **Discriminated union additional properties**: Discriminated union deserializers lose additionalProperties (extendsUnknownDiscriminated, isUnknownDiscriminated — 4 tests skipped)
+- **Non-discriminated union spread records**: Known issue from legacy emitter (#3122) (3x spreadRecordNonDiscriminatedUnion — 6 tests skipped)
+
+## Test results
+- Unit tests: 1015 passed, 3 skipped
+- E2E tests: 345 passed, 88 skipped (30 test files passed)

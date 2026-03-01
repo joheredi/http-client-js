@@ -2294,3 +2294,33 @@ class UsageClient {
 The emitter's name conflict resolution should detect when a method parameter name collides with an imported function name and rename one of them. This affects any operation where the operation name matches a parameter name.
 
 **Workaround**: Skip the e2e test for `client.input()` in `type/model/usage`.
+
+## Derived Type Additional Properties Deserialization Bug
+
+**Date**: 2026-03-01
+**Severity**: Medium
+**Affected tests**: additional-properties e2e tests (12 tests skipped)
+
+Generated derived type deserializers (e.g., `extendsUnknownAdditionalPropertiesDerivedDeserializer`) do NOT extract `additionalProperties` from the wire format. Only the base type deserializer calls `deserializeRecord()`. When a derived type is deserialized, additional properties on the wire are silently dropped.
+
+**Example**: Wire format `{ name: "...", index: 314, age: 2.71875, prop1: 32, prop2: true }` deserializes to `{ name: "...", index: 314, age: 2.71875 }` — missing `additionalProperties: { prop1: 32, prop2: true }`.
+
+**Affected groups**: extendsUnknownDerived, isUnknownDerived, extendsUnknownDiscriminated, isUnknownDiscriminated, extendsDifferentSpreadString/Float/Model/ModelArray.
+
+**Fix needed**: Derived type deserializers should call `deserializeRecord()` with the combined list of known property names from both base and derived types.
+
+## Bytes Comparison in E2E Tests
+
+**Date**: 2026-03-01
+
+When comparing bytes in e2e tests, the Node.js HTTP runtime returns `Buffer` objects (with `type: "Buffer"` and `data: [...]`) rather than `Uint8Array`. Always wrap comparisons with `new Uint8Array()`:
+
+```typescript
+// ✅ Correct
+expect(new Uint8Array(response.property)).toEqual(new Uint8Array(expectedBytes));
+
+// ❌ Fails — Buffer vs Uint8Array mismatch
+expect(response.property).toEqual(expectedBytes);
+```
+
+For byte arrays, map each element: `response.property.map((b: any) => new Uint8Array(b))`.
