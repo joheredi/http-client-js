@@ -2232,3 +2232,34 @@ Custom HTTP schemes like `sharedaccesskey` are not matched by any policy, so the
 
 **Impact**: `authentication/http/custom` e2e tests are skipped.
 **Fix needed**: The emitter should either map custom HTTP auth schemes to `kind: "apiKey"` where appropriate, or the runtime needs to support arbitrary HTTP auth schemes.
+
+## Design Decisions
+
+### E2E test pattern for encode/serialization tests (SPECTOR-6, 2026-03-01)
+**Chosen approach**: Adapt reference tests from `submodules/typespec/packages/http-client-js/test/e2e/http/` to our single-client pattern, supplemented with legacy test coverage.
+**Rejected approach**: Port directly from legacy autorest.typescript tests (different assertion library, different client API, more adaptation work).
+**Rationale**: Reference tests are already Vitest-based and structurally similar. Main adaptation was changing from separate sub-clients (`new QueryClient()`) to operation groups on a single client (`new BytesClient().query.xxx`).
+
+## Emitter Bugs Found During E2E Testing (2026-03-01)
+
+### 1. Extensible enum array serializer — Unresolved Symbol
+The generated `encode/array` extensible enum serializers contain `<Unresolved Symbol: refkey[sarraySerializer⁣senum]>` references. The refkey for the enum element serializer is never declared. This makes the entire encode/array client unusable since the models.ts file has syntax errors.
+**Affected**: `test/e2e/generated/encode/array/src/models/models.ts` lines 173-197
+
+### 2. Date/Uint8Array query parameter serialization
+The generated query operations pass raw `Date` objects and `Uint8Array` values directly to `expandUrlTemplate()` without formatting them first. The URL template expansion calls `.toString()` which produces incorrect output:
+- Date → empty string or `[object Date]` instead of RFC3339/RFC7231/unix timestamp format
+- Uint8Array → comma-separated numbers instead of base64-encoded string
+**Affected**: All encode/datetime query operations, all encode/bytes query operations
+
+### 3. Uint8Array header serialization
+Same issue as query params — raw Uint8Array passed to headers without base64 encoding.
+**Affected**: All encode/bytes header operations
+
+### 4. operationOptions.onResponse callback not invoked
+The generated response header operations accept optional params with `operationOptions.onResponse`, but this callback is never invoked by the runtime, making response header inspection impossible.
+**Affected**: All encode/datetime responseHeader operations
+
+### 5. Buffer vs Uint8Array in byte responses
+The runtime deserializes base64-encoded bytes as Node.js `Buffer` instead of `Uint8Array`. Tests must wrap responses with `new Uint8Array(response.value)` for strict equality comparisons.
+**Affected**: All encode/bytes property and responseBody operations

@@ -2282,3 +2282,19 @@ Ported 8 e2e test files for authentication and server Spector specs:
 ### Results
 - E2e: 18 passed, 2 skipped (10 test files)
 - Unit: 1015 passed, 3 skipped (73 test files)
+
+RC25: Port encode and serialization Spector e2e tests (SPECTOR-6) — DONE (2026-03-01)
+Tests: All 1015 unit tests pass. All 41 e2e tests pass (55 skipped). 6 new e2e test files created:
+  - test/e2e/http/encode/array/main.test.ts (12 tests, all skipped — generated code has Unresolved Symbol bug in extensible enum serializers)
+  - test/e2e/http/encode/bytes/main.test.ts (22 tests: 8 pass, 14 skipped — query/header byte encoding broken in emitter)
+  - test/e2e/http/encode/datetime/main.test.ts (19 tests: 6 pass, 13 skipped — query Date serialization and responseHeader onResponse broken)
+  - test/e2e/http/encode/duration/main.test.ts (18 tests: 7 pass, 11 skipped — numeric duration encoding broken)
+  - test/e2e/http/encode/numeric/main.test.ts (3 tests, all skipped — numeric string encoding not fully supported)
+  - test/e2e/http/serialization/encoded-name/json/main.test.ts (2 tests, all pass)
+Patterns: Single main client with operation groups (e.g., client.property.xxx, client.query.xxx). Must pass endpoint: "http://localhost:3002" since generated defaults are port 3000. Buffer vs Uint8Array mismatch in bytes responses requires new Uint8Array() wrapping.
+Known emitter bugs found:
+  1. encode/array extensible enum serializers have <Unresolved Symbol> for array element serializer refkey
+  2. Date objects not serialized to string before URL template expansion in query params
+  3. Uint8Array not base64-encoded before URL template expansion in query params
+  4. Uint8Array not base64-encoded before header serialization
+  5. operationOptions.onResponse callback not invoked for response header inspection
