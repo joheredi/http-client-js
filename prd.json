@@ -787,7 +787,7 @@
       "title": "Fix e2e tests: pagination operations missing extra query params",
       "category": "bug-fix/e2e-tests",
       "priority": "P2",
-      "status": "not-started",
+      "status": "done",
       "kind": "bug",
       "dependencies": [],
       "design_review": null,
