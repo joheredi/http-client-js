@@ -11,7 +11,10 @@ import { DatetimeClient } from "../../../generated/encode/datetime/src/index.js"
 
 describe("Encode.Datetime", () => {
   describe("QueryOperations", () => {
-    const client = new DatetimeClient({ endpoint: "http://localhost:3002", allowInsecureConnection: true });
+    const client = new DatetimeClient({
+      endpoint: "http://localhost:3002",
+      allowInsecureConnection: true,
+    });
 
     it("should test default encode (rfc3339) for datetime query parameter", async () => {
       await client.query.default(new Date("2022-08-26T18:38:00.000Z"));
@@ -30,13 +33,19 @@ describe("Encode.Datetime", () => {
     });
 
     it("should test unixTimestamp encode for datetime array query parameter", async () => {
-      const timestamps = [new Date("2023-06-12T10:47:44Z"), new Date("2023-06-14T09:17:36Z")];
+      const timestamps = [
+        new Date("2023-06-12T10:47:44Z"),
+        new Date("2023-06-14T09:17:36Z"),
+      ];
       await client.query.unixTimestampArray(timestamps);
     });
   });
 
   describe("PropertyOperations", () => {
-    const client = new DatetimeClient({ endpoint: "http://localhost:3002", allowInsecureConnection: true });
+    const client = new DatetimeClient({
+      endpoint: "http://localhost:3002",
+      allowInsecureConnection: true,
+    });
 
     it("should handle default encode (rfc3339) for datetime property", async () => {
       const requestBody = { value: new Date("2022-08-26T18:38:00.000Z") };
@@ -64,7 +73,10 @@ describe("Encode.Datetime", () => {
 
     it.skip("should handle unixTimestamp encode for datetime array property", async () => {
       const requestBody = {
-        value: [new Date("2023-06-12T06:41:04.000Z"), new Date("2023-06-14T11:57:36.000Z")],
+        value: [
+          new Date("2023-06-12T06:41:04.000Z"),
+          new Date("2023-06-14T11:57:36.000Z"),
+        ],
       };
       const response = await client.property.unixTimestampArray(requestBody);
       expect(response).toEqual(requestBody);
@@ -72,7 +84,10 @@ describe("Encode.Datetime", () => {
   });
 
   describe("HeaderOperations", () => {
-    const client = new DatetimeClient({ endpoint: "http://localhost:3002", allowInsecureConnection: true });
+    const client = new DatetimeClient({
+      endpoint: "http://localhost:3002",
+      allowInsecureConnection: true,
+    });
 
     it("should test default encode (rfc7231) for datetime header", async () => {
       await client.header.default(new Date("2022-08-26T14:38:00.000Z"));

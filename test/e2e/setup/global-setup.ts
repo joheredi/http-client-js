@@ -24,13 +24,24 @@ const SERVER_PORT = 3002;
 const HEALTH_URL = `http://localhost:${SERVER_PORT}/routes/in-interface/fixed`;
 
 /** Path to the http-specs mock API definitions. */
-const SPECS_PATH = join(projectRoot, "node_modules", "@typespec", "http-specs", "specs");
+const SPECS_PATH = join(
+  projectRoot,
+  "node_modules",
+  "@typespec",
+  "http-specs",
+  "specs",
+);
 
 /** Path to write Spector coverage data. */
 const COVERAGE_FILE = join(projectRoot, "temp", "spector-coverage.json");
 
 /** Path to the tsp-spector CLI binary. */
-const TSP_SPECTOR_BIN = join(projectRoot, "node_modules", ".bin", "tsp-spector");
+const TSP_SPECTOR_BIN = join(
+  projectRoot,
+  "node_modules",
+  ".bin",
+  "tsp-spector",
+);
 
 /** Reference to the server process for cleanup. */
 let serverProcess: ChildProcess | undefined;
@@ -60,9 +71,13 @@ async function waitForServer(
         console.log(`[spector] Server ready (204 from ${url})`);
         return;
       }
-      console.log(`[spector] Attempt ${attempt}/${retries}: got ${statusCode}, retrying...`);
+      console.log(
+        `[spector] Attempt ${attempt}/${retries}: got ${statusCode}, retrying...`,
+      );
     } catch {
-      console.log(`[spector] Attempt ${attempt}/${retries}: server not ready yet...`);
+      console.log(
+        `[spector] Attempt ${attempt}/${retries}: server not ready yet...`,
+      );
     }
 
     await new Promise((r) => setTimeout(r, delayMs));
@@ -95,7 +110,15 @@ export async function setup(): Promise<void> {
 
   serverProcess = spawn(
     TSP_SPECTOR_BIN,
-    ["server", "start", SPECS_PATH, "--port", String(SERVER_PORT), "--coverageFile", COVERAGE_FILE],
+    [
+      "server",
+      "start",
+      SPECS_PATH,
+      "--port",
+      String(SERVER_PORT),
+      "--coverageFile",
+      COVERAGE_FILE,
+    ],
     {
       stdio: ["ignore", "pipe", "pipe"],
       detached: true,
@@ -127,7 +150,12 @@ export async function setup(): Promise<void> {
 export async function teardown(): Promise<void> {
   console.log(`[spector] Stopping mock server on port ${SERVER_PORT}...`);
   try {
-    await execFileAsync(TSP_SPECTOR_BIN, ["server", "stop", "--port", String(SERVER_PORT)]);
+    await execFileAsync(TSP_SPECTOR_BIN, [
+      "server",
+      "stop",
+      "--port",
+      String(SERVER_PORT),
+    ]);
     console.log("[spector] Server stopped successfully.");
   } catch (err: any) {
     // Server may already be stopped — that's OK

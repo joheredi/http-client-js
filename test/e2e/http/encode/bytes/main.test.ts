@@ -33,11 +33,16 @@ const base64EncodeToUint8Array = (input: string): Uint8Array => {
 const encodedTestString = base64EncodeToUint8Array("test");
 
 const str = "test";
-const testUint8Array = new Uint8Array([...str].map((char) => char.charCodeAt(0)));
+const testUint8Array = new Uint8Array(
+  [...str].map((char) => char.charCodeAt(0)),
+);
 
 describe("Encode.Bytes", () => {
   describe("QueryOperations", () => {
-    const client = new BytesClient({ endpoint: "http://localhost:3002", allowInsecureConnection: true });
+    const client = new BytesClient({
+      endpoint: "http://localhost:3002",
+      allowInsecureConnection: true,
+    });
 
     it("should test default encode (base64) for bytes query parameter", async () => {
       await client.query.default(testUint8Array);
@@ -57,21 +62,34 @@ describe("Encode.Bytes", () => {
   });
 
   describe("PropertyOperations", () => {
-    const client = new BytesClient({ endpoint: "http://localhost:3002", allowInsecureConnection: true });
+    const client = new BytesClient({
+      endpoint: "http://localhost:3002",
+      allowInsecureConnection: true,
+    });
 
     it("should test default encode (base64) for bytes properties", async () => {
-      const response = await client.property.default({ value: encodedTestString });
-      expect(new Uint8Array(response.value)).toStrictEqual(new Uint8Array(encodedTestString));
+      const response = await client.property.default({
+        value: encodedTestString,
+      });
+      expect(new Uint8Array(response.value)).toStrictEqual(
+        new Uint8Array(encodedTestString),
+      );
     });
 
     it("should test base64 encode for bytes properties", async () => {
       const response = await client.property.base64({ value: testUint8Array });
-      expect(new Uint8Array(response.value)).toStrictEqual(new Uint8Array(encodedTestString));
+      expect(new Uint8Array(response.value)).toStrictEqual(
+        new Uint8Array(encodedTestString),
+      );
     });
 
     it("should test base64url encode for bytes properties", async () => {
-      const response = await client.property.base64url({ value: testUint8Array });
-      expect(new Uint8Array(response.value)).toStrictEqual(new Uint8Array(encodedTestString));
+      const response = await client.property.base64url({
+        value: testUint8Array,
+      });
+      expect(new Uint8Array(response.value)).toStrictEqual(
+        new Uint8Array(encodedTestString),
+      );
     });
 
     it("should test base64url encode for bytes array properties", async () => {
@@ -89,7 +107,10 @@ describe("Encode.Bytes", () => {
    * to header values instead of base64-encoding it first. This is an emitter bug.
    */
   describe("HeaderOperations", () => {
-    const client = new BytesClient({ endpoint: "http://localhost:3002", allowInsecureConnection: true });
+    const client = new BytesClient({
+      endpoint: "http://localhost:3002",
+      allowInsecureConnection: true,
+    });
 
     it("should test default encode (base64) for bytes header", async () => {
       await client.header.default(testUint8Array);
@@ -104,7 +125,10 @@ describe("Encode.Bytes", () => {
     });
 
     it("should test base64url encode for bytes array header", async () => {
-      await client.header.base64urlArray([encodedTestString, encodedTestString]);
+      await client.header.base64urlArray([
+        encodedTestString,
+        encodedTestString,
+      ]);
     });
   });
 
@@ -145,27 +169,37 @@ describe("Encode.Bytes", () => {
 
     it("should test default binary bytes in response body", async () => {
       const response = await client.responseBody.default();
-      expect(new Uint8Array(response)).toStrictEqual(new Uint8Array(pngContents));
+      expect(new Uint8Array(response)).toStrictEqual(
+        new Uint8Array(pngContents),
+      );
     });
 
     it("should test application/octet-stream content type with bytes response", async () => {
       const response = await client.responseBody.octetStream();
-      expect(new Uint8Array(response)).toStrictEqual(new Uint8Array(pngContents));
+      expect(new Uint8Array(response)).toStrictEqual(
+        new Uint8Array(pngContents),
+      );
     });
 
     it("should test custom content type (image/png) with bytes response", async () => {
       const response = await client.responseBody.customContentType();
-      expect(new Uint8Array(response)).toStrictEqual(new Uint8Array(pngContents));
+      expect(new Uint8Array(response)).toStrictEqual(
+        new Uint8Array(pngContents),
+      );
     });
 
     it("should test base64 encode for bytes response body", async () => {
       const response = await client.responseBody.base64();
-      expect(new Uint8Array(response)).toStrictEqual(new Uint8Array(encodedTestString));
+      expect(new Uint8Array(response)).toStrictEqual(
+        new Uint8Array(encodedTestString),
+      );
     });
 
     it("should test base64url encode for bytes response body", async () => {
       const response = await client.responseBody.base64url();
-      expect(new Uint8Array(response)).toStrictEqual(new Uint8Array(encodedTestString));
+      expect(new Uint8Array(response)).toStrictEqual(
+        new Uint8Array(encodedTestString),
+      );
     });
   });
 });

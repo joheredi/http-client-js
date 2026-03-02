@@ -77,7 +77,9 @@ function PagedAsyncIterableIteratorInterface() {
       name="PagedAsyncIterableIterator"
       refkey={pagingHelperRefkey("PagedAsyncIterableIterator")}
       export
-      typeParameters={[{ name: namekey("TElement", { ignoreNamePolicy: true }) }]}
+      typeParameters={[
+        { name: namekey("TElement", { ignoreNamePolicy: true }) },
+      ]}
     >
       <InterfaceMember
         name="next"
@@ -149,9 +151,14 @@ function BuildPagedAsyncIteratorFunction() {
       refkey={pagingHelperRefkey("buildPagedAsyncIterator")}
       export
       returnType={code`${pagingHelperRefkey("PagedAsyncIterableIterator")}<TElement>`}
-      typeParameters={[{ name: namekey("TElement", { ignoreNamePolicy: true }) }]}
+      typeParameters={[
+        { name: namekey("TElement", { ignoreNamePolicy: true }) },
+      ]}
       parameters={[
-        { name: namekey("client", { ignoreNamePolicy: true }), type: runtimeLib.Client },
+        {
+          name: namekey("client", { ignoreNamePolicy: true }),
+          type: runtimeLib.Client,
+        },
         {
           name: "getInitialResponse",
           type: code`() => PromiseLike<${runtimeLib.PathUncheckedResponse}>`,

@@ -52,7 +52,9 @@ describe("Type.Property.ValueTypes", () => {
     it("should get a bytes property", async () => {
       const response = await client.bytes.get();
       // Normalize to Uint8Array — Node runtime may return Buffer instead
-      expect(new Uint8Array(response.property)).toEqual(new Uint8Array(expectedBytes));
+      expect(new Uint8Array(response.property)).toEqual(
+        new Uint8Array(expectedBytes),
+      );
     });
 
     it("should put a bytes property", async () => {

@@ -18,7 +18,10 @@ import type {
 } from "@azure-tools/typespec-client-generator-core";
 import { useFlavorContext, useRuntimeLib } from "../context/flavor-context.js";
 import { azureCoreLroLib } from "../utils/external-packages.js";
-import { getEscapedParameterName, getSafeMethodParamName } from "../utils/name-policy.js";
+import {
+  getEscapedParameterName,
+  getSafeMethodParamName,
+} from "../utils/name-policy.js";
 import {
   classicalClientRefkey,
   clientContextRefkey,

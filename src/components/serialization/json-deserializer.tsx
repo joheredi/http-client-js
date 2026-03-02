@@ -26,7 +26,10 @@ import {
 import { useRuntimeLib } from "../../context/flavor-context.js";
 import { useEmitterOptions } from "../../context/emitter-options-context.js";
 import { normalizePropertyName } from "../../utils/name-policy.js";
-import { needsTransformation, resolveAdditionalProperties } from "./json-serializer.js";
+import {
+  needsTransformation,
+  resolveAdditionalProperties,
+} from "./json-serializer.js";
 import { typeHasDeserializerDeclaration } from "../../utils/serialization-predicates.js";
 import { getAdditionalPropertiesName } from "../model-interface.js";
 
@@ -154,7 +157,12 @@ export function JsonDeserializer(props: JsonDeserializerProps) {
                 // This parses delimited strings back into arrays (e.g., "a,b" → ["a","b"]).
                 valueExpr = wrapWithArrayDecoding(valueExpr, accessor, prop);
                 const wrapped = wrapWithNullCheck(valueExpr, accessor, prop);
-                return <ObjectProperty name={normalizePropertyName(prop.name)} value={wrapped} />;
+                return (
+                  <ObjectProperty
+                    name={normalizePropertyName(prop.name)}
+                    value={wrapped}
+                  />
+                );
               }}
             </For>
           </ObjectExpression>
@@ -517,7 +525,12 @@ export function FlattenDeserializerHelper(
             let valueExpr = getDeserializationExpression(prop.type, accessor);
             valueExpr = wrapWithArrayDecoding(valueExpr, accessor, prop);
             const wrapped = wrapWithNullCheck(valueExpr, accessor, prop);
-            return <ObjectProperty name={normalizePropertyName(effectiveName)} value={wrapped} />;
+            return (
+              <ObjectProperty
+                name={normalizePropertyName(effectiveName)}
+                value={wrapped}
+              />
+            );
           }}
         </For>
       </ObjectExpression>

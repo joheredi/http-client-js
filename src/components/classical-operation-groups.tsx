@@ -350,7 +350,9 @@ function buildMethodParamList(
 
   for (const param of method.parameters) {
     if (isRequiredSignatureParameter(param, method)) {
-      parts.push(code`${getSafeMethodParamName(param.name, method.name)}: ${getTypeExpression(param.type)}`);
+      parts.push(
+        code`${getSafeMethodParamName(param.name, method.name)}: ${getTypeExpression(param.type)}`,
+      );
     }
   }
 

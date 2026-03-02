@@ -6,4 +6,4 @@ onlyBuiltDependencies:
   - tree-sitter-typescript
 
 patchedDependencies:
-  '@typespec/ts-http-runtime@0.2.1': patches/@typespec__ts-http-runtime@0.2.1.patch
+  "@typespec/ts-http-runtime@0.2.1": patches/@typespec__ts-http-runtime@0.2.1.patch

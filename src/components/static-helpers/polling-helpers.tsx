@@ -118,7 +118,9 @@ function GetLongRunningPollerOptionsInterface() {
       name="GetLongRunningPollerOptions"
       refkey={pollingHelperRefkey("GetLongRunningPollerOptions")}
       export
-      typeParameters={[{ name: namekey("TResponse", { ignoreNamePolicy: true }) }]}
+      typeParameters={[
+        { name: namekey("TResponse", { ignoreNamePolicy: true }) },
+      ]}
     >
       <InterfaceMember name="updateIntervalInMs" type="number" optional />
       {"\n"}
@@ -164,9 +166,14 @@ function GetLongRunningPollerFunction() {
       export
       async
       returnType={code`${pollingHelperRefkey("PollerLike")}<${pollingHelperRefkey("OperationState")}<TResponse>, TResponse>`}
-      typeParameters={[{ name: namekey("TResponse", { ignoreNamePolicy: true }) }]}
+      typeParameters={[
+        { name: namekey("TResponse", { ignoreNamePolicy: true }) },
+      ]}
       parameters={[
-        { name: namekey("client", { ignoreNamePolicy: true }), type: runtimeLib.Client },
+        {
+          name: namekey("client", { ignoreNamePolicy: true }),
+          type: runtimeLib.Client,
+        },
         {
           name: "processResponseBody",
           type: code`(result: ${runtimeLib.PathUncheckedResponse}) => Promise<TResponse>`,

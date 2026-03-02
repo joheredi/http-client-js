@@ -97,10 +97,12 @@ function OperationOptionsGroupFile(props: OperationOptionsGroupFileProps) {
   // Use nested SourceDirectory for grouped options so Alloy computes
   // correct relative import paths (e.g., ./options.js instead of ./group/options.js).
   if (group.prefixPath) {
-    return <SourceDirectory path={group.prefixPath}>
-      <BarrelFile />
-      {content}
-    </SourceDirectory>;
+    return (
+      <SourceDirectory path={group.prefixPath}>
+        <BarrelFile />
+        {content}
+      </SourceDirectory>
+    );
   }
   return content;
 }

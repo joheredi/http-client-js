@@ -13,6 +13,11 @@ This project (`http-client-js`) is a **rewrite** of a legacy TypeSpec emitter (`
 3. **Composability** — A core emitter that can be extended (e.g., Azure flavor) via JSX composition.
 4. **Maintainability** — Reduce complexity, improve reliability, lower cost of new features.
 
+### Resources
+
+- For any task that requires exploring or studying the codebase or resources, you can use up to 500 parallel subagents to gather information. Each agent can be assigned a specific area of the codebase or documentation to review, and they can report back with summaries, insights, or specific answers to questions.
+- When doing a design review or plan, evaluate at least 2 different approaches, and compare their pros and cons before deciding on the best path forward. Recommend the best approach with a detailed explanation of why it was chosen over the alternatives.
+
 ### Pipeline
 
 ```
@@ -101,8 +106,6 @@ Alloy is a **declarative, JSX-based code generation framework**. It is NOT React
 
 ### Core Concepts
 
-
-
 #### 1. Refkeys (Most Important Concept)
 
 Refkeys are unique identifiers for declarations that enable automatic cross-file reference resolution and import generation. **You never manually write import statements.**
@@ -143,13 +146,12 @@ code`
 **NEVER use string concatenation to build code — always use `code` templates.**
 
 #### 1.2 alloy components paths (Important Concept)
+
 We should wrap components in `SourceDirectory` and `SourceFile` to let Alloy compute correct output paths and imports. Instead of path="models/models.ts", use nested SourceDirectory:
 
 ```tsx
 <SourceDirectory path="models">
-  <SourceFile path="models.ts">
-    {/* declarations */}
-  </SourceFile>
+  <SourceFile path="models.ts">{/* declarations */}</SourceFile>
 </SourceDirectory>
 ```
 

@@ -160,9 +160,7 @@ function buildArrayCheck(arrayType: SdkArrayType): Children {
  * Tries constant-value property discrimination first, falls back to
  * property existence checks.
  */
-function buildModelDiscrimination(
-  modelVariants: SdkModelType[],
-): Children {
+function buildModelDiscrimination(modelVariants: SdkModelType[]): Children {
   const discriminator = findDiscriminatorProperty(modelVariants);
 
   if (discriminator && discriminator.isFullyDistinct) {
@@ -178,7 +176,10 @@ function buildModelDiscrimination(
  * distinct values across model variants.
  */
 function buildSwitchDiscrimination(
-  discriminator: { serializedName: string; valueToModels: Map<string, SdkModelType[]> },
+  discriminator: {
+    serializedName: string;
+    valueToModels: Map<string, SdkModelType[]>;
+  },
   _modelVariants: SdkModelType[],
 ): Children {
   const entries = [...discriminator.valueToModels.entries()];
@@ -222,9 +223,7 @@ function buildSwitchDiscrimination(
  * Generates if-checks based on unique property existence for models that
  * need deserialization. Falls back to `return item` for unmatched variants.
  */
-function buildPropertyExistenceChecks(
-  modelVariants: SdkModelType[],
-): Children {
+function buildPropertyExistenceChecks(modelVariants: SdkModelType[]): Children {
   const checks: Children[] = [];
 
   for (const model of modelVariants) {

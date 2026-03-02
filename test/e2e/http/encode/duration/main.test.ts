@@ -11,7 +11,10 @@ import { DurationClient } from "../../../generated/encode/duration/src/index.js"
 
 describe("Encode.Duration", () => {
   describe("QueryOperations", () => {
-    const client = new DurationClient({ endpoint: "http://localhost:3002", allowInsecureConnection: true });
+    const client = new DurationClient({
+      endpoint: "http://localhost:3002",
+      allowInsecureConnection: true,
+    });
 
     it("should test default encode for a duration parameter", async () => {
       await client.query.default("P40D");

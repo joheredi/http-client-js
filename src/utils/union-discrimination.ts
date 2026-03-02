@@ -70,9 +70,7 @@ export function findDiscriminatorProperty(
     // Must cover all models
     if (coveredModels.size !== models.length) continue;
 
-    const isFullyDistinct = [...valueMap.values()].every(
-      (m) => m.length === 1,
-    );
+    const isFullyDistinct = [...valueMap.values()].every((m) => m.length === 1);
 
     if (!bestProp || isFullyDistinct) {
       bestProp = {

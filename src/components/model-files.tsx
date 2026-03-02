@@ -218,9 +218,7 @@ export function ModelFiles() {
         (e.usage & UsageFlags.Input) !== 0,
     ),
     ...nullableEnums.filter(
-      (e) =>
-        e.isUnionAsEnum &&
-        !experimentalExtensibleEnums,
+      (e) => e.isUnionAsEnum && !experimentalExtensibleEnums,
     ),
   ];
 

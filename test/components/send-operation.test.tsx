@@ -1213,7 +1213,9 @@ op groupCustomized(
 
       const result = renderToString(template);
       // contentType should be a positional parameter (user-defined, non-constant)
-      expect(result).toMatch(/sendSend\(\s*context: TestingContext,\s*contentType:/);
+      expect(result).toMatch(
+        /sendSend\(\s*context: TestingContext,\s*contentType:/,
+      );
       // contentType in request options should use the variable, NOT a hardcoded literal
       expect(result).toContain("contentType: contentType");
       // Should NOT hardcode a literal like contentType: "application/json"

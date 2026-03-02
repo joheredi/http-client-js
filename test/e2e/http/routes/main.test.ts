@@ -60,9 +60,12 @@ describe("Routes", () => {
 
       it("should fail reserved expansion template with skipUrlEncoding=false", async () => {
         try {
-          await client.pathParameters.reservedExpansion.template("foo/bar baz", {
-            requestOptions: { skipUrlEncoding: false },
-          });
+          await client.pathParameters.reservedExpansion.template(
+            "foo/bar baz",
+            {
+              requestOptions: { skipUrlEncoding: false },
+            },
+          );
           expect.fail("Should have failed because path parameter was encoded");
         } catch (error: any) {
           expect(error.statusCode).toBe(404);
@@ -81,11 +84,17 @@ describe("Routes", () => {
         });
 
         it("should handle array", async () => {
-          await client.pathParameters.simpleExpansion.standard.array(["a", "b"]);
+          await client.pathParameters.simpleExpansion.standard.array([
+            "a",
+            "b",
+          ]);
         });
 
         it("should handle record", async () => {
-          await client.pathParameters.simpleExpansion.standard.record({ a: 1, b: 2 });
+          await client.pathParameters.simpleExpansion.standard.record({
+            a: 1,
+            b: 2,
+          });
         });
       });
 
@@ -99,7 +108,10 @@ describe("Routes", () => {
         });
 
         it("should handle record", async () => {
-          await client.pathParameters.simpleExpansion.explode.record({ a: 1, b: 2 });
+          await client.pathParameters.simpleExpansion.explode.record({
+            a: 1,
+            b: 2,
+          });
         });
       });
     });
@@ -115,7 +127,10 @@ describe("Routes", () => {
         });
 
         it("should handle record", async () => {
-          await client.pathParameters.pathExpansion.standard.record({ a: 1, b: 2 });
+          await client.pathParameters.pathExpansion.standard.record({
+            a: 1,
+            b: 2,
+          });
         });
       });
 
@@ -129,7 +144,10 @@ describe("Routes", () => {
         });
 
         it("should handle record", async () => {
-          await client.pathParameters.pathExpansion.explode.record({ a: 1, b: 2 });
+          await client.pathParameters.pathExpansion.explode.record({
+            a: 1,
+            b: 2,
+          });
         });
       });
     });
@@ -145,7 +163,10 @@ describe("Routes", () => {
         });
 
         it("should handle record", async () => {
-          await client.pathParameters.labelExpansion.standard.record({ a: 1, b: 2 });
+          await client.pathParameters.labelExpansion.standard.record({
+            a: 1,
+            b: 2,
+          });
         });
       });
 
@@ -159,7 +180,10 @@ describe("Routes", () => {
         });
 
         it("should handle record", async () => {
-          await client.pathParameters.labelExpansion.explode.record({ a: 1, b: 2 });
+          await client.pathParameters.labelExpansion.explode.record({
+            a: 1,
+            b: 2,
+          });
         });
       });
     });
@@ -171,11 +195,17 @@ describe("Routes", () => {
         });
 
         it("should handle array", async () => {
-          await client.pathParameters.matrixExpansion.standard.array(["a", "b"]);
+          await client.pathParameters.matrixExpansion.standard.array([
+            "a",
+            "b",
+          ]);
         });
 
         it("should handle record", async () => {
-          await client.pathParameters.matrixExpansion.standard.record({ a: 1, b: 2 });
+          await client.pathParameters.matrixExpansion.standard.record({
+            a: 1,
+            b: 2,
+          });
         });
       });
 
@@ -189,7 +219,10 @@ describe("Routes", () => {
         });
 
         it("should handle record", async () => {
-          await client.pathParameters.matrixExpansion.explode.record({ a: 1, b: 2 });
+          await client.pathParameters.matrixExpansion.explode.record({
+            a: 1,
+            b: 2,
+          });
         });
       });
     });
@@ -217,11 +250,17 @@ describe("Routes", () => {
         });
 
         it("should handle array", async () => {
-          await client.queryParameters.queryExpansion.standard.array(["a", "b"]);
+          await client.queryParameters.queryExpansion.standard.array([
+            "a",
+            "b",
+          ]);
         });
 
         it("should handle record", async () => {
-          await client.queryParameters.queryExpansion.standard.record({ a: 1, b: 2 });
+          await client.queryParameters.queryExpansion.standard.record({
+            a: 1,
+            b: 2,
+          });
         });
       });
 
@@ -235,7 +274,10 @@ describe("Routes", () => {
         });
 
         it("should handle record", async () => {
-          await client.queryParameters.queryExpansion.explode.record({ a: 1, b: 2 });
+          await client.queryParameters.queryExpansion.explode.record({
+            a: 1,
+            b: 2,
+          });
         });
       });
     });
@@ -243,15 +285,23 @@ describe("Routes", () => {
     describe("queryContinuation", () => {
       describe("standard", () => {
         it("should handle primitive", async () => {
-          await client.queryParameters.queryContinuation.standard.primitive("a");
+          await client.queryParameters.queryContinuation.standard.primitive(
+            "a",
+          );
         });
 
         it("should handle array", async () => {
-          await client.queryParameters.queryContinuation.standard.array(["a", "b"]);
+          await client.queryParameters.queryContinuation.standard.array([
+            "a",
+            "b",
+          ]);
         });
 
         it("should handle record", async () => {
-          await client.queryParameters.queryContinuation.standard.record({ a: 1, b: 2 });
+          await client.queryParameters.queryContinuation.standard.record({
+            a: 1,
+            b: 2,
+          });
         });
       });
 
@@ -261,11 +311,17 @@ describe("Routes", () => {
         });
 
         it("should handle array", async () => {
-          await client.queryParameters.queryContinuation.explode.array(["a", "b"]);
+          await client.queryParameters.queryContinuation.explode.array([
+            "a",
+            "b",
+          ]);
         });
 
         it("should handle record", async () => {
-          await client.queryParameters.queryContinuation.explode.record({ a: 1, b: 2 });
+          await client.queryParameters.queryContinuation.explode.record({
+            a: 1,
+            b: 2,
+          });
         });
       });
     });

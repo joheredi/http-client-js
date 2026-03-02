@@ -10,7 +10,10 @@ import { NumericClient } from "../../../generated/encode/numeric/src/index.js";
 
 describe("Encode.Numeric", () => {
   describe("PropertyOperations", () => {
-    const client = new NumericClient({ endpoint: "http://localhost:3002", allowInsecureConnection: true });
+    const client = new NumericClient({
+      endpoint: "http://localhost:3002",
+      allowInsecureConnection: true,
+    });
 
     it("should send and receive safeint as string", async () => {
       const payload = { value: "10000000000" };

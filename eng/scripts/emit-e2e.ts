@@ -37,17 +37,14 @@ const __dirname = dirname(__filename);
 /** Root of this repository (two levels up from eng/scripts/). */
 const projectRoot = resolve(__dirname, "../..");
 
-
 /**
  * Root directory containing the Spector specs.
- * Uses the http-specs submodule since the npm package has unresolvable
- * transitive dependencies. The .tsp files themselves are standalone.
+ * Uses the @typespec/http-specs npm package installed in node_modules.
  */
 const specsBasePath = join(
   projectRoot,
-  "submodules",
-  "typespec",
-  "packages",
+  "node_modules",
+  "@typespec",
   "http-specs",
   "specs",
 );
@@ -126,7 +123,7 @@ async function discoverSpecs(
   if (!existsSync(specsBasePath)) {
     console.error(
       `❌ Specs directory not found: ${specsBasePath}\n` +
-        `   Make sure the typespec submodule is initialized (git submodule update --init).`,
+        `   Make sure @typespec/http-specs is installed (pnpm install).`,
     );
     process.exit(1);
   }
@@ -248,7 +245,10 @@ async function compileSpec(spec: SpecEntry): Promise<CompileResult> {
 
     // Write error log.
     await mkdir(logDir, { recursive: true });
-    const logFile = join(logDir, `${basename(spec.relativePath, ".tsp")}-error.log`);
+    const logFile = join(
+      logDir,
+      `${basename(spec.relativePath, ".tsp")}-error.log`,
+    );
     await writeFile(logFile, errorDetails, "utf8");
 
     return {
@@ -320,8 +320,12 @@ async function main(): Promise<void> {
       const result = await compileSpec(spec);
       completed++;
       const icon = result.status === "succeeded" ? "✅" : "❌";
-      const timing = result.durationMs ? ` (${(result.durationMs / 1000).toFixed(1)}s)` : "";
-      console.log(`${icon} [${completed}/${specs.length}] ${result.specDir}${timing}`);
+      const timing = result.durationMs
+        ? ` (${(result.durationMs / 1000).toFixed(1)}s)`
+        : "";
+      console.log(
+        `${icon} [${completed}/${specs.length}] ${result.specDir}${timing}`,
+      );
       return result;
     }),
   );

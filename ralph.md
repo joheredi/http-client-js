@@ -94,4 +94,3 @@ If tests unrelated to your work fail, it is **your job** to resolve them as part
 ## Phase 7: EXIT
 
 Exit the copilot CLI. If the PRD is complete (no remaining not-started or pending tasks), output `<promise>COMPLETED</promise>` before exiting.
-

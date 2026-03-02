@@ -52,7 +52,9 @@ describe("Type.Property.Optionality", () => {
     it("should get all properties", async () => {
       const response = await client.bytes.getAll();
       // Normalize to Uint8Array — Node runtime may return Buffer instead
-      expect(new Uint8Array(response.property!)).toEqual(new Uint8Array(expectedBytes));
+      expect(new Uint8Array(response.property!)).toEqual(
+        new Uint8Array(expectedBytes),
+      );
     });
 
     it("should get default (no optional property)", async () => {
@@ -165,7 +167,10 @@ describe("Type.Property.Optionality", () => {
       const response = await client.collectionsByte.getAll();
       // Normalize to Uint8Array — Node runtime may return Buffer instead
       const normalized = response.property!.map((b: any) => new Uint8Array(b));
-      expect(normalized).toEqual([new Uint8Array(expectedBytes), new Uint8Array(expectedBytes)]);
+      expect(normalized).toEqual([
+        new Uint8Array(expectedBytes),
+        new Uint8Array(expectedBytes),
+      ]);
     });
 
     it("should get default (no optional property)", async () => {
@@ -174,7 +179,9 @@ describe("Type.Property.Optionality", () => {
     });
 
     it("should put all properties", async () => {
-      await client.collectionsByte.putAll({ property: [expectedBytes, expectedBytes] });
+      await client.collectionsByte.putAll({
+        property: [expectedBytes, expectedBytes],
+      });
     });
 
     it("should put default (no optional property)", async () => {

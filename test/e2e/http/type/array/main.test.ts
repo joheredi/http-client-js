@@ -37,12 +37,18 @@ describe("Type.Array", () => {
     it("should get an array of int64 values", async () => {
       // JSON does not support BigInt, so precision is capped at Number.MAX_SAFE_INTEGER.
       const response = await client.int64Value.get();
-      expect(response).toEqual([Number.MAX_SAFE_INTEGER, Number.MIN_SAFE_INTEGER]);
+      expect(response).toEqual([
+        Number.MAX_SAFE_INTEGER,
+        Number.MIN_SAFE_INTEGER,
+      ]);
     });
 
     it("should put an array of int64 values", async () => {
       // int64 maps to number in JS; mock server expects MAX/MIN_SAFE_INTEGER.
-      await client.int64Value.put([Number.MAX_SAFE_INTEGER, Number.MIN_SAFE_INTEGER]);
+      await client.int64Value.put([
+        Number.MAX_SAFE_INTEGER,
+        Number.MIN_SAFE_INTEGER,
+      ]);
     });
   });
 
@@ -119,7 +125,10 @@ describe("Type.Array", () => {
     });
 
     it("should put an array of model values", async () => {
-      await client.modelValue.put([{ property: "hello" }, { property: "world" }]);
+      await client.modelValue.put([
+        { property: "hello" },
+        { property: "world" },
+      ]);
     });
   });
 
@@ -170,11 +179,19 @@ describe("Type.Array", () => {
   describe("nullableModelValue", () => {
     it("should get an array of nullable model values", async () => {
       const response = await client.nullableModelValue.get();
-      expect(response).toEqual([{ property: "hello" }, null, { property: "world" }]);
+      expect(response).toEqual([
+        { property: "hello" },
+        null,
+        { property: "world" },
+      ]);
     });
 
     it("should put an array of nullable model values", async () => {
-      await client.nullableModelValue.put([{ property: "hello" }, null, { property: "world" }]);
+      await client.nullableModelValue.put([
+        { property: "hello" },
+        null,
+        { property: "world" },
+      ]);
     });
   });
 });

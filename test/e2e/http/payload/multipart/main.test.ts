@@ -28,10 +28,14 @@ import { fileURLToPath } from "url";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const specsAssetsDir = resolve(
   __dirname,
-  "../../../../../submodules/typespec/packages/http-specs/assets",
+  "../../../../../node_modules/@typespec/http-specs/assets",
 );
-const jpegContents = new Uint8Array(readFileSync(resolve(specsAssetsDir, "image.jpg")));
-const pngContents = new Uint8Array(readFileSync(resolve(specsAssetsDir, "image.png")));
+const jpegContents = new Uint8Array(
+  readFileSync(resolve(specsAssetsDir, "image.jpg")),
+);
+const pngContents = new Uint8Array(
+  readFileSync(resolve(specsAssetsDir, "image.png")),
+);
 
 describe("Payload.MultiPart", () => {
   const client = new MultiPartClient({
@@ -163,8 +167,16 @@ describe("Payload.MultiPart", () => {
           },
           previousAddresses: [{ city: "Y" }, { city: "Z" }],
           pictures: [
-            { filename: "test1.png", contents: pngContents, contentType: "application/octet-stream" },
-            { filename: "test2.png", contents: pngContents, contentType: "application/octet-stream" },
+            {
+              filename: "test1.png",
+              contents: pngContents,
+              contentType: "application/octet-stream",
+            },
+            {
+              filename: "test2.png",
+              contents: pngContents,
+              contentType: "application/octet-stream",
+            },
           ],
         });
       });
