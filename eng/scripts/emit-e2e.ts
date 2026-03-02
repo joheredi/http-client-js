@@ -3,10 +3,12 @@
 /**
  * emit-e2e.ts — Discovers and generates client libraries from all Spector specs.
  *
- * Finds `client.tsp` / `main.tsp` files under the http-specs package, runs
- * `tsp compile` for each spec in parallel, and writes the generated code to
- * `test/e2e/generated/{spec-path}/`. Specs listed in `test/e2e/.testignore`
- * are skipped.
+ * Finds `client.tsp` / `main.tsp` files under both the @typespec/http-specs
+ * and @azure-tools/azure-http-specs packages, runs `tsp compile` for each spec
+ * in parallel, and writes the generated code to `test/e2e/generated/{spec-path}/`.
+ * Specs listed in `test/e2e/.testignore` are skipped.
+ *
+ * Azure-sourced specs are compiled with `flavor=azure`; core specs use `flavor=core`.
  *
  * Usage:
  *   pnpm emit:e2e                      # generate all non-ignored specs
@@ -38,14 +40,26 @@ const __dirname = dirname(__filename);
 const projectRoot = resolve(__dirname, "../..");
 
 /**
- * Root directory containing the Spector specs.
+ * Root directory containing the core Spector specs.
  * Uses the @typespec/http-specs npm package installed in node_modules.
  */
-const specsBasePath = join(
+const coreSpecsBasePath = join(
   projectRoot,
   "node_modules",
   "@typespec",
   "http-specs",
+  "specs",
+);
+
+/**
+ * Root directory containing the Azure Spector specs.
+ * Uses the @azure-tools/azure-http-specs npm package installed in node_modules.
+ */
+const azureSpecsBasePath = join(
+  projectRoot,
+  "node_modules",
+  "@azure-tools",
+  "azure-http-specs",
   "specs",
 );
 
@@ -106,12 +120,49 @@ async function getIgnoreList(): Promise<string[]> {
 interface SpecEntry {
   /** Absolute path to the .tsp file. */
   fullPath: string;
-  /** Path relative to specsBasePath (e.g. "authentication/api-key/client.tsp"). */
+  /** Path relative to its specsBasePath (e.g. "authentication/api-key/client.tsp"). */
   relativePath: string;
+  /** Emitter flavor to use for this spec. */
+  flavor: "core" | "azure";
 }
 
 /**
- * Discovers all compilable specs under `specsBasePath`.
+ * Discovers all compilable specs under a given specs directory.
+ *
+ * Prefers `client.tsp` over `main.tsp` when both exist in the same directory.
+ */
+async function discoverSpecsFromDir(
+  specsBasePath: string,
+  flavor: "core" | "azure",
+): Promise<SpecEntry[]> {
+  if (!existsSync(specsBasePath)) {
+    return [];
+  }
+
+  const patterns = ["**/client.tsp", "**/main.tsp"];
+  const discovered = await globby(patterns, { cwd: specsBasePath });
+
+  const byDir = new Map<string, SpecEntry>();
+  for (const relPath of discovered) {
+    const dir = dirname(relPath);
+    const existing = byDir.get(dir);
+
+    if (existing && existing.relativePath.endsWith("client.tsp")) {
+      continue;
+    }
+
+    byDir.set(dir, {
+      fullPath: join(specsBasePath, relPath),
+      relativePath: relPath,
+      flavor,
+    });
+  }
+
+  return Array.from(byDir.values());
+}
+
+/**
+ * Discovers all compilable specs under both core and azure spec directories.
  *
  * Prefers `client.tsp` over `main.tsp` when both exist in the same directory.
  * Filters results against the ignore list and the optional `--filter` flag.
@@ -120,36 +171,18 @@ async function discoverSpecs(
   ignoreList: string[],
   filter?: string,
 ): Promise<SpecEntry[]> {
-  if (!existsSync(specsBasePath)) {
+  const coreSpecs = await discoverSpecsFromDir(coreSpecsBasePath, "core");
+  const azureSpecs = await discoverSpecsFromDir(azureSpecsBasePath, "azure");
+
+  if (coreSpecs.length === 0 && azureSpecs.length === 0) {
     console.error(
-      `❌ Specs directory not found: ${specsBasePath}\n` +
-        `   Make sure @typespec/http-specs is installed (pnpm install).`,
+      `❌ No specs directories found.\n` +
+        `   Make sure @typespec/http-specs and/or @azure-tools/azure-http-specs are installed (pnpm install).`,
     );
     process.exit(1);
   }
 
-  // Glob for both file types.
-  const patterns = ["**/client.tsp", "**/main.tsp"];
-  const discovered = await globby(patterns, { cwd: specsBasePath });
-
-  // Build lookup: directory → SpecEntry (prefer client.tsp).
-  const byDir = new Map<string, SpecEntry>();
-  for (const relPath of discovered) {
-    const dir = dirname(relPath);
-    const existing = byDir.get(dir);
-
-    // Skip if we already have client.tsp for this directory.
-    if (existing && existing.relativePath.endsWith("client.tsp")) {
-      continue;
-    }
-
-    byDir.set(dir, {
-      fullPath: join(specsBasePath, relPath),
-      relativePath: relPath,
-    });
-  }
-
-  let specs = Array.from(byDir.values());
+  let specs = [...coreSpecs, ...azureSpecs];
 
   // Apply ignore list (match on directory prefix, relative to specs root).
   specs = specs.filter((spec) => {
@@ -214,7 +247,7 @@ async function compileSpec(spec: SpecEntry): Promise<CompileResult> {
         "--option",
         "http-client-js.generate-metadata=true",
         "--option",
-        "http-client-js.flavor=core",
+        `http-client-js.flavor=${spec.flavor}`,
         "--output-dir",
         outputDir,
       ],
@@ -309,7 +342,7 @@ async function main(): Promise<void> {
   }
 
   // Process specs in parallel.
-  const concurrency = Math.max(1, cpus().length);
+  const concurrency = Math.min(Math.max(1, cpus().length), 4);
   console.log(`⚡ Parallelism: ${concurrency} concurrent compilations\n`);
 
   const limit = pLimit(concurrency);
