@@ -2869,3 +2869,32 @@ When `type/union` and `type/union/discriminated` are compiled in parallel, they 
 - When `needsTransformation()` returns true for a type, ensure the corresponding serializer/deserializer declaration exists
 - `typeHasSerializerDeclaration()` must mirror `model-files.tsx` filtering exactly
 - All method kinds (basic, lro, paging, lropaging) must be walked when collecting types
+
+---
+
+## RC23: Fix LRO pollUntilDone() returning undefined properties (2026-03-02)
+Task: E2E-AZURE-LRO-RESULT-UNDEFINED
+
+### Problem
+LRO operations like `export` and `longRunningRpc` returned objects with undefined properties from `pollUntilDone()`. The root cause was the simplified polling helper that just deserialized the initial 202 response instead of actually polling the server.
+
+### Solution
+1. **Replaced simplified polling with @azure/core-lro's createHttpPoller** - The `polling-helpers.tsx` now generates code that uses `createHttpPoller` from `@azure/core-lro` instead of a custom simplified poller. This properly handles the full LRO lifecycle: initial request → polling → final GET → deserialization.
+
+2. **Added LRO envelope extraction via finalResultPath** - For POST operations with `operation-location`, the polling response body wraps the actual result in a `"result"` field (LRO envelope). Added `finalResultPath` option to `getLongRunningPoller` that extracts the nested result before passing to the deserializer. The TCGC `lroMetadata.finalResultPath` provides this path.
+
+3. **Added missing @azure/core-lro exports** - Added `createHttpPoller`, `RunningOperation`, and `OperationResponse` to the `azureCoreLroLib` package definition.
+
+### Key Patterns
+- `PollerLike` from `@azure/core-lro` v3 extends `Promise<TResult>`. Don't `await` the poller creation — use `const poller = client.method()` (no await) then `await poller.pollUntilDone()`.
+- `createHttpPoller` is synchronous (returns PollerLike directly, not Promise).
+- For PUT operations, core-lro does a final GET to the original URL. For POST operations without a Location header, it uses the polling response body.
+- `sendPollRequest` makes actual HTTP GET requests to the polling URL, properly handling abort signals and api-version parameters.
+
+### Files Changed
+- `src/utils/external-packages.ts` - Added core-lro exports
+- `src/components/static-helpers/polling-helpers.tsx` - Full rewrite to use createHttpPoller
+- `src/components/public-operation.tsx` - Pass finalResultPath for LRO and LRO+Paging operations
+- `test/components/static-helpers/polling-helpers.test.tsx` - Updated tests for new implementation
+- `test/e2e/http/azure/core/lro/standard/main.test.ts` - Un-skipped tests, fixed await pattern
+- `test/e2e/http/azure/core/lro/rpc/main.test.ts` - Un-skipped test, fixed expectation

@@ -2,20 +2,20 @@
  * Test suite for the PollingHelpersFile component.
  *
  * PollingHelpersFile generates `static-helpers/pollingHelpers.ts` containing types
- * and functions for Long Running Operation (LRO) polling.
+ * and functions for Long Running Operation (LRO) polling using `@azure/core-lro`.
  *
  * What is tested:
- * - OperationState interface is rendered with status, result, and error members
- * - PollerLike interface is rendered with poll, isDone, pollUntilDone methods
  * - GetLongRunningPollerOptions interface is rendered with configuration members
- * - getLongRunningPoller function is rendered with correct async signature
+ * - getLongRunningPoller function is rendered using createHttpPoller from core-lro
+ * - getLroResponse helper is rendered for converting REST responses to LRO format
+ * - addApiVersionToUrl helper is rendered for polling URL construction
  * - Each declaration's refkey enables cross-file imports via Alloy
  *
  * Why this matters:
- * LRO operations return `PollerLike<OperationState<T>, T>` and call
- * `getLongRunningPoller(...)` to create the poller. Without these
- * declarations, LRO operations would reference types and functions
- * that don't exist, causing compilation errors in the generated SDK.
+ * LRO operations call `getLongRunningPoller(...)` to create a poller that uses
+ * `@azure/core-lro`'s `createHttpPoller` for actual HTTP polling. Without these
+ * declarations, LRO operations would fail to poll the server for final results,
+ * causing pollUntilDone() to return undefined properties.
  */
 import "@alloy-js/core/testing";
 import { renderToString } from "@alloy-js/core/testing";
@@ -31,7 +31,10 @@ import { t } from "@typespec/compiler/testing";
 import { PollingHelpersFile } from "../../../src/components/static-helpers/polling-helpers.js";
 import { pollingHelperRefkey } from "../../../src/utils/refkeys.js";
 import { TesterWithService } from "../../test-host.js";
-import { httpRuntimeLib } from "../../../src/utils/external-packages.js";
+import {
+  httpRuntimeLib,
+  azureCoreLroLib,
+} from "../../../src/utils/external-packages.js";
 import type { Program } from "@typespec/compiler";
 
 describe("PollingHelpersFile", () => {
@@ -43,63 +46,16 @@ describe("PollingHelpersFile", () => {
   });
 
   /**
-   * Tests that the OperationState interface is rendered with the
-   * correct type parameter and members. This interface tracks the
-   * status, result, and error of a long-running operation.
-   */
-  it("should render OperationState interface", async () => {
-    const template = (
-      <Output
-        program={program}
-        namePolicy={createTSNamePolicy()}
-        externals={[httpRuntimeLib]}
-      >
-        <PollingHelpersFile />
-      </Output>
-    );
-
-    const result = renderToString(template);
-    expect(result).toContain("export interface OperationState<T>");
-    expect(result).toContain("status");
-    expect(result).toContain("result");
-    expect(result).toContain("error");
-  });
-
-  /**
-   * Tests that the PollerLike interface is rendered with the correct
-   * type parameters and methods. This is the consumer-facing interface
-   * for interacting with long-running operations.
-   */
-  it("should render PollerLike interface", async () => {
-    const template = (
-      <Output
-        program={program}
-        namePolicy={createTSNamePolicy()}
-        externals={[httpRuntimeLib]}
-      >
-        <PollingHelpersFile />
-      </Output>
-    );
-
-    const result = renderToString(template);
-    expect(result).toContain("export interface PollerLike");
-    expect(result).toContain("isDone");
-    expect(result).toContain("poll");
-    expect(result).toContain("pollUntilDone");
-    expect(result).toContain("getOperationState");
-  });
-
-  /**
    * Tests that the GetLongRunningPollerOptions interface is rendered
-   * with updateIntervalInMs, abortSignal, getInitialResponse, and
-   * resourceLocationConfig members.
+   * with updateIntervalInMs, abortSignal, getInitialResponse,
+   * resourceLocationConfig, restoreFrom, initialRequestUrl, and apiVersion members.
    */
   it("should render GetLongRunningPollerOptions interface", async () => {
     const template = (
       <Output
         program={program}
         namePolicy={createTSNamePolicy()}
-        externals={[httpRuntimeLib]}
+        externals={[httpRuntimeLib, azureCoreLroLib]}
       >
         <PollingHelpersFile />
       </Output>
@@ -111,27 +67,78 @@ describe("PollingHelpersFile", () => {
     expect(result).toContain("abortSignal");
     expect(result).toContain("getInitialResponse");
     expect(result).toContain("resourceLocationConfig");
+    expect(result).toContain("restoreFrom");
+    expect(result).toContain("initialRequestUrl");
+    expect(result).toContain("apiVersion");
   });
 
   /**
-   * Tests that the getLongRunningPoller function is rendered as an async
-   * exported function with the correct parameters and return type.
+   * Tests that the getLongRunningPoller function is rendered as an
+   * exported function that delegates to createHttpPoller from @azure/core-lro.
+   * This ensures actual HTTP polling occurs instead of just deserializing
+   * the initial response.
    */
-  it("should render getLongRunningPoller function", async () => {
+  it("should render getLongRunningPoller function using createHttpPoller", async () => {
     const template = (
       <Output
         program={program}
         namePolicy={createTSNamePolicy()}
-        externals={[httpRuntimeLib]}
+        externals={[httpRuntimeLib, azureCoreLroLib]}
       >
         <PollingHelpersFile />
       </Output>
     );
 
     const result = renderToString(template);
-    expect(result).toContain("export async function getLongRunningPoller");
+    expect(result).toContain("export function getLongRunningPoller");
     expect(result).toContain("expectedStatuses");
     expect(result).toContain("processResponseBody");
+    expect(result).toContain("createHttpPoller");
+    expect(result).toContain("sendInitialRequest");
+    expect(result).toContain("sendPollRequest");
+  });
+
+  /**
+   * Tests that the getLroResponse helper function is rendered.
+   * This function converts PathUncheckedResponse to the OperationResponse
+   * format expected by @azure/core-lro, validating status codes.
+   */
+  it("should render getLroResponse helper function", async () => {
+    const template = (
+      <Output
+        program={program}
+        namePolicy={createTSNamePolicy()}
+        externals={[httpRuntimeLib, azureCoreLroLib]}
+      >
+        <PollingHelpersFile />
+      </Output>
+    );
+
+    const result = renderToString(template);
+    expect(result).toContain("function getLroResponse");
+    expect(result).toContain("flatResponse");
+    expect(result).toContain("rawResponse");
+    expect(result).toContain("statusCode");
+  });
+
+  /**
+   * Tests that the addApiVersionToUrl helper function is rendered.
+   * This ensures polling requests carry the correct api-version parameter.
+   */
+  it("should render addApiVersionToUrl helper function", async () => {
+    const template = (
+      <Output
+        program={program}
+        namePolicy={createTSNamePolicy()}
+        externals={[httpRuntimeLib, azureCoreLroLib]}
+      >
+        <PollingHelpersFile />
+      </Output>
+    );
+
+    const result = renderToString(template);
+    expect(result).toContain("function addApiVersionToUrl");
+    expect(result).toContain("api-version");
   });
 
   /**
@@ -145,7 +152,7 @@ describe("PollingHelpersFile", () => {
       <Output
         program={program}
         namePolicy={createTSNamePolicy()}
-        externals={[httpRuntimeLib]}
+        externals={[httpRuntimeLib, azureCoreLroLib]}
       >
         <SourceFile path="consumer.ts">
           <FunctionDeclaration name="test" export>
@@ -158,34 +165,5 @@ describe("PollingHelpersFile", () => {
 
     const result = renderToString(template);
     expect(result).toContain("import { getLongRunningPoller }");
-  });
-
-  /**
-   * Tests that the PollerLike and OperationState refkeys enable
-   * cross-file imports when used as type annotations.
-   */
-  it("should enable cross-file import via PollerLike and OperationState refkeys", async () => {
-    const template = (
-      <Output
-        program={program}
-        namePolicy={createTSNamePolicy()}
-        externals={[httpRuntimeLib]}
-      >
-        <SourceFile path="consumer.ts">
-          <FunctionDeclaration
-            name="test"
-            export
-            returnType={code`${pollingHelperRefkey("PollerLike")}<${pollingHelperRefkey("OperationState")}<string>, string>`}
-          >
-            {code`return null as any;`}
-          </FunctionDeclaration>
-        </SourceFile>
-        <PollingHelpersFile />
-      </Output>
-    );
-
-    const result = renderToString(template);
-    expect(result).toContain("PollerLike");
-    expect(result).toContain("OperationState");
   });
 });

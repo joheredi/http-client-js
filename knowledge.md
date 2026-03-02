@@ -2438,3 +2438,29 @@ When a union-as-enum type (like ARM `ProvisioningState`) has only `UsageFlags.Ou
 
 ## collectAllPropertyAndOperationTypes must walk all method kinds
 The `walkClient()` function in `model-files.tsx` previously only handled `method.kind === "basic"`. LRO, paging, and lropaging operations were skipped, causing missing array/dict helpers for their response types. All four method kinds must be included.
+
+## LRO Polling with @azure/core-lro v3
+
+### PollerLike extends Promise
+`PollerLike` from `@azure/core-lro` v3 extends `Promise<TResult>`. This means:
+- `await poller` resolves to `TResult` (the final result), NOT the poller itself
+- To use polling methods, DON'T await the creation: `const poller = client.method()` then `await poller.pollUntilDone()`
+- `createHttpPoller` is synchronous — returns `PollerLike` directly, not `Promise<PollerLike>`
+
+### LRO Envelope Extraction
+For POST operations with `operation-location`, the polling response has an envelope:
+```json
+{"id": "...", "status": "Succeeded", "result": { actualData }}
+```
+The actual result is at `body.result`. Use TCGC's `lroMetadata.finalResultPath` (typically `"result"`) to extract the nested data before passing to the deserializer.
+
+### Final GET Behavior
+- PUT/PATCH operations: core-lro does a final GET to the original URL
+- POST operations with `Location` header: core-lro does a final GET to the Location URL
+- POST operations without `Location` header: core-lro uses the polling response directly (envelope must be unwrapped)
+
+### Design Decision
+Used `@azure/core-lro`'s `createHttpPoller` instead of a custom poller implementation because:
+1. Output consistency with legacy emitter
+2. Battle-tested polling logic that handles all LRO patterns
+3. Proper HTTP polling with abort signal support and api-version propagation

@@ -307,6 +307,13 @@ function LroOperation(props: {
     ? `, apiVersion: ${apiVersionExpr}`
     : "";
 
+  // Include finalResultPath so the poller can extract the actual result from the LRO envelope.
+  // For POST operations with operation-location, the polling response wraps the result in a "result" field.
+  const finalResultPath = method.lroMetadata?.finalResultPath;
+  const finalResultPathPart = finalResultPath
+    ? `, finalResultPath: "${finalResultPath}"`
+    : "";
+
   return (
     <FunctionDeclaration
       name={method.name}
@@ -316,7 +323,7 @@ function LroOperation(props: {
       parameters={parameters}
       doc={getOperationDoc(method)}
     >
-      {code`return ${pollingHelperRefkey("getLongRunningPoller")}(context, ${deserializeOperationRefkey(method)}, ${expectedStatuses}, { updateIntervalInMs: ${getOptionsParamName(method)}?.updateIntervalInMs, abortSignal: ${getOptionsParamName(method)}?.abortSignal, getInitialResponse: () => ${sendOperationRefkey(method)}(${callArgs})${resourceConfigPart}${apiVersionPart} }) as ${castExpr};`}
+      {code`return ${pollingHelperRefkey("getLongRunningPoller")}(context, ${deserializeOperationRefkey(method)}, ${expectedStatuses}, { updateIntervalInMs: ${getOptionsParamName(method)}?.updateIntervalInMs, abortSignal: ${getOptionsParamName(method)}?.abortSignal, getInitialResponse: () => ${sendOperationRefkey(method)}(${callArgs})${resourceConfigPart}${apiVersionPart}${finalResultPathPart} }) as ${castExpr};`}
     </FunctionDeclaration>
   );
 }
@@ -425,6 +432,12 @@ function LroPagingOperation(props: {
     ? `, apiVersion: ${apiVersionExpr}`
     : "";
 
+  // Include finalResultPath so the poller can extract the actual result from the LRO envelope.
+  const finalResultPath = method.lroMetadata?.finalResultPath;
+  const finalResultPathPart = finalResultPath
+    ? `, finalResultPath: "${finalResultPath}"`
+    : "";
+
   return (
     <FunctionDeclaration
       name={method.name}
@@ -434,7 +447,7 @@ function LroPagingOperation(props: {
       parameters={parameters}
       doc={getOperationDoc(method)}
     >
-      {code`const initialPagingPoller = ${pollingHelperRefkey("getLongRunningPoller")}(context, async (result: ${useRuntimeLib().PathUncheckedResponse}) => result, ${expectedStatuses}, { updateIntervalInMs: ${getOptionsParamName(method)}?.updateIntervalInMs, abortSignal: ${getOptionsParamName(method)}?.abortSignal, getInitialResponse: () => ${sendOperationRefkey(method)}(${callArgs})${resourceConfigPart}${apiVersionPart} }) as ${pollerCast};`}
+      {code`const initialPagingPoller = ${pollingHelperRefkey("getLongRunningPoller")}(context, async (result: ${useRuntimeLib().PathUncheckedResponse}) => result, ${expectedStatuses}, { updateIntervalInMs: ${getOptionsParamName(method)}?.updateIntervalInMs, abortSignal: ${getOptionsParamName(method)}?.abortSignal, getInitialResponse: () => ${sendOperationRefkey(method)}(${callArgs})${resourceConfigPart}${apiVersionPart}${finalResultPathPart} }) as ${pollerCast};`}
       {"\n\n"}
       {code`return ${pagingHelperRefkey("buildPagedAsyncIterator")}(context, async () => await initialPagingPoller, ${deserializeOperationRefkey(method)}, ${expectedStatuses}${pagingOptions});`}
     </FunctionDeclaration>

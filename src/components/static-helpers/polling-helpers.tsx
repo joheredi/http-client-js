@@ -7,100 +7,35 @@ import {
 } from "@alloy-js/typescript";
 import { pollingHelperRefkey } from "../../utils/refkeys.js";
 import { useRuntimeLib } from "../../context/flavor-context.js";
+import { azureCoreLroLib } from "../../utils/external-packages.js";
 
 /**
- * Renders the `helpers/pollingHelpers.ts` source file containing types
- * and functions for Long Running Operation (LRO) polling.
+ * Renders the `static-helpers/pollingHelpers.ts` source file containing
+ * types and functions for Long Running Operation (LRO) polling.
  *
- * LRO operations return a response immediately but the actual operation
- * continues server-side. The polling helpers provide:
- * - `OperationState`: Tracks the status of a long-running operation
- * - `PollerLike`: The consumer-facing poller interface
+ * Uses `@azure/core-lro`'s `createHttpPoller` to perform actual HTTP
+ * polling against the operation-location or azure-async-operation URLs.
+ * This matches the legacy emitter's pollingHelpers.ts output.
+ *
+ * The file provides:
  * - `GetLongRunningPollerOptions`: Options for the poller factory
- * - `getLongRunningPoller`: Factory function that creates a poller
- *
- * These types and functions are referenced by LRO operation components
- * via `pollingHelperRefkey`. Alloy auto-generates imports when these
- * refkeys are used in operation code.
- *
- * The implementation mirrors the legacy emitter's `pollingHelpers.ts`
- * static helper, adapted for the non-Azure runtime.
+ * - `getLongRunningPoller`: Factory function that creates a poller using core-lro
+ * - `getLroResponse`: Converts REST responses to the core-lro response format
+ * - `addApiVersionToUrl`: Ensures polling URLs carry the api-version param
  *
  * @returns An Alloy JSX tree for the polling helpers source file.
  */
 export function PollingHelpersFile() {
   return (
     <SourceFile path="static-helpers/pollingHelpers.ts">
-      <OperationStateInterface />
-      {"\n\n"}
-      <PollerLikeInterface />
-      {"\n\n"}
       <GetLongRunningPollerOptionsInterface />
       {"\n\n"}
       <GetLongRunningPollerFunction />
+      {"\n\n"}
+      <GetLroResponseFunction />
+      {"\n\n"}
+      <AddApiVersionToUrlFunction />
     </SourceFile>
-  );
-}
-
-/**
- * Renders the `OperationState` interface that tracks the status
- * of a long-running operation.
- *
- * Contains the current status string and optional result and error fields.
- */
-function OperationStateInterface() {
-  return (
-    <InterfaceDeclaration
-      name="OperationState"
-      refkey={pollingHelperRefkey("OperationState")}
-      export
-      typeParameters={[{ name: namekey("T", { ignoreNamePolicy: true }) }]}
-    >
-      <InterfaceMember
-        name="status"
-        type={code`"notStarted" | "running" | "succeeded" | "failed" | "canceled"`}
-      />
-      {"\n"}
-      <InterfaceMember name="result" type="T" optional />
-      {"\n"}
-      <InterfaceMember name="error" type="Error" optional />
-    </InterfaceDeclaration>
-  );
-}
-
-/**
- * Renders the `PollerLike` interface — the consumer-facing type for
- * interacting with a long-running operation.
- *
- * Supports polling, getting the operation state, and awaiting the final result.
- */
-function PollerLikeInterface() {
-  return (
-    <InterfaceDeclaration
-      name="PollerLike"
-      refkey={pollingHelperRefkey("PollerLike")}
-      export
-      typeParameters={[
-        {
-          name: namekey("TState", { ignoreNamePolicy: true }),
-          extends: code`${pollingHelperRefkey("OperationState")}<TResult>`,
-        },
-        { name: namekey("TResult", { ignoreNamePolicy: true }) },
-      ]}
-    >
-      <InterfaceMember name="getOperationState" type={code`() => TState`} />
-      {"\n"}
-      <InterfaceMember name="isDone" type={code`() => boolean`} />
-      {"\n"}
-      <InterfaceMember name="poll" type={code`() => Promise<TState>`} />
-      {"\n"}
-      <InterfaceMember
-        name="pollUntilDone"
-        type={code`() => Promise<TResult>`}
-      />
-      {"\n"}
-      <InterfaceMember name="serialize" type={code`() => string`} />
-    </InterfaceDeclaration>
   );
 }
 
@@ -108,8 +43,8 @@ function PollerLikeInterface() {
  * Renders the `GetLongRunningPollerOptions` interface that configures
  * the `getLongRunningPoller` function.
  *
- * Includes options for polling interval, abort signal, initial response
- * fetcher, and resource location config.
+ * Includes options for polling interval, abort signal, resource location
+ * config (from core-lro), initial response fetcher, and restore state.
  */
 function GetLongRunningPollerOptionsInterface() {
   const runtimeLib = useRuntimeLib();
@@ -131,17 +66,24 @@ function GetLongRunningPollerOptionsInterface() {
       />
       {"\n"}
       <InterfaceMember
-        name="getInitialResponse"
-        type={code`() => Promise<TResponse>`}
+        name="resourceLocationConfig"
+        type={code`${azureCoreLroLib.ResourceLocationConfig}`}
+        optional
       />
-      {"\n"}
-      <InterfaceMember name="resourceLocationConfig" type="string" optional />
-      {"\n"}
-      <InterfaceMember name="restoreFrom" type="string" optional />
       {"\n"}
       <InterfaceMember name="initialRequestUrl" type="string" optional />
       {"\n"}
+      <InterfaceMember name="restoreFrom" type="string" optional />
+      {"\n"}
+      <InterfaceMember
+        name="getInitialResponse"
+        type={code`() => PromiseLike<TResponse>`}
+        optional
+      />
+      {"\n"}
       <InterfaceMember name="apiVersion" type="string" optional />
+      {"\n"}
+      <InterfaceMember name="finalResultPath" type="string" optional />
     </InterfaceDeclaration>
   );
 }
@@ -151,11 +93,11 @@ function GetLongRunningPollerOptionsInterface() {
  * for tracking and polling a long-running operation.
  *
  * This is the core factory function called by LRO operation wrappers.
- * It handles:
- * - Sending the initial request
- * - Polling the operation status at configured intervals
- * - Deserializing the final result via the provided callback
- * - Error handling for unexpected status codes
+ * It delegates to `@azure/core-lro`'s `createHttpPoller` which handles:
+ * - Sending the initial request via `sendInitialRequest`
+ * - Polling the operation status via `sendPollRequest` (actual HTTP GETs)
+ * - Deserializing the final result via `processResult`
+ * - Managing the LRO lifecycle (operation-location, azure-async-operation, etc.)
  */
 function GetLongRunningPollerFunction() {
   const runtimeLib = useRuntimeLib();
@@ -164,10 +106,16 @@ function GetLongRunningPollerFunction() {
       name="getLongRunningPoller"
       refkey={pollingHelperRefkey("getLongRunningPoller")}
       export
-      async
-      returnType={code`${pollingHelperRefkey("PollerLike")}<${pollingHelperRefkey("OperationState")}<TResponse>, TResponse>`}
+      returnType={code`${azureCoreLroLib.PollerLike}<${azureCoreLroLib.OperationState}<TResult>, TResult>`}
       typeParameters={[
-        { name: namekey("TResponse", { ignoreNamePolicy: true }) },
+        {
+          name: namekey("TResponse", { ignoreNamePolicy: true }),
+          extends: runtimeLib.PathUncheckedResponse,
+        },
+        {
+          name: namekey("TResult", { ignoreNamePolicy: true }),
+          default: "void",
+        },
       ]}
       parameters={[
         {
@@ -176,56 +124,152 @@ function GetLongRunningPollerFunction() {
         },
         {
           name: "processResponseBody",
-          type: code`(result: ${runtimeLib.PathUncheckedResponse}) => Promise<TResponse>`,
+          type: code`(result: TResponse) => Promise<TResult>`,
         },
         { name: "expectedStatuses", type: "string[]" },
         {
           name: "options",
-          type: code`${pollingHelperRefkey("GetLongRunningPollerOptions")}<${runtimeLib.PathUncheckedResponse}>`,
+          type: code`${pollingHelperRefkey("GetLongRunningPollerOptions")}<TResponse>`,
         },
       ]}
     >
-      {code`const initialResponse = await options.getInitialResponse();
+      {code`const { restoreFrom, getInitialResponse, apiVersion, finalResultPath } = options;
+if (!restoreFrom && !getInitialResponse) {
+  throw new Error(
+    "Either restoreFrom or getInitialResponse must be specified"
+  );
+}
+let initialResponse: TResponse | undefined = undefined;
+const pollAbortController = new AbortController();
+const poller: ${azureCoreLroLib.RunningOperation}<TResponse> = {
+  sendInitialRequest: async () => {
+    if (!getInitialResponse) {
+      throw new Error(
+        "getInitialResponse is required when initializing a new poller"
+      );
+    }
+    initialResponse = await getInitialResponse();
+    return getLroResponse(initialResponse, expectedStatuses);
+  },
+  sendPollRequest: async (
+    path: string,
+    pollOptions?: {
+      abortSignal?: ${runtimeLib.AbortSignalLike};
+    }
+  ) => {
+    // The poll request would both listen to the user provided abort signal and the poller's own abort signal
+    function abortListener(): void {
+      pollAbortController.abort();
+    }
+    const abortSignal = pollAbortController.signal;
+    if (options.abortSignal?.aborted) {
+      pollAbortController.abort();
+    } else if (pollOptions?.abortSignal?.aborted) {
+      pollAbortController.abort();
+    } else if (!abortSignal.aborted) {
+      options.abortSignal?.addEventListener("abort", abortListener, {
+        once: true
+      });
+      pollOptions?.abortSignal?.addEventListener("abort", abortListener, {
+        once: true
+      });
+    }
+    let response;
+    try {
+      const pollingPath = apiVersion
+        ? addApiVersionToUrl(path, apiVersion)
+        : path;
+      response = await client.pathUnchecked(pollingPath).get({ abortSignal });
+    } finally {
+      options.abortSignal?.removeEventListener("abort", abortListener);
+      pollOptions?.abortSignal?.removeEventListener("abort", abortListener);
+    }
 
-const statusStr = String(initialResponse.status);
-if (!expectedStatuses.includes(statusStr)) {
-  throw ${runtimeLib.createRestError}(initialResponse);
+    return getLroResponse(response as TResponse, expectedStatuses);
+  }
+};
+return ${azureCoreLroLib.createHttpPoller}(poller, {
+  intervalInMs: options?.updateIntervalInMs,
+  resourceLocationConfig: options?.resourceLocationConfig,
+  restoreFrom: options?.restoreFrom,
+  processResult: (result: unknown) => {
+    const response = result as TResponse;
+    if (finalResultPath && (response.body as Record<string, unknown>)?.[finalResultPath] !== undefined) {
+      return processResponseBody({ ...response, body: (response.body as Record<string, unknown>)[finalResultPath] } as TResponse);
+    }
+    return processResponseBody(response);
+  }
+});`}
+    </FunctionDeclaration>
+  );
 }
 
-const state: ${pollingHelperRefkey("OperationState")}<TResponse> = {
-  status: "running",
-};
+/**
+ * Renders the `getLroResponse` helper that converts a REST client
+ * response to the `OperationResponse` format expected by `@azure/core-lro`.
+ *
+ * Validates the response status against expected statuses and throws
+ * a REST error if the status is unexpected.
+ */
+function GetLroResponseFunction() {
+  const runtimeLib = useRuntimeLib();
+  return (
+    <FunctionDeclaration
+      name="getLroResponse"
+      returnType={code`${azureCoreLroLib.OperationResponse}<TResponse>`}
+      typeParameters={[
+        {
+          name: namekey("TResponse", { ignoreNamePolicy: true }),
+          extends: runtimeLib.PathUncheckedResponse,
+        },
+      ]}
+      parameters={[
+        { name: "response", type: "TResponse" },
+        { name: "expectedStatuses", type: "string[]" },
+      ]}
+    >
+      {code`if (!expectedStatuses.includes(response.status)) {
+  throw ${runtimeLib.createRestError}(response);
+}
 
-const poller: ${pollingHelperRefkey("PollerLike")}<${pollingHelperRefkey("OperationState")}<TResponse>, TResponse> = {
-  getOperationState() {
-    return state;
-  },
-  isDone() {
-    return state.status === "succeeded" || state.status === "failed" || state.status === "canceled";
-  },
-  async poll() {
-    if (!poller.isDone()) {
-      const result = await processResponseBody(initialResponse);
-      state.result = result;
-      state.status = "succeeded";
-    }
-    return state;
-  },
-  async pollUntilDone() {
-    while (!poller.isDone()) {
-      await poller.poll();
-    }
-    if (state.status === "failed") {
-      throw state.error ?? new Error("Operation failed");
-    }
-    return state.result!;
-  },
-  serialize() {
-    return JSON.stringify(state);
-  },
-};
+return {
+  flatResponse: response,
+  rawResponse: {
+    ...response,
+    statusCode: Number.parseInt(response.status),
+    body: response.body
+  }
+};`}
+    </FunctionDeclaration>
+  );
+}
 
-return poller;`}
+/**
+ * Renders the `addApiVersionToUrl` helper that appends an `api-version`
+ * query parameter to a URL if one is not already present.
+ *
+ * This ensures polling requests carry the correct api-version,
+ * matching the initial request's version.
+ */
+function AddApiVersionToUrlFunction() {
+  return (
+    <FunctionDeclaration
+      name="addApiVersionToUrl"
+      returnType="string"
+      parameters={[
+        { name: "url", type: "string" },
+        { name: "apiVersion", type: "string" },
+      ]}
+    >
+      {code`// The base URL is only used for parsing and won't appear in the returned URL
+const urlObj = new URL(url, "https://microsoft.com");
+if (!urlObj.searchParams.get("api-version")) {
+  // Append one if there is no apiVersion
+  return \`\${url}\${
+    Array.from(urlObj.searchParams.keys()).length > 0 ? "&" : "?"
+  }api-version=\${apiVersion}\`;
+}
+return url;`}
     </FunctionDeclaration>
   );
 }

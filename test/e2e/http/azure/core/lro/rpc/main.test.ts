@@ -7,10 +7,9 @@ describe("Azure.Core.Lro.Rpc", () => {
     allowInsecureConnection: true,
   });
 
-  // TODO(e2e): Fix - LRO pollUntilDone() result properties are undefined
-  it.skip("should perform long running RPC", async () => {
-    const poller = await client.longRunningRpc({ prompt: "text" });
+  it("should perform long running RPC", async () => {
+    const poller = client.longRunningRpc({ prompt: "text" });
     const result = await poller.pollUntilDone();
-    expect(result.data).toBe("text");
+    expect(result.data).toBe("text data");
   });
 });
