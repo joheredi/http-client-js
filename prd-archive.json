@@ -755,9 +755,7 @@
       "status": "done",
       "description": "4 tests fail because named union type aliases (LR, UD, LeftAndRight, UpAndDown) are not emitted in models.ts. The test scenario enumUnion/enumUnion.md expects type aliases like `export type LR = \"left\" | \"right\"`. The model-files.tsx correctly filters for `SdkUnionType` from `sdkPackage.unions`, and `UnionDeclaration` renders named unions. The issue is likely that these unions are either: (a) not being included in the `unions` array by TCGC, (b) being classified differently (e.g., as enum types), or (c) being filtered out by the `u.kind === \"union\"` check when they have enum members.",
       "failure_count": 4,
-      "affected_scenarios": [
-        "enumUnion/enumUnion.md"
-      ],
+      "affected_scenarios": ["enumUnion/enumUnion.md"],
       "error_pattern": "Could not find alias \"*\" in file \"src/models/models.ts\"",
       "component": "src/components/model-files.tsx, src/components/union.tsx",
       "source": "implementation-phase",
@@ -769,9 +767,7 @@
       "status": "done",
       "description": "3 tests fail because root index.ts is not generated for model-only packages (no operations, just models). In `index-file.tsx`, `RootIndexFile()` returns undefined when `clients.length === 0`. For model-only packages with `@usage` annotation, models.ts IS generated but root index.ts is not. The fix: modify `RootIndexFile()` to generate index.ts even without clients if models/enums/unions exist. Also handle the case where no models should be generated (without @usage) \u2014 the test expects an empty output with only helper files.",
       "failure_count": 3,
-      "affected_scenarios": [
-        "modelsGenerator/modelsGenerator.md"
-      ],
+      "affected_scenarios": ["modelsGenerator/modelsGenerator.md"],
       "error_pattern": "No output file found for legacy category \"root index\" / \"models\"",
       "component": "src/components/index-file.tsx (RootIndexFile, IndexFiles)",
       "notes": "Fixed by modifying RootIndexFile() and IndexFiles() to generate root index and models index for model-only packages (no clients). Also updated scenario harness to gracefully handle missing files with sentinel comment.",
@@ -784,9 +780,7 @@
       "status": "done",
       "description": "2 tests fail because the multipart request type `_UploadFileRequest` and its serializer `_uploadFileRequestSerializer` are generated without the underscore prefix. The test expects internal/anonymous types to have an underscore prefix (e.g., `_UploadFileRequest` instead of `UploadFileRequest`). The multipart model interface is generated in model-files.tsx and serialized via multipart-serializer.tsx. Need to detect when a model is an internal/anonymous request type and prefix its name with underscore.",
       "failure_count": 2,
-      "affected_scenarios": [
-        "apiOperations/apiOperations.md"
-      ],
+      "affected_scenarios": ["apiOperations/apiOperations.md"],
       "error_pattern": "Could not find interface/function \"_UploadFileRequest\" / \"_uploadFileRequestSerializer\"",
       "component": "src/components/model-files.tsx, src/components/serialization/multipart-serializer.tsx",
       "source": "implementation-phase",
@@ -798,9 +792,7 @@
       "status": "done",
       "description": "1 test fails because the empty project generates only helper files (no client file). The test `emptyProject/emptyProject.md` expects a `classicClient` category but the emitter only generates static helper files when `sdkPackage.clients` is empty. This may be a test expectation issue (the expected output is likely empty) rather than a real generation bug \u2014 the test harness throws when it can't resolve the 'classicClient' category. Fix: either update the harness to handle empty expected output for classicClient, or update the test expectation, or conditionally skip the classicClient assertion when no clients exist.",
       "failure_count": 1,
-      "affected_scenarios": [
-        "emptyProject/emptyProject.md"
-      ],
+      "affected_scenarios": ["emptyProject/emptyProject.md"],
       "error_pattern": "No output file found for legacy category \"classicClient\"",
       "component": "test/scenarios/scenario-harness.ts or test/scenarios/cases/emptyProject/emptyProject.md",
       "notes": "Fixed by updating scenario harness to return sentinel for missing files, and updating expected test output.",
@@ -1477,9 +1469,7 @@
       "severity": "high",
       "description": "Long-running operation and paging patterns have major structural changes including collection naming, deserialization logic, enum types, enhanced error handling, expanded status codes, and additional paging configuration.",
       "affected_file_count": 1,
-      "affected_files": [
-        "operations/lroPaging.md"
-      ],
+      "affected_files": ["operations/lroPaging.md"],
       "examples": [
         "Collection naming conventions changed",
         "OperationState type: string enum \u2192 literal union",
@@ -1501,9 +1491,7 @@
       "severity": "medium",
       "description": "Binary download responses use different conversion utilities. New emitter uses stringToUint8Array vs legacy getBinaryResponse pattern.",
       "affected_file_count": 1,
-      "affected_files": [
-        "apiOperations/apiOperations.md"
-      ],
+      "affected_files": ["apiOperations/apiOperations.md"],
       "examples": [
         "stringToUint8Array vs getBinaryResponse for download operations"
       ],
@@ -2394,9 +2382,7 @@
       "description": "The new emitter does not re-export TestServiceClientOptionalParams from the package index. Legacy does re-export it. Legacy behavior is the expected output.",
       "legacy_behavior": "export { TestServiceClientOptionalParams } from './api/testServiceContext.js';",
       "new_behavior": "No re-export of client optional params type.",
-      "affected_scenarios": [
-        "classicClient/classicClient"
-      ],
+      "affected_scenarios": ["classicClient/classicClient"],
       "reference_legacy_tests": "submodules/autorest.typescript/packages/typespec-ts/test/modularUnit/scenarios/classicClient/classicClient.md",
       "reference_new_tests": "test/scenarios/cases/classicClient/classicClient.md",
       "kind": "regression",
@@ -2596,9 +2582,7 @@
       "description": "The new emitter uses stringToUint8Array(result.body, 'base64') instead of direct body return for binary responses. Review if legacy direct-return or new conversion is correct.",
       "legacy_behavior": "Direct return of response body or getBinaryResponse wrapper.",
       "new_behavior": "Explicit stringToUint8Array(result.body, 'base64') conversion.",
-      "affected_scenarios": [
-        "apiOperations/apiOperations"
-      ],
+      "affected_scenarios": ["apiOperations/apiOperations"],
       "reference_legacy_tests": "submodules/autorest.typescript/packages/typespec-ts/test/modularUnit/scenarios/apiOperations/apiOperations.md",
       "reference_new_tests": "test/scenarios/cases/apiOperations/apiOperations.md",
       "decision": "Match legacy. Use getBinaryResponse helper or return body directly for binary responses. Do not use stringToUint8Array conversion on response bodies.",
@@ -2724,9 +2708,7 @@
       "status": "done",
       "category": "scenario-audit/Serialization",
       "priority": "P0-CRITICAL",
-      "dependencies": [
-        "SA-C25a"
-      ]
+      "dependencies": ["SA-C25a"]
     },
     {
       "id": "SA-C25c",
@@ -2735,9 +2717,7 @@
       "status": "done",
       "category": "scenario-audit/Serialization",
       "priority": "P1",
-      "dependencies": [
-        "SA-C25a"
-      ]
+      "dependencies": ["SA-C25a"]
     },
     {
       "id": "SA-C26",
@@ -2748,9 +2728,7 @@
       "description": "The new emitter does not emit default values for optional query parameters and headers that have defaults in the TypeSpec definition. Legacy applies defaults with ?? operator. Legacy default-value behavior is the expected output.",
       "legacy_behavior": "queryParam: options?.queryParam ?? 'defaultValue', header: options?.header ?? 'application/json'",
       "new_behavior": "queryParam: options?.queryParam (no default), header: options?.header (no default).",
-      "affected_scenarios": [
-        "operations/clientDefaultValue"
-      ],
+      "affected_scenarios": ["operations/clientDefaultValue"],
       "reference_legacy_tests": "submodules/autorest.typescript/packages/typespec-ts/test/modularUnit/scenarios/operations/clientDefaultValue.md",
       "reference_new_tests": "test/scenarios/cases/operations/clientDefaultValue.md",
       "kind": "regression",
@@ -2765,9 +2743,7 @@
       "description": "The new emitter adds a token parameter to operation function signatures that was not present in the legacy output. Legacy does not expose cookie/token params. Legacy behavior (no token param) is the expected output.",
       "legacy_behavior": "function read(context: Client, options?: ReadOptions)",
       "new_behavior": "function read(context: Client, token: string, options?: ReadOptions)",
-      "affected_scenarios": [
-        "operations/cookieParam/ignoreCookieParam"
-      ],
+      "affected_scenarios": ["operations/cookieParam/ignoreCookieParam"],
       "reference_legacy_tests": "submodules/autorest.typescript/packages/typespec-ts/test/modularUnit/scenarios/operations/cookieParam/ignoreCookieParam.md",
       "reference_new_tests": "test/scenarios/cases/operations/cookieParam/ignoreCookieParam.md",
       "kind": "regression",
@@ -3055,9 +3031,7 @@
       "description": "The generated file src/classic/widgets/index.ts has Alloy-resolved imports (via refkeys) that are one directory level too shallow. All imports use '../' (resolving to src/classic/) instead of '../../' (resolving to src/):\n\n```typescript\nimport { $delete, ... } from \"../api/widgets/operations.js\";        // resolves to src/classic/api/... WRONG\nimport type { DemoServiceContext } from \"../demoServiceClientContext.js\"; // resolves to src/classic/demoService... WRONG\nimport type { Widget } from \"../models/models.js\";                   // resolves to src/classic/models/... WRONG\n```\n\nThese are NOT manually constructed \u2014 they're auto-generated by Alloy's refkey resolution system. The bug is likely in the component tree structure. In the emitter tree (src/emitter.tsx), two separate <SourceDirectory path=\"classic\"> nodes exist:\n1. ClassicalOperationGroupFiles (src/components/classical-operation-groups.tsx line 89) wraps its SourceFiles in <SourceDirectory path=\"classic\">\n2. IndexFiles (src/components/index-file.tsx line 302) wraps <ClassicIndexFile /> in a separate <SourceDirectory path=\"classic\">\n\nHaving two separate SourceDirectory nodes with the same path may confuse Alloy's path resolution. The files inside one SourceDirectory may not be aware of the correct nesting depth.\n\nPossible fixes:\n1. Merge both classic directories into a single <SourceDirectory path=\"classic\"> that contains both the operation group files and the index file.\n2. Move the <SourceDirectory path=\"classic\"> wrapper out of ClassicalOperationGroupFiles and into the parent emitter.tsx, then have both ClassicalOperationGroupFiles (without its own wrapper) and ClassicIndexFile as siblings inside a single classic SourceDirectory.\n3. Investigate if this is an Alloy framework bug with duplicate SourceDirectory paths.\n\nNote: This error is currently MASKED by SMOKE-1's syntax errors (which prevent tsc from analyzing imports in the same file). Fix SMOKE-1 first, then verify this issue still exists.\n\nVerification: Run `pnpm build && pnpm test:smoke`. In temp/smoke/http-client-js/src/classic/widgets/index.ts, check that imports use '../../' prefix to correctly resolve to files under src/. Also run `pnpm test`.",
       "source": "smoke-test",
       "kind": "bug",
-      "dependencies": [
-        "SMOKE-1"
-      ]
+      "dependencies": ["SMOKE-1"]
     },
     {
       "id": "SMOKE-7",
@@ -3068,9 +3042,7 @@
       "description": "In src/components/index-file.tsx, ClassicIndexFile() (lines 237-239) returns a bare <BarrelFile /> with no configuration:\n\n```typescript\nexport function ClassicIndexFile() {\n  return <BarrelFile />;\n}\n```\n\nThis generates an empty src/classic/index.ts file. The BarrelFile component auto-discovers and re-exports symbols from sibling SourceFiles within its SourceDirectory. However, since the ClassicIndexFile is rendered inside its own <SourceDirectory path=\"classic\"> (index-file.tsx line 302) which is SEPARATE from the <SourceDirectory path=\"classic\"> that wraps the actual operation group files (classical-operation-groups.tsx line 89), the BarrelFile has no sibling symbols to discover.\n\nThis is closely related to SMOKE-6 (duplicate SourceDirectory nodes). The fix for SMOKE-6 (merging into a single SourceDirectory) should also fix this issue \u2014 once the ClassicIndexFile and the operation group files share the same SourceDirectory, the BarrelFile should auto-discover the exported symbols (WidgetsOperations, _getWidgetsOperations, etc.).\n\nAlternatively, if the BarrelFile approach doesn't work after merging, manually build the classic barrel exports similar to how ApiIndexFile and RootIndexFile work \u2014 using buildExportStatement with collected operation group interface names.\n\nExpected output for src/classic/index.ts:\n```typescript\nexport { WidgetsOperations, _getWidgetsOperations } from \"./widgets/index.js\";\n```\n\nVerification: Run `pnpm build && pnpm test:smoke`. Confirm src/classic/index.ts in temp/smoke/http-client-js/ is non-empty and re-exports operation group interfaces. Also run `pnpm test`.",
       "source": "smoke-test",
       "kind": "bug",
-      "dependencies": [
-        "SMOKE-6"
-      ]
+      "dependencies": ["SMOKE-6"]
     },
     {
       "id": "BUG-3",
@@ -3164,9 +3136,7 @@
       "priority": "P0",
       "status": "done",
       "kind": "feature",
-      "dependencies": [
-        "SPECTOR-1"
-      ],
+      "dependencies": ["SPECTOR-1"],
       "design_review": null,
       "source": "design",
       "description": "Create the Vitest configuration and globalSetup/teardown for running Spector integration tests.\n\n## What it does\n1. `vitest.config.e2e.ts` \u2014 Vitest config that includes only `test/e2e/**/*.test.ts` files\n2. `test/e2e/setup/global-setup.ts` \u2014 starts the Spector mock server before tests\n3. `test/e2e/setup/global-teardown.ts` \u2014 stops the server and collects coverage after tests\n\n## vitest.config.e2e.ts\n```typescript\nimport { defineConfig } from 'vitest/config';\n\nexport default defineConfig({\n  test: {\n    environment: 'node',\n    include: ['test/e2e/**/*.test.ts'],\n    globalSetup: ['test/e2e/setup/global-setup.ts'],\n    testTimeout: 30_000,\n    isolate: false,  // faster: tests share process\n  },\n});\n```\n\n## global-setup.ts\nThe setup must:\n1. Start the Spector mock server using `tsp-spector server start`\n2. Pass the specs path: `node_modules/@typespec/http-specs/specs`\n3. Use port 3002 (matches legacy convention, avoids conflicts with dev servers)\n4. Enable coverage tracking: `--coverageFile temp/spector-coverage.json`\n5. Poll for server readiness by making HTTP GET requests to a known endpoint\n6. The readiness endpoint: `http://localhost:3002/routes/in-interface/fixed` should return 204\n7. Retry up to 30 times with 1s delay between retries\n8. Export the `setup()` and `teardown()` functions as Vitest globalSetup expects\n\n### Server start command\n```bash\nnpx tsp-spector server start node_modules/@typespec/http-specs/specs --port 3002 --coverageFile temp/spector-coverage.json\n```\n\n### Server stop command (in teardown)\n```bash\nnpx tsp-spector server stop --port 3002\n```\n\n## Reference implementations\n- **Primary reference**: `submodules/typespec/packages/http-client-js/eng/scripts/run-e2e-tests.js` \u2014 see `waitForServer()` function (polls with retries + delay), server spawn, and cleanup logic.\n- **Spector CLI**: `submodules/typespec/packages/spector/src/cli/cli.ts` \u2014 the `server start` command starts in background, `server stop` stops it. Default port is 3000 but we use 3002.\n\n## Files to create\n- `vitest.config.e2e.ts`\n- `test/e2e/setup/global-setup.ts`\n\n## Files to modify\n- `package.json` \u2014 add scripts:\n  - `\"test:e2e\": \"pnpm emit:e2e && vitest run --config vitest.config.e2e.ts\"`\n  - `\"test:e2e:only\": \"vitest run --config vitest.config.e2e.ts\"` (skip generation)\n\n## Validation\n- Run `pnpm test:e2e:only` with no test files yet \u2014 it should start the server, find no tests, and stop cleanly\n- Verify the server starts on port 3002 and responds to health checks\n- Verify the server stops cleanly in teardown\n- Verify `temp/spector-coverage.json` is created"
@@ -3178,9 +3148,7 @@
       "priority": "P0",
       "status": "done",
       "kind": "feature",
-      "dependencies": [
-        "SPECTOR-2"
-      ],
+      "dependencies": ["SPECTOR-2"],
       "design_review": null,
       "source": "design",
       "description": "Port the `authentication/api-key` Spector test as a proof-of-concept to validate the entire e2e pipeline.\n\n## What this test validates\nThe API key authentication spec tests that the generated client:\n1. Can make authenticated requests with a valid API key (header `x-ms-api-key`)\n2. Correctly receives a 403 error when using an invalid API key\n\n## Test file to create\n`test/e2e/http/authentication/api-key/main.test.ts`\n\n## Legacy test to port from\n`submodules/autorest.typescript/packages/typespec-ts/test/modularIntegration/authApiKey.spec.ts`\n\nThe legacy test pattern:\n```typescript\nimport { ApiKeyClient } from './generated/authentication/api-key/src/index.js';\nimport { assert } from 'chai';\n\ndescribe('ApiKeyClient', () => {\n  let client: ApiKeyClient;\n  beforeEach(() => {\n    client = new ApiKeyClient({ key: 'valid-key' }, {\n      endpoint: 'http://localhost:3002',\n      allowInsecureConnection: true,\n    });\n  });\n  it('should authenticate with valid key', async () => {\n    const result = await client.valid();\n    assert.isUndefined(result);\n  });\n  it('should reject invalid key', async () => {\n    client = new ApiKeyClient({ key: 'invalid-key' }, { ... });\n    try { await client.invalid(); assert.fail('expected error'); }\n    catch (err) { assert.strictEqual(err.statusCode, 403); }\n  });\n});\n```\n\n## Porting guidelines\n- Use Vitest (`describe`, `it`, `expect`, `beforeEach`) instead of Mocha + Chai\n- Import from relative path to generated code: `../../../generated/authentication/api-key/src/index.js`\n- Use same port 3002 and `allowInsecureConnection: true`\n- The client constructor and method signatures come from the generated code. Build first (`pnpm emit:e2e`) and inspect `test/e2e/generated/authentication/api-key/src/index.ts` to see actual exports.\n\n## Spector mock server expectation\nSee `submodules/typespec/packages/http-specs/specs/authentication/api-key/mockapi.ts`:\n- `GET /authentication/api-key/valid` expects header `x-ms-api-key: valid-key`, returns 204\n- `GET /authentication/api-key/invalid` returns 403\n\n## Reference test from reference emitter\n`submodules/typespec/packages/http-client-js/test/e2e/http/authentication/api-key/main.test.ts`\n\n## Validation\n1. Run `pnpm build && pnpm emit:e2e --filter authentication/api-key`\n2. Inspect generated code at `test/e2e/generated/authentication/api-key/src/`\n3. Run `pnpm test:e2e:only` \u2014 the test should pass against the mock server\n4. This validates the full pipeline: generation \u2192 build \u2192 server \u2192 test"
@@ -3192,9 +3160,7 @@
       "priority": "P1",
       "status": "done",
       "kind": "feature",
-      "dependencies": [
-        "SPECTOR-3"
-      ],
+      "dependencies": ["SPECTOR-3"],
       "design_review": null,
       "source": "design",
       "description": "Port the authentication and server-related Spector integration tests.\n\n## Tests to port (7 test files)\n\n### Authentication tests\n| Legacy test file | Spector spec | New test path |\n|---|---|---|\n| `authApiKey.spec.ts` | `authentication/api-key` | Already done in SPECTOR-3 |\n| `authHttpCustom.spec.ts` | `authentication/http/custom` | `test/e2e/http/authentication/http/custom/main.test.ts` |\n| `authOauth2.spec.ts` | `authentication/oauth2` | `test/e2e/http/authentication/oauth2/main.test.ts` |\n| `authUnion.spec.ts` | `authentication/union` | `test/e2e/http/authentication/union/main.test.ts` |\n\n### Server tests\n| Legacy test file | Spector spec | New test path |\n|---|---|---|\n| `server.spec.ts` | `server/path/single`, `server/path/multiple`, `server/versions/versioned`, `server/versions/not-versioned` | `test/e2e/http/server/path/single/main.test.ts`, etc. |\n| `serverEndpointNotDefined.spec.ts` | `server/endpoint/not-defined` | `test/e2e/http/server/endpoint/not-defined/main.test.ts` |\n\n## Porting pattern\nFor each test:\n1. Read the legacy test in `submodules/autorest.typescript/packages/typespec-ts/test/modularIntegration/`\n2. Read the Spector spec mockapi.ts in `submodules/typespec/packages/http-specs/specs/` to understand expected behavior\n3. Optionally reference the test from `submodules/typespec/packages/http-client-js/test/e2e/http/` as a secondary reference\n4. Write the new test using Vitest (`describe`, `it`, `expect`, `beforeEach`)\n5. Import the generated client from `../../../generated/{spec-path}/src/index.js` (adjust relative depth as needed)\n6. Use `endpoint: 'http://localhost:3002'` and `allowInsecureConnection: true`\n\n## Key differences from legacy tests\n- Vitest instead of Mocha + Chai\n- `expect(result).toBeUndefined()` instead of `assert.isUndefined(result)`\n- `expect(result).toBe(value)` instead of `assert.strictEqual(result, value)`\n- `expect(result).toEqual(obj)` instead of `assert.deepEqual(result, obj)`\n- `expect(() => ...).rejects.toThrow()` for error assertions\n\n## Validation\nRun `pnpm build && pnpm test:e2e` and verify all ported tests pass."
@@ -3206,9 +3172,7 @@
       "priority": "P1",
       "status": "done",
       "kind": "feature",
-      "dependencies": [
-        "SPECTOR-3"
-      ],
+      "dependencies": ["SPECTOR-3"],
       "design_review": null,
       "source": "design",
       "description": "Port all encoding and serialization related Spector integration tests (6 test files).\n\n## Tests to port\n\n| Legacy test file | Spector spec | New test path |\n|---|---|---|\n| `encodeArray.spec.ts` | `encode/array` | `test/e2e/http/encode/array/main.test.ts` |\n| `encodeBytes.spec.ts` | `encode/bytes` | `test/e2e/http/encode/bytes/main.test.ts` |\n| `encodeDatetime.spec.ts` | `encode/datetime` | `test/e2e/http/encode/datetime/main.test.ts` |\n| `encodeDuration.spec.ts` | `encode/duration` | `test/e2e/http/encode/duration/main.test.ts` |\n| `encodeNumeric.spec.ts` | `encode/numeric` | `test/e2e/http/encode/numeric/main.test.ts` |\n| `serializationEncodeNameJson.spec.ts` | `serialization/encoded-name/json` | `test/e2e/http/serialization/encoded-name/json/main.test.ts` |\n\n## Porting guidelines\nSame pattern as SPECTOR-4. These tests validate that the emitter correctly handles:\n- Byte encoding (base64, base64url, hex)\n- Datetime encoding (rfc3339, rfc7231, unixTimestamp)\n- Duration encoding (ISO 8601, seconds, float seconds)\n- Numeric encoding (safeint, uint8, string encoding for large ints)\n- Array encoding (CSV, SSV, TSV, pipes in headers/query)\n- JSON property name encoding (@encodedName)\n\n## Reference files\n- Legacy tests: `submodules/autorest.typescript/packages/typespec-ts/test/modularIntegration/encode*.spec.ts`\n- Spector specs: `submodules/typespec/packages/http-specs/specs/encode/*/mockapi.ts`\n- Reference tests: `submodules/typespec/packages/http-client-js/test/e2e/http/encode/*/main.test.ts`\n\n## Validation\nRun `pnpm build && pnpm test:e2e` \u2014 all encode/serialization tests should pass."
@@ -3310,9 +3274,7 @@
       "priority": "P1",
       "status": "done",
       "kind": "feature",
-      "dependencies": [
-        "SPECTOR-3"
-      ],
+      "dependencies": ["SPECTOR-3"],
       "design_review": null,
       "source": "design",
       "description": "Port 6 simple type-system Spector e2e tests. These test basic container and value types.\n\n## Tests to port\n\n| Legacy test file | Spector spec | New test path | Test cases |\n|---|---|---|---|\n| `arrayItemTypes.spec.ts` | `type/array` | `test/e2e/http/type/array/main.test.ts` | ~14 (dynamic) |\n| `dictionaryTypes.spec.ts` | `type/dictionary` | `test/e2e/http/type/dictionary/main.test.ts` | 19 |\n| `extensibleEnums.spec.ts` | `type/enum/extensible` | `test/e2e/http/type/enum/extensible/main.test.ts` | 4 |\n| `fixedEnums.spec.ts` | `type/enum/fixed` | `test/e2e/http/type/enum/fixed/main.test.ts` | 3 |\n| `scalar.spec.ts` | `type/scalar` | `test/e2e/http/type/scalar/main.test.ts` | 14 |\n| `unions.spec.ts` | `type/union` | `test/e2e/http/type/union/main.test.ts` | 20 |\n\n## Porting guidelines\nSame pattern as existing e2e tests (e.g., test/e2e/http/authentication/api-key/main.test.ts).\n- Use Vitest (describe, it, expect)\n- Import generated client from relative path to test/e2e/generated/{spec-path}/src/index.js\n- Use endpoint: 'http://localhost:3002', allowInsecureConnection: true\n- Reference tests at submodules/typespec/packages/http-client-js/test/e2e/http/type/\n- Legacy tests at submodules/autorest.typescript/packages/typespec-ts/test/modularIntegration/\n\n## Validation\nRun `pnpm build && pnpm test:e2e`"
@@ -3324,9 +3286,7 @@
       "priority": "P1",
       "status": "done",
       "kind": "feature",
-      "dependencies": [
-        "SPECTOR-3"
-      ],
+      "dependencies": ["SPECTOR-3"],
       "design_review": null,
       "source": "design",
       "description": "Port 7 model type Spector e2e tests. These test model structure, usage tracking, and discriminated/non-discriminated inheritance.\n\n## Tests to port\n\n| Legacy test file | Spector spec | New test path | Test cases |\n|---|---|---|---|\n| `modelsEmpty.spec.ts` | `type/model/empty` | `test/e2e/http/type/model/empty/main.test.ts` | 3 |\n| `usage.spec.ts` | `type/model/usage` | `test/e2e/http/type/model/usage/main.test.ts` | 6 |\n| `modelInheritanceEnumDiscriminator.spec.ts` | `type/model/inheritance/enum-discriminator` | `test/e2e/http/type/model/inheritance/enum-discriminator/main.test.ts` | 8 |\n| `modelInheritanceNestedDiscriminator.spec.ts` | `type/model/inheritance/nested-discriminator` | `test/e2e/http/type/model/inheritance/nested-discriminator/main.test.ts` | 6 |\n| `modelInheritanceNotDiscriminated.spec.ts` | `type/model/inheritance/not-discriminated` | `test/e2e/http/type/model/inheritance/not-discriminated/main.test.ts` | 3 |\n| `modelInheritanceRecursive.spec.ts` | `type/model/inheritance/recursive` | `test/e2e/http/type/model/inheritance/recursive/main.test.ts` | 2 |\n| `modelInheritanceSingleDiscriminator.spec.ts` | `type/model/inheritance/single-discriminator` | `test/e2e/http/type/model/inheritance/single-discriminator/main.test.ts` | 7 |\n\n## Complex tests to watch out for\n- **enum-discriminator**: Tests discriminated unions with enum discriminator properties\n- **nested-discriminator**: Multi-level discriminated inheritance\n- **single-discriminator**: Complex discriminated union assertions with deepEqual\n\n## Validation\nRun `pnpm build && pnpm test:e2e`"
@@ -3338,9 +3298,7 @@
       "priority": "P1",
       "status": "done",
       "kind": "feature",
-      "dependencies": [
-        "SPECTOR-3"
-      ],
+      "dependencies": ["SPECTOR-3"],
       "design_review": null,
       "source": "design",
       "description": "Port 4 property type Spector e2e tests. These are the most test-case-dense files in the type system batch.\n\n## Tests to port\n\n| Legacy test file | Spector spec | New test path | Test cases |\n|---|---|---|---|\n| `modelPropertyType.spec.ts` | `type/property/value-types` | `test/e2e/http/type/property/value-types/main.test.ts` | ~58 (dynamic) |\n| `nullableProperties.spec.ts` | `type/property/nullable` | `test/e2e/http/type/property/nullable/main.test.ts` | 7 |\n| `optionalProperties.spec.ts` | `type/property/optionality` | `test/e2e/http/type/property/optionality/main.test.ts` | 16 |\n| `modelPropertyAdditional.spec.ts` | `type/property/additional-properties` | `test/e2e/http/type/property/additional-properties/main.test.ts` | 52 |\n\n## Complex tests to watch out for\n- **value-types**: Very large (393 lines legacy). Uses loops to dynamically generate ~58 test cases for get/put of various property types (boolean, string, int, float, datetime, enum, model, collections, etc.)\n- **additional-properties**: Largest file (734 lines, 52 tests). Tests open models with additional properties. 4 tests skipped in legacy due to spread record union issues.\n- **nullable**: Tests nullable property handling with 7 scenarios\n- **optionality**: Tests optional vs required property semantics with 16 test cases\n\n## Validation\nRun `pnpm build && pnpm test:e2e`"
@@ -3636,81 +3594,63 @@
       "phase": 1,
       "name": "Models & Type Declarations",
       "description": "Generate TypeScript interfaces, enums, type aliases, and union types from TCGC types.",
-      "dependencies": [
-        0
-      ],
+      "dependencies": [0],
       "status": "done"
     },
     {
       "phase": 2,
       "name": "Serialization & Deserialization",
       "description": "Generate JSON and XML serializer/deserializer functions for all model types.",
-      "dependencies": [
-        1
-      ],
+      "dependencies": [1],
       "status": "done"
     },
     {
       "phase": 3,
       "name": "Operations",
       "description": "Generate operation functions with send/deserialize pattern.",
-      "dependencies": [
-        2
-      ],
+      "dependencies": [2],
       "status": "done"
     },
     {
       "phase": 4,
       "name": "Client Infrastructure",
       "description": "Generate client context interface, factory function, and logger.",
-      "dependencies": [
-        3
-      ],
+      "dependencies": [3],
       "status": "done"
     },
     {
       "phase": 5,
       "name": "Classical Client",
       "description": "Generate user-facing client class and operation groups.",
-      "dependencies": [
-        4
-      ],
+      "dependencies": [4],
       "status": "done"
     },
     {
       "phase": 6,
       "name": "Advanced Features",
       "description": "Implement LRO restore, multipart, and sample generation.",
-      "dependencies": [
-        5
-      ],
+      "dependencies": [5],
       "status": "done"
     },
     {
       "phase": 7,
       "name": "Index & Barrel Files",
       "description": "Generate proper export structure.",
-      "dependencies": [
-        6
-      ],
+      "dependencies": [6],
       "status": "done"
     },
     {
       "phase": 8,
       "name": "Azure Flavor Extension",
       "description": "Design and implement Azure-specific extensions via composition.",
-      "dependencies": [
-        7
-      ],
+      "dependencies": [7],
       "status": "done"
     },
     {
       "phase": 9,
       "name": "Test Porting & Validation",
       "description": "Port all 101 scenario tests and validate output parity.",
-      "dependencies": [
-        0
-      ],
+      "dependencies": [0],
       "status": "done"
     },
     {

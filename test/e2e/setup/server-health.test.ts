@@ -15,9 +15,7 @@ const SERVER_PORT = 3002;
 
 function httpGet(url: string): Promise<number> {
   return new Promise((resolve, reject) => {
-    http
-      .get(url, (res) => resolve(res.statusCode ?? 0))
-      .on("error", reject);
+    http.get(url, (res) => resolve(res.statusCode ?? 0)).on("error", reject);
   });
 }
 

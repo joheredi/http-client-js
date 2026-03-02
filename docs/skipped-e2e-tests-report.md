@@ -9,21 +9,21 @@
 
 All 88 skipped e2e tests fall into **10 root cause categories**. Many tests share the same underlying emitter deficiency, meaning approximately **10 distinct fixes** in the emitter source would unblock all 88 tests. The categories are:
 
-| # | Root Cause | Tests | Complexity |
-|---|-----------|-------|-----------|
-| 1 | [Content-Type mismatch (text/plain)](#1-content-type-mismatch-textplain-vs-applicationjson) | 6 | Medium |
-| 2 | [Query parameter type coercion](#2-query-parameter-type-coercion) | 13 | Medium |
-| 3 | [Header parameter type coercion](#3-header-parameter-type-coercion) | 9 | Medium |
-| 4 | [Response header deserialization](#4-response-header-deserialization) | 4 | High |
-| 5 | [Numeric string encoding (@encode)](#5-numeric-string-encoding-encode) | 3 | Low |
-| 6 | [Unresolved refkey for extensible enum arrays](#6-unresolved-refkey-for-extensible-enum-array-serializers) | 12 | Medium |
-| 7 | [Additional properties on derived/union types](#7-additional-properties-on-derivedunion-types) | 22 | High |
-| 8 | [Parameter name shadows operation function](#8-parameter-name-shadows-operation-function) | 1 | Low |
-| 9 | [BigInt / int64 serialization](#9-bigint--int64-serialization) | 2 | Medium |
-| 10 | [Nullable model array handling](#10-nullable-model-array-handling) | 2 | Low |
-| 11 | [Custom HTTP authentication scheme](#11-custom-http-authentication-scheme) | 2 | Low |
-| 12 | [Bytes encoding in query/header/body](#12-bytes-encoding-in-queryheaderbody) | 14 | High |
-|   | **Total** | **88** | |
+| #   | Root Cause                                                                                                 | Tests  | Complexity |
+| --- | ---------------------------------------------------------------------------------------------------------- | ------ | ---------- |
+| 1   | [Content-Type mismatch (text/plain)](#1-content-type-mismatch-textplain-vs-applicationjson)                | 6      | Medium     |
+| 2   | [Query parameter type coercion](#2-query-parameter-type-coercion)                                          | 13     | Medium     |
+| 3   | [Header parameter type coercion](#3-header-parameter-type-coercion)                                        | 9      | Medium     |
+| 4   | [Response header deserialization](#4-response-header-deserialization)                                      | 4      | High       |
+| 5   | [Numeric string encoding (@encode)](#5-numeric-string-encoding-encode)                                     | 3      | Low        |
+| 6   | [Unresolved refkey for extensible enum arrays](#6-unresolved-refkey-for-extensible-enum-array-serializers) | 12     | Medium     |
+| 7   | [Additional properties on derived/union types](#7-additional-properties-on-derivedunion-types)             | 22     | High       |
+| 8   | [Parameter name shadows operation function](#8-parameter-name-shadows-operation-function)                  | 1      | Low        |
+| 9   | [BigInt / int64 serialization](#9-bigint--int64-serialization)                                             | 2      | Medium     |
+| 10  | [Nullable model array handling](#10-nullable-model-array-handling)                                         | 2      | Low        |
+| 11  | [Custom HTTP authentication scheme](#11-custom-http-authentication-scheme)                                 | 2      | Low        |
+| 12  | [Bytes encoding in query/header/body](#12-bytes-encoding-in-queryheaderbody)                               | 14     | High       |
+|     | **Total**                                                                                                  | **88** |            |
 
 ---
 
@@ -35,24 +35,26 @@ All 88 skipped e2e tests fall into **10 root cause categories**. Many tests shar
 
 **Tests affected (6):**
 
-| File | Test Name | Line |
-|------|-----------|------|
-| `type/enum/fixed/main.test.ts` | should put a known enum value | 32 |
-| `type/enum/fixed/main.test.ts` | should put an unknown enum value and receive 500 | 37 |
-| `type/enum/extensible/main.test.ts` | should put a known enum value | 34 |
-| `type/enum/extensible/main.test.ts` | should put an unknown enum value | 39 |
-| `type/scalar/main.test.ts` | should put a string value | 29 |
-| `type/scalar/main.test.ts` | should put an unknown value | 52 |
+| File                                | Test Name                                        | Line |
+| ----------------------------------- | ------------------------------------------------ | ---- |
+| `type/enum/fixed/main.test.ts`      | should put a known enum value                    | 32   |
+| `type/enum/fixed/main.test.ts`      | should put an unknown enum value and receive 500 | 37   |
+| `type/enum/extensible/main.test.ts` | should put a known enum value                    | 34   |
+| `type/enum/extensible/main.test.ts` | should put an unknown enum value                 | 39   |
+| `type/scalar/main.test.ts`          | should put a string value                        | 29   |
+| `type/scalar/main.test.ts`          | should put an unknown value                      | 52   |
 
 **Problem**: The Spector mock server expects `Content-Type: text/plain` for PUT operations on scalar string/enum/unknown endpoints, but the emitter always generates `contentType: "application/json"`.
 
 **Mock server expectations (from mockapi.ts):**
+
 - `type/enum/extensible`: `"Content-Type": "text/plain"` for PUT
-- `type/enum/fixed`: `"Content-Type": "application/json"` for PUT  
+- `type/enum/fixed`: `"Content-Type": "application/json"` for PUT
 - `type/scalar/string`: `"Content-Type": "text/plain"` for PUT
 - `type/scalar/unknown`: `"Content-Type": "text/plain"` for PUT
 
 **Generated code (all broken):**
+
 ```typescript
 // All PUT operations generate:
 contentType: "application/json", body: body
@@ -84,33 +86,37 @@ Read the content-type from the TypeSpec `@header contentType` decorator if prese
 
 **Tests affected (13):**
 
-| File | Test Name | Line |
-|------|-----------|------|
-| `encode/datetime/main.test.ts` | default (rfc3339) query param | 21 |
-| `encode/datetime/main.test.ts` | rfc3339 query param | 25 |
-| `encode/datetime/main.test.ts` | rfc7231 query param | 29 |
-| `encode/datetime/main.test.ts` | unixTimestamp query param | 33 |
-| `encode/datetime/main.test.ts` | unixTimestamp array query param | 37 |
-| `encode/duration/main.test.ts` | int32 seconds query param | 24 |
-| `encode/duration/main.test.ts` | float seconds query param | 28 |
-| `encode/duration/main.test.ts` | float64 seconds query param | 32 |
-| `encode/duration/main.test.ts` | int32 seconds array query param | 36 |
-| `encode/bytes/main.test.ts` | default (base64) query param | 51 |
-| `encode/bytes/main.test.ts` | base64 query param | 55 |
-| `encode/bytes/main.test.ts` | base64url query param | 59 |
-| `encode/bytes/main.test.ts` | base64url array query param | 63 |
+| File                           | Test Name                       | Line |
+| ------------------------------ | ------------------------------- | ---- |
+| `encode/datetime/main.test.ts` | default (rfc3339) query param   | 21   |
+| `encode/datetime/main.test.ts` | rfc3339 query param             | 25   |
+| `encode/datetime/main.test.ts` | rfc7231 query param             | 29   |
+| `encode/datetime/main.test.ts` | unixTimestamp query param       | 33   |
+| `encode/datetime/main.test.ts` | unixTimestamp array query param | 37   |
+| `encode/duration/main.test.ts` | int32 seconds query param       | 24   |
+| `encode/duration/main.test.ts` | float seconds query param       | 28   |
+| `encode/duration/main.test.ts` | float64 seconds query param     | 32   |
+| `encode/duration/main.test.ts` | int32 seconds array query param | 36   |
+| `encode/bytes/main.test.ts`    | default (base64) query param    | 51   |
+| `encode/bytes/main.test.ts`    | base64 query param              | 55   |
+| `encode/bytes/main.test.ts`    | base64url query param           | 59   |
+| `encode/bytes/main.test.ts`    | base64url array query param     | 63   |
 
 **Problem**: The emitter passes raw typed values (Date objects, numbers, Uint8Array) directly into `expandUrlTemplate()` without converting them to the wire-format string first.
 
 **Current generated code:**
+
 ```typescript
 // datetime: passes raw Date object
-const path = expandUrlTemplate("/encode/datetime/query/default{?value}", { "value": value })
+const path = expandUrlTemplate("/encode/datetime/query/default{?value}", {
+  value: value,
+});
 // duration: passes raw number (works accidentally for some, but type-unsafe)
 // bytes: passes raw Uint8Array (serializes to "[object Uint8Array]")
 ```
 
 **Expected behavior:**
+
 ```typescript
 // datetime rfc3339: value.toISOString()
 // datetime rfc7231: value.toUTCString()
@@ -121,6 +127,7 @@ const path = expandUrlTemplate("/encode/datetime/query/default{?value}", { "valu
 ```
 
 **Mock server expectations:**
+
 - Datetime rfc3339: `value=2022-08-26T18:38:00.000Z`
 - Datetime rfc7231: `value=Fri, 26 Aug 2022 14:38:00 GMT`
 - Datetime unix: `value=1686566864`
@@ -136,7 +143,7 @@ In the operation `_send` function generation, add encoding expressions based on 
 ```typescript
 // Emitter generates:
 const encodedValue = value.toISOString(); // for rfc3339
-const path = expandUrlTemplate("...{?value}", { "value": encodedValue });
+const path = expandUrlTemplate("...{?value}", { value: encodedValue });
 ```
 
 - **Pros**: Self-contained, clear, no runtime helper changes needed
@@ -157,21 +164,22 @@ Pass encoding metadata to `expandUrlTemplate` so it can perform the conversion i
 
 **Tests affected (9):**
 
-| File | Test Name | Line |
-|------|-----------|------|
-| `encode/datetime/main.test.ts` | unixTimestamp header | 94 |
-| `encode/datetime/main.test.ts` | unixTimestamp array header | 98 |
-| `encode/duration/main.test.ts` | int32 seconds header | 104 |
-| `encode/duration/main.test.ts` | float seconds header | 108 |
-| `encode/duration/main.test.ts` | float64 seconds header | 112 |
-| `encode/bytes/main.test.ts` | default (base64) header | 103 |
-| `encode/bytes/main.test.ts` | base64 header | 107 |
-| `encode/bytes/main.test.ts` | base64url header | 111 |
-| `encode/bytes/main.test.ts` | base64url array header | 115 |
+| File                           | Test Name                  | Line |
+| ------------------------------ | -------------------------- | ---- |
+| `encode/datetime/main.test.ts` | unixTimestamp header       | 94   |
+| `encode/datetime/main.test.ts` | unixTimestamp array header | 98   |
+| `encode/duration/main.test.ts` | int32 seconds header       | 104  |
+| `encode/duration/main.test.ts` | float seconds header       | 108  |
+| `encode/duration/main.test.ts` | float64 seconds header     | 112  |
+| `encode/bytes/main.test.ts`    | default (base64) header    | 103  |
+| `encode/bytes/main.test.ts`    | base64 header              | 107  |
+| `encode/bytes/main.test.ts`    | base64url header           | 111  |
+| `encode/bytes/main.test.ts`    | base64url array header     | 115  |
 
 **Problem**: Similar to query parameters — raw typed objects are passed directly into the headers object without string conversion.
 
 **Current generated code:**
+
 ```typescript
 // Duration: passes number directly (needs .toString())
 headers: { "duration": duration, ...options.requestOptions?.headers }
@@ -184,6 +192,7 @@ headers: { "value": buildCsvCollection(value), ...options.requestOptions?.header
 ```
 
 **Expected behavior:**
+
 ```typescript
 // Duration: duration.toString()
 // Bytes: uint8ArrayToString(value, "base64")
@@ -191,6 +200,7 @@ headers: { "value": buildCsvCollection(value), ...options.requestOptions?.header
 ```
 
 **Mock server expectations:**
+
 - Duration headers expect string values: `duration: "36"`, `duration: "35.625"`
 - Bytes headers expect base64 strings: `value: "dGVzdA=="`
 - Datetime unix array header: `value: "1686566864,1686734256"`
@@ -219,27 +229,30 @@ Build a `serializeHeaderValue(value, encoding)` runtime helper that handles all 
 
 **Tests affected (4):**
 
-| File | Test Name | Line |
-|------|-----------|------|
-| `encode/datetime/main.test.ts` | default (rfc7231) response header | 119 |
-| `encode/datetime/main.test.ts` | rfc3339 response header | 131 |
-| `encode/datetime/main.test.ts` | rfc7231 response header | 143 |
-| `encode/datetime/main.test.ts` | unixTimestamp response header | 155 |
+| File                           | Test Name                         | Line |
+| ------------------------------ | --------------------------------- | ---- |
+| `encode/datetime/main.test.ts` | default (rfc7231) response header | 119  |
+| `encode/datetime/main.test.ts` | rfc3339 response header           | 131  |
+| `encode/datetime/main.test.ts` | rfc7231 response header           | 143  |
+| `encode/datetime/main.test.ts` | unixTimestamp response header     | 155  |
 
 **Problem**: The generated response header operations return `void` and don't extract or parse header values at all. The test works around this with `onResponse` callbacks, but the actual API is broken.
 
 **Current generated code (`responseHeader/operations.ts`):**
+
 ```typescript
 export async function $default(
   context: DatetimeContext,
   options: DefaultOptionalParams = { requestOptions: {} },
-): Promise<void> {  // Returns void — no header values returned
+): Promise<void> {
+  // Returns void — no header values returned
   const result = await _defaultSend(context, options);
   return _defaultDeserialize(result);
 }
 ```
 
 **Expected behavior:**
+
 ```typescript
 export async function $default(
   context: DatetimeContext,
@@ -247,12 +260,13 @@ export async function $default(
 ): Promise<{ value: Date }> {
   const result = await _defaultSend(context, options);
   return {
-    value: new Date(result.headers["value"])  // Parse from rfc7231 string
+    value: new Date(result.headers["value"]), // Parse from rfc7231 string
   };
 }
 ```
 
 **Mock server expectations:**
+
 - `/responseheader/default`: Returns header `value: "Fri, 26 Aug 2022 14:38:00 GMT"`
 - `/responseheader/rfc3339`: Returns header `value: "2022-08-26T18:38:00.000Z"`
 - `/responseheader/unix-timestamp`: Returns header `value: "1686566864"` (numeric string)
@@ -262,6 +276,7 @@ export async function $default(
 **Approach A (Recommended): Generate response header extraction in deserialize functions**
 
 The emitter should detect operations with `@header` on response properties and generate:
+
 1. A response model type with the header fields
 2. A deserializer that reads from `result.headers["name"]` and converts to typed values
 3. Return the response model from the operation function
@@ -284,39 +299,48 @@ Return the full `PathUncheckedResponse` and let consumers extract headers manual
 
 **Tests affected (3):**
 
-| File | Test Name | Line |
-|------|-----------|------|
-| `encode/numeric/main.test.ts` | safeint as string | 15 |
-| `encode/numeric/main.test.ts` | optional uint32 as string | 21 |
-| `encode/numeric/main.test.ts` | uint8 as string | 27 |
+| File                          | Test Name                 | Line |
+| ----------------------------- | ------------------------- | ---- |
+| `encode/numeric/main.test.ts` | safeint as string         | 15   |
+| `encode/numeric/main.test.ts` | optional uint32 as string | 21   |
+| `encode/numeric/main.test.ts` | uint8 as string           | 27   |
 
 **Problem**: The emitter doesn't handle `@encode(string)` on integer types. Serializers/deserializers are no-op passthroughs when they should convert between number and string.
 
 **Current generated code (`models.ts`):**
+
 ```typescript
 export interface SafeintAsStringProperty {
-  value: string;  // Wire type is string, but SDK should accept number
+  value: string; // Wire type is string, but SDK should accept number
 }
-export function safeintAsStringPropertySerializer(item: SafeintAsStringProperty): any {
-  return { value: item["value"] };  // No conversion!
+export function safeintAsStringPropertySerializer(
+  item: SafeintAsStringProperty,
+): any {
+  return { value: item["value"] }; // No conversion!
 }
 ```
 
 **Mock server expectations:**
+
 - POST `/encode/numeric/property/safeint` with body `{ value: "10000000000" }` → 200
 - POST `/encode/numeric/property/uint32` with body `{ value: "1" }` → 200
 - POST `/encode/numeric/property/uint8` with body `{ value: "255" }` → 200
 
 **Expected behavior:**
+
 ```typescript
 export interface SafeintAsStringProperty {
-  value: number;  // SDK accepts number
+  value: number; // SDK accepts number
 }
-export function safeintAsStringPropertySerializer(item: SafeintAsStringProperty): any {
-  return { value: item["value"].toString() };  // Convert number → string for wire
+export function safeintAsStringPropertySerializer(
+  item: SafeintAsStringProperty,
+): any {
+  return { value: item["value"].toString() }; // Convert number → string for wire
 }
-export function safeintAsStringPropertyDeserializer(item: any): SafeintAsStringProperty {
-  return { value: Number.parseInt(item["value"]) };  // Convert string → number from wire
+export function safeintAsStringPropertyDeserializer(
+  item: any,
+): SafeintAsStringProperty {
+  return { value: Number.parseInt(item["value"]) }; // Convert string → number from wire
 }
 ```
 
@@ -348,24 +372,25 @@ Keep `string` as the SDK type and let users manage conversion.
 
 **Tests affected (12):**
 
-| File | Test Name | Line |
-|------|-----------|------|
-| `encode/array/main.test.ts` | string array comma delimiter | (describe.skip) |
-| `encode/array/main.test.ts` | string array space delimiter | (describe.skip) |
-| `encode/array/main.test.ts` | string array pipe delimiter | (describe.skip) |
-| `encode/array/main.test.ts` | string array newline delimiter | (describe.skip) |
-| `encode/array/main.test.ts` | enum array comma delimiter | (describe.skip) |
-| `encode/array/main.test.ts` | enum array space delimiter | (describe.skip) |
-| `encode/array/main.test.ts` | enum array pipe delimiter | (describe.skip) |
-| `encode/array/main.test.ts` | enum array newline delimiter | (describe.skip) |
-| `encode/array/main.test.ts` | extensible enum array comma delimiter | (describe.skip) |
-| `encode/array/main.test.ts` | extensible enum array space delimiter | (describe.skip) |
-| `encode/array/main.test.ts` | extensible enum array pipe delimiter | (describe.skip) |
+| File                        | Test Name                               | Line            |
+| --------------------------- | --------------------------------------- | --------------- |
+| `encode/array/main.test.ts` | string array comma delimiter            | (describe.skip) |
+| `encode/array/main.test.ts` | string array space delimiter            | (describe.skip) |
+| `encode/array/main.test.ts` | string array pipe delimiter             | (describe.skip) |
+| `encode/array/main.test.ts` | string array newline delimiter          | (describe.skip) |
+| `encode/array/main.test.ts` | enum array comma delimiter              | (describe.skip) |
+| `encode/array/main.test.ts` | enum array space delimiter              | (describe.skip) |
+| `encode/array/main.test.ts` | enum array pipe delimiter               | (describe.skip) |
+| `encode/array/main.test.ts` | enum array newline delimiter            | (describe.skip) |
+| `encode/array/main.test.ts` | extensible enum array comma delimiter   | (describe.skip) |
+| `encode/array/main.test.ts` | extensible enum array space delimiter   | (describe.skip) |
+| `encode/array/main.test.ts` | extensible enum array pipe delimiter    | (describe.skip) |
 | `encode/array/main.test.ts` | extensible enum array newline delimiter | (describe.skip) |
 
 **Problem**: The entire `describe.skip` block is caused by **unresolved symbol references** in `models.ts` for extensible enum array serializers. The generated code contains literal `<Unresolved Symbol: refkey[sarraySerializer⁣senum]>` text that causes esbuild parse failures, making the entire client unusable.
 
 **Current generated code (`models.ts` lines 169-197):**
+
 ```typescript
 export function commaDelimitedExtensibleEnumArrayPropertySerializer(
   item: CommaDelimitedExtensibleEnumArrayProperty,
@@ -377,6 +402,7 @@ export function commaDelimitedExtensibleEnumArrayPropertySerializer(
 ```
 
 **Root cause**: In `src/utils/refkeys.ts`, `getTypeSignature()` returns `"enum"` for ALL enum types (both regular and extensible). The code generates `refkey("arraySerializer", "enum")` but no declaration with that refkey exists because:
+
 1. `valueTypeHasNamedSerializerFn()` returns `true` for extensible enums
 2. This triggers the `arraySerializerRefkey(type.valueType)` code path
 3. But no `JsonArraySerializer` component is rendered for extensible enums
@@ -416,30 +442,30 @@ Change `valueTypeHasNamedSerializerFn()` to return `false` for extensible enums,
 
 **Tests affected (22):**
 
-| File | Test Name | Line | Sub-group |
-|------|-----------|------|-----------|
-| `type/property/additional-properties/main.test.ts` | get derived unknown additional props | 54 | Derived |
-| `type/property/additional-properties/main.test.ts` | put derived unknown additional props | 59 | Derived |
-| `type/property/additional-properties/main.test.ts` | get discriminated unknown additional props | 76 | Discriminated |
-| `type/property/additional-properties/main.test.ts` | put discriminated unknown additional props | 81 | Discriminated |
-| `type/property/additional-properties/main.test.ts` | get derived unknown additional props (is) | 113 | Derived |
-| `type/property/additional-properties/main.test.ts` | put derived unknown additional props (is) | 118 | Derived |
-| `type/property/additional-properties/main.test.ts` | get discriminated unknown additional props (is) | 133 | Discriminated |
-| `type/property/additional-properties/main.test.ts` | put discriminated unknown additional props (is) | 138 | Discriminated |
-| `type/property/additional-properties/main.test.ts` | get derived different spread string | 419 | DifferentSpread |
-| `type/property/additional-properties/main.test.ts` | put derived different spread string | 424 | DifferentSpread |
-| `type/property/additional-properties/main.test.ts` | get derived different spread float | 437 | DifferentSpread |
-| `type/property/additional-properties/main.test.ts` | put derived different spread float | 442 | DifferentSpread |
-| `type/property/additional-properties/main.test.ts` | get derived different spread model | 455 | DifferentSpread |
-| `type/property/additional-properties/main.test.ts` | put derived different spread model | 460 | DifferentSpread |
-| `type/property/additional-properties/main.test.ts` | get derived different spread model array | 473 | DifferentSpread |
-| `type/property/additional-properties/main.test.ts` | put derived different spread model array | 478 | DifferentSpread |
-| `type/property/additional-properties/main.test.ts` | get non-discriminated union spread | 526 | NonDiscUnion |
-| `type/property/additional-properties/main.test.ts` | put non-discriminated union spread | 537 | NonDiscUnion |
-| `type/property/additional-properties/main.test.ts` | get non-discriminated union2 spread | 549 | NonDiscUnion |
-| `type/property/additional-properties/main.test.ts` | put non-discriminated union2 spread | 564 | NonDiscUnion |
-| `type/property/additional-properties/main.test.ts` | get non-discriminated union3 spread | 580 | NonDiscUnion |
-| `type/property/additional-properties/main.test.ts` | put non-discriminated union3 spread | 598 | NonDiscUnion |
+| File                                               | Test Name                                       | Line | Sub-group       |
+| -------------------------------------------------- | ----------------------------------------------- | ---- | --------------- |
+| `type/property/additional-properties/main.test.ts` | get derived unknown additional props            | 54   | Derived         |
+| `type/property/additional-properties/main.test.ts` | put derived unknown additional props            | 59   | Derived         |
+| `type/property/additional-properties/main.test.ts` | get discriminated unknown additional props      | 76   | Discriminated   |
+| `type/property/additional-properties/main.test.ts` | put discriminated unknown additional props      | 81   | Discriminated   |
+| `type/property/additional-properties/main.test.ts` | get derived unknown additional props (is)       | 113  | Derived         |
+| `type/property/additional-properties/main.test.ts` | put derived unknown additional props (is)       | 118  | Derived         |
+| `type/property/additional-properties/main.test.ts` | get discriminated unknown additional props (is) | 133  | Discriminated   |
+| `type/property/additional-properties/main.test.ts` | put discriminated unknown additional props (is) | 138  | Discriminated   |
+| `type/property/additional-properties/main.test.ts` | get derived different spread string             | 419  | DifferentSpread |
+| `type/property/additional-properties/main.test.ts` | put derived different spread string             | 424  | DifferentSpread |
+| `type/property/additional-properties/main.test.ts` | get derived different spread float              | 437  | DifferentSpread |
+| `type/property/additional-properties/main.test.ts` | put derived different spread float              | 442  | DifferentSpread |
+| `type/property/additional-properties/main.test.ts` | get derived different spread model              | 455  | DifferentSpread |
+| `type/property/additional-properties/main.test.ts` | put derived different spread model              | 460  | DifferentSpread |
+| `type/property/additional-properties/main.test.ts` | get derived different spread model array        | 473  | DifferentSpread |
+| `type/property/additional-properties/main.test.ts` | put derived different spread model array        | 478  | DifferentSpread |
+| `type/property/additional-properties/main.test.ts` | get non-discriminated union spread              | 526  | NonDiscUnion    |
+| `type/property/additional-properties/main.test.ts` | put non-discriminated union spread              | 537  | NonDiscUnion    |
+| `type/property/additional-properties/main.test.ts` | get non-discriminated union2 spread             | 549  | NonDiscUnion    |
+| `type/property/additional-properties/main.test.ts` | put non-discriminated union2 spread             | 564  | NonDiscUnion    |
+| `type/property/additional-properties/main.test.ts` | get non-discriminated union3 spread             | 580  | NonDiscUnion    |
+| `type/property/additional-properties/main.test.ts` | put non-discriminated union3 spread             | 598  | NonDiscUnion    |
 
 **Problem**: Three related sub-issues:
 
@@ -456,11 +482,13 @@ export function extendsUnknownAdditionalPropertiesDeserializer(item: any) {
 }
 
 // DERIVED (broken) — missing deserializeRecord:
-export function extendsUnknownAdditionalPropertiesDerivedDeserializer(item: any) {
+export function extendsUnknownAdditionalPropertiesDerivedDeserializer(
+  item: any,
+) {
   return {
-    name: item["name"],       // ✓
-    index: item["index"],     // ✓
-    age: item["age"],         // ✓
+    name: item["name"], // ✓
+    index: item["index"], // ✓
+    age: item["age"], // ✓
     // ❌ MISSING: additionalProperties: deserializeRecord(item, undefined, ["name","index","age"])
   };
 }
@@ -473,16 +501,27 @@ Union dispatch correctly routes to derived deserializers, but those derived dese
 Union deserializers return `item` as-is without any type discrimination or property transformation:
 
 ```typescript
-export function _spreadRecordForNonDiscriminatedUnionAdditionalPropertyDeserializer(item: any) {
-  return item;  // No discrimination, no deserialization!
+export function _spreadRecordForNonDiscriminatedUnionAdditionalPropertyDeserializer(
+  item: any,
+) {
+  return item; // No discrimination, no deserialization!
 }
 ```
 
 **Mock server expectations:**  
 All operations expect proper round-trip of additional properties. For example:
+
 ```json
-{ "name": "abc", "index": 1, "age": 2.5, "prop1": 32, "prop2": true, "prop3": "abc" }
+{
+  "name": "abc",
+  "index": 1,
+  "age": 2.5,
+  "prop1": 32,
+  "prop2": true,
+  "prop3": "abc"
+}
 ```
+
 Where `prop1`, `prop2`, `prop3` are additional properties that should be captured in the `additionalProperties` bag.
 
 #### Implementation Design
@@ -496,9 +535,15 @@ In the serialization/deserialization component that generates model serializers:
 
 ```typescript
 // FIXED derived deserializer:
-export function extendsUnknownAdditionalPropertiesDerivedDeserializer(item: any) {
+export function extendsUnknownAdditionalPropertiesDerivedDeserializer(
+  item: any,
+) {
   return {
-    additionalProperties: deserializeRecord(item, undefined, ["name", "index", "age"]),
+    additionalProperties: deserializeRecord(item, undefined, [
+      "name",
+      "index",
+      "age",
+    ]),
     name: item["name"],
     index: item["index"],
     age: item["age"],
@@ -541,22 +586,23 @@ This requires the emitter to generate union discrimination logic. Since TCGC doe
 
 **Tests affected (1):**
 
-| File | Test Name | Line |
-|------|-----------|------|
-| `type/model/usage/main.test.ts` | should send an input-only model | 29 |
+| File                            | Test Name                       | Line |
+| ------------------------------- | ------------------------------- | ---- |
+| `type/model/usage/main.test.ts` | should send an input-only model | 29   |
 
 **Problem**: The generated `usageClient.ts` has a method `input(input: InputRecord, ...)` where the parameter `input` shadows the imported function `input` from `./api/operations.js`. At runtime, `input(this._client, input, options)` calls the parameter (an `InputRecord` object) as a function, causing `TypeError`.
 
 **Current generated code (`usageClient.ts`):**
+
 ```typescript
 import { input, output, inputAndOutput } from "./api/operations.js";
 
 export class UsageClient {
   input(
-    input: InputRecord,  // ← shadows imported function!
+    input: InputRecord, // ← shadows imported function!
     options: InputOptionalParams = { requestOptions: {} },
   ): Promise<void> {
-    return input(this._client, input, options);  // ← calls the parameter, not the function!
+    return input(this._client, input, options); // ← calls the parameter, not the function!
   }
 }
 ```
@@ -588,21 +634,23 @@ Import operation functions with a prefix/suffix: `import { input as inputOp } fr
 
 **Tests affected (2):**
 
-| File | Test Name | Line |
-|------|-----------|------|
-| `type/dictionary/main.test.ts` | should put a dictionary of int64 values | 47 |
-| `type/array/main.test.ts` | should put an array of int64 values | 44 |
+| File                           | Test Name                               | Line |
+| ------------------------------ | --------------------------------------- | ---- |
+| `type/dictionary/main.test.ts` | should put a dictionary of int64 values | 47   |
+| `type/array/main.test.ts`      | should put an array of int64 values     | 44   |
 
 **Problem**: The test uses BigInt literals (`0x7fffffffffffffffn`) but the generated code types int64 as `number`. JSON.stringify doesn't support BigInt, causing serialization failures.
 
 **Current generated code:**
+
 ```typescript
 // Dictionary: accepts Record<string, number> — no BigInt
 // Array: accepts Array<number> — no BigInt
-body: body  // Direct passthrough, JSON.stringify fails on BigInt
+body: body; // Direct passthrough, JSON.stringify fails on BigInt
 ```
 
 **Mock server expectations:**
+
 - Dictionary int64: `{ k1: 9007199254740991, k2: -9007199254740991 }` (Number.MAX/MIN_SAFE_INTEGER)
 - Array int64: `[9007199254740991, -9007199254740991]`
 
@@ -630,34 +678,43 @@ Use `bigint` type for int64, add custom JSON serialization that converts to stri
 
 **Tests affected (2):**
 
-| File | Test Name | Line |
-|------|-----------|------|
-| `type/array/main.test.ts` | should get an array of nullable model values | 174 |
-| `type/array/main.test.ts` | should put an array of nullable model values | 181 |
+| File                      | Test Name                                    | Line |
+| ------------------------- | -------------------------------------------- | ---- |
+| `type/array/main.test.ts` | should get an array of nullable model values | 174  |
+| `type/array/main.test.ts` | should put an array of nullable model values | 181  |
 
 **Problem**: Array serializers/deserializers call model serializer/deserializer on every element including `null`, causing crashes when accessing properties of null.
 
 **Current generated code (`models.ts`):**
+
 ```typescript
 export function innerModelArrayDeserializer(result: Array<InnerModel>): any[] {
-  return result.map((item) => { return innerModelDeserializer(item); });
+  return result.map((item) => {
+    return innerModelDeserializer(item);
+  });
   //                                                           ↑ crashes when item is null
 }
 
 export function innerModelDeserializer(item: any): InnerModel {
   return {
-    property: item["property"],  // TypeError: Cannot read property of null
+    property: item["property"], // TypeError: Cannot read property of null
   };
 }
 ```
 
 **Mock server expectations:**
+
 - GET/PUT `/type/array/nullable-model`: `[{property: "hello"}, null, {property: "world"}]`
 
 **Expected behavior:**
+
 ```typescript
-export function innerModelArrayDeserializer(result: Array<InnerModel | null>): (InnerModel | null)[] {
-  return result.map((item) => item === null ? null : innerModelDeserializer(item));
+export function innerModelArrayDeserializer(
+  result: Array<InnerModel | null>,
+): (InnerModel | null)[] {
+  return result.map((item) =>
+    item === null ? null : innerModelDeserializer(item),
+  );
 }
 ```
 
@@ -668,7 +725,9 @@ export function innerModelArrayDeserializer(result: Array<InnerModel | null>): (
 In the array serializer/deserializer generation, check if the element type is `SdkNullableType` (or wrapped in nullable). If so, add a null guard:
 
 ```typescript
-return result.map((item) => item === null ? null : innerModelDeserializer(item));
+return result.map((item) =>
+  item === null ? null : innerModelDeserializer(item),
+);
 ```
 
 - **Pros**: Minimal change; correct nullable handling; follows TCGC type model
@@ -689,29 +748,34 @@ Unconditionally guard against null in all array serializer `.map()` callbacks.
 
 **Tests affected (2):**
 
-| File | Test Name | Line |
-|------|-----------|------|
-| `authentication/http/custom/main.test.ts` | should authenticate with a valid custom key | 37 |
-| `authentication/http/custom/main.test.ts` | should return error for an invalid custom key | 50 |
+| File                                      | Test Name                                     | Line |
+| ----------------------------------------- | --------------------------------------------- | ---- |
+| `authentication/http/custom/main.test.ts` | should authenticate with a valid custom key   | 37   |
+| `authentication/http/custom/main.test.ts` | should return error for an invalid custom key | 50   |
 
 **Problem**: The emitter generates `{ kind: "http", scheme: "sharedaccesskey" }` for custom HTTP auth schemes, but the `@typespec/ts-http-runtime`'s auth policy only recognizes `kind: "apiKey"` for key-based auth and `kind: "http"` for basic/bearer.
 
 **Current generated code (`customClientContext.ts`):**
+
 ```typescript
 getClient(endpointUrl, {
   ...updatedOptions,
   credential,
-  authSchemes: [{ kind: "http", scheme: "sharedaccesskey" }]  // Not recognized by runtime
-})
+  authSchemes: [{ kind: "http", scheme: "sharedaccesskey" }], // Not recognized by runtime
+});
 ```
 
 **Mock server expectations:**
+
 - GET `/authentication/http/custom/valid`: Header `Authorization: SharedAccessKey valid-key` → 204
 - GET `/authentication/http/custom/invalid`: Header `Authorization: SharedAccessKey invalid-key` → 403
 
 **Expected behavior:**
+
 ```typescript
-authSchemes: [{ kind: "apiKey", apiKeyLocation: "header", name: "Authorization" }]
+authSchemes: [
+  { kind: "apiKey", apiKeyLocation: "header", name: "Authorization" },
+];
 ```
 
 #### Implementation Design
@@ -749,29 +813,31 @@ Add a new auth scheme kind in the runtime that handles custom HTTP schemes.
 
 Note: The query (4) and header (4) tests are also counted in categories 2 and 3 above. The additional **body** tests are:
 
-| File | Test Name | Line |
-|------|-----------|------|
-| `encode/bytes/main.test.ts` | default (base64) JSON body request | 127 |
-| `encode/bytes/main.test.ts` | base64 body request | 139 |
-| `encode/bytes/main.test.ts` | base64url body request | 143 |
-| `encode/bytes/main.test.ts` | default (base64) JSON body response | 155 |
-| `encode/bytes/main.test.ts` | octet-stream response | 160 |
-| `encode/bytes/main.test.ts` | custom content-type (image/png) response | 165 |
+| File                        | Test Name                                | Line |
+| --------------------------- | ---------------------------------------- | ---- |
+| `encode/bytes/main.test.ts` | default (base64) JSON body request       | 127  |
+| `encode/bytes/main.test.ts` | base64 body request                      | 139  |
+| `encode/bytes/main.test.ts` | base64url body request                   | 143  |
+| `encode/bytes/main.test.ts` | default (base64) JSON body response      | 155  |
+| `encode/bytes/main.test.ts` | octet-stream response                    | 160  |
+| `encode/bytes/main.test.ts` | custom content-type (image/png) response | 165  |
 
 **Problem**: For standalone `@body` parameters that are `bytes` with `@encode`, the emitter doesn't generate encoding/decoding logic. Raw `Uint8Array` objects are passed directly as the HTTP body.
 
 **Current generated code:**
+
 ```typescript
 // Request body — passes raw Uint8Array
-body: context.path(path).post({ body: value })  // No encoding!
+body: context.path(path).post({ body: value }); // No encoding!
 
 // Response body — some cases work
 return typeof result.body === "string"
-  ? stringToUint8Array(result.body, "base64")  // ✓ JSON string responses work
-  : result.body;                                 // ✓ Binary responses work
+  ? stringToUint8Array(result.body, "base64") // ✓ JSON string responses work
+  : result.body; // ✓ Binary responses work
 ```
 
 **Mock server expectations:**
+
 - **base64 request body**: Content-Type `application/json`, body `"dGVzdA=="` (JSON string)
 - **base64url request body**: Content-Type `application/json`, body `"dGVzdA"` (JSON string)
 - **default request body**: Content-Type `application/octet-stream`, raw binary
@@ -782,6 +848,7 @@ return typeof result.body === "string"
 **Approach A (Recommended): Generate encoding for standalone bytes body parameters**
 
 When the emitter detects a `@body` parameter of type `bytes` with an `@encode` decorator:
+
 1. **For JSON-encoded bytes** (base64, base64url): Convert `Uint8Array` to encoded string before sending, set `contentType: "application/json"`
 2. **For binary bytes** (no encode or octet-stream): Send raw `Uint8Array`, set `contentType: "application/octet-stream"`
 3. **For custom content-type** (image/png): Send raw `Uint8Array`, set content-type from TypeSpec
@@ -789,10 +856,14 @@ When the emitter detects a `@body` parameter of type `bytes` with an `@encode` d
 ```typescript
 // Generated for base64 request body:
 const encoded = uint8ArrayToString(value, "base64");
-context.path(path).post({ contentType: "application/json", body: JSON.stringify(encoded) });
+context
+  .path(path)
+  .post({ contentType: "application/json", body: JSON.stringify(encoded) });
 
 // Generated for octet-stream:
-context.path(path).post({ contentType: "application/octet-stream", body: value });
+context
+  .path(path)
+  .post({ contentType: "application/octet-stream", body: value });
 ```
 
 - **Pros**: Handles all content-type/encoding combinations; uses existing runtime helpers
@@ -822,16 +893,16 @@ Wrap all bytes bodies in a model and use the existing property serializer infras
 ### Suggested Implementation Order
 
 1. **Low-hanging fruit first**: Categories 5 (numeric encode), 8 (name shadowing), 10 (nullable arrays), 11 (custom auth) — 8 tests, minimal complexity
-2. **Medium complexity**: Categories 1 (content-type), 2+3 (query/header coercion), 6 (refkey fix), 9 (int64) — 36 tests  
+2. **Medium complexity**: Categories 1 (content-type), 2+3 (query/header coercion), 6 (refkey fix), 9 (int64) — 36 tests
 3. **High complexity**: Categories 4 (response headers), 7 (additional properties), 12 (bytes body) — 44 tests
 
 ### Files Most Likely to Change
 
-| Emitter Source File | Categories |
-|---|---|
-| `src/components/serialization/json-serializer.tsx` | 5, 6, 7, 10 |
-| `src/components/serialization/json-deserializer.tsx` | 5, 7, 10 |
-| `src/components/operations/` (operation generation) | 1, 2, 3, 4, 12 |
-| `src/components/client-context.tsx` | 11 |
-| `src/components/client.tsx` (or class generation) | 8 |
-| `src/utils/refkeys.ts` | 6 |
+| Emitter Source File                                  | Categories     |
+| ---------------------------------------------------- | -------------- |
+| `src/components/serialization/json-serializer.tsx`   | 5, 6, 7, 10    |
+| `src/components/serialization/json-deserializer.tsx` | 5, 7, 10       |
+| `src/components/operations/` (operation generation)  | 1, 2, 3, 4, 12 |
+| `src/components/client-context.tsx`                  | 11             |
+| `src/components/client.tsx` (or class generation)    | 8              |
+| `src/utils/refkeys.ts`                               | 6              |

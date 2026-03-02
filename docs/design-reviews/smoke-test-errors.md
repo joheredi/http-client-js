@@ -20,25 +20,27 @@ XML input models are excluded from JSON serializer generation (`model-files.tsx`
 
 ### Affected operations
 
-| File | Function | Body param | Should use |
-|------|----------|------------|------------|
-| `api/service/operations.ts:14` | `_setPropertiesSend` | `storageServiceProperties` | `storageServicePropertiesXmlSerializer` |
-| `api/service/operations.ts:155` | `_getUserDelegationKeySend` | `keyInfo` | `keyInfoXmlSerializer` |
-| `api/blob/operations.ts:806` | `_setTagsSend` | `tags` | XML serializer for tags |
-| `api/container/operations.ts:187` | `_setAccessPolicySend` | `containerAcl` | XML serializer for containerAcl |
-| `api/blockBlob/operations.ts:185` | `_commitBlockListSend` | `blocks` | `blockLookupListXmlSerializer` |
-| `api/blockBlob/operations.ts:265` | `_querySend` | `queryRequest` | `queryRequestXmlSerializer` |
+| File                              | Function                    | Body param                 | Should use                              |
+| --------------------------------- | --------------------------- | -------------------------- | --------------------------------------- |
+| `api/service/operations.ts:14`    | `_setPropertiesSend`        | `storageServiceProperties` | `storageServicePropertiesXmlSerializer` |
+| `api/service/operations.ts:155`   | `_getUserDelegationKeySend` | `keyInfo`                  | `keyInfoXmlSerializer`                  |
+| `api/blob/operations.ts:806`      | `_setTagsSend`              | `tags`                     | XML serializer for tags                 |
+| `api/container/operations.ts:187` | `_setAccessPolicySend`      | `containerAcl`             | XML serializer for containerAcl         |
+| `api/blockBlob/operations.ts:185` | `_commitBlockListSend`      | `blocks`                   | `blockLookupListXmlSerializer`          |
+| `api/blockBlob/operations.ts:265` | `_querySend`                | `queryRequest`             | `queryRequestXmlSerializer`             |
 
 ### Fix approach
 
 `buildBodyExpression()` in `send-operation.tsx` needs to detect XML operations (via content type or body parameter metadata) and use `xmlSerializerRefkey(type)` instead of the default `serializerRefkey(type)`. The XML serializer functions already exist in the generated output — they just aren't referenced.
 
 Key code path:
+
 - `send-operation.tsx` → `buildBodyExpression()` (line ~834)
 - Calls `getSerializationExpression()` from `json-serializer.tsx` (line ~303)
 - Which uses `serializerRefkey(type)` (line ~313) — always JSON
 
 The fix needs to either:
+
 1. Make `buildBodyExpression()` content-type-aware and branch to XML serializer refkeys, OR
 2. Create a unified `getSerializationExpression()` that accepts a serialization format hint
 
@@ -54,16 +56,17 @@ The `JsonArraySerializer` component (`json-array-record-helpers.tsx` line ~60) g
 
 ### Affected array serializers
 
-| Function | Item type | Missing serializer |
-|----------|-----------|-------------------|
-| `corsRuleArraySerializer` | `CorsRule` | `corsRuleSerializer` (only XML exists) |
-| `blobTagArraySerializer` | `BlobTag` | `blobTagSerializer` (only XML exists) |
+| Function                          | Item type          | Missing serializer                             |
+| --------------------------------- | ------------------ | ---------------------------------------------- |
+| `corsRuleArraySerializer`         | `CorsRule`         | `corsRuleSerializer` (only XML exists)         |
+| `blobTagArraySerializer`          | `BlobTag`          | `blobTagSerializer` (only XML exists)          |
 | `signedIdentifierArraySerializer` | `SignedIdentifier` | `signedIdentifierSerializer` (only XML exists) |
-| `arrowFieldArraySerializer` | `ArrowField` | `arrowFieldSerializer` (only XML exists) |
+| `arrowFieldArraySerializer`       | `ArrowField`       | `arrowFieldSerializer` (only XML exists)       |
 
 ### Fix approach
 
 Two possible approaches:
+
 1. **Don't generate JSON array serializers for XML-only types** — filter them out in `model-files.tsx` the same way XML input models are excluded from JSON serializers
 2. **Make array serializer reference XML object serializer refkey** when the item type is XML-only — the array serializer's `.map()` callback should call `xmlObjectSerializerRefkey(itemType)` instead of `serializerRefkey(itemType)`
 
@@ -77,15 +80,15 @@ Most likely, **these array serializers shouldn't be generated at all** for XML-o
 
 All 78 TS errors are cascade parse errors from these 10 unresolved symbols:
 
-| Unresolved refkey | File:Line | Root Cause |
-|-------------------|-----------|------------|
-| `refkey[o219…serializer]` | `api/service/operations.ts:14` | A |
-| `refkey[o237…serializer]` | `api/service/operations.ts:155` | A |
-| `refkey[o243…serializer]` | `api/blob/operations.ts:806` | A |
-| `refkey[o245…serializer]` | `api/container/operations.ts:187` | A |
-| `refkey[o267…serializer]` | `api/blockBlob/operations.ts:185` | A |
-| `refkey[o270…serializer]` | `api/blockBlob/operations.ts:265` | A |
-| `refkey[o222…serializer]` | `models/models.ts:1270` | B |
-| `refkey[o244…serializer]` | `models/models.ts:1274` | B |
-| `refkey[o246…serializer]` | `models/models.ts:1280` | B |
-| `refkey[o279…serializer]` | `models/models.ts:1284` | B |
+| Unresolved refkey         | File:Line                         | Root Cause |
+| ------------------------- | --------------------------------- | ---------- |
+| `refkey[o219…serializer]` | `api/service/operations.ts:14`    | A          |
+| `refkey[o237…serializer]` | `api/service/operations.ts:155`   | A          |
+| `refkey[o243…serializer]` | `api/blob/operations.ts:806`      | A          |
+| `refkey[o245…serializer]` | `api/container/operations.ts:187` | A          |
+| `refkey[o267…serializer]` | `api/blockBlob/operations.ts:185` | A          |
+| `refkey[o270…serializer]` | `api/blockBlob/operations.ts:265` | A          |
+| `refkey[o222…serializer]` | `models/models.ts:1270`           | B          |
+| `refkey[o244…serializer]` | `models/models.ts:1274`           | B          |
+| `refkey[o246…serializer]` | `models/models.ts:1280`           | B          |
+| `refkey[o279…serializer]` | `models/models.ts:1284`           | B          |

@@ -58,20 +58,31 @@ describe("Type.Property.Nullable", () => {
       const response = await client.bytes.getNonNull();
       expect(response.requiredProperty).toBe("foo");
       // Normalize to Uint8Array — Node runtime may return Buffer instead
-      expect(new Uint8Array(response.nullableProperty!)).toEqual(new Uint8Array(expectedBytes));
+      expect(new Uint8Array(response.nullableProperty!)).toEqual(
+        new Uint8Array(expectedBytes),
+      );
     });
 
     it("should get a null bytes property", async () => {
       const response = await client.bytes.getNull();
-      expect(response).toEqual({ requiredProperty: "foo", nullableProperty: null });
+      expect(response).toEqual({
+        requiredProperty: "foo",
+        nullableProperty: null,
+      });
     });
 
     it("should patch a non-null bytes property", async () => {
-      await client.bytes.patchNonNull({ requiredProperty: "foo", nullableProperty: expectedBytes });
+      await client.bytes.patchNonNull({
+        requiredProperty: "foo",
+        nullableProperty: expectedBytes,
+      });
     });
 
     it("should patch a null bytes property", async () => {
-      await client.bytes.patchNull({ requiredProperty: "foo", nullableProperty: null });
+      await client.bytes.patchNull({
+        requiredProperty: "foo",
+        nullableProperty: null,
+      });
     });
   });
 
@@ -134,13 +145,21 @@ describe("Type.Property.Nullable", () => {
       const response = await client.collectionsByte.getNonNull();
       expect(response.requiredProperty).toBe("foo");
       // Normalize to Uint8Array — Node runtime may return Buffer instead
-      const normalized = response.nullableProperty!.map((b: any) => new Uint8Array(b));
-      expect(normalized).toEqual([new Uint8Array(expectedBytes), new Uint8Array(expectedBytes)]);
+      const normalized = response.nullableProperty!.map(
+        (b: any) => new Uint8Array(b),
+      );
+      expect(normalized).toEqual([
+        new Uint8Array(expectedBytes),
+        new Uint8Array(expectedBytes),
+      ]);
     });
 
     it("should get a null collectionsByte property", async () => {
       const response = await client.collectionsByte.getNull();
-      expect(response).toEqual({ requiredProperty: "foo", nullableProperty: null });
+      expect(response).toEqual({
+        requiredProperty: "foo",
+        nullableProperty: null,
+      });
     });
 
     it("should patch a non-null collectionsByte property", async () => {
@@ -151,7 +170,10 @@ describe("Type.Property.Nullable", () => {
     });
 
     it("should patch a null collectionsByte property", async () => {
-      await client.collectionsByte.patchNull({ requiredProperty: "foo", nullableProperty: null });
+      await client.collectionsByte.patchNull({
+        requiredProperty: "foo",
+        nullableProperty: null,
+      });
     });
   });
 

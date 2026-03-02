@@ -318,7 +318,10 @@ describe("Model Interface", () => {
     const model = sdkContext.sdkPackage.models[0];
 
     const template = (
-      <SdkTestFile sdkContext={sdkContext} emitterOptions={{ compatibilityMode: true }}>
+      <SdkTestFile
+        sdkContext={sdkContext}
+        emitterOptions={{ compatibilityMode: true }}
+      >
         <ModelInterface model={model} />
       </SdkTestFile>
     );
@@ -349,7 +352,10 @@ describe("Model Interface", () => {
     const model = sdkContext.sdkPackage.models[0];
 
     const template = (
-      <SdkTestFile sdkContext={sdkContext} emitterOptions={{ compatibilityMode: false }}>
+      <SdkTestFile
+        sdkContext={sdkContext}
+        emitterOptions={{ compatibilityMode: false }}
+      >
         <ModelInterface model={model} />
       </SdkTestFile>
     );
@@ -394,7 +400,10 @@ describe("Model Interface", () => {
     const model = sdkContext.sdkPackage.models[0];
 
     const template = (
-      <SdkTestFile sdkContext={sdkContext} emitterOptions={{ compatibilityMode: true }}>
+      <SdkTestFile
+        sdkContext={sdkContext}
+        emitterOptions={{ compatibilityMode: true }}
+      >
         <ModelInterface model={model} />
       </SdkTestFile>
     );
@@ -427,7 +436,10 @@ describe("Model Interface", () => {
     const model = sdkContext.sdkPackage.models[0];
 
     const template = (
-      <SdkTestFile sdkContext={sdkContext} emitterOptions={{ compatibilityMode: false }}>
+      <SdkTestFile
+        sdkContext={sdkContext}
+        emitterOptions={{ compatibilityMode: false }}
+      >
         <ModelInterface model={model} />
       </SdkTestFile>
     );

@@ -45,7 +45,9 @@ async function calculateCoverage(): Promise<void> {
   } catch (err: any) {
     if (err.code === "ENOENT") {
       console.error(`[coverage] Coverage file not found: ${coverageFilePath}`);
-      console.error("[coverage] Run 'pnpm test:e2e' first to generate coverage data.");
+      console.error(
+        "[coverage] Run 'pnpm test:e2e' first to generate coverage data.",
+      );
       process.exit(1);
     }
     throw err;
@@ -64,11 +66,18 @@ async function calculateCoverage(): Promise<void> {
 
   const passed = entries.filter(([, status]) => status === "pass");
   const failed = entries.filter(([, status]) => status === "fail");
-  const notImplemented = entries.filter(([, status]) => status === "not-implemented");
-  const notSupported = entries.filter(([, status]) => status === "not-supported");
-  const notApplicable = entries.filter(([, status]) => status === "not-applicable");
+  const notImplemented = entries.filter(
+    ([, status]) => status === "not-implemented",
+  );
+  const notSupported = entries.filter(
+    ([, status]) => status === "not-supported",
+  );
+  const notApplicable = entries.filter(
+    ([, status]) => status === "not-applicable",
+  );
 
-  const coveragePercent = total > 0 ? ((passed.length / total) * 100).toFixed(2) : "0.00";
+  const coveragePercent =
+    total > 0 ? ((passed.length / total) * 100).toFixed(2) : "0.00";
 
   console.log("═══════════════════════════════════════════════════════");
   console.log("  Spector E2E Coverage Report");
@@ -89,7 +98,9 @@ async function calculateCoverage(): Promise<void> {
     console.log(`  Not applicable:     ${notApplicable.length}`);
   }
   console.log("───────────────────────────────────────────────────────");
-  console.log(`  Coverage:           ${coveragePercent}% (${passed.length}/${total})`);
+  console.log(
+    `  Coverage:           ${coveragePercent}% (${passed.length}/${total})`,
+  );
   console.log("═══════════════════════════════════════════════════════");
 
   if (failed.length > 0) {

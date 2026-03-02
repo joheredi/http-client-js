@@ -972,7 +972,10 @@ describe("JsonSerializer", () => {
     const model = sdkContext.sdkPackage.models[0];
 
     const template = (
-      <SerializerMultiFileWrapper sdkContext={sdkContext} emitterOptions={{ compatibilityMode: true }}>
+      <SerializerMultiFileWrapper
+        sdkContext={sdkContext}
+        emitterOptions={{ compatibilityMode: true }}
+      >
         <ModelInterface model={model} />
         {"\n\n"}
         <JsonSerializer model={model} />
@@ -1004,7 +1007,10 @@ describe("JsonSerializer", () => {
     const model = sdkContext.sdkPackage.models[0];
 
     const template = (
-      <SerializerMultiFileWrapper sdkContext={sdkContext} emitterOptions={{ compatibilityMode: false }}>
+      <SerializerMultiFileWrapper
+        sdkContext={sdkContext}
+        emitterOptions={{ compatibilityMode: false }}
+      >
         <ModelInterface model={model} />
         {"\n\n"}
         <JsonSerializer model={model} />
@@ -1012,7 +1018,9 @@ describe("JsonSerializer", () => {
     );
 
     const result = renderToString(template);
-    expect(result).toContain(`serializeRecord(item["additionalProperties"] ?? {})`);
+    expect(result).toContain(
+      `serializeRecord(item["additionalProperties"] ?? {})`,
+    );
     expect(result).toContain(`item: Metadata`);
   });
 
@@ -1042,7 +1050,10 @@ describe("JsonSerializer", () => {
     const model = sdkContext.sdkPackage.models[0];
 
     const template = (
-      <SerializerMultiFileWrapper sdkContext={sdkContext} emitterOptions={{ compatibilityMode: true }}>
+      <SerializerMultiFileWrapper
+        sdkContext={sdkContext}
+        emitterOptions={{ compatibilityMode: true }}
+      >
         <ModelInterface model={model} />
         {"\n\n"}
         <JsonSerializer model={model} />
@@ -1077,7 +1088,10 @@ describe("JsonSerializer", () => {
     const model = sdkContext.sdkPackage.models[0];
 
     const template = (
-      <SerializerMultiFileWrapper sdkContext={sdkContext} emitterOptions={{ compatibilityMode: false }}>
+      <SerializerMultiFileWrapper
+        sdkContext={sdkContext}
+        emitterOptions={{ compatibilityMode: false }}
+      >
         <ModelInterface model={model} />
         {"\n\n"}
         <JsonSerializer model={model} />
@@ -1085,7 +1099,9 @@ describe("JsonSerializer", () => {
     );
 
     const result = renderToString(template);
-    expect(result).toContain(`serializeRecord(item["additionalPropertiesBag"] ?? {})`);
+    expect(result).toContain(
+      `serializeRecord(item["additionalPropertiesBag"] ?? {})`,
+    );
     expect(result).toContain(
       `additionalProperties: item["additionalProperties"]`,
     );

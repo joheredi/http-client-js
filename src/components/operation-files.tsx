@@ -111,7 +111,12 @@ function OperationGroupFile(props: OperationGroupFileProps) {
   const content = (
     <SourceFile path="operations.ts">
       <For each={group.operations} doubleHardline>
-        {(method) => <OperationDeclarations method={method} rootClient={group.rootClient} />}
+        {(method) => (
+          <OperationDeclarations
+            method={method}
+            rootClient={group.rootClient}
+          />
+        )}
       </For>
     </SourceFile>
   );
@@ -119,12 +124,14 @@ function OperationGroupFile(props: OperationGroupFileProps) {
   // Use nested SourceDirectory for grouped operations so Alloy computes
   // correct relative import paths (e.g., ./options.js instead of ./group/options.js).
   if (group.prefixPath) {
-    return <SourceDirectory path={group.prefixPath}>
-      <>
-      <BarrelFile />
-      {content}
-      </>
-    </SourceDirectory>;
+    return (
+      <SourceDirectory path={group.prefixPath}>
+        <>
+          <BarrelFile />
+          {content}
+        </>
+      </SourceDirectory>
+    );
   }
   return content;
 }
@@ -252,12 +259,18 @@ function collectOperationGroups(
 ): OperationGroup[] {
   const groupMap = new Map<
     string,
-    { operations: SdkServiceMethod<SdkHttpOperation>[]; rootClient: SdkClientType<SdkHttpOperation> }
+    {
+      operations: SdkServiceMethod<SdkHttpOperation>[];
+      rootClient: SdkClientType<SdkHttpOperation>;
+    }
   >();
 
   // BFS queue: [prefixes, currentClient, rootClient]
-  const queue: [string[], SdkClientType<SdkHttpOperation>, SdkClientType<SdkHttpOperation>][] =
-    clients.map((c) => [[], c, c]);
+  const queue: [
+    string[],
+    SdkClientType<SdkHttpOperation>,
+    SdkClientType<SdkHttpOperation>,
+  ][] = clients.map((c) => [[], c, c]);
 
   while (queue.length > 0) {
     const [prefixes, client, rootClient] = queue.shift()!;
@@ -274,7 +287,11 @@ function collectOperationGroups(
     // Enqueue child clients (operation groups) with extended prefix
     if (client.children) {
       for (const child of client.children) {
-        queue.push([[...prefixes, normalizeName(child.name)], child, rootClient]);
+        queue.push([
+          [...prefixes, normalizeName(child.name)],
+          child,
+          rootClient,
+        ]);
       }
     }
   }
@@ -282,7 +299,11 @@ function collectOperationGroups(
   // Convert map to sorted array of OperationGroup objects
   return Array.from(groupMap.entries())
     .filter(([, group]) => group.operations.length > 0)
-    .map(([prefixPath, group]) => ({ prefixPath, operations: group.operations, rootClient: group.rootClient }));
+    .map(([prefixPath, group]) => ({
+      prefixPath,
+      operations: group.operations,
+      rootClient: group.rootClient,
+    }));
 }
 
 /**

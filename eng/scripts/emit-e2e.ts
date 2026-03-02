@@ -37,7 +37,6 @@ const __dirname = dirname(__filename);
 /** Root of this repository (two levels up from eng/scripts/). */
 const projectRoot = resolve(__dirname, "../..");
 
-
 /**
  * Root directory containing the Spector specs.
  * Uses the http-specs submodule since the npm package has unresolvable
@@ -248,7 +247,10 @@ async function compileSpec(spec: SpecEntry): Promise<CompileResult> {
 
     // Write error log.
     await mkdir(logDir, { recursive: true });
-    const logFile = join(logDir, `${basename(spec.relativePath, ".tsp")}-error.log`);
+    const logFile = join(
+      logDir,
+      `${basename(spec.relativePath, ".tsp")}-error.log`,
+    );
     await writeFile(logFile, errorDetails, "utf8");
 
     return {
@@ -320,8 +322,12 @@ async function main(): Promise<void> {
       const result = await compileSpec(spec);
       completed++;
       const icon = result.status === "succeeded" ? "✅" : "❌";
-      const timing = result.durationMs ? ` (${(result.durationMs / 1000).toFixed(1)}s)` : "";
-      console.log(`${icon} [${completed}/${specs.length}] ${result.specDir}${timing}`);
+      const timing = result.durationMs
+        ? ` (${(result.durationMs / 1000).toFixed(1)}s)`
+        : "";
+      console.log(
+        `${icon} [${completed}/${specs.length}] ${result.specDir}${timing}`,
+      );
       return result;
     }),
   );

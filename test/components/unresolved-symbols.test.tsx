@@ -299,10 +299,7 @@ describe("Unresolved Symbol Prevention", () => {
 
     // Deserialization of an input-only model should return the accessor as-is
     // (passthrough) since there's no deserializer for Input-only models.
-    const result = getDeserializationExpression(
-      inputOnlyModel,
-      'item["data"]',
-    );
+    const result = getDeserializationExpression(inputOnlyModel, 'item["data"]');
     expect(result).toBe('item["data"]');
   });
 

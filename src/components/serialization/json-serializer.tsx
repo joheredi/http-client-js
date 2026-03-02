@@ -91,7 +91,8 @@ export interface JsonSerializerProps {
  */
 export function JsonSerializer(props: JsonSerializerProps) {
   const { model, refkeyOverride, nameSuffix, includeParentProperties } = props;
-  const { experimentalExtensibleEnums, compatibilityMode } = useEmitterOptions();
+  const { experimentalExtensibleEnums, compatibilityMode } =
+    useEmitterOptions();
   const serOpts: SerializationOptions = { experimentalExtensibleEnums };
   const properties = getSerializableProperties(model, includeParentProperties);
   const hasAdditional = hasAdditionalProperties(model);

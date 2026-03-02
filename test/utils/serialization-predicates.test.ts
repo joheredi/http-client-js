@@ -71,9 +71,7 @@ function createMockModel(
     access: "public",
     usage,
     properties,
-    serializationOptions: xmlSerialization
-      ? { xml: { name } }
-      : undefined,
+    serializationOptions: xmlSerialization ? { xml: { name } } : undefined,
     crossLanguageDefinitionId: `Test.${name}`,
   } as any;
 }

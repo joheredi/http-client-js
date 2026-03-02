@@ -2058,6 +2058,7 @@ const hasCreate = prop.visibility.some((v: any) => {
 ## Design Decisions
 
 ### SMOKE-3: Endpoint parameter name escaping in code templates
+
 **Chosen approach**: Use `getEscapedParameterName(arg.name)` from `name-policy.ts` for required parameter references in code templates (code\`...\`), while keeping raw `arg.name` for local variable references.
 
 **Why**: The name policy transforms ParameterDescriptor names in function signatures, but `code` template interpolations bypass the name policy. Required endpoint parameters become function parameters (name-policy-transformed), while optional/defaulted args get local variables (raw name via string interpolation). A `Map<string, string>` tracks which args are local vars vs parameters.
@@ -2067,6 +2068,7 @@ const hasCreate = prop.visibility.some((v: any) => {
 ## Design Decisions
 
 ### expandUrlTemplate as Static Helper (SMOKE-4)
+
 **Chosen approach:** Emit `expandUrlTemplate` as a static helper file (`static-helpers/urlTemplate.ts`) using the same pattern as serialization/multipart/xml helpers. The function is registered with `urlTemplateHelperRefkey("expandUrlTemplate")` and referenced via the RuntimeLib abstraction.
 
 **Why:** `expandUrlTemplate` does NOT exist in `@typespec/ts-http-runtime` (any version). The legacy emitter emits it as a static file. Our emitter matches this behavior exactly.
@@ -2076,18 +2078,23 @@ const hasCreate = prop.visibility.some((v: any) => {
 **Gotcha:** Static helper refkeys require the declaration component in the render tree. Tests that use `SdkTestFile` without including `UrlTemplateHelpersFile` will get `<Unresolved Symbol>` for expandUrlTemplate. Use `UrlTemplateTestWrapper` (defined in send-operation.test.tsx and public-operation.test.tsx) or include the helper file in your test wrapper.
 
 ## Alloy type parameters require namekey ignoreNamePolicy
+
 **Problem:** Alloy treats type parameters using the "parameter" naming kind, which applies camelCase transformation. This turns `T` → `t`, `TResult` → `tResult`, etc. in function/interface signatures. But code body references (in `code` template literals) use the original uppercase names, causing TypeScript TS2552 errors.
 **Solution:** Always use `namekey(name, { ignoreNamePolicy: true })` for type parameter names:
+
 ```tsx
 typeParameters={[{ name: namekey("T", { ignoreNamePolicy: true }) }]}
 ```
+
 **Why:** Standard TypeScript convention uses uppercase single-letter or PascalCase type parameters (T, TResult, TElement). The name policy's camelCase transformation breaks this convention and creates mismatches with code body references.
 
 ## Design Decisions
 
 ### SMOKE-5: Type parameter casing fix approach
+
 **Chosen approach:** Per-site `namekey(name, { ignoreNamePolicy: true })` on each type parameter.
 **Rejected approaches:**
+
 1. Modifying the name policy to skip single-letter names — too fragile, doesn't handle multi-letter params like TResult.
 2. Changing Alloy's type parameter handling to use a "type-parameter" naming kind — requires submodule changes (forbidden).
 3. Using `$DO_NOT_NORMALIZE$` marker prefix — uncertain compatibility with TypeParameterDescriptor processing.
@@ -2156,31 +2163,37 @@ declarations are actually generated.
 **Key rule**: When referencing options properties in generated operation code, ALWAYS use `normalizePropertyName()` to match the camelCase name policy. Required parameters (direct function args) already use `getEscapedParameterName()` which applies camelCase.
 
 ## Header-based API version parameters
+
 - When `x-ms-version` (or similar) is a header parameter with `isApiVersionParam=true` and `onClient=true`, the accessor must read from context (e.g., `context.version`), not from options. The options interface excludes apiVersion params via `isOptionalParameter()`.
 - The parameter name on the context is `param.name` (e.g., "version" for Azure Blob Storage, "apiVersion" for most other services). Do NOT hardcode "apiVersion".
 - Currently uses `(context as any).paramName` because operations type context as base `Client`. Follow-up task FIX-CONTEXT-PARAM-TYPE tracks fixing the context parameter type to use the specific client context refkey.
 
 ## Context parameter typing TODO
+
 - Operations in send-operation.tsx and public-operation.tsx type the context parameter as `runtimeLib.Client` (the base REST client interface). The actual context type at runtime is the specific client context (e.g., `BlobContext extends Client`) which has custom properties like `version`. Fixing this requires using `clientContextRefkey(rootClient)` and updating 49+ scenario test expectations. See task FIX-CONTEXT-PARAM-TYPE.
 
 ## Design Decisions
 
 ### Classical Wrapper Return Types for Paging/LRO (RC23)
+
 **Approach chosen**: Export `getPagingItemType` from `public-operation.tsx` and reuse it in both classical files. Use `useFlavorContext()` to gate Azure-specific return types.
 **Why**: DRY approach with single source of truth for paging element type extraction. The classical layer naturally depends on the public operation layer's type computations.
 **Rejected**: Duplicating `getPagingItemType` inline in each file (would create maintenance burden and risk divergence).
 
 ### Testing Azure Flavor in Classical Components
+
 **Pattern**: Use `azureExternals` from `src/emitter.js` (not just `httpRuntimeLib`) when testing with `FlavorProvider flavor="azure"`. Include `PagingHelpersFile` in the render tree so that `pagingHelperRefkey("PagedAsyncIterableIterator")` resolves.
 
 ## Design Decisions
 
 ### buildCsvCollection undefined handling (2026-03-01)
+
 **Decision**: Changed collection builder functions to accept `undefined` parameter and return `string | undefined`.
 **Why**: Optional query parameters produce `EnumType[] | undefined` at call sites. Fixing the helper signature is simpler than guarding every call site.
 **Rejected**: Adding `!== undefined` guards at each call site (more verbose generated code, more places to maintain).
 
 ### buildPagedAsyncIterator uses PromiseLike (2026-03-01)
+
 **Decision**: Changed `getInitialResponse` and `processResponseBody` parameter types from `Promise` to `PromiseLike`.
 **Why**: Send functions return `StreamableMethod` which extends `PromiseLike<PathUncheckedResponse>`, not `Promise`. The legacy emitter also uses `PromiseLike`. `await` works with `PromiseLike`.
 **Rejected**: Wrapping send calls with `async () => await send(...)` (unnecessary runtime overhead, differs from legacy output).
@@ -2188,41 +2201,50 @@ declarations are actually generated.
 ## Design Decisions
 
 ### Spector stub for @typespec/spector (2026-03-01)
+
 **Decision**: Created a minimal stub package at `eng/spector-stub/` instead of installing `@typespec/spector` from npm.
 **Why**: The npm-published `@typespec/http-specs` (v0.37.2) depends on `@typespec/spec` which doesn't exist on npm. Alpha versions target compiler ~0.64.0, incompatible with our 1.9.0. The stub provides no-op decorator implementations for `@scenario`, `@scenarioDoc`, `@scenarioService`.
 **Key gotcha**: The `tsp-index.js` (loaded by the compiler via `lib/main.tsp`) must NOT export `$`-prefixed decorator functions as top-level exports. This causes "ambiguous-symbol" errors when specs use `using Spector;`. Instead, use only the `$decorators` map for namespace-qualified registration, and put `$`-prefixed exports in a separate `decorators.js` that's re-exported from `index.js` (for JS consumers like `special-words/dec.js`).
 **Rejected**: Installing from npm (dependency issues), building spector from submodule (too many workspace dependencies).
 
 ### emit-e2e uses --option CLI flags instead of tspconfig.yaml (2026-03-01)
+
 **Decision**: Pass emitter options via `--option http-client-js.emitter-output-dir=...` CLI flags instead of a `--config tspconfig.yaml`.
 **Why**: The `emitter-output-dir` option in tspconfig.yaml wasn't being picked up when using `--emit <path>` on the CLI. Using `--option` flags directly works reliably and puts output in the correct directory without the extra `http-client-js/` subdirectory.
 **Rejected**: tspconfig.yaml approach (emitter-output-dir not respected).
 
 ### Specs sourced from submodule, not npm (2026-03-01)
+
 **Decision**: The emit-e2e script reads specs from `submodules/typespec/packages/http-specs/specs/` instead of `node_modules/@typespec/http-specs/specs/`.
 **Why**: `@typespec/http-specs` can't be installed from npm due to unresolvable transitive dependency on `@typespec/spec`. The submodule already has the specs available.
 
 ## Design Decisions
 
 ### getClient call pattern is flavor-dependent (2026-03-01)
+
 The `buildGetClientCall()` function generates different patterns based on the runtime flavor:
+
 - **Azure** (`@azure-rest/core-client`): `getClient(endpoint, credential, updatedOptions)` — 3-arg overload exists
 - **Core** (`@typespec/ts-http-runtime`): `getClient(endpoint, { ...updatedOptions, credential, authSchemes: [...] })` — only 2-arg, credential and authSchemes must be inside options
 
 Rejected approach: Using the same 3-arg call for both flavors. This broke the core runtime because:
+
 1. The 3rd arg is ignored (core `getClient` only has 2 params)
 2. The credential becomes `clientOptions`, losing `allowInsecureConnection` and other real options
 3. Auth policies never get configured because `authSchemes` is missing
 
 ### Core runtime auth scheme generation (2026-03-01)
+
 The core runtime's `createDefaultPipeline` reads `credential` + `authSchemes` from `ClientOptions` to configure auth policies (apiKey, bearer, basic, oauth2). Without `authSchemes`, the API key auth policy skips adding headers entirely. The `buildAuthSchemesLiteral()` function in `client-context.tsx` generates this config from TCGC's `SdkCredentialType.scheme` (which is `HttpAuth` from `@typespec/http`).
 
 ### Type name mismatch: KeyCredential vs ApiKeyCredential (2026-03-01)
+
 The emitter's external packages declare `KeyCredential` and `TokenCredential` as exports from `@typespec/ts-http-runtime`, but the actual runtime 0.2.1 exports `ApiKeyCredential`, `BearerTokenCredential`, `BasicCredential`, `OAuth2TokenCredential`, and `ClientCredential`. The generated code compiles because `skipLibCheck: true` hides the type mismatch. This should be fixed in a future task to align type names with the actual runtime exports.
 
 ## Custom HTTP Auth Scheme Mismatch (SharedAccessKey)
 
 **Issue**: The emitter generates `{ kind: "http", scheme: "sharedaccesskey" }` for custom HTTP auth schemes, but the `@typespec/ts-http-runtime` only supports these auth scheme kinds:
+
 - `apiKey` → `apiKeyAuthenticationPolicy` (matches `kind: "apiKey"`)
 - `http` with `scheme: "basic"` → `basicAuthenticationPolicy`
 - `http` with `scheme: "bearer"` → `bearerAuthenticationPolicy`
@@ -2236,6 +2258,7 @@ Custom HTTP schemes like `sharedaccesskey` are not matched by any policy, so the
 ## Design Decisions
 
 ### E2E test pattern for encode/serialization tests (SPECTOR-6, 2026-03-01)
+
 **Chosen approach**: Adapt reference tests from `submodules/typespec/packages/http-client-js/test/e2e/http/` to our single-client pattern, supplemented with legacy test coverage.
 **Rejected approach**: Port directly from legacy autorest.typescript tests (different assertion library, different client API, more adaptation work).
 **Rationale**: Reference tests are already Vitest-based and structurally similar. Main adaptation was changing from separate sub-clients (`new QueryClient()`) to operation groups on a single client (`new BytesClient().query.xxx`).
@@ -2243,24 +2266,30 @@ Custom HTTP schemes like `sharedaccesskey` are not matched by any policy, so the
 ## Emitter Bugs Found During E2E Testing (2026-03-01)
 
 ### 1. Extensible enum array serializer — Unresolved Symbol
+
 The generated `encode/array` extensible enum serializers contain `<Unresolved Symbol: refkey[sarraySerializer⁣senum]>` references. The refkey for the enum element serializer is never declared. This makes the entire encode/array client unusable since the models.ts file has syntax errors.
 **Affected**: `test/e2e/generated/encode/array/src/models/models.ts` lines 173-197
 
 ### 2. Date/Uint8Array query parameter serialization
+
 The generated query operations pass raw `Date` objects and `Uint8Array` values directly to `expandUrlTemplate()` without formatting them first. The URL template expansion calls `.toString()` which produces incorrect output:
+
 - Date → empty string or `[object Date]` instead of RFC3339/RFC7231/unix timestamp format
 - Uint8Array → comma-separated numbers instead of base64-encoded string
-**Affected**: All encode/datetime query operations, all encode/bytes query operations
+  **Affected**: All encode/datetime query operations, all encode/bytes query operations
 
 ### 3. Uint8Array header serialization
+
 Same issue as query params — raw Uint8Array passed to headers without base64 encoding.
 **Affected**: All encode/bytes header operations
 
 ### 4. operationOptions.onResponse callback not invoked
+
 The generated response header operations accept optional params with `operationOptions.onResponse`, but this callback is never invoked by the runtime, making response header inspection impossible.
 **Affected**: All encode/datetime responseHeader operations
 
 ### 5. Buffer vs Uint8Array in byte responses
+
 The runtime deserializes base64-encoded bytes as Node.js `Buffer` instead of `Uint8Array`. Tests must wrap responses with `new Uint8Array(response.value)` for strict equality comparisons.
 **Affected**: All encode/bytes property and responseBody operations
 
@@ -2317,7 +2346,9 @@ When comparing bytes in e2e tests, the Node.js HTTP runtime returns `Buffer` obj
 
 ```typescript
 // ✅ Correct
-expect(new Uint8Array(response.property)).toEqual(new Uint8Array(expectedBytes));
+expect(new Uint8Array(response.property)).toEqual(
+  new Uint8Array(expectedBytes),
+);
 
 // ❌ Fails — Buffer vs Uint8Array mismatch
 expect(response.property).toEqual(expectedBytes);
@@ -2334,12 +2365,15 @@ The Spector mock server (tsp-spector) is **lenient about Content-Type header mat
 `@typespec/ts-http-runtime@0.2.1` has a bug in `createRestError(result)`: when `result.body` is `undefined` (e.g., 500 response with no body), it crashes with `TypeError: Cannot read properties of undefined (reading 'message')`. The bug is at `internalError.message` which should be `internalError?.message`. **Fixed via pnpm patch** (`patches/@typespec__ts-http-runtime@0.2.1.patch`) — patch can be removed when the upstream runtime is updated.
 
 ## Runtime Auth API Mismatch (2026-03-01)
+
 The `@typespec/ts-http-runtime` exports `isApiKeyCredential` and `ApiKeyCredential`, NOT `isKeyCredential` and `KeyCredential`. The external-packages.ts declares `isKeyCredential` as available from the runtime, but it is not actually exported. For generated code that needs a key-credential type guard, use `"key" in credential` duck-type check instead. The `KeyCredential` type declaration works because it matches `ApiKeyCredential` structurally, but the function `isKeyCredential` does not exist in the runtime.
 
 ## Custom HTTP Auth Scheme Pattern (2026-03-01)
+
 For non-standard HTTP auth schemes (not basic/bearer), the emitter generates a custom pipeline policy instead of using `authSchemes`. The runtime only handles `kind: "http"` with `scheme: "basic"` or `scheme: "bearer"`. Custom schemes like "SharedAccessKey" need a manual `clientContext.pipeline.addPolicy()` that sets `Authorization: <SchemeName> <credential.key>`. This matches the legacy emitter's approach from `buildClientContext.ts`.
 
 ## Response Header Access Pattern
+
 - Operations with response headers (no body) return `Promise<void>` — matching legacy behavior
 - Response headers are accessed via `onResponse` callback on `OperationOptions`
 - The `onResponse` callback is a top-level property of `OperationOptions`, NOT nested under `requestOptions` or `operationOptions`
@@ -2348,6 +2382,7 @@ For non-standard HTTP auth schemes (not basic/bearer), the emitter generates a c
 - The runtime's `sendRequest` invokes `onResponse` on both success and error responses
 
 ## TCGC additionalProperties Inheritance (2026-03-02)
+
 - TCGC does NOT propagate `additionalProperties` to derived/child types
 - Only the model that directly declares `extends Record<T>` gets `additionalProperties` set
 - To detect inherited additionalProperties, walk the `baseModel` chain upward
@@ -2357,7 +2392,9 @@ For non-standard HTTP auth schemes (not basic/bearer), the emitter generates a c
 ## Design Decisions
 
 ### Non-discriminated union discrimination strategy (RC23)
+
 For non-discriminated unions with variants requiring active deserialization (Date parsing, etc.), the emitter now generates runtime discrimination instead of pass-through. Three strategies are used in priority order:
+
 1. **Switch on constant property values** — Best case, when all variants share a property with distinct constant values (e.g., `kind: "kind0"` vs `kind: "kind1"`)
 2. **Property existence check** — Fallback when constant values overlap; uses `"propName" in item` to identify variants with unique properties
 3. **Array.isArray check** — For unions mixing array and non-array variants
@@ -2365,19 +2402,23 @@ For non-discriminated unions with variants requiring active deserialization (Dat
 The serializer side was intentionally NOT modified — JSON.stringify handles Date→ISO string conversion correctly when Date objects pass through the serializer unchanged. This avoids the complexity of generating serializer declarations for generated-name unions and modifying `typeHasSerializerDeclaration`/`inputUnions` filters.
 
 ## E2E Test: Multipart File Descriptor Pattern
+
 When testing multipart endpoints against the Spector mock server, raw `Uint8Array` binary data is insufficient.
 The mock server requires file parts with filenames. Use file descriptors `{ contents: Uint8Array, filename: string, contentType?: string }` via `as any` cast since the generated model types say `Uint8Array`. The `createFilePartDescriptor` helper in the generated code handles both formats.
 
 ## E2E Test: Pageable Response Type Mismatch
+
 The generated pageable client's `link()` and continuation token operations have `Promise<Pet[]>` return types,
 but at runtime return the full response object (e.g., `{ pets: Pet[], next?: string }`). Use `(result as any).pets ?? result` to safely access the items array.
 
 ## Code Gen Bug: Spread Parameter Name with Hyphens
+
 The generated `classic/alias/index.ts` for `parameters/spread` contains `x-ms-test-header: string` as a TypeScript parameter name in interface definitions. Hyphens are invalid in TS identifiers. This causes esbuild parse failures and prevents the entire module from loading. The name policy should escape or quote such names.
 
 ## Design Decisions
 
 ### SPECTOR-8: getSafeMethodParamName normalization (2026-03-02)
+
 `getSafeMethodParamName()` now delegates to `getEscapedParameterName()` for full normalization
 (camelCase + reserved word escaping). This ensures raw string references in `code` templates
 match what Alloy's name policy produces for `ParameterDescriptor` names. Without this,
@@ -2385,7 +2426,9 @@ the classical client method body could reference `repeatabilityRequestID` while 
 parameter was declared as `repeatabilityRequestId`, or use `break` as a bare identifier.
 
 ### Import path depth for e2e tests (2026-03-02)
+
 E2e test import paths depend on directory nesting depth:
+
 - 2-level deep (e.g., versioning/added): `../../../generated/versioning/added/src/index.js`
 - 1-level deep (e.g., special-words): `../../generated/special-words/src/index.js`
-Count from test file location to test/e2e/ (always 2+ ../ for http/ prefix).
+  Count from test file location to test/e2e/ (always 2+ ../ for http/ prefix).

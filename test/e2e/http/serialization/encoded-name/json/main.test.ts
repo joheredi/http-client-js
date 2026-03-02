@@ -11,7 +11,10 @@ import { JsonClient } from "../../../../generated/serialization/encoded-name/jso
 
 describe("Serialization.EncodedName.Json", () => {
   describe("PropertyOperations", () => {
-    const client = new JsonClient({ endpoint: "http://localhost:3002", allowInsecureConnection: true });
+    const client = new JsonClient({
+      endpoint: "http://localhost:3002",
+      allowInsecureConnection: true,
+    });
 
     it("should send a JsonEncodedNameModel with 'defaultName' mapped to 'wireName'", async () => {
       await client.property.send({ defaultName: true });
