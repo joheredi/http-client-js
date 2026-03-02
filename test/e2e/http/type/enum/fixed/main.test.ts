@@ -31,10 +31,7 @@ describe("Type.Enum.Fixed", () => {
     await client.string.putKnownValue("Monday");
   });
 
-  // Runtime bug: createRestError in @typespec/ts-http-runtime@0.2.1 crashes with
-  // TypeError when the 500 response has no body (result.body is undefined).
-  // See task E2E-FIX-EMPTY-BODY-REST-ERROR for tracking.
-  it.skip("should put an unknown enum value and receive 500", async () => {
+  it("should put an unknown enum value and receive 500", async () => {
     try {
       await client.string.putUnknownValue("Weekend" as any);
       expect.unreachable("Expected error with status code 500");

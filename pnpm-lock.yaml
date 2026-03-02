@@ -4,6 +4,11 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+patchedDependencies:
+  '@typespec/ts-http-runtime@0.2.1':
+    hash: 9e532f1bac45087255f21b987d4fb8f1b0a0fc123cef31129656f234eee754b5
+    path: patches/@typespec__ts-http-runtime@0.2.1.patch
+
 importers:
 
   .:
@@ -62,7 +67,7 @@ importers:
         version: 0.1.0-alpha.23(@types/node@24.10.13)(@typespec/streams@0.79.0(@typespec/compiler@1.9.0(@types/node@24.10.13)))
       '@typespec/ts-http-runtime':
         specifier: 0.2.1
-        version: 0.2.1
+        version: 0.2.1(patch_hash=9e532f1bac45087255f21b987d4fb8f1b0a0fc123cef31129656f234eee754b5)
       '@typespec/versioning':
         specifier: ^0.79.0
         version: 0.79.0(@typespec/compiler@1.9.0(@types/node@24.10.13))
@@ -3766,7 +3771,7 @@ snapshots:
     dependencies:
       '@typespec/compiler': 1.9.0(@types/node@24.10.13)
 
-  '@typespec/ts-http-runtime@0.2.1':
+  '@typespec/ts-http-runtime@0.2.1(patch_hash=9e532f1bac45087255f21b987d4fb8f1b0a0fc123cef31129656f234eee754b5)':
     dependencies:
       http-proxy-agent: 7.0.2
       https-proxy-agent: 7.0.6

@@ -2654,3 +2654,28 @@ All CI passes: 1016 unit tests, smoke tests, 414 e2e tests (+6 from unskipped).
 **Also fixed**: Cleaned stale `test/e2e/generated/type/union` directory that was causing ENOTEMPTY error in e2e test runner.
 
 **Validation**: Full CI passes — 1016 unit tests, smoke test, 416 e2e tests all green.
+
+---
+
+## RC26 — Fix createRestError crash on empty-body error responses (2026-03-02)
+
+**Task:** E2E-FIX-EMPTY-BODY-REST-ERROR
+
+**Problem:** `createRestError(result)` in `@typespec/ts-http-runtime@0.2.1` crashes with `TypeError: Cannot read properties of undefined (reading 'message')` when `result.body` is undefined (e.g., 500 responses with no body). This caused the `Type.Enum.Fixed` e2e test for unknown enum values to fail.
+
+**Root cause:** In the runtime's `createRestError()`, `internalError.message` is accessed without null-checking `internalError`. When `resp.body` is undefined, `internalError` is undefined too, so `.message` access throws.
+
+**Fix:** Applied a pnpm patch to `@typespec/ts-http-runtime@0.2.1` that adds optional chaining to the `.message` access (`internalError?.message`), matching the pattern already used for `.code` on the next line. This is a 1-character fix in each of 3 dist variants (browser, commonjs, esm).
+
+**Design decision:** Chose pnpm patch over changing emitter output because:
+1. The bug is in the runtime, not the emitter
+2. The emitter's generated `throw createRestError(result)` is correct and matches legacy output
+3. Changing to the string overload would have required updating 46+ scenario test expectations
+4. The patch can be removed when the upstream runtime is fixed
+
+**Changes:**
+- `patches/@typespec__ts-http-runtime@0.2.1.patch` — new pnpm patch file
+- `pnpm-workspace.yaml` — patch configuration added
+- `test/e2e/http/type/enum/fixed/main.test.ts` — unskipped the e2e test
+
+**Validation:** All 1016 unit tests pass, smoke test passes, all 417 e2e tests pass (16 still skipped for other reasons).

@@ -1,0 +1,39 @@
+diff --git a/dist/browser/client/restError.js b/dist/browser/client/restError.js
+index 09e1cdf0cd8d4cf28c31ba89ce087f1c680d9f6d..31065a97a06488a88e725b4c47f476de17d4ea51 100644
+--- a/dist/browser/client/restError.js
++++ b/dist/browser/client/restError.js
+@@ -8,7 +8,7 @@ export function createRestError(messageOrResponse, response) {
+     const internalError = (_b = (_a = resp.body) === null || _a === void 0 ? void 0 : _a.error) !== null && _b !== void 0 ? _b : resp.body;
+     const message = typeof messageOrResponse === "string"
+         ? messageOrResponse
+-        : ((_c = internalError.message) !== null && _c !== void 0 ? _c : `Unexpected status code: ${resp.status}`);
++        : ((_c = internalError === null || internalError === void 0 ? void 0 : internalError.message) !== null && _c !== void 0 ? _c : `Unexpected status code: ${resp.status}`);
+     return new RestError(message, {
+         statusCode: statusCodeToNumber(resp.status),
+         code: internalError === null || internalError === void 0 ? void 0 : internalError.code,
+diff --git a/dist/commonjs/client/restError.js b/dist/commonjs/client/restError.js
+index 3826c214dca8e2745f06caf082c426816359d2b9..d7e61b75a315af0ad982b20a9b750ddf44f4536b 100644
+--- a/dist/commonjs/client/restError.js
++++ b/dist/commonjs/client/restError.js
+@@ -11,7 +11,7 @@ function createRestError(messageOrResponse, response) {
+     const internalError = (_b = (_a = resp.body) === null || _a === void 0 ? void 0 : _a.error) !== null && _b !== void 0 ? _b : resp.body;
+     const message = typeof messageOrResponse === "string"
+         ? messageOrResponse
+-        : ((_c = internalError.message) !== null && _c !== void 0 ? _c : `Unexpected status code: ${resp.status}`);
++        : ((_c = internalError === null || internalError === void 0 ? void 0 : internalError.message) !== null && _c !== void 0 ? _c : `Unexpected status code: ${resp.status}`);
+     return new restError_js_1.RestError(message, {
+         statusCode: statusCodeToNumber(resp.status),
+         code: internalError === null || internalError === void 0 ? void 0 : internalError.code,
+diff --git a/dist/esm/client/restError.js b/dist/esm/client/restError.js
+index 09e1cdf0cd8d4cf28c31ba89ce087f1c680d9f6d..31065a97a06488a88e725b4c47f476de17d4ea51 100644
+--- a/dist/esm/client/restError.js
++++ b/dist/esm/client/restError.js
+@@ -8,7 +8,7 @@ export function createRestError(messageOrResponse, response) {
+     const internalError = (_b = (_a = resp.body) === null || _a === void 0 ? void 0 : _a.error) !== null && _b !== void 0 ? _b : resp.body;
+     const message = typeof messageOrResponse === "string"
+         ? messageOrResponse
+-        : ((_c = internalError.message) !== null && _c !== void 0 ? _c : `Unexpected status code: ${resp.status}`);
++        : ((_c = internalError === null || internalError === void 0 ? void 0 : internalError.message) !== null && _c !== void 0 ? _c : `Unexpected status code: ${resp.status}`);
+     return new RestError(message, {
+         statusCode: statusCodeToNumber(resp.status),
+         code: internalError === null || internalError === void 0 ? void 0 : internalError.code,

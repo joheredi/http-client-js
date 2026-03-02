@@ -703,7 +703,7 @@
       "title": "Fix createRestError crash on empty-body error responses (e.g., 500 with no body)",
       "category": "bug-fix/emitter",
       "priority": "P2",
-      "status": "pending",
+      "status": "done",
       "kind": "feature",
       "dependencies": [],
       "design_review": null,

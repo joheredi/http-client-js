@@ -2331,7 +2331,7 @@ The Spector mock server (tsp-spector) is **lenient about Content-Type header mat
 
 ## createRestError Runtime Bug (2026-03-01)
 
-`@typespec/ts-http-runtime@0.2.1` has a bug in `createRestError(result)`: when `result.body` is `undefined` (e.g., 500 response with no body), it crashes with `TypeError: Cannot read properties of undefined (reading 'message')`. The bug is at `internalError.message` which should be `internalError?.message`. The string overload `createRestError("msg", result)` is a safe workaround since it skips body access for the message.
+`@typespec/ts-http-runtime@0.2.1` has a bug in `createRestError(result)`: when `result.body` is `undefined` (e.g., 500 response with no body), it crashes with `TypeError: Cannot read properties of undefined (reading 'message')`. The bug is at `internalError.message` which should be `internalError?.message`. **Fixed via pnpm patch** (`patches/@typespec__ts-http-runtime@0.2.1.patch`) — patch can be removed when the upstream runtime is updated.
 
 ## Runtime Auth API Mismatch (2026-03-01)
 The `@typespec/ts-http-runtime` exports `isApiKeyCredential` and `ApiKeyCredential`, NOT `isKeyCredential` and `KeyCredential`. The external-packages.ts declares `isKeyCredential` as available from the runtime, but it is not actually exported. For generated code that needs a key-credential type guard, use `"key" in credential` duck-type check instead. The `KeyCredential` type declaration works because it matches `ApiKeyCredential` structurally, but the function `isKeyCredential` does not exist in the runtime.
