@@ -9,11 +9,3 @@ scratch
 
 # Documentation specs (not client tests)
 documentation
-
-# ARM specs with <Unresolved Symbol> bugs in generated code (emitter issues)
-azure/resource-manager/resources
-azure/resource-manager/method-subscription-id
-azure/resource-manager/multi-service
-azure/resource-manager/multi-service-older-versions
-azure/resource-manager/multi-service-shared-models
-azure/resource-manager/operation-templates

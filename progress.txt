@@ -2830,3 +2830,42 @@ When `type/union` and `type/union/discriminated` are compiled in parallel, they 
 - Coverage file is at `temp/spector-coverage.json` (gitignored)
 - Run `pnpm coverage` to see current e2e coverage
 - 126 scenarios are not-implemented (XML, pagination, streaming, multipart, visibility, etc.)
+
+---
+## RC28 — Fix <Unresolved Symbol> in ARM resource-manager code (2026-03-02)
+
+### Task: E2E-AZURE-UNRESOLVED-SYMBOL-ARM
+
+### Problem
+6 ARM resource-manager specs generated code with `<Unresolved Symbol: refkey[o222⁣sserializer]>` in serializers for the `provisioningState` property. A secondary issue was a missing `exportResultArrayDeserializer` in the `operation-templates` spec.
+
+### Root Causes (Two separate bugs)
+
+**Bug 1: Output-only enum serializer reference**
+- `ProvisioningState` is a union-as-enum type with only `UsageFlags.Output` (it's readonly)
+- The serializer for models containing this property called `serializerRefkey(ProvisioningState)` 
+- But enum serializer declarations were only rendered for types with `UsageFlags.Input`
+- Result: Unresolved Symbol in 5 ARM specs
+
+**Bug 2: LRO response types not collected for array helpers**
+- `collectAllPropertyAndOperationTypes()` only walked `method.kind === "basic"` operations
+- LRO operations (`method.kind === "lro"`) were skipped
+- So `ExportResult[]` array deserializer helper was never generated
+- Result: Unresolved Symbol in `operation-templates` spec
+
+### Fixes Applied
+
+1. **`src/components/serialization/json-serializer.tsx`**: Added `(type.usage & UsageFlags.Input) !== 0` check to both `getSerializationExpression()` and `needsTransformation()` for the `enum` case. Output-only enums now pass through without serializer calls.
+
+2. **`src/utils/serialization-predicates.ts`**: Added `enum` case to `typeHasSerializerDeclaration()` for consistency with the filtering in model-files.tsx.
+
+3. **`src/components/model-files.tsx`**: Extended `walkClient()` in `collectAllPropertyAndOperationTypes()` to also handle `lro`, `paging`, and `lropaging` method kinds.
+
+4. **`test/e2e/.testignore`**: Removed all 6 ARM resource-manager entries since the bugs are fixed.
+
+5. **`test/utils/serialization-predicates.test.ts`**: Added 4 new tests for enum type serializer predicate.
+
+### Patterns
+- When `needsTransformation()` returns true for a type, ensure the corresponding serializer/deserializer declaration exists
+- `typeHasSerializerDeclaration()` must mirror `model-files.tsx` filtering exactly
+- All method kinds (basic, lro, paging, lropaging) must be walked when collecting types

@@ -727,7 +727,7 @@
       "title": "Fix <Unresolved Symbol> in generated ARM resource-manager code",
       "category": "bug-fix/emitter",
       "priority": "P1",
-      "status": "not-started",
+      "status": "done",
       "kind": "bug",
       "dependencies": [],
       "design_review": null,

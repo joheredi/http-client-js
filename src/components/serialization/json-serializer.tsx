@@ -396,10 +396,14 @@ export function getSerializationExpression(
       // have pass-through serializer functions when experimentalExtensibleEnums
       // is NOT true. Call the serializer refkey so model serializers reference it.
       // Only activates when options is explicitly provided (serialization context).
+      // The enum must also have Input usage — output-only enums (e.g., ARM
+      // ProvisioningState) don't get serializer declarations, so referencing their
+      // refkey would produce an <Unresolved Symbol>.
       if (
         options &&
         (type as SdkEnumType).isUnionAsEnum &&
-        !options.experimentalExtensibleEnums
+        !options.experimentalExtensibleEnums &&
+        (type.usage & UsageFlags.Input) !== 0
       ) {
         return code`${serializerRefkey(type)}(${accessor})`;
       }
@@ -464,10 +468,13 @@ export function needsTransformation(
       // the enum renders as a simple string type with no serializer.
       // Only returns true when options is explicitly provided (serialization
       // context). Deserialization calls without options get backward-compatible false.
+      // The enum must also have Input usage — output-only enums (e.g., ARM
+      // ProvisioningState) don't get serializer declarations and should pass through.
       return !!(
         options &&
         (type as SdkEnumType).isUnionAsEnum &&
-        !options.experimentalExtensibleEnums
+        !options.experimentalExtensibleEnums &&
+        (type.usage & UsageFlags.Input) !== 0
       );
     default:
       return false;

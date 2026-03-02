@@ -1140,10 +1140,17 @@ function collectAllPropertyAndOperationTypes(
   }
 
   // Walk operations from clients to find array/dict types in
-  // request bodies and response types not covered by model properties
+  // request bodies and response types not covered by model properties.
+  // All method kinds (basic, lro, paging, lropaging) are included so that
+  // array/dict helpers are generated for every response shape.
   function walkClient(client: SdkClientType<SdkHttpOperation>) {
     for (const method of client.methods) {
-      if (method.kind === "basic") {
+      if (
+        method.kind === "basic" ||
+        method.kind === "lro" ||
+        method.kind === "paging" ||
+        method.kind === "lropaging"
+      ) {
         // Request body type
         for (const param of method.parameters) {
           if (param.kind === "method") {

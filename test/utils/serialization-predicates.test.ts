@@ -19,7 +19,10 @@
  */
 import { describe, expect, it } from "vitest";
 import { UsageFlags } from "@azure-tools/typespec-client-generator-core";
-import type { SdkModelType } from "@azure-tools/typespec-client-generator-core";
+import type {
+  SdkEnumType,
+  SdkModelType,
+} from "@azure-tools/typespec-client-generator-core";
 import {
   typeHasSerializerDeclaration,
   typeHasDeserializerDeclaration,
@@ -166,5 +169,77 @@ describe("typeHasDeserializerDeclaration", () => {
   it("should return false for Input-only models", () => {
     const model = createMockModel("Widget", UsageFlags.Input);
     expect(typeHasDeserializerDeclaration(model)).toBe(false);
+  });
+});
+
+/**
+ * Creates a minimal mock SdkEnumType for testing predicate functions.
+ *
+ * @param name - Enum name.
+ * @param usage - UsageFlags bitmask.
+ * @param isUnionAsEnum - Whether this enum was derived from a TypeSpec union.
+ * @returns A mock SdkEnumType with the specified flags.
+ */
+function createMockEnum(
+  name: string,
+  usage: number,
+  isUnionAsEnum: boolean,
+): SdkEnumType {
+  return {
+    kind: "enum",
+    name,
+    access: "public",
+    usage,
+    isUnionAsEnum,
+    valueType: { kind: "string" as const },
+    values: [],
+    crossLanguageDefinitionId: `Test.${name}`,
+  } as any;
+}
+
+describe("typeHasSerializerDeclaration — enum types", () => {
+  /**
+   * Union-as-enum types with Input usage get pass-through serializer
+   * declarations. Verifies that serializerRefkey resolves for Input enums.
+   */
+  it("should return true for union-as-enum with Input usage", () => {
+    const enumType = createMockEnum("Status", UsageFlags.Input, true);
+    expect(typeHasSerializerDeclaration(enumType)).toBe(true);
+  });
+
+  /**
+   * ARM ProvisioningState fix: Output-only union-as-enum types should NOT
+   * have serializer declarations. Referencing serializerRefkey for these
+   * would produce <Unresolved Symbol> in generated code.
+   */
+  it("should return false for output-only union-as-enum", () => {
+    const enumType = createMockEnum(
+      "ProvisioningState",
+      UsageFlags.Output,
+      true,
+    );
+    expect(typeHasSerializerDeclaration(enumType)).toBe(false);
+  });
+
+  /**
+   * Regular enums (not union-as-enum) never get serializer declarations
+   * regardless of usage, because they pass through without transformation.
+   */
+  it("should return false for regular enum with Input usage", () => {
+    const enumType = createMockEnum("Color", UsageFlags.Input, false);
+    expect(typeHasSerializerDeclaration(enumType)).toBe(false);
+  });
+
+  /**
+   * Union-as-enum with both Input and Output should get a serializer
+   * since it has Input usage.
+   */
+  it("should return true for union-as-enum with Input+Output usage", () => {
+    const enumType = createMockEnum(
+      "Status",
+      UsageFlags.Input | UsageFlags.Output,
+      true,
+    );
+    expect(typeHasSerializerDeclaration(enumType)).toBe(true);
   });
 });

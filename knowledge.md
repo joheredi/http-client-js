@@ -2432,3 +2432,9 @@ E2e test import paths depend on directory nesting depth:
 - 2-level deep (e.g., versioning/added): `../../../generated/versioning/added/src/index.js`
 - 1-level deep (e.g., special-words): `../../generated/special-words/src/index.js`
   Count from test file location to test/e2e/ (always 2+ ../ for http/ prefix).
+
+## Output-only enum types must not generate serializer calls
+When a union-as-enum type (like ARM `ProvisioningState`) has only `UsageFlags.Output`, its serializer declaration is never rendered. Both `needsTransformation()` and `getSerializationExpression()` must check `(type.usage & UsageFlags.Input) !== 0` for the `enum` case to avoid generating references to non-existent serializer functions. The `typeHasSerializerDeclaration()` predicate now also handles the `enum` kind.
+
+## collectAllPropertyAndOperationTypes must walk all method kinds
+The `walkClient()` function in `model-files.tsx` previously only handled `method.kind === "basic"`. LRO, paging, and lropaging operations were skipped, causing missing array/dict helpers for their response types. All four method kinds must be included.

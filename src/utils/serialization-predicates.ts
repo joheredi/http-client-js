@@ -1,4 +1,7 @@
-import type { SdkType } from "@azure-tools/typespec-client-generator-core";
+import type {
+  SdkEnumType,
+  SdkType,
+} from "@azure-tools/typespec-client-generator-core";
 import { UsageFlags } from "@azure-tools/typespec-client-generator-core";
 import { isAzureCoreErrorType } from "./azure-core-error-types.js";
 import { hasXmlSerialization } from "./xml-detection.js";
@@ -63,6 +66,16 @@ export function typeHasSerializerDeclaration(type: SdkType): boolean {
       return !!(
         type.name &&
         !type.isGeneratedName &&
+        (type.usage & UsageFlags.Input) !== 0
+      );
+    case "enum":
+      // Union-as-enum types get pass-through serializer declarations when they
+      // have Input usage. Output-only enums (e.g., ARM ProvisioningState) never
+      // get serializer declarations. Note: experimentalExtensibleEnums also
+      // suppresses serializer generation, but that is checked by callers rather
+      // than here, since this predicate doesn't have access to emitter options.
+      return !!(
+        (type as SdkEnumType).isUnionAsEnum &&
         (type.usage & UsageFlags.Input) !== 0
       );
     case "nullable":
