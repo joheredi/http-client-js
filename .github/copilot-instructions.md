@@ -13,6 +13,9 @@ This project (`http-client-js`) is a **rewrite** of a legacy TypeSpec emitter (`
 3. **Composability** — A core emitter that can be extended (e.g., Azure flavor) via JSX composition.
 4. **Maintainability** — Reduce complexity, improve reliability, lower cost of new features.
 
+### Resources
+For any task that requires exploring or studying the codebase or resources, you can use up to 500 parallel subagents to gather information. Each agent can be assigned a specific area of the codebase or documentation to review, and they can report back with summaries, insights, or specific answers to questions.
+
 ### Pipeline
 
 ```
