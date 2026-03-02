@@ -55,6 +55,8 @@
     "clean": "rimraf dist/ .temp/",
     "ralph": "node ralph.js --iterations 50",
     "test": "vitest run",
+    "test:unit": "vitest run --config vitest.unit.config.ts",
+    "test:scenario": "vitest run --config vitest.scenario.config.ts",
     "test:smoke": "vitest run --config vitest.smoke.config.ts",
     "test:e2e": "pnpm emit:e2e && vitest run --config vitest.config.e2e.ts",
     "emit:e2e": "npx tsx eng/scripts/emit-e2e.ts",
