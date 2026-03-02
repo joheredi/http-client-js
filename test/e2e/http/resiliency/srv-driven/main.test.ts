@@ -13,21 +13,23 @@ describe("Resiliency.ServiceDriven", () => {
     expect(result).toBeUndefined();
   });
 
-  // TODO(e2e): Fix - wrong parameter values sent to server
-  it.skip("should call fromNone()", async () => {
-    const result = await client.fromNone();
+  it("should call fromNone()", async () => {
+    const result = await client.fromNone({ newParameter: "new" });
     expect(result).toBeUndefined();
   });
 
-  // TODO(e2e): Fix - wrong parameter values sent to server
-  it.skip("should call fromOneRequired(parameter)", async () => {
-    const result = await client.fromOneRequired("new");
+  it("should call fromOneRequired(parameter)", async () => {
+    const result = await client.fromOneRequired("required", {
+      newParameter: "new",
+    });
     expect(result).toBeUndefined();
   });
 
-  // TODO(e2e): Fix - wrong parameter values sent to server
-  it.skip("should call fromOneOptional()", async () => {
-    const result = await client.fromOneOptional();
+  it("should call fromOneOptional()", async () => {
+    const result = await client.fromOneOptional({
+      parameter: "optional",
+      newParameter: "new",
+    });
     expect(result).toBeUndefined();
   });
 });

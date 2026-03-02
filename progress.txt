@@ -2999,3 +2999,20 @@ The `bearerTokenAuthenticationPolicy` in `@azure/core-rest-pipeline` has NO conf
 **Patterns:** Pure test data fix — the generated client code was correct, the test values didn't match the Spector mock expectations.
 
 **CI status:** 1019 unit tests pass, 1 smoke test passes, 747 e2e tests pass (up from 745). 80 e2e tests still skipped.
+
+---
+## RC26 - Fix resiliency/srv-driven e2e tests (E2E-AZURE-RESILIENCY-PARAMS)
+Date: 2026-03-02
+
+### What was done
+Fixed 3 skipped e2e tests in `test/e2e/http/resiliency/srv-driven/main.test.ts` by correcting the parameter values sent to the mock server:
+- `fromNone()` → now passes `{ newParameter: "new" }` (v2 API requires new-parameter query param)
+- `fromOneRequired("new")` → changed to `"required"` with `{ newParameter: "new" }` options
+- `fromOneOptional()` → now passes `{ parameter: "optional", newParameter: "new" }`
+
+### How it was identified
+Compared with legacy test at `submodules/autorest.typescript/.../resiliencySrvDrivenMain.spec.ts` and mock server handler at `submodules/typespec-azure/.../resiliency/srv-driven/mockapi.ts`.
+
+### CI status
+- 750 e2e tests pass (was 747), 77 skipped (was 80)
+- All unit, scenario, and smoke tests still pass
