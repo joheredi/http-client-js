@@ -43,11 +43,11 @@ describe("Type.Dictionary", () => {
       });
     });
 
-    // BigInt serialization is not yet supported in JSON payloads.
-    it.skip("should put a dictionary of int64 values", async () => {
+    it("should put a dictionary of int64 values", async () => {
+      // int64 maps to number in JS; mock server expects MAX/MIN_SAFE_INTEGER.
       await client.int64Value.put({
-        k1: 0x7fffffffffffffffn as any,
-        k2: -0x7fffffffffffffffn as any,
+        k1: Number.MAX_SAFE_INTEGER,
+        k2: Number.MIN_SAFE_INTEGER,
       });
     });
   });

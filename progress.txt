@@ -2638,3 +2638,19 @@ wrong for binary stream body params.
 
 ### Validation
 All CI passes: 1016 unit tests, smoke tests, 414 e2e tests (+6 from unskipped).
+
+## RC29 — Fix int64 e2e test values (E2E-FIX-INT64-SERIALIZATION) — 2026-03-02
+
+**Problem**: Two e2e PUT tests for int64 dictionary and array values were skipped because they used BigInt literals (`0x7fffffffffffffffn`) which JSON.stringify cannot serialize.
+
+**Root Cause**: The tests used BigInt values but the generated code types int64 as `number`, and the mock server expects `Number.MAX_SAFE_INTEGER`/`Number.MIN_SAFE_INTEGER`.
+
+**Fix**: Changed test values from BigInt literals to `Number.MAX_SAFE_INTEGER`/`Number.MIN_SAFE_INTEGER` and unskipped both tests.
+
+**Files Changed**:
+- `test/e2e/http/type/dictionary/main.test.ts` — Unskipped int64 PUT test, use Number.MAX_SAFE_INTEGER
+- `test/e2e/http/type/array/main.test.ts` — Unskipped int64 PUT test, use Number.MAX_SAFE_INTEGER
+
+**Also fixed**: Cleaned stale `test/e2e/generated/type/union` directory that was causing ENOTEMPTY error in e2e test runner.
+
+**Validation**: Full CI passes — 1016 unit tests, smoke test, 416 e2e tests all green.

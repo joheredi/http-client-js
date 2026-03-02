@@ -40,9 +40,9 @@ describe("Type.Array", () => {
       expect(response).toEqual([Number.MAX_SAFE_INTEGER, Number.MIN_SAFE_INTEGER]);
     });
 
-    // BigInt serialization is not yet supported in JSON payloads.
-    it.skip("should put an array of int64 values", async () => {
-      await client.int64Value.put([0x7fffffffffffffffn as any, -0x7fffffffffffffffn as any]);
+    it("should put an array of int64 values", async () => {
+      // int64 maps to number in JS; mock server expects MAX/MIN_SAFE_INTEGER.
+      await client.int64Value.put([Number.MAX_SAFE_INTEGER, Number.MIN_SAFE_INTEGER]);
     });
   });
 

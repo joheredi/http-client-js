@@ -655,7 +655,7 @@
       "title": "Fix int64 value handling for dictionary and array put operations",
       "category": "bug-fix/emitter",
       "priority": "P2",
-      "status": "pending",
+      "status": "done",
       "kind": "feature",
       "dependencies": [],
       "design_review": null,
