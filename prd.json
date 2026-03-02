@@ -799,7 +799,7 @@
       "title": "Fix e2e tests: access spec sends wrong parameter values to mock server",
       "category": "bug-fix/e2e-tests",
       "priority": "P3",
-      "status": "not-started",
+      "status": "done",
       "kind": "bug",
       "dependencies": [],
       "design_review": null,

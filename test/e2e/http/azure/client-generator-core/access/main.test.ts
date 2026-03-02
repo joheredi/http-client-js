@@ -53,19 +53,17 @@ describe("Azure.ClientGenerator.Core.Access", () => {
   });
 
   describe("relativeModelInOperation", () => {
-    // TODO(e2e): Fix - server expects name=Madge but test sends 'sample'
-    it.skip("operation", async () => {
+    it("operation", async () => {
       const result =
-        await client.relativeModelInOperation.operation("sample");
-      expect(result.name).toBe("sample");
-      expect(result.inner.name).toBe("sample");
+        await client.relativeModelInOperation.operation("Madge");
+      expect(result.name).toBe("Madge");
+      expect(result.inner.name).toBe("Madge");
     });
 
-    // TODO(e2e): Fix - server expects name=Madge but test sends 'sample'
-    it.skip("discriminator", async () => {
+    it("discriminator", async () => {
       const result =
         await client.relativeModelInOperation.discriminator("real");
-      expect(result.name).toBe("sample");
+      expect(result.name).toBe("Madge");
       expect(result.kind).toBe("real");
     });
   });

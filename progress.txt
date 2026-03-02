@@ -2987,3 +2987,15 @@ The `bearerTokenAuthenticationPolicy` in `@azure/core-rest-pipeline` has NO conf
 - **Key finding**: The emitter already generates correct header handling code. The generated code matches legacy output pattern — conditional spread for optional headers.
 - **Design decision**: Chose to fix the test (matching legacy behavior) over auto-generating headers in emitter output. Auto-generation would be a separate feature.
 - **Tests**: 1019 unit + 3 skipped, 745 e2e + 82 skipped, smoke all pass. Total CI green.
+
+## 2026-03-02 — E2E-AZURE-ACCESS-WRONG-VALUES — Fixed access e2e tests
+
+**What was done:**
+- Fixed 2 skipped e2e tests in `test/e2e/http/azure/client-generator-core/access/main.test.ts`
+- The `relativeModelInOperation.operation` test was sending `"sample"` but the mock server expects `name=Madge` and returns `name: "Madge"` — updated test to pass `"Madge"` and assert `"Madge"`
+- The `relativeModelInOperation.discriminator` test was asserting `result.name === "sample"` but the mock returns `name: "Madge"` — updated assertion to `"Madge"`
+- Both tests un-skipped and now pass
+
+**Patterns:** Pure test data fix — the generated client code was correct, the test values didn't match the Spector mock expectations.
+
+**CI status:** 1019 unit tests pass, 1 smoke test passes, 747 e2e tests pass (up from 745). 80 e2e tests still skipped.
