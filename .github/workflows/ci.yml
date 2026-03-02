@@ -55,3 +55,7 @@ jobs:
           name: spector-coverage
           path: temp/spector-coverage.json
           if-no-files-found: warn
+
+      - name: Publish PR preview package
+        if: github.event_name == 'pull_request'
+        run: pnpx pkg-pr-new publish --pnpm
