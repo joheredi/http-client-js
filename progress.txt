@@ -2523,3 +2523,31 @@ Ported 4 property type Spector e2e test files covering ~212 test cases:
 ### What next person should know
 - The task description in prd.json was slightly misleading — it said "SDK exposes as number" but the actual convention (matching the e2e tests) is that SDK exposes as `string` when `@encode(string)` is used
 - The key implementation is in type-expression.tsx lines ~116-119 which checks `type.encode === "string"` and returns `"string"` instead of `"number"`
+
+## 2026-03-02: E2E-FIX-HEADER-PARAM-ENCODING — Fix header parameter type coercion
+
+### What was done
+- Expanded `applyHeaderDateEncoding` → `applyHeaderEncoding` in `src/components/send-operation.tsx`
+- New function handles ALL header types requiring encoding: bytes (Uint8Array → base64/base64url), duration with numeric encoding (number → String), utcDateTime with unixTimestamp (number → String), and arrays of these types (per-element encoding via `.map()`)
+- Added `headerElementNeedsEncoding()` and `getHeaderElementExpression()` helper functions
+- Changed `buildHeaderEntries()` to use sequential encoding + collection format wrapping (matching the query param pattern) instead of conditional either/or
+- Updated scenario test `test/scenarios/cases/operations/operations.md` to match new correct output for bytes headers
+- Fixed e2e test date values in `test/e2e/http/encode/datetime/main.test.ts` to match mock server expectations (legacy emitter uses `2023-06-12T10:47:44.000Z`, not `2023-06-12T06:41:04.000Z`)
+- Un-skipped 9 e2e tests across bytes (4), duration (3), and datetime (2) header operations
+
+### Patterns used
+- Same encoding approach as `applyQueryParamEncoding` for query params: encode scalar or array elements, then wrap with collection format
+- `getSerializationExpression()` handles bytes and datetime encoding (produces strings)
+- `String()` wrapping for types that produce non-string values (unixTimestamp → number, duration → number)
+- `headerElementNeedsEncoding()` checks: utcDateTime, plainDate, bytes always true; duration true when encode !== "ISO8601"
+
+### Test results
+- Unit: 1016 passed, 3 skipped (unchanged)
+- Smoke: 1 passed (unchanged)
+- E2e: 388 passed (+9), 45 skipped (-9)
+
+### Key learnings
+- DurationKnownEncoding: "ISO8601" | "seconds" | "milliseconds" (ISO8601 is uppercase)
+- Duration with ISO8601 encoding is a TypeScript `string`, no conversion needed
+- Duration with seconds/milliseconds encoding is TypeScript `number`, needs `String()` for headers
+- Mock server expected dates didn't match test input dates for unix timestamp headers

@@ -95,19 +95,19 @@ describe("Encode.Bytes", () => {
   describe("HeaderOperations", () => {
     const client = new BytesClient({ endpoint: "http://localhost:3002", allowInsecureConnection: true });
 
-    it.skip("should test default encode (base64) for bytes header", async () => {
+    it("should test default encode (base64) for bytes header", async () => {
       await client.header.default(testUint8Array);
     });
 
-    it.skip("should test base64 encode for bytes header", async () => {
+    it("should test base64 encode for bytes header", async () => {
       await client.header.base64(testUint8Array);
     });
 
-    it.skip("should test base64url encode for bytes header", async () => {
+    it("should test base64url encode for bytes header", async () => {
       await client.header.base64url(testUint8Array);
     });
 
-    it.skip("should test base64url encode for bytes array header", async () => {
+    it("should test base64url encode for bytes array header", async () => {
       await client.header.base64urlArray([encodedTestString, encodedTestString]);
     });
   });

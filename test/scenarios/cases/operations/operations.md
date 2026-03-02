@@ -141,6 +141,7 @@ import {
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
+  uint8ArrayToString,
 } from "@typespec/ts-http-runtime";
 import type { TestingContext } from "../testingClientContext.js";
 
@@ -167,9 +168,11 @@ export function _readSend(
       options?.nullableOptionalHeader !== null
         ? { "nullable-optional-header": options?.nullableOptionalHeader }
         : {}),
-      "bytes-header": bytesHeader,
-      value: value,
-      "csv-array-header": buildCsvCollection(csvArrayHeader),
+      "bytes-header": uint8ArrayToString(bytesHeader, "base64"),
+      value: uint8ArrayToString(value, "base64"),
+      "csv-array-header": buildCsvCollection(
+        csvArrayHeader.map((e: any) => uint8ArrayToString(e, "base64url")),
+      ),
       ...(options?.optionalCsvArrayHeader !== undefined
         ? {
             "optional-csv-array-header": buildCsvCollection(

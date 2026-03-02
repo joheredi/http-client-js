@@ -86,14 +86,14 @@ describe("Encode.Datetime", () => {
       await client.header.rfc7231(new Date("2022-08-26T14:38:00.000Z"));
     });
 
-    it.skip("should test unixTimestamp encode for datetime header", async () => {
-      await client.header.unixTimestamp(new Date("2023-06-12T06:41:04.000Z"));
+    it("should test unixTimestamp encode for datetime header", async () => {
+      await client.header.unixTimestamp(new Date("2023-06-12T10:47:44.000Z"));
     });
 
-    it.skip("should test unixTimestamp encode for datetime array header", async () => {
+    it("should test unixTimestamp encode for datetime array header", async () => {
       const timestamps = [
-        new Date("2023-06-12T06:41:04.000Z"),
-        new Date("2023-06-14T11:57:36.000Z"),
+        new Date("2023-06-12T10:47:44.000Z"),
+        new Date("2023-06-14T09:17:36.000Z"),
       ];
       await client.header.unixTimestampArray(timestamps);
     });

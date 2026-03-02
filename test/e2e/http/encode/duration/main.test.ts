@@ -101,15 +101,15 @@ describe("Encode.Duration", () => {
       await client.header.iso8601Array(["P40D", "P50D"]);
     });
 
-    it.skip("should test int32 seconds encode for a duration header", async () => {
+    it("should test int32 seconds encode for a duration header", async () => {
       await client.header.int32Seconds(36);
     });
 
-    it.skip("should test float seconds encode for a duration header", async () => {
+    it("should test float seconds encode for a duration header", async () => {
       await client.header.floatSeconds(35.625);
     });
 
-    it.skip("should test float64 seconds encode for a duration header", async () => {
+    it("should test float64 seconds encode for a duration header", async () => {
       await client.header.float64Seconds(35.625);
     });
   });

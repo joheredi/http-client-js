@@ -746,13 +746,13 @@ function buildHeaderEntries(
 
   for (const header of headerParams) {
     const accessor = getHeaderAccessor(header, method);
-    // Apply date encoding for Date-typed headers (e.g., utcDateTime → toUTCString),
-    // or collection format wrapping for array headers (e.g., CSV).
-    const encodedAccessor = applyHeaderDateEncoding(accessor, header);
-    const wrappedAccessor =
-      encodedAccessor !== accessor
-        ? encodedAccessor
-        : wrapWithCollectionFormat(accessor, header.collectionFormat);
+    // Apply type encoding for header values (e.g., Date → toUTCString, bytes → base64,
+    // duration → String()), then wrap arrays with collection format (e.g., CSV).
+    const encodedAccessor = applyHeaderEncoding(accessor, header);
+    const wrappedAccessor = wrapWithCollectionFormat(
+      encodedAccessor,
+      header.collectionFormat,
+    );
 
     // Build conditional spread for optional/nullable headers to avoid passing
     // undefined/null values into the headers object (matches legacy emitter pattern).
@@ -836,36 +836,100 @@ function getHeaderAccessor(
 }
 
 /**
- * Applies date encoding to a header parameter value when the type is a
- * date/datetime scalar.
+ * Applies type-specific encoding to an HTTP header parameter value.
  *
- * HTTP headers are strings, so `Date` values must be serialized before
- * being set as a header value. TCGC sets the encoding on the type:
- * - `utcDateTime` with `rfc7231` encoding → `.toUTCString()` (HTTP-date format)
- * - `utcDateTime` with `rfc3339` encoding → `.toISOString()` (ISO 8601)
- * - `utcDateTime` with `unixTimestamp` encoding → integer seconds
+ * HTTP headers are strings, so typed values (Date, Uint8Array, numeric duration)
+ * must be encoded before being assigned. For array-typed headers, each element
+ * is individually encoded via `.map()` before collection format wrapping
+ * (e.g., `buildCsvCollection`).
+ *
+ * Encoding transformations:
+ * - `utcDateTime` → `.toUTCString()`, `.toISOString()`, or `String(unix timestamp)`
  * - `plainDate` → `.toISOString().split("T")[0]`
- *
- * Returns just the encoded expression without null guards — optional/nullable
- * guards are handled by the conditional spread pattern in buildHeaderEntries.
- *
- * Non-date types are returned unchanged — they don't need encoding here.
+ * - `bytes` → `uint8ArrayToString(value, encoding)`
+ * - `duration` with numeric encoding → `String(value)`
+ * - Arrays of the above → per-element encoding via `.map()`
  *
  * @param accessor - The JavaScript expression that accesses the header value.
- * @param header - The TCGC header parameter (carries type and optionality info).
- * @returns The encoded expression as Alloy Children, or the original accessor string if no encoding is needed.
+ * @param header - The TCGC header parameter (carries type and encoding info).
+ * @returns The encoded expression, or the original accessor if no encoding is needed.
  */
-function applyHeaderDateEncoding(
+function applyHeaderEncoding(
   accessor: string,
   header: SdkHeaderParameter,
-): Children {
-  const type = header.type.kind === "nullable" ? header.type.type : header.type;
+): string | Children {
+  const rawType = header.type;
+  const type = rawType.kind === "nullable" ? rawType.type : rawType;
 
-  // Only encode date/datetime scalar types
-  if (type.kind !== "utcDateTime" && type.kind !== "plainDate") {
+  // Handle array types — encode each element individually before collection format
+  if (type.kind === "array") {
+    const elementRawType = type.valueType;
+    const elementType =
+      elementRawType.kind === "nullable" ? elementRawType.type : elementRawType;
+    if (headerElementNeedsEncoding(elementType)) {
+      const elementExpr = getHeaderElementExpression(elementType, "e");
+      return code`${accessor}.map((e: any) => ${elementExpr})`;
+    }
     return accessor;
   }
 
+  // Handle scalar types that need string encoding for HTTP headers
+  if (!headerElementNeedsEncoding(type)) {
+    return accessor;
+  }
+
+  return getHeaderElementExpression(type, accessor);
+}
+
+/**
+ * Checks if a scalar type needs encoding before being used as an HTTP header value.
+ *
+ * Types that need encoding are those whose JavaScript representation is not a string:
+ * Date objects, Uint8Array, and numbers (from numeric duration encoding). ISO 8601
+ * duration strings pass through unchanged since they are already strings.
+ *
+ * @param type - The scalar TCGC type to check.
+ * @returns `true` if the type needs explicit encoding for HTTP headers.
+ */
+function headerElementNeedsEncoding(type: SdkType): boolean {
+  switch (type.kind) {
+    case "utcDateTime":
+    case "plainDate":
+    case "bytes":
+      return true;
+    case "duration":
+      // Numeric-encoded durations (seconds, milliseconds) are numbers that need
+      // String() conversion for HTTP headers. ISO8601 durations are already strings.
+      return type.encode !== "ISO8601";
+    default:
+      return false;
+  }
+}
+
+/**
+ * Gets the encoding expression for a scalar type in an HTTP header context.
+ *
+ * For types that `getSerializationExpression` already converts to strings (rfc7231,
+ * rfc3339, bytes), delegates directly. For types that produce non-string values
+ * (unixTimestamp → number, numeric duration → number), wraps with `String()`.
+ *
+ * @param type - The scalar TCGC type.
+ * @param accessor - JavaScript expression for the value.
+ * @returns An Alloy `code` template with the encoding expression.
+ */
+function getHeaderElementExpression(type: SdkType, accessor: string): Children {
+  // Duration with numeric encoding: the JS type is number, needs String() for headers
+  if (type.kind === "duration" && type.encode !== "ISO8601") {
+    return code`String(${accessor})`;
+  }
+
+  // utcDateTime with unixTimestamp produces a number — wrap in String() for headers
+  if (type.kind === "utcDateTime" && type.encode === "unixTimestamp") {
+    return code`String(${getSerializationExpression(type, accessor)})`;
+  }
+
+  // All other types (rfc7231 → toUTCString, rfc3339 → toISOString, bytes → uint8ArrayToString)
+  // already produce strings from getSerializationExpression
   return getSerializationExpression(type, accessor);
 }
 
