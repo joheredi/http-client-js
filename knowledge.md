@@ -2374,3 +2374,18 @@ but at runtime return the full response object (e.g., `{ pets: Pet[], next?: str
 
 ## Code Gen Bug: Spread Parameter Name with Hyphens
 The generated `classic/alias/index.ts` for `parameters/spread` contains `x-ms-test-header: string` as a TypeScript parameter name in interface definitions. Hyphens are invalid in TS identifiers. This causes esbuild parse failures and prevents the entire module from loading. The name policy should escape or quote such names.
+
+## Design Decisions
+
+### SPECTOR-8: getSafeMethodParamName normalization (2026-03-02)
+`getSafeMethodParamName()` now delegates to `getEscapedParameterName()` for full normalization
+(camelCase + reserved word escaping). This ensures raw string references in `code` templates
+match what Alloy's name policy produces for `ParameterDescriptor` names. Without this,
+the classical client method body could reference `repeatabilityRequestID` while the
+parameter was declared as `repeatabilityRequestId`, or use `break` as a bare identifier.
+
+### Import path depth for e2e tests (2026-03-02)
+E2e test import paths depend on directory nesting depth:
+- 2-level deep (e.g., versioning/added): `../../../generated/versioning/added/src/index.js`
+- 1-level deep (e.g., special-words): `../../generated/special-words/src/index.js`
+Count from test file location to test/e2e/ (always 2+ ../ for http/ prefix).

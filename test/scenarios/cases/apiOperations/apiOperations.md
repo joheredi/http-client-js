@@ -613,7 +613,7 @@ export class TestingClient {
     apiVersion: string,
     options: TestOptionalParams = { requestOptions: {} },
   ): Promise<string> {
-    return test(this._client, api - version, options);
+    return test(this._client, apiVersion, options);
   }
 }
 ```
@@ -755,7 +755,7 @@ export class TestingClient {
     apiVersion: string,
     options: TestOptionalParams = { requestOptions: {} },
   ): Promise<string> {
-    return test(this._client, api - version, options);
+    return test(this._client, apiVersion, options);
   }
 }
 ```
@@ -920,7 +920,7 @@ export class TestingClient {
     apiVersion: string,
     options: TestOptionalParams = { requestOptions: {} },
   ): Promise<string> {
-    return test(this._client, api - version, options);
+    return test(this._client, apiVersion, options);
   }
 
   test1(

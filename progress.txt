@@ -2732,3 +2732,38 @@ Enhanced `JsonUnionDeserializer` component to generate runtime discrimination lo
   2. Pageable operations return full response object at runtime but type says `Pet[]` — type mismatch in generated code
   3. Multipart basic model types use `Uint8Array` but serializer accepts file descriptors — mock server requires filenames
 - CI: 72 unit test files pass, 41 e2e files pass + 1 skipped, smoke test passes
+
+## SPECTOR-8: Port versioning and special Spector tests — DONE (2026-03-02)
+
+### What was done
+1. Created 8 new e2e test files:
+   - test/e2e/http/versioning/added/main.test.ts (3 tests: v1, v2, v2InInterface)
+   - test/e2e/http/versioning/madeOptional/main.test.ts (1 test)
+   - test/e2e/http/versioning/removed/main.test.ts (4 tests: v2, modelV3@v1, modelV3@v2, modelV3@v2preview skipped)
+   - test/e2e/http/versioning/renamedFrom/main.test.ts (2 tests: newOp, newOpInNewInterface)
+   - test/e2e/http/versioning/returnTypeChangedFrom/main.test.ts (1 test, skipped - Content-Type mismatch)
+   - test/e2e/http/versioning/typeChangedFrom/main.test.ts (1 test)
+   - test/e2e/http/special-words/main.test.ts (105+ tests: operations, parameters, models, modelProperties)
+   - test/e2e/http/special-headers/repeatability/main.test.ts (1 test)
+
+2. Fixed emitter bug: `getSafeMethodParamName()` in `src/utils/name-policy.ts` now normalizes
+   parameter names using `getEscapedParameterName()` (camelCase + reserved word escaping).
+   This fixes two issues:
+   - Parameter name casing mismatch (e.g., `repeatabilityRequestID` vs `repeatabilityRequestId`)
+   - Reserved words used as bare parameter names (e.g., `break` → `breakParam`)
+
+3. Updated scenario test expectations in `test/scenarios/cases/apiOperations/apiOperations.md`:
+   Changed `api - version` (broken JS subtraction) to `apiVersion` (correct camelCase).
+
+### Patterns
+- Versioning clients take `(endpointParam, options)` with optional `version` in options
+- Special-words/repeatability clients take `(options)` with optional `endpoint`
+- Import paths: `../../generated/` for 1-level deep dirs, `../../../generated/` for 2-level
+- versioning/removed uses `options.version` to test different API versions with same client
+- v2preview test skipped because ModelV3 requires enumProp but mock expects body without it
+- returnTypeChangedFrom test skipped due to Content-Type mismatch (same as reference)
+
+### Test counts after changes
+- Unit tests: 72 files, 1016 passed, 3 skipped
+- Smoke test: 1 passed
+- E2e tests: 48 passed, 2 skipped, 627 tests passed, 22 skipped

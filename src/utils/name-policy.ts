@@ -335,10 +335,17 @@ export function getSafeMethodParamName(
   paramName: string,
   methodName: string,
 ): string {
-  if (paramName === methodName) {
-    return `${paramName}Parameter`;
+  // Apply the full parameter name policy: camelCase + reserved word escaping.
+  // This must match the Alloy name policy output for ParameterDescriptor names,
+  // because the raw string from this function is used in code templates alongside
+  // Alloy-rendered parameter declarations. Without this, mismatches occur:
+  //   - "repeatabilityRequestID" declared as "repeatabilityRequestId" but body uses raw name
+  //   - "break" declared as "breakParam" but body uses raw reserved word
+  const normalized = getEscapedParameterName(paramName);
+  if (normalized === methodName) {
+    return `${normalized}Parameter`;
   }
-  return paramName;
+  return normalized;
 }
 
 /**
