@@ -2476,3 +2476,21 @@ params from the options interface, making the accessor always return undefined.
 This was verified with TCGC debug output: onClient params do NOT appear in `method.parameters`,
 confirming they cannot be accessed through the options bag. The query param scenario already
 expected `context["$expand"]` for the same pattern, confirming this is the correct behavior.
+
+## clientDefaultValue applies to both optional AND required params
+
+The legacy emitter applies `?? clientDefaultValue` fallback for ALL parameters with `@clientDefaultValue`,
+regardless of whether the TypeSpec param is optional or required. Required params with clientDefaultValue
+go to the options bag (via `isRequiredSignatureParameter` checking `clientDefaultValue !== undefined`)
+and get the `?? default` fallback appended. The `applyClientDefault()` function should NOT check
+`!param.optional` — only check `clientDefaultValue === undefined`, `isApiVersionParam`, and
+`isDefaultValueTypeMatch`.
+
+## User-defined Accept headers need special handling
+
+When TypeSpec defines `@header("Accept") accept?: string` with `@clientDefaultValue`, the HTTP-level
+header param must NOT be filtered out by `getHeaderParameters()`. Only auto-generated accept headers
+(where `correspondingMethodParam.isGeneratedName === true`) should be filtered. User-defined accept
+headers should be processed as custom headers with their accessor and clientDefaultValue fallback.
+Additionally, user-defined Accept headers should use lowercase `"accept"` key to match the auto-generated
+pattern and prevent conflicts with the HTTP runtime's default accept header.

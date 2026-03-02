@@ -153,9 +153,12 @@ export async function create(
 }
 ```
 
-# Should not apply client default values for required parameters
+# Should apply client default values for required parameters with clientDefaultValue
 
 ## TypeSpec
+
+The legacy emitter applies `?? defaultValue` fallbacks for required parameters
+that have `@clientDefaultValue`, matching the pattern used for optional parameters.
 
 ```tsp
 model Configuration {
@@ -220,14 +223,14 @@ export function _testRequiredSend(
 ): StreamableMethod {
   const path = expandUrlTemplate(
     "/api/required{?maxResults,limit}",
-    { maxResults: options?.maxResults, limit: limit },
+    { maxResults: options?.maxResults ?? 10, limit: limit },
     { allowReserved: options?.requestOptions?.skipUrlEncoding },
   );
   return context.path(path).get({
     ...operationOptionsToRequestParameters(options),
     headers: {
       accept: "application/json",
-      "custom-header": options?.customHeader,
+      "custom-header": options?.customHeader ?? "application/json",
       ...options.requestOptions?.headers,
     },
   });
@@ -261,7 +264,7 @@ export function _createRequiredSend(
     ...operationOptionsToRequestParameters(options),
     contentType: "text/plain",
     headers: { accept: "text/plain", ...options.requestOptions?.headers },
-    body: options?.body,
+    body: options?.body ?? "default-body",
   });
 }
 

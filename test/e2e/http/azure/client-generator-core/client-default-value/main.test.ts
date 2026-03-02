@@ -19,13 +19,11 @@ describe("Azure.ClientGenerator.Core.ClientDefaultValue", () => {
     await client.getOperationParameter("test");
   });
 
-  // TODO(e2e): Fix - path param routing / content-type mismatch
-  it.skip("should get path parameter", async () => {
-    await client.getPathParameter("test-segment");
+  it("should get path parameter", async () => {
+    await client.getPathParameter("segment2");
   });
 
-  // TODO(e2e): Fix - path param routing / content-type mismatch
-  it.skip("should get header parameter", async () => {
+  it("should get header parameter", async () => {
     await client.getHeaderParameter();
   });
 });

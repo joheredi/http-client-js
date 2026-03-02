@@ -823,7 +823,7 @@
       "title": "Fix e2e tests: client-default-value path routing and content-type issues",
       "category": "bug-fix/e2e-tests",
       "priority": "P3",
-      "status": "not-started",
+      "status": "done",
       "kind": "bug",
       "dependencies": [],
       "design_review": null,
