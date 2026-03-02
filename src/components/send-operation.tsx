@@ -809,21 +809,21 @@ function getHeaderAccessor(
     if (isConstantType(corresponding.type)) {
       return getConstantLiteral(corresponding.type);
     }
-    // API version header params (e.g., x-ms-version) that are client-level
-    // must be read from context, not from options. The options interface
-    // excludes apiVersion params (isOptionalParameter returns false), so
-    // referencing options?.version would cause TS2339. The context parameter
-    // is typed as the specific client context (e.g., BlobContext) which extends
-    // Client with the version property.
-    if (corresponding.onClient && corresponding.isApiVersionParam) {
-      const defaultValue = corresponding.clientDefaultValue;
-      if (defaultValue !== undefined) {
-        return `context.${corresponding.name} ?? "${defaultValue}"`;
+    // Client-level header params (onClient) must be read from the client
+    // context, not from the options bag. This mirrors the path/query logic
+    // in getParameterAccessor(). API version params use dot notation with
+    // optional fallback; other onClient params use bracket notation.
+    if (corresponding.onClient) {
+      if (corresponding.isApiVersionParam) {
+        const defaultValue = corresponding.clientDefaultValue;
+        if (defaultValue !== undefined) {
+          return `context.${corresponding.name} ?? "${defaultValue}"`;
+        }
+        return `context.${corresponding.name}`;
       }
-      return `context.${corresponding.name}`;
+      return `context["${corresponding.name}"]`;
     }
-    // Non-apiVersion header params (including onClient ones like $expand)
-    // read from options or direct args.
+    // Regular method header params read from options or direct args.
     const isRequired = isRequiredSignatureParameter(corresponding);
     const optionsName = getOptionsParamName(method);
     if (isRequired) return getEscapedParameterName(corresponding.name);

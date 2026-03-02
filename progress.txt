@@ -2898,3 +2898,51 @@ LRO operations like `export` and `longRunningRpc` returned objects with undefine
 - `test/components/static-helpers/polling-helpers.test.tsx` - Updated tests for new implementation
 - `test/e2e/http/azure/core/lro/standard/main.test.ts` - Un-skipped tests, fixed await pattern
 - `test/e2e/http/azure/core/lro/rpc/main.test.ts` - Un-skipped test, fixed expectation
+
+## E2E-AZURE-CLIENT-INIT-PARAMS — Fix header accessor for onClient params (2026-03-02)
+
+### What was done
+Fixed `getHeaderAccessor()` in `src/components/send-operation.tsx` to correctly read client-level
+(`onClient`) header parameters from the client context object instead of the options bag.
+
+**The bug:** When a header parameter was marked `onClient: true` (from `@@clientInitialization`),
+`getHeaderAccessor()` only had special handling for `isApiVersionParam`, causing all other onClient
+header params to fall through to `options?.paramName`. Since `isOptionalParameter` excludes onClient
+params from the options interface, the accessor always returned undefined at runtime.
+
+**The fix:** Added the same `onClient` check pattern already used in `getParameterAccessor()` for
+path/query params: `if (corresponding.onClient) return context["${corresponding.name}"]`. This is
+consistent with how path/query params handle onClient and produces type-safe, working code.
+
+### Pattern used
+Mirrored the path/query param accessor logic in getParameterAccessor() (lines 445-458) which
+correctly distinguishes apiVersion onClient params (dot notation + fallback) from other onClient
+params (bracket notation on context).
+
+### Files changed
+- `src/components/send-operation.tsx` — Fixed `getHeaderAccessor()` onClient branch
+- `test/scenarios/cases/operations/headerParam/headerParamWithClientInitialization.md` — Updated
+  expected output from `options?.$expand` to `context["$expand"]` (fixing inconsistency with
+  query param scenario which already expected `context["$expand"]`)
+
+### Remaining issues (not part of this task)
+The e2e client-initialization tests still can't be un-skipped due to PRE-EXISTING compilation
+errors in the generated code:
+1. **Default variant**: All operations share one file with one context type import, causing type
+   mismatches when different clients (HeaderParamClient, PathParamClient) call the same operations
+2. **IndividuallyParent variant**: Child operations reference parent context type which lacks
+   child-specific params
+These are separate classical client generation bugs, not header accessor bugs.
+
+### Verification
+- All 1019 unit/scenario tests pass (including 4 headerParamWithClientInitialization scenarios)
+- Smoke test passes
+- All e2e tests pass (734 passed, 93 skipped — same skip count as before)
+- Generated e2e code correctly shows `context["name"]` instead of `options?.name` for headers
+
+### Notes for next person
+- The `isOptionalParameter` function in `operation-options.tsx` excludes ALL `onClient` params.
+  This is correct — onClient params are on the client context, not operation options.
+- The scenario test `headerParamWithClientInitialization.md` previously expected `options?.$expand`
+  which was inconsistent with the query param scenario and would generate non-compilable code.
+- To fully un-skip e2e client-init tests, need to fix classical client context type narrowing.

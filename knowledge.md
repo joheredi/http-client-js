@@ -2464,3 +2464,15 @@ Used `@azure/core-lro`'s `createHttpPoller` instead of a custom poller implement
 1. Output consistency with legacy emitter
 2. Battle-tested polling logic that handles all LRO patterns
 3. Proper HTTP polling with abort signal support and api-version propagation
+
+## Design Decisions
+
+### Header onClient params use context["paramName"] (2026-03-02)
+When a header parameter's corresponding method param has `onClient: true`, the accessor must use
+`context["paramName"]` — the same pattern used for path/query params in `getParameterAccessor()`.
+The previous behavior read from `options?.paramName`, but `isOptionalParameter` excludes onClient
+params from the options interface, making the accessor always return undefined.
+
+This was verified with TCGC debug output: onClient params do NOT appear in `method.parameters`,
+confirming they cannot be accessed through the options bag. The query param scenario already
+expected `context["$expand"]` for the same pattern, confirming this is the correct behavior.

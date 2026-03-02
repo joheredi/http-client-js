@@ -193,7 +193,8 @@ export function _getSend(
     ...operationOptionsToRequestParameters(options),
     headers: {
       accept: "application/json",
-      ...(options?.$expand !== undefined ? { $expand: options?.$expand } : {}),
+      ...(context["$expand"] !== undefined
+        ? { $expand: context["$expand"] } : {}),
       ...options.requestOptions?.headers,
     },
   });
@@ -431,7 +432,8 @@ export function _getSend(
     ...operationOptionsToRequestParameters(options),
     headers: {
       accept: "application/json",
-      ...(options?.$expand !== undefined ? { $expand: options?.$expand } : {}),
+      ...(context["$expand"] !== undefined
+        ? { $expand: context["$expand"] } : {}),
       ...options.requestOptions?.headers,
     },
   });

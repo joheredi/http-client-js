@@ -751,7 +751,7 @@
       "title": "Fix client-initialization: constructor params not propagated to HTTP requests",
       "category": "bug-fix/emitter",
       "priority": "P1",
-      "status": "not-started",
+      "status": "done",
       "kind": "bug",
       "dependencies": [],
       "design_review": null,
