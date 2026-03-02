@@ -593,7 +593,7 @@
       "title": "Handle @encode(string) on integer types in serialization/deserialization",
       "category": "bug-fix/emitter",
       "priority": "P1",
-      "status": "pending",
+      "status": "done",
       "kind": "feature",
       "dependencies": [],
       "design_review": null,

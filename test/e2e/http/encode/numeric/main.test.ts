@@ -12,19 +12,19 @@ describe("Encode.Numeric", () => {
   describe("PropertyOperations", () => {
     const client = new NumericClient({ endpoint: "http://localhost:3002", allowInsecureConnection: true });
 
-    it.skip("should send and receive safeint as string", async () => {
+    it("should send and receive safeint as string", async () => {
       const payload = { value: "10000000000" };
       const response = await client.property.safeintAsString(payload);
       expect(response).toEqual(payload);
     });
 
-    it.skip("should send and receive optional uint32 as string", async () => {
+    it("should send and receive optional uint32 as string", async () => {
       const payload = { value: "1" };
       const response = await client.property.uint32AsStringOptional(payload);
       expect(response).toEqual(payload);
     });
 
-    it.skip("should send and receive uint8 as string", async () => {
+    it("should send and receive uint8 as string", async () => {
       const payload = { value: "255" };
       const response = await client.property.uint8AsString(payload);
       expect(response).toEqual(payload);

@@ -2500,3 +2500,26 @@ Ported 4 property type Spector e2e test files covering ~212 test cases:
 - Duration with numeric encoding was skipped conservatively but actually worked without changes since numbers auto-stringify in URL templates
 - The `getSerializationExpression()` from json-serializer.tsx is designed for model property serialization but works perfectly for query param encoding too — no code duplication needed
 - Optional param encoding includes a ternary guard (`accessor !== undefined ? encoded : undefined`) to prevent runtime errors on undefined values
+
+## 2026-03-01: E2E-FIX-NUMERIC-STRING-ENCODE — Enable numeric @encode(string) e2e tests
+
+### What was done
+- Investigated the 3 skipped e2e tests for `@encode(string)` on integer types (safeint, uint32, uint8)
+- Found that the generated code was already correct: type-expression.tsx correctly renders `string` for integer types with `encode === "string"`, and the serializer/deserializer correctly pass through string values
+- The tests were skipped prematurely — the generated code handles this case properly with no serialization/deserialization changes needed
+- Unskipped all 3 tests in `test/e2e/http/encode/numeric/main.test.ts`
+- All 3 tests pass: safeintAsString, uint32AsStringOptional, uint8AsString
+
+### Patterns used
+- Integer types with `@encode(string)` have `type.encode === "string"` from TCGC
+- The type-expression already maps this to TypeScript `string` type (not `number`)
+- Since both SDK type and wire type are `string`, serializer/deserializer pass through with no conversion
+
+### Test results
+- Unit tests: 1016 passed (unchanged)
+- E2e tests: 379 passed (was 376, +3 from this task)
+- Smoke test: passing
+
+### What next person should know
+- The task description in prd.json was slightly misleading — it said "SDK exposes as number" but the actual convention (matching the e2e tests) is that SDK exposes as `string` when `@encode(string)` is used
+- The key implementation is in type-expression.tsx lines ~116-119 which checks `type.encode === "string"` and returns `"string"` instead of `"number"`
