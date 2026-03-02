@@ -709,6 +709,18 @@
       "design_review": null,
       "source": "e2e-test-investigation",
       "description": "Fix 1 skipped e2e test caused by runtime crash when handling error responses with no body.\n\n## Problem\n\nThe `createRestError(result)` call in `@typespec/ts-http-runtime@0.2.1` crashes with `TypeError: Cannot read properties of undefined (reading 'message')` when `result.body` is undefined. This happens when a server returns an error status (e.g., 500) with no response body.\n\n## Affected Tests (1)\n\n| Test file | Test name | Line |\n|-----------|-----------|------|\n| `test/e2e/http/type/enum/fixed/main.test.ts` | should put an unknown enum value and receive 500 | 39 |\n\n## Root Cause\n\nIn `createRestError(result)`, when `result.body` is undefined:\n- `const internalError = resp.body?.error ?? resp.body` \u2192 undefined\n- `internalError.message` \u2192 TypeError (accessing property of undefined)\n\nThe runtime function lacks a null check for `internalError` before accessing `.message`.\n\n## Options\n\n1. **Fix in runtime**: Add `internalError?.message` (preferred but requires upstream PR to ts-http-runtime)\n2. **Fix in emitter**: Change generated error handling to use string overload: `createRestError('Unexpected status code: ' + result.status, result)` \u2014 but this changes all scenario test expectations\n3. **Workaround**: Generate conditional: `throw result.body !== undefined ? createRestError(result) : createRestError('Unexpected status code: ' + result.status, result)`\n\n## Validation\n\nAfter fix, unskip the test and run:\n```bash\npnpm build && pnpm test:e2e -- --grep \"Type.Enum.Fixed\"\n```"
+    },
+    {
+      "id": "E2E-FIX-EMIT-RACE",
+      "title": "Fix race condition in emit-e2e.ts for nested spec directories (type/union)",
+      "category": "bug-fix/e2e-infrastructure",
+      "priority": "P1",
+      "status": "not-started",
+      "kind": "bug",
+      "dependencies": [],
+      "design_review": null,
+      "source": "automated-detection",
+      "description": "Fix the flaky ENOTEMPTY race condition in eng/scripts/emit-e2e.ts when two specs share a parent-child output directory relationship.\n\n## Problem\nWhen `type/union` (output: `test/e2e/generated/type/union/`) and `type/union/discriminated` (output: `test/e2e/generated/type/union/discriminated/`) are compiled in parallel, a race condition occurs:\n1. `type/union/discriminated` creates `type/union/discriminated/` via mkdir (also creating parent `type/union/`)\n2. `type/union` tries to `rm(type/union, {recursive: true})` to clean the output directory\n3. While rm is traversing the directory tree, `type/union/discriminated`'s tsp compile creates new files inside it\n4. This causes `ENOTEMPTY: directory not empty, rmdir` error\n\nThis is non-deterministic \u2014 depends on parallel execution timing. Seen consistently in full CI runs but may pass with fewer specs or different timing.\n\n## Fix approaches\n1. **Serialize nested specs**: Detect parent-child directory relationships and ensure parent specs are compiled only after child specs complete\n2. **Clean before parallel phase**: Do all directory cleanup in a serial pre-pass before starting any parallel compilation\n3. **Retry with backoff**: Wrap the rm/mkdir in a retry loop (fragile, not recommended)\n\nApproach 1 or 2 is recommended.\n\n## Impact\nBlocks reliable CI for e2e tests (SPECTOR-9 depends on this).\n\n## Validation\nRun `pnpm emit:e2e` 5+ times in a row \u2014 all should pass without ENOTEMPTY errors."
     }
   ],
   "phases_metadata": [

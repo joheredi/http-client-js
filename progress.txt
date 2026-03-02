@@ -2767,3 +2767,25 @@ Enhanced `JsonUnionDeserializer` component to generate runtime discrimination lo
 - Unit tests: 72 files, 1016 passed, 3 skipped
 - Smoke test: 1 passed
 - E2e tests: 48 passed, 2 skipped, 627 tests passed, 22 skipped
+
+---
+
+## Session: 2026-03-02 — Pre-existing flaky test detected
+
+### What happened
+- Ran `pnpm run ci` to establish baseline before picking a task
+- Unit tests: 1016 passed, 3 skipped (72 files) ✅
+- Smoke test: 1 passed ✅
+- E2e emit: 58/59 succeeded, 1 failed (type/union) ❌
+- The `type/union` failure is `ENOTEMPTY: directory not empty, rmdir` — a race condition in `eng/scripts/emit-e2e.ts`
+
+### Root cause
+When `type/union` and `type/union/discriminated` are compiled in parallel, they share a parent-child output directory (`test/e2e/generated/type/union/`). The parallel `rm` and `mkdir` operations race, causing `ENOTEMPTY`. The failure is non-deterministic — it passed on a retry after manually cleaning the directory.
+
+### Action taken
+- Created task `E2E-FIX-EMIT-RACE` in prd.json to track the fix (P1, blocks SPECTOR-9)
+- Did not start any other task per the rules (pre-existing failure → track and exit)
+
+### Remaining tasks
+- `E2E-FIX-EMIT-RACE` — Fix the emit-e2e.ts race condition (P1, not-started)
+- `SPECTOR-9` — Add e2e test CI integration and coverage reporting (P2, pending, depends on SPECTOR-3)
