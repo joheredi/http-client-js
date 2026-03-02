@@ -7,28 +7,26 @@ describe("Azure.ClientGenerator.Core.FlattenProperty", () => {
     allowInsecureConnection: true,
   });
 
-  // TODO(e2e): Fix - server returns different values than test expects
-  it.skip("should put flatten model", async () => {
+  it("should put flatten model", async () => {
     const result = await client.putFlattenModel({
       name: "foo",
       description: "bar",
       age: 10,
     });
-    expect(result.name).toBe("foo");
-    expect(result.description).toBe("bar");
-    expect(result.age).toBe(10);
+    expect(result.name).toBe("test");
+    expect(result.description).toBe("test");
+    expect(result.age).toBe(1);
   });
 
-  // TODO(e2e): Fix - server returns different values than test expects
-  it.skip("should put nested flatten model", async () => {
+  it("should put nested flatten model", async () => {
     const result = await client.putNestedFlattenModel({
       name: "foo",
       summary: "bar",
       properties: { description: "test", age: 10 },
     });
-    expect(result.name).toBe("foo");
-    expect(result.summary).toBe("bar");
-    expect(result.properties.description).toBe("test");
-    expect(result.properties.age).toBe(10);
+    expect(result.name).toBe("test");
+    expect(result.summary).toBe("test");
+    expect(result.properties.description).toBe("foo");
+    expect(result.properties.age).toBe(1);
   });
 });

@@ -3016,3 +3016,19 @@ Compared with legacy test at `submodules/autorest.typescript/.../resiliencySrvDr
 ### CI status
 - 750 e2e tests pass (was 747), 77 skipped (was 80)
 - All unit, scenario, and smoke tests still pass
+
+---
+## 2026-03-02 — E2E-AZURE-FLATTEN-WRONG-VALUES (Done)
+
+**Task:** Fix e2e tests for flatten-property spec that expected wrong response values.
+
+**What was done:**
+- Updated `test/e2e/http/azure/client-generator-core/flatten-property/main.test.ts`
+- Fixed `putFlattenModel` assertions: server returns `{name: "test", description: "test", age: 1}`, not the input values
+- Fixed `putNestedFlattenModel` assertions: server returns `{name: "test", summary: "test", properties: {description: "foo", age: 1}}`
+- Removed `it.skip` and TODO comments — tests now run and pass
+- Verified against legacy test (`modelFlatten.spec.ts`) and mock server (`mockapi.ts`) for correct expected values
+
+**Patterns:** Always check the mock server definition (`mockapi.ts`) and legacy test assertions when fixing e2e test value mismatches.
+
+**CI status:** All green (1019 unit tests, 752 e2e tests passed)

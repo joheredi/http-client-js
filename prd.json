@@ -811,7 +811,7 @@
       "title": "Fix e2e tests: flatten-property spec sends wrong expected values",
       "category": "bug-fix/e2e-tests",
       "priority": "P3",
-      "status": "not-started",
+      "status": "done",
       "kind": "bug",
       "dependencies": [],
       "design_review": null,
