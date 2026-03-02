@@ -715,7 +715,7 @@
       "title": "Fix race condition in emit-e2e.ts for nested spec directories (type/union)",
       "category": "bug-fix/e2e-infrastructure",
       "priority": "P1",
-      "status": "not-started",
+      "status": "done",
       "kind": "bug",
       "dependencies": [],
       "design_review": null,

@@ -199,10 +199,7 @@ async function compileSpec(spec: SpecEntry): Promise<CompileResult> {
   const start = Date.now();
 
   try {
-    // Clean and create output directory.
-    if (existsSync(outputDir)) {
-      await rm(outputDir, { recursive: true, force: true });
-    }
+    // Ensure output directory exists (cleanup is done in the serial pre-pass).
     await mkdir(outputDir, { recursive: true });
 
     // Run tsp compile with emitter options passed via --option flags.
@@ -289,6 +286,26 @@ async function main(): Promise<void> {
   // Clear previous logs.
   if (existsSync(logDirRoot)) {
     await rm(logDirRoot, { recursive: true, force: true });
+  }
+
+  // Pre-pass: clean all output directories serially before parallel compilation.
+  // This avoids an ENOTEMPTY race condition when specs have parent-child output
+  // directory relationships (e.g., type/union and type/union/discriminated).
+  // If cleaned during parallel compilation, rm(type/union) can collide with
+  // concurrent file writes into type/union/discriminated/.
+  console.log("🧹 Cleaning output directories...");
+  for (const spec of specs) {
+    const specDir = dirname(spec.relativePath);
+    const outputDir = join(generatedRoot, specDir);
+    if (existsSync(outputDir)) {
+      await rm(outputDir, { recursive: true, force: true });
+    }
+  }
+  // Create all output directories after cleanup is complete.
+  for (const spec of specs) {
+    const specDir = dirname(spec.relativePath);
+    const outputDir = join(generatedRoot, specDir);
+    await mkdir(outputDir, { recursive: true });
   }
 
   // Process specs in parallel.

@@ -2789,3 +2789,13 @@ When `type/union` and `type/union/discriminated` are compiled in parallel, they 
 ### Remaining tasks
 - `E2E-FIX-EMIT-RACE` — Fix the emit-e2e.ts race condition (P1, not-started)
 - `SPECTOR-9` — Add e2e test CI integration and coverage reporting (P2, pending, depends on SPECTOR-3)
+
+## 2026-03-02 — E2E-FIX-EMIT-RACE: Fix race condition in emit-e2e.ts
+
+**What:** Fixed ENOTEMPTY race condition in `eng/scripts/emit-e2e.ts` that occurred when specs with parent-child output directory relationships (e.g., `type/union` and `type/union/discriminated`) were compiled in parallel.
+
+**Root cause:** Each `compileSpec()` call did `rm(outputDir, {recursive: true})` then `mkdir(outputDir)` before compilation. When `type/union`'s rm traversed into `type/union/discriminated/` while the latter's tsp compile was writing files, Node threw ENOTEMPTY.
+
+**Fix:** Moved all directory cleanup into a serial pre-pass in `main()` that runs before any parallel compilation starts. The pre-pass first cleans all output directories, then creates them. `compileSpec()` now only does an idempotent `mkdir` as a safety net.
+
+**Validation:** Full CI passes — 1016 unit tests, smoke test, 627 e2e tests.
