@@ -22,7 +22,9 @@ jobs:
       # Submodules are reference material for AI agents and not required
       # for the build. Only the typespec submodule is needed for e2e tests.
       - name: Init typespec submodule (for e2e specs)
-        run: git submodule update --init --depth=1 submodules/typespec
+        run: |
+          git config --global url."https://github.com/".insteadOf "git@github.com:"
+          git submodule update --init --depth=1 submodules/typespec
 
       - uses: actions/setup-node@v4
         with:
