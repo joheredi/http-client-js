@@ -2712,3 +2712,23 @@ Enhanced `JsonUnionDeserializer` component to generate runtime discrimination lo
 - The discrimination analysis is conservative: if no discrimination criteria can be found, falls back to pass-through
 - Property existence checks are a heuristic — overlapping optional properties can't be 100% discriminated
 - The `type/union` e2e emit has a pre-existing file cleanup issue (ENOTEMPTY) that's unrelated to our changes
+
+## SPECTOR-7: Port parameters, payload, and routes e2e tests — DONE (2026-03-02)
+- Created 9 e2e test files for parameters, payload, and routes Spector specs
+- **Parameters tests:**
+  - `test/e2e/http/parameters/basic/main.test.ts` — 2 tests (explicit/implicit body)
+  - `test/e2e/http/parameters/body-optionality/main.test.ts` — 4 tests (required/optional explicit/implicit)
+  - `test/e2e/http/parameters/collection-format/main.test.ts` — 5 tests (csv/multi/ssv/pipes query, csv header)
+  - `test/e2e/http/parameters/spread/main.test.ts` — SKIPPED: generated code has invalid TypeScript (`x-ms-test-header` as param name in classic/alias/index.ts)
+- **Payload tests:**
+  - `test/e2e/http/payload/content-negotiation/main.test.ts` — 4 tests (same/different body PNG/JPEG/JSON)
+  - `test/e2e/http/payload/media-type/main.test.ts` — 4 tests (text/json send/get)
+  - `test/e2e/http/payload/multipart/main.test.ts` — 18 tests (formData, httpParts, file ops). Uses file descriptors with `{ contents, filename }` because mock server requires filenames for binary parts.
+  - `test/e2e/http/payload/pageable/main.test.ts` — 5 tests. Generated client returns `{ pets: Pet[], next?: string }` at runtime despite `Promise<Pet[]>` type annotation (code gen type mismatch).
+- **Routes test:**
+  - `test/e2e/http/routes/main.test.ts` — 50 tests covering fixed routes, path/query params, reserved/simple/path/label/matrix expansion, query expansion/continuation, standard/explode modes
+- **Known issues discovered:**
+  1. Spread generated code has `x-ms-test-header` (invalid TS) in interface definition — needs code gen fix
+  2. Pageable operations return full response object at runtime but type says `Pet[]` — type mismatch in generated code
+  3. Multipart basic model types use `Uint8Array` but serializer accepts file descriptors — mock server requires filenames
+- CI: 72 unit test files pass, 41 e2e files pass + 1 skipped, smoke test passes

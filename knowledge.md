@@ -2363,3 +2363,14 @@ For non-discriminated unions with variants requiring active deserialization (Dat
 3. **Array.isArray check** — For unions mixing array and non-array variants
 
 The serializer side was intentionally NOT modified — JSON.stringify handles Date→ISO string conversion correctly when Date objects pass through the serializer unchanged. This avoids the complexity of generating serializer declarations for generated-name unions and modifying `typeHasSerializerDeclaration`/`inputUnions` filters.
+
+## E2E Test: Multipart File Descriptor Pattern
+When testing multipart endpoints against the Spector mock server, raw `Uint8Array` binary data is insufficient.
+The mock server requires file parts with filenames. Use file descriptors `{ contents: Uint8Array, filename: string, contentType?: string }` via `as any` cast since the generated model types say `Uint8Array`. The `createFilePartDescriptor` helper in the generated code handles both formats.
+
+## E2E Test: Pageable Response Type Mismatch
+The generated pageable client's `link()` and continuation token operations have `Promise<Pet[]>` return types,
+but at runtime return the full response object (e.g., `{ pets: Pet[], next?: string }`). Use `(result as any).pets ?? result` to safely access the items array.
+
+## Code Gen Bug: Spread Parameter Name with Hyphens
+The generated `classic/alias/index.ts` for `parameters/spread` contains `x-ms-test-header: string` as a TypeScript parameter name in interface definitions. Hyphens are invalid in TS identifiers. This causes esbuild parse failures and prevents the entire module from loading. The name policy should escape or quote such names.

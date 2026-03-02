@@ -503,7 +503,7 @@
       "title": "Port parameters, payload, and routes Spector tests",
       "category": "testing/spector-integration",
       "priority": "P1",
-      "status": "pending",
+      "status": "done",
       "kind": "feature",
       "dependencies": [
         "SPECTOR-3"
