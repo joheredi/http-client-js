@@ -548,17 +548,44 @@ function wrapWithNullCheck(
 }
 
 /**
- * Checks whether a model has additional properties that need spreading.
+ * Resolves the `additionalProperties` type for a model by walking the
+ * `baseModel` inheritance chain.
  *
- * When true, the serializer prepends `...item` to the return object to capture
- * all additional properties from the `extends Record<string, T>` pattern, then
- * overrides known properties with their serialized versions.
+ * TCGC only sets `additionalProperties` on the model that directly declares
+ * it (e.g., `extends Record<string, T>`). Derived types inherit the property
+ * via TypeScript's `extends` clause but have `additionalProperties === undefined`
+ * in the TCGC type model. This function walks up the chain until it finds an
+ * ancestor with `additionalProperties` set, returning that type.
+ *
+ * @param model - The TCGC model type to resolve additional properties for.
+ * @returns The additional properties SDK type, or undefined if none in the chain.
+ */
+export function resolveAdditionalProperties(
+  model: SdkModelType,
+): SdkType | undefined {
+  let current: SdkModelType | undefined = model;
+  while (current) {
+    if (current.additionalProperties !== undefined) {
+      return current.additionalProperties;
+    }
+    current = current.baseModel;
+  }
+  return undefined;
+}
+
+/**
+ * Checks whether a model has additional properties that need spreading,
+ * including inherited additional properties from ancestor models.
+ *
+ * When true, the serializer prepends `...serializeRecord(...)` to the return
+ * object to capture all additional properties from the `extends Record<string, T>`
+ * pattern, then overrides known properties with their serialized versions.
  *
  * @param model - The TCGC model type to check.
- * @returns `true` if the model has additional properties.
+ * @returns `true` if the model or any ancestor has additional properties.
  */
 function hasAdditionalProperties(model: SdkModelType): boolean {
-  return model.additionalProperties !== undefined;
+  return resolveAdditionalProperties(model) !== undefined;
 }
 
 /**
@@ -580,7 +607,7 @@ function getAdditionalPropertiesSerializationSpread(
   model: SdkModelType,
   options?: SerializationOptions,
 ): Children {
-  const apType = model.additionalProperties!;
+  const apType = resolveAdditionalProperties(model)!;
   const apName = getAdditionalPropertiesName(model);
 
   if (needsTransformation(apType, options)) {

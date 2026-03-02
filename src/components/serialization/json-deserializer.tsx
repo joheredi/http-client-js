@@ -26,7 +26,7 @@ import {
 import { useRuntimeLib } from "../../context/flavor-context.js";
 import { useEmitterOptions } from "../../context/emitter-options-context.js";
 import { normalizePropertyName } from "../../utils/name-policy.js";
-import { needsTransformation } from "./json-serializer.js";
+import { needsTransformation, resolveAdditionalProperties } from "./json-serializer.js";
 import { typeHasDeserializerDeclaration } from "../../utils/serialization-predicates.js";
 import { getAdditionalPropertiesName } from "../model-interface.js";
 
@@ -91,7 +91,7 @@ export function JsonDeserializer(props: JsonDeserializerProps) {
     model,
     includeParentProperties,
   );
-  const hasAdditional = model.additionalProperties !== undefined;
+  const hasAdditional = resolveAdditionalProperties(model) !== undefined;
   // Empty models (no properties and no additionalProperties) pass through the
   // input unchanged — `return item;` — preserving any extra properties on the
   // object. This matches the legacy emitter's behavior.
@@ -257,7 +257,7 @@ function getAdditionalPropertiesDeserializationExpression(
   model: SdkModelType,
   properties: SdkModelPropertyType[],
 ): Children {
-  const apType = model.additionalProperties!;
+  const apType = resolveAdditionalProperties(model)!;
   const excludeNames = properties
     .filter((p) => !!p.serializedName)
     .map((p) => `"${p.serializedName}"`)

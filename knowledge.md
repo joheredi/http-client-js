@@ -2346,3 +2346,10 @@ For non-standard HTTP auth schemes (not basic/bearer), the emitter generates a c
 - In the callback, use `res.headers.get("header-name")` (HttpHeaders interface), not `res.headers["header-name"]`
 - The runtime's `operationOptionsToRequestParameters` passes `onResponse` through to request params
 - The runtime's `sendRequest` invokes `onResponse` on both success and error responses
+
+## TCGC additionalProperties Inheritance (2026-03-02)
+- TCGC does NOT propagate `additionalProperties` to derived/child types
+- Only the model that directly declares `extends Record<T>` gets `additionalProperties` set
+- To detect inherited additionalProperties, walk the `baseModel` chain upward
+- Use `resolveAdditionalProperties(model)` from `json-serializer.tsx` for this
+- The `getAdditionalPropertiesName()` function in `model-interface.tsx` already handles name conflicts correctly for derived types

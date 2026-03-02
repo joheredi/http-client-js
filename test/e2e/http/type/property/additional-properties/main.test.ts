@@ -41,9 +41,6 @@ describe("Type.Property.AdditionalProperties", () => {
   });
 
   describe("extendsUnknownDerived", () => {
-    // Skipped: The generated derived type deserializer does not extract
-    // additionalProperties from the wire format. Known properties (name, index, age)
-    // are deserialized but additional properties (prop1, prop2, prop3) are lost.
     const expected = {
       name: "ExtendsUnknownAdditionalProperties",
       index: 314,
@@ -51,20 +48,17 @@ describe("Type.Property.AdditionalProperties", () => {
       additionalProperties: { prop1: 32, prop2: true, prop3: "abc" },
     };
 
-    it.skip("should get derived model with unknown additional properties", async () => {
+    it("should get derived model with unknown additional properties", async () => {
       const response = await client.extendsUnknownDerived.get();
       expect(response).toEqual(expected);
     });
 
-    it.skip("should put derived model with unknown additional properties", async () => {
+    it("should put derived model with unknown additional properties", async () => {
       await client.extendsUnknownDerived.put(expected);
     });
   });
 
   describe("extendsUnknownDiscriminated", () => {
-    // Skipped: The generated discriminated union deserializer dispatches to the
-    // derived type deserializer, which does not extract additionalProperties.
-    // The additional props (prop1, prop2, prop3) are lost during deserialization.
     const expected = {
       kind: "derived",
       name: "Derived",
@@ -73,12 +67,12 @@ describe("Type.Property.AdditionalProperties", () => {
       additionalProperties: { prop1: 32, prop2: true, prop3: "abc" },
     };
 
-    it.skip("should get discriminated model with unknown additional properties", async () => {
+    it("should get discriminated model with unknown additional properties", async () => {
       const response = await client.extendsUnknownDiscriminated.get();
       expect(response).toEqual(expected);
     });
 
-    it.skip("should put discriminated model with unknown additional properties", async () => {
+    it("should put discriminated model with unknown additional properties", async () => {
       await client.extendsUnknownDiscriminated.put(expected);
     });
   });
@@ -102,7 +96,6 @@ describe("Type.Property.AdditionalProperties", () => {
   });
 
   describe("isUnknownDerived", () => {
-    // Skipped: Same derived type deserializer bug — additionalProperties not extracted.
     const expected = {
       name: "IsUnknownAdditionalProperties",
       index: 314,
@@ -110,18 +103,17 @@ describe("Type.Property.AdditionalProperties", () => {
       additionalProperties: { prop1: 32, prop2: true, prop3: "abc" },
     };
 
-    it.skip("should get derived model with unknown additional properties (is)", async () => {
+    it("should get derived model with unknown additional properties (is)", async () => {
       const response = await client.isUnknownDerived.get();
       expect(response).toEqual(expected);
     });
 
-    it.skip("should put derived model with unknown additional properties (is)", async () => {
+    it("should put derived model with unknown additional properties (is)", async () => {
       await client.isUnknownDerived.put(expected);
     });
   });
 
   describe("isUnknownDiscriminated", () => {
-    // Skipped: Same discriminated union deserialization issue as extendsUnknownDiscriminated.
     const expected = {
       kind: "derived",
       name: "Derived",
@@ -130,12 +122,12 @@ describe("Type.Property.AdditionalProperties", () => {
       additionalProperties: { prop1: 32, prop2: true, prop3: "abc" },
     };
 
-    it.skip("should get discriminated model with unknown additional properties (is)", async () => {
+    it("should get discriminated model with unknown additional properties (is)", async () => {
       const response = await client.isUnknownDiscriminated.get();
       expect(response).toEqual(expected);
     });
 
-    it.skip("should put discriminated model with unknown additional properties (is)", async () => {
+    it("should put discriminated model with unknown additional properties (is)", async () => {
       await client.isUnknownDiscriminated.put(expected);
     });
   });
@@ -409,73 +401,69 @@ describe("Type.Property.AdditionalProperties", () => {
   // --- Extends Different Spread (Derived) ---
 
   describe("extendsDifferentSpreadString", () => {
-    // Skipped: Derived type deserializer does not extract additionalProperties.
     const expected = {
       id: 43.125,
       derivedProp: "abc",
       additionalProperties: { prop: "abc" },
     };
 
-    it.skip("should get derived model with different spread string", async () => {
+    it("should get derived model with different spread string", async () => {
       const response = await client.extendsDifferentSpreadString.get();
       expect(response).toEqual(expected);
     });
 
-    it.skip("should put derived model with different spread string", async () => {
+    it("should put derived model with different spread string", async () => {
       await client.extendsDifferentSpreadString.put(expected);
     });
   });
 
   describe("extendsDifferentSpreadFloat", () => {
-    // Skipped: Derived type deserializer does not extract additionalProperties.
     const expected = {
       name: "abc",
       derivedProp: 43.125,
       additionalProperties: { prop: 43.125 },
     };
 
-    it.skip("should get derived model with different spread float", async () => {
+    it("should get derived model with different spread float", async () => {
       const response = await client.extendsDifferentSpreadFloat.get();
       expect(response).toEqual(expected);
     });
 
-    it.skip("should put derived model with different spread float", async () => {
+    it("should put derived model with different spread float", async () => {
       await client.extendsDifferentSpreadFloat.put(expected);
     });
   });
 
   describe("extendsDifferentSpreadModel", () => {
-    // Skipped: Derived type deserializer does not extract additionalProperties.
     const expected = {
       knownProp: "abc",
       derivedProp: { state: "ok" },
       additionalProperties: { prop: { state: "ok" } },
     };
 
-    it.skip("should get derived model with different spread model", async () => {
+    it("should get derived model with different spread model", async () => {
       const response = await client.extendsDifferentSpreadModel.get();
       expect(response).toEqual(expected);
     });
 
-    it.skip("should put derived model with different spread model", async () => {
+    it("should put derived model with different spread model", async () => {
       await client.extendsDifferentSpreadModel.put(expected);
     });
   });
 
   describe("extendsDifferentSpreadModelArray", () => {
-    // Skipped: Derived type deserializer does not extract additionalProperties.
     const expected = {
       knownProp: "abc",
       derivedProp: [{ state: "ok" }, { state: "ok" }],
       additionalProperties: { prop: [{ state: "ok" }, { state: "ok" }] },
     };
 
-    it.skip("should get derived model with different spread model array", async () => {
+    it("should get derived model with different spread model array", async () => {
       const response = await client.extendsDifferentSpreadModelArray.get();
       expect(response).toEqual(expected);
     });
 
-    it.skip("should put derived model with different spread model array", async () => {
+    it("should put derived model with different spread model array", async () => {
       await client.extendsDifferentSpreadModelArray.put(expected);
     });
   });

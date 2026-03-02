@@ -2576,3 +2576,22 @@ Test results:
 
 Files changed:
 - test/e2e/http/encode/datetime/main.test.ts (fixed onResponse nesting, unskipped 4 tests)
+
+## E2E-FIX-ADDITIONAL-PROPS-DERIVED: Fix inherited additionalProperties in serializers/deserializers — DONE (2026-03-02)
+
+### Problem
+When a model extends a base type with additional properties (`Record<string, unknown>`), TCGC only sets `additionalProperties` on the base model. Derived types had `additionalProperties === undefined`, causing their serializers/deserializers to omit `serializeRecord()`/`deserializeRecord()` calls. This silently dropped additional properties during round-trip.
+
+### Fix
+Added `resolveAdditionalProperties(model)` in `json-serializer.tsx` that walks the `baseModel` chain to find inherited `additionalProperties`. Used this in both serializer and deserializer instead of checking `model.additionalProperties` directly.
+
+### Files Changed
+- `src/components/serialization/json-serializer.tsx` — Added `resolveAdditionalProperties()`, updated `hasAdditionalProperties()` and `getAdditionalPropertiesSerializationSpread()`
+- `src/components/serialization/json-deserializer.tsx` — Imported `resolveAdditionalProperties`, used it in `hasAdditional` check and `getAdditionalPropertiesDeserializationExpression()`
+- `test/e2e/http/type/property/additional-properties/main.test.ts` — Unskipped 16 tests
+
+### Result
+16 e2e tests now passing (was skipped). Unblocks E2E-FIX-ADDITIONAL-PROPS-UNION task.
+
+### Pattern
+When checking TCGC model properties that may be inherited, always walk the `baseModel` chain. TCGC does NOT propagate `additionalProperties` to derived types.
