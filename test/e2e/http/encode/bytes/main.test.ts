@@ -2,10 +2,6 @@
  * E2E tests for Encode.Bytes — validates that the generated client correctly
  * handles byte encoding formats (base64, base64url) across query, property,
  * header, request body, and response body positions.
- *
- * Some tests are skipped due to known limitations in the runtime or emitter:
- * - default query encoding has issues with base64 query serialization
- * - some request body and response body encoding modes are not yet supported
  */
 import { readFile } from "fs/promises";
 import { dirname, resolve } from "path";
@@ -119,8 +115,8 @@ describe("Encode.Bytes", () => {
       retryOptions: { maxRetries: 1 },
     });
 
-    it.skip("should test default encode (base64) for bytes in JSON body", async () => {
-      await client.requestBody.default(encodedTestString);
+    it("should test default binary bytes in request body", async () => {
+      await client.requestBody.default(pngContents);
     });
 
     it("should test application/octet-stream content type with bytes payload", async () => {
@@ -131,11 +127,11 @@ describe("Encode.Bytes", () => {
       await client.requestBody.customContentType(pngContents);
     });
 
-    it.skip("should test base64 encode for bytes body", async () => {
+    it("should test base64 encode for bytes body", async () => {
       await client.requestBody.base64(testUint8Array);
     });
 
-    it.skip("should test base64url encode for bytes body", async () => {
+    it("should test base64url encode for bytes body", async () => {
       await client.requestBody.base64url(testUint8Array);
     });
   });
@@ -147,19 +143,19 @@ describe("Encode.Bytes", () => {
       retryOptions: { maxRetries: 1 },
     });
 
-    it.skip("should test default encode (base64) for bytes in JSON body response", async () => {
+    it("should test default binary bytes in response body", async () => {
       const response = await client.responseBody.default();
-      expect(response).toStrictEqual(encodedTestString);
+      expect(new Uint8Array(response)).toStrictEqual(new Uint8Array(pngContents));
     });
 
-    it.skip("should test application/octet-stream content type with bytes response", async () => {
+    it("should test application/octet-stream content type with bytes response", async () => {
       const response = await client.responseBody.octetStream();
-      expect(response).toStrictEqual(pngContents);
+      expect(new Uint8Array(response)).toStrictEqual(new Uint8Array(pngContents));
     });
 
-    it.skip("should test custom content type (image/png) with bytes response", async () => {
+    it("should test custom content type (image/png) with bytes response", async () => {
       const response = await client.responseBody.customContentType();
-      expect(response).toStrictEqual(pngContents);
+      expect(new Uint8Array(response)).toStrictEqual(new Uint8Array(pngContents));
     });
 
     it("should test base64 encode for bytes response body", async () => {

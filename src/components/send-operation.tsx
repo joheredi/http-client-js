@@ -941,6 +941,8 @@ function getHeaderElementExpression(type: SdkType, accessor: string): Children {
  * the `...Model` syntax to spread model properties into operation parameters.
  *
  * Detection logic (mirrors legacy emitter's `isSpreadBodyParameter`):
+ * - Non-model types (bytes, string, etc.) can never be spread — only models
+ *   have properties that can be flattened into individual parameters.
  * - Multiple corresponding method params → definitely spread
  * - Single corresponding method param with a different type → spread alias
  *
@@ -948,6 +950,11 @@ function getHeaderElementExpression(type: SdkType, accessor: string): Children {
  * @returns `true` if the body parameter is spread.
  */
 function isSpreadBody(bodyParam: SdkBodyParameter): boolean {
+  // Only model types can be spread — primitive types (bytes, string, etc.)
+  // may have different type object identity between bodyParam.type and
+  // correspondingMethodParams[0].type in TCGC, but this does not indicate spreading.
+  if (bodyParam.type.kind !== "model") return false;
+
   const params = bodyParam.correspondingMethodParams;
   if (params.length > 1) return true;
   if (params.length === 1 && params[0].type !== bodyParam.type) return true;
@@ -957,10 +964,12 @@ function isSpreadBody(bodyParam: SdkBodyParameter): boolean {
 /**
  * Builds the body expression for the request options.
  *
- * Handles two cases:
- * 1. **Direct body**: Calls the model's serializer function via refkey
- *    (e.g., `body: itemSerializer(body)`)
- * 2. **Spread body**: Constructs an inline object literal with per-property
+ * Handles three cases:
+ * 1. **Binary bytes body**: Returns the raw accessor for binary content types
+ *    (application/octet-stream, image/png, etc.) where bytes are sent as-is.
+ * 2. **Direct body**: Calls the model's serializer function via refkey
+ *    (e.g., `body: itemSerializer(body)`) or encodes bytes to base64/base64url.
+ * 3. **Spread body**: Constructs an inline object literal with per-property
  *    serialization (e.g., `body: { prop1: prop1, prop2: prop2.toISOString() }`)
  *
  * Spread bodies occur when TypeSpec uses `...Model` or `...Alias` syntax to
@@ -983,6 +992,17 @@ function buildBodyExpression(
 
   const accessor = getBodyAccessor(bodyParam, method);
   const bodyType = bodyParam.type;
+
+  // Binary bytes body (encode="bytes"/"binary") is sent as raw Uint8Array.
+  // These correspond to binary content types (application/octet-stream, image/png)
+  // and must NOT be base64-encoded. Only JSON-encoded bytes (base64, base64url)
+  // need transformation via uint8ArrayToString.
+  if (bodyType.kind === "bytes") {
+    const encoding = bodyType.encode ?? "base64";
+    if (encoding === "bytes" || encoding === "binary") {
+      return accessor;
+    }
+  }
 
   // For model types that need serialization
   if (needsTransformation(bodyType)) {

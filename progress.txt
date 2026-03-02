@@ -2595,3 +2595,46 @@ Added `resolveAdditionalProperties(model)` in `json-serializer.tsx` that walks t
 
 ### Pattern
 When checking TCGC model properties that may be inherited, always walk the `baseModel` chain. TCGC does NOT propagate `additionalProperties` to derived types.
+
+---
+
+## RC28 (2026-03-02): Fix bytes body encoding for standalone @body bytes params (E2E-FIX-BYTES-BODY-ENCODING) — COMPLETED
+
+### Problem
+6 e2e tests were skipped for Encode.Bytes request/response body operations:
+- 3 RequestBody tests (default, base64, base64url)
+- 3 ResponseBody tests (default, octetStream, customContentType)
+
+### Root Cause
+`isSpreadBody()` in `send-operation.tsx` used identity comparison (`!==`) between
+the body param type and corresponding method param type. For standalone `@body bytes`
+params, TCGC creates separate type objects (bodyParam.type !== correspondingMethodParams[0].type),
+causing `isSpreadBody()` to return `true`. `buildSpreadBodyExpression()` then falls through
+to `getBodyAccessor()` for non-model types, returning the raw accessor without any encoding.
+
+### Fix
+1. **`isSpreadBody()`**: Added early return `false` for non-model body types. Only model types
+   can be spread (have properties flattened into individual method parameters). Primitive types
+   like bytes, string, etc. are never spread even when TCGC creates separate type objects.
+
+2. **`buildBodyExpression()`**: Added binary bytes guard — when body type is bytes with
+   `encode="bytes"` or `encode="binary"`, return the raw accessor without transformation.
+   These correspond to binary content types (application/octet-stream, image/png) that
+   should not be base64-encoded.
+
+3. **Test fixes**: Fixed test data for `default` tests (mock expects PNG binary, not
+   base64-encoded "test" string). Unskipped all 6 tests.
+
+### Key Insight
+TCGC body param encoding values: `encode="bytes"/"binary"` = binary stream (no encoding),
+`encode="base64"/"base64url"` = JSON-encoded bytes. The `getSerializationExpression` for
+bytes normalizes binary/bytes to base64, which is correct for JSON model properties but
+wrong for binary stream body params.
+
+### Files Changed
+- `src/components/send-operation.tsx` — Fixed `isSpreadBody()` and `buildBodyExpression()`
+- `test/e2e/http/encode/bytes/main.test.ts` — Fixed test data and unskipped 6 tests
+- `test/e2e/generated/encode/bytes/` — Regenerated output
+
+### Validation
+All CI passes: 1016 unit tests, smoke tests, 414 e2e tests (+6 from unskipped).
