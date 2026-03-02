@@ -629,7 +629,7 @@
       "title": "Generate non-discriminated union deserialization for additional properties spread types",
       "category": "bug-fix/emitter",
       "priority": "P2",
-      "status": "pending",
+      "status": "done",
       "kind": "feature",
       "dependencies": [
         "E2E-FIX-ADDITIONAL-PROPS-DERIVED"

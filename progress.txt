@@ -2679,3 +2679,36 @@ All CI passes: 1016 unit tests, smoke tests, 414 e2e tests (+6 from unskipped).
 - `test/e2e/http/type/enum/fixed/main.test.ts` — unskipped the e2e test
 
 **Validation:** All 1016 unit tests pass, smoke test passes, all 417 e2e tests pass (16 still skipped for other reasons).
+
+---
+
+## RC23 — Non-discriminated union deserialization for additional properties spread types
+**Date:** 2026-03-02
+**Task:** E2E-FIX-ADDITIONAL-PROPS-UNION
+**Status:** DONE
+
+### Problem
+6 e2e tests were skipped because non-discriminated union deserializers were generated as simple pass-throughs (`return item`), causing Date fields in union variants to remain as ISO strings instead of being parsed to Date objects.
+
+### Solution
+Enhanced `JsonUnionDeserializer` component to generate runtime discrimination logic instead of pass-through when union variants need deserialization transformation. Three discrimination strategies:
+
+1. **Constant property value switch** — When model variants share a property with distinct constant values (e.g., `kind: "kind0"` vs `kind: "kind1"`), generates a `switch` statement.
+2. **Property existence check** — When variants can't be distinguished by constant values (overlapping discriminator), checks for unique properties using `"prop" in item`.
+3. **Array.isArray check** — When the union contains both array and non-array variants, generates `Array.isArray(item)` guard.
+
+### Files Changed
+- **NEW** `src/utils/union-discrimination.ts` — Analysis utilities: `findDiscriminatorProperty`, `findUniquePropertyForModel`, `variantNeedsDeserialization`, `unwrapNullable`
+- **MODIFIED** `src/components/serialization/json-union-deserializer.tsx` — Replaced pass-through body with discrimination logic builder
+- **MODIFIED** `test/e2e/http/type/property/additional-properties/main.test.ts` — Fixed test 1 missing `end` field, unskipped all 6 tests
+
+### Key Patterns
+- Followed `buildPolymorphicSwitchBody()` pattern from `json-polymorphic-serializer.tsx` for switch generation
+- Used `typeHasDeserializerDeclaration()` to verify refkeys resolve before generating deserializer calls
+- Serialization side was NOT modified — JSON.stringify handles Date→ISO conversion correctly through pass-through
+
+### What the next person should know
+- Union serializer (`json-union-serializer.tsx`) is still pass-through — works for PUT because JSON.stringify handles Date objects
+- The discrimination analysis is conservative: if no discrimination criteria can be found, falls back to pass-through
+- Property existence checks are a heuristic — overlapping optional properties can't be 100% discriminated
+- The `type/union` e2e emit has a pre-existing file cleanup issue (ENOTEMPTY) that's unrelated to our changes

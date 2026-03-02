@@ -2353,3 +2353,13 @@ For non-standard HTTP auth schemes (not basic/bearer), the emitter generates a c
 - To detect inherited additionalProperties, walk the `baseModel` chain upward
 - Use `resolveAdditionalProperties(model)` from `json-serializer.tsx` for this
 - The `getAdditionalPropertiesName()` function in `model-interface.tsx` already handles name conflicts correctly for derived types
+
+## Design Decisions
+
+### Non-discriminated union discrimination strategy (RC23)
+For non-discriminated unions with variants requiring active deserialization (Date parsing, etc.), the emitter now generates runtime discrimination instead of pass-through. Three strategies are used in priority order:
+1. **Switch on constant property values** — Best case, when all variants share a property with distinct constant values (e.g., `kind: "kind0"` vs `kind: "kind1"`)
+2. **Property existence check** — Fallback when constant values overlap; uses `"propName" in item` to identify variants with unique properties
+3. **Array.isArray check** — For unions mixing array and non-array variants
+
+The serializer side was intentionally NOT modified — JSON.stringify handles Date→ISO string conversion correctly when Date objects pass through the serializer unchanged. This avoids the complexity of generating serializer declarations for generated-name unions and modifying `typeHasSerializerDeclaration`/`inputUnions` filters.

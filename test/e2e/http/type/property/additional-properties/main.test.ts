@@ -505,36 +505,43 @@ describe("Type.Property.AdditionalProperties", () => {
   });
 
   // --- Spread Record Non-Discriminated Union ---
-  // Skipped: Non-discriminated union deserialization for spread records is a known
-  // issue in both the legacy emitter (autorest.typescript#3122) and our emitter.
-  // The union types (WidgetData0 | WidgetData1, WidgetData2 | WidgetData1) cannot
-  // be reliably discriminated during deserialization.
+  // The union deserializer uses runtime discrimination: constant property values
+  // (switch on "kind"), property existence checks ("end" in item), or Array.isArray()
+  // to route values to the correct variant deserializer.
 
   describe("spreadRecordNonDiscriminatedUnion", () => {
-    it.skip("should get model with non-discriminated union spread", async () => {
+    it("should get model with non-discriminated union spread", async () => {
       const response = await client.spreadRecordNonDiscriminatedUnion.get();
       expect(response).toEqual({
         name: "abc",
         additionalProperties: {
           prop1: { kind: "kind0", fooProp: "abc" },
-          prop2: { kind: "kind1", start: new Date("2021-01-01T00:00:00Z") },
+          prop2: {
+            kind: "kind1",
+            start: new Date("2021-01-01T00:00:00Z"),
+            end: new Date("2021-01-02T00:00:00Z"),
+          },
         },
       });
     });
 
-    it.skip("should put model with non-discriminated union spread", async () => {
+    it("should put model with non-discriminated union spread", async () => {
       await client.spreadRecordNonDiscriminatedUnion.put({
         name: "abc",
         additionalProperties: {
           prop1: { kind: "kind0", fooProp: "abc" },
-          prop2: { kind: "kind1", start: new Date("2021-01-01T00:00:00Z") },
+          prop2: {
+            kind: "kind1",
+            start: new Date("2021-01-01T00:00:00Z"),
+            end: new Date("2021-01-02T00:00:00Z"),
+          },
         },
       });
     });
   });
 
   describe("spreadRecordNonDiscriminatedUnion2", () => {
-    it.skip("should get model with non-discriminated union2 spread", async () => {
+    it("should get model with non-discriminated union2 spread", async () => {
       const response = await client.spreadRecordNonDiscriminatedUnion2.get();
       expect(response).toEqual({
         name: "abc",
@@ -549,7 +556,7 @@ describe("Type.Property.AdditionalProperties", () => {
       });
     });
 
-    it.skip("should put model with non-discriminated union2 spread", async () => {
+    it("should put model with non-discriminated union2 spread", async () => {
       await client.spreadRecordNonDiscriminatedUnion2.put({
         name: "abc",
         additionalProperties: {
@@ -565,7 +572,7 @@ describe("Type.Property.AdditionalProperties", () => {
   });
 
   describe("spreadRecordNonDiscriminatedUnion3", () => {
-    it.skip("should get model with non-discriminated union3 spread", async () => {
+    it("should get model with non-discriminated union3 spread", async () => {
       const response = await client.spreadRecordNonDiscriminatedUnion3.get();
       expect(response).toEqual({
         name: "abc",
@@ -583,7 +590,7 @@ describe("Type.Property.AdditionalProperties", () => {
       });
     });
 
-    it.skip("should put model with non-discriminated union3 spread", async () => {
+    it("should put model with non-discriminated union3 spread", async () => {
       await client.spreadRecordNonDiscriminatedUnion3.put({
         name: "abc",
         additionalProperties: {
