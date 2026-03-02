@@ -847,7 +847,7 @@
       "title": "Fix e2e test: enum-conflict secondOperations sends wrong request body",
       "category": "bug-fix/e2e-tests",
       "priority": "P3",
-      "status": "not-started",
+      "status": "done",
       "kind": "bug",
       "dependencies": [],
       "design_review": null,

@@ -22,9 +22,8 @@ describe("Client.Naming.EnumConflict", () => {
   });
 
   describe("secondOperations", () => {
-    // TODO(e2e): Fix - request body doesn't match expected
-    it.skip("should call second()", async () => {
-      const body: SecondModel = { status: "running", description: "test" };
+    it("should call second()", async () => {
+      const body: SecondModel = { status: "running", description: "test description" };
       const result = await client.secondOperations.second(body);
       expect(result).toBeDefined();
       expect(result.status).toBeDefined();
