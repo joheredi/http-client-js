@@ -100,9 +100,11 @@ describe("Encode.Datetime", () => {
   });
 
   /**
-   * ResponseHeader operations are skipped because the generated client does not
-   * support the `onResponse` callback pattern needed to inspect raw response headers.
-   * The operationOptions.onResponse callback is not being invoked by the runtime.
+   * ResponseHeader operations validate that typed response headers are accessible
+   * via the onResponse callback. The callback receives a FullOperationResponse
+   * whose headers property is an HttpHeaders object (use .get() to read values).
+   * These tests match the legacy emitter's pattern where response header operations
+   * return Promise<void> and headers are inspected via the onResponse callback.
    */
   describe("ResponseHeaderOperations", () => {
     const client = new DatetimeClient({
@@ -111,52 +113,44 @@ describe("Encode.Datetime", () => {
       retryOptions: { maxRetries: 1 },
     });
 
-    it.skip("should handle default encode (rfc7231) for datetime response header", async () => {
-      let value: Date | undefined;
+    it("should handle default encode (rfc7231) for datetime response header", async () => {
+      let headerValue: string | undefined;
       await client.responseHeader.default({
-        operationOptions: {
-          onResponse: (r: any) => {
-            value = new Date(r.headers["value"]);
-          },
+        onResponse: (res: any) => {
+          headerValue = res.headers.get("value");
         },
       });
-      expect(value).toEqual(new Date("2022-08-26T14:38:00.000Z"));
+      expect(headerValue).toEqual("Fri, 26 Aug 2022 14:38:00 GMT");
     });
 
-    it.skip("should handle rfc3339 encode for datetime response header", async () => {
-      let value: Date | undefined;
+    it("should handle rfc3339 encode for datetime response header", async () => {
+      let headerValue: string | undefined;
       await client.responseHeader.rfc3339({
-        operationOptions: {
-          onResponse: (r: any) => {
-            value = new Date(r.headers["value"]);
-          },
+        onResponse: (res: any) => {
+          headerValue = res.headers.get("value");
         },
       });
-      expect(value).toEqual(new Date("2022-08-26T18:38:00.000Z"));
+      expect(headerValue).toEqual("2022-08-26T18:38:00.000Z");
     });
 
-    it.skip("should handle rfc7231 encode for datetime response header", async () => {
-      let value: Date | undefined;
+    it("should handle rfc7231 encode for datetime response header", async () => {
+      let headerValue: string | undefined;
       await client.responseHeader.rfc7231({
-        operationOptions: {
-          onResponse: (r: any) => {
-            value = new Date(r.headers["value"]);
-          },
+        onResponse: (res: any) => {
+          headerValue = res.headers.get("value");
         },
       });
-      expect(value).toEqual(new Date("2022-08-26T14:38:00.000Z"));
+      expect(headerValue).toEqual("Fri, 26 Aug 2022 14:38:00 GMT");
     });
 
-    it.skip("should handle unixTimestamp encode for datetime response header", async () => {
-      let value: string | undefined;
+    it("should handle unixTimestamp encode for datetime response header", async () => {
+      let headerValue: string | undefined;
       await client.responseHeader.unixTimestamp({
-        operationOptions: {
-          onResponse: (r: any) => {
-            value = r.headers["value"];
-          },
+        onResponse: (res: any) => {
+          headerValue = res.headers.get("value");
         },
       });
-      expect(value).toEqual("1686566864");
+      expect(headerValue).toEqual("1686566864");
     });
   });
 });

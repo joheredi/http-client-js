@@ -2338,3 +2338,11 @@ The `@typespec/ts-http-runtime` exports `isApiKeyCredential` and `ApiKeyCredenti
 
 ## Custom HTTP Auth Scheme Pattern (2026-03-01)
 For non-standard HTTP auth schemes (not basic/bearer), the emitter generates a custom pipeline policy instead of using `authSchemes`. The runtime only handles `kind: "http"` with `scheme: "basic"` or `scheme: "bearer"`. Custom schemes like "SharedAccessKey" need a manual `clientContext.pipeline.addPolicy()` that sets `Authorization: <SchemeName> <credential.key>`. This matches the legacy emitter's approach from `buildClientContext.ts`.
+
+## Response Header Access Pattern
+- Operations with response headers (no body) return `Promise<void>` — matching legacy behavior
+- Response headers are accessed via `onResponse` callback on `OperationOptions`
+- The `onResponse` callback is a top-level property of `OperationOptions`, NOT nested under `requestOptions` or `operationOptions`
+- In the callback, use `res.headers.get("header-name")` (HttpHeaders interface), not `res.headers["header-name"]`
+- The runtime's `operationOptionsToRequestParameters` passes `onResponse` through to request params
+- The runtime's `sendRequest` invokes `onResponse` on both success and error responses

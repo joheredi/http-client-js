@@ -2551,3 +2551,28 @@ Ported 4 property type Spector e2e test files covering ~212 test cases:
 - Duration with ISO8601 encoding is a TypeScript `string`, no conversion needed
 - Duration with seconds/milliseconds encoding is TypeScript `number`, needs `String()` for headers
 - Mock server expected dates didn't match test input dates for unix timestamp headers
+
+---
+2026-03-02: E2E-FIX-RESPONSE-HEADER-DESER — Fix response header e2e tests
+
+What was done:
+- Fixed 4 skipped Encode.Datetime.ResponseHeader e2e tests
+- Root cause: tests incorrectly nested `onResponse` under an invalid `operationOptions` key
+  instead of passing it directly on the options object (where `OperationOptions` defines it)
+- The generated emitter code was already correct (matches legacy `Promise<void>` pattern)
+- No emitter changes needed — only e2e test fixes
+
+Key insight:
+- Legacy emitter also returns `Promise<void>` for response header operations
+- Response headers are accessed via `onResponse` callback on `OperationOptions`, not the return value
+- The runtime's `operationOptionsToRequestParameters` correctly passes `onResponse` through
+- The runtime's `sendRequest` correctly invokes `onResponse` after HTTP responses
+- Use `res.headers.get("name")` to access headers in the callback (HttpHeaders interface)
+
+Test results:
+- Unit: 1016 passed (unchanged)
+- E2e: 392 passed (+4 from this work, was 388)
+- Smoke: 1 passed (unchanged)
+
+Files changed:
+- test/e2e/http/encode/datetime/main.test.ts (fixed onResponse nesting, unskipped 4 tests)
