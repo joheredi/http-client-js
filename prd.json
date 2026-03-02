@@ -835,7 +835,7 @@
       "title": "Fix e2e test: client-location move-method-parameter-to-client wrong param value",
       "category": "bug-fix/e2e-tests",
       "priority": "P3",
-      "status": "not-started",
+      "status": "done",
       "kind": "bug",
       "dependencies": [],
       "design_review": null,

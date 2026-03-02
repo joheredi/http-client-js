@@ -3040,3 +3040,12 @@ Compared with legacy test at `submodules/autorest.typescript/.../resiliencySrvDr
 - Changed test data to match the Spector mock API definition and the legacy test reference
 - Removed `it.skip` and the TODO comment to enable the test
 - All CI passes: unit (1019), smoke (1), e2e (753 passed, 74 skipped)
+
+---
+2026-03-02: E2E-AZURE-CLIENT-LOCATION-PARAMS — Fix client-location move-method-parameter-to-client e2e test
+- Fixed parameter values in test to match mock server expectations:
+  - storageAccount: "test-account" → "testaccount"
+  - container: "test-container" → "testcontainer"
+  - blob: "test-blob" → "testblob.txt"
+- Unskipped the test (removed it.skip and TODO comment)
+- Verified: pnpm run ci passes (1019 unit tests + 754 e2e tests pass)
