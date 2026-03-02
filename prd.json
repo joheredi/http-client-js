@@ -775,7 +775,7 @@
       "title": "Fix Traits: Repeatability-Request-ID header not sent for repeatable actions",
       "category": "bug-fix/emitter",
       "priority": "P2",
-      "status": "not-started",
+      "status": "done",
       "kind": "bug",
       "dependencies": [],
       "design_review": null,

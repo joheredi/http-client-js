@@ -2977,3 +2977,13 @@ The `bearerTokenAuthenticationPolicy` in `@azure/core-rest-pipeline` has NO conf
   - `withParameterizedNextLink`: Added `{ includePending: true }` as second argument, fetches only first page via `.next()` (matching legacy test pattern — parameter re-injection for nextLink not yet implemented)
 - **Both tests unskipped and passing**
 - **Note**: Parameter re-injection for `withParameterizedNextLink` is a known limitation in the paging helper. The server returns nextLink without `includePending`, requiring the client to re-inject it. This is tracked by the legacy emitter's TODO as well.
+
+---
+**2026-03-02: E2E-AZURE-TRAITS-REPEATABILITY — Fix repeatableAction e2e test — DONE**
+
+- **Problem**: The `repeatableAction` e2e test was skipped because it didn't pass `Repeatability-Request-ID` and `Repeatability-First-Sent` headers. The mock server validates these headers are present with valid UUID and RFC7231 date formats.
+- **Root cause**: The test was calling `client.repeatableAction(1, { userActionValue: "test" })` without providing the repeatability headers in the options bag. The generated code already correctly handles these as optional header parameters.
+- **Fix**: Updated the test to pass repeatability headers explicitly (matching legacy modular test behavior): `repeatabilityRequestId: "86aede1f-..."` and `repeatabilityFirstSent: new Date(...)`.
+- **Key finding**: The emitter already generates correct header handling code. The generated code matches legacy output pattern — conditional spread for optional headers.
+- **Design decision**: Chose to fix the test (matching legacy behavior) over auto-generating headers in emitter output. Auto-generation would be a separate feature.
+- **Tests**: 1019 unit + 3 skipped, 745 e2e + 82 skipped, smoke all pass. Total CI green.

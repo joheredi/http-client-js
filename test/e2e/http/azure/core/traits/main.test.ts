@@ -18,11 +18,15 @@ describe("Azure.Core.Traits", () => {
     expect(result.name).toBe("Madge");
   });
 
-  // TODO(e2e): Fix - Repeatability-Request-ID header not sent
-  it.skip("should perform repeatable action", async () => {
-    const result = await client.repeatableAction(1, {
-      userActionValue: "test",
-    });
+  it("should perform repeatable action", async () => {
+    const result = await client.repeatableAction(
+      1,
+      { userActionValue: "test" },
+      {
+        repeatabilityRequestId: "86aede1f-96fa-4e7f-b1e1-bf8a947cb804",
+        repeatabilityFirstSent: new Date("Mon, 27 Nov 2023 11:58:00 GMT"),
+      },
+    );
     expect(result.userActionResult).toBe("test");
   });
 });
