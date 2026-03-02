@@ -1,0 +1,57 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm build
+
+      - name: Unit and scenario tests
+        run: pnpm test
+
+      - name: Smoke test
+        run: pnpm test:smoke
+
+      - name: E2E tests
+        run: pnpm test:e2e
+
+      - name: Calculate e2e coverage
+        if: always()
+        run: npx tsx eng/scripts/calculate-coverage.ts
+
+      - name: Upload Spector coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: spector-coverage
+          path: temp/spector-coverage.json
+          if-no-files-found: warn

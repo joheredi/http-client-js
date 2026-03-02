@@ -531,7 +531,7 @@
       "title": "Add e2e test CI integration and coverage reporting",
       "category": "testing/spector-infrastructure",
       "priority": "P2",
-      "status": "pending",
+      "status": "done",
       "kind": "feature",
       "dependencies": [
         "SPECTOR-3"

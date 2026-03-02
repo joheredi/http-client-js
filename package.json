@@ -63,6 +63,8 @@
     "lint:fix": "eslint . --report-unused-disable-directives --fix",
     "format": "prettier .  --write",
     "format:check": "prettier --check .",
+    "test:e2e:ci": "pnpm build && pnpm test:e2e",
+    "coverage": "npx tsx eng/scripts/calculate-coverage.ts",
     "ci": "pnpm build && vitest run && pnpm test:smoke && pnpm test:e2e"
   },
   "exports": {

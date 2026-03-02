@@ -2799,3 +2799,34 @@ When `type/union` and `type/union/discriminated` are compiled in parallel, they 
 **Fix:** Moved all directory cleanup into a serial pre-pass in `main()` that runs before any parallel compilation starts. The pre-pass first cleans all output directories, then creates them. `compileSpec()` now only does an idempotent `mkdir` as a safety net.
 
 **Validation:** Full CI passes — 1016 unit tests, smoke test, 627 e2e tests.
+
+## SPECTOR-9: Add e2e test CI integration and coverage reporting (2026-03-02)
+
+### What was done
+- Created `.github/workflows/ci.yml` — GitHub Actions CI workflow that runs:
+  - `pnpm install --frozen-lockfile` with Node 22 and pnpm 10
+  - `pnpm build` (Alloy build)
+  - `pnpm test` (unit/scenario tests)
+  - `pnpm test:smoke` (smoke test)
+  - `pnpm test:e2e` (Spector e2e tests)
+  - Coverage calculation via `eng/scripts/calculate-coverage.ts`
+  - Uploads `temp/spector-coverage.json` as CI artifact
+- Created `eng/scripts/calculate-coverage.ts` — Reads Spector coverage JSON and prints:
+  - Summary: total/passed/failed/not-implemented counts
+  - Coverage percentage (currently 83.06% — 618/744)
+  - Lists of failed and not-implemented scenarios
+- Added package.json scripts:
+  - `test:e2e:ci`: `pnpm build && pnpm test:e2e` (convenience for CI)
+  - `coverage`: `npx tsx eng/scripts/calculate-coverage.ts`
+
+### Patterns used
+- Followed the reference implementation from `submodules/typespec/packages/http-client-js/eng/scripts/calculate-coverage.js`
+- Uses `CoverageReport` format: array of reports with `results` map (scenario → status)
+- CI uses concurrency groups to cancel in-progress runs on same branch/PR
+- Coverage and artifact steps use `if: always()` so they run even if tests fail
+
+### Notes for next person
+- The PRD has no remaining tasks (all done). This was the last task.
+- Coverage file is at `temp/spector-coverage.json` (gitignored)
+- Run `pnpm coverage` to see current e2e coverage
+- 126 scenarios are not-implemented (XML, pagination, streaming, multipart, visibility, etc.)
