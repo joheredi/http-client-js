@@ -11,29 +11,33 @@ const fakeCredential: TokenCredential = {
   }),
 };
 
-// TODO(e2e): All tests skip - Bearer token authentication not permitted for non-TLS (http) URLs
 describe("Azure.ResourceManager.NonResource", () => {
   const client = new NonResourceClient(fakeCredential, subscriptionId, {
     endpoint,
     allowInsecureConnection: true,
   });
+  // Remove bearer token policy so tests can run against HTTP mock server.
+  // The policy hard-codes an HTTPS requirement that can't be bypassed.
+  client.pipeline.removePolicy({
+    name: "bearerTokenAuthenticationPolicy",
+  });
 
   describe("nonResourceOperations", () => {
-    it.skip("should get a non resource", async () => {
+    it("should get a non resource", async () => {
       const result = await client.nonResourceOperations.get(
         "eastus",
-        "param",
+        "hello",
       );
       expect(result).toBeDefined();
       expect(result.id).toBeDefined();
       expect(result.name).toBeDefined();
     });
 
-    it.skip("should create a non resource", async () => {
+    it("should create a non resource", async () => {
       const result = await client.nonResourceOperations.create(
         "eastus",
-        "param",
-        { id: "id", name: "name", type: "type" },
+        "hello",
+        { id: "id", name: "hello", type: "nonResource" },
       );
       expect(result).toBeDefined();
       expect(result.id).toBeDefined();

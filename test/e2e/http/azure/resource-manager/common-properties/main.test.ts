@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { CommonPropertiesClient } from "../../../../generated/azure/resource-manager/common-properties/src/index.js";
 import type { TokenCredential } from "@azure/core-auth";
+import { RestError } from "@azure/core-rest-pipeline";
 
 const endpoint = "http://localhost:3002";
 const subscriptionId = "00000000-0000-0000-0000-000000000000";
@@ -11,7 +12,6 @@ const fakeCredential: TokenCredential = {
   }),
 };
 
-// TODO(e2e): All tests skip - Bearer token authentication not permitted for non-TLS (http) URLs
 describe("Azure.ResourceManager.CommonProperties", () => {
   const client = new CommonPropertiesClient(
     fakeCredential,
@@ -21,17 +21,20 @@ describe("Azure.ResourceManager.CommonProperties", () => {
       allowInsecureConnection: true,
     },
   );
+  // Remove bearer token policy so tests can run against HTTP mock server.
+  // The policy hard-codes an HTTPS requirement that can't be bypassed.
+  client.pipeline.removePolicy({
+    name: "bearerTokenAuthenticationPolicy",
+  });
 
   describe("managedIdentity", () => {
-    it.skip("should get a managed identity tracked resource", async () => {
+    it("should get a managed identity tracked resource", async () => {
       const result = await client.managedIdentity.get("test-rg", "identity");
       expect(result.id).toBeDefined();
-      expect(result.name).toBeDefined();
-      expect(result.type).toBeDefined();
       expect(result.location).toBeDefined();
     });
 
-    it.skip("should createWithSystemAssigned", async () => {
+    it("should createWithSystemAssigned", async () => {
       const result = await client.managedIdentity.createWithSystemAssigned(
         "test-rg",
         "identity",
@@ -41,12 +44,11 @@ describe("Azure.ResourceManager.CommonProperties", () => {
         },
       );
       expect(result.id).toBeDefined();
-      expect(result.name).toBeDefined();
       expect(result.identity).toBeDefined();
       expect(result.identity!.type).toBe("SystemAssigned");
     });
 
-    it.skip("should updateWithUserAssignedAndSystemAssigned", async () => {
+    it("should updateWithUserAssignedAndSystemAssigned", async () => {
       const result =
         await client.managedIdentity.updateWithUserAssignedAndSystemAssigned(
           "test-rg",
@@ -68,30 +70,34 @@ describe("Azure.ResourceManager.CommonProperties", () => {
   });
 
   describe("error", () => {
-    it.skip("should get a confidential resource for predefined error", async () => {
-      const result = await client.error.getForPredefinedError(
-        "test-rg",
-        "confidential",
-      );
-      expect(result.id).toBeDefined();
-      expect(result.name).toBeDefined();
-      expect(result.location).toBeDefined();
+    it("should return 404 for predefined error", async () => {
+      try {
+        await client.error.getForPredefinedError("test-rg", "confidential");
+        expect.unreachable("Expected RestError");
+      } catch (e) {
+        expect(e).toBeInstanceOf(RestError);
+        expect((e as RestError).statusCode).toBe(404);
+      }
     });
 
-    it.skip("should create a confidential resource for user defined error", async () => {
-      const result = await client.error.createForUserDefinedError(
-        "test-rg",
-        "confidential",
-        {
-          location: "eastus",
-          properties: {
-            provisioningState: "Succeeded",
-            username: "testuser",
+    it("should return 400 for user defined error", async () => {
+      try {
+        await client.error.createForUserDefinedError(
+          "test-rg",
+          "confidential",
+          {
+            location: "eastus",
+            properties: {
+              provisioningState: "Succeeded",
+              username: "testuser",
+            },
           },
-        },
-      );
-      expect(result.id).toBeDefined();
-      expect(result.name).toBeDefined();
+        );
+        expect.unreachable("Expected RestError");
+      } catch (e) {
+        expect(e).toBeInstanceOf(RestError);
+        expect((e as RestError).statusCode).toBe(400);
+      }
     });
   });
 });

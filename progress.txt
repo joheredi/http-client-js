@@ -2946,3 +2946,25 @@ These are separate classical client generation bugs, not header accessor bugs.
 - The scenario test `headerParamWithClientInitialization.md` previously expected `options?.$expand`
   which was inconsistent with the query param scenario and would generate non-compilable code.
 - To fully un-skip e2e client-init tests, need to fix classical client context type narrowing.
+
+## Fix ARM e2e tests: Bearer token auth over non-TLS HTTP — DONE (2026-03-02)
+
+### Problem
+ARM e2e tests were all skipped (8 tests across 3 files) because `@azure/core-rest-pipeline`'s `bearerTokenAuthenticationPolicy` hard-codes an HTTPS requirement. The e2e mock server runs on `http://localhost:3002`, causing requests to be rejected.
+
+### Solution
+Removed the `bearerTokenAuthenticationPolicy` from the pipeline after client creation in each test file using `client.pipeline.removePolicy({ name: "bearerTokenAuthenticationPolicy" })`. This is a test-only workaround; production clients correctly enforce TLS for bearer tokens.
+
+### Additional fixes
+- **common-properties/managedIdentity**: Removed assertions for `name`/`type` fields that the mock doesn't return
+- **common-properties/error**: Rewrote tests to expect RestError (404/400) since the mock is designed to return error responses
+- **large-header**: Fixed resource name from "largeHeader" to "header1" to match mock route
+- **non-resource**: Fixed parameter value from "param" to "hello" and body to match mock expectations
+
+### Results
+- 1019 unit/scenario tests pass (unchanged)
+- 742 e2e tests pass (up from 736), 85 skipped (down from 93 — 8 tests un-skipped)
+- Full CI passes
+
+### Key learning
+The `bearerTokenAuthenticationPolicy` in `@azure/core-rest-pipeline` has NO configuration to bypass the HTTPS check — `allowInsecureConnection` does NOT propagate to this policy. The only options are removing the policy or not passing credentials.

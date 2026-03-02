@@ -11,16 +11,20 @@ const fakeCredential: TokenCredential = {
   }),
 };
 
-// TODO(e2e): All tests skip - Bearer token authentication not permitted for non-TLS (http) URLs
 describe("Azure.ResourceManager.LargeHeader", () => {
   const client = new LargeHeaderClient(fakeCredential, subscriptionId, {
     endpoint,
     allowInsecureConnection: true,
   });
+  // Remove bearer token policy so tests can run against HTTP mock server.
+  // The policy hard-codes an HTTPS requirement that can't be bypassed.
+  client.pipeline.removePolicy({
+    name: "bearerTokenAuthenticationPolicy",
+  });
 
   describe("largeHeaders", () => {
-    it.skip("should handle two6k large header LRO", async () => {
-      const poller = client.largeHeaders.two6k("test-rg", "largeHeader");
+    it("should handle two6k large header LRO", async () => {
+      const poller = client.largeHeaders.two6k("test-rg", "header1");
       const result = await poller;
       expect(result).toBeDefined();
       expect(result.succeeded).toBeDefined();

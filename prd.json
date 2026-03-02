@@ -739,7 +739,7 @@
       "title": "Fix ARM e2e tests: Bearer token auth rejected over non-TLS HTTP",
       "category": "bug-fix/emitter",
       "priority": "P1",
-      "status": "not-started",
+      "status": "done",
       "kind": "bug",
       "dependencies": [],
       "design_review": null,
