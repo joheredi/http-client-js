@@ -3049,3 +3049,20 @@ Compared with legacy test at `submodules/autorest.typescript/.../resiliencySrvDr
   - blob: "test-blob" → "testblob.txt"
 - Unskipped the test (removed it.skip and TODO comment)
 - Verified: pnpm run ci passes (1019 unit tests + 754 e2e tests pass)
+
+---
+
+## E2E-AZURE-OVERLOAD-ROUTING — Fixed overload listByScope e2e test (DONE)
+
+**What was done:**
+- Fixed the `listByScope` e2e test in `test/e2e/http/client/overload/main.test.ts`
+- Root cause: Test passed `"test-scope"` as the scope parameter, but the mock server (tsp-spector) expects the exact URI `/client/overload/resources/car`
+- Changed scope value from `"test-scope"` to `"car"` to match the mock API definition
+- Added proper assertions matching the legacy test and mock response (id, name, scope fields)
+- Removed `.skip` and TODO comment
+
+**Validation:**
+- `pnpm run ci` passes: unit tests (1019 passed), smoke test, e2e tests (755 passed, overload test now has 2 passing tests)
+
+**For next person:**
+- The remaining e2e task E2E-AZURE-CLIENT-DEFAULT-VALUE requires emitter changes: the generated code doesn't apply `@clientDefaultValue` defaults for path parameters (segment1 missing default) and is missing the `accept` header default. This is not just a test fix — the emitter's operation code generation needs to handle `@clientDefaultValue` on path params and content-type headers.

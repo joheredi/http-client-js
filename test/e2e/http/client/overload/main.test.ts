@@ -13,10 +13,13 @@ describe("Client.Overload", () => {
     expect(Array.isArray(result)).toBe(true);
   });
 
-  // TODO(e2e): Fix - route not matching (404)
-  it.skip("should call listByScope(scope)", async () => {
-    const result = await client.listByScope("test-scope");
+  it("should call listByScope(scope)", async () => {
+    const result = await client.listByScope("car");
     expect(result).toBeDefined();
     expect(Array.isArray(result)).toBe(true);
+    expect(result.length).toBe(1);
+    expect(result[0]?.id).toBe("1");
+    expect(result[0]?.name).toBe("foo");
+    expect(result[0]?.scope).toBe("car");
   });
 });

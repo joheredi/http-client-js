@@ -859,7 +859,7 @@
       "title": "Fix e2e test: client/overload listByScope route not matching (404)",
       "category": "bug-fix/e2e-tests",
       "priority": "P3",
-      "status": "not-started",
+      "status": "done",
       "kind": "bug",
       "dependencies": [],
       "design_review": null,
