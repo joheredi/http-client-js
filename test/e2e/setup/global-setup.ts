@@ -24,11 +24,20 @@ const SERVER_PORT = 3002;
 const HEALTH_URL = `http://localhost:${SERVER_PORT}/routes/in-interface/fixed`;
 
 /** Path to the http-specs mock API definitions. */
-const SPECS_PATH = join(
+const CORE_SPECS_PATH = join(
   projectRoot,
   "node_modules",
   "@typespec",
   "http-specs",
+  "specs",
+);
+
+/** Path to the azure-http-specs mock API definitions. */
+const AZURE_SPECS_PATH = join(
+  projectRoot,
+  "node_modules",
+  "@azure-tools",
+  "azure-http-specs",
   "specs",
 );
 
@@ -93,10 +102,17 @@ async function waitForServer(
  * Called by Vitest before any e2e test files run.
  */
 export async function setup(): Promise<void> {
-  if (!existsSync(SPECS_PATH)) {
+  if (!existsSync(CORE_SPECS_PATH)) {
     throw new Error(
-      `[spector] Specs directory not found: ${SPECS_PATH}\n` +
+      `[spector] Core specs directory not found: ${CORE_SPECS_PATH}\n` +
         `Install @typespec/http-specs: pnpm add -D @typespec/http-specs`,
+    );
+  }
+
+  if (!existsSync(AZURE_SPECS_PATH)) {
+    throw new Error(
+      `[spector] Azure specs directory not found: ${AZURE_SPECS_PATH}\n` +
+        `Install @azure-tools/azure-http-specs: pnpm add -D @azure-tools/azure-http-specs`,
     );
   }
 
@@ -113,7 +129,8 @@ export async function setup(): Promise<void> {
     [
       "server",
       "start",
-      SPECS_PATH,
+      CORE_SPECS_PATH,
+      AZURE_SPECS_PATH,
       "--port",
       String(SERVER_PORT),
       "--coverageFile",

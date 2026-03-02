@@ -32,6 +32,12 @@ importers:
       '@alloy-js/rollup-plugin':
         specifier: 0.1.0
         version: 0.1.0(@babel/core@7.29.0)(rollup@4.59.0)
+      '@azure-rest/core-client':
+        specifier: ^2.5.1
+        version: 2.5.1
+      '@azure-tools/azure-http-specs':
+        specifier: 0.1.0-alpha.37
+        version: 0.1.0-alpha.37(23f0161a52b18f9db8f7edd5ec44567f)
       '@azure-tools/typespec-azure-core':
         specifier: ^0.65.0
         version: 0.65.0(@typespec/compiler@1.9.0(@types/node@24.10.13))(@typespec/http@1.9.0(@typespec/compiler@1.9.0(@types/node@24.10.13))(@typespec/streams@0.79.0(@typespec/compiler@1.9.0(@types/node@24.10.13))))(@typespec/rest@0.79.0(@typespec/compiler@1.9.0(@types/node@24.10.13))(@typespec/http@1.9.0(@typespec/compiler@1.9.0(@types/node@24.10.13))(@typespec/streams@0.79.0(@typespec/compiler@1.9.0(@types/node@24.10.13)))))
@@ -41,6 +47,21 @@ importers:
       '@azure-tools/typespec-client-generator-core':
         specifier: ^0.65.3
         version: 0.65.3(101d48917ba90cde2ac946dddb8eb4c5)
+      '@azure/abort-controller':
+        specifier: ^2.1.2
+        version: 2.1.2
+      '@azure/core-auth':
+        specifier: ^1.10.1
+        version: 1.10.1
+      '@azure/core-lro':
+        specifier: ^3.3.1
+        version: 3.3.1
+      '@azure/core-rest-pipeline':
+        specifier: ^1.22.2
+        version: 1.22.2
+      '@azure/logger':
+        specifier: ^1.3.0
+        version: 1.3.0
       '@eslint/js':
         specifier: ^10.0.1
         version: 10.0.1(eslint@9.39.3)
@@ -150,6 +171,21 @@ packages:
   '@alloy-js/typescript@0.22.0':
     resolution: {integrity: sha512-jARBNxAA5aEhysleFFd7cGfjckkEXLCH9kDaJSH5xBOu4cU0v7q5TvAqgPlEIkhfOh2983XLX0nVtZu01p0UjQ==}
 
+  '@azure-rest/core-client@2.5.1':
+    resolution: {integrity: sha512-EHaOXW0RYDKS5CFffnixdyRPak5ytiCtU7uXDcP/uiY+A6jFRwNGzzJBiznkCzvi5EYpY+YWinieqHb0oY916A==}
+    engines: {node: '>=20.0.0'}
+
+  '@azure-tools/azure-http-specs@0.1.0-alpha.37':
+    resolution: {integrity: sha512-oMo0f14FGn2pg4epJQM7W86W6PNTIgtFUCmBGNUXUcffaZIMnzreR9M488ynyuAP4lbsOiu0uFcE2skDXip2Eg==}
+    engines: {node: '>=20.0.0'}
+    peerDependencies:
+      '@azure-tools/typespec-azure-core': ^0.65.0
+      '@typespec/compiler': ^1.9.0
+      '@typespec/http': ^1.9.0
+      '@typespec/rest': ^0.79.0
+      '@typespec/versioning': ^0.79.0
+      '@typespec/xml': ^0.79.0
+
   '@azure-tools/typespec-azure-core@0.65.0':
     resolution: {integrity: sha512-dYgHtt0CY0Q9AimdIsMV41jHKLmAT4r++TLwyxAHRbxdiRG+Sll1UKJzOIIoq45Bq64wCfEltu5OOnyPA01/sQ==}
     engines: {node: '>=20.0.0'}
@@ -206,6 +242,10 @@ packages:
   '@azure/core-lro@2.7.2':
     resolution: {integrity: sha512-0YIpccoX8m/k00O7mDDMdJpbr6mf1yWo2dfmxt5A8XVZVVMz2SSKaEbMCeJRvgQ0IaSlqhjT47p4hVIRRy90xw==}
     engines: {node: '>=18.0.0'}
+
+  '@azure/core-lro@3.3.1':
+    resolution: {integrity: sha512-bulm3klLqIAhzI3iQMYQ42i+V9EnevScsHdI9amFfjaw6OJqPBK1038cq5qachoKV3yt/iQQEDittHmZW2aSuA==}
+    engines: {node: '>=20.0.0'}
 
   '@azure/core-paging@1.6.2':
     resolution: {integrity: sha512-YKWi9YuCU04B55h25cnOYZHxXYtEvQEbKST5vqRga7hWY9ydd3FZHdeQF8pyh+acWZvppw13M/LMGx0LABUVMA==}
@@ -2788,6 +2828,32 @@ snapshots:
       change-case: 5.4.4
       pathe: 2.0.3
 
+  '@azure-rest/core-client@2.5.1':
+    dependencies:
+      '@azure/abort-controller': 2.1.2
+      '@azure/core-auth': 1.10.1
+      '@azure/core-rest-pipeline': 1.22.2
+      '@azure/core-tracing': 1.3.1
+      '@typespec/ts-http-runtime': 0.3.3
+      tslib: 2.8.1
+    transitivePeerDependencies:
+      - supports-color
+
+  '@azure-tools/azure-http-specs@0.1.0-alpha.37(23f0161a52b18f9db8f7edd5ec44567f)':
+    dependencies:
+      '@azure-tools/typespec-azure-core': 0.65.0(@typespec/compiler@1.9.0(@types/node@24.10.13))(@typespec/http@1.9.0(@typespec/compiler@1.9.0(@types/node@24.10.13))(@typespec/streams@0.79.0(@typespec/compiler@1.9.0(@types/node@24.10.13))))(@typespec/rest@0.79.0(@typespec/compiler@1.9.0(@types/node@24.10.13))(@typespec/http@1.9.0(@typespec/compiler@1.9.0(@types/node@24.10.13))(@typespec/streams@0.79.0(@typespec/compiler@1.9.0(@types/node@24.10.13)))))
+      '@typespec/compiler': 1.9.0(@types/node@24.10.13)
+      '@typespec/http': 1.9.0(@typespec/compiler@1.9.0(@types/node@24.10.13))(@typespec/streams@0.79.0(@typespec/compiler@1.9.0(@types/node@24.10.13)))
+      '@typespec/rest': 0.79.0(@typespec/compiler@1.9.0(@types/node@24.10.13))(@typespec/http@1.9.0(@typespec/compiler@1.9.0(@types/node@24.10.13))(@typespec/streams@0.79.0(@typespec/compiler@1.9.0(@types/node@24.10.13))))
+      '@typespec/spec-api': 0.1.0-alpha.12
+      '@typespec/spector': 0.1.0-alpha.23(@types/node@24.10.13)(@typespec/streams@0.79.0(@typespec/compiler@1.9.0(@types/node@24.10.13)))
+      '@typespec/versioning': 0.79.0(@typespec/compiler@1.9.0(@types/node@24.10.13))
+      '@typespec/xml': 0.79.0(@typespec/compiler@1.9.0(@types/node@24.10.13))
+    transitivePeerDependencies:
+      - '@types/node'
+      - '@typespec/streams'
+      - supports-color
+
   '@azure-tools/typespec-azure-core@0.65.0(@typespec/compiler@1.9.0(@types/node@24.10.13))(@typespec/http@1.9.0(@typespec/compiler@1.9.0(@types/node@24.10.13))(@typespec/streams@0.79.0(@typespec/compiler@1.9.0(@types/node@24.10.13))))(@typespec/rest@0.79.0(@typespec/compiler@1.9.0(@types/node@24.10.13))(@typespec/http@1.9.0(@typespec/compiler@1.9.0(@types/node@24.10.13))(@typespec/streams@0.79.0(@typespec/compiler@1.9.0(@types/node@24.10.13)))))':
     dependencies:
       '@typespec/compiler': 1.9.0(@types/node@24.10.13)
@@ -2852,6 +2918,15 @@ snapshots:
       '@azure/core-rest-pipeline': 1.22.2
 
   '@azure/core-lro@2.7.2':
+    dependencies:
+      '@azure/abort-controller': 2.1.2
+      '@azure/core-util': 1.13.1
+      '@azure/logger': 1.3.0
+      tslib: 2.8.1
+    transitivePeerDependencies:
+      - supports-color
+
+  '@azure/core-lro@3.3.1':
     dependencies:
       '@azure/abort-controller': 2.1.2
       '@azure/core-util': 1.13.1

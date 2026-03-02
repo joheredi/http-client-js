@@ -4,7 +4,9 @@
     "version": "1.0.0",
     "status": "complete",
     "created": "2026-02-24",
-    "authors": ["@joheredi"]
+    "authors": [
+      "@joheredi"
+    ]
   },
   "product_overview": {
     "name": "@microsoft/http-client-js",
@@ -119,7 +121,10 @@
   "technical_architecture": {
     "framework": {
       "name": "Alloy Framework",
-      "packages": ["@alloy-js/core@0.22.0", "@alloy-js/typescript@0.22.0"],
+      "packages": [
+        "@alloy-js/core@0.22.0",
+        "@alloy-js/typescript@0.22.0"
+      ],
       "description": "JSX-based code generation framework. NOT React. Uses JSX purely as structural description language for code output. Provides automatic symbol resolution, cross-file import management, and naming policies."
     },
     "sdk_model": {
@@ -135,7 +140,10 @@
       "external_packages": "NPM packages defined via createPackage() with typed symbol accessors. Used in code templates for auto-import from runtime libraries."
     },
     "component_hierarchy": {
-      "top_level": ["Output", "SdkContextProvider"],
+      "top_level": [
+        "Output",
+        "SdkContextProvider"
+      ],
       "orchestrators": [
         "ModelFiles",
         "Operations",
@@ -321,7 +329,9 @@
       },
       "models_template": {
         "count": 1,
-        "tests": ["models/template/template.md"]
+        "tests": [
+          "models/template/template.md"
+        ]
       },
       "operations_core": {
         "count": 6,
@@ -365,7 +375,9 @@
       },
       "operations_cookie_param": {
         "count": 1,
-        "tests": ["operations/cookieParam/ignoreCookieParam.md"]
+        "tests": [
+          "operations/cookieParam/ignoreCookieParam.md"
+        ]
       },
       "operations_error_deserialization": {
         "count": 2,
@@ -376,7 +388,9 @@
       },
       "operations_pagination": {
         "count": 1,
-        "tests": ["operations/pagination/disablePagination.md"]
+        "tests": [
+          "operations/pagination/disablePagination.md"
+        ]
       },
       "api_operations": {
         "count": 3,
@@ -403,7 +417,9 @@
       },
       "enum_union": {
         "count": 1,
-        "tests": ["enumUnion/enumUnion.md"]
+        "tests": [
+          "enumUnion/enumUnion.md"
+        ]
       },
       "multipart": {
         "count": 4,
@@ -489,7 +505,9 @@
       "priority": "P1",
       "status": "done",
       "kind": "feature",
-      "dependencies": ["SPECTOR-3"],
+      "dependencies": [
+        "SPECTOR-3"
+      ],
       "design_review": null,
       "source": "design",
       "description": "Port parameters, payload, and routing Spector integration tests (9 test files).\n\n## Tests to port\n\n### Parameters\n| Legacy test file | Spector spec | New test path |\n|---|---|---|\n| `basicParameters.spec.ts` | `parameters/basic` | `test/e2e/http/parameters/basic/main.test.ts` |\n| `bodyOptionality.spec.ts` | `parameters/body-optionality` | `test/e2e/http/parameters/body-optionality/main.test.ts` |\n| `collectionFormat.spec.ts` | `parameters/collection-format` | `test/e2e/http/parameters/collection-format/main.test.ts` |\n| `spreadParameters.spec.ts` | `parameters/spread` | `test/e2e/http/parameters/spread/main.test.ts` |\n\n### Payload\n| Legacy test file | Spector spec | New test path |\n|---|---|---|\n| `payloadContentNegotiation.spec.ts` | `payload/content-negotiation` | `test/e2e/http/payload/content-negotiation/main.test.ts` |\n| `payloadMediaType.spec.ts` | `payload/media-type` | `test/e2e/http/payload/media-type/main.test.ts` |\n| `payloadMultipart.spec.ts` | `payload/multipart` | `test/e2e/http/payload/multipart/main.test.ts` |\n| `payloadPageable.spec.ts` | `payload/pageable` | `test/e2e/http/payload/pageable/main.test.ts` |\n\n### Routes\n| Legacy test file | Spector spec | New test path |\n|---|---|---|\n| `routes.spec.ts` | `routes` | `test/e2e/http/routes/main.test.ts` |\n\n## Notes\n- `payloadMultipart` is complex \u2014 uses `fs.createReadStream()` for file uploads. Tests need access to test assets. Create `test/e2e/assets/` with image.jpg and image.png files, or reference them from the existing spector spec assets.\n- `payloadPageable` tests pagination. Verify the generated client has paging helpers.\n- `routes` is a comprehensive test with many sub-tests for path/query expansion modes.\n- `spreadParameters` tests TypeSpec spread operator for parameter destructuring.\n\n## Reference files\n- Legacy tests: `submodules/autorest.typescript/packages/typespec-ts/test/modularIntegration/`\n- Spector specs: `submodules/typespec/packages/http-specs/specs/`\n- Reference tests: `submodules/typespec/packages/http-client-js/test/e2e/http/`\n\n## Validation\nRun `pnpm build && pnpm test:e2e` \u2014 all parameter/payload/routes tests should pass."
@@ -501,7 +519,9 @@
       "priority": "P1",
       "status": "done",
       "kind": "feature",
-      "dependencies": ["SPECTOR-3"],
+      "dependencies": [
+        "SPECTOR-3"
+      ],
       "design_review": null,
       "source": "design",
       "description": "Port versioning, special-words, and special-headers Spector integration tests (10 test files).\n\n## Tests to port\n\n### Versioning\n| Legacy test file | Spector spec | New test path |\n|---|---|---|\n| `versioningAdded.spec.ts` | `versioning/added` | `test/e2e/http/versioning/added/main.test.ts` |\n| `versioningMadeOptional.spec.ts` | `versioning/madeOptional` | `test/e2e/http/versioning/madeOptional/main.test.ts` |\n| `versioningRemovedV1.spec.ts` | `versioning/removed` (v1 config) | `test/e2e/http/versioning/removed/v1/main.test.ts` |\n| `versioningRemovedV2.spec.ts` | `versioning/removed` (v2 config) | `test/e2e/http/versioning/removed/v2/main.test.ts` |\n| `versioningRemovedV2Preview.spec.ts` | `versioning/removed` (v2preview config) | `test/e2e/http/versioning/removed/v2preview/main.test.ts` |\n| `versioningRenamedFrom.spec.ts` | `versioning/renamedFrom` | `test/e2e/http/versioning/renamedFrom/main.test.ts` |\n| `versioningReturnTypeChangedFrom.spec.ts` | `versioning/returnTypeChangedFrom` | `test/e2e/http/versioning/returnTypeChangedFrom/main.test.ts` |\n| `versioningTypeChangedFrom.spec.ts` | `versioning/typeChangedFrom` | `test/e2e/http/versioning/typeChangedFrom/main.test.ts` |\n\n### Special\n| Legacy test file | Spector spec | New test path |\n|---|---|---|\n| `specialWords.spec.ts` | `special-words` | `test/e2e/http/special-words/main.test.ts` |\n| `headersRepeatability.spec.ts` | `special-headers/repeatability` | `test/e2e/http/special-headers/repeatability/main.test.ts` |\n\n## Notes on versioning tests\nThe `versioning/removed` spec generates 3 different client variants based on version configuration:\n- v1: Only the operations/types from version 1\n- v2: Operations/types up to version 2 (v1 removed items are gone)\n- v2preview: Preview version with additional preview operations\n\nIn the legacy emitter, these are 3 separate entries in cadl-ranch-list.js with different outputPaths but the same inputPath. In the new emitter, the generation script needs to compile the same spec 3 times with different version options. This may require special handling in the emit-e2e script or version-specific tspconfig.yaml files.\n\n## Reference files\n- Legacy tests: `submodules/autorest.typescript/packages/typespec-ts/test/modularIntegration/versioning*.spec.ts`, `specialWords.spec.ts`, `headersRepeatability.spec.ts`\n- Legacy cadl-ranch-list.js: Shows how versioning/removed is split into 3 entries with different outputPaths\n- Spector specs: `submodules/typespec/packages/http-specs/specs/versioning/`, `special-words/`, `special-headers/`\n\n## Validation\nRun `pnpm build && pnpm test:e2e` \u2014 all versioning and special tests should pass."
@@ -513,7 +533,9 @@
       "priority": "P2",
       "status": "done",
       "kind": "feature",
-      "dependencies": ["SPECTOR-3"],
+      "dependencies": [
+        "SPECTOR-3"
+      ],
       "design_review": null,
       "source": "design",
       "description": "Integrate the Spector e2e tests into the CI pipeline and set up coverage reporting.\n\n## What to do\n1. Add a CI step that runs `pnpm build && pnpm test:e2e` in the existing CI workflow\n2. Ensure the Spector coverage file (`temp/spector-coverage.json`) is captured as a CI artifact\n3. Add a script to parse and summarize coverage: which Spector scenarios are covered vs not\n\n## Coverage reporting\nAfter tests complete, the Spector server writes coverage data to `temp/spector-coverage.json`. This file tracks which mock API scenarios were hit during testing.\n\nCreate `eng/scripts/calculate-coverage.ts` that:\n1. Reads `temp/spector-coverage.json`\n2. Prints a summary: N/M scenarios covered\n3. Lists uncovered scenarios\n\n## Reference\n- `submodules/typespec/packages/http-client-js/eng/scripts/calculate-coverage.js` \u2014 reference implementation\n- Spector coverage format: `CoverageReport[]` from `@typespec/spector`\n\n## Package.json script\nAdd: `\"test:e2e:ci\": \"pnpm build && pnpm test:e2e\"`\n\n## Validation\n- CI runs e2e tests successfully\n- Coverage artifact is captured"
@@ -609,7 +631,9 @@
       "priority": "P2",
       "status": "done",
       "kind": "feature",
-      "dependencies": ["E2E-FIX-ADDITIONAL-PROPS-DERIVED"],
+      "dependencies": [
+        "E2E-FIX-ADDITIONAL-PROPS-DERIVED"
+      ],
       "design_review": null,
       "source": "e2e-test-investigation",
       "description": "Fix 6 skipped e2e tests caused by non-discriminated union deserializers returning raw data without type discrimination.\n\n## Problem\n\nNon-discriminated union deserializers are generated as simple passthroughs (`return item`), but wire data contains union types needing proper deserialization (e.g., Date parsing).\n\n## Affected Tests (6)\n\n| Test file | Test name | Line |\n|-----------|-----------|------|\n| `type/property/additional-properties/main.test.ts` | get non-discriminated union spread | 526 |\n| `type/property/additional-properties/main.test.ts` | put non-discriminated union spread | 537 |\n| `type/property/additional-properties/main.test.ts` | get non-discriminated union2 spread | 549 |\n| `type/property/additional-properties/main.test.ts` | put non-discriminated union2 spread | 564 |\n| `type/property/additional-properties/main.test.ts` | get non-discriminated union3 spread | 580 |\n| `type/property/additional-properties/main.test.ts` | put non-discriminated union3 spread | 598 |\n\n## Current Generated Code (broken)\n\n```typescript\nexport function _spreadRecordForNonDiscriminatedUnionAdditionalPropertyDeserializer(\n  item: any,\n): _SpreadRecordForNonDiscriminatedUnionAdditionalProperty {\n  return item;  // No discrimination, no deserialization!\n}\n```\n\nUnion members include:\n- `WidgetData0`: `{ kind: \"kind0\", fooProp: string }`\n- `WidgetData1`: `{ kind: \"kind1\", start: Date, end?: Date }`\n- `WidgetData2`: `{ kind: \"kind1\", start: string }` (overlapping discriminator!)\n\n## Mock Server Expectations\n\nFrom additional-properties mockapi.ts:\n- `recordUnionBody`: `{ flag: true, prop1: \"abc\", prop2: 43.125 }`\n- `recordDiscriminatedUnionBody`: `{ name: \"abc\", prop1: { kind: \"kind0\", fooProp: \"abc\" }, prop2: { kind: \"kind1\", start: \"2021-01-01T00:00:00Z\", end: \"2021-01-02T00:00:00Z\" } }`\n\n## Root Cause\n\nThe emitter doesn't generate type discrimination logic for non-discriminated unions. Members with overlapping `kind` fields need secondary property checks.\n\n## Recommended Fix\n\nGenerate union deserialization that:\n1. Uses `kind` field for initial dispatch when members have distinct values\n2. For overlapping `kind` values, use secondary property checks (e.g., presence of `end` field)\n3. Apply member-specific deserialization (e.g., ISO date parsing)\n\nThis depends on E2E-FIX-ADDITIONAL-PROPS-DERIVED being completed first.\n\n## Key Files\n\n- `src/components/serialization/json-deserializer.tsx` \u2014 union deserialization generation\n- `src/components/serialization/json-serializer.tsx` \u2014 union serialization generation\n\n## Validation\n\n```bash\npnpm build && pnpm test:e2e -- --grep \"AdditionalProperties\"\n```"
@@ -697,6 +721,162 @@
       "design_review": null,
       "source": "automated-detection",
       "description": "Fix the flaky ENOTEMPTY race condition in eng/scripts/emit-e2e.ts when two specs share a parent-child output directory relationship.\n\n## Problem\nWhen `type/union` (output: `test/e2e/generated/type/union/`) and `type/union/discriminated` (output: `test/e2e/generated/type/union/discriminated/`) are compiled in parallel, a race condition occurs:\n1. `type/union/discriminated` creates `type/union/discriminated/` via mkdir (also creating parent `type/union/`)\n2. `type/union` tries to `rm(type/union, {recursive: true})` to clean the output directory\n3. While rm is traversing the directory tree, `type/union/discriminated`'s tsp compile creates new files inside it\n4. This causes `ENOTEMPTY: directory not empty, rmdir` error\n\nThis is non-deterministic \u2014 depends on parallel execution timing. Seen consistently in full CI runs but may pass with fewer specs or different timing.\n\n## Fix approaches\n1. **Serialize nested specs**: Detect parent-child directory relationships and ensure parent specs are compiled only after child specs complete\n2. **Clean before parallel phase**: Do all directory cleanup in a serial pre-pass before starting any parallel compilation\n3. **Retry with backoff**: Wrap the rm/mkdir in a retry loop (fragile, not recommended)\n\nApproach 1 or 2 is recommended.\n\n## Impact\nBlocks reliable CI for e2e tests (SPECTOR-9 depends on this).\n\n## Validation\nRun `pnpm emit:e2e` 5+ times in a row \u2014 all should pass without ENOTEMPTY errors."
+    },
+    {
+      "id": "E2E-AZURE-UNRESOLVED-SYMBOL-ARM",
+      "title": "Fix <Unresolved Symbol> in generated ARM resource-manager code",
+      "category": "bug-fix/emitter",
+      "priority": "P1",
+      "status": "not-started",
+      "kind": "bug",
+      "dependencies": [],
+      "design_review": null,
+      "source": "e2e-azure-http-specs",
+      "description": "## Problem\nGenerated code for 6 Azure Resource Manager specs contains `<Unresolved Symbol: refkey[...]>` placeholders in TypeScript output, causing parse/transform failures. The unresolved refkey appears to be for a provisioning state serializer (`refkey[o222\u2063sserializer]`).\n\n## Root Cause\nA refkey is created for a serializer function but the corresponding declaration component is never rendered. This is a critical emitter bug \u2014 the output is broken TypeScript that cannot compile.\n\n## Affected Specs (6)\n- `azure/resource-manager/resources` \u2014 models.ts:442\n- `azure/resource-manager/method-subscription-id` \u2014 models.ts:350\n- `azure/resource-manager/multi-service` \u2014 models.ts:255\n- `azure/resource-manager/multi-service-older-versions` \u2014 models.ts:263\n- `azure/resource-manager/multi-service-shared-models` \u2014 models.ts:273\n- `azure/resource-manager/operation-templates` \u2014 api/lro/operations.ts:152\n\n## Impact\n6 e2e test files removed; specs added to `test/e2e/.testignore`.\n\n## Relevant Files\n- `src/components/` \u2014 serializer generation components\n- `test/e2e/.testignore` \u2014 specs currently skipped\n- `test/e2e/generated/azure/resource-manager/` \u2014 generated output for inspection"
+    },
+    {
+      "id": "E2E-AZURE-BEARER-TOKEN-HTTP",
+      "title": "Fix ARM e2e tests: Bearer token auth rejected over non-TLS HTTP",
+      "category": "bug-fix/emitter",
+      "priority": "P1",
+      "status": "not-started",
+      "kind": "bug",
+      "dependencies": [],
+      "design_review": null,
+      "source": "e2e-azure-http-specs",
+      "description": "## Problem\nAzure Resource Manager clients use `TokenCredential` (Bearer token auth) which requires HTTPS. The e2e mock server runs on `http://localhost:3002`, causing `@azure/core-rest-pipeline` to reject requests with:\n```\nBearer token authentication is not permitted for non-TLS protected (non-https) URLs.\n```\n\n## Root Cause\nThe generated ARM clients enforce TLS for Bearer tokens (correct production behavior), but e2e tests need to bypass this for the HTTP mock server. Need either:\n- A way to pass `allowInsecureConnection: true` that propagates to the bearer token policy\n- Or a test-only credential that doesn't enforce TLS\n\n## Affected Tests (8 tests across 3 files, all skipped)\n- `test/e2e/http/azure/resource-manager/common-properties/main.test.ts` \u2014 5 tests\n- `test/e2e/http/azure/resource-manager/large-header/main.test.ts` \u2014 1 test\n- `test/e2e/http/azure/resource-manager/non-resource/main.test.ts` \u2014 2 tests\n\n## Relevant Files\n- `src/context/flavor-context.tsx` \u2014 Azure flavor configuration\n- `src/utils/external-packages.ts` \u2014 `@azure/core-rest-pipeline` package definition\n- `test/e2e/http/azure/resource-manager/*/main.test.ts` \u2014 test files with `it.skip`"
+    },
+    {
+      "id": "E2E-AZURE-CLIENT-INIT-PARAMS",
+      "title": "Fix client-initialization: constructor params not propagated to HTTP requests",
+      "category": "bug-fix/emitter",
+      "priority": "P1",
+      "status": "not-started",
+      "kind": "bug",
+      "dependencies": [],
+      "design_review": null,
+      "source": "e2e-azure-http-specs",
+      "description": "## Problem\nClient-initialization specs test that parameters passed to the client constructor (header params, query params, path params, param aliases) are correctly included in subsequent HTTP requests. The generated clients fail to propagate these constructor-level parameters to the underlying HTTP calls.\n\nSymptoms:\n- Header params: `Expected test-name-value but got undefined`\n- Query params: `Expected query param format=text but got undefined`\n- Path params: `Unexpected status code: 404` (path segment missing from URL)\n- Param aliases: `Unexpected status code: 404`\n- Body params: `Body provided doesn't match expected body`\n\n## Root Cause\nThe emitter generates client constructors that accept these parameters but doesn't wire them into the request pipeline or URL template.\n\n## Affected Tests (42 tests across 3 files, all skipped)\n- `test/e2e/http/azure/client-generator-core/client-initialization/default/main.test.ts` \u2014 12 tests\n- `test/e2e/http/azure/client-generator-core/client-initialization/individually/main.test.ts` \u2014 13 tests\n- `test/e2e/http/azure/client-generator-core/client-initialization/individuallyParent/main.test.ts` \u2014 17 tests\n\n## Relevant Files\n- `src/components/client-context.tsx` \u2014 Client context generation\n- `src/components/classical-client.tsx` \u2014 Classical client class generation\n- `test/e2e/generated/azure/client-generator-core/client-initialization/*/src/` \u2014 generated output"
+    },
+    {
+      "id": "E2E-AZURE-LRO-RESULT-UNDEFINED",
+      "title": "Fix LRO pollUntilDone() returning object with undefined properties",
+      "category": "bug-fix/emitter",
+      "priority": "P1",
+      "status": "not-started",
+      "kind": "bug",
+      "dependencies": [],
+      "design_review": null,
+      "source": "e2e-azure-http-specs",
+      "description": "## Problem\nFor LRO operations, `pollUntilDone()` returns an object but its properties are `undefined`. For example:\n```\nconst result = await poller.pollUntilDone();\nresult.name // undefined (expected 'madge')\nresult.data  // undefined (expected 'text')\n```\n\nThe poller completes successfully but the final result deserialization is broken \u2014 the response body is not being correctly mapped to the result type properties.\n\n## Root Cause\nLikely an issue in the generated restore-poller helpers or the polling response deserialization pipeline. The LRO operation status response body may not be correctly deserialized into the target type.\n\n## Affected Tests (2 tests across 2 files, skipped)\n- `test/e2e/http/azure/core/lro/standard/main.test.ts` \u2014 'should export with LRO' (createOrReplace and delete work)\n- `test/e2e/http/azure/core/lro/rpc/main.test.ts` \u2014 'should perform long running RPC'\n\n## Relevant Files\n- `src/components/restore-poller.tsx` \u2014 LRO restore poller generation\n- `src/components/static-helpers/polling-helpers.tsx` \u2014 Polling helper generation\n- `test/e2e/generated/azure/core/lro/standard/src/` \u2014 generated LRO code\n- `test/e2e/generated/azure/core/lro/rpc/src/` \u2014 generated LRO RPC code"
+    },
+    {
+      "id": "E2E-AZURE-TRAITS-REPEATABILITY",
+      "title": "Fix Traits: Repeatability-Request-ID header not sent for repeatable actions",
+      "category": "bug-fix/emitter",
+      "priority": "P2",
+      "status": "not-started",
+      "kind": "bug",
+      "dependencies": [],
+      "design_review": null,
+      "source": "e2e-azure-http-specs",
+      "description": "## Problem\nThe Azure Core Traits `repeatableAction` operation expects `Repeatability-Request-ID` and `Repeatability-First-Sent` headers to be included in the request, but the generated client does not send them.\n\nError: `Repeatability-Request-ID is missing`\n\n## Root Cause\nThe emitter does not generate code to include Azure repeatability headers for operations decorated with the repeatability trait. These headers should be auto-generated (UUID for request ID, ISO timestamp for first-sent).\n\n## Affected Tests (1 test, skipped)\n- `test/e2e/http/azure/core/traits/main.test.ts` \u2014 'should perform repeatable action'\n\n## Relevant Files\n- `src/components/public-operation.tsx` \u2014 Operation generation\n- `test/e2e/generated/azure/core/traits/src/` \u2014 generated traits code"
+    },
+    {
+      "id": "E2E-AZURE-PAGE-QUERY-PARAMS",
+      "title": "Fix e2e tests: pagination operations missing extra query params",
+      "category": "bug-fix/e2e-tests",
+      "priority": "P2",
+      "status": "not-started",
+      "kind": "bug",
+      "dependencies": [],
+      "design_review": null,
+      "source": "e2e-azure-http-specs",
+      "description": "## Problem\nTwo pagination tests fail because extra query parameters are not sent:\n- `listWithParameters`: server expects `another=Second` query param but gets `undefined`\n- `withParameterizedNextLink`: server expects `includePending=true` but gets `undefined`\n\nThis may be a test issue (wrong params passed) or an emitter issue (params not serialized into the request).\n\n## Affected Tests (2 tests, skipped)\n- `test/e2e/http/azure/core/page/main.test.ts` \u2014 'should list with parameters'\n- `test/e2e/http/azure/core/page/main.test.ts` \u2014 'should list with parameterized next link'\n\n## Investigation Needed\n- Check generated code at `test/e2e/generated/azure/core/page/src/` for method signatures\n- Compare with legacy test at `submodules/autorest.typescript/packages/typespec-ts/test/azureModularIntegration/azureCorePage.spec.ts`\n- Verify if the test is passing correct params or if emitter drops them"
+    },
+    {
+      "id": "E2E-AZURE-ACCESS-WRONG-VALUES",
+      "title": "Fix e2e tests: access spec sends wrong parameter values to mock server",
+      "category": "bug-fix/e2e-tests",
+      "priority": "P3",
+      "status": "not-started",
+      "kind": "bug",
+      "dependencies": [],
+      "design_review": null,
+      "source": "e2e-azure-http-specs",
+      "description": "## Problem\nTwo access tests fail because the test sends wrong parameter values:\n- `relativeModelInOperation > operation`: server expects `name=Madge` but test sends `sample`\n- `relativeModelInOperation > discriminator`: assertion expects `sample` but server returns `Madge`\n\n## Fix\nUpdate test to use correct values matching mock server expectations.\n\n## Affected Tests (2 tests, skipped)\n- `test/e2e/http/azure/client-generator-core/access/main.test.ts`\n\n## Relevant Files\n- `submodules/autorest.typescript/packages/typespec-ts/test/azureModularIntegration/azureClientGeneratorCoreAccess.spec.ts` \u2014 legacy test for reference"
+    },
+    {
+      "id": "E2E-AZURE-FLATTEN-WRONG-VALUES",
+      "title": "Fix e2e tests: flatten-property spec sends wrong expected values",
+      "category": "bug-fix/e2e-tests",
+      "priority": "P3",
+      "status": "not-started",
+      "kind": "bug",
+      "dependencies": [],
+      "design_review": null,
+      "source": "e2e-azure-http-specs",
+      "description": "## Problem\nFlatten property tests fail because the test expects `name: 'foo'` but the server returns `name: 'test'`.\n\n## Fix\nUpdate test assertions to match actual mock server response values.\n\n## Affected Tests (2 tests, skipped)\n- `test/e2e/http/azure/client-generator-core/flatten-property/main.test.ts`\n\n## Relevant Files\n- `submodules/autorest.typescript/packages/typespec-ts/test/azureModularIntegration/modelFlatten.spec.ts` \u2014 legacy test for reference"
+    },
+    {
+      "id": "E2E-AZURE-CLIENT-DEFAULT-VALUE",
+      "title": "Fix e2e tests: client-default-value path routing and content-type issues",
+      "category": "bug-fix/e2e-tests",
+      "priority": "P3",
+      "status": "not-started",
+      "kind": "bug",
+      "dependencies": [],
+      "design_review": null,
+      "source": "e2e-azure-http-specs",
+      "description": "## Problem\nTwo client-default-value tests fail:\n- `should get path parameter`: 404 error \u2014 URL path doesn't match expected route\n- `should get header parameter`: server expects `application/json;odata.metadata=none` content-type but gets `application/json`\n\nMay be test issue (wrong URLs/headers) or emitter issue (default values not applied).\n\n## Affected Tests (2 tests, skipped)\n- `test/e2e/http/azure/client-generator-core/client-default-value/main.test.ts`\n\n## Relevant Files\n- `test/e2e/generated/azure/client-generator-core/client-default-value/src/` \u2014 generated code"
+    },
+    {
+      "id": "E2E-AZURE-CLIENT-LOCATION-PARAMS",
+      "title": "Fix e2e test: client-location move-method-parameter-to-client wrong param value",
+      "category": "bug-fix/e2e-tests",
+      "priority": "P3",
+      "status": "not-started",
+      "kind": "bug",
+      "dependencies": [],
+      "design_review": null,
+      "source": "e2e-azure-http-specs",
+      "description": "## Problem\nThe move-method-parameter-to-client test fails because the server expects `storageAccount=testaccount` but the test sends `test-account`.\n\n## Fix\nUpdate test to use the correct parameter value matching mock server expectations.\n\n## Affected Tests (1 test, skipped)\n- `test/e2e/http/azure/client-generator-core/client-location/move-method-parameter-to-client/main.test.ts`\n\n## Relevant Files\n- `test/e2e/generated/azure/client-generator-core/client-location/move-method-parameter-to-client/src/` \u2014 generated code"
+    },
+    {
+      "id": "E2E-AZURE-ENUM-CONFLICT-BODY",
+      "title": "Fix e2e test: enum-conflict secondOperations sends wrong request body",
+      "category": "bug-fix/e2e-tests",
+      "priority": "P3",
+      "status": "not-started",
+      "kind": "bug",
+      "dependencies": [],
+      "design_review": null,
+      "source": "e2e-azure-http-specs",
+      "description": "## Problem\nThe enum-conflict `secondOperations.second()` test fails with `Body provided doesn't match expected body`.\n\n## Fix\nCheck the generated API for expected body shape and update test accordingly.\n\n## Affected Tests (1 test, skipped)\n- `test/e2e/http/client/naming/enum-conflict/main.test.ts`\n\n## Relevant Files\n- `test/e2e/generated/client/naming/enum-conflict/src/` \u2014 generated code\n- `submodules/autorest.typescript/packages/typespec-ts/test/azureModularIntegration/azureClientNamingEnumConflict.spec.ts` \u2014 legacy test"
+    },
+    {
+      "id": "E2E-AZURE-OVERLOAD-ROUTING",
+      "title": "Fix e2e test: client/overload listByScope route not matching (404)",
+      "category": "bug-fix/e2e-tests",
+      "priority": "P3",
+      "status": "not-started",
+      "kind": "bug",
+      "dependencies": [],
+      "design_review": null,
+      "source": "e2e-azure-http-specs",
+      "description": "## Problem\nThe overload `listByScope(scope)` test fails with 404 \u2014 the generated URL doesn't match the mock server's expected route.\n\n## Fix\nCheck generated code for correct URL pattern and update test to pass correct scope value.\n\n## Affected Tests (1 test, skipped)\n- `test/e2e/http/client/overload/main.test.ts`\n\n## Relevant Files\n- `test/e2e/generated/client/overload/src/` \u2014 generated code\n- `submodules/autorest.typescript/packages/typespec-ts/test/azureModularIntegration/azureClientOverload.spec.ts` \u2014 legacy test"
+    },
+    {
+      "id": "E2E-AZURE-RESILIENCY-PARAMS",
+      "title": "Fix e2e tests: resiliency/srv-driven sends wrong parameter values",
+      "category": "bug-fix/e2e-tests",
+      "priority": "P3",
+      "status": "not-started",
+      "kind": "bug",
+      "dependencies": [],
+      "design_review": null,
+      "source": "e2e-azure-http-specs",
+      "description": "## Problem\nThree resiliency tests fail:\n- `fromNone()`: 400 error \u2014 unexpected request\n- `fromOneRequired(parameter)`: server expects `parameter=required` but test sends `new`\n- `fromOneOptional()`: server expects `parameter=optional` but gets `undefined`\n\n## Fix\nCheck mock server expectations and update test parameter values. Also verify the API version parameter is correct.\n\n## Affected Tests (3 tests, skipped)\n- `test/e2e/http/resiliency/srv-driven/main.test.ts`\n\n## Relevant Files\n- `test/e2e/generated/resiliency/srv-driven/src/` \u2014 generated code\n- `submodules/autorest.typescript/packages/typespec-ts/test/azureModularIntegration/resiliencySrvDrivenMain.spec.ts` \u2014 legacy test"
     }
   ],
   "phases_metadata": [
@@ -704,7 +884,10 @@
       "phase": 10,
       "name": "Flavor Parity \u2014 Match Legacy Emitter Flavor Behavior",
       "description": "Ensure the new emitter correctly handles the 'flavor' option ('core' vs 'azure') with full parity to the legacy emitter. Core flavor should use @typespec/ts-http-runtime and NOT generate Azure-specific features (LRO, paging, logger, DefaultAzureCredential). Azure flavor should use Azure SDK packages. No 'branded' option support. Flavor must be set explicitly or not at all (defaulting to 'core').",
-      "dependencies": [8, 9],
+      "dependencies": [
+        8,
+        9
+      ],
       "status": "pending"
     },
     {
@@ -757,7 +940,9 @@
         "description": "The new emitter targets @typespec/ts-http-runtime instead of @azure-rest/core-client. This is the intended design direction. No action needed unless Azure flavor detection requires @azure-rest/core-client.",
         "legacy_behavior": "Imports from @azure-rest/core-client and @azure/core-rest-pipeline.",
         "new_behavior": "Imports from @typespec/ts-http-runtime.",
-        "affected_scenarios": ["Nearly all scenarios"]
+        "affected_scenarios": [
+          "Nearly all scenarios"
+        ]
       },
       {
         "id": "SA-INT2",
@@ -768,7 +953,9 @@
         "description": "The new emitter adds the type keyword to type-only imports per TypeScript best practices. This is correct behavior.",
         "legacy_behavior": "import { SomeType } from './models.js';",
         "new_behavior": "import type { SomeType } from './models.js';",
-        "affected_scenarios": ["Nearly all scenarios"]
+        "affected_scenarios": [
+          "Nearly all scenarios"
+        ]
       },
       {
         "id": "SA-INT3",
@@ -779,7 +966,9 @@
         "description": "expandUrlTemplate utility is now imported from the runtime package instead of a static-helpers path. This is part of the runtime consolidation.",
         "legacy_behavior": "import { expandUrlTemplate } from '../static-helpers/urlTemplate.js';",
         "new_behavior": "import { expandUrlTemplate } from '@typespec/ts-http-runtime';",
-        "affected_scenarios": ["Scenarios using URL templates"]
+        "affected_scenarios": [
+          "Scenarios using URL templates"
+        ]
       }
     ],
     "total_root_cause_tasks": 34

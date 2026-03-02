@@ -220,6 +220,9 @@ let currentIndex = 0;
 const iter: ${pagingHelperRefkey("PagedAsyncIterableIterator")}<TElement> = {
   async next(): Promise<IteratorResult<TElement>> {
     if (!currentPage || currentIndex >= currentPage.values.length) {
+      if (currentPage && !currentPage.nextPageLink) {
+        return { value: undefined as any, done: true };
+      }
       const nextPage = await getPage(currentPage?.nextPageLink);
       if (!nextPage || nextPage.values.length === 0) {
         return { value: undefined as any, done: true };
@@ -239,6 +242,9 @@ const iter: ${pagingHelperRefkey("PagedAsyncIterableIterator")}<TElement> = {
     let isFirstPage = true;
     const pageIter: AsyncIterableIterator<TElement[]> = {
       async next(): Promise<IteratorResult<TElement[]>> {
+        if (!isFirstPage && !nextPageLink) {
+          return { value: [] as TElement[], done: true };
+        }
         const page = isFirstPage && !nextPageLink
           ? await getPage()
           : await getPage(nextPageLink);
