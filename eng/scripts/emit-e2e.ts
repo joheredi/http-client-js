@@ -39,14 +39,12 @@ const projectRoot = resolve(__dirname, "../..");
 
 /**
  * Root directory containing the Spector specs.
- * Uses the http-specs submodule since the npm package has unresolvable
- * transitive dependencies. The .tsp files themselves are standalone.
+ * Uses the @typespec/http-specs npm package installed in node_modules.
  */
 const specsBasePath = join(
   projectRoot,
-  "submodules",
-  "typespec",
-  "packages",
+  "node_modules",
+  "@typespec",
   "http-specs",
   "specs",
 );
@@ -125,7 +123,7 @@ async function discoverSpecs(
   if (!existsSync(specsBasePath)) {
     console.error(
       `❌ Specs directory not found: ${specsBasePath}\n` +
-        `   Make sure the typespec submodule is initialized (git submodule update --init).`,
+        `   Make sure @typespec/http-specs is installed (pnpm install).`,
     );
     process.exit(1);
   }

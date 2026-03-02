@@ -17,7 +17,7 @@ import { fileURLToPath } from "url";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const specsAssetsDir = resolve(
   __dirname,
-  "../../../../../submodules/typespec/packages/http-specs/assets",
+  "../../../../../node_modules/@typespec/http-specs/assets",
 );
 const pngFile = readFileSync(resolve(specsAssetsDir, "image.png"));
 const jpegFile = readFileSync(resolve(specsAssetsDir, "image.jpg"));
