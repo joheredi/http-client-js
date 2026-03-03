@@ -177,10 +177,9 @@ export function ModelFiles() {
   // Split JSON input models into regular and polymorphic for serialization
   const regularInputModels = jsonInputModels.filter((m) => !isDiscriminated(m));
   const polymorphicInputModels = jsonInputModels.filter(isDiscriminated);
-  // Include XML output models in regular deserializers too — deserialize-operation.tsx
-  // always references JSON deserializer refkeys because the HTTP runtime parses both
-  // JSON and XML response bodies into plain objects before they reach the deserializer.
-  // Without JSON deserializers for XML models, their refkeys would be unresolved.
+  // Include XML output models in regular deserializers too — some models may
+  // appear in both JSON and XML contexts, so having a JSON deserializer ensures
+  // no unresolved refkeys when the model is used in non-XML operations.
   const regularOutputModels = outputModels.filter((m) => !isDiscriminated(m));
   const polymorphicOutputModels = outputModels.filter((m) =>
     isDiscriminated(m),

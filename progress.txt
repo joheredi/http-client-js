@@ -3209,3 +3209,54 @@ incorrect and was updated.
 - Need to implement the emitter option + model naming logic first
 
 **Documented in:** knowledge.md, prd.json (task marked as blocked with reason)
+
+## E2E-MISSING-PAYLOAD-XML: Add e2e test for payload/xml — DONE (2025-03-03)
+
+### Problem
+The payload/xml e2e test was missing. Adding it revealed multiple critical bugs in the XML deserialization pipeline:
+1. **Wrong deserializer**: XML responses used JSON deserializer (returns undefined for all fields)
+2. **Browser-only API**: `DOMParser` in xmlHelpers.ts doesn't exist in Node.js
+3. **Wrapped arrays**: `<colors><string>red</string>...</colors>` returned `[object Object]` instead of primitives
+4. **Empty arrays**: Self-closing `<items />` returned `[{}]` instead of `[]`
+5. **Unwrapped text**: `<Element lang="en">text</Element>` lost the text content
+6. **Dictionary type**: `type: "dict"` was unhandled in both serializer and deserializer
+7. **Primitive subtype for arrays**: `int32[]` items returned as strings instead of numbers
+8. **Unwrapped primitive serialization**: Text content wrapped in `<content>...</content>` instead of inline
+
+### Changes Made
+**src/components/deserialize-operation.tsx:**
+- Added XML deserializer selection for XML-only responses using `hasXmlSerialization()` + `isExclusivelyXmlResponse()`
+- Added `isExclusivelyXmlResponse()` helper to check if ALL response content types are XML
+
+**src/components/static-helpers/xml-helpers.tsx:**
+- Replaced browser-only DOMParser with cross-platform regex-based XML parser
+- Added wrapped array extraction using `itemsName` in `deserializeXmlObject`
+- Added empty wrapper element handling (self-closing/empty tags → empty array)
+- Added unwrapped text content fallback to `#text` key
+- Added `type: "dict"` handling in both serializer and deserializer
+- Added unwrapped primitive serialization (text content without wrapping element)
+
+**src/components/serialization/xml-deserializer.tsx:**
+- Added `primitiveSubtype` for array items (from array `valueType`) for type conversion
+
+**src/components/serialization/xml-object-deserializer.tsx:**
+- Same `primitiveSubtype` fix for array items
+
+**test/scenarios/cases/models/response/headerInXmlResponse.md:**
+- Updated expected output from `userDeserializer` to `userXmlDeserializer` (correct for XML-only response)
+
+**test/e2e/http/payload/xml/main.test.ts:**
+- Added 24 e2e tests (12 models × get/put) covering all XML payload scenarios
+- All 24 tests pass
+
+### Key Patterns
+- `isExclusivelyXmlResponse()` prevents breaking dual-format (JSON+XML) operations
+- `xmlElementToObject` returns text directly for leaf nodes (no children), objects for parent nodes
+- `deserializeXmlObject` uses `itemsName` to extract array items from wrapper objects
+- Empty string value + array type + itemsName → empty array (handles self-closing tags)
+- `#text` key used as fallback for unwrapped text content in attributes+text nodes
+
+### Validation
+- 1019 unit/scenario tests pass
+- 1 smoke test passes
+- 96 e2e test files pass (834 tests, up from 810)

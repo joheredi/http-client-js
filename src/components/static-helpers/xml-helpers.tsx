@@ -278,6 +278,13 @@ for (const prop of properties) {
       }).join("");
       children.push(\`<\${fullName}>\${inner}</\${fullName}>\`);
     }
+  } else if (prop.type === "dict") {
+    // Dictionary: serialize each key-value pair as a child element
+    const inner = Object.entries(value as Record<string, any>).map(([k, v]) => \`<\${k}>\${String(v)}</\${k}>\`).join("");
+    children.push(\`<\${fullName}>\${inner}</\${fullName}>\`);
+  } else if (prop.xmlOptions.unwrapped) {
+    // Unwrapped text content goes directly as text node (no wrapping element)
+    children.push(String(value));
   } else {
     children.push(\`<\${fullName}>\${serializeValue(value, prop)}</\${fullName}>\`);
   }
@@ -357,34 +364,99 @@ function DeserializeFromXmlFunction() {
         { name: "rootName", type: "string" },
       ]}
     >
-      {code`const parser = new DOMParser();
-const doc = parser.parseFromString(xmlString, "application/xml");
-const root = doc.documentElement;
+      {code`const root = parseXmlElement(xmlString.trim());
 return ${serializationHelperRefkey("deserializeXmlObject")}<T>(xmlElementToObject(root), properties);
 
-function xmlElementToObject(el: Element): Record<string, any> {
-  const result: Record<string, any> = {};
-  for (let i = 0; i < el.attributes.length; i++) {
-    const attr = el.attributes[i];
-    result["@" + attr.localName] = attr.value;
-  }
-  for (let i = 0; i < el.childNodes.length; i++) {
-    const child = el.childNodes[i];
-    if (child.nodeType === 1) {
-      const childEl = child as Element;
-      const name = childEl.localName;
-      const existing = result[name];
-      const value = childEl.children.length > 0 ? xmlElementToObject(childEl) : childEl.textContent;
-      if (existing !== undefined) {
-        if (Array.isArray(existing)) {
-          existing.push(value);
-        } else {
-          result[name] = [existing, value];
-        }
-      } else {
-        result[name] = value;
-      }
+interface XmlNode {
+  tag: string;
+  attrs: Record<string, string>;
+  children: XmlNode[];
+  text: string;
+}
+
+function parseXmlElement(xml: string): XmlNode {
+  // Skip XML declaration
+  let s = xml.replace(/^<\\?xml[^?]*\\?>\\s*/, "");
+  return parseElement(s, 0).node;
+}
+
+function parseElement(s: string, pos: number): { node: XmlNode; end: number } {
+  // Skip whitespace
+  while (pos < s.length && /\\s/.test(s[pos])) pos++;
+  if (s[pos] !== "<") throw new Error("Expected '<' at " + pos);
+  pos++;
+  // Read tag name (handle namespace prefix)
+  let tag = "";
+  while (pos < s.length && !/[\\s/>]/.test(s[pos])) tag += s[pos++];
+  // Strip namespace prefix for local name
+  const localTag = tag.includes(":") ? tag.split(":").pop()! : tag;
+
+  // Parse attributes
+  const attrs: Record<string, string> = {};
+  while (pos < s.length) {
+    while (pos < s.length && /\\s/.test(s[pos])) pos++;
+    if (s[pos] === "/" && s[pos + 1] === ">") {
+      pos += 2;
+      return { node: { tag: localTag, attrs, children: [], text: "" }, end: pos };
     }
+    if (s[pos] === ">") { pos++; break; }
+    let aName = "";
+    while (pos < s.length && !/[\\s=]/.test(s[pos])) aName += s[pos++];
+    while (pos < s.length && /\\s/.test(s[pos])) pos++;
+    if (s[pos] === "=") pos++;
+    while (pos < s.length && /\\s/.test(s[pos])) pos++;
+    const q = s[pos++];
+    let aVal = "";
+    while (pos < s.length && s[pos] !== q) aVal += s[pos++];
+    pos++;
+    const localAttr = aName.includes(":") && !aName.startsWith("xmlns") ? aName.split(":").pop()! : aName;
+    if (!aName.startsWith("xmlns")) attrs[localAttr] = aVal;
+  }
+
+  // Parse children and text
+  const children: XmlNode[] = [];
+  let text = "";
+  while (pos < s.length) {
+    if (s[pos] === "<") {
+      if (s[pos + 1] === "/") {
+        // Closing tag
+        const closeEnd = s.indexOf(">", pos);
+        pos = closeEnd + 1;
+        break;
+      } else {
+        const child = parseElement(s, pos);
+        children.push(child.node);
+        pos = child.end;
+      }
+    } else {
+      text += s[pos++];
+    }
+  }
+  return { node: { tag: localTag, attrs, children, text }, end: pos };
+}
+
+function xmlElementToObject(node: XmlNode): Record<string, any> {
+  const result: Record<string, any> = {};
+  for (const [k, v] of Object.entries(node.attrs)) {
+    result["@" + k] = v;
+  }
+  for (const child of node.children) {
+    const name = child.tag;
+    const existing = result[name];
+    const value = child.children.length > 0 ? xmlElementToObject(child) : child.text;
+    if (existing !== undefined) {
+      if (Array.isArray(existing)) {
+        existing.push(value);
+      } else {
+        result[name] = [existing, value];
+      }
+    } else {
+      result[name] = value;
+    }
+  }
+  // If node has text content and attributes but no children, store text as #text
+  if (node.text.trim() && node.children.length === 0 && Object.keys(node.attrs).length > 0) {
+    result["#text"] = node.text;
   }
   return result;
 }`}
@@ -421,11 +493,29 @@ for (const prop of properties) {
   const xmlName = prop.xmlOptions.name;
   const key = prop.xmlOptions.attribute ? "@" + xmlName : xmlName;
   let value = xmlObject[key];
+  // For unwrapped text content, fall back to #text key
+  if ((value === undefined || value === null) && prop.xmlOptions.unwrapped && prop.type !== "array") {
+    value = xmlObject["#text"];
+  }
   if (value === undefined || value === null) continue;
   if (prop.type === "object" && prop.deserializer) {
     result[prop.propertyName] = prop.deserializer(value as Record<string, unknown>);
   } else if (prop.type === "array") {
-    const arr = Array.isArray(value) ? value : [value];
+    // Handle empty wrapper elements (self-closing tags or empty elements produce empty string)
+    if (value === "" && prop.xmlOptions.itemsName) {
+      result[prop.propertyName] = [];
+      continue;
+    }
+    // For wrapped arrays, extract items from wrapper object using itemsName
+    let items: any = value;
+    if (prop.xmlOptions.itemsName && !prop.xmlOptions.unwrapped && typeof value === "object" && !Array.isArray(value)) {
+      items = (value as any)[prop.xmlOptions.itemsName];
+      if (items === undefined || items === null) {
+        result[prop.propertyName] = [];
+        continue;
+      }
+    }
+    const arr = Array.isArray(items) ? items : [items];
     if (prop.deserializer) {
       result[prop.propertyName] = arr.map((el: any) => prop.deserializer!(el));
     } else {
@@ -438,6 +528,9 @@ for (const prop of properties) {
       result[prop.propertyName] = new Date(String(value));
     }
   } else if (prop.type === "bytes") {
+    result[prop.propertyName] = value;
+  } else if (prop.type === "dict") {
+    // Dictionary: pass through as-is (keys are element names, values are text content)
     result[prop.propertyName] = value;
   } else {
     result[prop.propertyName] = deserializePrimitive(value, prop);

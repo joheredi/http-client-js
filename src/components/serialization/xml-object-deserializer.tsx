@@ -118,9 +118,12 @@ function renderDeserializeMetadataEntry(prop: SdkModelPropertyType): Children {
     }
     const itemType = getArrayItemType(inner);
     if (itemType) parts.push(`itemType: "${itemType}"`);
+    // Add primitive subtype for array items to enable type conversion
+    const innerSubtype = getPrimitiveSubtype(inner);
+    if (innerSubtype) parts.push(`primitiveSubtype: "${innerSubtype}"`);
   }
 
-  // Add primitive subtype for conversion
+  // Add primitive subtype for conversion (non-array types)
   const subtype = getPrimitiveSubtype(prop.type);
   if (subtype) parts.push(`primitiveSubtype: "${subtype}"`);
 

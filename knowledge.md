@@ -2511,3 +2511,27 @@ to be implemented first. Without it, compiling the `client/namespace` spec produ
 existing `client/namespace` test. The task is blocked until the emitter option is added.
 
 Legacy tspconfig reference: `submodules/autorest.typescript/packages/typespec-ts/test/azureModularIntegration/generated/client/enableModelNamespace/tspconfig.yaml`
+
+## XML Deserialization Architecture
+
+**Problem:** The generated `xmlHelpers.ts` uses a custom cross-platform XML parser (not DOMParser). Understanding the data flow is critical for debugging XML issues.
+
+**Data Flow:**
+1. `deserializeFromXml(xmlString, properties, rootName)` → parses XML string into object
+2. `parseXmlToObject(xmlString, rootName)` → finds root element, calls `xmlElementToObject`
+3. `xmlElementToObject(node)` → converts parsed XML tree to plain JS objects:
+   - Leaf nodes (no children, no attrs) → returns text string directly
+   - Nodes with children → returns `{ childTag: value }` objects
+   - Nodes with attrs → `{ "@attr": "value" }`
+   - Nodes with attrs + text → `{ "@attr": "value", "#text": "text" }`
+   - Multiple same-named children → array
+4. `deserializeXmlObject(xmlObject, properties)` → maps XML object keys to model properties
+
+**Key gotchas:**
+- Wrapped arrays: `<colors><string>red</string>...</colors>` → `{ string: ["red", ...] }` inside `{ colors: { ... } }`. Use `itemsName` to extract items from wrapper.
+- Self-closing tags: `<items />` produces empty string `""` via text leaf path. Must check `value === ""` for arrays.
+- Unwrapped text: `#text` key stores text content when node has attributes but no children. Must fall back to `#text` for `unwrapped: true` properties.
+- Dict type: pass through as-is — XML keys become dict keys, text content becomes values.
+- `primitiveSubtype` must be set for array items too (from array `valueType`) to get proper type conversion.
+
+**Date:** 2025-03-03

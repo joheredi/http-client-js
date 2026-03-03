@@ -82,7 +82,7 @@ export async function _getUserDeserialize(
     throw createRestError(result);
   }
 
-  return userDeserializer(result.body);
+  return userXmlDeserializer(result.body);
 }
 ```
 

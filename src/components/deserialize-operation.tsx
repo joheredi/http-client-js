@@ -11,13 +11,17 @@ import {
   type FlavorKind,
   type RuntimeLib,
 } from "../context/flavor-context.js";
-import { deserializeOperationRefkey } from "../utils/refkeys.js";
+import {
+  deserializeOperationRefkey,
+  xmlDeserializerRefkey,
+} from "../utils/refkeys.js";
 import { getTypeExpression } from "./type-expression.js";
 import {
   getDeserializationExpression,
   needsTransformation,
 } from "./serialization/index.js";
 import { getEscapedOperationName } from "../utils/name-policy.js";
+import { hasXmlSerialization } from "../utils/xml-detection.js";
 
 /**
  * Props for the {@link DeserializeOperation} component.
@@ -232,6 +236,19 @@ function getResponseBodyExpression(
     return code`return result.body;`;
   }
 
+  // XML model responses need the XML deserializer which parses the raw XML
+  // string from result.body. Only used when ALL response content types are XML
+  // (not a mix of JSON and XML). The HTTP runtime does NOT parse XML responses
+  // into plain objects, so the JSON deserializer would get undefined properties.
+  // For dual-format responses (JSON + XML), we fall through to the JSON
+  // deserializer since the runtime handles content-type negotiation.
+  if (
+    hasXmlSerialization(responseType) &&
+    isExclusivelyXmlResponse(method.operation)
+  ) {
+    return code`return ${xmlDeserializerRefkey(responseType)}(result.body);`;
+  }
+
   // For types that need deserialization (models, arrays of models, etc.)
   if (needsTransformation(responseType)) {
     const deserExpr = getDeserializationExpression(responseType, "result.body");
@@ -314,4 +331,28 @@ export function isBinaryBytesResponse(type: SdkType): boolean {
   if (type.kind !== "bytes") return false;
   const encode = (type as any).encode;
   return encode === "bytes" || encode === "binary";
+}
+
+/**
+ * Checks whether an operation's success responses use exclusively XML content types.
+ *
+ * Returns `true` only when ALL response content types are XML (e.g., `application/xml`).
+ * Returns `false` if any response uses a non-XML content type (e.g., `application/json`)
+ * or if no content types are specified. This ensures that dual-format operations
+ * (JSON + XML) fall through to the JSON deserializer path.
+ *
+ * @param operation - The TCGC HTTP operation.
+ * @returns `true` if all response content types are XML.
+ */
+function isExclusivelyXmlResponse(operation: SdkHttpOperation): boolean {
+  const contentTypes: string[] = [];
+  for (const response of operation.responses) {
+    if (response.contentTypes) {
+      contentTypes.push(...response.contentTypes);
+    }
+  }
+  return (
+    contentTypes.length > 0 &&
+    contentTypes.every((ct) => ct.toLowerCase().includes("xml"))
+  );
 }
