@@ -1574,7 +1574,7 @@
       "title": "Add e2e test for Payload_Xml_XmlErrorValue_get",
       "category": "testing/e2e-missing",
       "priority": "P2",
-      "status": "pending",
+      "status": "done",
       "kind": "feature",
       "dependencies": [],
       "design_review": {

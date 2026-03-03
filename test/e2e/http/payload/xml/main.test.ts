@@ -208,4 +208,20 @@ describe("Payload.Xml", () => {
       await client.modelWithEncodedNamesValue.put(expected);
     });
   });
+
+  describe("XmlErrorValue", () => {
+    /**
+     * Validates that a GET request returning a 400 XML error response
+     * is correctly surfaced as a RestError with the appropriate status code.
+     * The mock server returns an XML body with <XmlErrorBody><message>Something went wrong</message><code>400</code></XmlErrorBody>.
+     */
+    it("should throw error for XML error response", async () => {
+      try {
+        await client.xmlErrorValue.get();
+        expect.unreachable("Expected an error for 400 status code");
+      } catch (error: any) {
+        expect(error.statusCode).toBe(400);
+      }
+    });
+  });
 });

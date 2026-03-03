@@ -3613,3 +3613,13 @@ The spector mock server is lenient about Content-Type mismatches for POST operat
 - Follows the same pattern as other non-httpParts tests (using { contents, filename } as any)
 - Generated client already had the anonymousModel method via _AnonymousModelRequest interface
 - All CI passes: 1028 unit/scenario tests, smoke test, 924 e2e tests (19 multipart tests now)
+
+---
+
+**RC28: Add e2e test for Payload_Xml_XmlErrorValue_get** (2026-03-03)
+
+- Added test case to `test/e2e/http/payload/xml/main.test.ts` for the XmlErrorValue scenario
+- The mock server returns HTTP 400 with XML body `<XmlErrorBody><message>Something went wrong</message><code>400</code></XmlErrorBody>`
+- The generated client throws a `RestError` for non-200 status codes via `createRestError(result)`
+- Test follows existing e2e error patterns: try/catch with `expect.unreachable()` guard and `statusCode` assertion
+- All CI tests pass (1028 unit + 1 smoke + 925 e2e)
