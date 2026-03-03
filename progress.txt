@@ -3367,3 +3367,36 @@ The `JsonUnionSerializer` generated pass-through serializers (`return item;`) fo
 - Type_Union_Discriminated_Envelope_Object_CustomProperties_get/put
 - Type_Union_Discriminated_NoEnvelope_Default_get/put
 - Type_Union_Discriminated_NoEnvelope_CustomDiscriminator_get/put
+
+---
+## 2026-03-03: COVERAGE-FIX-VISIBILITY-SERIALIZATION — DONE
+
+### What was done
+Implemented visibility-aware serialization for model properties. When a model has properties with different write-context `@visibility(Lifecycle.X)` decorators, the emitter now filters body properties by the HTTP verb's lifecycle context:
+- POST → only Create-visible properties
+- PUT → Create + Update visible properties
+- PATCH → only Update-visible properties
+- DELETE → only Delete-visible properties
+
+### Implementation details
+- Modified `src/components/send-operation.tsx`:
+  - Added `getVerbVisibilities()` to map HTTP verbs to Visibility flags
+  - Added `modelNeedsPerVerbBodyFiltering()` to detect models needing per-verb filtering
+  - Added `isPropertyVisibleForVerb()` to check property visibility for a verb
+  - Added `buildVisibilityFilteredBody()` to build inline objects with only visible properties
+  - Modified `buildBodyExpression()` and `buildSpreadBodyExpression()` to accept `verb` and apply filtering
+- Approach: Inline visibility-filtered body objects in send-operation (not separate serializer functions)
+
+### Key discovery: TCGC assigns ALL visibility flags to properties without @visibility
+Properties without `@visibility` decorator get `visibility: [1, 2, 4, 8, 16]` (Read, Create, Update, Delete, Query).
+The `modelNeedsPerVerbBodyFiltering()` check detects models needing filtering by looking for properties with SOME but not ALL write visibilities (Create/Update/Delete).
+
+### Tests added
+4 new tests in `test/components/send-operation.test.tsx`:
+- POST filtering (Create only)
+- PUT filtering (Create + Update)
+- PATCH filtering (Update only)
+- Serializer fallback for models without visibility differentiation
+
+### Unblocks
+7 spector scenarios: Type_Model_Visibility_deleteModel, getModel, headModel, patchModel, postModel, putModel, putReadOnlyModel

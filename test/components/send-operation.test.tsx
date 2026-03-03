@@ -466,6 +466,208 @@ describe("SendOperation", () => {
   });
 
   /**
+   * Tests that POST operations with a visibility-decorated model body only
+   * serialize properties visible for the Create lifecycle context.
+   *
+   * When a model has properties with `@visibility(Lifecycle.Create)`,
+   * `@visibility(Lifecycle.Update)`, and `@visibility(Lifecycle.Delete)`,
+   * a POST operation should only include Create-visible properties in the
+   * request body. This validates the per-verb visibility filtering logic
+   * in buildBodyExpression(), which builds an inline object instead of
+   * calling the full model serializer when visibility constraints require
+   * different property subsets per HTTP verb.
+   */
+  it("should filter body properties by visibility for POST operations", async () => {
+    const runner = await TesterWithService.createInstance();
+    const { program } = await runner.compile(
+      t.code`
+        model VisibilityModel {
+          @visibility(Lifecycle.Read) readProp: string;
+          @visibility(Lifecycle.Create) createProp: string[];
+          @visibility(Lifecycle.Update) updateProp: int32[];
+          @visibility(Lifecycle.Delete) deleteProp: boolean;
+        }
+
+        @post op ${t.op("postModel")}(@body body: VisibilityModel): void;
+      `,
+    );
+
+    const sdkContext = await createSdkContextForTest(program);
+    const method = getFirstMethod(sdkContext);
+    const client = getFirstClient(sdkContext);
+    const visModel = sdkContext.sdkPackage.models.find(
+      (m) => m.name === "VisibilityModel",
+    )!;
+
+    const template = (
+      <SdkTestFile sdkContext={sdkContext} externals={[httpRuntimeLib]}>
+        <ClientContextDeclaration client={client} />
+        {"\n\n"}
+        <ModelInterface model={visModel} />
+        {"\n\n"}
+        <OperationOptionsDeclaration method={method} />
+        {"\n\n"}
+        <SendOperation method={method} rootClient={client} />
+      </SdkTestFile>
+    );
+
+    const result = renderToString(template);
+    // POST should only include Create-visible properties
+    expect(result).toContain('"createProp": body["createProp"]');
+    // POST should NOT include Update, Delete, or Read properties
+    expect(result).not.toContain('"updateProp"');
+    expect(result).not.toContain('"deleteProp"');
+    expect(result).not.toContain('"readProp"');
+    // Should NOT use the model serializer (inline object instead)
+    expect(result).not.toContain("visibilityModelSerializer");
+    // Should NOT contain unresolved symbols
+    expect(result).not.toContain("<Unresolved Symbol");
+  });
+
+  /**
+   * Tests that PUT operations include both Create and Update visible
+   * properties in the request body, matching the PUT verb's lifecycle
+   * context (Create + Update).
+   */
+  it("should include Create and Update properties for PUT operations", async () => {
+    const runner = await TesterWithService.createInstance();
+    const { program } = await runner.compile(
+      t.code`
+        model VisibilityModel {
+          @visibility(Lifecycle.Read) readProp: string;
+          @visibility(Lifecycle.Create) createProp: string[];
+          @visibility(Lifecycle.Update) updateProp: int32[];
+          @visibility(Lifecycle.Delete) deleteProp: boolean;
+        }
+
+        @put op ${t.op("putModel")}(@body body: VisibilityModel): void;
+      `,
+    );
+
+    const sdkContext = await createSdkContextForTest(program);
+    const method = getFirstMethod(sdkContext);
+    const client = getFirstClient(sdkContext);
+    const visModel = sdkContext.sdkPackage.models.find(
+      (m) => m.name === "VisibilityModel",
+    )!;
+
+    const template = (
+      <SdkTestFile sdkContext={sdkContext} externals={[httpRuntimeLib]}>
+        <ClientContextDeclaration client={client} />
+        {"\n\n"}
+        <ModelInterface model={visModel} />
+        {"\n\n"}
+        <OperationOptionsDeclaration method={method} />
+        {"\n\n"}
+        <SendOperation method={method} rootClient={client} />
+      </SdkTestFile>
+    );
+
+    const result = renderToString(template);
+    // PUT should include Create and Update properties
+    expect(result).toContain('"createProp": body["createProp"]');
+    expect(result).toContain('"updateProp": body["updateProp"]');
+    // PUT should NOT include Delete or Read properties
+    expect(result).not.toContain('"deleteProp"');
+    expect(result).not.toContain('"readProp"');
+    expect(result).not.toContain("<Unresolved Symbol");
+  });
+
+  /**
+   * Tests that PATCH operations only include Update-visible properties,
+   * and DELETE operations only include Delete-visible properties.
+   */
+  it("should filter PATCH body to Update-visible properties only", async () => {
+    const runner = await TesterWithService.createInstance();
+    const { program } = await runner.compile(
+      t.code`
+        model VisibilityModel {
+          @visibility(Lifecycle.Read) readProp: string;
+          @visibility(Lifecycle.Create) createProp: string[];
+          @visibility(Lifecycle.Update) updateProp: int32[];
+          @visibility(Lifecycle.Delete) deleteProp: boolean;
+        }
+
+        @patch(#{implicitOptionality: true}) op ${t.op("patchModel")}(@body body: VisibilityModel): void;
+      `,
+    );
+
+    const sdkContext = await createSdkContextForTest(program);
+    const method = getFirstMethod(sdkContext);
+    const client = getFirstClient(sdkContext);
+    const visModel = sdkContext.sdkPackage.models.find(
+      (m) => m.name === "VisibilityModel",
+    )!;
+
+    const template = (
+      <SdkTestFile sdkContext={sdkContext} externals={[httpRuntimeLib]}>
+        <ClientContextDeclaration client={client} />
+        {"\n\n"}
+        <ModelInterface model={visModel} />
+        {"\n\n"}
+        <OperationOptionsDeclaration method={method} />
+        {"\n\n"}
+        <SendOperation method={method} rootClient={client} />
+      </SdkTestFile>
+    );
+
+    const result = renderToString(template);
+    // PATCH should only include Update-visible properties
+    expect(result).toContain('"updateProp": body["updateProp"]');
+    // PATCH should NOT include Create, Delete, or Read properties
+    expect(result).not.toContain('"createProp"');
+    expect(result).not.toContain('"deleteProp"');
+    expect(result).not.toContain('"readProp"');
+    expect(result).not.toContain("<Unresolved Symbol");
+  });
+
+  /**
+   * Tests that models without per-verb visibility differentiation still
+   * use the regular serializer function. Models where all properties have
+   * the same visibility (or no visibility constraints) should not trigger
+   * inline visibility filtering.
+   */
+  it("should use serializer for models without visibility differentiation", async () => {
+    const runner = await TesterWithService.createInstance();
+    const { program } = await runner.compile(
+      t.code`
+        model Item {
+          name: string;
+          @visibility(Lifecycle.Read) id: int64;
+        }
+
+        @post op ${t.op("createItem")}(@body body: Item): Item;
+      `,
+    );
+
+    const sdkContext = await createSdkContextForTest(program);
+    const method = getFirstMethod(sdkContext);
+    const client = getFirstClient(sdkContext);
+    const itemModel = sdkContext.sdkPackage.models.find(
+      (m) => m.name === "Item",
+    )!;
+
+    const template = (
+      <SdkTestFile sdkContext={sdkContext} externals={[httpRuntimeLib]}>
+        <ClientContextDeclaration client={client} />
+        {"\n\n"}
+        <ModelInterface model={itemModel} />
+        {"\n\n"}
+        <JsonSerializer model={itemModel} />
+        {"\n\n"}
+        <OperationOptionsDeclaration method={method} />
+        {"\n\n"}
+        <SendOperation method={method} rootClient={client} />
+      </SdkTestFile>
+    );
+
+    const result = renderToString(template);
+    // Should use the model serializer, not inline object
+    expect(result).toContain("itemSerializer(body)");
+    expect(result).not.toContain("<Unresolved Symbol");
+  });
+
+  /**
    * Tests that the send function is referenceable via sendOperationRefkey.
    * This is essential because the public operation function (task 3.4) and
    * the operations orchestrator (task 3.5) need to reference the send function

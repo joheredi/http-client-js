@@ -11,11 +11,13 @@ import type {
   SdkHttpOperation,
   SdkMethodParameter,
   SdkModelPropertyType,
+  SdkModelType,
   SdkPathParameter,
   SdkQueryParameter,
   SdkServiceMethod,
   SdkType,
 } from "@azure-tools/typespec-client-generator-core";
+import { Visibility } from "@typespec/http";
 import { useRuntimeLib } from "../context/flavor-context.js";
 import {
   clientContextRefkey,
@@ -741,7 +743,7 @@ function buildReturnStatement(
 
   // Build body expression (may contain refkeys via code template)
   if (bodyParam) {
-    const bodyExpr = buildBodyExpression(bodyParam, method);
+    const bodyExpr = buildBodyExpression(bodyParam, method, verb);
     optionParts.push(code`, body: ${bodyExpr}`);
   }
 
@@ -998,36 +1000,191 @@ function isSpreadBody(bodyParam: SdkBodyParameter): boolean {
 }
 
 /**
+ * Maps an HTTP verb to the set of visibility contexts it supports.
+ *
+ * This follows the TypeSpec HTTP spec's verb-to-lifecycle mapping:
+ * - POST → Create
+ * - PUT → Create + Update
+ * - PATCH → Update
+ * - DELETE → Delete
+ * - GET/HEAD → Query (but these typically don't have request bodies)
+ *
+ * @param verb - The HTTP verb (lowercase).
+ * @returns An array of Visibility flags for the verb's context.
+ */
+function getVerbVisibilities(verb: string): Visibility[] {
+  switch (verb) {
+    case "post":
+      return [Visibility.Create];
+    case "put":
+      return [Visibility.Create, Visibility.Update];
+    case "patch":
+      return [Visibility.Update];
+    case "delete":
+      return [Visibility.Delete];
+    case "get":
+    case "head":
+      return [Visibility.Query];
+    default:
+      return [];
+  }
+}
+
+/**
+ * Checks whether a model needs per-verb body filtering due to properties
+ * having different write-context visibility decorators.
+ *
+ * Returns true only when the model has properties spanning multiple write
+ * visibility contexts (e.g., some properties are `@visibility(Lifecycle.Create)`
+ * and others are `@visibility(Lifecycle.Update)`). Models with just read-only
+ * properties or no visibility constraints don't need per-verb filtering.
+ *
+ * @param model - The TCGC model type to check.
+ * @returns `true` if the model needs per-verb body filtering.
+ */
+function modelNeedsPerVerbBodyFiltering(model: SdkModelType): boolean {
+  for (const prop of model.properties) {
+    if (!prop.visibility || prop.visibility.length === 0) continue;
+
+    const hasCreate = prop.visibility.includes(Visibility.Create);
+    const hasUpdate = prop.visibility.includes(Visibility.Update);
+    const hasDelete = prop.visibility.includes(Visibility.Delete);
+
+    // A property needs per-verb filtering when it's visible in SOME but not ALL
+    // write contexts. E.g., a property with visibility [Create] should only be
+    // sent in POST/PUT, not in PATCH/DELETE.
+    // Properties visible in all write contexts (or none) don't cause differentiation.
+    const writeCount = [hasCreate, hasUpdate, hasDelete].filter(Boolean).length;
+    if (writeCount > 0 && writeCount < 3) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+/**
+ * Determines whether a model property is visible for a given set of visibility contexts.
+ *
+ * A property is visible when:
+ * 1. It has no visibility constraint (`visibility` is undefined/empty) — visible in all contexts.
+ * 2. Its visibility array includes at least one of the provided visibility contexts.
+ *
+ * @param prop - The TCGC model property.
+ * @param verbVisibilities - The visibility contexts for the current HTTP verb.
+ * @returns `true` if the property should be included in the serialized body.
+ */
+function isPropertyVisibleForVerb(
+  prop: SdkModelPropertyType,
+  verbVisibilities: Visibility[],
+): boolean {
+  // No visibility constraint means the property is visible in all contexts
+  if (!prop.visibility || prop.visibility.length === 0) {
+    return true;
+  }
+  // Property is visible if any of its visibility values match the verb's contexts
+  return prop.visibility.some((v) => verbVisibilities.includes(v));
+}
+
+/**
+ * Builds a visibility-filtered inline object literal for a model body.
+ *
+ * When a model has properties decorated with `@visibility(Lifecycle.X)`,
+ * different HTTP verbs should only send properties matching their lifecycle
+ * context (e.g., POST sends only Create-visible properties). This function
+ * builds an inline object with only the visible properties, applying
+ * per-property serialization expressions.
+ *
+ * @param bodyType - The TCGC model type for the body.
+ * @param accessor - The JavaScript expression to access the body value.
+ * @param verb - The HTTP verb (lowercase).
+ * @param bodyParam - The body parameter (for optionality checks).
+ * @returns Alloy Children representing the filtered inline body expression.
+ */
+function buildVisibilityFilteredBody(
+  bodyType: SdkModelType,
+  accessor: string,
+  verb: string,
+  bodyParam: SdkBodyParameter,
+): Children {
+  const verbVisibilities = getVerbVisibilities(verb);
+  const visibleProps = bodyType.properties.filter((p) =>
+    isPropertyVisibleForVerb(p, verbVisibilities),
+  );
+
+  const parts: Children[] = [];
+  for (const prop of visibleProps) {
+    const propAccessor = `${accessor}["${normalizePropertyName(prop.name)}"]`;
+    let valueExpr: Children;
+
+    if (needsTransformation(prop.type)) {
+      const serExpr = getSerializationExpression(prop.type, propAccessor);
+      // Null guard for optional/nullable properties that need transformation
+      const isNullable = prop.type.kind === "nullable" || prop.optional;
+      if (isNullable) {
+        valueExpr = code`!${propAccessor} ? ${propAccessor} : ${serExpr}`;
+      } else {
+        valueExpr = serExpr;
+      }
+    } else {
+      valueExpr = propAccessor;
+    }
+
+    if (parts.length > 0) {
+      parts.push(", ");
+    }
+    parts.push(code`"${prop.serializedName}": ${valueExpr}`);
+  }
+
+  const bodyExpr = code`{ ${parts} }`;
+
+  // Wrap with null check for optional bodies
+  if (bodyParam.optional) {
+    return code`!${accessor} ? ${accessor} : ${bodyExpr}`;
+  }
+
+  return bodyExpr;
+}
+
+/**
  * Builds the body expression for the request options.
  *
- * Handles three cases:
- * 1. **Binary bytes body**: Returns the raw accessor for binary content types
- *    (application/octet-stream, image/png, etc.) where bytes are sent as-is.
- * 2. **Direct body**: Calls the model's serializer function via refkey
- *    (e.g., `body: itemSerializer(body)`) or encodes bytes to base64/base64url.
- * 3. **Spread body**: Constructs an inline object literal with per-property
- *    serialization (e.g., `body: { prop1: prop1, prop2: prop2.toISOString() }`)
- *
- * Spread bodies occur when TypeSpec uses `...Model` or `...Alias` syntax to
- * flatten model properties into individual operation parameters. Since the
- * anonymous spread model has no declared serializer function, properties must
- * be serialized individually in an inline object.
+ * Handles four cases:
+ * 1. **Spread body**: Inline object literal with per-property serialization.
+ * 2. **Visibility-filtered body**: Inline object with only properties visible
+ *    for the operation's HTTP verb (when model has `@visibility` decorators).
+ * 3. **Binary bytes body**: Raw accessor for binary content types.
+ * 4. **Direct body**: Calls the model's serializer function via refkey.
  *
  * @param bodyParam - The TCGC body parameter.
  * @param method - The parent service method.
+ * @param verb - The HTTP verb for visibility filtering.
  * @returns Alloy Children representing the body expression.
  */
 function buildBodyExpression(
   bodyParam: SdkBodyParameter,
   method: SdkServiceMethod<SdkHttpOperation>,
+  verb: string,
 ): Children {
   // Spread bodies must be handled as inline objects
   if (isSpreadBody(bodyParam)) {
-    return buildSpreadBodyExpression(bodyParam, method);
+    return buildSpreadBodyExpression(bodyParam, method, verb);
   }
 
   const accessor = getBodyAccessor(bodyParam, method);
   const bodyType = bodyParam.type;
+
+  // When the body model has properties with different write-context visibility
+  // decorators (@visibility(Create/Update/Delete)), build an inline object
+  // with only the properties visible for this HTTP verb's lifecycle context.
+  // This ensures POST only sends Create-visible properties, PUT sends
+  // Create+Update, PATCH sends Update-only, DELETE sends Delete-only.
+  if (
+    bodyType.kind === "model" &&
+    modelNeedsPerVerbBodyFiltering(bodyType)
+  ) {
+    return buildVisibilityFilteredBody(bodyType, accessor, verb, bodyParam);
+  }
 
   // Binary bytes body (encode="bytes"/"binary") is sent as raw Uint8Array.
   // These correspond to binary content types (application/octet-stream, image/png)
@@ -1067,6 +1224,10 @@ function buildBodyExpression(
  * serialized based on its type (dates → toISOString, models → serializer call,
  * etc.) and mapped to its wire-format name via `serializedName`.
  *
+ * Properties are also filtered by visibility when the model has
+ * `@visibility` decorators, ensuring only verb-appropriate properties
+ * are included.
+ *
  * For example, given `...Foo` where Foo has `{ name: string; date: utcDateTime }`:
  * ```typescript
  * body: { name: name, date: date.toISOString() }
@@ -1074,11 +1235,13 @@ function buildBodyExpression(
  *
  * @param bodyParam - The spread body parameter.
  * @param method - The parent service method.
+ * @param verb - The HTTP verb for visibility filtering.
  * @returns Alloy Children representing the inline body object.
  */
 function buildSpreadBodyExpression(
   bodyParam: SdkBodyParameter,
   method: SdkServiceMethod<SdkHttpOperation>,
+  verb: string,
 ): Children {
   const bodyType = bodyParam.type;
 
@@ -1087,7 +1250,13 @@ function buildSpreadBodyExpression(
     return getBodyAccessor(bodyParam, method);
   }
 
-  const properties = bodyType.properties;
+  // Filter properties by visibility when the model has per-verb write visibility constraints
+  const verbVisibilities = getVerbVisibilities(verb);
+  const properties = modelNeedsPerVerbBodyFiltering(bodyType)
+    ? bodyType.properties.filter((p) =>
+        isPropertyVisibleForVerb(p, verbVisibilities),
+      )
+    : bodyType.properties;
   const parts: Children[] = [];
 
   for (const prop of properties) {

@@ -2551,3 +2551,11 @@ Legacy tspconfig reference: `submodules/autorest.typescript/packages/typespec-ts
 **Alternative rejected**: Including the discriminator in the TypeScript type (e.g., `{ kind: "cat" } & Cat | { kind: "dog" } & Dog`). This would change the public API surface and require type declaration changes.
 
 **Key gotcha**: `variantNeedsDeserialization()` returns false for models with only primitive properties (string, boolean), so discriminated unions bypass that check entirely — they always need deserialization to handle structural transformation (envelope unwrapping or discriminator stripping).
+
+## TCGC Visibility Values
+
+TCGC assigns `visibility: [Visibility.Read, Visibility.Create, Visibility.Update, Visibility.Delete, Visibility.Query]` (all visibility flags) to properties WITHOUT explicit `@visibility` decorators. Properties with `@visibility(Lifecycle.X)` get only that specific flag. Use `Visibility` from `@typespec/http` for comparisons. Read=1, Create=2, Update=4, Delete=8, Query=16.
+
+## Visibility-Aware Serialization
+
+Models with per-verb visibility differentiation (properties with SOME but not ALL write visibilities) use inline body objects in send-operation.tsx instead of calling the model serializer. The check is: does any property have visibility that includes some but not all of {Create, Update, Delete}? If so, different HTTP verbs need different property subsets. The implementation is in `buildVisibilityFilteredBody()` and `modelNeedsPerVerbBodyFiltering()` in send-operation.tsx.

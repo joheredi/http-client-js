@@ -1213,7 +1213,7 @@
       "title": "Fix visibility-aware serialization for model properties",
       "category": "bug-fix/emitter",
       "priority": "P1",
-      "status": "pending",
+      "status": "done",
       "kind": "bug-fix",
       "dependencies": [],
       "design_review": {
