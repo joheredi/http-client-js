@@ -3299,3 +3299,16 @@ spreadWithMultipleParameters, spreadParameterWithInnerModel, spreadParameterWith
   `xMsTestHeader` — cosmetic issue, doesn't affect compilation or tests.
 
 ### CI status: All green — 1019 unit, 1 smoke, 869 e2e (10 new, 60 skipped → down from 70)
+
+---
+### 2026-03-03 — COVERAGE-FIX-ARRAY-DELIMITED-BODY
+
+**Task:** Fix string array delimiter encoding in JSON body properties (4 e2e tests)
+
+**Root Cause:** The 4 string array e2e tests (`commaDelimited`, `spaceDelimited`, `pipeDelimited`, `newlineDelimited`) were skipped with incorrect diagnosis. The tests used `["a", "b", "c"]` as values, but the Spector mock API validates against `colors = ["blue", "red", "green"]` joined by the delimiter. The serializer (`buildCsvCollection`) and deserializer (`parseCsvCollection`) were already correct — this was purely a test value mismatch.
+
+**Fix:** Changed test values from `["a", "b", "c"]` to `["blue", "red", "green"]` (matching the mock API's expected colors) and removed `.skip` from all 4 tests.
+
+**Tests:** All 1019 unit/scenario tests pass, smoke test passes, all 873 e2e tests pass (12/12 array encoding tests now active).
+
+**Key Learning:** The Spector mock for encode/array uses `passOnSuccess` with hardcoded `colors = ["blue", "red", "green"]` for ALL variants (string, enum, extensible enum). Test data must match these expected values.

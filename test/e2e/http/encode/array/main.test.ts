@@ -17,35 +17,32 @@ describe("Encode.Array", () => {
   });
 
   describe("string arrays", () => {
-    // String array collection format encoding sends delimiter-joined strings
-    // (e.g., "a,b,c") but the Spector mock expects JSON arrays (["a","b","c"]).
-    // This is a separate emitter bug with string collection format body encoding.
-    it.skip("should encode string array with comma delimiter", async () => {
+    it("should encode string array with comma delimiter", async () => {
       const result = await client.property.commaDelimited({
-        value: ["a", "b", "c"],
+        value: ["blue", "red", "green"],
       });
-      expect(result.value).toEqual(["a", "b", "c"]);
+      expect(result.value).toEqual(["blue", "red", "green"]);
     });
 
-    it.skip("should encode string array with space delimiter", async () => {
+    it("should encode string array with space delimiter", async () => {
       const result = await client.property.spaceDelimited({
-        value: ["a", "b", "c"],
+        value: ["blue", "red", "green"],
       });
-      expect(result.value).toEqual(["a", "b", "c"]);
+      expect(result.value).toEqual(["blue", "red", "green"]);
     });
 
-    it.skip("should encode string array with pipe delimiter", async () => {
+    it("should encode string array with pipe delimiter", async () => {
       const result = await client.property.pipeDelimited({
-        value: ["a", "b", "c"],
+        value: ["blue", "red", "green"],
       });
-      expect(result.value).toEqual(["a", "b", "c"]);
+      expect(result.value).toEqual(["blue", "red", "green"]);
     });
 
-    it.skip("should encode string array with newline delimiter", async () => {
+    it("should encode string array with newline delimiter", async () => {
       const result = await client.property.newlineDelimited({
-        value: ["a", "b", "c"],
+        value: ["blue", "red", "green"],
       });
-      expect(result.value).toEqual(["a", "b", "c"]);
+      expect(result.value).toEqual(["blue", "red", "green"]);
     });
   });
 
