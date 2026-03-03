@@ -1083,7 +1083,7 @@
       "title": "Fix unix timestamp serialization for datetime body properties",
       "category": "bug-fix/emitter",
       "priority": "P0",
-      "status": "pending",
+      "status": "done",
       "kind": "bug-fix",
       "dependencies": [],
       "design_review": {

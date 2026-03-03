@@ -3312,3 +3312,22 @@ spreadWithMultipleParameters, spreadParameterWithInnerModel, spreadParameterWith
 **Tests:** All 1019 unit/scenario tests pass, smoke test passes, all 873 e2e tests pass (12/12 array encoding tests now active).
 
 **Key Learning:** The Spector mock for encode/array uses `passOnSuccess` with hardcoded `colors = ["blue", "red", "green"]` for ALL variants (string, enum, extensible enum). Test data must match these expected values.
+
+---
+
+### 2026-03-03: COVERAGE-FIX-UNIX-TIMESTAMP-BODY — Fix unix timestamp e2e tests for datetime body properties
+
+**What was done:**
+- Investigated the two skipped e2e tests for `Encode_Datetime_Property_unixTimestamp` and `Encode_Datetime_Property_unixTimestampArray`
+- Found that the serializer and deserializer code were already correct (serializer: `((accessor).getTime() / 1000) | 0`, deserializer: `new Date(value * 1000)`)
+- Root cause: test dates didn't match Spector mock expectations — test used `2023-06-12T06:41:04.000Z` (ts: 1686552064) but Spector expected 1686566864 (date: `2023-06-12T10:47:44.000Z`), same mismatch for array dates
+- Fixed test dates to match Spector mock values (same dates used by already-passing query tests)
+- Removed `.skip` from both property unix timestamp tests
+- Updated file header comment to remove mention of "known serialization issues"
+
+**Results:**
+- All 1019 unit/scenario tests pass ✓
+- Smoke test passes ✓
+- All 875 e2e tests pass (2 more than before) ✓
+
+**Key takeaway:** Same pattern as COVERAGE-FIX-ARRAY-DELIMITED-BODY — test data must match hardcoded values in the Spector mock API.

@@ -2,9 +2,6 @@
  * E2E tests for Encode.Datetime — validates that the generated client correctly
  * encodes and decodes datetime values in RFC3339, RFC7231, and unix timestamp
  * formats across query, property, header, and response header positions.
- *
- * Some unix timestamp tests are skipped due to known serialization issues
- * with the runtime's handling of numeric-encoded dates.
  */
 import { describe, expect, it } from "vitest";
 import { DatetimeClient } from "../../../generated/encode/datetime/src/index.js";
@@ -65,17 +62,17 @@ describe("Encode.Datetime", () => {
       expect(response).toEqual(requestBody);
     });
 
-    it.skip("should handle unixTimestamp encode for datetime property", async () => {
-      const requestBody = { value: new Date("2023-06-12T06:41:04.000Z") };
+    it("should handle unixTimestamp encode for datetime property", async () => {
+      const requestBody = { value: new Date("2023-06-12T10:47:44.000Z") };
       const response = await client.property.unixTimestamp(requestBody);
       expect(response).toEqual(requestBody);
     });
 
-    it.skip("should handle unixTimestamp encode for datetime array property", async () => {
+    it("should handle unixTimestamp encode for datetime array property", async () => {
       const requestBody = {
         value: [
-          new Date("2023-06-12T06:41:04.000Z"),
-          new Date("2023-06-14T11:57:36.000Z"),
+          new Date("2023-06-12T10:47:44.000Z"),
+          new Date("2023-06-14T09:17:36.000Z"),
         ],
       };
       const response = await client.property.unixTimestampArray(requestBody);
