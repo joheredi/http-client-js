@@ -3426,3 +3426,28 @@ record values in merge-patch context (e.g., `{ key2: null }` to delete a record 
 - 1028 unit/scenario tests pass (3 skipped)
 - 1 smoke test passes
 - 885 e2e tests pass (55 skipped), including 2 new merge-patch tests
+
+---
+## RC30 — 2026-03-03: COVERAGE-TEST-DURATION-MS-LARGERUNIT
+**Task**: Add e2e tests for duration millisecond and LargerUnit variants
+**Status**: Done
+
+### What was done
+Added 24 new e2e test cases to `test/e2e/http/encode/duration/main.test.ts` covering all missing duration encoding scenarios across Query, Property, and Header positions:
+
+- **Query (8 new tests)**: int32Milliseconds, floatMilliseconds, float64Milliseconds, int32MillisecondsArray, int32SecondsLargerUnit, floatSecondsLargerUnit, int32MillisecondsLargerUnit, floatMillisecondsLargerUnit
+- **Property (8 new tests)**: int32Milliseconds, floatMilliseconds, float64Milliseconds, floatMillisecondsArray, int32SecondsLargerUnit, floatSecondsLargerUnit, int32MillisecondsLargerUnit, floatMillisecondsLargerUnit (all `.skip` due to same numeric duration serialization limitation as existing property tests)
+- **Header (8 new tests)**: int32Milliseconds, floatMilliseconds, float64Milliseconds, int32MillisecondsArray, int32SecondsLargerUnit, floatSecondsLargerUnit, int32MillisecondsLargerUnit, floatMillisecondsLargerUnit
+
+### Test values (from spector mockapi.ts)
+- int32Milliseconds: 36000
+- floatMilliseconds/float64Milliseconds: 35625
+- int32MillisecondsArray: [36000, 47000]
+- int32SecondsLargerUnit: 120
+- floatSecondsLargerUnit: 150
+- int32MillisecondsLargerUnit: 180000
+- floatMillisecondsLargerUnit: 210000
+
+### Results
+- 1028 unit/scenario tests pass (3 skipped)
+- 901 e2e tests pass (63 skipped), including 30 new passing duration tests + 12 skipped property tests

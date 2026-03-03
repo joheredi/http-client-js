@@ -1127,7 +1127,7 @@
       "title": "Add e2e tests for duration millisecond and LargerUnit variants",
       "category": "testing/e2e-missing",
       "priority": "P1",
-      "status": "pending",
+      "status": "done",
       "kind": "feature",
       "dependencies": [],
       "design_review": {
