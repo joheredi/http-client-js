@@ -992,7 +992,7 @@
       "title": "Fix spread parameter invalid TypeScript generation",
       "category": "bug-fix/emitter",
       "priority": "P0",
-      "status": "pending",
+      "status": "done",
       "kind": "bug-fix",
       "dependencies": [],
       "design_review": {

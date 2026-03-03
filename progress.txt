@@ -3273,3 +3273,29 @@ The payload/xml e2e test was missing. Adding it revealed multiple critical bugs 
 - Extensions resources (5 tests): get/createOrUpdate/update/delete/listByScope each at 4 scopes (resource group, subscription, tenant, resource-level)
 **Patterns:** Used vitest expect assertions, fake TokenCredential, bearer token policy removal for HTTP mock server, pollUntilDone() for LRO operations, async iteration for paginated list operations.
 **CI:** All passing — 1019 unit, 1 smoke, 859 e2e (25 new).
+
+## 2026-03-03: COVERAGE-FIX-SPREAD-PARAMS — Enable spread parameter e2e tests (DONE)
+
+### What was done:
+- The spread parameter TypeScript generation bug (invalid hyphenated identifiers like `x-ms-test-header`)
+  was already fixed — generated code uses camelCase `xMsTestHeader` and compiles successfully.
+- Wrote full e2e test implementations for all 10 spread parameter scenarios (previously empty stubs with `.skip`).
+- Removed `.skip` from `test/e2e/http/parameters/spread/main.test.ts`.
+
+### Test cases (10 total):
+**Model group (5):** spreadAsRequestBody, spreadCompositeRequestOnlyWithBody,
+spreadCompositeRequestWithoutBody, spreadCompositeRequest, spreadCompositeRequestMix
+
+**Alias group (5):** spreadAsRequestBody, spreadAsRequestParameter,
+spreadWithMultipleParameters, spreadParameterWithInnerModel, spreadParameterWithInnerAlias
+
+### Key patterns:
+- Model spread: body params either flattened to direct args or passed as typed objects
+- Alias spread: header `x-ms-test-header` accessed as `xMsTestHeader` TS param, sent as wire name
+- Optional params (optionalInt, optionalStringList) passed via options bag
+
+### Minor note:
+- JSDoc `@param {string} x-ms-test-header` in generated output uses wire name instead of
+  `xMsTestHeader` — cosmetic issue, doesn't affect compilation or tests.
+
+### CI status: All green — 1019 unit, 1 smoke, 869 e2e (10 new, 60 skipped → down from 70)
