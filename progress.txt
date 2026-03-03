@@ -3562,3 +3562,12 @@ Created `test/e2e/http/authentication/noauth/union/main.test.ts` with 2 e2e test
 - Unit/scenario: 1028 passed (3 skipped)
 - Smoke: 1 passed
 - E2E: 919 passed (63 skipped) — up from 917 (+2 new auth tests)
+
+## 2026-03-03: COVERAGE-TEST-RESPONSE-STATUS-CODE-RANGE — Done
+- Added 2 e2e tests for Response.StatusCodeRange scenarios
+- Test file: test/e2e/http/response/status-code-range/main.test.ts
+- Test 1: errorResponseStatusCode404 — verifies 404 response throws RestError with statusCode 404
+- Test 2: errorResponseStatusCodeInRange — verifies 494 response (in 494-499 range) throws RestError with statusCode 494
+- Both operations expect 204 success; mock server returns error codes to test error path
+- Pattern: try/catch with expect.unreachable() guard, matching existing e2e error test patterns
+- E2E tests: 921 passed (up from 919), 63 skipped. All unit (1028) and smoke (1) tests pass.
