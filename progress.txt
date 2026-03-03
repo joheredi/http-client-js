@@ -3189,3 +3189,23 @@ incorrect and was updated.
 - API version defaults to "v1" (only version in old spec)
 
 **CI status:** All green (1019 unit tests, 1 smoke test, 810 e2e tests passed, 70 skipped)
+
+## 2026-03-03: E2E-MISSING-CLIENT-ENABLE-NAMESPACE (blocked)
+
+**What was investigated:**
+- The `client/enableModelNamespace` e2e test requires compiling the `client/namespace` Azure HTTP spec
+  with `enable-model-namespace: true`, which prefixes model names with their namespace hierarchy
+  (e.g., `FirstClientResult` → `ClientclientnamespacefirstFirstClientResult`).
+- Researched whether this option exists in TCGC or our emitter — it does NOT.
+- `enable-model-namespace` is a legacy emitter option specific to `@azure-tools/typespec-ts`.
+- TCGC provides `SdkNamespace[]` structure but doesn't control model name prefixing.
+- Our emitter's options: generate-metadata, flavor, include-headers-in-response,
+  experimental-extensible-enums, ignore-nullable-on-optional, compatibility-mode,
+  typespec-title-map, package-name, package-version. No namespace option.
+
+**Why blocked:**
+- Without `enable-model-namespace`, compiling the spec produces identical output to `client/namespace`
+- The test would be an exact duplicate of the existing namespace test
+- Need to implement the emitter option + model naming logic first
+
+**Documented in:** knowledge.md, prd.json (task marked as blocked with reason)

@@ -2494,3 +2494,20 @@ header param must NOT be filtered out by `getHeaderParameters()`. Only auto-gene
 headers should be processed as custom headers with their accessor and clientDefaultValue fallback.
 Additionally, user-defined Accept headers should use lowercase `"accept"` key to match the auto-generated
 pattern and prevent conflicts with the HTTP runtime's default accept header.
+
+## enable-model-namespace Option (Blocked)
+
+The legacy emitter `@azure-tools/typespec-ts` has an `enable-model-namespace` option that controls whether
+model names include their namespace hierarchy prefix. For example, with `enable-model-namespace: true`,
+a model `FirstClientResult` in namespace `Client.ClientNamespace.First` becomes
+`ClientclientnamespacefirstFirstClientResult`.
+
+This option is NOT a TCGC option — it exists only in the legacy emitter. Our new emitter (`http-client-js`)
+does not support it. TCGC provides namespace information via `SdkNamespace[]` on `SdkPackage`, but the
+decision to prefix model names is entirely in the emitter layer.
+
+The `client/enableModelNamespace` e2e test (task E2E-MISSING-CLIENT-ENABLE-NAMESPACE) requires this option
+to be implemented first. Without it, compiling the `client/namespace` spec produces identical output to the
+existing `client/namespace` test. The task is blocked until the emitter option is added.
+
+Legacy tspconfig reference: `submodules/autorest.typescript/packages/typespec-ts/test/azureModularIntegration/generated/client/enableModelNamespace/tspconfig.yaml`
