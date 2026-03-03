@@ -3544,3 +3544,21 @@ All 8 File body e2e tests unskipped and passing:
 - File model serializers/deserializers are still generated (dead code) but not used for File body operations
 - If a File model is used in a non-file-body context (e.g., JSON payload), the serializer would still work
 - The `isFileBody()` function is exported from `send-operation.tsx` and can be imported elsewhere
+
+## 2026-03-03: COVERAGE-TEST-AUTH-NOAUTH-UNION — Added 2 e2e tests for Authentication.Noauth.Union
+
+### What was done
+Created `test/e2e/http/authentication/noauth/union/main.test.ts` with 2 e2e test cases:
+1. `should succeed without authentication` — Validates validNoAuth() works without auth headers (NoAuth union member)
+2. `should authenticate with a valid OAuth2 token` — Validates validToken() with Bearer token (OAuth2 union member)
+
+### Pattern notes
+- Client constructor takes TokenCredential + options (same as authentication/union pattern)
+- Used `getOAuth2Token` callback returning the scope as the token value (matches mock server expectation)
+- Both operations return void (204 response), asserted with `expect(result).toBeUndefined()`
+- Mock server on port 3002, `allowInsecureConnection: true` for local testing
+
+### Test counts
+- Unit/scenario: 1028 passed (3 skipped)
+- Smoke: 1 passed
+- E2E: 919 passed (63 skipped) — up from 917 (+2 new auth tests)
