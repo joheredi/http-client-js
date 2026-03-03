@@ -3143,3 +3143,29 @@ incorrect and was updated.
 
 **CI status:** All green (1019 unit tests, 1 smoke test, 789 e2e tests passed, 70 skipped)
 
+
+## 2026-03-03: E2E-MISSING-ARM-OPERATION-TEMPLATES (done)
+
+**What was done:**
+- Created `test/e2e/http/azure/resource-manager/operation-templates/main.test.ts` with 15 test cases
+- Tests cover all 5 operation groups:
+  - `operations.list()` — paginated list of provider operations
+  - `checkNameAvailability.checkGlobal()` — global name availability check
+  - `checkNameAvailability.checkLocal("eastus", ...)` — location-scoped name check
+  - `lro.createOrReplace()` — LRO with Azure-AsyncOperation header, pollUntilDone
+  - `lro.export()` — LRO with combined Location + AAO headers
+  - `lro.delete()` — LRO with Location header only
+  - `lro.exportArray()` — LRO returning array result
+  - `lroPaging.postPagingLro()` — LRO + paging combined pattern
+  - `optionalBody.get()` — standard resource GET
+  - `optionalBody.patch()` — without body (empty) and with body (Widget update)
+  - `optionalBody.post()` — without body and with body (ActionRequest)
+  - `optionalBody.providerPost()` — without body (default allowance) and with body (requested allowance)
+
+**Key learnings:**
+- Mock server validates exact request body values — must match mockapi.ts expectations precisely
+- LRO operations use `pollUntilDone()` pattern from `@azure/core-lro`
+- LroPaging returns `PagedAsyncIterableIterator` that handles both LRO polling and pagination
+- Product name for lroPaging must be "default" to match mock route
+
+**CI status:** All green (1019 unit tests, 1 smoke test, 804 e2e tests passed, 70 skipped)
