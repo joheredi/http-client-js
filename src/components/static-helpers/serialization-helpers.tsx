@@ -89,7 +89,7 @@ for (const key of Object.keys(item)) {
   if (excludeSet.has(key) || item[key] === undefined) {
     continue;
   }
-  result[key] = serializer ? serializer(item[key]) : item[key];
+  result[key] = serializer && item[key] !== null ? serializer(item[key]) : item[key];
 }
 return result;`}
     </FunctionDeclaration>
@@ -123,7 +123,7 @@ for (const key of Object.keys(item)) {
   if (excludeSet.has(key) || item[key] === undefined) {
     continue;
   }
-  result[key] = deserializer ? deserializer(item[key]) : item[key];
+  result[key] = deserializer && item[key] !== null ? deserializer(item[key]) : item[key];
 }
 return result;`}
     </FunctionDeclaration>

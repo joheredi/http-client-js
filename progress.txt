@@ -3400,3 +3400,29 @@ The `modelNeedsPerVerbBodyFiltering()` check detects models needing filtering by
 
 ### Unblocks
 7 spector scenarios: Type_Model_Visibility_deleteModel, getModel, headModel, patchModel, postModel, putModel, putReadOnlyModel
+
+---
+## RC29 — 2026-03-03: COVERAGE-FIX-MERGE-PATCH-SERIALIZATION
+**Task**: Implement JSON merge patch serialization with null preservation
+**Status**: Done
+
+### What was done
+- Fixed `serializeRecord` and `deserializeRecord` static helpers to be null-safe
+- When a record value is `null`, the serializer callback is skipped and null is passed through
+- This fixes RFC 7386 merge-patch semantics where null values signal property/entry deletion
+- Created e2e test for Payload.JsonMergePatch (createResource, updateResource, updateOptionalResource)
+
+### Key insight
+The existing serializer already handles null correctly at the top level via the ternary guard
+`!item["prop"] ? item["prop"] : serializerFn(item["prop"])`. The only fix needed was in
+`serializeRecord` which would crash when calling `innerModelSerializer(null)` on null
+record values in merge-patch context (e.g., `{ key2: null }` to delete a record entry).
+
+### Files changed
+- `src/components/static-helpers/serialization-helpers.tsx` — null check in serializeRecord/deserializeRecord
+- `test/e2e/http/payload/json-merge-patch/main.test.ts` — new e2e test
+
+### Test results
+- 1028 unit/scenario tests pass (3 skipped)
+- 1 smoke test passes
+- 885 e2e tests pass (55 skipped), including 2 new merge-patch tests
