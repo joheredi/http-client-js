@@ -3606,3 +3606,10 @@ Created `test/e2e/http/authentication/noauth/union/main.test.ts` with 2 e2e test
 
 ### Key insight
 The spector mock server is lenient about Content-Type mismatches for POST operations too (not just PUT). Tests skipped due to Content-Type concerns should be tried before assuming they'll fail.
+
+## COVERAGE-TEST-MULTIPART-ANONYMOUS: Add e2e test for anonymous model multipart (Done 2026-03-03)
+- Added test case "should send multipart request with anonymous model" to test/e2e/http/payload/multipart/main.test.ts
+- The test calls client.formData.anonymousModel() with a profileImage file descriptor
+- Follows the same pattern as other non-httpParts tests (using { contents, filename } as any)
+- Generated client already had the anonymousModel method via _AnonymousModelRequest interface
+- All CI passes: 1028 unit/scenario tests, smoke test, 924 e2e tests (19 multipart tests now)

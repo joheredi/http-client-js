@@ -144,6 +144,15 @@ describe("Payload.MultiPart", () => {
       });
     });
 
+    it("should send multipart request with anonymous model", async () => {
+      await client.formData.anonymousModel({
+        profileImage: {
+          contents: jpegContents,
+          filename: "test.jpg",
+        } as any,
+      });
+    });
+
     it("should check filename and content type", async () => {
       await client.formData.checkFileNameAndContentType({
         id: "123",
