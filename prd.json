@@ -1653,7 +1653,7 @@
       "title": "Implement JSONL streaming support",
       "category": "bug-fix/emitter",
       "priority": "P3",
-      "status": "pending",
+      "status": "blocked",
       "kind": "feature",
       "dependencies": [],
       "design_review": {
@@ -1692,14 +1692,15 @@
         "rationale": "AsyncIterable is the standard pattern for streaming in JavaScript/TypeScript and is supported natively in all modern runtimes. It's more ergonomic (for-await-of) and matches patterns used by Azure SDK and other TypeScript client libraries. The implementation can use a ReadableStream internally but expose AsyncIterable<T> to consumers."
       },
       "source": "spector-coverage-gap",
-      "description": "## Summary\nImplement JSONL (application/jsonl) streaming support for request and response bodies.\n\n## Scope\nThis is a medium-sized feature (~400-500 lines of new code):\n\n1. **Content-type detection** \u2014 Detect application/jsonl in TCGC types\n2. **Operation return type** \u2014 Generate AsyncIterable<T> for streaming responses instead of T\n3. **Request body** \u2014 Generate streaming request body from AsyncIterable<T>\n4. **Static helper** \u2014 Create `src/components/static-helpers/jsonl-helpers.tsx` with parseJsonlStream() and writeJsonlStream()\n5. **Remove from .testignore** \u2014 Remove 'streaming' from test/e2e/.testignore\n6. **E2E tests** \u2014 Create `test/e2e/http/streaming/jsonl/main.test.ts`\n\n## Scenarios Unblocked (2)\n- Streaming_Jsonl_Basic_receive\n- Streaming_Jsonl_Basic_send\n\n## Notes\n- Neither the legacy emitter nor the reference emitters have streaming support\n- The ts-http-runtime package may need streaming utilities added"
+      "description": "## Summary\nImplement JSONL (application/jsonl) streaming support for request and response bodies.\n\n## Scope\nThis is a medium-sized feature (~400-500 lines of new code):\n\n1. **Content-type detection** \u2014 Detect application/jsonl in TCGC types\n2. **Operation return type** \u2014 Generate AsyncIterable<T> for streaming responses instead of T\n3. **Request body** \u2014 Generate streaming request body from AsyncIterable<T>\n4. **Static helper** \u2014 Create `src/components/static-helpers/jsonl-helpers.tsx` with parseJsonlStream() and writeJsonlStream()\n5. **Remove from .testignore** \u2014 Remove 'streaming' from test/e2e/.testignore\n6. **E2E tests** \u2014 Create `test/e2e/http/streaming/jsonl/main.test.ts`\n\n## Scenarios Unblocked (2)\n- Streaming_Jsonl_Basic_receive\n- Streaming_Jsonl_Basic_send\n\n## Notes\n- Neither the legacy emitter nor the reference emitters have streaming support\n- The ts-http-runtime package may need streaming utilities added",
+      "blocked_reason": "Requires TCGC version with SdkStreamMetadata support. Installed TCGC v0.65.3 does not have streamMetadata property on SdkBodyParameter or SdkMethodResponse. The submodule TCGC (v0.65.2-dev) has this feature but it has not been released. Unblock by upgrading @azure-tools/typespec-client-generator-core to a version that exports SdkStreamMetadata."
     },
     {
       "id": "COVERAGE-DECISION-DOCUMENTATION",
       "title": "Decision: Documentation formatting scenarios",
       "category": "testing/e2e-missing",
       "priority": "P4",
-      "status": "pending",
+      "status": "done",
       "kind": "feature",
       "dependencies": [],
       "design_review": {

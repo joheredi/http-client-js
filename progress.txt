@@ -3623,3 +3623,30 @@ The spector mock server is lenient about Content-Type mismatches for POST operat
 - The generated client throws a `RestError` for non-200 status codes via `createRestError(result)`
 - Test follows existing e2e error patterns: try/catch with `expect.unreachable()` guard and `statusCode` assertion
 - All CI tests pass (1028 unit + 1 smoke + 925 e2e)
+
+## 2026-03-03: COVERAGE-DECISION-DOCUMENTATION — Mark documentation scenarios as not-applicable
+
+### What was done
+- Marked 6 documentation formatting scenarios as "not-applicable" in the coverage calculation.
+  These test JSDoc formatting (bold, italic, bullet points, numbered lists, combined formatting)
+  which is a code-generation cosmetic concern, not runtime behavior that should be tested via e2e.
+- Updated `eng/scripts/calculate-coverage.ts` to:
+  1. Define a `NOT_APPLICABLE_SCENARIOS` constant listing the 6 documentation scenarios
+  2. Override their status from "not-implemented" to "not-applicable" before computing stats
+  3. Exclude not-applicable (and not-supported) scenarios from the coverage denominator
+- Coverage improved from 95.56% (711/744) to 96.34% (711/738) by excluding non-applicable scenarios.
+
+### Also attempted: COVERAGE-FEATURE-STREAMING-JSONL
+- Investigated JSONL streaming support implementation extensively.
+- **BLOCKED**: Requires `SdkStreamMetadata` from TCGC, which is not available in installed v0.65.3.
+  The property exists in the submodule's development source but hasn't been released yet.
+- Marked task as blocked in prd.json with details.
+
+### Design decision (recorded in knowledge.md)
+- Documentation formatting scenarios are not runtime tests. They verify generated JSDoc output,
+  which is better validated via scenario tests that check generated code text.
+- Neither the legacy emitter nor any reference emitter tests these via e2e.
+
+### Patterns used
+- Post-processing coverage data in calculate-coverage.ts to reclassify scenario statuses.
+- This avoids modifying submodules (spector config) while still correctly tracking coverage.

@@ -2577,3 +2577,27 @@ Tracked by: `EMITTER-FIX-FILE-BODY` in prd.json.
 **Rationale**: Lower risk, simpler change. File models might theoretically appear in non-File body contexts where JSON serialization is needed. Dead serializers are harmless.
 **Detection**: `type.kind === "model" && (type as SdkModelType).serializationOptions?.binary?.isFile === true`
 **Key TCGC property**: `BinarySerializationOptions.isFile` is set when `httpBody?.bodyKind === "file"` in TCGC's `updateSerializationOptions()`.
+
+### JSONL Streaming Support — Blocked on TCGC Upgrade
+**Task**: COVERAGE-FEATURE-STREAMING-JSONL
+**Blocker**: Requires `SdkStreamMetadata` interface and `streamMetadata` property on `SdkBodyParameter` and `SdkMethodResponse`, which is only available in unreleased TCGC development versions.
+**Installed TCGC**: v0.65.3 — does NOT have `streamMetadata` or `SdkStreamMetadata`.
+**Submodule TCGC**: v0.65.2-dev — HAS the feature in source but isn't released/linked.
+**TCGC Data Model for JsonlStream<Thing>**: When available, `bodyParam.streamMetadata` contains:
+  - `bodyType.kind = "string"` (wire type)
+  - `originalType.name = "JsonlStreamThing"` (the stream wrapper model)
+  - `streamType.name = "Thing"` (the payload model being streamed)
+  - `contentTypes = ["application/jsonl"]`
+**Implementation Plan**: When unblocked:
+  1. Add `jsonlHelperRefkey` to `src/utils/refkeys.ts`
+  2. Create `src/components/static-helpers/jsonl-helpers.tsx` with `getJsonlResponse` (reads raw stream, splits on newlines, JSON.parse each line)
+  3. In `deserialize-operation.tsx`, check `method.response.streamMetadata` BEFORE `isBinaryBytesResponse` check (streaming types are also bytes)
+  4. In `public-operation.tsx`, use `getJsonlResponse` helper like `getBinaryResponse` (don't await send)
+  5. In `send-operation.tsx`, serialize body as `items.map(JSON.stringify).join("\\n")` and override param type from bytes to `StreamType[]`
+  6. Remove 'streaming' from `test/e2e/.testignore`
+**Unblocks scenarios**: Streaming_Jsonl_Basic_receive, Streaming_Jsonl_Basic_send
+
+### Documentation Formatting Scenarios — Not Applicable for E2E
+**Decision**: Marked 6 Documentation scenarios as not-applicable in coverage calculation (not runtime tests).
+**Rationale**: These test JSDoc formatting (bold, italic, lists), which is a code-generation cosmetic concern better validated via scenario tests. No emitter tests these via e2e.
+**Implementation**: Added `NOT_APPLICABLE_SCENARIOS` array to `eng/scripts/calculate-coverage.ts` and excluded from coverage denominator.
