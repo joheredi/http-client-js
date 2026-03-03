@@ -3585,3 +3585,24 @@ Created `test/e2e/http/authentication/noauth/union/main.test.ts` with 2 e2e test
 - Test passes — the constant value is automatically embedded in the generated URL template.
 **Pattern:** Standard e2e test pattern — no assertions needed, mock server validates correctness. Tests pass if no error is thrown.
 **CI:** All tests pass (unit: 1028, smoke: 1, e2e: 922).
+
+---
+
+## COVERAGE-TEST-VERSIONING: Versioning E2E Test Improvements (Done 2026-03-03)
+
+### What was done
+- Unskipped the `Versioning.ReturnTypeChangedFrom` e2e test — it was unnecessarily skipped due to an assumed Content-Type mismatch that doesn't actually cause test failure. The spector mock server accepts the request regardless.
+- Updated documentation for the `Versioning.Removed` modelV3 v2preview skipped test to better explain the root cause: the generated client uses a single ModelV3 type across all versions and doesn't support version-specific model shapes.
+- Both test files already existed from prior work; this task was about enabling and documenting them properly.
+
+### Files modified
+- `test/e2e/http/versioning/returnTypeChangedFrom/main.test.ts` — Unskipped test, updated JSDoc
+- `test/e2e/http/versioning/removed/main.test.ts` — Improved skip documentation for v2preview test
+
+### Results
+- E2E tests: 923 passed (up from 922), 62 skipped (down from 63)
+- All 1028 unit/scenario tests pass
+- Smoke test passes
+
+### Key insight
+The spector mock server is lenient about Content-Type mismatches for POST operations too (not just PUT). Tests skipped due to Content-Type concerns should be tried before assuming they'll fail.

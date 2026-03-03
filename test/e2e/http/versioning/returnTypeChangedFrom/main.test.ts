@@ -6,10 +6,7 @@ import { ReturnTypeChangedFromClient } from "../../../generated/versioning/retur
  * decorator correctly tracks return type changes across versions.
  *
  * In v2, the return type changed from int32 to string. The test sends a string body
- * with text/plain content type and expects the same string back.
- *
- * SKIPPED: The mock API expects Content-Type: text/plain but the generated client
- * may send application/json. This matches the reference test behavior.
+ * and expects the same string back, confirming the v2 return type is correctly used.
  */
 describe("Versioning.ReturnTypeChangedFrom", () => {
   const client = new ReturnTypeChangedFromClient("http://localhost:3002", {
@@ -18,9 +15,11 @@ describe("Versioning.ReturnTypeChangedFrom", () => {
 
   /**
    * Tests that the test operation sends and receives a string body.
-   * Skipped due to mock API content-type mismatch (same as reference implementation).
+   * Validates that the return type change from int32 (v1) to string (v2) is
+   * correctly reflected in the generated client — the operation accepts and
+   * returns a string at the latest API version.
    */
-  it.skip("should call test operation", async () => {
+  it("should call test operation", async () => {
     const result = await client.test("test");
     expect(result).toBe("test");
   });

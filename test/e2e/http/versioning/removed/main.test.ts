@@ -67,8 +67,11 @@ describe("Versioning.Removed", () => {
 
   /**
    * Tests modelV3 at v2preview — SKIPPED because the mock API expects a body
-   * without enumProp ({id: "123"}) but our generated ModelV3 type requires
-   * enumProp as a required field.
+   * without enumProp ({id: "123"}) but our generated ModelV3 type has enumProp
+   * as a required field. The generated client uses a single ModelV3 type across
+   * all versions and does not yet support version-specific model shapes where
+   * properties are removed in certain versions. This is a known limitation of
+   * the emitter's versioning support.
    */
   it.skip("should call modelV3 at v2preview", async () => {
     const client = new RemovedClient("http://localhost:3002", {
