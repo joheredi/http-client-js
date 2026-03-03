@@ -1376,7 +1376,7 @@
       "title": "Add e2e tests for Type_File_Body scenarios",
       "category": "testing/e2e-missing",
       "priority": "P1",
-      "status": "pending",
+      "status": "done",
       "kind": "feature",
       "dependencies": [],
       "design_review": {
@@ -1738,6 +1738,18 @@
       },
       "source": "spector-coverage-gap",
       "description": "## Summary\nDecide how to handle 6 Documentation formatting scenarios that are currently excluded from e2e testing.\n\n## Recommendation\nMark as `not-applicable` in spector coverage configuration. These test JSDoc formatting, not runtime behavior.\n\n## Scenarios\n- Documentation_Lists_bulletPointsModel\n- Documentation_Lists_bulletPointsOp\n- Documentation_Lists_numbered\n- Documentation_TextFormatting_boldText\n- Documentation_TextFormatting_italicText\n- Documentation_TextFormatting_combinedFormatting\n\n## Action\n1. Find the spector coverage configuration mechanism for marking scenarios as not-applicable\n2. Add these 6 scenarios to the not-applicable list\n3. Verify coverage percentage recalculates correctly (should increase from 87.10% to ~87.93%)"
+    },
+    {
+      "id": "EMITTER-FIX-FILE-BODY",
+      "title": "Fix emitter to handle File body operations with raw binary instead of JSON serialization",
+      "category": "bug-fix/emitter",
+      "priority": "P1",
+      "status": "not-started",
+      "kind": "bug",
+      "dependencies": [],
+      "design_review": null,
+      "source": "e2e-test-discovery",
+      "description": "Fix the emitter so File body operations (Type.File.Body) use raw binary handling instead of JSON model serialization.\n\n## Problem\nThe emitter generates fileSerializer/fileDeserializer functions that treat File objects as regular JSON models (with base64-encoded contents). For File body operations, this is incorrect:\n\n### Uploads\n- **Current**: Sends JSON body `{ contentType, filename, contents: base64 }` with binary Content-Type header\n- **Expected**: Sends raw binary content (Uint8Array) as the body with the correct Content-Type header\n\n### Downloads\n- **Current**: Uses `fileDeserializer(result.body)` which accesses `result.body.contents`, but the response body IS the raw binary Buffer\n- **Expected**: Should take the raw binary response body and wrap it in a File object: `{ contents: rawBuffer, contentType: responseContentType }`\n\n## Affected scenarios (8 total, all in test/e2e/http/type/file/main.test.ts)\n1. uploadFileSpecificContentType (image/png)\n2. uploadFileJsonContentType (application/json)\n3. uploadFileMultipleContentTypes (image/png | image/jpeg)\n4. uploadFileDefaultContentType (any)\n5. downloadFileSpecificContentType (image/png)\n6. downloadFileJsonContentType (application/json)\n7. downloadFileMultipleContentTypes (image/png | image/jpeg)\n8. downloadFileDefaultContentType (any)\n\n## What needs to change\nThe emitter needs to detect when an operation uses `@bodyRoot file: Http.File<...>` and:\n- For uploads: Send `file.contents` as the raw body instead of `fileSerializer(file)`\n- For downloads: Use getBinaryResponse or equivalent to read raw binary, then construct the File object\n\n## E2E tests\nTests are already written and skipped in test/e2e/http/type/file/main.test.ts. Unskip them after fixing."
     }
   ],
   "phases_metadata": [

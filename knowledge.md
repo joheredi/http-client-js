@@ -2559,3 +2559,13 @@ TCGC assigns `visibility: [Visibility.Read, Visibility.Create, Visibility.Update
 ## Visibility-Aware Serialization
 
 Models with per-verb visibility differentiation (properties with SOME but not ALL write visibilities) use inline body objects in send-operation.tsx instead of calling the model serializer. The check is: does any property have visibility that includes some but not all of {Create, Update, Delete}? If so, different HTTP verbs need different property subsets. The implementation is in `buildVisibilityFilteredBody()` and `modelNeedsPerVerbBodyFiltering()` in send-operation.tsx.
+
+## File Body Operations — Emitter Bug (2026-03-03)
+
+The emitter treats `Http.File` body operations like regular JSON models, generating `fileSerializer`/`fileDeserializer` functions that convert to/from `{ contentType, filename, contents: base64 }` JSON. For File body operations (where the file IS the HTTP body), the emitter should instead:
+- **Uploads**: Send `file.contents` (raw Uint8Array) as the request body, with Content-Type from the operation
+- **Downloads**: Read the raw response body (Buffer) and wrap it as `{ contents: rawBuffer, contentType: responseContentType }`
+
+The serializers/deserializers are correct for *JSON-serialized file objects* (e.g., multipart), but wrong for file body operations where the file is the entire HTTP body.
+
+Tracked by: `EMITTER-FIX-FILE-BODY` in prd.json.

@@ -3476,3 +3476,33 @@ Added 8 new e2e test cases to `test/e2e/http/payload/pageable/main.test.ts`:
 - For nested responses: `result.nestedItems?.pets ?? result.pets ?? result`
 - XML tests verify deserialization produces the same { id, name } shape as JSON tests
 - Mock server validates required headers/query params (foo, bar) for continuation token tests
+
+## 2026-03-03: COVERAGE-TEST-FILE-BODY — Added 8 e2e tests for Type.File.Body scenarios (all skipped)
+
+### What was done
+Created `test/e2e/http/type/file/main.test.ts` with 8 e2e test cases covering file upload and download operations:
+1. uploadFileSpecificContentType — upload with image/png Content-Type
+2. uploadFileJsonContentType — upload with application/json Content-Type
+3. uploadFileMultipleContentTypes — upload with image/png | image/jpeg union
+4. uploadFileDefaultContentType — upload with unspecified (*/*) Content-Type
+5. downloadFileSpecificContentType — download binary PNG data
+6. downloadFileJsonContentType — download JSON file data
+7. downloadFileMultipleContentTypes — download with multiple allowed content types
+8. downloadFileDefaultContentType — download with unspecified content type
+
+### Why all 8 tests are skipped
+The generated client code has a fundamental issue with File body operations:
+- **Uploads**: Uses `fileSerializer(file)` which produces `{ contentType, filename, contents: base64 }` JSON body, but the mock server expects raw binary bytes with the correct Content-Type header
+- **Downloads**: Uses `fileDeserializer(result.body)` which accesses `result.body.contents`, but the response body IS the raw binary Buffer (not a JSON object with a `contents` field)
+
+Created new P1 task `EMITTER-FIX-FILE-BODY` in prd.json to track the emitter fix.
+
+### Test counts
+- Unit/scenario: 1028 passed (3 skipped)
+- Smoke: 1 passed
+- E2E: 909 passed (71 skipped) — up from 63 skipped (8 new file body tests)
+
+### Pattern notes
+- Test follows the same pattern as encode/bytes/main.test.ts — loads PNG image from @typespec/http-specs/assets/
+- FileClient has `body` sub-namespace with all 8 operations
+- Generated models: File (image/png), File1 (application/json), File2/File3 (image/png|jpeg union), File4 (any)
