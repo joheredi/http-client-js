@@ -3110,3 +3110,15 @@ incorrect and was updated.
   4. postIfUnmodifiedSince: POST with If-Unmodified-Since as RFC7231 date
 - Followed existing pattern from `special-headers/repeatability/main.test.ts`
 - All CI passing: 1019 unit tests, 1 smoke test, 764 e2e tests (70 skipped)
+
+## 2026-03-03: E2E-MISSING-CLIENT-NAMING (done)
+
+- Created `test/e2e/http/client/naming/main.test.ts` with 11 test cases covering all naming scenarios:
+   - Property: client name, language-specific name, compatible with encoded name (3 tests)
+   - Operation: client name (1 test)
+   - Parameter: client name on query param (1 test)
+   - Header: request header client name, response header client name (2 tests)
+   - ModelClient sub-client: client model name, language model name (2 tests)
+   - UnionEnum sub-client: union enum name, union enum member name (2 tests)
+- Tests validate @clientName decorator functionality across properties, operations, parameters, headers, models, and union enums
+- All CI passing: 1019 unit tests, 1 smoke test, 775 e2e tests (70 skipped)
