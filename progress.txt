@@ -3100,3 +3100,13 @@ incorrect and was updated.
   3. Optional path parameter provided: `client.optional({ name: "foo" })` → GET /parameters/path/optional/foo → 204
 - Followed existing pattern from `parameters/basic/main.test.ts`
 - All CI passing: 1019 unit tests, 1 smoke test, 760 e2e tests (70 skipped)
+
+## 2026-03-03: E2E-MISSING-CONDITIONAL-REQUEST (done)
+
+- Created `test/e2e/http/special-headers/conditional-request/main.test.ts` with 4 test cases:
+  1. postIfMatch: POST with If-Match header set to quoted ETag value `'"valid"'`
+  2. postIfNoneMatch: POST with If-None-Match header set to `'"invalid"'`
+  3. headIfModifiedSince: HEAD with If-Modified-Since as RFC7231 date (Fri, 26 Aug 2022 14:38:00 GMT)
+  4. postIfUnmodifiedSince: POST with If-Unmodified-Since as RFC7231 date
+- Followed existing pattern from `special-headers/repeatability/main.test.ts`
+- All CI passing: 1019 unit tests, 1 smoke test, 764 e2e tests (70 skipped)
