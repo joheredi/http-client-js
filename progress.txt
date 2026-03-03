@@ -3122,3 +3122,24 @@ incorrect and was updated.
    - UnionEnum sub-client: union enum name, union enum member name (2 tests)
 - Tests validate @clientName decorator functionality across properties, operations, parameters, headers, models, and union enums
 - All CI passing: 1019 unit tests, 1 smoke test, 775 e2e tests (70 skipped)
+
+## 2026-03-03: E2E-MISSING-ARM-METHOD-SUBSCRIPTION-ID (done)
+
+**What was done:**
+- Created `test/e2e/http/azure/resource-manager/method-subscription-id/main.test.ts` with 14 test cases
+- Tests cover all operation groups:
+  - `operations.list()` — paginated list of provider operations
+  - `twoSubscriptionResourcesMethodLevel.subscriptionResource1Operations` — get, put, delete
+  - `twoSubscriptionResourcesMethodLevel.subscriptionResource2Operations` — get, put, delete
+  - `mixedSubscriptionPlacement.subscriptionResourceOperations` — get, put, delete, plus method-level subscription ID override test
+  - `mixedSubscriptionPlacement.resourceGroupResourceOperations` — get, put, delete
+- Key test: method-level subscription ID override — creates client with wrong subscription, passes correct one at method level
+- Verified against legacy test `azureArmMethodSubscriptionId.spec.ts` for correct values and assertions
+
+**Key differences from legacy:**
+- New client takes `credential` + `subscriptionId` (legacy takes just `subscriptionId`)
+- Operation groups are nested: `client.twoSubscriptionResourcesMethodLevel.subscriptionResource1Operations` vs legacy `client.subscriptionResource1Operations`
+- Uses vitest `expect()` instead of chai `assert`
+
+**CI status:** All green (1019 unit tests, 1 smoke test, 789 e2e tests passed, 70 skipped)
+

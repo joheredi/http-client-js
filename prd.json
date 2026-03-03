@@ -955,7 +955,7 @@
       "title": "Add e2e test: azure/resource-manager/method-subscription-id",
       "category": "testing/e2e-missing",
       "priority": "P2",
-      "status": "not-started",
+      "status": "done",
       "kind": "feature",
       "dependencies": [],
       "design_review": null,
