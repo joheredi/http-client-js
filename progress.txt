@@ -3092,3 +3092,11 @@ Compared with legacy test at `submodules/autorest.typescript/.../resiliencySrvDr
 regardless of optional flag. Required params with clientDefaultValue go to options bag but still get
 the fallback. The scenario test "Should not apply client default values for required parameters" was
 incorrect and was updated.
+
+## 2026-03-03: E2E-MISSING-PATH-PARAMETERS (done)
+- Created `test/e2e/http/parameters/path/main.test.ts` with 3 test cases:
+  1. Required path parameter: `client.normal("foo")` → GET /parameters/path/normal/foo → 204
+  2. Optional path parameter omitted: `client.optional()` → GET /parameters/path/optional → 204
+  3. Optional path parameter provided: `client.optional({ name: "foo" })` → GET /parameters/path/optional/foo → 204
+- Followed existing pattern from `parameters/basic/main.test.ts`
+- All CI passing: 1019 unit tests, 1 smoke test, 760 e2e tests (70 skipped)
