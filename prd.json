@@ -986,6 +986,758 @@
       "design_review": null,
       "source": "e2e-gap-analysis",
       "description": "## Summary\nAdd the missing e2e test for the `resiliency/srv-driven-old` Spector spec. Unlike other missing tests, the generated client code does NOT yet exist \u2014 it must be generated first. The existing `resiliency/srv-driven` test only covers the v2 (main/latest) version of the service-driven resiliency spec. This task covers the v1 (old) version.\n\n## What to do\n1. Add the `resiliency/srv-driven-old` spec to the e2e generation config so `tsp compile` generates a client at `test/e2e/generated/resiliency/srv-driven-old/`\n   - Check how other specs are registered in the e2e generation pipeline\n2. Run the generation step to produce the client code\n3. Create `test/e2e/http/resiliency/srv-driven-old/main.test.ts`\n4. Import `ResiliencyServiceDrivenClient` from the generated code\n5. Write 6 test cases for v1 and v2 API versions:\n   - **v1 client** (`apiVersion: \"v1\"`):\n     - `fromNone()` \u2014 no parameters\n     - `fromOneOptional({ parameter: \"optional\" })` \u2014 optional parameter\n     - `fromOneRequired(\"required\")` \u2014 required parameter\n   - **v2 client** (`apiVersion: \"v2\"`):\n     - `fromNone({ newParameter: \"new\" })` \u2014 added optional parameter\n     - `fromOneOptional({ parameter: \"optional\", newParameter: \"new\" })` \u2014 both parameters\n     - `fromOneRequired(\"required\", { newParameter: \"new\" })` \u2014 required + new optional\n\n## Reference\n- Legacy test: `submodules/autorest.typescript/packages/typespec-ts/test/azureModularIntegration/resiliencySrvDrivenOld.spec.ts`\n- Follow the same test pattern as `test/e2e/http/resiliency/srv-driven/main.test.ts`\n\n## Validation\nRun `pnpm test:e2e` and verify the new test passes against the Spector mock server."
+    },
+    {
+      "id": "COVERAGE-FIX-SPREAD-PARAMS",
+      "title": "Fix spread parameter invalid TypeScript generation",
+      "category": "bug-fix/emitter",
+      "priority": "P0",
+      "status": "pending",
+      "kind": "bug-fix",
+      "dependencies": [],
+      "design_review": {
+        "problem": "The emitter generates invalid TypeScript for spread parameters. When an operation uses @spread with header parameters, the generated interface signatures contain hyphenated names like `x-ms-test-header` which are not valid TypeScript identifiers. This blocks 11 Spector scenarios (all Parameters_Spread_Alias and Parameters_Spread_Model tests).",
+        "approaches": [
+          {
+            "name": "Normalize names in operation signature generation",
+            "description": "Fix the operation/function declaration code in send-operation.tsx to apply camelCase normalization when generating TypeScript parameter names from TCGC SdkHttpParameter objects. The serializedName (wire name) would still be used for HTTP headers/query strings, but the TypeScript-facing name would be camelCased. This is a surgical fix in the parameter name mapping layer.",
+            "pros": [
+              "Minimal change \u2014 only touches parameter name generation",
+              "Matches how other parameter types already work",
+              "No model/interface changes needed",
+              "Wire compatibility preserved automatically via serializedName"
+            ],
+            "cons": [
+              "Needs careful handling of name collisions after normalization",
+              "Must update both classic interface declarations and API layer functions"
+            ]
+          },
+          {
+            "name": "Apply name policy at the model-interface level",
+            "description": "Change model-interface.tsx to run all property names through the emitter's name policy (createEmitterNamePolicy) when rendering InterfaceMember names. This catches not just spread parameters but any property with non-TS-safe names. The serializer/deserializer would map between the normalized name and the wire name.",
+            "pros": [
+              "Catches ALL non-TS-safe property names globally",
+              "Consistent with existing name policy infrastructure",
+              "Future-proof for other property name edge cases"
+            ],
+            "cons": [
+              "Broader change surface \u2014 may affect working scenarios",
+              "Need to verify all serializer/deserializer property accessors still align",
+              "Risk of regressions in already-passing tests"
+            ]
+          }
+        ],
+        "chosen": "Normalize names in operation signature generation",
+        "rationale": "The surgical approach in send-operation.tsx is safer because it only affects spread parameters where the bug actually manifests. The model-interface approach risks regressions in the 648 already-passing tests. TCGC already provides a `name` field on method parameters that should be the TypeScript-safe name \u2014 the bug is that spread properties use the wire `serializedName` instead of the normalized `name`. The fix is to ensure spread property accessors use the parameter's TypeScript name, not its serialized name."
+      },
+      "source": "spector-coverage-gap",
+      "description": "## Summary\nFix invalid TypeScript generation for spread parameters. The emitter generates hyphenated parameter names (e.g., `x-ms-test-header`) from HTTP header serializedNames instead of camelCase TypeScript identifiers.\n\n## Root Cause\nIn `src/components/send-operation.tsx`, the `getSpreadPropertyAccessor()` function (lines ~1134-1152) matches spread body properties using `prop.name` which is the wire name. The generated interface in the classic layer uses these raw wire names as TypeScript identifiers.\n\n## Fix\n1. In the spread parameter generation path, apply camelCase normalization to property names used in TypeScript signatures\n2. Keep `serializedName` for wire-level property keys (JSON body construction, header names)\n3. Ensure the classic interface declarations use normalized names\n\n## Scenarios Unblocked (11)\n- Parameters_Spread_Alias_spreadAsRequestBody\n- Parameters_Spread_Alias_spreadAsRequestParameter\n- Parameters_Spread_Alias_spreadParameterWithInnerAlias\n- Parameters_Spread_Alias_spreadParameterWithInnerModel\n- Parameters_Spread_Alias_spreadWithMultipleParameters\n- Parameters_Spread_Model_spreadAsRequestBody\n- Parameters_Spread_Model_spreadCompositeRequest\n- Parameters_Spread_Model_spreadCompositeRequestMix\n- Parameters_Spread_Model_spreadCompositeRequestOnlyWithBody\n- Parameters_Spread_Model_spreadCompositeRequestWithoutBody\n\n## Validation\n1. Remove `.skip` from `test/e2e/http/parameters/spread/main.test.ts`\n2. Run `pnpm test:e2e` and verify all 11 spread scenarios pass\n3. Run `pnpm test` to verify no regressions in scenario tests"
+    },
+    {
+      "id": "COVERAGE-FIX-ARRAY-DELIMITED-BODY",
+      "title": "Fix string array delimiter encoding in JSON body properties",
+      "category": "bug-fix/emitter",
+      "priority": "P0",
+      "status": "pending",
+      "kind": "bug-fix",
+      "dependencies": [],
+      "design_review": {
+        "problem": "String array properties with delimiter encoding (@encode with csv/ssv/tsv/pipes) call buildCsvCollection() in the JSON body serializer, producing a joined string like 'a,b,c'. The Spector mock API expects the delimited string in the body (this IS correct per the spec), but the e2e tests were written expecting a JSON array. The issue is a test expectation mismatch, not a serializer bug \u2014 OR the serializer should not apply delimiter encoding for body properties and the spec expects a raw array. Need to verify against the actual mock API behavior.",
+        "approaches": [
+          {
+            "name": "Fix the e2e test expectations to match spec behavior",
+            "description": "The Spector spec for Encode_Array_Property defines body properties as delimiter-encoded strings. If the generated serializer correctly produces 'a,b,c' and the mock API accepts this, the fix is to update the test expectations to send/receive delimiter-encoded strings rather than arrays. Verify by running the tests without .skip and checking what the mock API returns.",
+            "pros": [
+              "No emitter changes needed",
+              "Aligns tests with actual spec behavior",
+              "Quick fix"
+            ],
+            "cons": [
+              "Must verify against actual mock API responses",
+              "If the mock API actually expects arrays, this approach is wrong"
+            ]
+          },
+          {
+            "name": "Remove delimiter encoding from body serializer path",
+            "description": "Modify the JSON serializer to NOT apply buildCsvCollection() for body properties \u2014 delimiter encoding should only apply to query/header parameters. Body properties should pass arrays as-is (JSON arrays). The serializer would check the encoding context (body vs query vs header) before applying collection format.",
+            "pros": [
+              "Semantically correct \u2014 JSON bodies should contain arrays, not delimiter-joined strings",
+              "Query and header paths continue to work correctly",
+              "Matches standard JSON serialization expectations"
+            ],
+            "cons": [
+              "Requires modifying the serializer code path",
+              "Must verify the spec actually expects JSON arrays in body (not strings)",
+              "Need to check if enum arrays work differently"
+            ]
+          }
+        ],
+        "chosen": "Investigate and verify against mock API, then apply the correct fix",
+        "rationale": "Both approaches could be correct depending on what the Spector mock API actually expects. The first step is to remove the .skip, run the tests, and check the actual failure. The Spector spec uses @encode(ArrayEncoding.commaDelimited) on body properties, which semantically means the wire format should be a delimiter-joined string. If the mock API expects strings, fix the tests. If it expects arrays, fix the serializer. The enum array tests passing suggests the current serializer behavior may be correct for the spec."
+      },
+      "source": "spector-coverage-gap",
+      "description": "## Summary\nFix 4 string array delimiter encoding tests for body properties (Encode_Array_Property_commaDelimited, newlineDelimited, pipeDelimited, spaceDelimited). Enum and extensible enum variants already pass.\n\n## Investigation\nThe generated serializer calls `buildCsvCollection()` for string array body properties, producing delimiter-joined strings. The enum variants also call `buildCsvCollection()` and pass. The test expectations may be wrong (expecting arrays instead of strings).\n\n## Fix\n1. Remove `.skip` from the 4 string array tests in `test/e2e/http/encode/array/main.test.ts`\n2. Run tests to see actual failure mode\n3. If mock API accepts delimiter strings \u2192 fix test expectations\n4. If mock API expects arrays \u2192 fix serializer to not apply delimiter encoding in body context\n\n## Scenarios Unblocked (4)\n- Encode_Array_Property_commaDelimited\n- Encode_Array_Property_newlineDelimited\n- Encode_Array_Property_pipeDelimited\n- Encode_Array_Property_spaceDelimited"
+    },
+    {
+      "id": "COVERAGE-FIX-UNIX-TIMESTAMP-BODY",
+      "title": "Fix unix timestamp serialization for datetime body properties",
+      "category": "bug-fix/emitter",
+      "priority": "P0",
+      "status": "pending",
+      "kind": "bug-fix",
+      "dependencies": [],
+      "design_review": {
+        "problem": "Datetime properties encoded as unixTimestamp in JSON body position produce numeric values via the JSON serializer (e.g., 1686566864), but the round-trip fails. Header and query positions work because they explicitly wrap with String(). The JSON serializer generates `((accessor).getTime() / 1000) | 0` which returns a number \u2014 this should be correct for JSON bodies (numbers are valid JSON). The actual failure mode needs investigation: is it a serialization issue (number format wrong) or a deserialization issue (response parsing fails)?",
+        "approaches": [
+          {
+            "name": "Fix the JSON deserializer to reconstruct Date from unix timestamp numbers",
+            "description": "The serializer correctly converts Date \u2192 number. The likely issue is the deserializer: it may not convert the numeric unix timestamp back to a Date object. Add a case in json-deserializer.tsx for utcDateTime with unixTimestamp encoding that creates `new Date(value * 1000)` from the numeric response value.",
+            "pros": [
+              "Addresses the actual failure (likely deserialization)",
+              "Symmetric with serializer logic",
+              "Minimal change in json-deserializer.tsx"
+            ],
+            "cons": [
+              "Need to verify this is actually the failure point",
+              "Must handle edge cases (null, undefined, arrays)"
+            ]
+          },
+          {
+            "name": "Generate both serializer and deserializer as string conversions",
+            "description": "Change both serializer and deserializer to work with string representations of unix timestamps, matching the header/query behavior. Serializer would produce String(date.getTime() / 1000) and deserializer would parse Number() then construct Date.",
+            "pros": [
+              "Consistent with header/query paths",
+              "Simpler mental model \u2014 all unix timestamps are strings"
+            ],
+            "cons": [
+              "JSON bodies should contain numbers, not strings \u2014 this would be semantically wrong",
+              "Breaks JSON schema expectations",
+              "Unnecessary string conversion"
+            ]
+          }
+        ],
+        "chosen": "Fix the JSON deserializer to reconstruct Date from unix timestamp numbers",
+        "rationale": "JSON bodies should contain numeric values for unix timestamps (e.g., 1686566864, not '1686566864'). The serializer is likely correct. The deserializer needs to detect the unixTimestamp encoding and convert the response number back to a Date object via `new Date(value * 1000)`. This is the standard approach used by the legacy emitter and matches JSON semantics."
+      },
+      "source": "spector-coverage-gap",
+      "description": "## Summary\nFix unix timestamp encoding/decoding for datetime properties in JSON body position. Headers and queries work; body properties fail.\n\n## Root Cause\nIn `src/components/serialization/json-serializer.tsx` (lines 356-361), the serializer generates `((accessor).getTime() / 1000) | 0` for unixTimestamp encoding. The corresponding deserializer likely doesn't reconstruct a Date from the numeric value.\n\n## Fix\n1. Check `json-deserializer.tsx` for the utcDateTime/unixTimestamp case\n2. Add deserialization: `new Date(value * 1000)` for numeric unix timestamp values\n3. Handle arrays: map each element through the same conversion\n4. Remove `.skip` from tests in `test/e2e/http/encode/datetime/main.test.ts`\n\n## Scenarios Unblocked (2)\n- Encode_Datetime_Property_unixTimestamp\n- Encode_Datetime_Property_unixTimestampArray"
+    },
+    {
+      "id": "COVERAGE-TEST-DURATION-MS-LARGERUNIT",
+      "title": "Add e2e tests for duration millisecond and LargerUnit variants",
+      "category": "testing/e2e-missing",
+      "priority": "P1",
+      "status": "pending",
+      "kind": "feature",
+      "dependencies": [],
+      "design_review": {
+        "problem": "28 duration encoding scenarios are not-implemented because the e2e test file only covers seconds-based variants and iso8601. All millisecond variants (int32Milliseconds, floatMilliseconds, float64Milliseconds) and LargerUnit variants are missing from the test file. The generated client has all methods present \u2014 this is purely a test coverage gap.",
+        "approaches": [
+          {
+            "name": "Add all 28 test cases to existing main.test.ts",
+            "description": "Extend test/e2e/http/encode/duration/main.test.ts with test cases for each missing variant. Follow the same pattern as existing seconds-based tests. Group by position (Query, Property, Header) and add millisecond + LargerUnit tests within each group. Some property tests may need .skip if they hit the same numeric duration serialization limitation as the existing skipped property tests.",
+            "pros": [
+              "Simple, direct approach",
+              "Follows existing test structure",
+              "Easy to verify completeness"
+            ],
+            "cons": [
+              "Large test file",
+              "Some tests may need to be skipped if runtime bugs exist for millisecond property serialization"
+            ]
+          },
+          {
+            "name": "Split into separate test files per position",
+            "description": "Create separate test files for query, property, and header duration tests to parallelize execution and keep files focused.",
+            "pros": [
+              "Smaller files",
+              "Better parallel execution",
+              "Easier to debug failures"
+            ],
+            "cons": [
+              "More file management",
+              "Breaks from existing single-file pattern for encode tests",
+              "More boilerplate"
+            ]
+          }
+        ],
+        "chosen": "Add all 28 test cases to existing main.test.ts",
+        "rationale": "The existing pattern uses a single main.test.ts per spec area. Adding tests to the existing file is consistent and simpler. The file won't be excessively large (currently ~120 lines, will grow to ~250). Property-position tests that fail can be marked .skip with a reference to the numeric duration serialization limitation."
+      },
+      "source": "spector-coverage-gap",
+      "description": "## Summary\nAdd missing e2e test cases for 28 duration encoding scenarios covering millisecond variants and LargerUnit conversions across all three positions (Header, Property, Query).\n\n## Generated Client Methods\nAll methods exist in `test/e2e/generated/encode/duration/src/` \u2014 this is test-only work.\n\n## Test Cases to Add\n\n### Header (8 tests)\n- float64Milliseconds, floatMilliseconds, floatMillisecondsLargerUnit, floatSecondsLargerUnit\n- int32Milliseconds, int32MillisecondsArray, int32MillisecondsLargerUnit, int32SecondsLargerUnit\n\n### Property (12 tests)\n- float64Milliseconds, float64Seconds, floatMilliseconds, floatMillisecondsArray\n- floatMillisecondsLargerUnit, floatSeconds, floatSecondsArray, floatSecondsLargerUnit\n- int32Milliseconds, int32MillisecondsLargerUnit, int32Seconds, int32SecondsLargerUnit\n\n### Query (8 tests)\n- float64Milliseconds, floatMilliseconds, floatMillisecondsLargerUnit, floatSecondsLargerUnit\n- int32Milliseconds, int32MillisecondsArray, int32MillisecondsLargerUnit, int32SecondsLargerUnit\n\n## Notes\n- Property-position numeric duration tests may need `.skip` if they hit the same serialization limitation as the existing 4 skipped property tests\n- LargerUnit tests verify that values expressed in larger units (e.g., hours) are correctly converted to the target unit (e.g., seconds, milliseconds)\n- Check spector mock API docs for expected values for each test"
+    },
+    {
+      "id": "COVERAGE-TEST-PAGEABLE-GAPS",
+      "title": "Add missing e2e test cases for pageable scenarios",
+      "category": "testing/e2e-missing",
+      "priority": "P1",
+      "status": "pending",
+      "kind": "feature",
+      "dependencies": [],
+      "design_review": {
+        "problem": "7 pageable scenarios have generated client methods but no test coverage. The test file exists with 5 passing tests but doesn't cover pageSize, linkString, nestedLink, XML pagination, or nested response body continuation token variants.",
+        "approaches": [
+          {
+            "name": "Add all 7 test cases to existing main.test.ts",
+            "description": "Extend test/e2e/http/payload/pageable/main.test.ts with the missing test cases. Each test follows the same pattern: create client, call pageable method, iterate pages, verify results. XML pagination tests will verify XML deserialization works with pagination.",
+            "pros": [
+              "Consistent with existing file",
+              "Reuses client setup",
+              "Easy to compare with existing passing tests"
+            ],
+            "cons": [
+              "None significant \u2014 this is straightforward test addition"
+            ]
+          },
+          {
+            "name": "Create separate test files per pageable variant",
+            "description": "Create main.test.ts files under subdirectories (page-size/, xml-pagination/, etc.).",
+            "pros": [
+              "Finer-grained test isolation"
+            ],
+            "cons": [
+              "Unnecessary complexity \u2014 all tests use the same generated client",
+              "Breaks from established pattern"
+            ]
+          }
+        ],
+        "chosen": "Add all 7 test cases to existing main.test.ts",
+        "rationale": "All pageable tests use the same generated PageableClient. Adding to the existing file is simpler and matches the pattern. The nested response body variants are the most interesting \u2014 they test that the paging implementation can extract items and tokens from nested response structures."
+      },
+      "source": "spector-coverage-gap",
+      "description": "## Summary\nAdd 7 missing test cases to `test/e2e/http/payload/pageable/main.test.ts`.\n\n## Test Cases to Add\n1. **serverDrivenPagination.linkString()** \u2014 pagination with string nextLink (not URL type)\n2. **serverDrivenPagination.nestedLink()** \u2014 pagination with nested link in response\n3. **pageSize.listWithPageSize()** \u2014 pagination with explicit page size parameter\n4. **pageSize.listWithoutContinuation()** \u2014 single page, no continuation\n5. **continuationToken.requestQueryNestedResponseBody()** \u2014 token in query, items/token in nested response objects\n6. **continuationToken.requestHeaderNestedResponseBody()** \u2014 token in header, items/token in nested response objects\n7. **xmlPagination.listWithNextLink()** \u2014 XML response with nextLink pagination\n8. **xmlPagination.listWithContinuation()** \u2014 XML response with continuation token\n\n## Notes\n- All methods exist in generated client\n- Follow the existing test pattern (create client, iterate pages, verify)\n- XML pagination tests verify that XML deserialization works correctly with the paging helper"
+    },
+    {
+      "id": "COVERAGE-FIX-VISIBILITY-SERIALIZATION",
+      "title": "Fix visibility-aware serialization for model properties",
+      "category": "bug-fix/emitter",
+      "priority": "P1",
+      "status": "pending",
+      "kind": "bug-fix",
+      "dependencies": [],
+      "design_review": {
+        "problem": "The Type_Model_Visibility spec requires that different HTTP verbs include/exclude different properties based on lifecycle visibility decorators. For example, POST should only include @visibility(Create) properties, GET responses should only include @visibility(Read) properties, PATCH should only include @visibility(Update) properties. Currently, the emitter generates a single serializer that includes ALL properties regardless of the operation context. This means: (1) PUT sends readProp (should be excluded), (2) POST sends updateProp and deleteProp (should be excluded), (3) PATCH sends createProp and deleteProp (should be excluded).",
+        "approaches": [
+          {
+            "name": "Generate per-operation serializers that filter by visibility",
+            "description": "Generate separate serializer functions for different visibility contexts: e.g., visibilityModelCreateSerializer (only Create-visible props), visibilityModelUpdateSerializer (only Update-visible props), etc. Each operation would call the appropriate serializer based on its HTTP verb mapping. The TCGC model already provides visibility metadata per property.",
+            "pros": [
+              "Correct semantics \u2014 each verb sends only relevant properties",
+              "Simple runtime behavior \u2014 just different serializer functions",
+              "No runtime visibility checks needed"
+            ],
+            "cons": [
+              "Multiple serializer functions per model (up to 5: create, update, read, delete, query)",
+              "Increases generated code size",
+              "Need to map HTTP verbs to visibility contexts"
+            ]
+          },
+          {
+            "name": "Generate a single serializer with a visibility context parameter",
+            "description": "Generate one serializer function that accepts a visibility context parameter and conditionally includes/excludes properties at runtime based on the context. E.g., visibilityModelSerializer(item, context: 'create' | 'update' | 'read' | 'delete').",
+            "pros": [
+              "Single serializer function \u2014 less generated code",
+              "Flexible \u2014 can handle any visibility context"
+            ],
+            "cons": [
+              "Runtime branching for every property on every call",
+              "More complex generated code",
+              "Harder to tree-shake unused visibility contexts",
+              "More complex to debug"
+            ]
+          },
+          {
+            "name": "Use TCGC's usage-based type splitting",
+            "description": "TCGC already computes which properties are visible for each usage context. Use TCGC's SdkModelType.usage flags to generate separate TypeScript types (e.g., VisibilityModelInput, VisibilityModelOutput) with only the relevant properties. Each type gets its own serializer. Operations use the appropriate input/output type.",
+            "pros": [
+              "Type-safe \u2014 TypeScript enforces correct property sets at compile time",
+              "TCGC does the heavy lifting of visibility computation",
+              "Matches pattern used by other language emitters (Python, Java)"
+            ],
+            "cons": [
+              "Generates more types \u2014 could confuse SDK users with too many model variants",
+              "Complex mapping between types",
+              "Significant refactor of model generation"
+            ]
+          }
+        ],
+        "chosen": "Generate per-operation serializers that filter by visibility",
+        "rationale": "This approach is the most practical for the current architecture. TCGC provides visibility metadata per property (property.visibility array), so the serializer generator can check which Lifecycle values a property has and include/exclude it accordingly. Per-operation serializers are simple, don't require runtime branching, and don't require splitting model types (which would be a larger refactor). The send-operation.tsx code already knows the HTTP verb, so it can select the correct serializer. This matches the approach used by flight-instructor for similar scenarios."
+      },
+      "source": "spector-coverage-gap",
+      "description": "## Summary\nFix visibility-aware serialization so that different HTTP operations only serialize properties matching their lifecycle context.\n\n## Root Cause\nThe JSON serializer (`src/components/serialization/json-serializer.tsx`) generates a single serializer per model that includes ALL properties. It does not filter by visibility context (Read, Create, Update, Delete, Query).\n\n## Fix\n1. In json-serializer.tsx, when generating serializer for a model with visibility-decorated properties, generate separate serializer functions per visibility context\n2. In send-operation.tsx, select the appropriate serializer based on the HTTP method:\n   - GET \u2192 no body (or read-context deserializer for response)\n   - POST \u2192 create-context serializer\n   - PUT \u2192 create+update-context serializer\n   - PATCH \u2192 update-context serializer\n   - DELETE \u2192 delete-context serializer\n3. In json-deserializer.tsx, generate a read-context deserializer that only includes Read-visible properties\n\n## Scenarios Unblocked (7)\n- Type_Model_Visibility_deleteModel\n- Type_Model_Visibility_getModel\n- Type_Model_Visibility_headModel\n- Type_Model_Visibility_patchModel\n- Type_Model_Visibility_postModel\n- Type_Model_Visibility_putModel\n- Type_Model_Visibility_putReadOnlyModel\n\n## Validation\n1. Create `test/e2e/http/type/model/visibility/main.test.ts`\n2. Verify each operation sends only the expected properties\n3. Run `pnpm test` for regression check"
+    },
+    {
+      "id": "COVERAGE-FIX-DISCRIMINATED-UNION-SERIALIZATION",
+      "title": "Fix discriminated union serializer generation",
+      "category": "bug-fix/emitter",
+      "priority": "P1",
+      "status": "pending",
+      "kind": "bug-fix",
+      "dependencies": [],
+      "design_review": {
+        "problem": "The emitter generates pass-through serializers for discriminated unions (just returns the input unchanged). The Spector spec defines 4 discriminated union patterns: envelope with default kind/value, envelope with custom petType/petData, no-envelope with default discriminator, no-envelope with custom discriminator. The generated serializer needs to handle discriminator-based variant selection and envelope wrapping/unwrapping.",
+        "approaches": [
+          {
+            "name": "Generate switch-based serializers on the discriminator property",
+            "description": "In json-union-serializer.tsx, detect discriminated unions (unions where variants share a common discriminator property with constant values) and generate a switch statement that serializes the correct variant. For envelope types, wrap the variant data in the envelope structure. For no-envelope types, serialize inline with the discriminator.",
+            "pros": [
+              "Explicit and debuggable \u2014 clear switch/case for each variant",
+              "Handles both envelope and no-envelope patterns",
+              "Type-safe discrimination"
+            ],
+            "cons": [
+              "Code size grows with number of variants",
+              "Must handle both serialization and deserialization directions"
+            ]
+          },
+          {
+            "name": "Use the existing union-discrimination.ts infrastructure",
+            "description": "The emitter already has `union-discrimination.ts` which analyzes unions to find discriminator properties and generates discrimination logic for model hierarchies. Extend this to also handle TypeSpec union types (not just model inheritance) by reusing the same discriminator detection and adding union-specific serialization templates.",
+            "pros": [
+              "Reuses existing infrastructure",
+              "Consistent with polymorphic model handling",
+              "Less new code"
+            ],
+            "cons": [
+              "union-discrimination.ts is designed for model inheritance, not TypeSpec unions \u2014 may need significant adaptation",
+              "Risk of conflating two different concepts"
+            ]
+          }
+        ],
+        "chosen": "Generate switch-based serializers on the discriminator property",
+        "rationale": "Discriminated TypeSpec unions are fundamentally different from discriminated model inheritance. The union-discrimination.ts infrastructure handles polymorphic base/derived models (where all variants extend a common base type), while these discriminated unions are standalone variants distinguished by a property. A clean switch-based approach in json-union-serializer.tsx is clearer and avoids conflating concepts. The discriminator property and variant mapping can be extracted from the TCGC SdkUnionType's variants."
+      },
+      "source": "spector-coverage-gap",
+      "description": "## Summary\nFix discriminated union serializer/deserializer generation to handle envelope and no-envelope discriminated union patterns.\n\n## Root Cause\nIn `src/components/serialization/json-union-serializer.tsx`, discriminated unions generate pass-through serializers (`return item`) instead of proper discriminator-aware serialization.\n\n## Fix\n1. Detect discriminated unions in json-union-serializer.tsx (unions with a shared constant-valued discriminator property)\n2. Generate switch-case serializers that:\n   - Read the discriminator property value\n   - Call the correct variant serializer\n   - For envelope types: wrap in `{kind: \"...\", value: serialized}` (or custom property names)\n   - For no-envelope types: include discriminator inline with serialized properties\n3. Generate corresponding deserializers that:\n   - Read discriminator from response\n   - Unwrap envelope if needed\n   - Call correct variant deserializer\n\n## Scenarios Unblocked (8)\n- Type_Union_Discriminated_Envelope_Object_Default_get/put\n- Type_Union_Discriminated_Envelope_Object_CustomProperties_get/put\n- Type_Union_Discriminated_NoEnvelope_Default_get/put\n- Type_Union_Discriminated_NoEnvelope_CustomDiscriminator_get/put\n\n## Validation\n1. Add discriminated union tests to `test/e2e/http/type/union/main.test.ts`\n2. Verify round-trip serialization for all 4 patterns\n3. Run `pnpm test` for regression check"
+    },
+    {
+      "id": "COVERAGE-FIX-MERGE-PATCH-SERIALIZATION",
+      "title": "Implement JSON merge patch serialization with null preservation",
+      "category": "bug-fix/emitter",
+      "priority": "P1",
+      "status": "pending",
+      "kind": "feature",
+      "dependencies": [],
+      "design_review": {
+        "problem": "JSON merge patch (RFC 7386) requires that null values are preserved in the serialized body to signal property deletion. The current JSON serializer strips null/undefined values, which is correct for standard JSON but breaks merge patch semantics. The emitter has no content-type awareness in its serialization path \u2014 serializers don't know if they're being used for application/json or application/merge-patch+json.",
+        "approaches": [
+          {
+            "name": "Generate a separate merge-patch serializer variant",
+            "description": "When TCGC marks an operation's body content-type as application/merge-patch+json, generate a dedicated serializer function (e.g., resourceMergePatchSerializer) that preserves null values instead of stripping them. The operation would call this specific serializer instead of the standard one. The serializer would use explicit null checks (value === null ? null : serialize(value)) instead of the usual undefined-stripping pattern.",
+            "pros": [
+              "Clean separation \u2014 standard serializer unchanged",
+              "No runtime content-type checks",
+              "Explicit and debuggable",
+              "Matches legacy emitter pattern"
+            ],
+            "cons": [
+              "Duplicate serializer code for merge-patch models",
+              "Need to detect merge-patch context from TCGC types"
+            ]
+          },
+          {
+            "name": "Add a preserveNulls parameter to existing serializers",
+            "description": "Add a boolean parameter to the generated serializer function that controls null-stripping behavior. The operation code would pass preserveNulls=true when the content-type is merge-patch+json. The serializer would conditionally include or strip nulls based on this flag.",
+            "pros": [
+              "Single serializer function per model",
+              "Less generated code"
+            ],
+            "cons": [
+              "Runtime branching in every serializer call",
+              "Doesn't handle nested models correctly (flag must propagate)",
+              "More complex generated code",
+              "Harder to tree-shake"
+            ]
+          },
+          {
+            "name": "Make all properties optional with explicit null type in merge-patch models",
+            "description": "For merge-patch models, generate TypeScript types where all updateable properties are T | null | undefined. The serializer would then naturally include null values (since they're explicitly typed) and strip undefined values (which represent 'not set').",
+            "pros": [
+              "Type-safe \u2014 TypeScript enforces the null/undefined distinction",
+              "Clear semantics: null = delete, undefined = skip"
+            ],
+            "cons": [
+              "Requires different model types for merge-patch vs standard",
+              "More complex type generation",
+              "Users must understand null vs undefined distinction"
+            ]
+          }
+        ],
+        "chosen": "Generate a separate merge-patch serializer variant",
+        "rationale": "A dedicated merge-patch serializer is the cleanest approach. TCGC's SdkHttpOperation already provides the content type, so the emitter can detect merge-patch context at code generation time. The dedicated serializer preserves null values explicitly, which is simple to implement and doesn't require runtime branching or model type changes. This matches how the legacy emitter handles merge-patch and avoids polluting the standard serializer code path."
+      },
+      "source": "spector-coverage-gap",
+      "description": "## Summary\nImplement JSON merge patch serialization that preserves null values per RFC 7386.\n\n## Root Cause\nThe JSON serializer in `src/components/serialization/json-serializer.tsx` strips null/undefined values. For `application/merge-patch+json`, null values must be preserved to signal property deletion.\n\n## Fix\n1. Detect merge-patch content type from TCGC's SdkHttpOperation\n2. Generate a dedicated merge-patch serializer that preserves null values\n3. In send-operation.tsx, use the merge-patch serializer when content-type is `application/merge-patch+json`\n4. Create `test/e2e/http/payload/json-merge-patch/main.test.ts`\n\n## Scenarios Unblocked (3)\n- Payload_JsonMergePatch_createResource\n- Payload_JsonMergePatch_updateOptionalResource\n- Payload_JsonMergePatch_updateResource\n\n## Validation\n1. Verify null values are preserved in serialized merge-patch body\n2. Verify standard JSON serialization still strips nulls\n3. Run `pnpm test` for regression check"
+    },
+    {
+      "id": "COVERAGE-TEST-FILE-BODY",
+      "title": "Add e2e tests for Type_File_Body scenarios",
+      "category": "testing/e2e-missing",
+      "priority": "P1",
+      "status": "pending",
+      "kind": "feature",
+      "dependencies": [],
+      "design_review": {
+        "problem": "8 file upload/download scenarios have fully generated and working client code but no e2e test file. The emitter correctly handles binary bodies, content-type headers, and File model types. This is a test-only gap.",
+        "approaches": [
+          {
+            "name": "Create a single main.test.ts with all 8 file body tests",
+            "description": "Create test/e2e/http/type/file/main.test.ts with tests for all upload and download variants. Tests would use Uint8Array buffers as file content and verify content-type handling across the 4 content type variants (default/octet-stream, JSON, specific/image-png, multiple).",
+            "pros": [
+              "Matches existing test pattern",
+              "All file tests in one place",
+              "Simple to write"
+            ],
+            "cons": [
+              "None significant"
+            ]
+          },
+          {
+            "name": "Create separate test files for upload and download",
+            "description": "Split into upload.test.ts and download.test.ts for clarity.",
+            "pros": [
+              "Logical separation"
+            ],
+            "cons": [
+              "Unnecessary \u2014 both directions use the same client and setup"
+            ]
+          }
+        ],
+        "chosen": "Create a single main.test.ts with all 8 file body tests",
+        "rationale": "Standard pattern. All 8 tests use the same generated BodyClient and share the same test setup."
+      },
+      "source": "spector-coverage-gap",
+      "description": "## Summary\nCreate e2e test file for 8 Type_File_Body scenarios. Generated code is complete \u2014 this is test-only work.\n\n## Test File\nCreate `test/e2e/http/type/file/main.test.ts`\n\n## Test Cases\n1. uploadFileDefaultContentType \u2014 upload with default content type (application/octet-stream)\n2. uploadFileSpecificContentType \u2014 upload with image/png\n3. uploadFileJsonContentType \u2014 upload with application/json\n4. uploadFileMultipleContentTypes \u2014 upload with content negotiation\n5. downloadFileDefaultContentType \u2014 download with default content type\n6. downloadFileSpecificContentType \u2014 download with image/png\n7. downloadFileJsonContentType \u2014 download with application/json\n8. downloadFileMultipleContentTypes \u2014 download with content negotiation\n\n## Notes\n- Use Uint8Array for binary content\n- Verify correct Content-Type/Accept headers\n- Generated client at `test/e2e/generated/type/file/src/`"
+    },
+    {
+      "id": "COVERAGE-TEST-AUTH-NOAUTH-UNION",
+      "title": "Add e2e tests for Authentication_Noauth_Union scenarios",
+      "category": "testing/e2e-missing",
+      "priority": "P2",
+      "status": "pending",
+      "kind": "feature",
+      "dependencies": [],
+      "design_review": {
+        "problem": "2 authentication scenarios combining NoAuth and OAuth2 union are generated but have no test file. The spec tests that a client configured with NoAuth | OAuth2 auth can make requests both without auth and with a bearer token.",
+        "approaches": [
+          {
+            "name": "Create main.test.ts at test/e2e/http/authentication/noauth/union/",
+            "description": "Create a test file that matches the generated code path. Test validNoAuth (request without auth headers, expects 204) and validToken (request with Bearer token, expects 204).",
+            "pros": [
+              "Matches generated code directory structure",
+              "Clear and specific"
+            ],
+            "cons": [
+              "Deep nesting (noauth/union/)"
+            ]
+          },
+          {
+            "name": "Add to existing authentication test directory",
+            "description": "Add noauth union tests alongside the existing authentication/union tests.",
+            "pros": [
+              "Less directory nesting"
+            ],
+            "cons": [
+              "Different generated clients \u2014 would need separate imports"
+            ]
+          }
+        ],
+        "chosen": "Create main.test.ts at test/e2e/http/authentication/noauth/union/",
+        "rationale": "The generated code is at test/e2e/generated/authentication/noauth/union/, so the test file should mirror the path at test/e2e/http/authentication/noauth/union/main.test.ts."
+      },
+      "source": "spector-coverage-gap",
+      "description": "## Summary\nCreate e2e test file for 2 Authentication_Noauth_Union scenarios.\n\n## Test File\nCreate `test/e2e/http/authentication/noauth/union/main.test.ts`\n\n## Test Cases\n1. validNoAuth \u2014 send request without authentication headers, expect 204\n2. validToken \u2014 send request with Bearer token authentication, expect 204\n\n## Notes\n- Generated client at `test/e2e/generated/authentication/noauth/union/src/`\n- The NoAuth | OAuth2 union means the client should accept either no credentials or an OAuth2 token"
+    },
+    {
+      "id": "COVERAGE-TEST-RESPONSE-STATUS-CODE-RANGE",
+      "title": "Add e2e tests for Response_StatusCodeRange scenarios",
+      "category": "testing/e2e-missing",
+      "priority": "P2",
+      "status": "pending",
+      "kind": "feature",
+      "dependencies": [],
+      "design_review": {
+        "problem": "2 status code range scenarios have generated code but no test file. The spec tests that the client correctly handles error responses for specific status codes (404) and status code ranges (494-499), deserializing the appropriate error model.",
+        "approaches": [
+          {
+            "name": "Create main.test.ts testing error response handling",
+            "description": "Create test file that exercises the generated client's error handling. Test that status code 404 returns the specific error model, and that status codes in the 494-499 range are properly handled.",
+            "pros": [
+              "Direct and simple",
+              "Tests important error handling behavior"
+            ],
+            "cons": [
+              "May need special error assertion patterns (expect().rejects)"
+            ]
+          },
+          {
+            "name": "Test via error interception/inspection",
+            "description": "Use try/catch patterns to verify the error type and properties returned by the client for different status codes.",
+            "pros": [
+              "More explicit error inspection"
+            ],
+            "cons": [
+              "More verbose test code"
+            ]
+          }
+        ],
+        "chosen": "Create main.test.ts testing error response handling",
+        "rationale": "The standard vitest pattern with expect().rejects is clean and matches how other error tests work in the codebase."
+      },
+      "source": "spector-coverage-gap",
+      "description": "## Summary\nCreate e2e test file for 2 Response_StatusCodeRange scenarios.\n\n## Test File\nCreate `test/e2e/http/response/status-code-range/main.test.ts`\n\n## Test Cases\n1. errorResponseStatusCode404 \u2014 verify client throws/returns specific error model for 404\n2. errorResponseStatusCodeInRange \u2014 verify client handles 494-499 status codes with appropriate error models\n\n## Notes\n- Generated client at `test/e2e/generated/response/status-code-range/src/`\n- Tests should verify both the error type and the deserialized error body"
+    },
+    {
+      "id": "COVERAGE-TEST-VERSIONING",
+      "title": "Add e2e tests for Versioning scenarios",
+      "category": "testing/e2e-missing",
+      "priority": "P2",
+      "status": "pending",
+      "kind": "feature",
+      "dependencies": [],
+      "design_review": {
+        "problem": "2 versioning scenarios have generated code but no test file. Versioning_Removed_modelV3_V2preview tests that a model marked @removed in v2 is correctly hidden at the v2preview version. Versioning_ReturnTypeChangedFrom_test tests that a return type change from int32 to string is handled correctly.",
+        "approaches": [
+          {
+            "name": "Create per-scenario test files under test/e2e/http/versioning/",
+            "description": "Create separate test files for each versioning spec (removed/, returnTypeChangedFrom/) matching the generated code structure. Each test would instantiate the client with the appropriate version parameter.",
+            "pros": [
+              "Matches generated code directory structure",
+              "Independent test files",
+              "Can run specific versioning tests"
+            ],
+            "cons": [
+              "More files"
+            ]
+          },
+          {
+            "name": "Create a single versioning/main.test.ts",
+            "description": "Group all versioning tests in one file with describe blocks per scenario.",
+            "pros": [
+              "Fewer files"
+            ],
+            "cons": [
+              "Different generated clients for each spec \u2014 messier imports",
+              "Doesn't match directory structure"
+            ]
+          }
+        ],
+        "chosen": "Create per-scenario test files under test/e2e/http/versioning/",
+        "rationale": "Each versioning scenario uses a different generated client (RemovedClient, ReturnTypeChangedFromClient), so separate files with separate imports is cleaner. This matches the generated code structure."
+      },
+      "source": "spector-coverage-gap",
+      "description": "## Summary\nCreate e2e test files for 2 Versioning scenarios.\n\n## Test Files\n1. `test/e2e/http/versioning/removed/main.test.ts` \u2014 test Versioning_Removed_modelV3_V2preview\n2. `test/e2e/http/versioning/return-type-changed-from/main.test.ts` \u2014 test Versioning_ReturnTypeChangedFrom_test\n\n## Test Cases\n### Removed\n- Create client with version='v2preview'\n- Call modelV3 operation\n- Verify the response handles the removed model correctly\n\n### ReturnTypeChangedFrom\n- Create client with latest version\n- Call test operation\n- Verify return type is string (changed from int32 in v1)\n\n## Notes\n- Generated clients at `test/e2e/generated/versioning/removed/` and `test/e2e/generated/versioning/returnTypeChangedFrom/`\n- Known issue: ReturnTypeChangedFrom test may fail due to Content-Type mismatch (mock expects text/plain)"
+    },
+    {
+      "id": "COVERAGE-TEST-MULTIPART-ANONYMOUS",
+      "title": "Add e2e test for Payload_MultiPart_FormData_anonymousModel",
+      "category": "testing/e2e-missing",
+      "priority": "P2",
+      "status": "pending",
+      "kind": "feature",
+      "dependencies": [],
+      "design_review": {
+        "problem": "The anonymousModel multipart scenario is generated but has no test case in the existing multipart test file. The spec tests that the client can handle multipart requests with inline (anonymous) model types.",
+        "approaches": [
+          {
+            "name": "Add test case to existing multipart main.test.ts",
+            "description": "Add an it() block to the existing test/e2e/http/payload/multipart/main.test.ts for the anonymousModel operation.",
+            "pros": [
+              "Minimal change",
+              "Reuses existing client setup"
+            ],
+            "cons": [
+              "None"
+            ]
+          },
+          {
+            "name": "Create separate test file for anonymous model",
+            "description": "Create a new test file specifically for the anonymous model scenario.",
+            "pros": [
+              "Isolation"
+            ],
+            "cons": [
+              "Unnecessary overhead for a single test case"
+            ]
+          }
+        ],
+        "chosen": "Add test case to existing multipart main.test.ts",
+        "rationale": "The multipart test file already has 16 tests. Adding one more for anonymousModel is the simplest approach."
+      },
+      "source": "spector-coverage-gap",
+      "description": "## Summary\nAdd 1 test case for Payload_MultiPart_FormData_anonymousModel to existing multipart test file.\n\n## Fix\nAdd test in `test/e2e/http/payload/multipart/main.test.ts`:\n```typescript\nit('should send multipart request with anonymous model', async () => {\n  await client.formData.anonymousModel({\n    profileImage: createFilePartDescriptor('profileImage', jpegContents, 'image/jpeg'),\n  });\n});\n```\n\n## Notes\n- The spec defines an inline body type `{ profileImage: HttpPart<bytes> }` instead of a named model\n- Verify the generated client has the anonymousModel method"
+    },
+    {
+      "id": "COVERAGE-TEST-XML-ERROR-VALUE",
+      "title": "Add e2e test for Payload_Xml_XmlErrorValue_get",
+      "category": "testing/e2e-missing",
+      "priority": "P2",
+      "status": "pending",
+      "kind": "feature",
+      "dependencies": [],
+      "design_review": {
+        "problem": "The XML error value scenario is generated but has no test case. The spec tests that XML error responses are correctly deserialized.",
+        "approaches": [
+          {
+            "name": "Add test case to existing XML main.test.ts",
+            "description": "Add a test case to test/e2e/http/payload/xml/main.test.ts for the XmlErrorValue_get scenario.",
+            "pros": [
+              "Minimal change",
+              "Reuses existing client setup"
+            ],
+            "cons": [
+              "None"
+            ]
+          },
+          {
+            "name": "Create separate test file",
+            "description": "Separate test file for error value.",
+            "pros": [
+              "Isolation"
+            ],
+            "cons": [
+              "Unnecessary"
+            ]
+          }
+        ],
+        "chosen": "Add test case to existing XML main.test.ts",
+        "rationale": "The XML test file already tests 11 scenarios. Adding one more is straightforward."
+      },
+      "source": "spector-coverage-gap",
+      "description": "## Summary\nAdd 1 test case for Payload_Xml_XmlErrorValue_get to existing XML test file.\n\n## Fix\nAdd test in `test/e2e/http/payload/xml/main.test.ts` that exercises the XML error value deserialization.\n\n## Notes\n- Verify the generated client has the xmlErrorValue.get() method\n- Test should verify correct deserialization of XML error responses"
+    },
+    {
+      "id": "COVERAGE-TEST-QUERY-CONSTANT",
+      "title": "Add e2e test for Parameters_Query_Constant",
+      "category": "testing/e2e-missing",
+      "priority": "P2",
+      "status": "pending",
+      "kind": "feature",
+      "dependencies": [],
+      "design_review": {
+        "problem": "The parameters/query spec is successfully generated but has no test file. The spec tests that constant query parameters are correctly included in requests.",
+        "approaches": [
+          {
+            "name": "Create test/e2e/http/parameters/query/main.test.ts",
+            "description": "Create a test file that exercises the constant query parameter operation. The test would verify the client automatically includes the constant query parameter in the request URL.",
+            "pros": [
+              "Simple and direct",
+              "Matches existing pattern"
+            ],
+            "cons": [
+              "None"
+            ]
+          },
+          {
+            "name": "Skip \u2014 constant parameters may not need explicit testing",
+            "description": "Constant parameters are embedded in the generated code at compile time. They don't require user input, so they may not be meaningful to test at the e2e level.",
+            "pros": [
+              "No work needed"
+            ],
+            "cons": [
+              "Missing coverage",
+              "Can't verify the constant is actually sent"
+            ]
+          }
+        ],
+        "chosen": "Create test/e2e/http/parameters/query/main.test.ts",
+        "rationale": "Even though constant parameters are straightforward, the test verifies the generated code actually includes them in requests. The mock server validates the constant value is present."
+      },
+      "source": "spector-coverage-gap",
+      "description": "## Summary\nCreate e2e test file for Parameters_Query_Constant_post scenario.\n\n## Test File\nCreate `test/e2e/http/parameters/query/main.test.ts`\n\n## Test Cases\n1. post \u2014 verify the client sends the constant query parameter ('constantValue') in the request URL\n\n## Notes\n- Generated client at `test/e2e/generated/parameters/query/src/`\n- The spec defines a constant string query parameter that should be automatically included"
+    },
+    {
+      "id": "COVERAGE-FEATURE-STREAMING-JSONL",
+      "title": "Implement JSONL streaming support",
+      "category": "bug-fix/emitter",
+      "priority": "P3",
+      "status": "pending",
+      "kind": "feature",
+      "dependencies": [],
+      "design_review": {
+        "problem": "The emitter has no JSONL streaming support. The spec requires generating code that can send and receive newline-delimited JSON (application/jsonl) as streaming request/response bodies. Currently excluded via .testignore. This is a medium-sized feature requiring changes to content-type handling, response body generation, and possibly new runtime helpers.",
+        "approaches": [
+          {
+            "name": "AsyncIterable-based streaming with per-line JSON parsing",
+            "description": "Generate operations that return AsyncIterable<T> for streaming responses and accept AsyncIterable<T> for streaming requests. For responses, read the body as a stream, split on newlines, and parse each line as JSON. For requests, iterate the input and write each object as a JSON line. Add a static helper (jsonl-helpers.tsx) with parseJsonlStream() and writeJsonlStream() utilities.",
+            "pros": [
+              "Standard JavaScript streaming pattern",
+              "Works in both Node.js and browser",
+              "Type-safe \u2014 AsyncIterable<T> is parameterized",
+              "Composable with existing pipeline"
+            ],
+            "cons": [
+              "Requires changes to operation return type generation",
+              "Need to handle backpressure and partial lines",
+              "More complex than simple request/response"
+            ]
+          },
+          {
+            "name": "ReadableStream-based streaming with transform",
+            "description": "Generate operations that return ReadableStream<T> using the Web Streams API. Use a TransformStream to split and parse JSONL data. This is more browser-native but less ergonomic than AsyncIterable.",
+            "pros": [
+              "Native Web API",
+              "Good backpressure support"
+            ],
+            "cons": [
+              "Less ergonomic \u2014 users must use .getReader()",
+              "Not all Node.js versions support Web Streams natively",
+              "More complex API surface"
+            ]
+          }
+        ],
+        "chosen": "AsyncIterable-based streaming with per-line JSON parsing",
+        "rationale": "AsyncIterable is the standard pattern for streaming in JavaScript/TypeScript and is supported natively in all modern runtimes. It's more ergonomic (for-await-of) and matches patterns used by Azure SDK and other TypeScript client libraries. The implementation can use a ReadableStream internally but expose AsyncIterable<T> to consumers."
+      },
+      "source": "spector-coverage-gap",
+      "description": "## Summary\nImplement JSONL (application/jsonl) streaming support for request and response bodies.\n\n## Scope\nThis is a medium-sized feature (~400-500 lines of new code):\n\n1. **Content-type detection** \u2014 Detect application/jsonl in TCGC types\n2. **Operation return type** \u2014 Generate AsyncIterable<T> for streaming responses instead of T\n3. **Request body** \u2014 Generate streaming request body from AsyncIterable<T>\n4. **Static helper** \u2014 Create `src/components/static-helpers/jsonl-helpers.tsx` with parseJsonlStream() and writeJsonlStream()\n5. **Remove from .testignore** \u2014 Remove 'streaming' from test/e2e/.testignore\n6. **E2E tests** \u2014 Create `test/e2e/http/streaming/jsonl/main.test.ts`\n\n## Scenarios Unblocked (2)\n- Streaming_Jsonl_Basic_receive\n- Streaming_Jsonl_Basic_send\n\n## Notes\n- Neither the legacy emitter nor the reference emitters have streaming support\n- The ts-http-runtime package may need streaming utilities added"
+    },
+    {
+      "id": "COVERAGE-DECISION-DOCUMENTATION",
+      "title": "Decision: Documentation formatting scenarios",
+      "category": "testing/e2e-missing",
+      "priority": "P4",
+      "status": "pending",
+      "kind": "feature",
+      "dependencies": [],
+      "design_review": {
+        "problem": "6 documentation scenarios (Lists_bulletPointsModel, Lists_bulletPointsOp, Lists_numbered, TextFormatting_boldText, TextFormatting_italicText, TextFormatting_combinedFormatting) are excluded from e2e testing via .testignore. These test JSDoc/documentation formatting in generated code, not runtime behavior. Neither the legacy nor any reference emitter tests these.",
+        "approaches": [
+          {
+            "name": "Mark as not-applicable in coverage",
+            "description": "Formally annotate these scenarios as 'not-applicable' in the spector coverage configuration so they don't count against the coverage percentage. Documentation formatting is a code-generation cosmetic concern, not a runtime behavior test.",
+            "pros": [
+              "Honestly reflects that these aren't client functionality tests",
+              "Improves coverage percentage without false work",
+              "Matches other emitters' approach"
+            ],
+            "cons": [
+              "Documentation quality isn't verified by e2e tests",
+              "If a customer cares about JSDoc formatting, no test catches regressions"
+            ]
+          },
+          {
+            "name": "Implement documentation formatting and test via scenario tests",
+            "description": "Support markdown formatting (bold, italic, lists) in generated JSDoc comments. Test via scenario tests (not e2e) that verify the generated documentation output matches expected formatting. Remove 'documentation' from .testignore.",
+            "pros": [
+              "Complete coverage",
+              "Documentation quality verified",
+              "Better developer experience"
+            ],
+            "cons": [
+              "Significant work for cosmetic feature",
+              "Scenario tests are better suited than e2e for this",
+              "Low ROI"
+            ]
+          }
+        ],
+        "chosen": "Mark as not-applicable in coverage",
+        "rationale": "Documentation formatting is a cosmetic concern that's better tested via scenario tests (which verify generated output) than e2e tests (which verify runtime behavior). The 6 scenarios should be marked not-applicable in the spector coverage configuration. If documentation formatting support is desired, it should be tracked as a separate feature with scenario test validation, not e2e."
+      },
+      "source": "spector-coverage-gap",
+      "description": "## Summary\nDecide how to handle 6 Documentation formatting scenarios that are currently excluded from e2e testing.\n\n## Recommendation\nMark as `not-applicable` in spector coverage configuration. These test JSDoc formatting, not runtime behavior.\n\n## Scenarios\n- Documentation_Lists_bulletPointsModel\n- Documentation_Lists_bulletPointsOp\n- Documentation_Lists_numbered\n- Documentation_TextFormatting_boldText\n- Documentation_TextFormatting_italicText\n- Documentation_TextFormatting_combinedFormatting\n\n## Action\n1. Find the spector coverage configuration mechanism for marking scenarios as not-applicable\n2. Add these 6 scenarios to the not-applicable list\n3. Verify coverage percentage recalculates correctly (should increase from 87.10% to ~87.93%)"
     }
   ],
   "phases_metadata": [
