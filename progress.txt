@@ -3169,3 +3169,23 @@ incorrect and was updated.
 - Product name for lroPaging must be "default" to match mock route
 
 **CI status:** All green (1019 unit tests, 1 smoke test, 804 e2e tests passed, 70 skipped)
+
+## 2026-03-03: E2E-MISSING-RESILIENCY-SRV-DRIVEN-OLD (done)
+
+**What was done:**
+- Added `MANUAL_SPECS` support to `eng/scripts/emit-e2e.ts` for specs not auto-discovered by glob patterns
+  (i.e., files not named `client.tsp` or `main.tsp`). Added `outputDir` field to `SpecEntry` for custom
+  output directory mapping. Updated cleanup pre-pass and compile to use `outputDir` override.
+- Registered `resiliency/srv-driven/old.tsp` as a manual spec → outputs to `resiliency/srv-driven-old/`
+- Created `test/e2e/http/resiliency/srv-driven-old/main.test.ts` with 6 test cases:
+  - fromNone against service deployment v1 and v2
+  - fromOneRequired("required") against service deployment v1 and v2
+  - fromOneOptional({ parameter: "optional" }) against service deployment v1 and v2
+- Tests validate backwards compatibility: v1 client can talk to both v1 and v2 service deployments
+
+**Key patterns:**
+- `MANUAL_SPECS` array in emit-e2e.ts is extensible for future non-standard spec filenames
+- Two client instances (v1Client, v2Client) test against different service deployment versions
+- API version defaults to "v1" (only version in old spec)
+
+**CI status:** All green (1019 unit tests, 1 smoke test, 810 e2e tests passed, 70 skipped)

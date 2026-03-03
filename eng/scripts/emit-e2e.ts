@@ -124,7 +124,28 @@ interface SpecEntry {
   relativePath: string;
   /** Emitter flavor to use for this spec. */
   flavor: "core" | "azure";
+  /** Optional override for the output directory (relative to generatedRoot). Defaults to dirname(relativePath). */
+  outputDir?: string;
 }
+
+/**
+ * Specs that are not auto-discovered (not named client.tsp or main.tsp)
+ * but still need to be compiled and tested.
+ */
+const MANUAL_SPECS: Array<{
+  /** Path relative to its specs base (e.g. "resiliency/srv-driven/old.tsp"). */
+  relativePath: string;
+  /** Which specs base: "core" or "azure". */
+  flavor: "core" | "azure";
+  /** Custom output directory name (relative to generatedRoot). */
+  outputDir: string;
+}> = [
+  {
+    relativePath: "resiliency/srv-driven/old.tsp",
+    flavor: "azure",
+    outputDir: "resiliency/srv-driven-old",
+  },
+];
 
 /**
  * Discovers all compilable specs under a given specs directory.
@@ -184,6 +205,20 @@ async function discoverSpecs(
 
   let specs = [...coreSpecs, ...azureSpecs];
 
+  // Add manually registered specs that aren't auto-discovered.
+  for (const manual of MANUAL_SPECS) {
+    const basePath = manual.flavor === "core" ? coreSpecsBasePath : azureSpecsBasePath;
+    const fullPath = join(basePath, manual.relativePath);
+    if (existsSync(fullPath)) {
+      specs.push({
+        fullPath,
+        relativePath: manual.relativePath,
+        flavor: manual.flavor,
+        outputDir: manual.outputDir,
+      });
+    }
+  }
+
   // Apply ignore list (match on directory prefix, relative to specs root).
   specs = specs.filter((spec) => {
     const specDir = dirname(spec.relativePath);
@@ -223,7 +258,7 @@ interface CompileResult {
  * (which must be built first — emitter is loaded from dist/).
  */
 async function compileSpec(spec: SpecEntry): Promise<CompileResult> {
-  const specDir = dirname(spec.relativePath);
+  const specDir = spec.outputDir ?? dirname(spec.relativePath);
   const outputDir = join(generatedRoot, specDir);
   const logDir = join(logDirRoot, specDir);
   const start = Date.now();
@@ -328,7 +363,7 @@ async function main(): Promise<void> {
   // concurrent file writes into type/union/discriminated/.
   console.log("🧹 Cleaning output directories...");
   for (const spec of specs) {
-    const specDir = dirname(spec.relativePath);
+    const specDir = spec.outputDir ?? dirname(spec.relativePath);
     const outputDir = join(generatedRoot, specDir);
     if (existsSync(outputDir)) {
       await rm(outputDir, { recursive: true, force: true });
@@ -336,7 +371,7 @@ async function main(): Promise<void> {
   }
   // Create all output directories after cleanup is complete.
   for (const spec of specs) {
-    const specDir = dirname(spec.relativePath);
+    const specDir = spec.outputDir ?? dirname(spec.relativePath);
     const outputDir = join(generatedRoot, specDir);
     await mkdir(outputDir, { recursive: true });
   }
