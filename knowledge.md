@@ -2535,3 +2535,19 @@ Legacy tspconfig reference: `submodules/autorest.typescript/packages/typespec-ts
 - `primitiveSubtype` must be set for array items too (from array `valueType`) to get proper type conversion.
 
 **Date:** 2025-03-03
+
+## Design Decisions
+
+### Discriminated Union Serialization (2026-03-03)
+
+**Context**: TCGC `SdkUnionType` has optional `discriminatedOptions` with `{ envelope, discriminatorPropertyName, envelopePropertyName? }`. The variant types in `variantTypes[]` are plain models WITHOUT discriminator properties. The mapping from variant to discriminator value comes from the TypeSpec union's named variants, accessible via `__raw`.
+
+**Approach chosen**: Property existence checks for serializer variant detection + switch-on-discriminator for deserialization.
+- Serializer uses `findUniquePropertyForModel()` to detect which variant the user provided at runtime
+- Deserializer uses switch on `item[discriminatorPropertyName]` which is present in the wire format
+- For envelope mode: serializer wraps in `{ discrim: value, envelope: serialized }`, deserializer unwraps
+- For no-envelope mode: serializer adds discriminator inline, deserializer destructures it out
+
+**Alternative rejected**: Including the discriminator in the TypeScript type (e.g., `{ kind: "cat" } & Cat | { kind: "dog" } & Dog`). This would change the public API surface and require type declaration changes.
+
+**Key gotcha**: `variantNeedsDeserialization()` returns false for models with only primitive properties (string, boolean), so discriminated unions bypass that check entirely — they always need deserialization to handle structural transformation (envelope unwrapping or discriminator stripping).

@@ -11,6 +11,7 @@ import { typeHasDeserializerDeclaration } from "../../utils/serialization-predic
 import {
   findDiscriminatorProperty,
   findUniquePropertyForModel,
+  getDiscriminatedVariantMapping,
   unwrapNullable,
   variantNeedsDeserialization,
 } from "../../utils/union-discrimination.js";
@@ -64,11 +65,22 @@ export function JsonUnionDeserializer(props: JsonUnionDeserializerProps) {
 /**
  * Builds the function body for a union deserializer.
  *
- * Analyzes the union's variant types and generates the minimal discrimination
- * code needed to correctly deserialize each variant. Returns `return item;`
- * when no variant requires transformation.
+ * For discriminated unions (unions with `discriminatedOptions`), generates
+ * a switch statement on the discriminator property that unwraps envelope
+ * structures and deserializes the correct variant.
+ *
+ * For non-discriminated unions, analyzes the union's variant types and
+ * generates the minimal discrimination code needed to correctly deserialize
+ * each variant. Returns `return item;` when no variant requires transformation.
  */
 function buildUnionDeserializerBody(type: SdkUnionType): Children {
+  // Handle discriminated unions first — they always need deserialization
+  // to unwrap envelope structures or strip inline discriminator properties
+  const discOpts = type.discriminatedOptions;
+  if (discOpts) {
+    return buildDiscriminatedDeserializerBody(type, discOpts);
+  }
+
   const variants = type.variantTypes;
 
   // If no variant needs active deserialization, keep pass-through
@@ -253,6 +265,81 @@ function buildPropertyExistenceChecks(modelVariants: SdkModelType[]): Children {
       <For each={checks} hardline>
         {(check) => <>{check}</>}
       </For>
+    </>
+  );
+}
+
+/**
+ * Generates deserialization logic for discriminated unions using a switch
+ * statement on the discriminator property.
+ *
+ * For envelope mode (`{ kind: "cat", value: {...} }`), reads the discriminator,
+ * then deserializes the data from the envelope property.
+ *
+ * For no-envelope mode (`{ kind: "cat", name: "whiskers", ... }`), reads the
+ * discriminator, strips it from the item, and deserializes the remaining properties.
+ */
+function buildDiscriminatedDeserializerBody(
+  type: SdkUnionType,
+  discOpts: NonNullable<SdkUnionType["discriminatedOptions"]>,
+): Children {
+  const variantMapping = getDiscriminatedVariantMapping(type);
+  if (!variantMapping || variantMapping.size === 0) {
+    return code`return item;`;
+  }
+
+  const { discriminatorPropertyName, envelope, envelopePropertyName } =
+    discOpts;
+
+  const entries: Array<{ discriminatorValue: string; model: SdkModelType }> =
+    [];
+  for (const [model, discriminatorValue] of variantMapping) {
+    entries.push({ discriminatorValue, model });
+  }
+
+  return (
+    <>
+      {code`switch (item["${discriminatorPropertyName}"]) {`}
+      {"\n"}
+      <For each={entries} hardline>
+        {({ discriminatorValue, model }) => {
+          const deserializeExpr = typeHasDeserializerDeclaration(model)
+            ? (accessor: string) =>
+                code`${deserializerRefkey(model)}(${accessor})`
+            : (accessor: string) => code`${accessor}`;
+
+          if (envelope === "object" && envelopePropertyName) {
+            // Envelope: unwrap the data from the envelope property
+            return (
+              <>
+                {code`  case "${discriminatorValue}":`}
+                {"\n"}
+                {code`    return ${deserializeExpr(`item["${envelopePropertyName}"]`)};`}
+              </>
+            );
+          } else {
+            // No-envelope: strip the discriminator and deserialize
+            // The discriminator is part of the wire object but not the client model
+            return (
+              <>
+                {code`  case "${discriminatorValue}": {`}
+                {"\n"}
+                {code`    const { ["${discriminatorPropertyName}"]: _, ...rest } = item;`}
+                {"\n"}
+                {code`    return ${deserializeExpr("rest")};`}
+                {"\n"}
+                {code`  }`}
+              </>
+            );
+          }
+        }}
+      </For>
+      {"\n"}
+      {code`  default:`}
+      {"\n"}
+      {code`    return item;`}
+      {"\n"}
+      {code`}`}
     </>
   );
 }

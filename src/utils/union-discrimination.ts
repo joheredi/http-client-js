@@ -1,6 +1,7 @@
 import type {
   SdkModelType,
   SdkType,
+  SdkUnionType,
 } from "@azure-tools/typespec-client-generator-core";
 
 /**
@@ -172,4 +173,49 @@ export function variantNeedsSerialization(type: SdkType): boolean {
  */
 export function unwrapNullable(type: SdkType): SdkType {
   return type.kind === "nullable" ? type.type : type;
+}
+
+/**
+ * Builds a mapping from each SdkModelType variant to its discriminator value
+ * by inspecting the raw TypeSpec union's named variants.
+ *
+ * TypeSpec discriminated unions like `union Pet { cat: Cat, dog: Dog }` have
+ * named variants where the name ("cat", "dog") is the discriminator value.
+ * TCGC preserves the raw TypeSpec union on `__raw`, and each variant model's
+ * `__raw` points to the same TypeSpec Model object, enabling reference-based
+ * matching between TCGC types and TypeSpec types.
+ *
+ * @param sdkUnion - The TCGC union type with discriminatedOptions.
+ * @returns Map from SdkModelType to its discriminator value string, or undefined
+ *          if the raw union structure is not available.
+ */
+export function getDiscriminatedVariantMapping(
+  sdkUnion: SdkUnionType,
+): Map<SdkModelType, string> | undefined {
+  const raw = (sdkUnion as any).__raw;
+  if (!raw || raw.kind !== "Union" || !raw.variants) {
+    return undefined;
+  }
+
+  // Build a map from raw TypeSpec Model → variant name (discriminator value)
+  const rawModelToName = new Map<unknown, string>();
+  for (const [variantName, rawVariant] of raw.variants) {
+    if (rawVariant?.type) {
+      rawModelToName.set(rawVariant.type, String(variantName));
+    }
+  }
+
+  // Match SDK variant types to their discriminator values
+  const result = new Map<SdkModelType, string>();
+  for (const variant of sdkUnion.variantTypes) {
+    const base = unwrapNullable(variant);
+    if (base.kind === "model") {
+      const variantRaw = (base as any).__raw;
+      if (variantRaw && rawModelToName.has(variantRaw)) {
+        result.set(base, rawModelToName.get(variantRaw)!);
+      }
+    }
+  }
+
+  return result;
 }

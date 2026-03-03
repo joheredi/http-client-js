@@ -26,6 +26,7 @@ import type { SdkUnionType } from "@azure-tools/typespec-client-generator-core";
 import { t } from "@typespec/compiler/testing";
 import { describe, expect, it } from "vitest";
 import { JsonUnionDeserializer } from "../../../src/components/serialization/json-union-deserializer.js";
+import { JsonDeserializer } from "../../../src/components/serialization/json-deserializer.js";
 import { UnionDeclaration } from "../../../src/components/union-declaration.js";
 import { ModelInterface } from "../../../src/components/model-interface.js";
 import { SdkTestFile } from "../../utils.jsx";
@@ -144,6 +145,213 @@ describe("JsonUnionDeserializer", () => {
 
       export function petKindDeserializer(item: any): PetKind {
         return item;
+      }
+    `);
+  });
+
+  /**
+   * Tests that a discriminated union with envelope mode generates a deserializer
+   * that reads the discriminator property, then unwraps the data from the envelope
+   * property and passes it to the variant's deserializer.
+   *
+   * Wire format: `{ "kind": "cat", "value": { "meow": true } }`
+   * Client format: `Cat { meow: true }`
+   *
+   * This validates the envelope deserialization pattern — the deserializer must
+   * switch on the discriminator value, then extract and deserialize the inner data.
+   */
+  it("should generate envelope deserializer for discriminated union", async () => {
+    const runner = await TesterWithService.createInstance();
+    const { program } = await runner.compile(
+      t.code`
+        model ${t.model("Cat")} { meow: boolean; }
+        model ${t.model("Dog")} { bark: boolean; }
+
+        @discriminated
+        union ${t.union("PetWithEnvelope")} {
+          cat: Cat,
+          dog: Dog,
+        }
+
+        op ${t.op("readPet")}(): { @body body: PetWithEnvelope };
+      `,
+    );
+
+    const sdkContext = await createSdkContextForTest(program);
+    const unionType = sdkContext.sdkPackage.unions[0] as SdkUnionType;
+    const catModel = sdkContext.sdkPackage.models.find(
+      (m) => m.name === "Cat",
+    )!;
+    const dogModel = sdkContext.sdkPackage.models.find(
+      (m) => m.name === "Dog",
+    )!;
+
+    expect(unionType.discriminatedOptions).toBeDefined();
+    expect(unionType.discriminatedOptions!.envelope).toBe("object");
+
+    const template = (
+      <SdkTestFile sdkContext={sdkContext}>
+        <ModelInterface model={catModel} />
+        {"\n\n"}
+        <ModelInterface model={dogModel} />
+        {"\n\n"}
+        <UnionDeclaration type={unionType} />
+        {"\n\n"}
+        <JsonDeserializer model={catModel} />
+        {"\n\n"}
+        <JsonDeserializer model={dogModel} />
+        {"\n\n"}
+        <JsonUnionDeserializer type={unionType} />
+      </SdkTestFile>
+    );
+
+    expect(template).toRenderTo(`
+      /**
+       * model interface Cat
+       */
+      export interface Cat {
+        meow: boolean;
+      }
+
+      /**
+       * model interface Dog
+       */
+      export interface Dog {
+        bark: boolean;
+      }
+
+      /**
+       * Alias for PetWithEnvelope
+       */
+      export type PetWithEnvelope = Cat | Dog;
+
+      export function catDeserializer(item: any): Cat {
+        return {
+          meow: item["meow"],
+        };
+      }
+
+      export function dogDeserializer(item: any): Dog {
+        return {
+          bark: item["bark"],
+        };
+      }
+
+      export function petWithEnvelopeDeserializer(item: any): PetWithEnvelope {
+        switch (item["kind"]) {
+          case "cat":
+            return catDeserializer(item["value"]);
+          case "dog":
+            return dogDeserializer(item["value"]);
+          default:
+            return item;
+        }
+      }
+    `);
+  });
+
+  /**
+   * Tests that a discriminated union with no-envelope (inline) mode generates a
+   * deserializer that reads the discriminator, destructures it away, and passes
+   * the remaining properties to the variant's deserializer.
+   *
+   * Wire format: `{ "kind": "cat", "meow": true }`
+   * Client format: `Cat { meow: true }`
+   *
+   * This validates the inline discriminator stripping pattern — the discriminator
+   * property is part of the wire format but not the client model, so it must be
+   * removed before deserializing the variant.
+   */
+  it("should generate inline deserializer for discriminated union with no-envelope", async () => {
+    const runner = await TesterWithService.createInstance();
+    const { program } = await runner.compile(
+      t.code`
+        model ${t.model("Cat")} { meow: boolean; }
+        model ${t.model("Dog")} { bark: boolean; }
+
+        @discriminated(#{ envelope: "none" })
+        union ${t.union("PetInline")} {
+          cat: Cat,
+          dog: Dog,
+        }
+
+        op ${t.op("readPet")}(): { @body body: PetInline };
+      `,
+    );
+
+    const sdkContext = await createSdkContextForTest(program);
+    const unionType = sdkContext.sdkPackage.unions[0] as SdkUnionType;
+    const catModel = sdkContext.sdkPackage.models.find(
+      (m) => m.name === "Cat",
+    )!;
+    const dogModel = sdkContext.sdkPackage.models.find(
+      (m) => m.name === "Dog",
+    )!;
+
+    expect(unionType.discriminatedOptions).toBeDefined();
+    expect(unionType.discriminatedOptions!.envelope).toBe("none");
+
+    const template = (
+      <SdkTestFile sdkContext={sdkContext}>
+        <ModelInterface model={catModel} />
+        {"\n\n"}
+        <ModelInterface model={dogModel} />
+        {"\n\n"}
+        <UnionDeclaration type={unionType} />
+        {"\n\n"}
+        <JsonDeserializer model={catModel} />
+        {"\n\n"}
+        <JsonDeserializer model={dogModel} />
+        {"\n\n"}
+        <JsonUnionDeserializer type={unionType} />
+      </SdkTestFile>
+    );
+
+    expect(template).toRenderTo(`
+      /**
+       * model interface Cat
+       */
+      export interface Cat {
+        meow: boolean;
+      }
+
+      /**
+       * model interface Dog
+       */
+      export interface Dog {
+        bark: boolean;
+      }
+
+      /**
+       * Alias for PetInline
+       */
+      export type PetInline = Cat | Dog;
+
+      export function catDeserializer(item: any): Cat {
+        return {
+          meow: item["meow"],
+        };
+      }
+
+      export function dogDeserializer(item: any): Dog {
+        return {
+          bark: item["bark"],
+        };
+      }
+
+      export function petInlineDeserializer(item: any): PetInline {
+        switch (item["kind"]) {
+          case "cat": {
+            const { ["kind"]: _, ...rest } = item;
+            return catDeserializer(rest);
+          }
+          case "dog": {
+            const { ["kind"]: _, ...rest } = item;
+            return dogDeserializer(rest);
+          }
+          default:
+            return item;
+        }
       }
     `);
   });

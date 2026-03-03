@@ -3331,3 +3331,39 @@ spreadWithMultipleParameters, spreadParameterWithInnerModel, spreadParameterWith
 - All 875 e2e tests pass (2 more than before) ✓
 
 **Key takeaway:** Same pattern as COVERAGE-FIX-ARRAY-DELIMITED-BODY — test data must match hardcoded values in the Spector mock API.
+
+## RC28: Fix Discriminated Union Serializer/Deserializer Generation (2026-03-03)
+
+### Problem
+The `JsonUnionSerializer` generated pass-through serializers (`return item;`) for ALL unions, including discriminated unions. Discriminated unions need proper serialization that handles envelope wrapping/unwrapping and discriminator property injection/stripping.
+
+### Changes
+1. **`src/utils/union-discrimination.ts`**: Added `getDiscriminatedVariantMapping(sdkUnion)` utility that extracts variant-name-to-model mapping from the raw TypeSpec union. Uses `__raw` reference matching (established pattern in `enum-declaration.tsx`).
+
+2. **`src/components/serialization/json-union-serializer.tsx`**: Now detects `type.discriminatedOptions` and generates variant-aware serialization:
+   - For envelope mode: `{ discriminator: "value", envelope: variantSerializer(item) }`
+   - For no-envelope mode: `{ discriminator: "value", ...variantSerializer(item) }`
+   - Uses `findUniquePropertyForModel()` for runtime variant detection via property existence checks
+   - Falls back to pass-through for non-discriminated unions
+
+3. **`src/components/serialization/json-union-deserializer.tsx`**: Added `buildDiscriminatedDeserializerBody()` that generates:
+   - For envelope mode: switch on discriminator → deserialize from envelope property
+   - For no-envelope mode: switch on discriminator → destructure out discriminator → deserialize rest
+   - Bypasses `variantNeedsDeserialization()` check (discriminated unions always need deserialization for structure transformation)
+
+### Tests Added
+- 3 new serializer unit tests (envelope default, no-envelope, custom property names)
+- 2 new deserializer unit tests (envelope, no-envelope)
+- 8 new e2e tests covering all 4 discriminated union patterns (GET + PUT each)
+
+### Key Patterns
+- TCGC `SdkUnionType.discriminatedOptions` has `{ envelope: "object"|"none", discriminatorPropertyName, envelopePropertyName? }`
+- Variant types are plain models WITHOUT discriminator properties
+- Variant-to-discriminator-value mapping obtained via `__raw` TypeSpec union variant names
+- Runtime variant detection uses `findUniquePropertyForModel()` for property existence checks
+
+### Scenarios Unblocked (8)
+- Type_Union_Discriminated_Envelope_Object_Default_get/put
+- Type_Union_Discriminated_Envelope_Object_CustomProperties_get/put
+- Type_Union_Discriminated_NoEnvelope_Default_get/put
+- Type_Union_Discriminated_NoEnvelope_CustomDiscriminator_get/put
