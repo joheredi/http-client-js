@@ -3260,3 +3260,16 @@ The payload/xml e2e test was missing. Adding it revealed multiple critical bugs 
 - 1019 unit/scenario tests pass
 - 1 smoke test passes
 - 96 e2e test files pass (834 tests, up from 810)
+
+---
+### 2026-03-03 — E2E-MISSING-ARM-RESOURCES
+**What:** Added e2e test for azure/resource-manager/resources Spector spec.
+**File:** test/e2e/http/azure/resource-manager/resources/main.test.ts
+**Tests:** 25 test cases covering all 5 operation groups:
+- Singleton tracked resources (4 tests): getByResourceGroup, update, createOrUpdate (LRO), listByResourceGroup
+- Top-level tracked resources (7 tests): actionSync, get, createOrReplace (LRO), delete (LRO), listByResourceGroup, listBySubscription
+- Nested proxy resources (5 tests): get, createOrReplace (LRO), update (LRO), delete (LRO), listByTopLevelTrackedResource
+- Location resources (5 tests): get, createOrUpdate, update, delete, listByLocation
+- Extensions resources (5 tests): get/createOrUpdate/update/delete/listByScope each at 4 scopes (resource group, subscription, tenant, resource-level)
+**Patterns:** Used vitest expect assertions, fake TokenCredential, bearer token policy removal for HTTP mock server, pollUntilDone() for LRO operations, async iteration for paginated list operations.
+**CI:** All passing — 1019 unit, 1 smoke, 859 e2e (25 new).
