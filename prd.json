@@ -1744,7 +1744,7 @@
       "title": "Fix emitter to handle File body operations with raw binary instead of JSON serialization",
       "category": "bug-fix/emitter",
       "priority": "P1",
-      "status": "not-started",
+      "status": "done",
       "kind": "bug",
       "dependencies": [],
       "design_review": null,

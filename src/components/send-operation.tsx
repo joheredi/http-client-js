@@ -672,6 +672,15 @@ function getContentTypeExpression(
   const bodyParam = method.operation.bodyParam;
   if (!bodyParam) return undefined;
 
+  // File body (Http.File) — the Content-Type header comes from the file's
+  // contentType property. For specific types (e.g., "image/png") the runtime
+  // value is constrained to that literal. For variable types, the user provides
+  // the value. Falls back to the operation's defaultContentType if not provided.
+  if (isFileBody(bodyParam.type)) {
+    const accessor = getBodyAccessor(bodyParam, method);
+    return `${accessor}["contentType"] ?? "${bodyParam.defaultContentType}"`;
+  }
+
   // Find the content-type header parameter from the HTTP operation
   const ctHeader = method.operation.parameters.find(
     (p): p is SdkHeaderParameter =>
@@ -1000,6 +1009,21 @@ function isSpreadBody(bodyParam: SdkBodyParameter): boolean {
 }
 
 /**
+ * Checks whether an SdkType represents a file body (Http.File).
+ *
+ * TCGC sets `serializationOptions.binary.isFile` on model types when the
+ * operation body uses `@bodyRoot` with `Http.File<...>`. File body types
+ * should send raw binary contents instead of JSON-serialized model data.
+ *
+ * @param type - The SDK type to check.
+ * @returns `true` if the type is a File body model.
+ */
+export function isFileBody(type: SdkType): boolean {
+  if (type.kind !== "model") return false;
+  return (type as SdkModelType).serializationOptions?.binary?.isFile === true;
+}
+
+/**
  * Maps an HTTP verb to the set of visibility contexts it supports.
  *
  * This follows the TypeSpec HTTP spec's verb-to-lifecycle mapping:
@@ -1149,12 +1173,13 @@ function buildVisibilityFilteredBody(
 /**
  * Builds the body expression for the request options.
  *
- * Handles four cases:
+ * Handles five cases:
  * 1. **Spread body**: Inline object literal with per-property serialization.
  * 2. **Visibility-filtered body**: Inline object with only properties visible
  *    for the operation's HTTP verb (when model has `@visibility` decorators).
- * 3. **Binary bytes body**: Raw accessor for binary content types.
- * 4. **Direct body**: Calls the model's serializer function via refkey.
+ * 3. **File body**: Raw `file.contents` for Http.File body types.
+ * 4. **Binary bytes body**: Raw accessor for binary content types.
+ * 5. **Direct body**: Calls the model's serializer function via refkey.
  *
  * @param bodyParam - The TCGC body parameter.
  * @param method - The parent service method.
@@ -1184,6 +1209,14 @@ function buildBodyExpression(
     modelNeedsPerVerbBodyFiltering(bodyType)
   ) {
     return buildVisibilityFilteredBody(bodyType, accessor, verb, bodyParam);
+  }
+
+  // File body (Http.File) — send raw file contents as the binary body.
+  // File body types have serializationOptions.binary.isFile set by TCGC when
+  // the body uses @bodyRoot with Http.File. The file's `contents` property
+  // contains the raw binary data (Uint8Array) to send.
+  if (isFileBody(bodyType)) {
+    return code`${accessor}["contents"]`;
   }
 
   // Binary bytes body (encode="bytes"/"binary") is sent as raw Uint8Array.

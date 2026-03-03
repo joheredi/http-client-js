@@ -43,7 +43,7 @@ import {
   isReservedOperationName,
   getEscapedParameterName,
 } from "../utils/name-policy.js";
-import { isBinaryBytesResponse } from "./deserialize-operation.js";
+import { isBinaryBytesResponse, isFileResponse } from "./deserialize-operation.js";
 
 /**
  * Builds the JSDoc string for a public operation function, adding a @fixme
@@ -183,11 +183,13 @@ function BasicOperation(props: {
     : [];
   const hasHeaders = headers.length > 0;
 
-  // Check if this operation returns binary bytes (encode="bytes"/"binary").
-  // Binary responses use the getBinaryResponse helper to read the HTTP stream
-  // as raw bytes instead of the standard `await send()` pattern.
+  // Check if this operation returns binary bytes (encode="bytes"/"binary") or
+  // a File body (Http.File). Both use the getBinaryResponse helper to read the
+  // HTTP stream as raw bytes instead of the standard `await send()` pattern.
   const isBinaryResponse =
-    hasBody && isBinaryBytesResponse(method.response.type!);
+    hasBody &&
+    (isBinaryBytesResponse(method.response.type!) ||
+      isFileResponse(method.response.type!));
 
   // Build return type: model & headers intersection when both exist
   const returnType = getCompositeReturnType(method, headers);

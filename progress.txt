@@ -3506,3 +3506,41 @@ Created new P1 task `EMITTER-FIX-FILE-BODY` in prd.json to track the emitter fix
 - Test follows the same pattern as encode/bytes/main.test.ts — loads PNG image from @typespec/http-specs/assets/
 - FileClient has `body` sub-namespace with all 8 operations
 - Generated models: File (image/png), File1 (application/json), File2/File3 (image/png|jpeg union), File4 (any)
+
+## EMITTER-FIX-FILE-BODY — Fix File body operations (2026-03-03)
+
+### What was done
+Fixed the emitter to handle Http.File body operations with raw binary instead of JSON serialization.
+
+### Problem
+The emitter treated File body types as regular JSON models, generating `fileSerializer(file)` / `fileDeserializer(result.body)` for File body operations. This produced:
+- Uploads: JSON body `{ contentType, filename, contents: base64 }` instead of raw binary
+- Downloads: Accessed `result.body.contents` but response body IS the raw binary Buffer
+
+### Solution
+Three key changes detect File body types via `serializationOptions.binary.isFile` (set by TCGC when `@bodyRoot` uses `Http.File`):
+
+1. **send-operation.tsx**: 
+   - `buildBodyExpression()`: Added `isFileBody(bodyType)` check → sends `file["contents"]` as raw body
+   - `getContentTypeExpression()`: For File bodies, uses `file["contentType"] ?? defaultContentType` to derive Content-Type from the file object
+
+2. **deserialize-operation.tsx**: 
+   - `getResponseBodyExpression()`: Added `isFileResponse()` check → returns `{ contents: result.body, contentType: result.headers["content-type"] }`
+
+3. **public-operation.tsx**: 
+   - Extended `isBinaryResponse` check to include `isFileResponse()` so File downloads use `getBinaryResponse()` for raw binary stream reading
+
+### Tests
+All 8 File body e2e tests unskipped and passing:
+- 4 upload tests (specific, JSON, multiple, default content types)
+- 4 download tests (same variants)
+
+### Patterns used
+- TCGC's `BinarySerializationOptions.isFile` flag for detection
+- `getBinaryResponse()` static helper for raw binary stream reading (reused from binary bytes path)
+- File object constructed from raw response body + Content-Type header
+
+### Notes for next person
+- File model serializers/deserializers are still generated (dead code) but not used for File body operations
+- If a File model is used in a non-file-body context (e.g., JSON payload), the serializer would still work
+- The `isFileBody()` function is exported from `send-operation.tsx` and can be imported elsewhere

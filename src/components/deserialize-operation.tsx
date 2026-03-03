@@ -22,6 +22,7 @@ import {
 } from "./serialization/index.js";
 import { getEscapedOperationName } from "../utils/name-policy.js";
 import { hasXmlSerialization } from "../utils/xml-detection.js";
+import { isFileBody } from "./send-operation.js";
 
 /**
  * Props for the {@link DeserializeOperation} component.
@@ -236,6 +237,14 @@ function getResponseBodyExpression(
     return code`return result.body;`;
   }
 
+  // File response (Http.File) — the getBinaryResponse helper has already read
+  // the raw binary stream. Construct a File object from the raw body and
+  // response headers. The contents are the raw bytes, contentType comes from
+  // the Content-Type header, and filename from Content-Disposition if present.
+  if (isFileResponse(responseType)) {
+    return code`return { contents: result.body, contentType: result.headers["content-type"] };`;
+  }
+
   // XML model responses need the XML deserializer which parses the raw XML
   // string from result.body. Only used when ALL response content types are XML
   // (not a mix of JSON and XML). The HTTP runtime does NOT parse XML responses
@@ -331,6 +340,22 @@ export function isBinaryBytesResponse(type: SdkType): boolean {
   if (type.kind !== "bytes") return false;
   const encode = (type as any).encode;
   return encode === "bytes" || encode === "binary";
+}
+
+/**
+ * Checks whether a response type is a File model (Http.File).
+ *
+ * File responses use the `getBinaryResponse` helper to read the raw binary
+ * stream, then construct a File object with `contents`, `contentType`, etc.
+ * from the raw response body and headers.
+ *
+ * TCGC marks File body models with `serializationOptions.binary.isFile`.
+ *
+ * @param type - The SDK response type.
+ * @returns `true` if the type is a File body model.
+ */
+export function isFileResponse(type: SdkType): boolean {
+  return isFileBody(type);
 }
 
 /**

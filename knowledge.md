@@ -2569,3 +2569,11 @@ The emitter treats `Http.File` body operations like regular JSON models, generat
 The serializers/deserializers are correct for *JSON-serialized file objects* (e.g., multipart), but wrong for file body operations where the file is the entire HTTP body.
 
 Tracked by: `EMITTER-FIX-FILE-BODY` in prd.json.
+
+## Design Decisions
+
+### File Body Handling (EMITTER-FIX-FILE-BODY)
+**Decision**: Change only operation code (send/receive/public) to handle File bodies specially. Leave serializer generation as-is (dead code for File models).
+**Rationale**: Lower risk, simpler change. File models might theoretically appear in non-File body contexts where JSON serialization is needed. Dead serializers are harmless.
+**Detection**: `type.kind === "model" && (type as SdkModelType).serializationOptions?.binary?.isFile === true`
+**Key TCGC property**: `BinarySerializationOptions.isFile` is set when `httpBody?.bodyKind === "file"` in TCGC's `updateSerializationOptions()`.
