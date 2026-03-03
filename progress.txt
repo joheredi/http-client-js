@@ -3571,3 +3571,17 @@ Created `test/e2e/http/authentication/noauth/union/main.test.ts` with 2 e2e test
 - Both operations expect 204 success; mock server returns error codes to test error path
 - Pattern: try/catch with expect.unreachable() guard, matching existing e2e error test patterns
 - E2E tests: 921 passed (up from 919), 63 skipped. All unit (1028) and smoke (1) tests pass.
+
+---
+
+## RC28 — E2E Test for Parameters_Query_Constant (2026-03-03)
+
+**Task:** COVERAGE-TEST-QUERY-CONSTANT
+**What:** Created e2e test file `test/e2e/http/parameters/query/main.test.ts` to verify constant query parameter handling.
+**Details:**
+- The generated client at `test/e2e/generated/parameters/query/` already existed with a `QueryClient` class exposing `constant.post()`.
+- The test instantiates `QueryClient` pointed at the Spector mock server and calls `client.constant.post()`.
+- The mock server validates that the constant query parameter `queryParam=constantValue` is present in the request URL.
+- Test passes — the constant value is automatically embedded in the generated URL template.
+**Pattern:** Standard e2e test pattern — no assertions needed, mock server validates correctness. Tests pass if no error is thrown.
+**CI:** All tests pass (unit: 1028, smoke: 1, e2e: 922).
