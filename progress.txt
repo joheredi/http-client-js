@@ -3451,3 +3451,28 @@ Added 24 new e2e test cases to `test/e2e/http/encode/duration/main.test.ts` cove
 ### Results
 - 1028 unit/scenario tests pass (3 skipped)
 - 901 e2e tests pass (63 skipped), including 30 new passing duration tests + 12 skipped property tests
+
+## 2026-03-03: COVERAGE-TEST-PAGEABLE-GAPS — Added 8 missing pageable e2e test cases
+
+### What was done
+Added 8 new e2e test cases to `test/e2e/http/payload/pageable/main.test.ts`:
+1. `linkString` — pagination with string nextLink (not URL type)
+2. `nestedLink` — pagination with nested link in response structure (nestedItems.pets, nestedNext.next)
+3. `pageSize.listWithPageSize` — pagination with explicit pageSize=2 query parameter
+4. `pageSize.listWithoutContinuation` — single-page response with no continuation (4 pets)
+5. `continuationToken.requestQueryNestedResponseBody` — token in query, nested response body
+6. `continuationToken.requestHeaderNestedResponseBody` — token in header, nested response body
+7. `xmlPagination.listWithNextLink` — XML response with NextLink pagination
+8. `xmlPagination.listWithContinuation` — XML response with NextMarker continuation token
+
+### Test counts
+- Unit/scenario: 1028 passed (3 skipped)
+- Smoke: 1 passed
+- E2E: 909 passed (63 skipped) — up from 901
+
+### Pattern notes
+- All pageable operations return the full response object at runtime despite being typed as Promise<Pet[]>
+- Tests cast to `any` and use `result.pets ?? result` to extract items
+- For nested responses: `result.nestedItems?.pets ?? result.pets ?? result`
+- XML tests verify deserialization produces the same { id, name } shape as JSON tests
+- Mock server validates required headers/query params (foo, bar) for continuation token tests

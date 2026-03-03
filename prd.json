@@ -1172,7 +1172,7 @@
       "title": "Add missing e2e test cases for pageable scenarios",
       "category": "testing/e2e-missing",
       "priority": "P1",
-      "status": "pending",
+      "status": "done",
       "kind": "feature",
       "dependencies": [],
       "design_review": {
