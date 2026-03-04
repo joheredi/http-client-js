@@ -19,6 +19,17 @@ import { getOptionalAwareTypeExpression } from "./type-expression.js";
 export interface OperationOptionsProps {
   /** The TCGC service method whose optional parameters should be rendered. */
   method: SdkServiceMethod<SdkHttpOperation>;
+  /**
+   * PascalCase operation group names from the client hierarchy.
+   *
+   * When an operation lives under sub-clients (e.g., Root → Property → method),
+   * the prefixes array is `["Property"]`. These are prepended to the option
+   * param name to match the legacy emitter convention:
+   * `{GroupPrefix}{OperationName}OptionalParams`.
+   *
+   * Empty array for root-level operations (no sub-client).
+   */
+  prefixes?: string[];
 }
 
 /**
@@ -46,8 +57,8 @@ export interface OperationOptionsProps {
  */
 export function OperationOptionsDeclaration(props: OperationOptionsProps) {
   const { flavor, runtimeLib } = useFlavorContext();
-  const { method } = props;
-  const interfaceName = getOptionsInterfaceName(method);
+  const { method, prefixes } = props;
+  const interfaceName = getOptionsInterfaceName(method, prefixes);
   const optionalParams = getOptionalParameters(method);
   const additionalMembers = getAdditionalMembers(method, flavor);
 
@@ -97,18 +108,31 @@ interface OptionsMember {
 /**
  * Computes the interface name for an operation's optional parameters.
  *
- * Follows the legacy emitter convention: PascalCase operation name + "OptionalParams".
- * The first character of the operation name is capitalized to match TypeScript
- * interface naming conventions (e.g., `getUser` → `GetUserOptionalParams`).
+ * Follows the legacy emitter convention: PascalCase operation group prefix +
+ * PascalCase operation name + "OptionalParams". For root-level operations
+ * (no groups), the prefix is empty.
+ *
+ * Examples:
+ * - Root operation `getUser` → `GetUserOptionalParams`
+ * - Group `Property`, operation `commaDelimited` → `PropertyCommaDelimitedOptionalParams`
+ * - Group `ValueTypes`, operation `getBoolean` → `ValueTypesGetBooleanOptionalParams`
  *
  * @param method - The TCGC service method.
+ * @param prefixes - PascalCase operation group names from the client hierarchy.
  * @returns The interface name string.
  */
 function getOptionsInterfaceName(
   method: SdkServiceMethod<SdkHttpOperation>,
+  prefixes?: string[],
 ): string {
+  const groupPrefix =
+    prefixes && prefixes.length > 0
+      ? prefixes
+          .map((p) => p.charAt(0).toUpperCase() + p.slice(1))
+          .join("")
+      : "";
   const baseName = method.name.charAt(0).toUpperCase() + method.name.slice(1);
-  return `${baseName}OptionalParams`;
+  return `${groupPrefix}${baseName}OptionalParams`;
 }
 
 /**

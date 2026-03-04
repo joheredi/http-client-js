@@ -505,7 +505,7 @@ import {
   buildPagedAsyncIterator,
   type PagedAsyncIterableIterator,
 } from "../../static-helpers/pagingHelpers.js";
-import { ListOptionalParams } from "./options.js";
+import { OperationsListOptionalParams } from "./options.js";
 import {
   createRestError,
   operationOptionsToRequestParameters,
@@ -517,7 +517,7 @@ import { ContosoContext } from "../../contosoClientContext.js";
 
 export function _listSend(
   context: ContosoContext,
-  options: ListOptionalParams = { requestOptions: {} },
+  options: OperationsListOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
   const path = expandUrlTemplate(
     "/providers/Microsoft.Contoso/operations{?api%2Dversion}",
@@ -548,11 +548,11 @@ export async function _listDeserialize(
  * List the operations for the provider
  *
  * @param {ContosoContext} context
- * @param {ListOptionalParams} options
+ * @param {OperationsListOptionalParams} options
  */
 export function list(
   context: ContosoContext,
-  options: ListOptionalParams = { requestOptions: {} },
+  options: OperationsListOptionalParams = { requestOptions: {} },
 ): PagedAsyncIterableIterator<Operation> {
   return buildPagedAsyncIterator(
     context,

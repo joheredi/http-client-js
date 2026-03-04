@@ -55,7 +55,7 @@ import {
   type ResourceOperationStatusWidgetSuiteWidgetSuiteError,
   resourceOperationStatusWidgetSuiteWidgetSuiteErrorDeserializer,
 } from "../../models/models.js";
-import { GetWidgetOperationStatusOptionalParams } from "./options.js";
+import { WidgetsGetWidgetOperationStatusOptionalParams } from "./options.js";
 import {
   createRestError,
   operationOptionsToRequestParameters,
@@ -70,7 +70,7 @@ export function _getWidgetOperationStatusSend(
   apiVersion: string,
   name: string,
   operationId: string,
-  options: GetWidgetOperationStatusOptionalParams = { requestOptions: {} },
+  options: WidgetsGetWidgetOperationStatusOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
   const path = expandUrlTemplate(
     "/widgets/{name}/operations/{operationId}{?api%2Dversion}",
@@ -106,14 +106,14 @@ export async function _getWidgetOperationStatusDeserialize(
  * @param {string} apiVersion
  * @param {string} name
  * @param {string} operationId
- * @param {GetWidgetOperationStatusOptionalParams} options
+ * @param {WidgetsGetWidgetOperationStatusOptionalParams} options
  */
 export async function getWidgetOperationStatus(
   context: TestingContext,
   apiVersion: string,
   name: string,
   operationId: string,
-  options: GetWidgetOperationStatusOptionalParams = { requestOptions: {} },
+  options: WidgetsGetWidgetOperationStatusOptionalParams = { requestOptions: {} },
 ): Promise<ResourceOperationStatusWidgetSuiteWidgetSuiteError> {
   const result = await _getWidgetOperationStatusSend(
     context,

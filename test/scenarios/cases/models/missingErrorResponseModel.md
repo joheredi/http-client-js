@@ -113,7 +113,7 @@ import {
   type AssetChainSummaryResult,
   assetChainSummaryResultDeserializer,
 } from "../../models/models.js";
-import type { GetAssetChainSummaryOptionalParams } from "./options.js";
+import type { OperationsGetAssetChainSummaryOptionalParams } from "./options.js";
 import {
   createRestError,
   operationOptionsToRequestParameters,
@@ -124,7 +124,7 @@ import type { TestServiceContext } from "../../testServiceClientContext.js";
 
 export function _getAssetChainSummarySend(
   context: TestServiceContext,
-  options: GetAssetChainSummaryOptionalParams = { requestOptions: {} },
+  options: OperationsGetAssetChainSummaryOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
   return context.path("/assetChainSummary").get({
     ...operationOptionsToRequestParameters(options),
@@ -148,7 +148,7 @@ export async function _getAssetChainSummaryDeserialize(
 
 export async function getAssetChainSummary(
   context: TestServiceContext,
-  options: GetAssetChainSummaryOptionalParams = { requestOptions: {} },
+  options: OperationsGetAssetChainSummaryOptionalParams = { requestOptions: {} },
 ): Promise<AssetChainSummaryResult> {
   const result = await _getAssetChainSummarySend(context, options);
   return _getAssetChainSummaryDeserialize(result);

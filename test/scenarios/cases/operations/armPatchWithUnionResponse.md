@@ -68,7 +68,7 @@ import {
   PartnerTopicUpdateParameters,
   partnerTopicUpdateParametersSerializer,
 } from "../../models/models.js";
-import { UpdateOptionalParams } from "./options.js";
+import { PartnerTopicsUpdateOptionalParams } from "./options.js";
 import {
   createRestError,
   operationOptionsToRequestParameters,
@@ -84,7 +84,7 @@ export function _updateSend(
   resourceGroupName: string,
   partnerTopicName: string,
   properties: PartnerTopicUpdateParameters,
-  options: UpdateOptionalParams = { requestOptions: {} },
+  options: PartnerTopicsUpdateOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
   const path = expandUrlTemplate(
     "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.TestArmPatch/partnerTopics/{partnerTopicName}{?api%2Dversion}",
@@ -126,7 +126,7 @@ export async function _updateDeserialize(
  * @param {string} resourceGroupName
  * @param {string} partnerTopicName
  * @param {PartnerTopicUpdateParameters} properties
- * @param {UpdateOptionalParams} options
+ * @param {PartnerTopicsUpdateOptionalParams} options
  */
 export async function update(
   context: TestArmPatchContext,
@@ -134,7 +134,7 @@ export async function update(
   resourceGroupName: string,
   partnerTopicName: string,
   properties: PartnerTopicUpdateParameters,
-  options: UpdateOptionalParams = { requestOptions: {} },
+  options: PartnerTopicsUpdateOptionalParams = { requestOptions: {} },
 ): Promise<PartnerTopic> {
   const result = await _updateSend(
     context,

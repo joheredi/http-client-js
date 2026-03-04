@@ -397,6 +397,7 @@ describe("OperationFiles", () => {
 
       // Check that operations file imports options from same-directory flat path
       expect(template).toRenderTo({
+        "api/index.ts": expect.any(String),
         [`api/${normalizedName}/index.ts`]: expect.any(String),
         [`api/${normalizedName}/operations.ts`]: expect.stringContaining(
           'from "./options.js"',

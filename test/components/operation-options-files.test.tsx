@@ -92,6 +92,7 @@ describe("OperationOptionsFiles", () => {
 
       // Should produce api/options.ts with the PingOptionalParams interface
       expect(template).toRenderTo({
+        "api/index.ts": expect.any(String),
         "api/options.ts": expect.stringContaining("PingOptionalParams"),
       });
     });
@@ -109,6 +110,7 @@ describe("OperationOptionsFiles", () => {
       );
 
       expect(template).toRenderTo({
+        "api/index.ts": expect.any(String),
         "api/options.ts": expect.stringContaining("extends OperationOptions"),
       });
     });
@@ -129,6 +131,7 @@ describe("OperationOptionsFiles", () => {
 
       // Both files should exist: options.ts with the declaration, operations.ts importing it
       expect(template).toRenderTo({
+        "api/index.ts": expect.any(String),
         "api/options.ts": expect.stringContaining("PingOptionalParams"),
         "api/operations.ts": expect.stringContaining("./options.js"),
       });
@@ -158,9 +161,11 @@ describe("OperationOptionsFiles", () => {
     );
 
     expect(template).toRenderTo({
+      "api/index.ts": expect.any(String),
       "api/options.ts": expect.stringContaining("PingOptionalParams"),
     });
     expect(template).toRenderTo({
+      "api/index.ts": expect.any(String),
       "api/options.ts": expect.stringContaining("HealthCheckOptionalParams"),
     });
   });
@@ -218,14 +223,16 @@ describe("OperationOptionsFiles", () => {
       const normalizedName =
         childName.charAt(0).toLowerCase() + childName.slice(1);
       expect(template).toRenderTo({
+        "api/index.ts": expect.any(String),
         [`api/${normalizedName}/index.ts`]: expect.any(String),
         [`api/${normalizedName}/options.ts`]: expect.stringContaining(
-          "ListWidgetsOptionalParams",
+          `${childName}ListWidgetsOptionalParams`,
         ),
       });
     } else {
       // If TCGC flattens to root, options should be in api/options.ts
       expect(template).toRenderTo({
+        "api/index.ts": expect.any(String),
         "api/options.ts": expect.stringContaining("ListWidgetsOptionalParams"),
       });
     }
@@ -253,9 +260,11 @@ describe("OperationOptionsFiles", () => {
     );
 
     expect(template).toRenderTo({
+      "api/index.ts": expect.any(String),
       "api/options.ts": expect.stringContaining("SearchOptionalParams"),
     });
     expect(template).toRenderTo({
+      "api/index.ts": expect.any(String),
       "api/options.ts": expect.stringContaining("query"),
     });
   });

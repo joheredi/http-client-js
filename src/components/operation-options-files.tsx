@@ -17,6 +17,8 @@ import { OperationOptionsDeclaration } from "./operation-options.js";
 interface OperationGroup {
   /** Slash-separated prefix path. Empty string for root-level operations. */
   prefixPath: string;
+  /** PascalCase operation group names from the client hierarchy (for naming). */
+  prefixes: string[];
   /** The operations belonging to this group. */
   operations: SdkServiceMethod<SdkHttpOperation>[];
 }
@@ -55,6 +57,7 @@ export function OperationOptionsFiles() {
 
   return (
     <SourceDirectory path="api">
+      <BarrelFile />
       <For each={groups}>
         {(group) => <OperationOptionsGroupFile group={group} />}
       </For>
@@ -89,7 +92,12 @@ function OperationOptionsGroupFile(props: OperationOptionsGroupFileProps) {
   const content = (
     <SourceFile path="options.ts">
       <For each={group.operations} doubleHardline>
-        {(method) => <OperationOptionsDeclaration method={method} />}
+        {(method) => (
+          <OperationOptionsDeclaration
+            method={method}
+            prefixes={group.prefixes}
+          />
+        )}
       </For>
     </SourceFile>
   );
@@ -120,33 +128,43 @@ function OperationOptionsGroupFile(props: OperationOptionsGroupFileProps) {
 function collectOperationGroups(
   clients: SdkClientType<SdkHttpOperation>[],
 ): OperationGroup[] {
-  const groupMap = new Map<string, SdkServiceMethod<SdkHttpOperation>[]>();
+  const groupMap = new Map<
+    string,
+    { operations: SdkServiceMethod<SdkHttpOperation>[]; prefixes: string[] }
+  >();
 
-  const queue: [string[], SdkClientType<SdkHttpOperation>][] = clients.map(
-    (c) => [[], c],
-  );
+  const queue: [string[], string[], SdkClientType<SdkHttpOperation>][] =
+    clients.map((c) => [[], [], c]);
 
   while (queue.length > 0) {
-    const [prefixes, client] = queue.shift()!;
-    const prefixKey = prefixes.join("/");
+    const [dirPrefixes, namePrefixes, client] = queue.shift()!;
+    const prefixKey = dirPrefixes.join("/");
 
     for (const method of client.methods) {
       if (!groupMap.has(prefixKey)) {
-        groupMap.set(prefixKey, []);
+        groupMap.set(prefixKey, { operations: [], prefixes: namePrefixes });
       }
-      groupMap.get(prefixKey)!.push(method);
+      groupMap.get(prefixKey)!.operations.push(method);
     }
 
     if (client.children) {
       for (const child of client.children) {
-        queue.push([[...prefixes, normalizeName(child.name)], child]);
+        queue.push([
+          [...dirPrefixes, normalizeName(child.name)],
+          [...namePrefixes, child.name],
+          child,
+        ]);
       }
     }
   }
 
   return Array.from(groupMap.entries())
-    .filter(([, ops]) => ops.length > 0)
-    .map(([prefixPath, operations]) => ({ prefixPath, operations }));
+    .filter(([, group]) => group.operations.length > 0)
+    .map(([prefixPath, group]) => ({
+      prefixPath,
+      prefixes: group.prefixes,
+      operations: group.operations,
+    }));
 }
 
 /**

@@ -132,7 +132,7 @@ import type { OperationOptions } from "@azure-rest/core-client";
 /**
  * Optional parameters for the create operation.
  */
-export interface CreateOptionalParams extends OperationOptions {
+export interface TestOperationsCreateOptionalParams extends OperationOptions {
   optionalNullableQuery?: string;
   optionalNullableHeader?: string;
   optionalNullableBody?: Widget;
@@ -177,7 +177,7 @@ import type { OperationOptions } from "@typespec/ts-http-runtime";
 /**
  * Optional parameters for the create operation.
  */
-export interface CreateOptionalParams extends OperationOptions {
+export interface TestOperationsCreateOptionalParams extends OperationOptions {
   optionalNullableQuery?: string | null;
   optionalNullableHeader?: string | null;
   optionalNullableBody?: Widget | null;

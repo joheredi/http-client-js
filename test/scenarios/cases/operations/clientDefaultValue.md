@@ -63,8 +63,8 @@ import {
   configurationDeserializer,
 } from "../../models/models.js";
 import type {
-  CreateOptionalParams,
-  TestQueryOptionalParams,
+  OperationsCreateOptionalParams,
+  OperationsTestQueryOptionalParams,
 } from "./options.js";
 import {
   createRestError,
@@ -77,7 +77,7 @@ import type { TestingContext } from "../../testingClientContext.js";
 
 export function _testQuerySend(
   context: TestingContext,
-  options: TestQueryOptionalParams = { requestOptions: {} },
+  options: OperationsTestQueryOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
   const path = expandUrlTemplate(
     "/api/test{?maxResults,sortOrder,limit,typeMismatch,serverDefault}",
@@ -115,7 +115,7 @@ export async function _testQueryDeserialize(
 
 export async function testQuery(
   context: TestingContext,
-  options: TestQueryOptionalParams = { requestOptions: {} },
+  options: OperationsTestQueryOptionalParams = { requestOptions: {} },
 ): Promise<Configuration> {
   const result = await _testQuerySend(context, options);
   return _testQueryDeserialize(result);
@@ -123,7 +123,7 @@ export async function testQuery(
 
 export function _createSend(
   context: TestingContext,
-  options: CreateOptionalParams = { requestOptions: {} },
+  options: OperationsCreateOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
   return context.path("/api/create").post({
     ...operationOptionsToRequestParameters(options),
@@ -146,7 +146,7 @@ export async function _createDeserialize(
 
 export async function create(
   context: TestingContext,
-  options: CreateOptionalParams = { requestOptions: {} },
+  options: OperationsCreateOptionalParams = { requestOptions: {} },
 ): Promise<string> {
   const result = await _createSend(context, options);
   return _createDeserialize(result);
@@ -204,8 +204,8 @@ import {
   configurationDeserializer,
 } from "../../models/models.js";
 import type {
-  CreateRequiredOptionalParams,
-  TestRequiredOptionalParams,
+  OperationsCreateRequiredOptionalParams,
+  OperationsTestRequiredOptionalParams,
 } from "./options.js";
 import {
   createRestError,
@@ -219,7 +219,7 @@ import type { TestingContext } from "../../testingClientContext.js";
 export function _testRequiredSend(
   context: TestingContext,
   limit: number,
-  options: TestRequiredOptionalParams = { requestOptions: {} },
+  options: OperationsTestRequiredOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
   const path = expandUrlTemplate(
     "/api/required{?maxResults,limit}",
@@ -250,7 +250,7 @@ export async function _testRequiredDeserialize(
 export async function testRequired(
   context: TestingContext,
   limit: number,
-  options: TestRequiredOptionalParams = { requestOptions: {} },
+  options: OperationsTestRequiredOptionalParams = { requestOptions: {} },
 ): Promise<Configuration> {
   const result = await _testRequiredSend(context, limit, options);
   return _testRequiredDeserialize(result);
@@ -258,7 +258,7 @@ export async function testRequired(
 
 export function _createRequiredSend(
   context: TestingContext,
-  options: CreateRequiredOptionalParams = { requestOptions: {} },
+  options: OperationsCreateRequiredOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
   return context.path("/api/createRequired").post({
     ...operationOptionsToRequestParameters(options),
@@ -281,7 +281,7 @@ export async function _createRequiredDeserialize(
 
 export async function createRequired(
   context: TestingContext,
-  options: CreateRequiredOptionalParams = { requestOptions: {} },
+  options: OperationsCreateRequiredOptionalParams = { requestOptions: {} },
 ): Promise<string> {
   const result = await _createRequiredSend(context, options);
   return _createRequiredDeserialize(result);

@@ -290,7 +290,7 @@ import {
   type WebAppCollection,
   webAppCollectionDeserializer,
 } from "../../models/models.js";
-import { SuspendOptionalParams } from "./options.js";
+import { SitesSuspendOptionalParams } from "./options.js";
 import {
   createRestError,
   operationOptionsToRequestParameters,
@@ -304,7 +304,7 @@ export function _suspendSend(
   context: WebContext,
   resourceGroupName: string,
   name: string,
-  options: SuspendOptionalParams = { requestOptions: {} },
+  options: SitesSuspendOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
   const path = expandUrlTemplate(
     "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/suspend{?api%2Dversion}",
@@ -342,13 +342,13 @@ export async function _suspendDeserialize(
  * @param {WebContext} context
  * @param {string} resourceGroupName
  * @param {string} name
- * @param {SuspendOptionalParams} options
+ * @param {SitesSuspendOptionalParams} options
  */
 export async function suspend(
   context: WebContext,
   resourceGroupName: string,
   name: string,
-  options: SuspendOptionalParams = { requestOptions: {} },
+  options: SitesSuspendOptionalParams = { requestOptions: {} },
 ): Promise<Site[]> {
   const result = await _suspendSend(context, resourceGroupName, name, options);
   return _suspendDeserialize(result);

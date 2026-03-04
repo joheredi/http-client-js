@@ -71,7 +71,7 @@ import {
   type TestVerificationResult,
   testVerificationResultDeserializer,
 } from "../../models/models.js";
-import { VerifyOptionalParams } from "./options.js";
+import { DeviceLocationVerifyOptionalParams } from "./options.js";
 import {
   createRestError,
   operationOptionsToRequestParameters,
@@ -85,7 +85,7 @@ export function _verifySend(
   context: TestingContext,
   body: TestVerificationContent,
   apcGatewayId: string,
-  options: VerifyOptionalParams = { requestOptions: {} },
+  options: DeviceLocationVerifyOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
   const path = expandUrlTemplate(
     "/device-location/location:verify{?api%2Dversion}",
@@ -124,13 +124,13 @@ export async function _verifyDeserialize(
  * @param {TestingContext} context
  * @param {TestVerificationContent} body
  * @param {string} apcGatewayId
- * @param {VerifyOptionalParams} options
+ * @param {DeviceLocationVerifyOptionalParams} options
  */
 export async function verify(
   context: TestingContext,
   body: TestVerificationContent,
   apcGatewayId: string,
-  options: VerifyOptionalParams = { requestOptions: {} },
+  options: DeviceLocationVerifyOptionalParams = { requestOptions: {} },
 ): Promise<TestVerificationResult> {
   const result = await _verifySend(context, body, apcGatewayId, options);
   return _verifyDeserialize(result);

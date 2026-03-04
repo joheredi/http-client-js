@@ -273,7 +273,7 @@ import {
   type DocumentBase,
   documentBaseSerializer,
 } from "../../models/models.js";
-import type { PublishOptionalParams } from "./options.js";
+import type { DocumentsPublishOptionalParams } from "./options.js";
 import {
   createRestError,
   operationOptionsToRequestParameters,
@@ -285,7 +285,7 @@ import type { TestingContext } from "../../testingClientContext.js";
 export function _publishSend(
   context: TestingContext,
   endpointParam: DocumentBase,
-  options: PublishOptionalParams = { requestOptions: {} },
+  options: DocumentsPublishOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
   return context.path("/documents").post({
     ...operationOptionsToRequestParameters(options),
@@ -308,7 +308,7 @@ export async function _publishDeserialize(
 export async function publish(
   context: TestingContext,
   endpointParam: DocumentBase,
-  options: PublishOptionalParams = { requestOptions: {} },
+  options: DocumentsPublishOptionalParams = { requestOptions: {} },
 ): Promise<void> {
   const result = await _publishSend(context, endpointParam, options);
   return _publishDeserialize(result);

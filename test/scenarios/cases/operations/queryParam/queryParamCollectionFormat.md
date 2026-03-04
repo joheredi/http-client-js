@@ -41,7 +41,7 @@ import {
   buildPipeCollection,
   buildSsvCollection,
 } from "../../static-helpers/serializationHelpers.js";
-import type { CreateOptionalParams, ReadOptionalParams } from "./options.js";
+import type { QueryOperationsCreateOptionalParams, QueryOperationsReadOptionalParams } from "./options.js";
 import {
   createRestError,
   operationOptionsToRequestParameters,
@@ -54,7 +54,7 @@ import type { TestingContext } from "../../testingClientContext.js";
 export function _readSend(
   context: TestingContext,
   simpleArray: string[],
-  options: ReadOptionalParams = { requestOptions: {} },
+  options: QueryOperationsReadOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
   const path = expandUrlTemplate(
     "/query{?simpleArray,simpleOptionalArray}",
@@ -83,7 +83,7 @@ export async function _readDeserialize(
 export async function read(
   context: TestingContext,
   simpleArray: string[],
-  options: ReadOptionalParams = { requestOptions: {} },
+  options: QueryOperationsReadOptionalParams = { requestOptions: {} },
 ): Promise<void> {
   const result = await _readSend(context, simpleArray, options);
   return _readDeserialize(result);
@@ -93,7 +93,7 @@ export function _createSend(
   context: TestingContext,
   ssvArray: number[],
   pipeArray: string[],
-  options: CreateOptionalParams = { requestOptions: {} },
+  options: QueryOperationsCreateOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
   const path = expandUrlTemplate(
     "/query{?ssvArray,ssvOptionalArray,pipeArray}",
@@ -124,7 +124,7 @@ export async function create(
   context: TestingContext,
   ssvArray: number[],
   pipeArray: string[],
-  options: CreateOptionalParams = { requestOptions: {} },
+  options: QueryOperationsCreateOptionalParams = { requestOptions: {} },
 ): Promise<void> {
   const result = await _createSend(context, ssvArray, pipeArray, options);
   return _createDeserialize(result);
@@ -154,7 +154,7 @@ interface QueryOperations {
 ## Operations
 
 ```ts operations
-import type { ReadOptionalParams } from "./options.js";
+import type { QueryOperationsReadOptionalParams } from "./options.js";
 import {
   createRestError,
   operationOptionsToRequestParameters,
@@ -167,7 +167,7 @@ import type { TestingContext } from "../../testingClientContext.js";
 export function _readSend(
   context: TestingContext,
   ssvArray: number[],
-  options: ReadOptionalParams = { requestOptions: {} },
+  options: QueryOperationsReadOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
   const path = expandUrlTemplate(
     "/query{?ssvArray*,ssvOptionalArray*}",
@@ -193,7 +193,7 @@ export async function _readDeserialize(
 export async function read(
   context: TestingContext,
   ssvArray: number[],
-  options: ReadOptionalParams = { requestOptions: {} },
+  options: QueryOperationsReadOptionalParams = { requestOptions: {} },
 ): Promise<void> {
   const result = await _readSend(context, ssvArray, options);
   return _readDeserialize(result);

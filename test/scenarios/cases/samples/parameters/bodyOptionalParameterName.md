@@ -126,7 +126,7 @@ import type { OperationOptions } from "@azure-rest/core-client";
 /**
  * Optional parameters for the backup operation.
  */
-export interface BackupOptionalParams extends OperationOptions {
+export interface CloudHsmClustersBackupOptionalParams extends OperationOptions {
   /**
    * Delay to wait until next poll, in milliseconds.
    */
@@ -151,7 +151,7 @@ import {
   backupResultDeserializer,
 } from "../../models/models.js";
 import { getLongRunningPoller } from "../../static-helpers/pollingHelpers.js";
-import { BackupOptionalParams } from "./options.js";
+import { CloudHsmClustersBackupOptionalParams } from "./options.js";
 import {
   createRestError,
   operationOptionsToRequestParameters,
@@ -166,7 +166,7 @@ export function _backupSend(
   context: HardwareSecurityModulesContext,
   resourceGroupName: string,
   cloudHsmClusterName: string,
-  options: BackupOptionalParams = { requestOptions: {} },
+  options: CloudHsmClustersBackupOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
   const path = expandUrlTemplate(
     "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.HardwareSecurityModules/cloudHsmClusters/{cloudHsmClusterName}/backup{?api%2Dversion}",
@@ -208,13 +208,13 @@ export async function _backupDeserialize(
  * @param {HardwareSecurityModulesContext} context
  * @param {string} resourceGroupName
  * @param {string} cloudHsmClusterName
- * @param {BackupOptionalParams} options
+ * @param {CloudHsmClustersBackupOptionalParams} options
  */
 export function backup(
   context: HardwareSecurityModulesContext,
   resourceGroupName: string,
   cloudHsmClusterName: string,
-  options: BackupOptionalParams = { requestOptions: {} },
+  options: CloudHsmClustersBackupOptionalParams = { requestOptions: {} },
 ): PollerLike<OperationState<BackupResult>, BackupResult> {
   return getLongRunningPoller(
     context,

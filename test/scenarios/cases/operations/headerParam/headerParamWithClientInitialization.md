@@ -159,7 +159,7 @@ import {
   type SavingsPlanModel,
   savingsPlanModelDeserializer,
 } from "../../models/models.js";
-import { GetOptionalParams } from "./options.js";
+import { SavingsPlanModelsGetOptionalParams } from "./options.js";
 import {
   createRestError,
   operationOptionsToRequestParameters,
@@ -176,7 +176,7 @@ export function _getSend(
   resourceGroupName: string,
   savingsPlanOrderId: string,
   savingsPlanId: string,
-  options: GetOptionalParams = { requestOptions: {} },
+  options: SavingsPlanModelsGetOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
   const path = expandUrlTemplate(
     "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ThisWillBeReplaced/savingsPlanOrders/{savingsPlanOrderId}/savingsPlans/{savingsPlanId}{?api%2Dversion}",
@@ -221,7 +221,7 @@ export async function _getDeserialize(
  * @param {string} resourceGroupName
  * @param {string} savingsPlanOrderId
  * @param {string} savingsPlanId
- * @param {GetOptionalParams} options
+ * @param {SavingsPlanModelsGetOptionalParams} options
  */
 export async function get(
   context: BillingBenefitsContext,
@@ -230,7 +230,7 @@ export async function get(
   resourceGroupName: string,
   savingsPlanOrderId: string,
   savingsPlanId: string,
-  options: GetOptionalParams = { requestOptions: {} },
+  options: SavingsPlanModelsGetOptionalParams = { requestOptions: {} },
 ): Promise<SavingsPlanModel> {
   const result = await _getSend(
     context,
@@ -399,7 +399,7 @@ import {
   type SavingsPlanModel,
   savingsPlanModelDeserializer,
 } from "../../models/models.js";
-import { GetOptionalParams } from "./options.js";
+import { SavingsPlanModelsGetOptionalParams } from "./options.js";
 import {
   createRestError,
   operationOptionsToRequestParameters,
@@ -416,7 +416,7 @@ export function _getSend(
   resourceGroupName: string,
   savingsPlanOrderId: string,
   savingsPlanId: string,
-  options: GetOptionalParams = { requestOptions: {} },
+  options: SavingsPlanModelsGetOptionalParams = { requestOptions: {} },
 ): StreamableMethod {
   const path = expandUrlTemplate(
     "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ThisWillBeReplaced/savingsPlanOrders/{savingsPlanOrderId}/savingsPlans/{savingsPlanId}{?api%2Dversion}",
@@ -461,7 +461,7 @@ export async function _getDeserialize(
  * @param {string} resourceGroupName
  * @param {string} savingsPlanOrderId
  * @param {string} savingsPlanId
- * @param {GetOptionalParams} options
+ * @param {SavingsPlanModelsGetOptionalParams} options
  */
 export async function get(
   context: BillingBenefitsContext,
@@ -470,7 +470,7 @@ export async function get(
   resourceGroupName: string,
   savingsPlanOrderId: string,
   savingsPlanId: string,
-  options: GetOptionalParams = { requestOptions: {} },
+  options: SavingsPlanModelsGetOptionalParams = { requestOptions: {} },
 ): Promise<SavingsPlanModel> {
   const result = await _getSend(
     context,
