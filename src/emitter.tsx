@@ -36,7 +36,10 @@ import type {
   SdkHttpOperation,
 } from "@azure-tools/typespec-client-generator-core";
 import { BarrelFile } from "@alloy-js/typescript";
-import { flattenClientHierarchy } from "./utils/flatten-clients.js";
+import {
+  flattenClientHierarchy,
+  detectNameConflicts,
+} from "./utils/flatten-clients.js";
 
 /**
  * All external packages needed for Azure-flavored SDK generation.
@@ -237,11 +240,21 @@ export async function $onEmit(context: EmitContext) {
     applyClientRenames(sdkContext.sdkPackage.clients, titleMap);
   }
 
-  // Flatten client hierarchy when hierarchy-client is not explicitly enabled.
-  // Most specs use flat clients (legacy default was hierarchy-client: false).
-  // This moves child client methods onto the root client, matching legacy output.
+  // Resolve operation group behavior using dual-option logic matching the
+  // legacy emitter. hierarchy-client controls nesting depth, while
+  // enable-operation-group controls whether groups exist at all.
   const hierarchyClient = context.options?.["hierarchy-client"] === true;
-  if (!hierarchyClient) {
+  const explicitEnableOperationGroup = context.options?.[
+    "enable-operation-group"
+  ] as boolean | undefined;
+  const enableOperationGroup =
+    explicitEnableOperationGroup ??
+    detectNameConflicts(sdkContext.sdkPackage.clients);
+
+  // Flatten client hierarchy only when both hierarchy-client is false
+  // AND enable-operation-group resolves to false. When operation groups
+  // are enabled, children are preserved as operation group properties.
+  if (!hierarchyClient && !enableOperationGroup) {
     sdkContext.sdkPackage.clients = flattenClientHierarchy(
       sdkContext.sdkPackage.clients,
     );
@@ -254,6 +267,7 @@ export async function $onEmit(context: EmitContext) {
 
   const emitterOptions = {
     hierarchyClient: context.options?.["hierarchy-client"] === true,
+    enableOperationGroup,
     includeHeadersInResponse:
       context.options?.["include-headers-in-response"] === true,
     experimentalExtensibleEnums:

@@ -4,6 +4,7 @@ export interface HttpClientJsEmitterOptions {
   "generate-metadata"?: boolean;
   flavor?: string;
   "hierarchy-client"?: boolean;
+  "enable-operation-group"?: boolean;
   "include-headers-in-response"?: boolean;
   "experimental-extensible-enums"?: boolean;
   "ignore-nullable-on-optional"?: boolean;
@@ -36,6 +37,15 @@ const EmitterOptionsSchema: JSONSchemaType<HttpClientJsEmitterOptions> = {
         "When true, preserves the TCGC client hierarchy as sub-client accessors. " +
         "When false (default), flattens child client operations onto the root client. " +
         "Set to true for specs with intentional deep operation group nesting.",
+    },
+    "enable-operation-group": {
+      type: "boolean",
+      nullable: true,
+      description:
+        "When true, preserves operation groups as readonly properties on the client " +
+        "even when hierarchy-client is false. When false, flattens all operations " +
+        "onto the root client. When not set, auto-detects based on method name " +
+        "collisions in the client hierarchy.",
     },
     "include-headers-in-response": {
       type: "boolean",

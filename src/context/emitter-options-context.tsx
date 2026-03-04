@@ -28,6 +28,21 @@ export interface EmitterOptionsValue {
   hierarchyClient: boolean;
 
   /**
+   * When true, preserves operation groups (TCGC children from TypeSpec
+   * interfaces and namespaces) as `readonly` properties on the classical
+   * client even when `hierarchyClient` is false.
+   *
+   * When false, all child operations are flattened onto the root client.
+   *
+   * When not explicitly set, the emitter auto-detects by checking for
+   * method name collisions across the client's descendant tree. If any
+   * two methods share a name, groups are enabled to avoid duplicates.
+   *
+   * Corresponds to the `enable-operation-group` YAML config option.
+   */
+  enableOperationGroup: boolean;
+
+  /**
    * When true, the emitter generates `_xxxDeserializeHeaders` and
    * `_xxxDeserializeExceptionHeaders` functions that extract typed
    * header values from HTTP responses.
@@ -130,6 +145,7 @@ export interface EmitterOptionsValue {
  */
 const defaultOptions: EmitterOptionsValue = {
   hierarchyClient: false,
+  enableOperationGroup: false,
   includeHeadersInResponse: false,
   experimentalExtensibleEnums: false,
   compatibilityMode: false,

@@ -140,6 +140,87 @@ const SPEC_OPTIONS: Record<string, Record<string, string>> = {
   // Legacy tspconfig for type/union uses experimental-extensible-enums: true
   // which generates KnownXxx enums + broad string type aliases.
   "type/union": { "experimental-extensible-enums": "true" },
+
+  // The following specs need enable-operation-group: true to preserve
+  // operation groups on the generated client. Without this, auto-detection
+  // (based on method name collisions) would flatten them since their
+  // operation names are unique across groups.
+  //
+  // These match the legacy emitter's tspconfig settings. Some legacy configs
+  // explicitly set enable-operation-group: true, others relied on the legacy
+  // default of hierarchy-client: true (which always preserves hierarchy).
+  // Since the new emitter defaults hierarchy-client to false, these specs
+  // need explicit enable-operation-group: true to produce the same output.
+
+  // Legacy: hierarchy-client: false + enable-operation-group: true (explicit)
+  "encode/array": { "enable-operation-group": "true" },
+  "encode/bytes": { "enable-operation-group": "true" },
+  "encode/datetime": { "enable-operation-group": "true" },
+  "encode/duration": { "enable-operation-group": "true" },
+  "encode/numeric": { "enable-operation-group": "true" },
+  "parameters/basic": { "enable-operation-group": "true" },
+  "parameters/spread": { "enable-operation-group": "true" },
+
+  // Legacy: hierarchy-client unset (=true) or enable-operation-group: true
+  // These have operation groups in the legacy output but no name collisions,
+  // so auto-detection alone wouldn't enable groups.
+  "parameters/body-optionality": { "enable-operation-group": "true" },
+  "parameters/query": { "enable-operation-group": "true" },
+  "payload/content-negotiation": { "enable-operation-group": "true" },
+  "payload/media-type": { "enable-operation-group": "true" },
+  "payload/multipart": { "enable-operation-group": "true" },
+  "payload/pageable": { "enable-operation-group": "true" },
+  "type/dictionary": { "enable-operation-group": "true" },
+  "type/enum/extensible": { "enable-operation-group": "true" },
+  "type/enum/fixed": { "enable-operation-group": "true" },
+  "type/file": { "enable-operation-group": "true" },
+  "type/property/additional-properties": { "enable-operation-group": "true" },
+  "type/property/nullable": { "enable-operation-group": "true" },
+  "type/property/optionality": { "enable-operation-group": "true" },
+
+  // Azure specs — operation groups defined via @operationGroup decorator
+  // or namespace/interface structure in TypeSpec. Auto-detection may miss
+  // these when method names are unique across groups.
+  "client/structure/default": { "enable-operation-group": "true" },
+  "client/structure/two-operation-group": { "enable-operation-group": "true" },
+  "client/structure/client-operation-group": {
+    "enable-operation-group": "true",
+  },
+  "client/structure/renamed-operation": { "enable-operation-group": "true" },
+  "client/naming/enum-conflict": { "enable-operation-group": "true" },
+  "azure/client-generator-core/access": { "enable-operation-group": "true" },
+  "azure/client-generator-core/alternate-type": {
+    "enable-operation-group": "true",
+  },
+  "azure/client-generator-core/usage": { "enable-operation-group": "true" },
+  "azure/client-generator-core/override": {
+    "enable-operation-group": "true",
+  },
+  "azure/client-generator-core/hierarchy-building": {
+    "enable-operation-group": "true",
+  },
+  "azure/client-generator-core/client-location/move-method-parameter-to-client":
+    { "enable-operation-group": "true" },
+  "azure/client-generator-core/client-location/move-to-existing-sub-client": {
+    "enable-operation-group": "true",
+  },
+  "azure/client-generator-core/client-location/move-to-new-sub-client": {
+    "enable-operation-group": "true",
+  },
+  "azure/client-generator-core/client-location/move-to-root-client": {
+    "enable-operation-group": "true",
+  },
+  "azure/core/model": { "enable-operation-group": "true" },
+  "azure/core/page": { "enable-operation-group": "true" },
+  "azure/core/scalar": { "enable-operation-group": "true" },
+  "azure/resource-manager/common-properties": {
+    "enable-operation-group": "true",
+  },
+  "azure/resource-manager/large-header": { "enable-operation-group": "true" },
+  "azure/resource-manager/non-resource": { "enable-operation-group": "true" },
+  "azure/resource-manager/operation-templates": {
+    "enable-operation-group": "true",
+  },
 };
 
 /**
