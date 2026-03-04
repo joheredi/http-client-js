@@ -1349,11 +1349,6 @@ export interface Dog extends Pet {
   bark: string;
 }
 
-/**
- * Alias for _ReadResponse
- */
-export type _ReadResponse = Cat | Dog;
-
 export function catDeserializer(item: any): Cat {
   return {
     name: item["name"],
@@ -1377,10 +1372,6 @@ export function dogDeserializer(item: any): Dog {
     kind: item["kind"],
     bark: item["bark"],
   };
-}
-
-export function _readResponseDeserializer(item: any): _ReadResponse {
-  return item;
 }
 ```
 
@@ -2745,14 +2736,9 @@ export interface Vegetables {
   additionalProperties?: Record<string, number | string>;
 }
 
-/**
- * Alias for _VegetablesAdditionalProperty
- */
-export type _VegetablesAdditionalProperty = number | string;
-
 export function vegetablesSerializer(item: Vegetables): any {
   return {
-    ...serializeRecord(item["additionalProperties"] ?? {}, (v: any) => v),
+    ...serializeRecord(item["additionalProperties"] ?? {}),
     carrots: item["carrots"],
     beans: item["beans"],
   };
@@ -2760,20 +2746,13 @@ export function vegetablesSerializer(item: Vegetables): any {
 
 export function vegetablesDeserializer(item: any): Vegetables {
   return {
-    additionalProperties: deserializeRecord(
-      item,
-      (v: any) => _vegetablesAdditionalPropertyDeserializer(v),
-      ["carrots", "beans"],
-    ),
+    additionalProperties: deserializeRecord(item, undefined, [
+      "carrots",
+      "beans",
+    ]),
     carrots: item["carrots"],
     beans: item["beans"],
   };
-}
-
-export function _vegetablesAdditionalPropertyDeserializer(
-  item: any,
-): _VegetablesAdditionalProperty {
-  return item;
 }
 ```
 

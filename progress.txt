@@ -3789,3 +3789,34 @@ Modified `getPropertyTypeExpression` in `src/components/model-interface.tsx` to 
 - The generated `File` interface and its subtypes (FileRequiredMetaData, etc.) are still emitted by the emitter even though property types now use the wrapper pattern. This is extra output compared to legacy (which doesn't generate these interfaces at all) but is not harmful.
 - E2e multipart tests were already failing before this change (19 failures) due to pre-existing client structure issues. Same failure count after change.
 - All 1037 unit/scenario tests pass. Smoke test passes.
+
+## SA32 — Fix complex union member types to use inline unions (2026-03-04)
+
+### What was done
+- Fixed generated-name union types (isGeneratedName === true) to no longer emit type alias declarations, serializer/deserializer helpers
+- Updated `model-files.tsx`: Filter `namedUnions` to exclude `isGeneratedName === true` unions
+- Updated `serialization-predicates.ts`: `typeHasDeserializerDeclaration` now checks `!isGeneratedName` for unions  
+- Updated `json-serializer.tsx`: `needsTransformation` now excludes generated-name unions from all usage flags
+- Fixed generated-name enum types that are composed from sub-enums (union-of-enum like `LR | UD`) to be filtered when `experimentalExtensibleEnums` is true — both the parent enum and sub-enums are removed
+- Updated 5 scenario test files to match new expected output (removed dead type aliases and pass-through deserializer helpers)
+
+### Files changed
+- `src/components/model-files.tsx` — Filter generated-name unions and composed enums
+- `src/utils/serialization-predicates.ts` — `!isGeneratedName` check for union deserializers
+- `src/components/serialization/json-serializer.tsx` — `needsTransformation` union fix
+- `test/scenarios/cases/models/deserialization/additionalProperties.md`
+- `test/scenarios/cases/models/deserialization/propertyType.md`
+- `test/scenarios/cases/models/serialization/additionalProperties.md`
+- `test/scenarios/cases/models/serialization/propertyType.md`
+- `test/scenarios/cases/modelsGenerator/modelsGenerator.md`
+
+### Key patterns
+- Generated-name unions: `isGeneratedName === true` means TCGC auto-named the type (e.g., `_MixedTypesCasesModel`, `_StringAndArrayCasesString`). These are now inlined at usage sites and don't need type aliases.
+- Composed enums: When `experimentalExtensibleEnums` is on, enums composed from sub-enums (like `EnumsOnlyCasesLr = LR | UD`) are filtered along with their sub-enums (`LR`, `UD`). This matches legacy behavior where the flag prevents generating these dead type aliases.
+- The enum filtering uses `extractSubEnums()` to identify composed enums rather than filtering by `isFixed` (which would incorrectly filter simple literal enums like `SimpleModelPropStringUnion`).
+
+### Validation
+- All 1037 unit/scenario tests pass (3 skipped)
+- Smoke test passes
+- type/union e2e: No extra type aliases (`EnumsOnlyCasesLr`, `LR`, `UD`, `_MixedTypesCasesModel`, etc.)
+- No unresolved symbols

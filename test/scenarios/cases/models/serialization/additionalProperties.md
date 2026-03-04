@@ -59,11 +59,6 @@ export interface ComplexModel extends Record<string, SimpleModel> {
   propA: SimpleModel;
 }
 
-/**
- * Alias for _SimpleModelAdditionalProperty
- */
-export type _SimpleModelAdditionalProperty = number | string;
-
 export function simpleModelSerializer(item: SimpleModel): any {
   return {
     ...item,
@@ -341,11 +336,6 @@ export interface SimpleModel {
    */
   additionalProperties?: Record<string, string | number | boolean>;
 }
-
-/**
- * Alias for _SimpleModelAdditionalProperty
- */
-export type _SimpleModelAdditionalProperty = string | number | boolean;
 
 export function simpleModelSerializer(item: SimpleModel): any {
   return {

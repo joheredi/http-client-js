@@ -30,6 +30,7 @@ export function typeHasDeserializerDeclaration(type: SdkType): boolean {
     case "union":
       return !!(
         type.name &&
+        !type.isGeneratedName &&
         ((type.usage & UsageFlags.Output) !== 0 ||
           (type.usage & UsageFlags.Exception) !== 0)
       );

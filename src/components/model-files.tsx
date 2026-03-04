@@ -103,14 +103,18 @@ export function ModelFiles() {
   // list so no local interface definitions or deserializers are emitted.
   const models = allModels.filter((m) => !isAzureCoreErrorType(m));
 
-  // Filter unions to include named SdkUnionType, including those wrapped in
-  // SdkNullableType. When a union like `"A" | "B" | null` is defined, TCGC wraps
-  // it as `{ kind: "nullable", type: { kind: "union", ... } }`. The inner union
+  // Filter unions to include user-defined SdkUnionType, excluding those with
+  // generated names (isGeneratedName === true). Generated-name unions are inlined
+  // at all usage sites by type-expression.tsx, so they don't need type alias
+  // declarations, serializers, or deserializers. Also unwrap nullable wrappers:
+  // when a union like `"A" | "B" | null` is defined, TCGC wraps it as
+  // `{ kind: "nullable", type: { kind: "union", ... } }`. The inner union
   // still needs a TypeDeclaration so its refkey resolves when referenced via
   // `getTypeExpression()` in nullable contexts (e.g., `SomeUnion | null`).
   const namedUnions = unions
     .map((u) => (u.kind === "nullable" && u.type.kind === "union" ? u.type : u))
-    .filter((u): u is SdkUnionType => u.kind === "union");
+    .filter((u): u is SdkUnionType => u.kind === "union")
+    .filter((u) => !u.isGeneratedName);
 
   // Extract enum types wrapped in nullable from the unions list. When TCGC
   // processes `"A" | "B" | null`, it stores a `{ kind: "nullable", type: { kind: "enum" } }`
@@ -138,6 +142,22 @@ export function ModelFiles() {
     const subs = extractSubEnums(e);
     return subs.length > 0 ? [{ parentEnum: e, subEnums: subs }] : [];
   });
+
+  // When experimentalExtensibleEnums is on, generated-name enums that are
+  // composed from sub-enums (union-of-enums like `LR | UD`) are inlined at
+  // usage sites by model-interface.tsx. Both the parent enum and its sub-enums
+  // are dead code and should be filtered from rendering.
+  const composedEnumNames = new Set(
+    allSubEnums
+      .filter((g) => g.parentEnum.isGeneratedName && experimentalExtensibleEnums)
+      .map((g) => g.parentEnum.name),
+  );
+  const filteredSubEnums = experimentalExtensibleEnums
+    ? allSubEnums.filter((g) => !composedEnumNames.has(g.parentEnum.name))
+    : allSubEnums;
+  const renderableEnums = composedEnumNames.size > 0
+    ? enums.filter((e) => !composedEnumNames.has(e.name))
+    : enums;
 
   // Separate discriminated (polymorphic) models from regular models
   const isDiscriminated = (m: SdkModelType) =>
@@ -272,25 +292,30 @@ export function ModelFiles() {
       <BarrelFile />
       <SourceFile path="models.ts" header={MODEL_FILE_ESLINT_DIRECTIVES}>
         <ModelDeclarations models={models} />
-        {models.length > 0 && (enums.length > 0 || nullableEnums.length > 0)
+        {models.length > 0 &&
+        (renderableEnums.length > 0 || nullableEnums.length > 0)
           ? "\n\n"
           : undefined}
-        <EnumDeclarations enums={enums} />
-        {enums.length > 0 && nullableEnums.length > 0 ? "\n\n" : undefined}
+        <EnumDeclarations enums={renderableEnums} />
+        {renderableEnums.length > 0 && nullableEnums.length > 0
+          ? "\n\n"
+          : undefined}
         <EnumDeclarations enums={nullableEnums} />
-        {(enums.length > 0 || nullableEnums.length > 0) &&
-        allSubEnums.length > 0
+        {(renderableEnums.length > 0 || nullableEnums.length > 0) &&
+        filteredSubEnums.length > 0
           ? "\n\n"
           : undefined}
-        <AllSubEnumDeclarations groups={allSubEnums} />
-        {(models.length > 0 || enums.length > 0 || allSubEnums.length > 0) &&
+        <AllSubEnumDeclarations groups={filteredSubEnums} />
+        {(models.length > 0 ||
+          renderableEnums.length > 0 ||
+          filteredSubEnums.length > 0) &&
         namedUnions.length > 0
           ? "\n\n"
           : undefined}
         <UnionDeclarations unions={namedUnions} />
         {(models.length > 0 ||
-          enums.length > 0 ||
-          allSubEnums.length > 0 ||
+          renderableEnums.length > 0 ||
+          filteredSubEnums.length > 0 ||
           namedUnions.length > 0) &&
         (hasSerializers ||
           hasUnionSerializers ||

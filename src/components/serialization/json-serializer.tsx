@@ -455,10 +455,12 @@ export function needsTransformation(
       // those with Output/Exception usage have deserializer functions. In both
       // cases, the type needs transformation so that null-check wrapping and
       // array/dict handling correctly call the serializer/deserializer function.
-      // Generated unions (isGeneratedName) are excluded from serializer generation.
+      // Generated unions (isGeneratedName) are inlined and have no serializer
+      // or deserializer declarations, so they pass through unchanged.
       return !!(
         type.name &&
-        ((!type.isGeneratedName && (type.usage & UsageFlags.Input) !== 0) ||
+        !type.isGeneratedName &&
+        ((type.usage & UsageFlags.Input) !== 0 ||
           (type.usage & UsageFlags.Output) !== 0 ||
           (type.usage & UsageFlags.Exception) !== 0)
       );

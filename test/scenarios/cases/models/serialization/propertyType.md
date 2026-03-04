@@ -236,65 +236,6 @@ export type SimpleModelPropStringUnionAsExtensibleOptionalAndNullable =
   | "A"
   | "B";
 
-/**
- * Alias for _SimpleModelPropSimpleUnion
- */
-export type _SimpleModelPropSimpleUnion = string | boolean | number;
-
-/**
- * Alias for _SimpleModelPropSimpleUnionOptional
- */
-export type _SimpleModelPropSimpleUnionOptional = string | boolean | number;
-
-/**
- * Alias for _SimpleModelPropMixedTypeLiteral
- */
-export type _SimpleModelPropMixedTypeLiteral = "A" | false | 1;
-
-/**
- * Alias for _SimpleModelPropSimpleUnionArray
- */
-export type _SimpleModelPropSimpleUnionArray = string | boolean | number;
-
-/**
- * Alias for _SimpleModelPropSimpleUnionArrayOptional
- */
-export type _SimpleModelPropSimpleUnionArrayOptional =
-  | string
-  | boolean
-  | number;
-
-/**
- * Alias for _SimpleModelPropRecordOfSimpleUnion
- */
-export type _SimpleModelPropRecordOfSimpleUnion = string | boolean | number;
-
-/**
- * Alias for _SimpleModelPropRecordOfUnionArray
- */
-export type _SimpleModelPropRecordOfUnionArray = string | boolean | number;
-
-/**
- * Alias for _SimpleModelPropRecordOfUnionArrayOptional
- */
-export type _SimpleModelPropRecordOfUnionArrayOptional =
-  | string
-  | boolean
-  | number;
-
-/**
- * Alias for _SimpleModelPropArrayOfRecordOfUnion
- */
-export type _SimpleModelPropArrayOfRecordOfUnion = string | boolean | number;
-
-/**
- * Alias for _SimpleModelPropArrayOfRecordOfUnionOptional
- */
-export type _SimpleModelPropArrayOfRecordOfUnionOptional =
-  | string
-  | boolean
-  | number;
-
 export function simpleModelSerializer(item: SimpleModel): any {
   return {
     propString: item["propString"],

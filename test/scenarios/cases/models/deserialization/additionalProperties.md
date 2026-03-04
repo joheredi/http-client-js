@@ -191,11 +191,6 @@ export interface ObjectAdditionalPropsModel {
  */
 export interface _ObjectAdditionalPropsModelAdditionalProperties {}
 
-/**
- * Alias for _UnionModelAdditionalProperty
- */
-export type _UnionModelAdditionalProperty = string | number;
-
 export function simpleModelDeserializer(item: any): SimpleModel {
   return {
     additionalProperties: deserializeRecord(item, undefined, [
@@ -215,11 +210,10 @@ export function emptyModelDeserializer(item: any): EmptyModel {
 
 export function unionModelDeserializer(item: any): UnionModel {
   return {
-    additionalProperties: deserializeRecord(
-      item,
-      (v: any) => _unionModelAdditionalPropertyDeserializer(v),
-      ["propA", "propB"],
-    ),
+    additionalProperties: deserializeRecord(item, undefined, [
+      "propA",
+      "propB",
+    ]),
     propA: item["propA"],
     propB: item["propB"],
   };
@@ -259,12 +253,6 @@ export function objectAdditionalPropsModelDeserializer(
 export function _objectAdditionalPropsModelAdditionalPropertiesDeserializer(
   item: any,
 ): _ObjectAdditionalPropsModelAdditionalProperties {
-  return item;
-}
-
-export function _unionModelAdditionalPropertyDeserializer(
-  item: any,
-): _UnionModelAdditionalProperty {
   return item;
 }
 ```
