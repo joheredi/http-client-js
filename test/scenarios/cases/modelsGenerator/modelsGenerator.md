@@ -14,15 +14,6 @@ model Test {
 // (file was not generated)
 ```
 
-Shouldn't be included in root index file
-
-```ts root index
-export * from "./static-helpers/serializationHelpers.js";
-export * from "./static-helpers/multipartHelpers.js";
-export * from "./static-helpers/xmlHelpers.js";
-export * from "./static-helpers/getBinaryResponse.js";
-export * from "./static-helpers/urlTemplate.js";
-```
 
 # should generate models with `@usage` added for model-only case
 
@@ -66,14 +57,8 @@ export function testDeserializer(item: any): Test {
 }
 ```
 
-Should be included in root index file
 
 ```ts root index
-export * from "./static-helpers/serializationHelpers.js";
-export * from "./static-helpers/multipartHelpers.js";
-export * from "./static-helpers/xmlHelpers.js";
-export * from "./static-helpers/getBinaryResponse.js";
-export * from "./static-helpers/urlTemplate.js";
 export * from "./models/index.js";
 ```
 

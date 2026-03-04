@@ -25,7 +25,7 @@ import { urlTemplateHelperRefkey } from "../../utils/refkeys.js";
  */
 export function UrlTemplateHelpersFile() {
   return (
-    <SourceFile path="static-helpers/urlTemplate.ts">
+    <SourceFile path="urlTemplate.ts">
       <UrlTemplateInternalHelpers />
       {"\n\n"}
       <ExpandUrlTemplate />

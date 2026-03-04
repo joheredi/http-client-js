@@ -43,7 +43,7 @@ import { UrlTemplateHelpersFile } from "./url-template-helpers.js";
 export function StaticHelpers() {
   const { flavor } = useFlavorContext();
   return (
-    <>
+    <SourceDirectory path="static-helpers">
       <SerializationHelpersFile />
       {flavor === "azure" && <PagingHelpersFile />}
       {flavor === "azure" && <PollingHelpersFile />}
@@ -51,7 +51,7 @@ export function StaticHelpers() {
       <XmlHelpersFile />
       <BinaryResponseHelpersFile />
       <UrlTemplateHelpersFile />
-    </>
+    </SourceDirectory>
   );
 }
 

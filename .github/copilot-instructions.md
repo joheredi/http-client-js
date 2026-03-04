@@ -155,6 +155,27 @@ We should wrap components in `SourceDirectory` and `SourceFile` to let Alloy com
 </SourceDirectory>
 ```
 
+**Controlling public API surface with `SourceFile export`**: The `export` prop on `<SourceFile>` controls whether the file's public declarations are re-exported through the package barrel (`index.ts`). Omit `export` (or set it to `false`) for files containing internal implementation details that should not appear in the package's public API.
+
+```tsx
+// ✅ Public API file — declarations re-exported from barrel
+<SourceFile path="models.ts" export>{/* public types */}</SourceFile>
+
+// ✅ Internal file — declarations NOT re-exported (kept internal)
+<SourceFile path="serializationHelpers.ts">{/* internal helpers */}</SourceFile>
+```
+
+Use `<SourceDirectory>` to group internal files under a subdirectory while keeping their declarations out of the public API:
+
+```tsx
+// ✅ Static helpers are internal — SourceDirectory scopes the path,
+//    and omitting `export` on SourceFile keeps them out of the barrel
+<SourceDirectory path="static-helpers">
+  <SourceFile path="serializationHelpers.ts">{/* internal */}</SourceFile>
+  <SourceFile path="urlTemplate.ts">{/* internal */}</SourceFile>
+</SourceDirectory>
+```
+
 #### 3. External Packages
 
 ```tsx
@@ -425,6 +446,29 @@ code`return ${mySerializerKey}(input);`  // renders as <Unresolved Symbol: refke
 // Now the refkey resolves correctly
 code`return ${mySerializerKey}(input);`  // renders as mySerializer(input)
 ```
+
+### ❌ 10. Leaking Internal Helpers into the Public API
+
+```tsx
+// ❌ BAD — fragment wrapper doesn't scope the directory, and SourceFile path
+//    includes the subdirectory, causing internal helpers to be re-exported
+//    through the package barrel
+<>
+  <SourceFile path="static-helpers/serializationHelpers.ts">
+    {/* internal helpers */}
+  </SourceFile>
+</>
+
+// ✅ CORRECT — SourceDirectory scopes the path, SourceFile omits `export`
+//    so declarations stay internal (not re-exported from barrel)
+<SourceDirectory path="static-helpers">
+  <SourceFile path="serializationHelpers.ts">
+    {/* internal helpers */}
+  </SourceFile>
+</SourceDirectory>
+```
+
+When adding new helper files, always ask: **should these declarations be part of the package's public API?** If not, omit the `export` prop on `<SourceFile>` and wrap in a `<SourceDirectory>`.
 
 ---
 

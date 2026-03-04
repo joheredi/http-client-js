@@ -22,7 +22,7 @@
  * - Query parameter keys are percent-encoded to match URI template variable names.
  */
 import "@alloy-js/core/testing";
-import { Children, code } from "@alloy-js/core";
+import { Children, code, SourceDirectory } from "@alloy-js/core";
 import { d } from "@alloy-js/core/testing";
 import { createTSNamePolicy, SourceFile } from "@alloy-js/typescript";
 import { Output } from "@typespec/emitter-framework";
@@ -86,8 +86,10 @@ function MultiFileTestWrapper(props: {
       <FlavorProvider flavor="core">
         <EmitterOptionsProvider options={{}}>
           <SdkContextProvider sdkContext={props.sdkContext}>
-            <SerializationHelpersFile />
-            <UrlTemplateHelpersFile />
+            <SourceDirectory path="static-helpers">
+              <SerializationHelpersFile />
+              <UrlTemplateHelpersFile />
+            </SourceDirectory>
             <SourceFile path="test.ts">{props.children}</SourceFile>
           </SdkContextProvider>
         </EmitterOptionsProvider>
@@ -114,7 +116,9 @@ function UrlTemplateTestWrapper(props: {
       <FlavorProvider flavor="core">
         <EmitterOptionsProvider options={{}}>
           <SdkContextProvider sdkContext={props.sdkContext}>
-            <UrlTemplateHelpersFile />
+            <SourceDirectory path="static-helpers">
+              <UrlTemplateHelpersFile />
+            </SourceDirectory>
             <SourceFile path="test.ts">{props.children}</SourceFile>
           </SdkContextProvider>
         </EmitterOptionsProvider>

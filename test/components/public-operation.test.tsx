@@ -77,7 +77,9 @@ function UrlTemplateTestWrapper(props: {
       <FlavorProvider flavor="core">
         <EmitterOptionsProvider options={{}}>
           <SdkContextProvider sdkContext={props.sdkContext as any}>
-            <UrlTemplateHelpersFile />
+            <SourceDirectory path="static-helpers">
+              <UrlTemplateHelpersFile />
+            </SourceDirectory>
             <SourceFile path="test.ts">{props.children}</SourceFile>
           </SdkContextProvider>
         </EmitterOptionsProvider>

@@ -27,7 +27,7 @@ import { azureCoreLroLib } from "../../utils/external-packages.js";
  */
 export function PollingHelpersFile() {
   return (
-    <SourceFile path="static-helpers/pollingHelpers.ts">
+    <SourceFile path="pollingHelpers.ts">
       <GetLongRunningPollerOptionsInterface />
       {"\n\n"}
       <GetLongRunningPollerFunction />

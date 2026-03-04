@@ -32,7 +32,7 @@ import { serializationHelperRefkey } from "../../utils/refkeys.js";
  */
 export function SerializationHelpersFile() {
   return (
-    <SourceFile path="static-helpers/serializationHelpers.ts">
+    <SourceFile path="serializationHelpers.ts">
       <SerializeRecord />
       {"\n\n"}
       <DeserializeRecord />
