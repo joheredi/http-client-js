@@ -1769,7 +1769,7 @@
       "title": "Fix discriminated union member types to use union aliases instead of base types (Category 6a)",
       "category": "bug-fix/emitter",
       "priority": "P2",
-      "status": "pending",
+      "status": "done",
       "kind": "bug",
       "dependencies": [],
       "design_review": null,

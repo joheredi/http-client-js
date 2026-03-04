@@ -68,7 +68,9 @@ export function PolymorphicType(props: PolymorphicTypeProps) {
       doc={doc}
     >
       <For each={directSubtypes} joiner=" | ">
-        {(subtype) => code`${typeRefkey(subtype)}`}
+        {(subtype) =>
+          code`${getDirectSubtypes(subtype).length > 0 ? polymorphicTypeRefkey(subtype) : typeRefkey(subtype)}`
+        }
       </For>
       {" | "}
       {code`${typeRefkey(model)}`}

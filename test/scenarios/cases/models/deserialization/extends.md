@@ -595,7 +595,7 @@ export interface Animal {
 /**
  * Alias for `Animal`
  */
-export type AnimalUnion = Pet | Animal;
+export type AnimalUnion = PetUnion | Animal;
 
 /**
  * model interface Pet

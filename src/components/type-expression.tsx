@@ -3,8 +3,9 @@ import type {
   SdkModelType,
   SdkType,
 } from "@azure-tools/typespec-client-generator-core";
-import { typeRefkey } from "../utils/refkeys.js";
+import { polymorphicTypeRefkey, typeRefkey } from "../utils/refkeys.js";
 import { isAzureCoreErrorType } from "../utils/azure-core-error-types.js";
+import { getDirectSubtypes } from "./polymorphic-type.js";
 import { azureCoreClientLib } from "../utils/external-packages.js";
 
 /**
@@ -174,6 +175,13 @@ export function getTypeExpression(type: SdkType): Children {
       // the import from @azure-rest/core-client.
       if (isAzureCoreErrorType(type)) {
         return getAzureCoreErrorTypeRef(type);
+      }
+      // Discriminated base models (those with direct subtypes) resolve to
+      // their polymorphic union type alias (e.g., `FishUnion`) instead of
+      // the base interface (`Fish`). This preserves type narrowing for
+      // consumers and matches the legacy emitter output.
+      if (getDirectSubtypes(type).length > 0) {
+        return polymorphicTypeRefkey(type);
       }
       return typeRefkey(type);
 

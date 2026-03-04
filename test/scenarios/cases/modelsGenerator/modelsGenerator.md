@@ -1876,7 +1876,7 @@ export function petUnionDeserializer(item: any): PetUnion {
 ## Operations
 
 ```ts operations
-import { type Pet, petUnionDeserializer } from "../models/models.js";
+import { type PetUnion, petUnionDeserializer } from "../models/models.js";
 import type { ReadOptionalParams } from "./options.js";
 import {
   createRestError,
@@ -1901,7 +1901,7 @@ export function _readSend(
 
 export async function _readDeserialize(
   result: PathUncheckedResponse,
-): Promise<Pet> {
+): Promise<PetUnion> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
     throw createRestError(result);
@@ -1913,7 +1913,7 @@ export async function _readDeserialize(
 export async function read(
   context: TestingContext,
   options: ReadOptionalParams = { requestOptions: {} },
-): Promise<Pet> {
+): Promise<PetUnion> {
   const result = await _readSend(context, options);
   return _readDeserialize(result);
 }
@@ -1969,7 +1969,7 @@ export interface Pet {
 /**
  * Alias for `Pet`
  */
-export type PetUnion = Cat | Dog | Pet;
+export type PetUnion = Cat | DogUnion | Pet;
 
 /**
  * model interface Cat
@@ -1998,7 +1998,7 @@ export type DogUnion = Gold | Dog;
  */
 export interface Gold extends Dog {
   type: "gold";
-  friends: Pet[];
+  friends: PetUnion[];
 }
 
 export function catDeserializer(item: any): Cat {
@@ -2069,7 +2069,7 @@ export function petArrayDeserializer(result: Array<Pet>): any[] {
 ## Operations
 
 ```ts operations
-import { type Pet, petUnionDeserializer } from "../models/models.js";
+import { type PetUnion, petUnionDeserializer } from "../models/models.js";
 import type { ReadOptionalParams } from "./options.js";
 import {
   createRestError,
@@ -2094,7 +2094,7 @@ export function _readSend(
 
 export async function _readDeserialize(
   result: PathUncheckedResponse,
-): Promise<Pet> {
+): Promise<PetUnion> {
   const expectedStatuses = ["200"];
   if (!expectedStatuses.includes(result.status)) {
     throw createRestError(result);
@@ -2106,7 +2106,7 @@ export async function _readDeserialize(
 export async function read(
   context: TestingContext,
   options: ReadOptionalParams = { requestOptions: {} },
-): Promise<Pet> {
+): Promise<PetUnion> {
   const result = await _readSend(context, options);
   return _readDeserialize(result);
 }

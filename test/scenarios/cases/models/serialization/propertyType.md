@@ -148,9 +148,9 @@ export interface SimpleModel {
   propEncoded: string;
   propNotNormalizeModel: FOO;
   propNormalizeModel: Foobar;
-  propRecordOfUnionArrayNotNormalize: Record<string, NFVIs[]>;
-  propUnionArrayNotNormalize: NFVIs[];
-  propRecordOfUnionNotNormalize: Record<string, NFVIs>;
+  propRecordOfUnionArrayNotNormalize: Record<string, NFVIsUnion[]>;
+  propUnionArrayNotNormalize: NFVIsUnion[];
+  propRecordOfUnionNotNormalize: Record<string, NFVIsUnion>;
 }
 
 /**
@@ -164,7 +164,7 @@ export interface FOO {
  * model interface FOOBAR
  */
 export interface Foobar {
-  name?: Record<string, NFVIs[]>;
+  name?: Record<string, NFVIsUnion[]>;
 }
 
 /**

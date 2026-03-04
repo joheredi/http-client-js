@@ -3688,3 +3688,30 @@ The spector mock server is lenient about Content-Type mismatches for POST operat
 **Design decision**: The task description also suggested adding `| string` fallback for extensible enums when the flag is `false`. After verifying against the ground truth legacy scenario tests (`submodules/autorest.typescript/.../scenarios/enumUnion/enumUnion.md`), confirmed that plain extensible enums WITHOUT the flag do NOT include `| string` in the legacy output. The current behavior is correct — no code change needed for `enum-declaration.tsx`.
 **Files changed**: `eng/scripts/emit-e2e.ts`
 **Verification**: After regeneration, `type StringExtensibleNamedUnion = string` + `enum KnownStringExtensibleNamedUnion { OptionB = "b", C = "c" }` matches legacy. All 1034 unit/scenario tests pass, smoke test passes, type/union e2e tests (20 tests) all pass. Pre-existing e2e failures (31 tests in other specs) remain unchanged.
+
+---
+
+## RC29: Fix discriminated union member types to use union aliases (2026-03-04)
+
+**Task:** E2E-FIX-DISCRIMINATED-UNION-MEMBER-TYPES
+
+**Problem:** Properties referencing discriminated base types used the base type name (`Fish`, `Bird`) instead of the union alias (`FishUnion`, `BirdUnion`). Also, nested discriminator unions used base types for subtypes with their own discriminated subtypes (e.g., `FishUnion = Shark | ...` instead of `FishUnion = SharkUnion | ...`).
+
+**Root Cause:** Two issues:
+1. In `getTypeExpression()` (type-expression.tsx), the `case "model"` always returned `typeRefkey(type)` (pointing to the interface) regardless of whether the model was a discriminated base with subtypes.
+2. In `PolymorphicType` (polymorphic-type.tsx), the `<For>` loop rendering subtypes always used `typeRefkey(subtype)`, even for subtypes that themselves had discriminated subtypes.
+
+**Fixes:**
+1. `src/components/type-expression.tsx` — Added check: if model has direct subtypes (via `getDirectSubtypes()`), return `polymorphicTypeRefkey(type)` instead of `typeRefkey(type)`. This makes all property types, operation params, and return types automatically resolve to the union alias.
+2. `src/components/polymorphic-type.tsx` — In the `<For>` loop, for subtypes with their own subtypes, use `polymorphicTypeRefkey(subtype)` instead of `typeRefkey(subtype)`.
+
+**Key Design Decision:** Modifying `getTypeExpression()` was preferred over property-level overrides because it's a single change point that automatically fixes all callers (~42 call sites). Safe because: extends clauses use `typeRefkey()` directly (not via `getTypeExpression()`), and `PolymorphicType` uses direct refkeys for its own rendering.
+
+**Files Changed:**
+- `src/components/type-expression.tsx` — Added discriminated model check
+- `src/components/polymorphic-type.tsx` — Added nested discriminator union alias for subtypes
+- `test/scenarios/cases/models/deserialization/extends.md` — Updated `AnimalUnion = PetUnion | Animal`
+- `test/scenarios/cases/models/serialization/propertyType.md` — Updated NFVIs → NFVIsUnion property types
+- `test/scenarios/cases/modelsGenerator/modelsGenerator.md` — Updated PetUnion members, Gold.friends, operation return types
+
+**Validated against:** Legacy scenario tests (ground truth) confirm `FishUnion`, `BirdUnion`, `PetUnion` for all type references. All 1034 unit/scenario tests pass. Smoke test passes.
