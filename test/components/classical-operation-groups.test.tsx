@@ -483,7 +483,7 @@ describe("ClassicalOperationGroups", () => {
     /**
      * Tests that nested operation groups produce interface members referencing
      * child interfaces. For example, WidgetsOperations should have a `parts`
-     * property of type PartsOperations.
+     * property of type WidgetsPartsOperations.
      *
      * This is critical for hierarchical services where users access nested
      * groups via `client.widgets.parts.getPart(...)`.
@@ -512,15 +512,15 @@ describe("ClassicalOperationGroups", () => {
 
       const result = renderToString(template);
 
-      // WidgetsOperations should reference PartsOperations
+      // WidgetsOperations should reference WidgetsPartsOperations
       expect(result).toContain("WidgetsOperations");
       expect(result).toContain("parts:");
-      expect(result).toContain("PartsOperations");
+      expect(result).toContain("WidgetsPartsOperations");
     });
 
     /**
      * Tests that nested factories compose child factory calls. The parent
-     * factory should call `_getPartsOperations(context)` for nested groups.
+     * factory should call `_getWidgetsPartsOperations(context)` for nested groups.
      *
      * This ensures the factory function correctly wires nested groups
      * when constructing the operation group object.
@@ -550,7 +550,7 @@ describe("ClassicalOperationGroups", () => {
       const result = renderToString(template);
 
       // Should compose child factory
-      expect(result).toContain("_getPartsOperations(context)");
+      expect(result).toContain("_getWidgetsPartsOperations(context)");
     });
   });
 

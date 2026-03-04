@@ -132,7 +132,7 @@ function ClassicalOperationGroupFile(props: ClassicalOperationGroupFileProps) {
   const { group } = props;
 
   const fileContent: Children = (
-    <SourceFile path="index.ts">
+    <SourceFile path="index.ts" export>
       <OperationGroupInterface group={group} />
       {"\n\n"}
       <OperationGroupFactory group={group} />
@@ -181,7 +181,7 @@ export interface OperationGroupInterfaceProps {
  */
 export function OperationGroupInterface(props: OperationGroupInterfaceProps) {
   const { group } = props;
-  const interfaceName = buildInterfaceName(group.client);
+  const interfaceName = buildInterfaceName(group);
   const methods = group.client.methods;
   const children = group.client.children ?? [];
 
@@ -275,7 +275,7 @@ export interface OperationGroupFactoryProps {
  */
 export function OperationGroupFactory(props: OperationGroupFactoryProps) {
   const { group } = props;
-  const functionName = buildFactoryName(group.client);
+  const functionName = buildFactoryName(group);
   const methods = group.client.methods;
   const children = group.client.children ?? [];
 
@@ -309,29 +309,41 @@ export function OperationGroupFactory(props: OperationGroupFactoryProps) {
 // ============================================================================
 
 /**
- * Builds the interface name for an operation group.
+ * Builds the fully-qualified interface name for an operation group.
  *
- * The interface name is the child client's name with "Operations" appended.
- * For example, `Widgets` → `WidgetsOperations`.
+ * Uses the accumulated prefix path to construct a name that matches the
+ * legacy emitter convention. For example, prefixes `["pathParameters",
+ * "labelExpansion", "standard"]` produce `PathParametersLabelExpansionStandardOperations`.
  *
- * @param client - The TCGC child client representing the operation group.
- * @returns The interface name string.
+ * This avoids name conflicts when multiple groups share the same leaf name
+ * (e.g., several `Standard` groups under different expansion types).
+ *
+ * @param group - The operation group info containing prefixes.
+ * @returns The fully-qualified interface name string.
  */
-function buildInterfaceName(client: SdkClientType<SdkHttpOperation>): string {
-  return `${client.name}Operations`;
+function buildInterfaceName(group: OperationGroupInfo): string {
+  return (
+    group.prefixes
+      .map((p) => p.charAt(0).toUpperCase() + p.slice(1))
+      .join("") + "Operations"
+  );
 }
 
 /**
- * Builds the factory function name for an operation group.
+ * Builds the fully-qualified factory function name for an operation group.
  *
- * The factory function name follows the legacy convention:
- * `_get{ClientName}Operations`. For example, `Widgets` → `_getWidgetsOperations`.
+ * Uses the accumulated prefix path to construct a name that matches the
+ * legacy emitter convention. For example, prefixes `["pathParameters",
+ * "labelExpansion", "standard"]` produce `_getPathParametersLabelExpansionStandardOperations`.
  *
- * @param client - The TCGC child client representing the operation group.
- * @returns The factory function name string.
+ * @param group - The operation group info containing prefixes.
+ * @returns The fully-qualified factory function name string.
  */
-function buildFactoryName(client: SdkClientType<SdkHttpOperation>): string {
-  return `_get${client.name}Operations`;
+function buildFactoryName(group: OperationGroupInfo): string {
+  const qualified = group.prefixes
+    .map((p) => p.charAt(0).toUpperCase() + p.slice(1))
+    .join("");
+  return `_get${qualified}Operations`;
 }
 
 /**
