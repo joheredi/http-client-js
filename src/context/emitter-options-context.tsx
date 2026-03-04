@@ -14,6 +14,20 @@ import {
  */
 export interface EmitterOptionsValue {
   /**
+   * When true, preserves the TCGC client hierarchy as sub-client accessors
+   * on the classical client class. Operations defined in TypeSpec `interface`
+   * blocks become nested under sub-client properties (e.g.,
+   * `client.interfaceV2.v2InInterface()`).
+   *
+   * When false (default), child client operations are flattened onto the
+   * root client, matching the legacy emitter's default behavior where
+   * `hierarchy-client: false` was set on most specs.
+   *
+   * Corresponds to the `hierarchy-client` YAML config option.
+   */
+  hierarchyClient: boolean;
+
+  /**
    * When true, the emitter generates `_xxxDeserializeHeaders` and
    * `_xxxDeserializeExceptionHeaders` functions that extract typed
    * header values from HTTP responses.
@@ -115,6 +129,7 @@ export interface EmitterOptionsValue {
  * where `include-headers-in-response` defaults to false.
  */
 const defaultOptions: EmitterOptionsValue = {
+  hierarchyClient: false,
   includeHeadersInResponse: false,
   experimentalExtensibleEnums: false,
   compatibilityMode: false,

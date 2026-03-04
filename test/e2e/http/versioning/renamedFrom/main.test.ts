@@ -30,8 +30,8 @@ describe("Versioning.RenamedFrom", () => {
   });
 
   /**
-   * Tests the renamed newOpInNewInterface operation on the renamed NewInterface
-   * operation group. Validates renamed operation groups work correctly.
+   * Tests the renamed newOpInNewInterface operation from NewInterface.
+   * With hierarchy-client: false (default), this is flattened onto the root client.
    */
   it("should call newOpInNewInterface operation", async () => {
     const body = {
@@ -39,7 +39,7 @@ describe("Versioning.RenamedFrom", () => {
       enumProp: "newEnumMember" as const,
       unionProp: 10 as string | number,
     };
-    const result = await client.newInterface.newOpInNewInterface(body);
+    const result = await client.newOpInNewInterface(body);
     expect(result.newProp).toBe("foo");
     expect(result.enumProp).toBe("newEnumMember");
     expect(result.unionProp).toBe(10);

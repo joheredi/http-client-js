@@ -3,6 +3,7 @@ import { createTypeSpecLibrary, type JSONSchemaType } from "@typespec/compiler";
 export interface HttpClientJsEmitterOptions {
   "generate-metadata"?: boolean;
   flavor?: string;
+  "hierarchy-client"?: boolean;
   "include-headers-in-response"?: boolean;
   "experimental-extensible-enums"?: boolean;
   "ignore-nullable-on-optional"?: boolean;
@@ -27,6 +28,14 @@ const EmitterOptionsSchema: JSONSchemaType<HttpClientJsEmitterOptions> = {
       nullable: true,
       description:
         'SDK flavor. Use "azure" for Azure SDK packages, otherwise defaults to "core".',
+    },
+    "hierarchy-client": {
+      type: "boolean",
+      nullable: true,
+      description:
+        "When true, preserves the TCGC client hierarchy as sub-client accessors. " +
+        "When false (default), flattens child client operations onto the root client. " +
+        "Set to true for specs with intentional deep operation group nesting.",
     },
     "include-headers-in-response": {
       type: "boolean",

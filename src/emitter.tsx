@@ -36,6 +36,7 @@ import type {
   SdkHttpOperation,
 } from "@azure-tools/typespec-client-generator-core";
 import { BarrelFile } from "@alloy-js/typescript";
+import { flattenClientHierarchy } from "./utils/flatten-clients.js";
 
 /**
  * All external packages needed for Azure-flavored SDK generation.
@@ -236,12 +237,23 @@ export async function $onEmit(context: EmitContext) {
     applyClientRenames(sdkContext.sdkPackage.clients, titleMap);
   }
 
+  // Flatten client hierarchy when hierarchy-client is not explicitly enabled.
+  // Most specs use flat clients (legacy default was hierarchy-client: false).
+  // This moves child client methods onto the root client, matching legacy output.
+  const hierarchyClient = context.options?.["hierarchy-client"] === true;
+  if (!hierarchyClient) {
+    sdkContext.sdkPackage.clients = flattenClientHierarchy(
+      sdkContext.sdkPackage.clients,
+    );
+  }
+
   // Resolve flavor from emitter config. This allows a single entry point
   // to generate either core or Azure-flavored output based on tspconfig.yaml.
   const flavor = resolveEmitterFlavor(context.options);
   const externals = flavor === "azure" ? azureExternals : coreExternals;
 
   const emitterOptions = {
+    hierarchyClient: context.options?.["hierarchy-client"] === true,
     includeHeadersInResponse:
       context.options?.["include-headers-in-response"] === true,
     experimentalExtensibleEnums:

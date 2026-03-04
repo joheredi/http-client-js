@@ -17,11 +17,11 @@ describe("Serialization.EncodedName.Json", () => {
     });
 
     it("should send a JsonEncodedNameModel with 'defaultName' mapped to 'wireName'", async () => {
-      await client.property.send({ defaultName: true });
+      await client.send({ defaultName: true });
     });
 
     it("should deserialize a JsonEncodedNameModel with 'wireName' mapped to 'defaultName'", async () => {
-      const response = await client.property.get();
+      const response = await client.get();
       expect(response).toEqual({ defaultName: true });
     });
   });
