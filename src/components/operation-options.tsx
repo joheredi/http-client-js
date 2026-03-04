@@ -11,6 +11,7 @@ import {
 } from "../context/flavor-context.js";
 import { useEmitterOptions } from "../context/emitter-options-context.js";
 import { operationOptionsRefkey } from "../utils/refkeys.js";
+import { normalizePascalCaseName } from "../utils/name-policy.js";
 import { getOptionalAwareTypeExpression } from "./type-expression.js";
 
 /**
@@ -132,7 +133,9 @@ function getOptionsInterfaceName(
           .join("")
       : "";
   const baseName = method.name.charAt(0).toUpperCase() + method.name.slice(1);
-  return `${groupPrefix}${baseName}OptionalParams`;
+  // Pre-normalize the composed name so digit-word boundaries are correctly
+  // capitalized (e.g., Base64url → Base64Url) before Alloy's name policy.
+  return normalizePascalCaseName(`${groupPrefix}${baseName}OptionalParams`);
 }
 
 /**

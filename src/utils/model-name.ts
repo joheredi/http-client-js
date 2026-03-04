@@ -34,7 +34,19 @@ export function getModelName(
     const prefixedName = `_${model.name}`;
     return namekey(prefixedName, { ignoreNamePolicy: true });
   }
-  return model.name;
+  return preNormalizeName(model.name);
+}
+
+/**
+ * Pre-normalizes a TCGC type name using legacy PascalCase conventions before
+ * it enters the Alloy rendering pipeline. This ensures digit-word boundaries
+ * are correctly capitalized (e.g., `Base64url` → `Base64Url`) before the
+ * name policy sees the name. The name policy then preserves the already-correct
+ * casing, and Alloy's conflict resolver can safely append `_N` suffixes
+ * without the legacy deconstruct logic stripping them.
+ */
+function preNormalizeName(name: string): string {
+  return normalizePascalCaseName(name);
 }
 
 /**
@@ -96,7 +108,7 @@ export function getUnionName(
     const prefixedName = `_${union.name}`;
     return namekey(prefixedName, { ignoreNamePolicy: true });
   }
-  return union.name;
+  return preNormalizeName(union.name);
 }
 
 /**

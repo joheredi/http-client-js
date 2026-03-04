@@ -272,8 +272,8 @@ export function createEmitterNamePolicy(): NamePolicy<TypeScriptElements> {
         // Type names use legacy normalization when the name contains consecutive
         // uppercase letters (ALL-CAPS segments like FOO, NFV, PS) that change-case
         // would incorrectly lowercase. Otherwise, falls back to change-case's
-        // pascalCase which correctly handles _<digits> patterns (Color_1) from
-        // TCGC conflict resolution.
+        // pascalCase which correctly handles _<digits> patterns from Alloy's
+        // name conflict resolver.
         transformed = normalizePascalCaseTypeName(name);
         break;
       default:
@@ -401,8 +401,8 @@ export function normalizePascalCaseName(name: string): string {
  * `NFVIs` → `NFVIs`, `PSDog` → `PSDog`).
  *
  * When the name has no consecutive uppercase letters, falls back to change-case's
- * `pascalCase` which correctly handles `_<digits>` patterns from TCGC conflict
- * resolution (e.g., `Color_1` → `Color_1`, `ErrorDetail_1` → `ErrorDetail_1`).
+ * `pascalCase` which correctly handles `_<digits>` patterns from Alloy's
+ * name conflict resolver (e.g., `Color_1` → `Color_1`).
  *
  * @param name - The raw type name to normalize.
  * @returns The PascalCase-normalized name.
@@ -414,7 +414,7 @@ function normalizePascalCaseTypeName(name: string): string {
     return normalizePascalCaseName(name);
   }
   // Names without ALL-CAPS segments use change-case which correctly
-  // preserves _<digits> patterns from TCGC conflict resolution
+  // preserves _<digits> patterns from Alloy's name conflict resolver
   return pascalCase(name, caseOptions);
 }
 
