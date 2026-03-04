@@ -1793,7 +1793,7 @@
       "title": "Fix discriminator property type narrowing on intermediate base models (Category 6c)",
       "category": "bug-fix/emitter",
       "priority": "P2",
-      "status": "pending",
+      "status": "done",
       "kind": "bug",
       "dependencies": [],
       "design_review": null,

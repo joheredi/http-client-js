@@ -3668,3 +3668,13 @@ The spector mock server is lenient about Content-Type mismatches for POST operat
 - This change affects ALL generated unions, not just additionalProperties. Property-level generated unions are also inlined.
 - The type aliases and serializer/deserializer functions still exist and are referenced by refkey in function signatures — they resolve correctly because the union declarations are still rendered.
 - Tasks E2E-FIX-UNION-LITERAL-PROP-INLINE and E2E-FIX-UNION-COMPLEX-MEMBER-INLINE depend on this and can now proceed.
+
+---
+### SA32: Fix discriminator property type narrowing on intermediate base models (E2E-FIX-DISCRIMINATOR-PROPERTY-TYPE)
+**Date**: 2026-03-04
+**Problem**: In nested discriminator scenarios, `Shark.sharktype` was rendered as `"shark"` (literal) instead of `string` (broad type). The `getPropertyTypeExpression` function in `model-interface.tsx` treated ALL discriminator properties the same — narrowing any discriminator property when the model had a `discriminatorValue`, regardless of whether the property was the parent's discriminator or the model's own.
+**Root cause**: `if (property.discriminator && model.discriminatorValue)` applied to both `Shark.kind` (parent's discriminator → should narrow) and `Shark.sharktype` (model's own discriminator → should stay broad).
+**Fix**: Added a check: `if (model.discriminatorProperty !== property)` — only narrow to the literal value when the discriminator property belongs to the PARENT hierarchy, not when it's the model's own discriminator property for its subtypes.
+**Files changed**: `src/components/model-interface.tsx`, `test/scenarios/cases/modelsGenerator/modelsGenerator.md`
+**Scenario test updates**: Updated `Dog.type` and `ServicePlacementPolicyDescription.type` from `"dog"` to `string` in modelsGenerator scenarios to match correct behavior.
+**Verification**: Confirmed legacy emitter uses `isDiscriminatedUnion(model)` (requires `discriminatorProperty` AND `discriminatedSubtypes`) before narrowing — it would produce `string` for own discriminator properties regardless of subtypes. Nested-discriminator e2e test passes. All 1034 unit/scenario tests pass.

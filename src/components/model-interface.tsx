@@ -448,8 +448,11 @@ function getExpandedProperties(model: SdkModelType): SdkModelPropertyType[] {
  *
  * For discriminator properties on subtypes (where the model has a
  * `discriminatorValue`), the type is the literal string value rather
- * than the full discriminator union. For all other properties, delegates
- * to `getTypeExpression()`.
+ * than the full discriminator union — **unless** the property is the
+ * model's OWN discriminator for its subtypes (e.g., `Shark.sharktype`
+ * when `Shark` is itself a base for `SawShark`/`GoblinShark`). In that
+ * case the type stays broad (`string`) because the model is a base type
+ * in its own discriminator hierarchy.
  *
  * @param property - The TCGC property to get the type for.
  * @param model - The owning model, used for discriminator value detection.
@@ -460,9 +463,15 @@ function getPropertyTypeExpression(
   model: SdkModelType,
 ): Children {
   // If this is a discriminator property and the model has a specific
-  // discriminator value (i.e., it's a subtype), use the literal value
+  // discriminator value (i.e., it's a subtype), use the literal value —
+  // but only for the PARENT's discriminator, not the model's own.
   if (property.discriminator && model.discriminatorValue) {
-    return `"${model.discriminatorValue}"`;
+    // When this property is the model's own discriminator property
+    // (the model is a base type for further discrimination), keep the
+    // broad type so subtypes can narrow it to their specific values.
+    if (model.discriminatorProperty !== property) {
+      return `"${model.discriminatorValue}"`;
+    }
   }
 
   const { ignoreNullableOnOptional } = useEmitterOptions();

@@ -1984,7 +1984,7 @@ export interface Cat extends Pet {
  */
 export interface Dog extends Pet {
   kind: "dog";
-  type: "dog";
+  type: string;
   bark: string;
 }
 
@@ -2886,7 +2886,7 @@ export interface ServiceResourceProperties {
  */
 export interface ServicePlacementPolicyDescription extends Pet {
   kind: "dog";
-  type: "dog";
+  type: string;
 }
 
 /**

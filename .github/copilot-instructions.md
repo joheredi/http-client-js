@@ -393,7 +393,29 @@ code`${helperRefkey("buildCsvCollection")}(${items})`
 </ts.SourceFile>
 ```
 
-### ❌ 7. Using `.map()` Instead of `<For>`
+### ❌ 7. Nesting SourceFile or BarrelFile Inside Another SourceFile
+
+```tsx
+// ❌ BAD — nested SourceFile registers a phantom module in the directory's
+//    module set without producing a separate output file. Its content gets
+//    merged into the parent file, and parent barrel files discover the
+//    phantom module, emitting broken re-exports to a non-existent file.
+<SourceFile path="pagingHelpers.ts">
+  <BarrelFile />           {/* BarrelFile returns <SourceFile path="index.ts"> */}
+  <SomeDeclaration />
+</SourceFile>
+
+// ✅ CORRECT — BarrelFile and SourceFile must be direct children of a
+//    SourceDirectory, never nested inside another SourceFile
+<SourceDirectory path="helpers">
+  <BarrelFile />           {/* Creates helpers/index.ts as a real file */}
+  <SourceFile path="pagingHelpers.ts">
+    <SomeDeclaration />
+  </SourceFile>
+</SourceDirectory>
+```
+
+### ❌ 8. Using `.map()` Instead of `<For>`
 
 ```tsx
 // ❌ BAD — not reactive, no separator support
@@ -407,7 +429,7 @@ code`${helperRefkey("buildCsvCollection")}(${items})`
 </For>;
 ```
 
-### ❌ 8. Wrong `refkey` Import
+### ❌ 9. Wrong `refkey` Import
 
 ```tsx
 // ❌ WRONG — old framework refkey (returns string)
@@ -417,7 +439,7 @@ import { refkey } from "../../framework/refkey.js";
 import { refkey } from "@alloy-js/core";
 ```
 
-### ❌ 9. Unresolved Symbol References in Output
+### ❌ 10. Unresolved Symbol References in Output
 
 Generated code must **NEVER** contain `<Unresolved Symbol: refkey[...]>` placeholders. These indicate a refkey that was referenced but never declared (i.e., no component registered ownership of that refkey via a `refkey` prop). This is a **critical bug** — the output is broken TypeScript that cannot compile.
 
@@ -447,7 +469,7 @@ code`return ${mySerializerKey}(input);`  // renders as <Unresolved Symbol: refke
 code`return ${mySerializerKey}(input);`  // renders as mySerializer(input)
 ```
 
-### ❌ 10. Leaking Internal Helpers into the Public API
+### ❌ 11. Leaking Internal Helpers into the Public API
 
 ```tsx
 // ❌ BAD — fragment wrapper doesn't scope the directory, and SourceFile path

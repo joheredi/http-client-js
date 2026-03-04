@@ -24,7 +24,7 @@ import { useRuntimeLib } from "../../context/flavor-context.js";
  */
 export function BinaryResponseHelpersFile() {
   return (
-    <SourceFile path="getBinaryResponse.ts" export>
+    <SourceFile path="getBinaryResponse.ts">
       <GetBinaryResponseFunction />
     </SourceFile>
   );
