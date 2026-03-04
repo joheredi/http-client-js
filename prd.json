@@ -1805,7 +1805,7 @@
       "title": "Fix additionalProperties union types to use inline unions instead of named type aliases (Category 8a)",
       "category": "bug-fix/emitter",
       "priority": "P2",
-      "status": "pending",
+      "status": "done",
       "kind": "bug",
       "dependencies": [],
       "design_review": null,

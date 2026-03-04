@@ -81,6 +81,16 @@ export function getTypeExpression(type: SdkType): Children {
     // ── Array ────────────────────────────────────────────────────────────
     case "array": {
       const elementType = getTypeExpression(type.valueType);
+      // Generated unions inlined as `T1 | T2 | T3` need parentheses in array
+      // context to avoid operator precedence issues: `(string | number)[]`
+      // instead of the incorrect `string | number[]`.
+      if (
+        type.valueType.kind === "union" &&
+        type.valueType.isGeneratedName &&
+        type.valueType.variantTypes.length > 1
+      ) {
+        return code`(${elementType})[]`;
+      }
       return code`${elementType}[]`;
     }
 
@@ -183,6 +193,18 @@ export function getTypeExpression(type: SdkType): Children {
 
     // ── Union (named type → refkey reference) ────────────────────────────
     case "union":
+      if (type.isGeneratedName) {
+        // Generated unions (e.g., _SimpleModelAdditionalProperty) are inlined
+        // at the usage site to match the legacy emitter behavior. The named type
+        // alias is still emitted separately but interface members, Record<> value
+        // types, and `extends Record<>` clauses use inline `T1 | T2 | ...`.
+        const parts: Children[] = [];
+        for (let i = 0; i < type.variantTypes.length; i++) {
+          if (i > 0) parts.push(" | ");
+          parts.push(getTypeExpression(type.variantTypes[i]));
+        }
+        return parts;
+      }
       return typeRefkey(type);
 
     // ── Date types ───────────────────────────────────────────────────────

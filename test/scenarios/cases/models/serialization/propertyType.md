@@ -106,8 +106,8 @@ export interface SimpleModel {
   propboolean: boolean;
   propNumber: number;
   propStringOptional?: string;
-  propSimpleUnion: _SimpleModelPropSimpleUnion;
-  propSimpleUnionOptional?: _SimpleModelPropSimpleUnionOptional;
+  propSimpleUnion: string | boolean | number;
+  propSimpleUnionOptional?: string | boolean | number;
   propStringLiteral: "A";
   propBooleanLiteral: false;
   propNumberLiteral: 1;
@@ -119,34 +119,31 @@ export interface SimpleModel {
   propStringUnionAsExtensibleOptional?: SimpleModelPropStringUnionAsExtensibleOptional;
   propStringUnionAsExtensibleNullable: SimpleModelPropStringUnionAsExtensibleNullable | null;
   propStringUnionAsExtensibleOptionalAndNullable?: SimpleModelPropStringUnionAsExtensibleOptionalAndNullable | null;
-  propMixedTypeLiteral: _SimpleModelPropMixedTypeLiteral;
+  propMixedTypeLiteral: "A" | false | 1;
   propStringArray: string[];
   propBooleanArray: boolean[];
   propNumberArray: number[];
-  propSimpleUnionArray: _SimpleModelPropSimpleUnionArray[];
+  propSimpleUnionArray: (string | boolean | number)[];
   propStringArrayOptional?: string[];
-  propSimpleUnionArrayOptional?: _SimpleModelPropSimpleUnionArrayOptional[];
+  propSimpleUnionArrayOptional?: (string | boolean | number)[];
   propRecordOfString: Record<string, string>;
   propRecordOfDate: Record<string, Date>;
   propRecordOfBoolean: Record<string, boolean>;
   propRecordOfNumber: Record<string, number>;
-  propRecordOfSimpleUnion: Record<string, _SimpleModelPropRecordOfSimpleUnion>;
+  propRecordOfSimpleUnion: Record<string, string | boolean | number>;
   propRecordOfStringOptional?: Record<string, string>;
   propRecordOfStringArray: Record<string, string[]>;
   propArrayOfRecordOfString: Record<string, string>[];
   propArrayOfRecordOfStringOptional?: Record<string, string>[];
-  propRecordOfUnionArray: Record<string, _SimpleModelPropRecordOfUnionArray[]>;
+  propRecordOfUnionArray: Record<string, (string | boolean | number)[]>;
   propRecordOfUnionArrayOptional?: Record<
     string,
-    _SimpleModelPropRecordOfUnionArrayOptional[]
+    (string | boolean | number)[]
   >;
-  propArrayOfRecordOfUnion: Record<
-    string,
-    _SimpleModelPropArrayOfRecordOfUnion
-  >[];
+  propArrayOfRecordOfUnion: Record<string, string | boolean | number>[];
   propArrayOfRecordOfUnionOptional?: Record<
     string,
-    _SimpleModelPropArrayOfRecordOfUnionOptional
+    string | boolean | number
   >[];
   propEncoded: string;
   propNotNormalizeModel: FOO;

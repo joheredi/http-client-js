@@ -47,10 +47,7 @@ Generated Models.
 /**
  * model interface SimpleModel
  */
-export interface SimpleModel extends Record<
-  string,
-  _SimpleModelAdditionalProperty
-> {
+export interface SimpleModel extends Record<string, number | string> {
   propA: string;
   propB: string;
 }
@@ -342,7 +339,7 @@ export interface SimpleModel {
   /**
    * Additional properties
    */
-  additionalProperties?: Record<string, _SimpleModelAdditionalProperty>;
+  additionalProperties?: Record<string, string | number | boolean>;
 }
 
 /**

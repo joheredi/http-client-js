@@ -2621,3 +2621,14 @@ Tracked by: `EMITTER-FIX-FILE-BODY` in prd.json.
 **Decision**: Marked 6 Documentation scenarios as not-applicable in coverage calculation (not runtime tests).
 **Rationale**: These test JSDoc formatting (bold, italic, lists), which is a code-generation cosmetic concern better validated via scenario tests. No emitter tests these via e2e.
 **Implementation**: Added `NOT_APPLICABLE_SCENARIOS` array to `eng/scripts/calculate-coverage.ts` and excluded from coverage denominator.
+
+## Design Decisions
+
+### Generated union inlining (2026-03-04)
+**Decision**: Inline generated unions (`isGeneratedName === true`) at all type reference sites in `getTypeExpression()`, not just for `additionalProperties`.
+
+**Approach chosen**: Modify `getTypeExpression()` case "union" to check `type.isGeneratedName` and return an interleaved Children array of variant type expressions joined by ` | `. For arrays, wrap in parentheses to avoid operator precedence issues.
+
+**Alternative rejected**: Context-aware inlining (only in additionalProperties contexts). This was rejected because the legacy ground truth scenario tests show ALL generated unions are inlined in interface member types, not just additionalProperties ones.
+
+**Evidence**: Legacy scenario tests in `submodules/autorest.typescript/packages/typespec-ts/test/modularUnit/scenarios/models/` consistently show inline unions for generated names while still generating the named type alias declarations and serializer/deserializer helper functions.

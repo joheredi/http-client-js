@@ -157,7 +157,7 @@ export interface UnionModel {
   /**
    * Additional properties
    */
-  additionalProperties?: Record<string, _UnionModelAdditionalProperty>;
+  additionalProperties?: Record<string, string | number>;
 }
 
 /**
