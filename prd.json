@@ -4,7 +4,9 @@
     "version": "1.0.0",
     "status": "complete",
     "created": "2026-02-24",
-    "authors": ["@joheredi"]
+    "authors": [
+      "@joheredi"
+    ]
   },
   "product_overview": {
     "name": "@microsoft/http-client-js",
@@ -119,7 +121,10 @@
   "technical_architecture": {
     "framework": {
       "name": "Alloy Framework",
-      "packages": ["@alloy-js/core@0.22.0", "@alloy-js/typescript@0.22.0"],
+      "packages": [
+        "@alloy-js/core@0.22.0",
+        "@alloy-js/typescript@0.22.0"
+      ],
       "description": "JSX-based code generation framework. NOT React. Uses JSX purely as structural description language for code output. Provides automatic symbol resolution, cross-file import management, and naming policies."
     },
     "sdk_model": {
@@ -135,7 +140,10 @@
       "external_packages": "NPM packages defined via createPackage() with typed symbol accessors. Used in code templates for auto-import from runtime libraries."
     },
     "component_hierarchy": {
-      "top_level": ["Output", "SdkContextProvider"],
+      "top_level": [
+        "Output",
+        "SdkContextProvider"
+      ],
       "orchestrators": [
         "ModelFiles",
         "Operations",
@@ -321,7 +329,9 @@
       },
       "models_template": {
         "count": 1,
-        "tests": ["models/template/template.md"]
+        "tests": [
+          "models/template/template.md"
+        ]
       },
       "operations_core": {
         "count": 6,
@@ -365,7 +375,9 @@
       },
       "operations_cookie_param": {
         "count": 1,
-        "tests": ["operations/cookieParam/ignoreCookieParam.md"]
+        "tests": [
+          "operations/cookieParam/ignoreCookieParam.md"
+        ]
       },
       "operations_error_deserialization": {
         "count": 2,
@@ -376,7 +388,9 @@
       },
       "operations_pagination": {
         "count": 1,
-        "tests": ["operations/pagination/disablePagination.md"]
+        "tests": [
+          "operations/pagination/disablePagination.md"
+        ]
       },
       "api_operations": {
         "count": 3,
@@ -403,7 +417,9 @@
       },
       "enum_union": {
         "count": 1,
-        "tests": ["enumUnion/enumUnion.md"]
+        "tests": [
+          "enumUnion/enumUnion.md"
+        ]
       },
       "multipart": {
         "count": 4,
@@ -489,7 +505,9 @@
       "priority": "P1",
       "status": "done",
       "kind": "feature",
-      "dependencies": ["SPECTOR-3"],
+      "dependencies": [
+        "SPECTOR-3"
+      ],
       "design_review": null,
       "source": "design",
       "description": "Port parameters, payload, and routing Spector integration tests (9 test files).\n\n## Tests to port\n\n### Parameters\n| Legacy test file | Spector spec | New test path |\n|---|---|---|\n| `basicParameters.spec.ts` | `parameters/basic` | `test/e2e/http/parameters/basic/main.test.ts` |\n| `bodyOptionality.spec.ts` | `parameters/body-optionality` | `test/e2e/http/parameters/body-optionality/main.test.ts` |\n| `collectionFormat.spec.ts` | `parameters/collection-format` | `test/e2e/http/parameters/collection-format/main.test.ts` |\n| `spreadParameters.spec.ts` | `parameters/spread` | `test/e2e/http/parameters/spread/main.test.ts` |\n\n### Payload\n| Legacy test file | Spector spec | New test path |\n|---|---|---|\n| `payloadContentNegotiation.spec.ts` | `payload/content-negotiation` | `test/e2e/http/payload/content-negotiation/main.test.ts` |\n| `payloadMediaType.spec.ts` | `payload/media-type` | `test/e2e/http/payload/media-type/main.test.ts` |\n| `payloadMultipart.spec.ts` | `payload/multipart` | `test/e2e/http/payload/multipart/main.test.ts` |\n| `payloadPageable.spec.ts` | `payload/pageable` | `test/e2e/http/payload/pageable/main.test.ts` |\n\n### Routes\n| Legacy test file | Spector spec | New test path |\n|---|---|---|\n| `routes.spec.ts` | `routes` | `test/e2e/http/routes/main.test.ts` |\n\n## Notes\n- `payloadMultipart` is complex \u2014 uses `fs.createReadStream()` for file uploads. Tests need access to test assets. Create `test/e2e/assets/` with image.jpg and image.png files, or reference them from the existing spector spec assets.\n- `payloadPageable` tests pagination. Verify the generated client has paging helpers.\n- `routes` is a comprehensive test with many sub-tests for path/query expansion modes.\n- `spreadParameters` tests TypeSpec spread operator for parameter destructuring.\n\n## Reference files\n- Legacy tests: `submodules/autorest.typescript/packages/typespec-ts/test/modularIntegration/`\n- Spector specs: `submodules/typespec/packages/http-specs/specs/`\n- Reference tests: `submodules/typespec/packages/http-client-js/test/e2e/http/`\n\n## Validation\nRun `pnpm build && pnpm test:e2e` \u2014 all parameter/payload/routes tests should pass."
@@ -501,7 +519,9 @@
       "priority": "P1",
       "status": "done",
       "kind": "feature",
-      "dependencies": ["SPECTOR-3"],
+      "dependencies": [
+        "SPECTOR-3"
+      ],
       "design_review": null,
       "source": "design",
       "description": "Port versioning, special-words, and special-headers Spector integration tests (10 test files).\n\n## Tests to port\n\n### Versioning\n| Legacy test file | Spector spec | New test path |\n|---|---|---|\n| `versioningAdded.spec.ts` | `versioning/added` | `test/e2e/http/versioning/added/main.test.ts` |\n| `versioningMadeOptional.spec.ts` | `versioning/madeOptional` | `test/e2e/http/versioning/madeOptional/main.test.ts` |\n| `versioningRemovedV1.spec.ts` | `versioning/removed` (v1 config) | `test/e2e/http/versioning/removed/v1/main.test.ts` |\n| `versioningRemovedV2.spec.ts` | `versioning/removed` (v2 config) | `test/e2e/http/versioning/removed/v2/main.test.ts` |\n| `versioningRemovedV2Preview.spec.ts` | `versioning/removed` (v2preview config) | `test/e2e/http/versioning/removed/v2preview/main.test.ts` |\n| `versioningRenamedFrom.spec.ts` | `versioning/renamedFrom` | `test/e2e/http/versioning/renamedFrom/main.test.ts` |\n| `versioningReturnTypeChangedFrom.spec.ts` | `versioning/returnTypeChangedFrom` | `test/e2e/http/versioning/returnTypeChangedFrom/main.test.ts` |\n| `versioningTypeChangedFrom.spec.ts` | `versioning/typeChangedFrom` | `test/e2e/http/versioning/typeChangedFrom/main.test.ts` |\n\n### Special\n| Legacy test file | Spector spec | New test path |\n|---|---|---|\n| `specialWords.spec.ts` | `special-words` | `test/e2e/http/special-words/main.test.ts` |\n| `headersRepeatability.spec.ts` | `special-headers/repeatability` | `test/e2e/http/special-headers/repeatability/main.test.ts` |\n\n## Notes on versioning tests\nThe `versioning/removed` spec generates 3 different client variants based on version configuration:\n- v1: Only the operations/types from version 1\n- v2: Operations/types up to version 2 (v1 removed items are gone)\n- v2preview: Preview version with additional preview operations\n\nIn the legacy emitter, these are 3 separate entries in cadl-ranch-list.js with different outputPaths but the same inputPath. In the new emitter, the generation script needs to compile the same spec 3 times with different version options. This may require special handling in the emit-e2e script or version-specific tspconfig.yaml files.\n\n## Reference files\n- Legacy tests: `submodules/autorest.typescript/packages/typespec-ts/test/modularIntegration/versioning*.spec.ts`, `specialWords.spec.ts`, `headersRepeatability.spec.ts`\n- Legacy cadl-ranch-list.js: Shows how versioning/removed is split into 3 entries with different outputPaths\n- Spector specs: `submodules/typespec/packages/http-specs/specs/versioning/`, `special-words/`, `special-headers/`\n\n## Validation\nRun `pnpm build && pnpm test:e2e` \u2014 all versioning and special tests should pass."
@@ -513,7 +533,9 @@
       "priority": "P2",
       "status": "done",
       "kind": "feature",
-      "dependencies": ["SPECTOR-3"],
+      "dependencies": [
+        "SPECTOR-3"
+      ],
       "design_review": null,
       "source": "design",
       "description": "Integrate the Spector e2e tests into the CI pipeline and set up coverage reporting.\n\n## What to do\n1. Add a CI step that runs `pnpm build && pnpm test:e2e` in the existing CI workflow\n2. Ensure the Spector coverage file (`temp/spector-coverage.json`) is captured as a CI artifact\n3. Add a script to parse and summarize coverage: which Spector scenarios are covered vs not\n\n## Coverage reporting\nAfter tests complete, the Spector server writes coverage data to `temp/spector-coverage.json`. This file tracks which mock API scenarios were hit during testing.\n\nCreate `eng/scripts/calculate-coverage.ts` that:\n1. Reads `temp/spector-coverage.json`\n2. Prints a summary: N/M scenarios covered\n3. Lists uncovered scenarios\n\n## Reference\n- `submodules/typespec/packages/http-client-js/eng/scripts/calculate-coverage.js` \u2014 reference implementation\n- Spector coverage format: `CoverageReport[]` from `@typespec/spector`\n\n## Package.json script\nAdd: `\"test:e2e:ci\": \"pnpm build && pnpm test:e2e\"`\n\n## Validation\n- CI runs e2e tests successfully\n- Coverage artifact is captured"
@@ -609,7 +631,9 @@
       "priority": "P2",
       "status": "done",
       "kind": "feature",
-      "dependencies": ["E2E-FIX-ADDITIONAL-PROPS-DERIVED"],
+      "dependencies": [
+        "E2E-FIX-ADDITIONAL-PROPS-DERIVED"
+      ],
       "design_review": null,
       "source": "e2e-test-investigation",
       "description": "Fix 6 skipped e2e tests caused by non-discriminated union deserializers returning raw data without type discrimination.\n\n## Problem\n\nNon-discriminated union deserializers are generated as simple passthroughs (`return item`), but wire data contains union types needing proper deserialization (e.g., Date parsing).\n\n## Affected Tests (6)\n\n| Test file | Test name | Line |\n|-----------|-----------|------|\n| `type/property/additional-properties/main.test.ts` | get non-discriminated union spread | 526 |\n| `type/property/additional-properties/main.test.ts` | put non-discriminated union spread | 537 |\n| `type/property/additional-properties/main.test.ts` | get non-discriminated union2 spread | 549 |\n| `type/property/additional-properties/main.test.ts` | put non-discriminated union2 spread | 564 |\n| `type/property/additional-properties/main.test.ts` | get non-discriminated union3 spread | 580 |\n| `type/property/additional-properties/main.test.ts` | put non-discriminated union3 spread | 598 |\n\n## Current Generated Code (broken)\n\n```typescript\nexport function _spreadRecordForNonDiscriminatedUnionAdditionalPropertyDeserializer(\n  item: any,\n): _SpreadRecordForNonDiscriminatedUnionAdditionalProperty {\n  return item;  // No discrimination, no deserialization!\n}\n```\n\nUnion members include:\n- `WidgetData0`: `{ kind: \"kind0\", fooProp: string }`\n- `WidgetData1`: `{ kind: \"kind1\", start: Date, end?: Date }`\n- `WidgetData2`: `{ kind: \"kind1\", start: string }` (overlapping discriminator!)\n\n## Mock Server Expectations\n\nFrom additional-properties mockapi.ts:\n- `recordUnionBody`: `{ flag: true, prop1: \"abc\", prop2: 43.125 }`\n- `recordDiscriminatedUnionBody`: `{ name: \"abc\", prop1: { kind: \"kind0\", fooProp: \"abc\" }, prop2: { kind: \"kind1\", start: \"2021-01-01T00:00:00Z\", end: \"2021-01-02T00:00:00Z\" } }`\n\n## Root Cause\n\nThe emitter doesn't generate type discrimination logic for non-discriminated unions. Members with overlapping `kind` fields need secondary property checks.\n\n## Recommended Fix\n\nGenerate union deserialization that:\n1. Uses `kind` field for initial dispatch when members have distinct values\n2. For overlapping `kind` values, use secondary property checks (e.g., presence of `end` field)\n3. Apply member-specific deserialization (e.g., ISO date parsing)\n\nThis depends on E2E-FIX-ADDITIONAL-PROPS-DERIVED being completed first.\n\n## Key Files\n\n- `src/components/serialization/json-deserializer.tsx` \u2014 union deserialization generation\n- `src/components/serialization/json-serializer.tsx` \u2014 union serialization generation\n\n## Validation\n\n```bash\npnpm build && pnpm test:e2e -- --grep \"AdditionalProperties\"\n```"
@@ -1169,7 +1193,9 @@
           {
             "name": "Create separate test files per pageable variant",
             "description": "Create main.test.ts files under subdirectories (page-size/, xml-pagination/, etc.).",
-            "pros": ["Finer-grained test isolation"],
+            "pros": [
+              "Finer-grained test isolation"
+            ],
             "cons": [
               "Unnecessary complexity \u2014 all tests use the same generated client",
               "Breaks from established pattern"
@@ -1364,12 +1390,16 @@
               "All file tests in one place",
               "Simple to write"
             ],
-            "cons": ["None significant"]
+            "cons": [
+              "None significant"
+            ]
           },
           {
             "name": "Create separate test files for upload and download",
             "description": "Split into upload.test.ts and download.test.ts for clarity.",
-            "pros": ["Logical separation"],
+            "pros": [
+              "Logical separation"
+            ],
             "cons": [
               "Unnecessary \u2014 both directions use the same client and setup"
             ]
@@ -1399,12 +1429,16 @@
               "Matches generated code directory structure",
               "Clear and specific"
             ],
-            "cons": ["Deep nesting (noauth/union/)"]
+            "cons": [
+              "Deep nesting (noauth/union/)"
+            ]
           },
           {
             "name": "Add to existing authentication test directory",
             "description": "Add noauth union tests alongside the existing authentication/union tests.",
-            "pros": ["Less directory nesting"],
+            "pros": [
+              "Less directory nesting"
+            ],
             "cons": [
               "Different generated clients \u2014 would need separate imports"
             ]
@@ -1441,8 +1475,12 @@
           {
             "name": "Test via error interception/inspection",
             "description": "Use try/catch patterns to verify the error type and properties returned by the client for different status codes.",
-            "pros": ["More explicit error inspection"],
-            "cons": ["More verbose test code"]
+            "pros": [
+              "More explicit error inspection"
+            ],
+            "cons": [
+              "More verbose test code"
+            ]
           }
         ],
         "chosen": "Create main.test.ts testing error response handling",
@@ -1470,12 +1508,16 @@
               "Independent test files",
               "Can run specific versioning tests"
             ],
-            "cons": ["More files"]
+            "cons": [
+              "More files"
+            ]
           },
           {
             "name": "Create a single versioning/main.test.ts",
             "description": "Group all versioning tests in one file with describe blocks per scenario.",
-            "pros": ["Fewer files"],
+            "pros": [
+              "Fewer files"
+            ],
             "cons": [
               "Different generated clients for each spec \u2014 messier imports",
               "Doesn't match directory structure"
@@ -1502,14 +1544,23 @@
           {
             "name": "Add test case to existing multipart main.test.ts",
             "description": "Add an it() block to the existing test/e2e/http/payload/multipart/main.test.ts for the anonymousModel operation.",
-            "pros": ["Minimal change", "Reuses existing client setup"],
-            "cons": ["None"]
+            "pros": [
+              "Minimal change",
+              "Reuses existing client setup"
+            ],
+            "cons": [
+              "None"
+            ]
           },
           {
             "name": "Create separate test file for anonymous model",
             "description": "Create a new test file specifically for the anonymous model scenario.",
-            "pros": ["Isolation"],
-            "cons": ["Unnecessary overhead for a single test case"]
+            "pros": [
+              "Isolation"
+            ],
+            "cons": [
+              "Unnecessary overhead for a single test case"
+            ]
           }
         ],
         "chosen": "Add test case to existing multipart main.test.ts",
@@ -1532,14 +1583,23 @@
           {
             "name": "Add test case to existing XML main.test.ts",
             "description": "Add a test case to test/e2e/http/payload/xml/main.test.ts for the XmlErrorValue_get scenario.",
-            "pros": ["Minimal change", "Reuses existing client setup"],
-            "cons": ["None"]
+            "pros": [
+              "Minimal change",
+              "Reuses existing client setup"
+            ],
+            "cons": [
+              "None"
+            ]
           },
           {
             "name": "Create separate test file",
             "description": "Separate test file for error value.",
-            "pros": ["Isolation"],
-            "cons": ["Unnecessary"]
+            "pros": [
+              "Isolation"
+            ],
+            "cons": [
+              "Unnecessary"
+            ]
           }
         ],
         "chosen": "Add test case to existing XML main.test.ts",
@@ -1562,13 +1622,20 @@
           {
             "name": "Create test/e2e/http/parameters/query/main.test.ts",
             "description": "Create a test file that exercises the constant query parameter operation. The test would verify the client automatically includes the constant query parameter in the request URL.",
-            "pros": ["Simple and direct", "Matches existing pattern"],
-            "cons": ["None"]
+            "pros": [
+              "Simple and direct",
+              "Matches existing pattern"
+            ],
+            "cons": [
+              "None"
+            ]
           },
           {
             "name": "Skip \u2014 constant parameters may not need explicit testing",
             "description": "Constant parameters are embedded in the generated code at compile time. They don't require user input, so they may not be meaningful to test at the e2e level.",
-            "pros": ["No work needed"],
+            "pros": [
+              "No work needed"
+            ],
             "cons": [
               "Missing coverage",
               "Can't verify the constant is actually sent"
@@ -1610,7 +1677,10 @@
           {
             "name": "ReadableStream-based streaming with transform",
             "description": "Generate operations that return ReadableStream<T> using the Web Streams API. Use a TransformStream to split and parse JSONL data. This is more browser-native but less ergonomic than AsyncIterable.",
-            "pros": ["Native Web API", "Good backpressure support"],
+            "pros": [
+              "Native Web API",
+              "Good backpressure support"
+            ],
             "cons": [
               "Less ergonomic \u2014 users must use .getReader()",
               "Not all Node.js versions support Web Streams natively",
@@ -1681,6 +1751,95 @@
       "design_review": null,
       "source": "e2e-test-discovery",
       "description": "Fix the emitter so File body operations (Type.File.Body) use raw binary handling instead of JSON model serialization.\n\n## Problem\nThe emitter generates fileSerializer/fileDeserializer functions that treat File objects as regular JSON models (with base64-encoded contents). For File body operations, this is incorrect:\n\n### Uploads\n- **Current**: Sends JSON body `{ contentType, filename, contents: base64 }` with binary Content-Type header\n- **Expected**: Sends raw binary content (Uint8Array) as the body with the correct Content-Type header\n\n### Downloads\n- **Current**: Uses `fileDeserializer(result.body)` which accesses `result.body.contents`, but the response body IS the raw binary Buffer\n- **Expected**: Should take the raw binary response body and wrap it in a File object: `{ contents: rawBuffer, contentType: responseContentType }`\n\n## Affected scenarios (8 total, all in test/e2e/http/type/file/main.test.ts)\n1. uploadFileSpecificContentType (image/png)\n2. uploadFileJsonContentType (application/json)\n3. uploadFileMultipleContentTypes (image/png | image/jpeg)\n4. uploadFileDefaultContentType (any)\n5. downloadFileSpecificContentType (image/png)\n6. downloadFileJsonContentType (application/json)\n7. downloadFileMultipleContentTypes (image/png | image/jpeg)\n8. downloadFileDefaultContentType (any)\n\n## What needs to change\nThe emitter needs to detect when an operation uses `@bodyRoot file: Http.File<...>` and:\n- For uploads: Send `file.contents` as the raw body instead of `fileSerializer(file)`\n- For downloads: Use getBinaryResponse or equivalent to read raw binary, then construct the File object\n\n## E2E tests\nTests are already written and skipped in test/e2e/http/type/file/main.test.ts. Unskip them after fixing."
+    },
+    {
+      "id": "E2E-FIX-MULTIPART-FILE-TYPES",
+      "title": "Fix multipart file/binary property types to match legacy output",
+      "category": "bug-fix/emitter",
+      "priority": "P2",
+      "status": "pending",
+      "kind": "bug",
+      "dependencies": [],
+      "design_review": null,
+      "source": "e2e-api-surface-audit-cat7",
+      "description": "## Summary\nThe new emitter generates simplified types for multipart file/binary properties (`Uint8Array`, `FileRequiredMetaData`) instead of the legacy's `FileContents` union pattern. This must be fixed to match legacy output for API surface parity.\n\n**Legacy output is the source of truth. The new emitter must produce the same model interface types.**\n\n## Problem \u2014 12 affected interfaces in `payload/multipart` spec\n\nThe legacy emitter generates model interfaces where file/binary properties use the `FileContents | { contents: FileContents; contentType?: string; filename?: string }` union pattern. The new emitter uses simpler types that break API parity.\n\n### Specific differences\n\n| Interface | Member | Legacy Type | New Type (wrong) |\n|-----------|--------|-------------|------------------|\n| `MultiPartRequest` | `profileImage` | `FileContents \\| { contents: FileContents; contentType?: string; filename?: string }` | `Uint8Array` |\n| `ComplexHttpPartsModelRequest` | `profileImage` | `File \\| { contents: FileContents; contentType?: string; filename: string }` | `FileRequiredMetaData` |\n| `BinaryArrayPartsRequest` | `pictures` | `Array<FileContents \\| { contents: FileContents; ... }>` | `Uint8Array[]` |\n| `MultiBinaryPartsRequest` | `profileImage` | `FileContents \\| { contents: FileContents; ... }` | `Uint8Array` |\n| `MultiBinaryPartsRequest` | `picture` | `FileContents \\| { contents: FileContents; ... }` | `Uint8Array` |\n| `JsonPartRequest` | `profileImage` | `FileContents \\| { contents: FileContents; ... }` | `Uint8Array` |\n| `MultiPartOptionalRequest` | `profileImage` | `FileContents \\| { contents: FileContents; ... }` | `Uint8Array` |\n| `MultiPartRequestWithWireName` | `image` | `FileContents \\| { contents: FileContents; ... }` | `Uint8Array` |\n\nAdditionally, the legacy defines and exports the `FileContents` type:\n```typescript\nexport type FileContents = string | NodeJS.ReadableStream | ReadableStream<Uint8Array> | Uint8Array | Blob;\n```\n\nAnd some interfaces have `contentType`/`filename` convenience members that are absent in the new output.\n\n### For HTTP parts scenarios, the legacy uses inline object types:\n- `File | { contents: FileContents; contentType?: string; filename: string }` (required filename)\n- `FileContents | { contents: FileContents; contentType?: string; filename?: string }` (optional filename)\n\nThe new emitter uses named types (`FileRequiredMetaData`, `FileSpecificContentType`) which differ from legacy.\n\n## Root Cause\n\nIn `src/components/type-expression.tsx` (line ~128-130), ALL `bytes` SdkType kinds are mapped to `Uint8Array`:\n```typescript\ncase \"bytes\":\n  return \"Uint8Array\";\n```\n\nThere is no multipart-specific type generation. The multipart serializer (`src/components/serialization/multipart-serializer.tsx`) handles the runtime conversion via `createFilePartDescriptor()` which accepts the broader `FileContents` union, but the **model interface types** exposed to consumers don't reflect this flexibility.\n\n## What to Fix\n\n### 1. Model interface types for multipart file properties\nWhen a model property is used in a multipart context and represents a file/binary part, the type in the model interface should be the `FileContents | { contents: FileContents; contentType?: string; filename?: string }` union pattern (matching legacy), NOT bare `Uint8Array`.\n\nThe TCGC metadata `multipart?.isFilePart` flag on `SdkBodyModelPropertyType` indicates which properties are file parts. Use this to determine the correct type.\n\n### 2. FileContents type export\nThe `FileContents` type must be exported. It's currently defined in `src/components/static-helpers/multipart-helpers.tsx` as a runtime helper type. Ensure it appears in the public API.\n\n### 3. HTTP parts typed interfaces\nFor HTTP parts scenarios (where TCGC metadata specifies required contentType or filename), the inline object type `{ contents: FileContents; contentType?: string; filename: string }` should be used instead of named types like `FileRequiredMetaData`.\n\n## Key Files to Modify\n\n- `src/components/type-expression.tsx` \u2014 Add multipart-aware type expression for bytes properties\n- `src/components/model-interface.tsx` \u2014 Detect multipart file properties and apply correct type (see `getPropertyTypeExpression` function around line 458)\n- `src/components/static-helpers/multipart-helpers.tsx` \u2014 Ensure `FileContents` type is exported\n- `src/components/serialization/multipart-serializer.tsx` \u2014 May need adjustment if model types change\n\n## Reference Files\n\n- Legacy output: `submodules/autorest.typescript/packages/typespec-ts/test/modularIntegration/generated/payload/multipart/src/index.d.ts`\n- New emitter output: `test/e2e/generated/payload/multipart/src/models/models.ts`\n- E2E tests: `test/e2e/http/payload/multipart/main.test.ts` (16 tests, all currently passing \u2014 must remain passing after fix)\n\n## Validation\n\n1. `pnpm test` \u2014 all unit/scenario tests must pass\n2. `pnpm build && pnpm test:smoke` \u2014 smoke test must pass\n3. Regenerate payload/multipart output and compare model interface types with legacy\n4. All 16 existing multipart e2e tests must continue to pass"
+    },
+    {
+      "id": "E2E-FIX-DISCRIMINATED-UNION-MEMBER-TYPES",
+      "title": "Fix discriminated union member types to use union aliases instead of base types (Category 6a)",
+      "category": "bug-fix/emitter",
+      "priority": "P2",
+      "status": "pending",
+      "kind": "bug",
+      "dependencies": [],
+      "design_review": null,
+      "source": "e2e-api-surface-audit-cat6a",
+      "description": "## Summary\nModel properties typed as a discriminated base type use the base type name (`Fish`, `Bird`) instead of the union alias (`FishUnion`, `BirdUnion`). **The legacy output is the source of truth. The new emitter must produce the same member types.**\n\n## Problem\n\nWhen a model property references a polymorphic base type that has a discriminated union alias, the new emitter uses the base type directly instead of the union alias. This loses type narrowing ability for consumers.\n\n### Affected specs and exact differences\n\n**`type/model/inheritance/nested-discriminator` spec:**\n\n| Interface | Member | Legacy (correct) | New (wrong) |\n|-----------|--------|-------------------|-------------|\n| `FishUnion` (type alias) | \u2014 | `SharkUnion \\| Salmon \\| Fish` | `Shark \\| Salmon \\| Fish` |\n| `Salmon` | `partner` | `FishUnion` | `Fish` |\n| `Salmon` | `friends` | `FishUnion[]` | `Fish[]` |\n| `Salmon` | `hate` | `Record<string, FishUnion>` | `Record<string, Fish>` |\n\n**`type/model/inheritance/single-discriminator` spec:**\n\n| Interface | Member | Legacy (correct) | New (wrong) |\n|-----------|--------|-------------------|-------------|\n| `Eagle` | `partner` | `BirdUnion` | `Bird` |\n| `Eagle` | `friends` | `BirdUnion[]` | `Bird[]` |\n| `Eagle` | `hate` | `Record<string, BirdUnion>` | `Record<string, Bird>` |\n\n### FishUnion type alias issue\n\nAdditionally, `FishUnion` itself should contain `SharkUnion` (not `Shark`):\n- Legacy: `type FishUnion = SharkUnion | Salmon | Fish`\n- New: `type FishUnion = Shark | Salmon | Fish`\n\nThe `SharkUnion` type includes `SawShark | GoblinShark | Shark`, preserving the full nested discrimination hierarchy. Using `Shark` directly loses the ability to narrow to `SawShark` or `GoblinShark`.\n\n## Root Cause\n\nTwo separate issues:\n\n### Issue 1: Member type resolution uses base type instead of union alias\n\nIn `src/components/type-expression.tsx`, when a property type is an `SdkModelType` that has a polymorphic union alias (`FishUnion`, `BirdUnion`), the emitter resolves to the base model's refkey (`Fish`, `Bird`) instead of the union alias's refkey.\n\nThe fix needs to detect when an `SdkModelType` is a discriminated base (has `discriminatedSubtypes`) and use the `polymorphicTypeRefkey(type)` (pointing to the `*Union` alias) instead of `typeRefkey(type)` (pointing to the interface).\n\nKey function: `getTypeExpression()` in `src/components/type-expression.tsx` around line 100 (case \"model\").\nKey refkey: `polymorphicTypeRefkey()` in `src/utils/refkeys.ts` \u2014 already exists and is used by `PolymorphicType` component.\n\n### Issue 2: PolymorphicType uses base type instead of union alias for subtypes\n\nIn `src/components/polymorphic-type.tsx`, the `PolymorphicType` component generates the union type alias. When enumerating subtypes, it uses `typeRefkey(subtype)` which resolves to the model interface (e.g., `Shark`). For subtypes that themselves have discriminated subtypes (e.g., `Shark` has `SawShark`/`GoblinShark`), it should use `polymorphicTypeRefkey(subtype)` (resolving to `SharkUnion`) instead.\n\nKey function: `PolymorphicType` in `src/components/polymorphic-type.tsx` around line 47 \u2014 the `<For>` loop rendering subtypes.\n\n## What to Fix\n\n### Fix 1: `src/components/type-expression.tsx`\nIn `getTypeExpression()`, when handling `case \"model\"`:\n- Check if the model has `discriminatedSubtypes` (is a polymorphic base)\n- If yes, return `polymorphicTypeRefkey(type)` instead of `typeRefkey(type)`\n- This makes `Salmon.partner` resolve to `FishUnion` instead of `Fish`\n\n### Fix 2: `src/components/polymorphic-type.tsx`\nIn the `<For>` loop rendering subtypes:\n- For each subtype, check if it itself has `discriminatedSubtypes` (a nested base)\n- If yes, use `polymorphicTypeRefkey(subtype)` instead of `typeRefkey(subtype)`\n- This makes `FishUnion = SharkUnion | Salmon | Fish` instead of `FishUnion = Shark | Salmon | Fish`\n\n## Key Files\n\n- `src/components/type-expression.tsx` \u2014 `getTypeExpression()` function, model case\n- `src/components/polymorphic-type.tsx` \u2014 `PolymorphicType` component, subtype rendering\n- `src/utils/refkeys.ts` \u2014 `polymorphicTypeRefkey()` and `typeRefkey()` definitions\n\n## Reference Files\n\n- Legacy nested-discriminator: `submodules/autorest.typescript/packages/typespec-ts/test/modularIntegration/generated/type/model/inheritance/nested-discriminator/src/index.d.ts`\n- Legacy single-discriminator: `submodules/autorest.typescript/packages/typespec-ts/test/modularIntegration/generated/type/model/inheritance/single-discriminator/src/index.d.ts`\n- New emitter nested-discriminator: `test/e2e/generated/type/model/inheritance/nested-discriminator/src/models/models.ts`\n- New emitter single-discriminator: `test/e2e/generated/type/model/inheritance/single-discriminator/src/models/models.ts`\n\n## Validation\n\n1. `pnpm test` \u2014 all unit/scenario tests must pass\n2. `pnpm build && pnpm test:smoke` \u2014 smoke test must pass\n3. Verify `Salmon.partner` is `FishUnion` (not `Fish`), `Eagle.partner` is `BirdUnion` (not `Bird`)\n4. Verify `FishUnion = SharkUnion | Salmon | Fish` (not `Shark | Salmon | Fish`)\n5. Verify serializers still work correctly \u2014 `salmonSerializer` should call `fishUnionSerializer` for partner"
+    },
+    {
+      "id": "E2E-FIX-EXTENSIBLE-ENUM-KNOWN-PATTERN",
+      "title": "Fix extensible enum generation to match legacy Known{Name} + string pattern (Category 6b)",
+      "category": "bug-fix/emitter",
+      "priority": "P2",
+      "status": "pending",
+      "kind": "bug",
+      "dependencies": [],
+      "design_review": null,
+      "source": "e2e-api-surface-audit-cat6b",
+      "description": "## Summary\nThe new emitter generates extensible enums as string literal unions (e.g., `type StringExtensibleNamedUnion = \"b\" | \"c\"`) instead of the legacy's `Known{Name}` enum + string type alias pattern. **The legacy output is the source of truth. The new emitter must produce the same enum pattern.**\n\n## Background: `experimental-extensible-enums` Option\n\nBoth the legacy and new emitters have an `experimental-extensible-enums` boolean option that controls how extensible enums (TCGC `SdkEnumType` with `isFixed: false`) are rendered.\n\n### When `experimental-extensible-enums: true`:\n```typescript\n// Type alias = broad string (accepts unknown values)\nexport type StringExtensibleNamedUnion = string;\n\n// Known enum with all predefined values\nexport enum KnownStringExtensibleNamedUnion {\n  OptionB = \"b\",\n  C = \"c\",\n}\n```\n\n### When `experimental-extensible-enums: false` (default):\n```typescript\n// Legacy: string literal union WITH string fallback\nexport type StringExtensibleNamedUnion = \"b\" | \"c\" | string;\n\n// New emitter (WRONG): string literal union WITHOUT string fallback\nexport type StringExtensibleNamedUnion = \"b\" | \"c\";\n```\n\n**Neither pattern generates a `Known{Name}` enum when the flag is false.**\n\n## Problem\n\nThe legacy `type/union` spec was generated with `experimental-extensible-enums: true` (confirmed in legacy tspconfig at `submodules/autorest.typescript/packages/typespec-ts/test/modularIntegration/generated/type/union/tspconfig.yaml`). The new emitter's `type/union` e2e test does NOT set this option, so it defaults to `false`, producing a different output.\n\n### Exact differences in `type/union` spec\n\n| Type | Legacy (with flag=true) | New (with flag=false) |\n|------|-------------------------|----------------------|\n| `StringExtensibleNamedUnion` | `string` | `\"b\" \\| \"c\"` |\n| `KnownStringExtensibleNamedUnion` | `enum { OptionB = \"b\", C = \"c\" }` | _(missing)_ |\n\n### Two issues to fix\n\n**Issue 1**: The `type/union` e2e test needs `experimental-extensible-enums: true` in its tspconfig to match the legacy configuration.\n\n**Issue 2**: When `experimental-extensible-enums: false` (default), the new emitter generates `\"b\" | \"c\"` but the legacy generates `\"b\" | \"c\" | string`. The new emitter is missing the `| string` fallback for extensible enums. This matters for specs that DON'T set the flag \u2014 extensible enums should still accept unknown string values at runtime.\n\n## How `experimental-extensible-enums` Works in the New Emitter\n\nThe option is already implemented:\n- **Definition**: `src/lib.ts` lines 46-51 \u2014 boolean option in emitter schema\n- **Context**: `src/context/emitter-options-context.tsx` line 40-49 \u2014 `experimentalExtensibleEnums` field\n- **Wiring**: `src/emitter.tsx` line 260 \u2014 reads from `context.options`\n- **Enum generation**: `src/components/enum-declaration.tsx` line 67:\n  ```typescript\n  const shouldEmitKnownEnum = !type.isFixed && experimentalExtensibleEnums;\n  ```\n  - When `true`: generates `type Name = string` + `enum KnownName { ... }` \u2705 (matches legacy)\n  - When `false`: generates `type Name = \"val1\" | \"val2\"` \u274c (missing `| string` fallback)\n\n## What to Fix\n\n### Fix 1: Add `| string` fallback for extensible enums when flag is false\nIn `src/components/enum-declaration.tsx`, when rendering the type alias body for extensible enums (`isFixed: false`) with `experimentalExtensibleEnums: false`, append `| string` to the literal union:\n- Current: `\"b\" | \"c\"`\n- Expected: `\"b\" | \"c\" | string`\n\nLook at function around line 205 (`getTypeAliasBody` or similar) that generates the union members. For extensible enums (not fixed), after listing all literal values, add `| string` (or `| number` for numeric enums) as a fallback.\n\n### Fix 2: Configure `type/union` e2e test with `experimental-extensible-enums: true`\nCreate or update `test/e2e/http/type/union/tspconfig.yaml` to include:\n```yaml\noptions:\n  http-client-js:\n    experimental-extensible-enums: true\n```\nThis matches the legacy test configuration and will produce `Known{Name}` enum + string type alias pattern.\n\n## Key Files\n\n- `src/components/enum-declaration.tsx` \u2014 Enum/type alias generation logic\n- `src/lib.ts` \u2014 Option schema definition\n- `src/context/emitter-options-context.tsx` \u2014 Option context\n- `test/e2e/http/type/union/tspconfig.yaml` \u2014 E2E test config (create if missing)\n\n## Reference Files\n\n- Legacy tspconfig: `submodules/autorest.typescript/packages/typespec-ts/test/modularIntegration/generated/type/union/tspconfig.yaml` (has `experimental-extensible-enums: true`)\n- Legacy output: `submodules/autorest.typescript/packages/typespec-ts/test/modularIntegration/generated/type/union/src/index.d.ts`\n- New emitter output: `test/e2e/generated/type/union/src/models/models.ts`\n- New emitter scenario tests for enums: `test/scenarios/cases/enumUnion/enumUnion.md` (uses `experimental-extensible-enums: true`)\n\n## Validation\n\n1. `pnpm test` \u2014 all unit/scenario tests must pass\n2. `pnpm build && pnpm test:smoke` \u2014 smoke test must pass\n3. With `experimental-extensible-enums: true`: verify `type StringExtensibleNamedUnion = string` + `enum KnownStringExtensibleNamedUnion { ... }`\n4. With `experimental-extensible-enums: false`: verify `type StringExtensibleNamedUnion = \"b\" | \"c\" | string` (note the `| string` fallback)\n5. Fixed enums (`isFixed: true`) should NOT be affected \u2014 they remain exact literal unions without `| string`"
+    },
+    {
+      "id": "E2E-FIX-DISCRIMINATOR-PROPERTY-TYPE",
+      "title": "Fix discriminator property type narrowing on intermediate base models (Category 6c)",
+      "category": "bug-fix/emitter",
+      "priority": "P2",
+      "status": "pending",
+      "kind": "bug",
+      "dependencies": [],
+      "design_review": null,
+      "source": "e2e-api-surface-audit-cat6c",
+      "description": "## Summary\nThe new emitter incorrectly narrows discriminator properties on intermediate base models. `Shark.sharktype` is rendered as `\"shark\"` (literal) instead of `string` (broad type). **The legacy output is the source of truth. The new emitter must produce the same discriminator property types.**\n\n## Problem\n\nIn the `type/model/inheritance/nested-discriminator` spec, the `Shark` model is BOTH:\n1. A **subtype** of `Fish` (with `kind: \"shark\"` \u2014 its discriminator value in Fish's hierarchy)\n2. A **base type** for its own subtypes (`SawShark`, `GoblinShark`) discriminated by `sharktype`\n\nThe new emitter incorrectly applies the discriminator literal narrowing to `Shark.sharktype`:\n\n| Interface | Member | Legacy (correct) | New (wrong) |\n|-----------|--------|-------------------|-------------|\n| `Shark` | `sharktype` | `string` | `\"shark\"` |\n| `Shark` | `kind` | `\"shark\"` | `\"shark\"` |\n\n`Shark.kind: \"shark\"` is correct \u2014 it's the discriminator value for the Fish hierarchy.\n`Shark.sharktype: \"shark\"` is WRONG \u2014 this is Shark's OWN discriminator, and as a base type it should be `string` (or a union of its subtypes' values), not narrowed to a literal.\n\n## Root Cause\n\nIn `src/components/model-interface.tsx`, the `getPropertyTypeExpression` function (lines ~458-474):\n\n```typescript\nfunction getPropertyTypeExpression(\n  property: SdkModelPropertyType,\n  model: SdkModelType,\n): Children {\n  if (property.discriminator && model.discriminatorValue) {\n    return `\"${model.discriminatorValue}\"`;\n  }\n  // ...\n}\n```\n\nThe bug: This check treats ALL discriminator properties the same. When rendering `Shark`:\n- `property.discriminator` is true for `sharktype` (it IS a discriminator)\n- `model.discriminatorValue` is `\"shark\"` (Shark's value for the PARENT `Fish.kind` discriminator)\n- Result: `\"shark\"` is incorrectly applied to `sharktype`\n\nThe code conflates two different discriminator levels:\n- `Shark.kind` should get the literal `\"shark\"` (Shark's discriminator value in Fish hierarchy)\n- `Shark.sharktype` should get `string` (Shark is the base type for this discriminator)\n\n## What to Fix\n\nIn `src/components/model-interface.tsx`, modify `getPropertyTypeExpression` to distinguish between:\n\n1. **The parent's discriminator property on this model** \u2014 should use the literal value. This is the property that matches the parent hierarchy's discriminator (e.g., `kind` on `Shark` when `Shark extends Fish`).\n\n2. **This model's own discriminator property for its subtypes** \u2014 should use the broad type (`string`). This is the property that this model uses to discriminate between ITS OWN subtypes (e.g., `sharktype` on `Shark` when `Shark` has `SawShark`/`GoblinShark`).\n\n### Approach\n\nThe fix needs to check whether `property` is the model's OWN `discriminatorProperty` (meaning this model is a base for further discrimination). TCGC provides:\n- `model.discriminatorProperty` \u2014 the property THIS model uses to discriminate its own subtypes\n- `model.discriminatorValue` \u2014 the value THIS model uses for its parent's discriminator\n- `property.discriminator` \u2014 whether this property is a discriminator (at any level)\n\nUpdated logic:\n```typescript\nfunction getPropertyTypeExpression(property, model) {\n  if (property.discriminator && model.discriminatorValue) {\n    // Don't narrow if this is the model's OWN discriminator property\n    // (the model is a base type for this discriminator)\n    if (model.discriminatorProperty && property === model.discriminatorProperty) {\n      // This model's own discriminator \u2014 use broad type\n      return getOptionalAwareTypeExpression(property.type, ...);\n    }\n    // Parent's discriminator \u2014 use literal value\n    return `\"${model.discriminatorValue}\"`;\n  }\n  return getOptionalAwareTypeExpression(property.type, ...);\n}\n```\n\nNote: Property identity comparison (`property === model.discriminatorProperty`) may need to use name comparison or TCGC identity. Verify how TCGC represents this \u2014 it may be `model.discriminatorProperty.name === property.name` or object identity.\n\n## Key Files\n\n- `src/components/model-interface.tsx` \u2014 `getPropertyTypeExpression` function (~line 458)\n\n## Reference Files\n\n- Legacy nested-discriminator: `submodules/autorest.typescript/packages/typespec-ts/test/modularIntegration/generated/type/model/inheritance/nested-discriminator/src/index.d.ts`\n  - `Shark.kind: \"shark\"` \u2705 (narrowed \u2014 parent discriminator)\n  - `Shark.sharktype: string` \u2705 (broad \u2014 own discriminator base)\n- New emitter output: `test/e2e/generated/type/model/inheritance/nested-discriminator/src/models/models.ts`\n  - `Shark.kind: \"shark\"` \u2705\n  - `Shark.sharktype: \"shark\"` \u274c (should be `string`)\n\n## Validation\n\n1. `pnpm test` \u2014 all unit/scenario tests must pass\n2. `pnpm build && pnpm test:smoke` \u2014 smoke test must pass\n3. Verify `Shark.sharktype` is `string` (not `\"shark\"`)\n4. Verify `Shark.kind` is still `\"shark\"` (parent discriminator still narrowed)\n5. Verify `SawShark.sharktype` is `\"saw\"` (leaf subtypes still narrowed)\n6. Verify `GoblinShark.sharktype` is `\"goblin\"` (leaf subtypes still narrowed)\n7. Verify `Fish.kind` is `string` (root base type still broad)"
+    },
+    {
+      "id": "E2E-FIX-UNION-ADDITIONAL-PROPS-INLINE",
+      "title": "Fix additionalProperties union types to use inline unions instead of named type aliases (Category 8a)",
+      "category": "bug-fix/emitter",
+      "priority": "P2",
+      "status": "pending",
+      "kind": "bug",
+      "dependencies": [],
+      "design_review": null,
+      "source": "e2e-api-surface-audit-cat8a",
+      "description": "## Summary\nThe new emitter generates named type aliases for union types used in `additionalProperties` (e.g., `_MultipleSpreadRecordAdditionalProperty = string | number`) and references those aliases in the interface member type. **The legacy output is the source of truth. The new emitter must produce inline union types, not named type aliases, for these property types.**\n\n## Problem\n\nWhen a model with `additionalProperties` has a union value type, the new emitter creates an intermediate named union alias with a `_` prefix and references it from the `additionalProperties` member. The legacy emitter inlines the union members directly.\n\n### Exact differences in `type/property/additional-properties` spec\n\n| Interface | Member | Legacy (correct) | New (wrong) |\n|-----------|--------|-------------------|-------------|\n| `MultipleSpreadRecord` | `additionalProperties` | `Record<string, string | number>` | `Record<string, _MultipleSpreadRecordAdditionalProperty>` |\n| `SpreadRecordForUnion` | `additionalProperties` | `Record<string, string | number>` | `Record<string, _SpreadRecordForUnionAdditionalProperty>` |\n| `SpreadRecordForNonDiscriminatedUnion` | `additionalProperties` | `Record<string, WidgetData0 | WidgetData1>` | `Record<string, _SpreadRecordForNonDiscriminatedUnionAdditionalProperty>` |\n\nThe named aliases DO resolve to the correct union:\n```typescript\nexport type _MultipleSpreadRecordAdditionalProperty = string | number;\nexport type _SpreadRecordForNonDiscriminatedUnionAdditionalProperty = WidgetData0 | WidgetData1;\n```\n\nBut the legacy never creates these aliases \u2014 it inlines the union directly in the `Record<string, ...>` value type.\n\n## Root Cause\n\nIn `src/components/type-expression.tsx`, the `case \"union\"` handler always returns `typeRefkey(type)`:\n\n```typescript\ncase \"union\":\n  return typeRefkey(type);\n```\n\nThis creates a named type reference for ALL union types, including auto-generated ones. For `SdkUnionType` values with `isGeneratedName === true` (e.g., `_MultipleSpreadRecordAdditionalProperty`), the correct behavior is to inline the union members rather than referencing a named alias.\n\nThe `additionalProperties` member is built in `src/components/model-interface.tsx` in `buildExplicitAdditionalPropertiesMember()`, which calls `getTypeExpression(apType)`. When `apType` is a generated union (`isGeneratedName === true`), this produces a refkey reference instead of an inline expression.\n\n## What to Fix\n\n### Fix 1: Inline generated unions in `type-expression.tsx`\n\nIn `getTypeExpression()`, modify the `case \"union\"` handler to check `type.isGeneratedName`:\n\n```typescript\ncase \"union\":\n  if (type.isGeneratedName) {\n    // Inline the union members instead of referencing a named alias.\n    // Must use Alloy code template to handle refkey variants (e.g., model types).\n    // See how <For> with joiner=\" | \" is used in union-declaration.tsx for reference.\n  }\n  return typeRefkey(type);\n```\n\nThe inline expression must use Alloy's `code` template to properly handle refkey variants (e.g., `WidgetData0 | WidgetData1` where model types need refkeys for cross-file imports). A simple string join won't work for non-primitive variants. Refer to `src/components/union-declaration.tsx` which already renders union variants correctly using `<For each={type.variantTypes} joiner=\" | \">`.\n\n### Fix 2: Stop emitting named type declarations for generated unions in `model-files.tsx`\n\nThe `namedUnions` array in `ModelsFile` currently includes ALL union types. Generated unions (`isGeneratedName === true`) should not be emitted as `UnionDeclaration` since they will be inlined everywhere:\n\n```typescript\nconst namedUnions = unions\n  .map((u) => (u.kind === \"nullable\" && u.type.kind === \"union\" ? u.type : u))\n  .filter((u): u is SdkUnionType => u.kind === \"union\" && !u.isGeneratedName);\n```\n\n**IMPORTANT:** Before removing the declaration, verify that no serializer or deserializer references the generated union type by name. See Fix 3 below.\n\n### Fix 3: Remove generated union helper functions from serializers/deserializers\n\nModel deserializers currently call generated union helper functions. For example:\n\n```typescript\n// Current (wrong) model deserializer\nexport function multipleSpreadRecordDeserializer(item: any): MultipleSpreadRecord {\n  return {\n    additionalProperties: deserializeRecord(item, (v: any) => _multipleSpreadRecordAdditionalPropertyDeserializer(v), [\"flag\"]),\n    ...\n  };\n}\n// Current (wrong) generated helper \u2014 references the named alias\nexport function _multipleSpreadRecordAdditionalPropertyDeserializer(item: any): _MultipleSpreadRecordAdditionalProperty {\n  return item;\n}\n```\n\nWhen the named type alias is removed:\n1. The `outputUnions` filter in `model-files.tsx` must also exclude generated unions:\n   ```typescript\n   const outputUnions = namedUnions.filter(\n     (u) => !u.isGeneratedName && ((u.usage & UsageFlags.Output) !== 0 || ...)\n   );\n   ```\n2. The `typeHasDeserializerDeclaration` predicate in `src/utils/serialization-predicates.ts` must return `false` for generated unions (check existing logic and add `!type.isGeneratedName` if not already present).\n3. In the model deserializer, `_multipleSpreadRecordAdditionalPropertyDeserializer` is called because `needsTransformation(apType)` returns true for unions with Output usage. After the fix, `needsTransformation` should return `false` for generated unions, so the deserializer calls them directly without the helper. Review `src/components/serialization/json-serializer.tsx` `needsTransformation()` case `\"union\"` (around line 453).\n\nThe legacy emitter does NOT have `_multipleSpreadRecordAdditionalPropertyDeserializer` \u2014 it handles `additionalProperties` directly without generated union helper functions.\n\n## Key Files\n\n- `src/components/type-expression.tsx` \u2014 `getTypeExpression()`, `case \"union\"` (~line 184)\n- `src/components/model-interface.tsx` \u2014 `buildExplicitAdditionalPropertiesMember()` (~line 210)\n- `src/components/model-files.tsx` \u2014 `namedUnions` filter (~line 111), `outputUnions` filter (~line 201)\n- `src/utils/serialization-predicates.ts` \u2014 `typeHasSerializerDeclaration`, `typeHasDeserializerDeclaration`\n- `src/components/serialization/json-serializer.tsx` \u2014 `needsTransformation()` union case (~line 453)\n\n## Reference Files\n\n- **Legacy output** (correct): `submodules/autorest.typescript/packages/typespec-ts/test/modularIntegration/generated/type/property/additional-properties/src/index.d.ts`\n  - `MultipleSpreadRecord.additionalProperties?: Record<string, string | number>` \u2705\n  - `SpreadRecordForUnion.additionalProperties?: Record<string, string | number>` \u2705\n  - `SpreadRecordForNonDiscriminatedUnion.additionalProperties?: Record<string, WidgetData0 | WidgetData1>` \u2705\n  - No `_MultipleSpreadRecordAdditionalProperty` type alias anywhere \u2705\n- **New emitter output** (wrong): `test/e2e/generated/type/property/additional-properties/src/models/models.ts`\n  - Search for `_MultipleSpreadRecordAdditionalProperty`, `_SpreadRecordForUnionAdditionalProperty`, etc.\n\n## Validation\n\n1. `pnpm test` \u2014 all unit/scenario tests must pass\n2. `pnpm build && pnpm test:smoke` \u2014 smoke test must pass\n3. Verify `MultipleSpreadRecord.additionalProperties` is `Record<string, string | number>` (not `Record<string, _MultipleSpreadRecordAdditionalProperty>`)\n4. Verify `SpreadRecordForNonDiscriminatedUnion.additionalProperties` is `Record<string, WidgetData0 | WidgetData1>`\n5. Verify no `_MultipleSpreadRecordAdditionalProperty`, `_SpreadRecordForUnionAdditionalProperty`, etc. type aliases exist\n6. Verify no `_multipleSpreadRecordAdditionalPropertyDeserializer` function exists\n7. Verify no `<Unresolved Symbol>` strings appear in any generated file"
+    },
+    {
+      "id": "E2E-FIX-UNION-LITERAL-PROP-INLINE",
+      "title": "Fix literal union property types to use inline unions instead of named type aliases (Category 8b)",
+      "category": "bug-fix/emitter",
+      "priority": "P2",
+      "status": "pending",
+      "kind": "bug",
+      "dependencies": [
+        "E2E-FIX-UNION-ADDITIONAL-PROPS-INLINE"
+      ],
+      "design_review": null,
+      "source": "e2e-api-surface-audit-cat8b",
+      "description": "## Summary\nThe new emitter generates named type aliases for literal union types used as model property types (e.g., `UnionStringLiteralPropertyProperty = \"hello\" | \"world\"`) and references those aliases in the interface. **The legacy output is the source of truth. The new emitter must produce inline union types directly in the interface member, not named type aliases.**\n\n## Problem\n\nWhen a model property has a union of literals (e.g., `\"hello\" | \"world\"`, `42 | 43`, `43.125 | 46.875`), the new emitter creates an intermediate named union alias and references it. The legacy emitter inlines the literals directly in the property type.\n\n### Exact differences in `type/property/value-types` spec\n\n| Interface | Member | Legacy (correct) | New (wrong) |\n|-----------|--------|-------------------|-------------|\n| `UnionStringLiteralProperty` | `property` | `\"hello\" | \"world\"` | `UnionStringLiteralPropertyProperty` |\n| `UnionIntLiteralProperty` | `property` | `42 | 43` | `UnionIntLiteralPropertyProperty` |\n| `UnionFloatLiteralProperty` | `property` | `43.125 | 46.875` | `UnionFloatLiteralPropertyProperty` |\n\n### Exact differences in `type/property/optionality` spec\n\n| Interface | Member | Legacy (correct) | New (wrong) |\n|-----------|--------|-------------------|-------------|\n| `UnionStringLiteralProperty` | `property` | `\"hello\" | \"world\"` | `UnionStringLiteralPropertyProperty` |\n| `UnionIntLiteralProperty` | `property` | `1 | 2` | `UnionIntLiteralPropertyProperty` |\n| `UnionFloatLiteralProperty` | `property` | `1.25 | 2.375` | `UnionFloatLiteralPropertyProperty` |\n\nThe named aliases DO resolve to the correct types:\n```typescript\nexport type UnionStringLiteralPropertyProperty = \"hello\" | \"world\";\nexport type UnionIntLiteralPropertyProperty = 42 | 43;\n```\nBut the legacy never creates these aliases \u2014 it inlines directly.\n\n## Root Cause\n\nSame root cause as Category 8a (task `E2E-FIX-UNION-ADDITIONAL-PROPS-INLINE`).\n\nIn `src/components/type-expression.tsx`, `case \"union\"` always returns `typeRefkey(type)` for ALL union types, including auto-generated ones (`isGeneratedName === true`). Property types flow through `getPropertyTypeExpression()` -> `getOptionalAwareTypeExpression()` -> `getTypeExpression()` -> returns a named refkey instead of inline.\n\n## What to Fix\n\nThis task depends on `E2E-FIX-UNION-ADDITIONAL-PROPS-INLINE`. The fix applied there (inlining `isGeneratedName === true` unions in `type-expression.tsx` and stopping their emission in `model-files.tsx`) should resolve these 8b cases as well.\n\nAfter `E2E-FIX-UNION-ADDITIONAL-PROPS-INLINE` is merged, regenerate the affected specs and verify that 8b is resolved. If not, investigate whether `UnionStringLiteralPropertyProperty` etc. have `isGeneratedName === true` or not.\n\n### Serializer/Deserializer Impact\n\nCurrent output includes pass-through helpers:\n```typescript\n// Wrong \u2014 should not exist\nexport function unionStringLiteralPropertyPropertySerializer(item: UnionStringLiteralPropertyProperty): any {\n  return item;\n}\n// Wrong \u2014 model serializer calling the above helper\nexport function unionStringLiteralPropertySerializer(item: UnionStringLiteralProperty): any {\n  return { property: unionStringLiteralPropertyPropertySerializer(item[\"property\"]) };\n}\n```\n\nAfter the fix, the model serializer should inline directly:\n```typescript\n// Correct\nexport function unionStringLiteralPropertySerializer(item: UnionStringLiteralProperty): any {\n  return { property: item[\"property\"] };\n}\n```\n\nThe pass-through helpers `unionStringLiteralPropertyPropertySerializer`, `unionIntLiteralPropertyPropertySerializer`, `unionFloatLiteralPropertyPropertySerializer` should be removed. The legacy does NOT have these.\n\nThe same applies to deserializer side if similar pass-through deserializers exist.\n\n## Key Files\n\n- `src/components/type-expression.tsx` \u2014 `getTypeExpression()`, `case \"union\"` (~line 184)\n- `src/components/model-interface.tsx` \u2014 `getPropertyTypeExpression()` (~line 458)\n- `src/components/model-files.tsx` \u2014 `namedUnions` filter (~line 111), `outputUnions` filter (~line 201)\n- `src/utils/serialization-predicates.ts` \u2014 serializer/deserializer predicates\n- `src/components/serialization/json-serializer.tsx` \u2014 model serializer, `needsTransformation()` union case\n\n## Reference Files\n\n- **Legacy output** (correct):\n  - `submodules/autorest.typescript/packages/typespec-ts/test/modularIntegration/generated/type/property/value-types/src/index.d.ts`\n    - `UnionStringLiteralProperty.property: \"hello\" | \"world\"` \u2705 (no named alias)\n  - `submodules/autorest.typescript/packages/typespec-ts/test/modularIntegration/generated/type/property/optionality/src/index.d.ts`\n    - `UnionStringLiteralProperty.property?: \"hello\" | \"world\"` \u2705 (no named alias)\n- **New emitter output** (wrong):\n  - `test/e2e/generated/type/property/value-types/src/models/models.ts`\n  - `test/e2e/generated/type/property/optionality/src/models/models.ts`\n\n## Validation\n\n1. `pnpm test` \u2014 all unit/scenario tests must pass\n2. `pnpm build && pnpm test:smoke` \u2014 smoke test must pass\n3. Verify `UnionStringLiteralProperty.property` is `\"hello\" | \"world\"` (not a named alias)\n4. Verify `UnionIntLiteralProperty.property` is `42 | 43` (not a named alias)\n5. Verify `UnionFloatLiteralProperty.property` is `43.125 | 46.875` (not a named alias)\n6. Verify the same for the `optionality` spec\n7. Verify no `UnionStringLiteralPropertyProperty`, `UnionIntLiteralPropertyProperty`, `UnionFloatLiteralPropertyProperty` type aliases exist\n8. Verify no pass-through helpers (`unionStringLiteralPropertyPropertySerializer`, etc.) exist\n9. Verify no `<Unresolved Symbol>` strings in any generated file"
+    },
+    {
+      "id": "E2E-FIX-UNION-COMPLEX-MEMBER-INLINE",
+      "title": "Fix complex union member types to use inline unions instead of named type aliases (Category 8c)",
+      "category": "bug-fix/emitter",
+      "priority": "P2",
+      "status": "pending",
+      "kind": "bug",
+      "dependencies": [
+        "E2E-FIX-UNION-ADDITIONAL-PROPS-INLINE",
+        "E2E-FIX-EXTENSIBLE-ENUM-KNOWN-PATTERN"
+      ],
+      "design_review": null,
+      "source": "e2e-api-surface-audit-cat8c",
+      "description": "## Summary\nThe new emitter generates named type aliases for complex union property types in the `type/union` spec (e.g., `EnumsOnlyCasesLr`, `_MixedLiteralsCasesStringLiteral`) and references them from interface members. **The legacy output is the source of truth. The new emitter must produce inline union types directly in the interface members, not named type aliases.**\n\n## Problem\n\nWhen interface members have complex union types (enum combinations, mixed literals, mixed model+literal unions), the new emitter creates named aliases and references them. The legacy emitter inlines the union members directly.\n\n### Exact differences in `type/union` spec\n\n| Interface | Member | Legacy (correct) | New (wrong) |\n|-----------|--------|-------------------|-------------|\n| `EnumsOnlyCases` | `lr` | `\"left\" | \"right\" | \"up\" | \"down\"` | `EnumsOnlyCasesLr` |\n| `MixedLiteralsCases` | `stringLiteral` | `\"a\" | 2 | 3.3 | true` | `_MixedLiteralsCasesStringLiteral` |\n| `MixedTypesCases` | `model` | `Cat | \"a\" | number | boolean` | `_MixedTypesCasesModel` |\n| `StringAndArrayCases` | `string` | `string | string[]` | `_StringAndArrayCasesString` |\n\nThe new emitter output also generates intermediate types `LR = \"left\" | \"right\"` and `UD = \"up\" | \"down\"` (from TypeSpec `enum LR { left, right }` and `enum UD { up, down }`), which the legacy does NOT export at all.\n\n**Legacy output for `EnumsOnlyCases`:**\n```typescript\nexport declare interface EnumsOnlyCases {\n  lr: \"left\" | \"right\" | \"up\" | \"down\";\n  ud: \"up\" | \"down\";\n}\n```\nNo `LR`, `UD`, or `EnumsOnlyCasesLr` type aliases exist in the legacy.\n\n## TypeSpec Source Context\n\nThe `type/union` TypeSpec spec defines:\n```typespec\nenum LR { left, right }\nenum UD { up, down }\n\nmodel EnumsOnlyCases {\n  lr: LR | UD;   // union of two enums\n  ud: UD | UD;\n}\nalias MixedLiteralsUnion = \"a\" | 2 | 3.3 | true;\nmodel MixedLiteralsCases {\n  stringLiteral: MixedLiteralsUnion;\n  // ...\n}\nalias MixedTypesUnion = Cat | \"a\" | int32 | boolean;\nmodel MixedTypesCases {\n  model: MixedTypesUnion;\n  // ...\n}\nmodel StringAndArrayCases {\n  string: string | string[];\n  // ...\n}\n```\n\nThe legacy tspconfig for `type/union` uses `experimental-extensible-enums: true`.\nReference: `submodules/autorest.typescript/packages/typespec-ts/test/modularIntegration/generated/type/union/tspconfig.yaml`\n\n## Root Cause and Complexity\n\nThis category has TWO distinct sub-issues:\n\n### Sub-issue 1: Generated-name unions (`_` prefix, `isGeneratedName === true`)\n\nTypes: `_MixedLiteralsCasesStringLiteral`, `_MixedTypesCasesModel`, `_StringAndArrayCasesString`, `_StringAndArrayCasesArray`\n\nThese have `isGeneratedName === true` and will be resolved by the fix in `E2E-FIX-UNION-ADDITIONAL-PROPS-INLINE` (inlining generated unions in `type-expression.tsx`). After that task is merged, verify these are resolved.\n\n### Sub-issue 2: `EnumsOnlyCasesLr` \u2014 wraps TypeSpec enums, `isGeneratedName === false`\n\n`EnumsOnlyCasesLr = LR | UD` has a serializer (`enumsOnlyCasesLrSerializer`), which means `isGeneratedName === false` (the `inputUnions` filter in `model-files.tsx` excludes generated unions from serializer generation). The `isGeneratedName` fix won't automatically resolve this case.\n\n**This sub-issue is dependent on `E2E-FIX-EXTENSIBLE-ENUM-KNOWN-PATTERN`** which adds `experimental-extensible-enums: true` to `test/e2e/http/type/union/tspconfig.yaml`. That flag change affects how TypeSpec enums `LR` and `UD` are rendered.\n\nAfter `E2E-FIX-EXTENSIBLE-ENUM-KNOWN-PATTERN` is applied, re-run the `type/union` generation and check:\n- Does `EnumsOnlyCasesLr` still appear?\n- Are `LR` and `UD` still generated as separate type aliases?\n\nIf `EnumsOnlyCasesLr` still appears after the flag change, the agent must investigate deeper:\n\n1. **Check `EnumsOnlyCasesLr.isGeneratedName` value** \u2014 run a debug TypeSpec compilation with TCGC and inspect the union type. Add a temporary `console.error(JSON.stringify(type, null, 2))` in `type-expression.tsx` for `case \"union\"` to observe TCGC's data.\n2. **If `isGeneratedName === true`** \u2014 the fix from 8a should have already covered this. Re-check the filter.\n3. **If `isGeneratedName === false` with the flag** \u2014 investigate why TCGC considers this a user-named type and whether the emitter should treat unions of enum types differently (e.g., expand enum values to their string literals instead of creating a named alias).\n\n## What to Fix\n\n### Step 1: Verify sub-issue 1 is resolved by task E2E-FIX-UNION-ADDITIONAL-PROPS-INLINE\n\nAfter that task is done, `_MixedLiteralsCasesStringLiteral`, `_MixedTypesCasesModel`, `_StringAndArrayCasesString` should be inlined. If not, apply the same fix manually for these cases.\n\n### Step 2: Apply `experimental-extensible-enums: true` (from task E2E-FIX-EXTENSIBLE-ENUM-KNOWN-PATTERN)\n\nEnsure `test/e2e/http/type/union/tspconfig.yaml` has:\n```yaml\noptions:\n  http-client-js:\n    experimental-extensible-enums: true\n```\n\nRe-run generation and verify `EnumsOnlyCasesLr` behavior.\n\n### Step 3: Fix `EnumsOnlyCasesLr` if still present\n\nIf `EnumsOnlyCasesLr = LR | UD` still appears (with `isGeneratedName === false`), the fix approach is:\n\n**Option A**: In `type-expression.tsx`, add logic to detect when a union type's variants are all enum types, and inline by expanding their enum values to string/numeric literals. For `LR | UD` this would produce `\"left\" | \"right\" | \"up\" | \"down\"`. Use `type.variantTypes` and check if each variant is `kind === \"enum\"` or `kind === \"enumvalue\"`, then map to their literal values.\n\n**Option B**: Investigate if `EnumsOnlyCasesLr.isGeneratedName` is actually `true` and the isGeneratedName fix just needs to be ensured to cover this case.\n\n### Step 4: Remove generated union serializer/deserializer helpers\n\nAfter inlining:\n- Remove `enumsOnlyCasesLrSerializer` and `enumsOnlyCasesUdSerializer` helper functions\n- Update `enumsOnlyCasesSerializer` to NOT call these helpers:\n  ```typescript\n  // Before (wrong)\n  export function enumsOnlyCasesSerializer(item: EnumsOnlyCases): any {\n    return { lr: enumsOnlyCasesLrSerializer(item[\"lr\"]), ... };\n  }\n  // After (correct)\n  export function enumsOnlyCasesSerializer(item: EnumsOnlyCases): any {\n    return { lr: item[\"lr\"], ... };\n  }\n  ```\n- Similarly remove `_mixedLiteralsCasesStringLiteralDeserializer`, `_mixedTypesCasesModelDeserializer`, `_stringAndArrayCasesStringDeserializer` helpers and update model deserializers to inline.\n\n## Key Files\n\n- `src/components/type-expression.tsx` \u2014 `getTypeExpression()`, `case \"union\"` (~line 184)\n- `src/components/model-files.tsx` \u2014 `namedUnions` filter (~line 111), `outputUnions` filter (~line 201), `inputUnions` filter (~line 194)\n- `src/utils/serialization-predicates.ts` \u2014 serializer/deserializer predicates\n- `src/components/serialization/json-serializer.tsx` \u2014 `needsTransformation()` and serializer logic\n- `test/e2e/http/type/union/tspconfig.yaml` \u2014 ensure `experimental-extensible-enums: true`\n\n## Reference Files\n\n- **Legacy output** (correct): `submodules/autorest.typescript/packages/typespec-ts/test/modularIntegration/generated/type/union/src/index.d.ts`\n  - `EnumsOnlyCases.lr: \"left\" | \"right\" | \"up\" | \"down\"` \u2705\n  - `MixedLiteralsCases.stringLiteral: \"a\" | 2 | 3.3 | true` \u2705\n  - `MixedTypesCases.model: Cat | \"a\" | number | boolean` \u2705\n  - `StringAndArrayCases.string: string | string[]` \u2705\n  - No `LR`, `UD`, `EnumsOnlyCasesLr`, `_MixedLiteralsCasesStringLiteral`, etc. type aliases \u2705\n- **Legacy tspconfig**: `submodules/autorest.typescript/packages/typespec-ts/test/modularIntegration/generated/type/union/tspconfig.yaml` (has `experimental-extensible-enums: true`)\n- **New emitter output** (wrong): `test/e2e/generated/type/union/src/models/models.ts`\n\n## Validation\n\n1. `pnpm test` \u2014 all unit/scenario tests must pass\n2. `pnpm build && pnpm test:smoke` \u2014 smoke test must pass\n3. Verify `EnumsOnlyCases.lr` is `\"left\" | \"right\" | \"up\" | \"down\"` (not `EnumsOnlyCasesLr`)\n4. Verify `MixedLiteralsCases.stringLiteral` is `\"a\" | 2 | 3.3 | true` (not a named alias)\n5. Verify `MixedTypesCases.model` is `Cat | \"a\" | number | boolean` (not a named alias)\n6. Verify `StringAndArrayCases.string` is `string | string[]` (not a named alias)\n7. Verify no `LR`, `UD`, `EnumsOnlyCasesLr`, `_MixedLiteralsCasesStringLiteral`, `_MixedTypesCasesModel`, `_StringAndArrayCasesString` type aliases exist\n8. Verify no `enumsOnlyCasesLrSerializer`, `enumsOnlyCasesUdSerializer` helper functions exist\n9. Verify no `<Unresolved Symbol>` strings in any generated file\n10. Verify e2e tests for `type/union` pass"
     }
   ],
   "phases_metadata": [
@@ -1688,7 +1847,10 @@
       "phase": 10,
       "name": "Flavor Parity \u2014 Match Legacy Emitter Flavor Behavior",
       "description": "Ensure the new emitter correctly handles the 'flavor' option ('core' vs 'azure') with full parity to the legacy emitter. Core flavor should use @typespec/ts-http-runtime and NOT generate Azure-specific features (LRO, paging, logger, DefaultAzureCredential). Azure flavor should use Azure SDK packages. No 'branded' option support. Flavor must be set explicitly or not at all (defaulting to 'core').",
-      "dependencies": [8, 9],
+      "dependencies": [
+        8,
+        9
+      ],
       "status": "pending"
     },
     {
@@ -1741,7 +1903,9 @@
         "description": "The new emitter targets @typespec/ts-http-runtime instead of @azure-rest/core-client. This is the intended design direction. No action needed unless Azure flavor detection requires @azure-rest/core-client.",
         "legacy_behavior": "Imports from @azure-rest/core-client and @azure/core-rest-pipeline.",
         "new_behavior": "Imports from @typespec/ts-http-runtime.",
-        "affected_scenarios": ["Nearly all scenarios"]
+        "affected_scenarios": [
+          "Nearly all scenarios"
+        ]
       },
       {
         "id": "SA-INT2",
@@ -1752,7 +1916,9 @@
         "description": "The new emitter adds the type keyword to type-only imports per TypeScript best practices. This is correct behavior.",
         "legacy_behavior": "import { SomeType } from './models.js';",
         "new_behavior": "import type { SomeType } from './models.js';",
-        "affected_scenarios": ["Nearly all scenarios"]
+        "affected_scenarios": [
+          "Nearly all scenarios"
+        ]
       },
       {
         "id": "SA-INT3",
@@ -1763,7 +1929,9 @@
         "description": "expandUrlTemplate utility is now imported from the runtime package instead of a static-helpers path. This is part of the runtime consolidation.",
         "legacy_behavior": "import { expandUrlTemplate } from '../static-helpers/urlTemplate.js';",
         "new_behavior": "import { expandUrlTemplate } from '@typespec/ts-http-runtime';",
-        "affected_scenarios": ["Scenarios using URL templates"]
+        "affected_scenarios": [
+          "Scenarios using URL templates"
+        ]
       }
     ],
     "total_root_cause_tasks": 34

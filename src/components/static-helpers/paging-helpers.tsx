@@ -1,5 +1,6 @@
 import { code, namekey } from "@alloy-js/core";
 import {
+  BarrelFile,
   FunctionDeclaration,
   InterfaceDeclaration,
   InterfaceMember,
@@ -32,6 +33,7 @@ import { useRuntimeLib } from "../../context/flavor-context.js";
 export function PagingHelpersFile() {
   return (
     <SourceFile path="pagingHelpers.ts">
+      <BarrelFile />
       <PageSettingsInterface />
       {"\n\n"}
       <BuildPagedAsyncIteratorOptionsInterface />

@@ -38,7 +38,7 @@ The new emitter generates a single `versioning/removed` package.
 
 ---
 
-## Category 2: Operation Option Params Naming Convention
+## Category 2: Operation Option Params Naming Convention (Done - Aligned with legacy)
 
 **Severity: High** · **Affected items: 600 renamed + 65 unexported** · **Root cause: 2**
 
@@ -99,7 +99,7 @@ For clients **without** sub-client operation groups (flat clients), the operatio
 
 ---
 
-## Category 3: Interface/Type Casing Change — `Base64Url` → `Base64url`
+## Category 3: Interface/Type Casing Change — `Base64Url` → `Base64url` (Done - aligned with legacy)
 
 **Severity: High** · **Affected items: 10** · **Spec: `encode/bytes`**
 
@@ -122,7 +122,7 @@ For clients **without** sub-client operation groups (flat clients), the operatio
 
 ---
 
-## Category 4: Client Methods Moved to Sub-Client Accessors
+## Category 4: Client Methods Moved to Sub-Client Accessors (Done - aligned with legacy adding flag)
 
 **Severity: Low (non-breaking for runtime)** · **Affected specs: 3**
 
@@ -197,7 +197,7 @@ The same pattern appears for `BirdUnion` in `single-discriminator`:
 
 **Recommendation**: **Fix** — use the discriminated union type (`SharkUnion`, `FishUnion`, `BirdUnion`) instead of the base type in member references.
 
-### 6b. `StringExtensibleNamedUnion` — Intentional Improvement
+### 6b. `StringExtensibleNamedUnion`  - Keep legacy, make sure to understand how an option called experimental-extensible-enums affect the Known enum generation.
 
 | Spec         | Type                              | Legacy         | New          |
 | ------------ | --------------------------------- | -------------- | ------------ |
@@ -242,6 +242,9 @@ Additionally, `contentType` and `filename` members have been removed from most r
 
 ## Category 8: Additional Properties & Union Type Wrapping
 
+Prompt: In @docs/e2e-api-surface-audit.md For category #8 we need to keep the legacy output. Please add task(s) to prd.json fix this category of issues, explicitly mentioning that we need to keep the legacy output and include all the information that an
+  agent would need to work on this autonomously. In all sub categories we need to keep the legacy behavior
+
 **Severity: Medium** · **Affected items: 11 interfaces**
 
 ### 8a. Additional Properties Use Named Types
@@ -283,7 +286,8 @@ Additionally, `contentType` and `filename` members have been removed from most r
 
 ---
 
-## Category 9: Pagination API Changes
+## Category 9: Pagination API Changes (Fixed adding barrel file.)
+
 
 **Severity: Medium** · **Affected items: 3** · **Spec: `payload/pageable`**
 
@@ -302,19 +306,19 @@ Additionally, `contentType` and `filename` members have been removed from most r
 
 ## Non-Breaking Additions
 
-### `endpoint` Property on Client Options (38 specs)
+### `endpoint` Property on Client Options (38 specs) - Accept
 
 The new emitter adds `endpoint?: string` to all `*ClientOptionalParams` interfaces where the legacy had an empty extension of `ClientOptions`. This is a **non-breaking addition** that gives consumers a typed way to set the endpoint.
 
-### Context Interfaces and Factory Functions (48 specs)
+### Context Interfaces and Factory Functions (48 specs) - Investigate manually
 
 Every spec now exports a `{Name}Context` interface and `create{Name}()` factory function. These enable a functional programming style as an alternative to the class-based client. This is a **non-breaking addition**.
 
-### Serializer/Deserializer Functions (all specs)
+### Serializer/Deserializer Functions (all specs) -- Investigate manually
 
 Every model type now has exported serializer and deserializer functions (e.g., `modelV1Serializer`, `modelV1Deserializer`). This is a **non-breaking addition** that enables custom serialization scenarios.
 
-### Static Helpers (all specs)
+### Static Helpers (all specs) -- Done
 
 Utility functions for collection formatting, XML serialization, URL template expansion, etc. are now exported from every package. These are **non-breaking additions** but increase the public API surface significantly.
 
