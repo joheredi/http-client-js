@@ -2661,3 +2661,15 @@ The `SPEC_OPTIONS` map in `eng/scripts/emit-e2e.ts` allows per-spec emitter opti
 - This is because operation parameters need named type aliases (e.g., `testHeader: GetRequestTestHeader`) while model properties need inline types (e.g., `property: "hello" | "world"`)
 - The same `SdkEnumType` object serves both contexts, so inlining must be context-dependent
 - Type alias declarations are still emitted for all enums (including `isGeneratedName: true`) since they may be used in operation parameter contexts
+
+## Multipart File Part Type Pattern
+
+For multipart file part properties, the model interface type follows a wrapper pattern (not bare `Uint8Array`):
+- **Filename optional** (base `File` or raw `bytes`): `FileContents | { contents: FileContents; contentType?: string; filename?: string }`
+- **Filename required** (subtypes with `filename: string`): `File | { contents: FileContents; contentType?: string; filename: string }`
+- **ContentType literal** (e.g., `"image/jpg"`): wrapper uses the literal type
+- **Array variants**: `Array<...>` wrapping the same pattern
+- Detected via `property.serializationOptions?.multipart?.isFilePart`
+- `multipart.filename?.optional` determines filename optionality
+- `multipart.contentType?.type.kind === "constant"` determines literal contentType
+- Implementation is in `getMultipartFileTypeExpression()` in `model-interface.tsx`

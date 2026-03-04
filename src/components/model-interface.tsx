@@ -1,6 +1,7 @@
 import { Children, code, For } from "@alloy-js/core";
 import { InterfaceDeclaration, InterfaceMember } from "@alloy-js/typescript";
 import type {
+  MultipartOptions,
   SdkModelPropertyType,
   SdkModelType,
   SdkType,
@@ -8,7 +9,7 @@ import type {
 import { Visibility } from "@typespec/http";
 import { computeFlattenCollisionMap } from "../utils/flatten-collision.js";
 import { getModelName } from "../utils/model-name.js";
-import { typeRefkey } from "../utils/refkeys.js";
+import { multipartHelperRefkey, typeRefkey } from "../utils/refkeys.js";
 import {
   getOptionalAwareTypeExpression,
   getTypeExpression,
@@ -475,6 +476,16 @@ function getPropertyTypeExpression(
     }
   }
 
+  // Multipart file parts use the `FileContents | { ... }` wrapper pattern
+  // instead of bare model types or `Uint8Array`. This matches the legacy
+  // emitter's output where file part properties allow the consumer to pass
+  // either raw binary content (FileContents) or a structured wrapper object
+  // with optional/required metadata fields (contentType, filename).
+  const multipart = property.serializationOptions?.multipart;
+  if (multipart?.isFilePart) {
+    return getMultipartFileTypeExpression(property, multipart);
+  }
+
   // Generated enums (isGeneratedName === true) are anonymous literal unions
   // that TCGC auto-names (e.g., `"hello" | "world"` → UnionStringLiteralPropertyProperty).
   // In model property context, the legacy emitter inlines these directly as
@@ -505,6 +516,90 @@ function getPropertyTypeExpression(
     property.optional,
     ignoreNullableOnOptional,
   );
+}
+
+/**
+ * Builds the TypeScript type expression for a multipart file part property.
+ *
+ * Multipart file part properties use a union pattern that allows consumers
+ * to pass either raw binary content or a structured wrapper object with
+ * optional metadata fields. The exact pattern depends on whether the file
+ * type requires a filename:
+ *
+ * - **Filename optional** (base `File`, raw `bytes`):
+ *   `FileContents | { contents: FileContents; contentType?: string; filename?: string }`
+ * - **Filename required** (subtypes like `FileRequiredName`):
+ *   `File | { contents: FileContents; contentType?: string; filename: string }`
+ *
+ * When the contentType has a literal constraint (e.g., `"image/png"`), the
+ * wrapper object uses the literal type instead of `string`.
+ *
+ * For array file parts (`isMulti`), the element type is wrapped in `Array<...>`.
+ *
+ * This matches the legacy emitter's output pattern established in
+ * `modularUnit/scenarios/multipart/file.md`.
+ *
+ * @param property - The TCGC model property with multipart file metadata.
+ * @param multipart - The multipart options from serialization metadata.
+ * @returns Alloy Children representing the file part type expression.
+ */
+function getMultipartFileTypeExpression(
+  property: SdkModelPropertyType,
+  multipart: MultipartOptions,
+): Children {
+  const fileContentsRef = multipartHelperRefkey("FileContents");
+
+  // Determine if filename is required from the multipart metadata.
+  // When `multipart.filename` is present and not optional, the file type
+  // requires the user to provide a filename — either via a `File` object
+  // or through the wrapper's `filename` field.
+  const filenameRequired =
+    multipart.filename != null && !multipart.filename.optional;
+
+  // Determine the contentType constraint for the wrapper object.
+  // If the file type constrains contentType to a literal (e.g., "image/jpg"),
+  // use that literal. Otherwise, use `string`. The contentType is always
+  // optional in the wrapper — the runtime can fill in a default.
+  let contentTypeStr: string = "string";
+  if (multipart.contentType?.type) {
+    const ctType = multipart.contentType.type;
+    if (
+      (ctType.kind === "constant" || ctType.kind === "enumvalue") &&
+      ctType.valueType.kind === "string"
+    ) {
+      contentTypeStr = `"${ctType.value}"`;
+    }
+  }
+
+  // Build the single-element type expression.
+  // When filename is required, the left side of the union is the `File`
+  // model interface (referenced via refkey for auto-imports). When optional,
+  // the left side is `FileContents` (raw binary content type).
+  let elementType: Children;
+  if (filenameRequired) {
+    // For subtypes with required filename, use the base File model on the
+    // left side. Get the underlying element type (unwrap array if isMulti).
+    const innerType =
+      multipart.isMulti && property.type.kind === "array"
+        ? property.type.valueType
+        : property.type;
+    const fileModel =
+      innerType.kind === "model" && innerType.baseModel
+        ? innerType.baseModel
+        : innerType;
+    const fileRef = typeRefkey(fileModel);
+
+    elementType = code`${fileRef} | { contents: ${fileContentsRef}; contentType?: ${contentTypeStr}; filename: string }`;
+  } else {
+    elementType = code`${fileContentsRef} | { contents: ${fileContentsRef}; contentType?: ${contentTypeStr}; filename?: string }`;
+  }
+
+  // Wrap in Array<...> for multi-file parts.
+  if (multipart.isMulti) {
+    return code`Array<${elementType}>`;
+  }
+
+  return elementType;
 }
 
 /**

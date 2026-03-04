@@ -20,14 +20,19 @@ This basic case uses TypeSpec's `Http.File`, which specifies an optional `filena
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import { createFilePartDescriptor } from "../static-helpers/multipartHelpers.js";
+import {
+  createFilePartDescriptor,
+  type FileContents,
+} from "../static-helpers/multipartHelpers.js";
 import { uint8ArrayToString } from "@typespec/ts-http-runtime";
 
 /**
  * model interface RequestBody
  */
 export interface RequestBody {
-  basicFile: File;
+  basicFile:
+    | FileContents
+    | { contents: FileContents; contentType?: string; filename?: string };
 }
 
 /**
@@ -186,14 +191,19 @@ The filename must be provided _somehow_. This can either be done by passing a `F
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import { createFilePartDescriptor } from "../static-helpers/multipartHelpers.js";
+import {
+  createFilePartDescriptor,
+  type FileContents,
+} from "../static-helpers/multipartHelpers.js";
 import { uint8ArrayToString } from "@typespec/ts-http-runtime";
 
 /**
  * model interface RequestBody
  */
 export interface RequestBody {
-  nameRequired: FileRequiredName;
+  nameRequired:
+    | File
+    | { contents: FileContents; contentType?: string; filename: string };
 }
 
 /**
@@ -318,14 +328,19 @@ op doThing(@header contentType: "multipart/form-data", @multipartBody bodyParam:
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import { createFilePartDescriptor } from "../static-helpers/multipartHelpers.js";
+import {
+  createFilePartDescriptor,
+  type FileContents,
+} from "../static-helpers/multipartHelpers.js";
 import { uint8ArrayToString } from "@typespec/ts-http-runtime";
 
 /**
  * model interface RequestBody
  */
 export interface RequestBody {
-  image: PngFile;
+  image:
+    | FileContents
+    | { contents: FileContents; contentType?: "image/png"; filename?: string };
 }
 
 /**
@@ -448,14 +463,20 @@ Each provided file in the input corresponds to one part in the multipart request
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import { createFilePartDescriptor } from "../static-helpers/multipartHelpers.js";
+import {
+  createFilePartDescriptor,
+  type FileContents,
+} from "../static-helpers/multipartHelpers.js";
 import { uint8ArrayToString } from "@typespec/ts-http-runtime";
 
 /**
  * model interface RequestBody
  */
 export interface RequestBody {
-  files: File[];
+  files: Array<
+    | FileContents
+    | { contents: FileContents; contentType?: string; filename?: string }
+  >;
 }
 
 /**

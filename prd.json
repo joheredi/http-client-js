@@ -1757,7 +1757,7 @@
       "title": "Fix multipart file/binary property types to match legacy output",
       "category": "bug-fix/emitter",
       "priority": "P2",
-      "status": "pending",
+      "status": "done",
       "kind": "bug",
       "dependencies": [],
       "design_review": null,

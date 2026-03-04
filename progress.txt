@@ -3758,3 +3758,34 @@ must be context-dependent.
 - Smoke test passes
 - E2E type/property/value-types test passes (58 tests)
 - E2E failures are pre-existing (encode/array, multipart, etc. — unrelated)
+
+## E2E-FIX-MULTIPART-FILE-TYPES: Fix multipart file/binary property types — DONE (2026-03-04)
+
+### Problem
+Multipart file/binary properties in model interfaces used bare `Uint8Array` or model types (`FileRequiredMetaData`, `File`) instead of the legacy's `FileContents | { contents: FileContents; contentType?: string; filename?: string }` wrapper pattern. This broke API surface parity with the legacy emitter.
+
+### Solution
+Modified `getPropertyTypeExpression` in `src/components/model-interface.tsx` to detect multipart file parts via `property.serializationOptions?.multipart?.isFilePart` and generate the wrapper type expression.
+
+**Key logic:**
+- When `multipart.filename` is absent or optional → left side = `FileContents`, wrapper has `filename?: string`
+- When `multipart.filename` exists and is required → left side = `File` (base model ref), wrapper has `filename: string`
+- When `multipart.contentType` has a literal type → wrapper uses the literal (e.g., `"image/jpg"`)
+- contentType is always optional in wrapper
+- Array file parts (`isMulti`) wrapped in `Array<...>`
+
+### Files Modified
+- `src/components/model-interface.tsx` — Added `getMultipartFileTypeExpression()` and detection in `getPropertyTypeExpression`
+- `test/scenarios/cases/multipart/file.md` — Updated expected output for 4 scenarios
+- `test/scenarios/cases/multipart/renamewithWireNameAndClientName.md` — Updated expected output for 2 scenarios
+- `test/scenarios/cases/apiOperations/apiOperations.md` — Updated expected output for 2 scenarios
+
+### Patterns Used
+- `multipartHelperRefkey("FileContents")` for auto-importing the `FileContents` type from multipart helpers
+- `typeRefkey(baseModel)` for referencing the `File` interface when filename is required
+- `code` template for building inline union types with object literal shapes
+
+### Notes
+- The generated `File` interface and its subtypes (FileRequiredMetaData, etc.) are still emitted by the emitter even though property types now use the wrapper pattern. This is extra output compared to legacy (which doesn't generate these interfaces at all) but is not harmful.
+- E2e multipart tests were already failing before this change (19 failures) due to pre-existing client structure issues. Same failure count after change.
+- All 1037 unit/scenario tests pass. Smoke test passes.

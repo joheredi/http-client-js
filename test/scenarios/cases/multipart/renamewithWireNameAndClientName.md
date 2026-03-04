@@ -23,14 +23,19 @@ op withWireName(
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import { createFilePartDescriptor } from "../static-helpers/multipartHelpers.js";
+import {
+  createFilePartDescriptor,
+  type FileContents,
+} from "../static-helpers/multipartHelpers.js";
 
 /**
  * model interface MultiPartRequestWithWireName
  */
 export interface MultiPartRequestWithWireName {
   identifier: string;
-  image: Uint8Array;
+  image:
+    | FileContents
+    | { contents: FileContents; contentType?: string; filename?: string };
 }
 
 export function multiPartRequestWithWireNameSerializer(
@@ -80,14 +85,19 @@ needTCGC: true
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import { createFilePartDescriptor } from "../static-helpers/multipartHelpers.js";
+import {
+  createFilePartDescriptor,
+  type FileContents,
+} from "../static-helpers/multipartHelpers.js";
 
 /**
  * model interface MultiPartRequest
  */
 export interface MultiPartRequest {
   identifier: string;
-  image: Uint8Array;
+  image:
+    | FileContents
+    | { contents: FileContents; contentType?: string; filename?: string };
 }
 
 export function multiPartRequestSerializer(item: MultiPartRequest): any {

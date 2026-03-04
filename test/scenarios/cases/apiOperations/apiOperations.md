@@ -138,7 +138,9 @@ op uploadFile(
 ```ts models interface _UploadFileRequest
 export interface _UploadFileRequest {
   name: string;
-  file: Uint8Array;
+  file:
+    | FileContents
+    | { contents: FileContents; contentType?: string; filename?: string };
 }
 ```
 
@@ -229,13 +231,19 @@ op uploadFiles(
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import { createFilePartDescriptor } from "../static-helpers/multipartHelpers.js";
+import {
+  createFilePartDescriptor,
+  type FileContents,
+} from "../static-helpers/multipartHelpers.js";
 
 /**
  * model interface _UploadFilesRequest
  */
 export interface _UploadFilesRequest {
-  files: Uint8Array[];
+  files: Array<
+    | FileContents
+    | { contents: FileContents; contentType?: string; filename?: string }
+  >;
 }
 
 export function _uploadFilesRequestSerializer(item: _UploadFilesRequest): any {
