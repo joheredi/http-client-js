@@ -54,8 +54,7 @@ describe("Azure.ClientGenerator.Core.Access", () => {
 
   describe("relativeModelInOperation", () => {
     it("operation", async () => {
-      const result =
-        await client.relativeModelInOperation.operation("Madge");
+      const result = await client.relativeModelInOperation.operation("Madge");
       expect(result.name).toBe("Madge");
       expect(result.inner.name).toBe("Madge");
     });

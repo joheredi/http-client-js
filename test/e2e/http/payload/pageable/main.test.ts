@@ -123,8 +123,7 @@ describe("Payload.Pageable", () => {
             bar: "bar",
           },
         )) as any;
-      const pets =
-        result.nestedItems?.pets ?? result.pets ?? result;
+      const pets = result.nestedItems?.pets ?? result.pets ?? result;
       expect(pets.length).toBeGreaterThanOrEqual(1);
       expect(pets[0]).toEqual({ id: "1", name: "dog" });
     });
@@ -142,8 +141,7 @@ describe("Payload.Pageable", () => {
             bar: "bar",
           },
         )) as any;
-      const pets =
-        result.nestedItems?.pets ?? result.pets ?? result;
+      const pets = result.nestedItems?.pets ?? result.pets ?? result;
       expect(pets.length).toBeGreaterThanOrEqual(1);
       expect(pets[0]).toEqual({ id: "1", name: "dog" });
     });
@@ -169,8 +167,7 @@ describe("Payload.Pageable", () => {
      * Mock returns all 4 pets in a single response with no next token.
      */
     it("should list without continuation", async () => {
-      const result =
-        (await client.pageSize.listWithoutContinuation()) as any;
+      const result = (await client.pageSize.listWithoutContinuation()) as any;
       const pets = result.pets ?? result;
       expect(pets).toHaveLength(4);
       expect(pets[0]).toEqual({ id: "1", name: "dog" });
@@ -187,8 +184,7 @@ describe("Payload.Pageable", () => {
      * Verifies XML deserialization produces correct pet objects.
      */
     it("should list with next link", async () => {
-      const result =
-        (await client.xmlPagination.listWithNextLink()) as any;
+      const result = (await client.xmlPagination.listWithNextLink()) as any;
       const pets = result.pets ?? result;
       expect(pets.length).toBeGreaterThanOrEqual(2);
       expect(pets[0]).toEqual({ id: "1", name: "dog" });
@@ -201,8 +197,7 @@ describe("Payload.Pageable", () => {
      * Verifies XML deserialization produces correct pet objects.
      */
     it("should list with continuation", async () => {
-      const result =
-        (await client.xmlPagination.listWithContinuation()) as any;
+      const result = (await client.xmlPagination.listWithContinuation()) as any;
       const pets = result.pets ?? result;
       expect(pets.length).toBeGreaterThanOrEqual(2);
       expect(pets[0]).toEqual({ id: "1", name: "dog" });

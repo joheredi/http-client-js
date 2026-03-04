@@ -9,10 +9,7 @@ describe("Azure.ClientGenerator.Core.Override", () => {
 
   describe("reorderParameters", () => {
     it("reorder", async () => {
-      const result = await client.reorderParameters.reorder(
-        "param1",
-        "param2",
-      );
+      const result = await client.reorderParameters.reorder("param1", "param2");
       expect(result).toBeUndefined();
     });
   });

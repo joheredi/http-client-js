@@ -13,14 +13,10 @@ const fakeCredential: TokenCredential = {
 };
 
 describe("Azure.ResourceManager.CommonProperties", () => {
-  const client = new CommonPropertiesClient(
-    fakeCredential,
-    subscriptionId,
-    {
-      endpoint,
-      allowInsecureConnection: true,
-    },
-  );
+  const client = new CommonPropertiesClient(fakeCredential, subscriptionId, {
+    endpoint,
+    allowInsecureConnection: true,
+  });
   // Remove bearer token policy so tests can run against HTTP mock server.
   // The policy hard-codes an HTTPS requirement that can't be bypassed.
   client.pipeline.removePolicy({

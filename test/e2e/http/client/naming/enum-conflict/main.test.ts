@@ -23,7 +23,10 @@ describe("Client.Naming.EnumConflict", () => {
 
   describe("secondOperations", () => {
     it("should call second()", async () => {
-      const body: SecondModel = { status: "running", description: "test description" };
+      const body: SecondModel = {
+        status: "running",
+        description: "test description",
+      };
       const result = await client.secondOperations.second(body);
       expect(result).toBeDefined();
       expect(result.status).toBeDefined();

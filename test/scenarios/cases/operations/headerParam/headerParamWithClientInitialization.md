@@ -194,7 +194,8 @@ export function _getSend(
     headers: {
       accept: "application/json",
       ...(context["$expand"] !== undefined
-        ? { $expand: context["$expand"] } : {}),
+        ? { $expand: context["$expand"] }
+        : {}),
       ...options.requestOptions?.headers,
     },
   });
@@ -433,7 +434,8 @@ export function _getSend(
     headers: {
       accept: "application/json",
       ...(context["$expand"] !== undefined
-        ? { $expand: context["$expand"] } : {}),
+        ? { $expand: context["$expand"] }
+        : {}),
       ...options.requestOptions?.headers,
     },
   });

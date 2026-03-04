@@ -28,7 +28,11 @@ describe("Azure.ClientGenerator.Core.ClientInitialization.Default", () => {
   });
 
   describe("MultipleParamsClient", () => {
-    const client = new MultipleParamsClient("test-name", "test-region", clientOptions);
+    const client = new MultipleParamsClient(
+      "test-name",
+      "test-region",
+      clientOptions,
+    );
 
     it.skip("should send withQuery", async () => {
       await client.withQuery("test-id");

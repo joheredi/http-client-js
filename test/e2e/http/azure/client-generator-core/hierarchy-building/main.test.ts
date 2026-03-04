@@ -17,15 +17,13 @@ describe("Azure.ClientGenerator.Core.HierarchyBuilding", () => {
 
   describe("animalOperations", () => {
     it("updatePetAsAnimal", async () => {
-      const result =
-        await client.animalOperations.updatePetAsAnimal(samplePet);
+      const result = await client.animalOperations.updatePetAsAnimal(samplePet);
       expect(result.kind).toBe("pet");
       expect(result.name).toBe("Buddy");
     });
 
     it("updateDogAsAnimal", async () => {
-      const result =
-        await client.animalOperations.updateDogAsAnimal(sampleDog);
+      const result = await client.animalOperations.updateDogAsAnimal(sampleDog);
       expect(result.kind).toBe("dog");
       expect(result.name).toBe("Rex");
     });

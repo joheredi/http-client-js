@@ -8,7 +8,9 @@ describe("Azure.Core.Lro.Standard", () => {
   });
 
   it("should create or replace with LRO", async () => {
-    const poller = client.createOrReplace("madge", { role: "contributor" } as any);
+    const poller = client.createOrReplace("madge", {
+      role: "contributor",
+    } as any);
     const result = await poller.pollUntilDone();
     expect(result.name).toBe("madge");
     expect(result.role).toBe("contributor");

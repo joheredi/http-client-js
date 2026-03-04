@@ -41,12 +41,22 @@ import pLimit from "p-limit";
  * Simple deep merge (replaces lodash.merge for this single use case).
  * Arrays are replaced, not concatenated. Objects are recursively merged.
  */
-function deepMerge<T extends Record<string, any>>(target: T, source: Record<string, any>): T {
+function deepMerge<T extends Record<string, any>>(
+  target: T,
+  source: Record<string, any>,
+): T {
   const result = { ...target };
   for (const key of Object.keys(source)) {
     const srcVal = source[key];
     const tgtVal = (result as any)[key];
-    if (srcVal && typeof srcVal === "object" && !Array.isArray(srcVal) && tgtVal && typeof tgtVal === "object" && !Array.isArray(tgtVal)) {
+    if (
+      srcVal &&
+      typeof srcVal === "object" &&
+      !Array.isArray(srcVal) &&
+      tgtVal &&
+      typeof tgtVal === "object" &&
+      !Array.isArray(tgtVal)
+    ) {
       (result as any)[key] = deepMerge(tgtVal, srcVal);
     } else {
       (result as any)[key] = srcVal;
@@ -97,10 +107,7 @@ interface PackageEntry {
  * Recursively discovers generated packages by looking for directories
  * containing both `package.json` and `src/index.ts`.
  */
-function discoverPackages(
-  dir: string,
-  filter?: string,
-): PackageEntry[] {
+function discoverPackages(dir: string, filter?: string): PackageEntry[] {
   const packages: PackageEntry[] = [];
 
   function walk(d: string) {
@@ -325,9 +332,7 @@ async function extractPackageApi(pkg: PackageEntry): Promise<ExtractResult> {
     );
 
     if (!succeeded && !existsSync(outputFile)) {
-      throw new Error(
-        `API Extractor failed:\n${errors.join("\n")}`,
-      );
+      throw new Error(`API Extractor failed:\n${errors.join("\n")}`);
     }
 
     // Step 3: Clean up intermediate declaration files

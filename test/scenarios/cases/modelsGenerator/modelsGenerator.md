@@ -14,7 +14,6 @@ model Test {
 // (file was not generated)
 ```
 
-
 # should generate models with `@usage` added for model-only case
 
 ## TypeSpec
@@ -56,7 +55,6 @@ export function testDeserializer(item: any): Test {
   };
 }
 ```
-
 
 ```ts root index
 export * from "./models/index.js";

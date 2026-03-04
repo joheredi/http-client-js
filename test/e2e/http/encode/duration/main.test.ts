@@ -139,31 +139,36 @@ describe("Encode.Duration", () => {
 
     it.skip("should test float milliseconds encode for a duration array property", async () => {
       const requestBody = { value: [35625, 46750] };
-      const response = await client.property.floatMillisecondsArray(requestBody);
+      const response =
+        await client.property.floatMillisecondsArray(requestBody);
       expect(response).toEqual({ value: [35625, 46750] });
     });
 
     it.skip("should test int32 seconds larger unit encode for a duration property", async () => {
       const requestBody = { value: 120 };
-      const response = await client.property.int32SecondsLargerUnit(requestBody);
+      const response =
+        await client.property.int32SecondsLargerUnit(requestBody);
       expect(response).toEqual({ value: 120 });
     });
 
     it.skip("should test float seconds larger unit encode for a duration property", async () => {
       const requestBody = { value: 150.0 };
-      const response = await client.property.floatSecondsLargerUnit(requestBody);
+      const response =
+        await client.property.floatSecondsLargerUnit(requestBody);
       expect(response).toEqual({ value: 150.0 });
     });
 
     it.skip("should test int32 milliseconds larger unit encode for a duration property", async () => {
       const requestBody = { value: 180000 };
-      const response = await client.property.int32MillisecondsLargerUnit(requestBody);
+      const response =
+        await client.property.int32MillisecondsLargerUnit(requestBody);
       expect(response).toEqual({ value: 180000 });
     });
 
     it.skip("should test float milliseconds larger unit encode for a duration property", async () => {
       const requestBody = { value: 210000.0 };
-      const response = await client.property.floatMillisecondsLargerUnit(requestBody);
+      const response =
+        await client.property.floatMillisecondsLargerUnit(requestBody);
       expect(response).toEqual({ value: 210000.0 });
     });
   });

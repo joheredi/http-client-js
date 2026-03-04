@@ -24,10 +24,7 @@ describe("Azure.ResourceManager.NonResource", () => {
 
   describe("nonResourceOperations", () => {
     it("should get a non resource", async () => {
-      const result = await client.nonResourceOperations.get(
-        "eastus",
-        "hello",
-      );
+      const result = await client.nonResourceOperations.get("eastus", "hello");
       expect(result).toBeDefined();
       expect(result.id).toBeDefined();
       expect(result.name).toBeDefined();

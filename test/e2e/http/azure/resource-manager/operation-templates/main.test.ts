@@ -14,14 +14,10 @@ const fakeCredential: TokenCredential = {
 };
 
 describe("Azure.ResourceManager.OperationTemplates", () => {
-  const client = new OperationTemplatesClient(
-    fakeCredential,
-    SUBSCRIPTION_ID,
-    {
-      endpoint,
-      allowInsecureConnection: true,
-    },
-  );
+  const client = new OperationTemplatesClient(fakeCredential, SUBSCRIPTION_ID, {
+    endpoint,
+    allowInsecureConnection: true,
+  });
   // Remove bearer token policy so tests can run against HTTP mock server.
   // The policy hard-codes an HTTPS requirement that can't be bypassed.
   client.pipeline.removePolicy({
@@ -64,17 +60,13 @@ describe("Azure.ResourceManager.OperationTemplates", () => {
 
   describe("lro", () => {
     it("should create or replace an order with LRO", async () => {
-      const poller = client.lro.createOrReplace(
-        RESOURCE_GROUP,
-        "order1",
-        {
-          location: "eastus",
-          properties: {
-            productId: "product1",
-            amount: 1,
-          },
-        } as any,
-      );
+      const poller = client.lro.createOrReplace(RESOURCE_GROUP, "order1", {
+        location: "eastus",
+        properties: {
+          productId: "product1",
+          amount: 1,
+        },
+      } as any);
       const result = await poller.pollUntilDone();
       expect(result.name).toBe("order1");
       expect(result.properties?.productId).toBe("product1");
@@ -128,10 +120,7 @@ describe("Azure.ResourceManager.OperationTemplates", () => {
     });
 
     it("should patch a widget without body", async () => {
-      const result = await client.optionalBody.patch(
-        RESOURCE_GROUP,
-        "widget1",
-      );
+      const result = await client.optionalBody.patch(RESOURCE_GROUP, "widget1");
       expect(result).toBeDefined();
       expect(result.name).toBeDefined();
     });
@@ -155,24 +144,17 @@ describe("Azure.ResourceManager.OperationTemplates", () => {
     });
 
     it("should post a widget action without body", async () => {
-      const result = await client.optionalBody.post(
-        RESOURCE_GROUP,
-        "widget1",
-      );
+      const result = await client.optionalBody.post(RESOURCE_GROUP, "widget1");
       expect(result.result).toBe("Action completed successfully");
     });
 
     it("should post a widget action with body", async () => {
-      const result = await client.optionalBody.post(
-        RESOURCE_GROUP,
-        "widget1",
-        {
-          body: {
-            actionType: "perform",
-            parameters: "test-parameters",
-          },
+      const result = await client.optionalBody.post(RESOURCE_GROUP, "widget1", {
+        body: {
+          actionType: "perform",
+          parameters: "test-parameters",
         },
-      );
+      });
       expect(result.result).toBe(
         "Action completed successfully with parameters",
       );

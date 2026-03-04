@@ -2434,33 +2434,43 @@ E2e test import paths depend on directory nesting depth:
   Count from test file location to test/e2e/ (always 2+ ../ for http/ prefix).
 
 ## Output-only enum types must not generate serializer calls
+
 When a union-as-enum type (like ARM `ProvisioningState`) has only `UsageFlags.Output`, its serializer declaration is never rendered. Both `needsTransformation()` and `getSerializationExpression()` must check `(type.usage & UsageFlags.Input) !== 0` for the `enum` case to avoid generating references to non-existent serializer functions. The `typeHasSerializerDeclaration()` predicate now also handles the `enum` kind.
 
 ## collectAllPropertyAndOperationTypes must walk all method kinds
+
 The `walkClient()` function in `model-files.tsx` previously only handled `method.kind === "basic"`. LRO, paging, and lropaging operations were skipped, causing missing array/dict helpers for their response types. All four method kinds must be included.
 
 ## LRO Polling with @azure/core-lro v3
 
 ### PollerLike extends Promise
+
 `PollerLike` from `@azure/core-lro` v3 extends `Promise<TResult>`. This means:
+
 - `await poller` resolves to `TResult` (the final result), NOT the poller itself
 - To use polling methods, DON'T await the creation: `const poller = client.method()` then `await poller.pollUntilDone()`
 - `createHttpPoller` is synchronous — returns `PollerLike` directly, not `Promise<PollerLike>`
 
 ### LRO Envelope Extraction
+
 For POST operations with `operation-location`, the polling response has an envelope:
+
 ```json
 {"id": "...", "status": "Succeeded", "result": { actualData }}
 ```
+
 The actual result is at `body.result`. Use TCGC's `lroMetadata.finalResultPath` (typically `"result"`) to extract the nested data before passing to the deserializer.
 
 ### Final GET Behavior
+
 - PUT/PATCH operations: core-lro does a final GET to the original URL
 - POST operations with `Location` header: core-lro does a final GET to the Location URL
 - POST operations without `Location` header: core-lro uses the polling response directly (envelope must be unwrapped)
 
 ### Design Decision
+
 Used `@azure/core-lro`'s `createHttpPoller` instead of a custom poller implementation because:
+
 1. Output consistency with legacy emitter
 2. Battle-tested polling logic that handles all LRO patterns
 3. Proper HTTP polling with abort signal support and api-version propagation
@@ -2468,6 +2478,7 @@ Used `@azure/core-lro`'s `createHttpPoller` instead of a custom poller implement
 ## Design Decisions
 
 ### Header onClient params use context["paramName"] (2026-03-02)
+
 When a header parameter's corresponding method param has `onClient: true`, the accessor must use
 `context["paramName"]` — the same pattern used for path/query params in `getParameterAccessor()`.
 The previous behavior read from `options?.paramName`, but `isOptionalParameter` excludes onClient
@@ -2517,6 +2528,7 @@ Legacy tspconfig reference: `submodules/autorest.typescript/packages/typespec-ts
 **Problem:** The generated `xmlHelpers.ts` uses a custom cross-platform XML parser (not DOMParser). Understanding the data flow is critical for debugging XML issues.
 
 **Data Flow:**
+
 1. `deserializeFromXml(xmlString, properties, rootName)` → parses XML string into object
 2. `parseXmlToObject(xmlString, rootName)` → finds root element, calls `xmlElementToObject`
 3. `xmlElementToObject(node)` → converts parsed XML tree to plain JS objects:
@@ -2528,6 +2540,7 @@ Legacy tspconfig reference: `submodules/autorest.typescript/packages/typespec-ts
 4. `deserializeXmlObject(xmlObject, properties)` → maps XML object keys to model properties
 
 **Key gotchas:**
+
 - Wrapped arrays: `<colors><string>red</string>...</colors>` → `{ string: ["red", ...] }` inside `{ colors: { ... } }`. Use `itemsName` to extract items from wrapper.
 - Self-closing tags: `<items />` produces empty string `""` via text leaf path. Must check `value === ""` for arrays.
 - Unwrapped text: `#text` key stores text content when node has attributes but no children. Must fall back to `#text` for `unwrapped: true` properties.
@@ -2543,6 +2556,7 @@ Legacy tspconfig reference: `submodules/autorest.typescript/packages/typespec-ts
 **Context**: TCGC `SdkUnionType` has optional `discriminatedOptions` with `{ envelope, discriminatorPropertyName, envelopePropertyName? }`. The variant types in `variantTypes[]` are plain models WITHOUT discriminator properties. The mapping from variant to discriminator value comes from the TypeSpec union's named variants, accessible via `__raw`.
 
 **Approach chosen**: Property existence checks for serializer variant detection + switch-on-discriminator for deserialization.
+
 - Serializer uses `findUniquePropertyForModel()` to detect which variant the user provided at runtime
 - Deserializer uses switch on `item[discriminatorPropertyName]` which is present in the wire format
 - For envelope mode: serializer wraps in `{ discrim: value, envelope: serialized }`, deserializer unwraps
@@ -2563,41 +2577,47 @@ Models with per-verb visibility differentiation (properties with SOME but not AL
 ## File Body Operations — Emitter Bug (2026-03-03)
 
 The emitter treats `Http.File` body operations like regular JSON models, generating `fileSerializer`/`fileDeserializer` functions that convert to/from `{ contentType, filename, contents: base64 }` JSON. For File body operations (where the file IS the HTTP body), the emitter should instead:
+
 - **Uploads**: Send `file.contents` (raw Uint8Array) as the request body, with Content-Type from the operation
 - **Downloads**: Read the raw response body (Buffer) and wrap it as `{ contents: rawBuffer, contentType: responseContentType }`
 
-The serializers/deserializers are correct for *JSON-serialized file objects* (e.g., multipart), but wrong for file body operations where the file is the entire HTTP body.
+The serializers/deserializers are correct for _JSON-serialized file objects_ (e.g., multipart), but wrong for file body operations where the file is the entire HTTP body.
 
 Tracked by: `EMITTER-FIX-FILE-BODY` in prd.json.
 
 ## Design Decisions
 
 ### File Body Handling (EMITTER-FIX-FILE-BODY)
+
 **Decision**: Change only operation code (send/receive/public) to handle File bodies specially. Leave serializer generation as-is (dead code for File models).
 **Rationale**: Lower risk, simpler change. File models might theoretically appear in non-File body contexts where JSON serialization is needed. Dead serializers are harmless.
 **Detection**: `type.kind === "model" && (type as SdkModelType).serializationOptions?.binary?.isFile === true`
 **Key TCGC property**: `BinarySerializationOptions.isFile` is set when `httpBody?.bodyKind === "file"` in TCGC's `updateSerializationOptions()`.
 
 ### JSONL Streaming Support — Blocked on TCGC Upgrade
+
 **Task**: COVERAGE-FEATURE-STREAMING-JSONL
 **Blocker**: Requires `SdkStreamMetadata` interface and `streamMetadata` property on `SdkBodyParameter` and `SdkMethodResponse`, which is only available in unreleased TCGC development versions.
 **Installed TCGC**: v0.65.3 — does NOT have `streamMetadata` or `SdkStreamMetadata`.
 **Submodule TCGC**: v0.65.2-dev — HAS the feature in source but isn't released/linked.
 **TCGC Data Model for JsonlStream<Thing>**: When available, `bodyParam.streamMetadata` contains:
-  - `bodyType.kind = "string"` (wire type)
-  - `originalType.name = "JsonlStreamThing"` (the stream wrapper model)
-  - `streamType.name = "Thing"` (the payload model being streamed)
-  - `contentTypes = ["application/jsonl"]`
-**Implementation Plan**: When unblocked:
-  1. Add `jsonlHelperRefkey` to `src/utils/refkeys.ts`
-  2. Create `src/components/static-helpers/jsonl-helpers.tsx` with `getJsonlResponse` (reads raw stream, splits on newlines, JSON.parse each line)
-  3. In `deserialize-operation.tsx`, check `method.response.streamMetadata` BEFORE `isBinaryBytesResponse` check (streaming types are also bytes)
-  4. In `public-operation.tsx`, use `getJsonlResponse` helper like `getBinaryResponse` (don't await send)
-  5. In `send-operation.tsx`, serialize body as `items.map(JSON.stringify).join("\\n")` and override param type from bytes to `StreamType[]`
-  6. Remove 'streaming' from `test/e2e/.testignore`
-**Unblocks scenarios**: Streaming_Jsonl_Basic_receive, Streaming_Jsonl_Basic_send
+
+- `bodyType.kind = "string"` (wire type)
+- `originalType.name = "JsonlStreamThing"` (the stream wrapper model)
+- `streamType.name = "Thing"` (the payload model being streamed)
+- `contentTypes = ["application/jsonl"]`
+  **Implementation Plan**: When unblocked:
+
+1. Add `jsonlHelperRefkey` to `src/utils/refkeys.ts`
+2. Create `src/components/static-helpers/jsonl-helpers.tsx` with `getJsonlResponse` (reads raw stream, splits on newlines, JSON.parse each line)
+3. In `deserialize-operation.tsx`, check `method.response.streamMetadata` BEFORE `isBinaryBytesResponse` check (streaming types are also bytes)
+4. In `public-operation.tsx`, use `getJsonlResponse` helper like `getBinaryResponse` (don't await send)
+5. In `send-operation.tsx`, serialize body as `items.map(JSON.stringify).join("\\n")` and override param type from bytes to `StreamType[]`
+6. Remove 'streaming' from `test/e2e/.testignore`
+   **Unblocks scenarios**: Streaming_Jsonl_Basic_receive, Streaming_Jsonl_Basic_send
 
 ### Documentation Formatting Scenarios — Not Applicable for E2E
+
 **Decision**: Marked 6 Documentation scenarios as not-applicable in coverage calculation (not runtime tests).
 **Rationale**: These test JSDoc formatting (bold, italic, lists), which is a code-generation cosmetic concern better validated via scenario tests. No emitter tests these via e2e.
 **Implementation**: Added `NOT_APPLICABLE_SCENARIOS` array to `eng/scripts/calculate-coverage.ts` and excluded from coverage denominator.

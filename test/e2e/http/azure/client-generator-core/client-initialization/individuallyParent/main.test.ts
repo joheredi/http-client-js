@@ -14,7 +14,8 @@ describe("Azure.ClientGenerator.Core.ClientInitialization.IndividuallyParent", (
     });
 
     it.skip("should get standalone", async () => {
-      const result = await client.individuallyParentNestedWithPathClient.getStandalone();
+      const result =
+        await client.individuallyParentNestedWithPathClient.getStandalone();
       expect(result).toBeDefined();
     });
 
@@ -29,7 +30,8 @@ describe("Azure.ClientGenerator.Core.ClientInitialization.IndividuallyParent", (
     });
 
     it.skip("should get standalone", async () => {
-      const result = await client.individuallyParentNestedWithQueryClient.getStandalone();
+      const result =
+        await client.individuallyParentNestedWithQueryClient.getStandalone();
       expect(result).toBeDefined();
     });
 
@@ -68,15 +70,21 @@ describe("Azure.ClientGenerator.Core.ClientInitialization.IndividuallyParent", (
 
   describe("individuallyParentNestedWithMixedClient", () => {
     it.skip("should send withQuery", async () => {
-      await client.individuallyParentNestedWithMixedClient.withQuery("test-region");
+      await client.individuallyParentNestedWithMixedClient.withQuery(
+        "test-region",
+      );
     });
 
     it.skip("should get standalone", async () => {
-      await client.individuallyParentNestedWithMixedClient.getStandalone("test-region");
+      await client.individuallyParentNestedWithMixedClient.getStandalone(
+        "test-region",
+      );
     });
 
     it.skip("should delete standalone", async () => {
-      await client.individuallyParentNestedWithMixedClient.deleteStandalone("test-region");
+      await client.individuallyParentNestedWithMixedClient.deleteStandalone(
+        "test-region",
+      );
     });
   });
 

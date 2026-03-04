@@ -797,9 +797,7 @@ function buildHeaderEntries(
     // Use lowercase "accept" for user-defined Accept headers to match the
     // auto-generated accept pattern and prevent conflicts with the HTTP
     // runtime's default accept header (which uses lowercase).
-    const headerKey = isAcceptHeader(header)
-      ? "accept"
-      : header.serializedName;
+    const headerKey = isAcceptHeader(header) ? "accept" : header.serializedName;
 
     // Build conditional spread for optional/nullable headers to avoid passing
     // undefined/null values into the headers object (matches legacy emitter pattern).
@@ -1204,10 +1202,7 @@ function buildBodyExpression(
   // with only the properties visible for this HTTP verb's lifecycle context.
   // This ensures POST only sends Create-visible properties, PUT sends
   // Create+Update, PATCH sends Update-only, DELETE sends Delete-only.
-  if (
-    bodyType.kind === "model" &&
-    modelNeedsPerVerbBodyFiltering(bodyType)
-  ) {
+  if (bodyType.kind === "model" && modelNeedsPerVerbBodyFiltering(bodyType)) {
     return buildVisibilityFilteredBody(bodyType, accessor, verb, bodyParam);
   }
 

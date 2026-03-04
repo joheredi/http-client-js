@@ -67,8 +67,7 @@ describe("Type.Union.Discriminated", () => {
      * and the deserializer reads the custom property names.
      */
     it("should deserialize envelope with custom petType/petData properties", async () => {
-      const response =
-        await client.envelope.object.customProperties.get();
+      const response = await client.envelope.object.customProperties.get();
       expect(response).toEqual({
         name: "Whiskers",
         meow: true,
@@ -126,8 +125,7 @@ describe("Type.Union.Discriminated", () => {
      * and the deserializer strips the custom "type" discriminator property.
      */
     it("should deserialize inline with custom type discriminator", async () => {
-      const response =
-        await client.noEnvelope.customDiscriminator.get();
+      const response = await client.noEnvelope.customDiscriminator.get();
       expect(response).toEqual({
         name: "Whiskers",
         meow: true,

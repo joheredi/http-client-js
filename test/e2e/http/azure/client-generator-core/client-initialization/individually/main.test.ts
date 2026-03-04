@@ -16,7 +16,10 @@ const clientOptions = {
 // TODO(e2e): All tests skip - emitter bug: client-initialization params (header/query/path) not propagated to requests
 describe("Azure.ClientGenerator.Core.ClientInitialization.Individually", () => {
   describe("IndividuallyNestedWithPathClient", () => {
-    const client = new IndividuallyNestedWithPathClient("test-blob", clientOptions);
+    const client = new IndividuallyNestedWithPathClient(
+      "test-blob",
+      clientOptions,
+    );
 
     it.skip("should send withQuery", async () => {
       await client.withQuery();
@@ -33,7 +36,10 @@ describe("Azure.ClientGenerator.Core.ClientInitialization.Individually", () => {
   });
 
   describe("IndividuallyNestedWithQueryClient", () => {
-    const client = new IndividuallyNestedWithQueryClient("test-blob", clientOptions);
+    const client = new IndividuallyNestedWithQueryClient(
+      "test-blob",
+      clientOptions,
+    );
 
     it.skip("should send withQuery", async () => {
       await client.withQuery();
@@ -50,7 +56,10 @@ describe("Azure.ClientGenerator.Core.ClientInitialization.Individually", () => {
   });
 
   describe("IndividuallyNestedWithHeaderClient", () => {
-    const client = new IndividuallyNestedWithHeaderClient("test-header", clientOptions);
+    const client = new IndividuallyNestedWithHeaderClient(
+      "test-header",
+      clientOptions,
+    );
 
     it.skip("should send withQuery", async () => {
       await client.withQuery();
@@ -86,7 +95,10 @@ describe("Azure.ClientGenerator.Core.ClientInitialization.Individually", () => {
   });
 
   describe("IndividuallyNestedWithMixedClient", () => {
-    const client = new IndividuallyNestedWithMixedClient("test-name", clientOptions);
+    const client = new IndividuallyNestedWithMixedClient(
+      "test-name",
+      clientOptions,
+    );
 
     it.skip("should send withQuery", async () => {
       await client.withQuery("test-region");
@@ -102,7 +114,10 @@ describe("Azure.ClientGenerator.Core.ClientInitialization.Individually", () => {
   });
 
   describe("IndividuallyNestedWithParamAliasClient", () => {
-    const client = new IndividuallyNestedWithParamAliasClient("test-blob", clientOptions);
+    const client = new IndividuallyNestedWithParamAliasClient(
+      "test-blob",
+      clientOptions,
+    );
 
     it.skip("should send withAliasedName", async () => {
       await client.withAliasedName();

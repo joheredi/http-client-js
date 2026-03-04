@@ -207,7 +207,8 @@ async function discoverSpecs(
 
   // Add manually registered specs that aren't auto-discovered.
   for (const manual of MANUAL_SPECS) {
-    const basePath = manual.flavor === "core" ? coreSpecsBasePath : azureSpecsBasePath;
+    const basePath =
+      manual.flavor === "core" ? coreSpecsBasePath : azureSpecsBasePath;
     const fullPath = join(basePath, manual.relativePath);
     if (existsSync(fullPath)) {
       specs.push({

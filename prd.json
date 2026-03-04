@@ -4,9 +4,7 @@
     "version": "1.0.0",
     "status": "complete",
     "created": "2026-02-24",
-    "authors": [
-      "@joheredi"
-    ]
+    "authors": ["@joheredi"]
   },
   "product_overview": {
     "name": "@microsoft/http-client-js",
@@ -121,10 +119,7 @@
   "technical_architecture": {
     "framework": {
       "name": "Alloy Framework",
-      "packages": [
-        "@alloy-js/core@0.22.0",
-        "@alloy-js/typescript@0.22.0"
-      ],
+      "packages": ["@alloy-js/core@0.22.0", "@alloy-js/typescript@0.22.0"],
       "description": "JSX-based code generation framework. NOT React. Uses JSX purely as structural description language for code output. Provides automatic symbol resolution, cross-file import management, and naming policies."
     },
     "sdk_model": {
@@ -140,10 +135,7 @@
       "external_packages": "NPM packages defined via createPackage() with typed symbol accessors. Used in code templates for auto-import from runtime libraries."
     },
     "component_hierarchy": {
-      "top_level": [
-        "Output",
-        "SdkContextProvider"
-      ],
+      "top_level": ["Output", "SdkContextProvider"],
       "orchestrators": [
         "ModelFiles",
         "Operations",
@@ -329,9 +321,7 @@
       },
       "models_template": {
         "count": 1,
-        "tests": [
-          "models/template/template.md"
-        ]
+        "tests": ["models/template/template.md"]
       },
       "operations_core": {
         "count": 6,
@@ -375,9 +365,7 @@
       },
       "operations_cookie_param": {
         "count": 1,
-        "tests": [
-          "operations/cookieParam/ignoreCookieParam.md"
-        ]
+        "tests": ["operations/cookieParam/ignoreCookieParam.md"]
       },
       "operations_error_deserialization": {
         "count": 2,
@@ -388,9 +376,7 @@
       },
       "operations_pagination": {
         "count": 1,
-        "tests": [
-          "operations/pagination/disablePagination.md"
-        ]
+        "tests": ["operations/pagination/disablePagination.md"]
       },
       "api_operations": {
         "count": 3,
@@ -417,9 +403,7 @@
       },
       "enum_union": {
         "count": 1,
-        "tests": [
-          "enumUnion/enumUnion.md"
-        ]
+        "tests": ["enumUnion/enumUnion.md"]
       },
       "multipart": {
         "count": 4,
@@ -505,9 +489,7 @@
       "priority": "P1",
       "status": "done",
       "kind": "feature",
-      "dependencies": [
-        "SPECTOR-3"
-      ],
+      "dependencies": ["SPECTOR-3"],
       "design_review": null,
       "source": "design",
       "description": "Port parameters, payload, and routing Spector integration tests (9 test files).\n\n## Tests to port\n\n### Parameters\n| Legacy test file | Spector spec | New test path |\n|---|---|---|\n| `basicParameters.spec.ts` | `parameters/basic` | `test/e2e/http/parameters/basic/main.test.ts` |\n| `bodyOptionality.spec.ts` | `parameters/body-optionality` | `test/e2e/http/parameters/body-optionality/main.test.ts` |\n| `collectionFormat.spec.ts` | `parameters/collection-format` | `test/e2e/http/parameters/collection-format/main.test.ts` |\n| `spreadParameters.spec.ts` | `parameters/spread` | `test/e2e/http/parameters/spread/main.test.ts` |\n\n### Payload\n| Legacy test file | Spector spec | New test path |\n|---|---|---|\n| `payloadContentNegotiation.spec.ts` | `payload/content-negotiation` | `test/e2e/http/payload/content-negotiation/main.test.ts` |\n| `payloadMediaType.spec.ts` | `payload/media-type` | `test/e2e/http/payload/media-type/main.test.ts` |\n| `payloadMultipart.spec.ts` | `payload/multipart` | `test/e2e/http/payload/multipart/main.test.ts` |\n| `payloadPageable.spec.ts` | `payload/pageable` | `test/e2e/http/payload/pageable/main.test.ts` |\n\n### Routes\n| Legacy test file | Spector spec | New test path |\n|---|---|---|\n| `routes.spec.ts` | `routes` | `test/e2e/http/routes/main.test.ts` |\n\n## Notes\n- `payloadMultipart` is complex \u2014 uses `fs.createReadStream()` for file uploads. Tests need access to test assets. Create `test/e2e/assets/` with image.jpg and image.png files, or reference them from the existing spector spec assets.\n- `payloadPageable` tests pagination. Verify the generated client has paging helpers.\n- `routes` is a comprehensive test with many sub-tests for path/query expansion modes.\n- `spreadParameters` tests TypeSpec spread operator for parameter destructuring.\n\n## Reference files\n- Legacy tests: `submodules/autorest.typescript/packages/typespec-ts/test/modularIntegration/`\n- Spector specs: `submodules/typespec/packages/http-specs/specs/`\n- Reference tests: `submodules/typespec/packages/http-client-js/test/e2e/http/`\n\n## Validation\nRun `pnpm build && pnpm test:e2e` \u2014 all parameter/payload/routes tests should pass."
@@ -519,9 +501,7 @@
       "priority": "P1",
       "status": "done",
       "kind": "feature",
-      "dependencies": [
-        "SPECTOR-3"
-      ],
+      "dependencies": ["SPECTOR-3"],
       "design_review": null,
       "source": "design",
       "description": "Port versioning, special-words, and special-headers Spector integration tests (10 test files).\n\n## Tests to port\n\n### Versioning\n| Legacy test file | Spector spec | New test path |\n|---|---|---|\n| `versioningAdded.spec.ts` | `versioning/added` | `test/e2e/http/versioning/added/main.test.ts` |\n| `versioningMadeOptional.spec.ts` | `versioning/madeOptional` | `test/e2e/http/versioning/madeOptional/main.test.ts` |\n| `versioningRemovedV1.spec.ts` | `versioning/removed` (v1 config) | `test/e2e/http/versioning/removed/v1/main.test.ts` |\n| `versioningRemovedV2.spec.ts` | `versioning/removed` (v2 config) | `test/e2e/http/versioning/removed/v2/main.test.ts` |\n| `versioningRemovedV2Preview.spec.ts` | `versioning/removed` (v2preview config) | `test/e2e/http/versioning/removed/v2preview/main.test.ts` |\n| `versioningRenamedFrom.spec.ts` | `versioning/renamedFrom` | `test/e2e/http/versioning/renamedFrom/main.test.ts` |\n| `versioningReturnTypeChangedFrom.spec.ts` | `versioning/returnTypeChangedFrom` | `test/e2e/http/versioning/returnTypeChangedFrom/main.test.ts` |\n| `versioningTypeChangedFrom.spec.ts` | `versioning/typeChangedFrom` | `test/e2e/http/versioning/typeChangedFrom/main.test.ts` |\n\n### Special\n| Legacy test file | Spector spec | New test path |\n|---|---|---|\n| `specialWords.spec.ts` | `special-words` | `test/e2e/http/special-words/main.test.ts` |\n| `headersRepeatability.spec.ts` | `special-headers/repeatability` | `test/e2e/http/special-headers/repeatability/main.test.ts` |\n\n## Notes on versioning tests\nThe `versioning/removed` spec generates 3 different client variants based on version configuration:\n- v1: Only the operations/types from version 1\n- v2: Operations/types up to version 2 (v1 removed items are gone)\n- v2preview: Preview version with additional preview operations\n\nIn the legacy emitter, these are 3 separate entries in cadl-ranch-list.js with different outputPaths but the same inputPath. In the new emitter, the generation script needs to compile the same spec 3 times with different version options. This may require special handling in the emit-e2e script or version-specific tspconfig.yaml files.\n\n## Reference files\n- Legacy tests: `submodules/autorest.typescript/packages/typespec-ts/test/modularIntegration/versioning*.spec.ts`, `specialWords.spec.ts`, `headersRepeatability.spec.ts`\n- Legacy cadl-ranch-list.js: Shows how versioning/removed is split into 3 entries with different outputPaths\n- Spector specs: `submodules/typespec/packages/http-specs/specs/versioning/`, `special-words/`, `special-headers/`\n\n## Validation\nRun `pnpm build && pnpm test:e2e` \u2014 all versioning and special tests should pass."
@@ -533,9 +513,7 @@
       "priority": "P2",
       "status": "done",
       "kind": "feature",
-      "dependencies": [
-        "SPECTOR-3"
-      ],
+      "dependencies": ["SPECTOR-3"],
       "design_review": null,
       "source": "design",
       "description": "Integrate the Spector e2e tests into the CI pipeline and set up coverage reporting.\n\n## What to do\n1. Add a CI step that runs `pnpm build && pnpm test:e2e` in the existing CI workflow\n2. Ensure the Spector coverage file (`temp/spector-coverage.json`) is captured as a CI artifact\n3. Add a script to parse and summarize coverage: which Spector scenarios are covered vs not\n\n## Coverage reporting\nAfter tests complete, the Spector server writes coverage data to `temp/spector-coverage.json`. This file tracks which mock API scenarios were hit during testing.\n\nCreate `eng/scripts/calculate-coverage.ts` that:\n1. Reads `temp/spector-coverage.json`\n2. Prints a summary: N/M scenarios covered\n3. Lists uncovered scenarios\n\n## Reference\n- `submodules/typespec/packages/http-client-js/eng/scripts/calculate-coverage.js` \u2014 reference implementation\n- Spector coverage format: `CoverageReport[]` from `@typespec/spector`\n\n## Package.json script\nAdd: `\"test:e2e:ci\": \"pnpm build && pnpm test:e2e\"`\n\n## Validation\n- CI runs e2e tests successfully\n- Coverage artifact is captured"
@@ -631,9 +609,7 @@
       "priority": "P2",
       "status": "done",
       "kind": "feature",
-      "dependencies": [
-        "E2E-FIX-ADDITIONAL-PROPS-DERIVED"
-      ],
+      "dependencies": ["E2E-FIX-ADDITIONAL-PROPS-DERIVED"],
       "design_review": null,
       "source": "e2e-test-investigation",
       "description": "Fix 6 skipped e2e tests caused by non-discriminated union deserializers returning raw data without type discrimination.\n\n## Problem\n\nNon-discriminated union deserializers are generated as simple passthroughs (`return item`), but wire data contains union types needing proper deserialization (e.g., Date parsing).\n\n## Affected Tests (6)\n\n| Test file | Test name | Line |\n|-----------|-----------|------|\n| `type/property/additional-properties/main.test.ts` | get non-discriminated union spread | 526 |\n| `type/property/additional-properties/main.test.ts` | put non-discriminated union spread | 537 |\n| `type/property/additional-properties/main.test.ts` | get non-discriminated union2 spread | 549 |\n| `type/property/additional-properties/main.test.ts` | put non-discriminated union2 spread | 564 |\n| `type/property/additional-properties/main.test.ts` | get non-discriminated union3 spread | 580 |\n| `type/property/additional-properties/main.test.ts` | put non-discriminated union3 spread | 598 |\n\n## Current Generated Code (broken)\n\n```typescript\nexport function _spreadRecordForNonDiscriminatedUnionAdditionalPropertyDeserializer(\n  item: any,\n): _SpreadRecordForNonDiscriminatedUnionAdditionalProperty {\n  return item;  // No discrimination, no deserialization!\n}\n```\n\nUnion members include:\n- `WidgetData0`: `{ kind: \"kind0\", fooProp: string }`\n- `WidgetData1`: `{ kind: \"kind1\", start: Date, end?: Date }`\n- `WidgetData2`: `{ kind: \"kind1\", start: string }` (overlapping discriminator!)\n\n## Mock Server Expectations\n\nFrom additional-properties mockapi.ts:\n- `recordUnionBody`: `{ flag: true, prop1: \"abc\", prop2: 43.125 }`\n- `recordDiscriminatedUnionBody`: `{ name: \"abc\", prop1: { kind: \"kind0\", fooProp: \"abc\" }, prop2: { kind: \"kind1\", start: \"2021-01-01T00:00:00Z\", end: \"2021-01-02T00:00:00Z\" } }`\n\n## Root Cause\n\nThe emitter doesn't generate type discrimination logic for non-discriminated unions. Members with overlapping `kind` fields need secondary property checks.\n\n## Recommended Fix\n\nGenerate union deserialization that:\n1. Uses `kind` field for initial dispatch when members have distinct values\n2. For overlapping `kind` values, use secondary property checks (e.g., presence of `end` field)\n3. Apply member-specific deserialization (e.g., ISO date parsing)\n\nThis depends on E2E-FIX-ADDITIONAL-PROPS-DERIVED being completed first.\n\n## Key Files\n\n- `src/components/serialization/json-deserializer.tsx` \u2014 union deserialization generation\n- `src/components/serialization/json-serializer.tsx` \u2014 union serialization generation\n\n## Validation\n\n```bash\npnpm build && pnpm test:e2e -- --grep \"AdditionalProperties\"\n```"
@@ -1193,9 +1169,7 @@
           {
             "name": "Create separate test files per pageable variant",
             "description": "Create main.test.ts files under subdirectories (page-size/, xml-pagination/, etc.).",
-            "pros": [
-              "Finer-grained test isolation"
-            ],
+            "pros": ["Finer-grained test isolation"],
             "cons": [
               "Unnecessary complexity \u2014 all tests use the same generated client",
               "Breaks from established pattern"
@@ -1390,16 +1364,12 @@
               "All file tests in one place",
               "Simple to write"
             ],
-            "cons": [
-              "None significant"
-            ]
+            "cons": ["None significant"]
           },
           {
             "name": "Create separate test files for upload and download",
             "description": "Split into upload.test.ts and download.test.ts for clarity.",
-            "pros": [
-              "Logical separation"
-            ],
+            "pros": ["Logical separation"],
             "cons": [
               "Unnecessary \u2014 both directions use the same client and setup"
             ]
@@ -1429,16 +1399,12 @@
               "Matches generated code directory structure",
               "Clear and specific"
             ],
-            "cons": [
-              "Deep nesting (noauth/union/)"
-            ]
+            "cons": ["Deep nesting (noauth/union/)"]
           },
           {
             "name": "Add to existing authentication test directory",
             "description": "Add noauth union tests alongside the existing authentication/union tests.",
-            "pros": [
-              "Less directory nesting"
-            ],
+            "pros": ["Less directory nesting"],
             "cons": [
               "Different generated clients \u2014 would need separate imports"
             ]
@@ -1475,12 +1441,8 @@
           {
             "name": "Test via error interception/inspection",
             "description": "Use try/catch patterns to verify the error type and properties returned by the client for different status codes.",
-            "pros": [
-              "More explicit error inspection"
-            ],
-            "cons": [
-              "More verbose test code"
-            ]
+            "pros": ["More explicit error inspection"],
+            "cons": ["More verbose test code"]
           }
         ],
         "chosen": "Create main.test.ts testing error response handling",
@@ -1508,16 +1470,12 @@
               "Independent test files",
               "Can run specific versioning tests"
             ],
-            "cons": [
-              "More files"
-            ]
+            "cons": ["More files"]
           },
           {
             "name": "Create a single versioning/main.test.ts",
             "description": "Group all versioning tests in one file with describe blocks per scenario.",
-            "pros": [
-              "Fewer files"
-            ],
+            "pros": ["Fewer files"],
             "cons": [
               "Different generated clients for each spec \u2014 messier imports",
               "Doesn't match directory structure"
@@ -1544,23 +1502,14 @@
           {
             "name": "Add test case to existing multipart main.test.ts",
             "description": "Add an it() block to the existing test/e2e/http/payload/multipart/main.test.ts for the anonymousModel operation.",
-            "pros": [
-              "Minimal change",
-              "Reuses existing client setup"
-            ],
-            "cons": [
-              "None"
-            ]
+            "pros": ["Minimal change", "Reuses existing client setup"],
+            "cons": ["None"]
           },
           {
             "name": "Create separate test file for anonymous model",
             "description": "Create a new test file specifically for the anonymous model scenario.",
-            "pros": [
-              "Isolation"
-            ],
-            "cons": [
-              "Unnecessary overhead for a single test case"
-            ]
+            "pros": ["Isolation"],
+            "cons": ["Unnecessary overhead for a single test case"]
           }
         ],
         "chosen": "Add test case to existing multipart main.test.ts",
@@ -1583,23 +1532,14 @@
           {
             "name": "Add test case to existing XML main.test.ts",
             "description": "Add a test case to test/e2e/http/payload/xml/main.test.ts for the XmlErrorValue_get scenario.",
-            "pros": [
-              "Minimal change",
-              "Reuses existing client setup"
-            ],
-            "cons": [
-              "None"
-            ]
+            "pros": ["Minimal change", "Reuses existing client setup"],
+            "cons": ["None"]
           },
           {
             "name": "Create separate test file",
             "description": "Separate test file for error value.",
-            "pros": [
-              "Isolation"
-            ],
-            "cons": [
-              "Unnecessary"
-            ]
+            "pros": ["Isolation"],
+            "cons": ["Unnecessary"]
           }
         ],
         "chosen": "Add test case to existing XML main.test.ts",
@@ -1622,20 +1562,13 @@
           {
             "name": "Create test/e2e/http/parameters/query/main.test.ts",
             "description": "Create a test file that exercises the constant query parameter operation. The test would verify the client automatically includes the constant query parameter in the request URL.",
-            "pros": [
-              "Simple and direct",
-              "Matches existing pattern"
-            ],
-            "cons": [
-              "None"
-            ]
+            "pros": ["Simple and direct", "Matches existing pattern"],
+            "cons": ["None"]
           },
           {
             "name": "Skip \u2014 constant parameters may not need explicit testing",
             "description": "Constant parameters are embedded in the generated code at compile time. They don't require user input, so they may not be meaningful to test at the e2e level.",
-            "pros": [
-              "No work needed"
-            ],
+            "pros": ["No work needed"],
             "cons": [
               "Missing coverage",
               "Can't verify the constant is actually sent"
@@ -1677,10 +1610,7 @@
           {
             "name": "ReadableStream-based streaming with transform",
             "description": "Generate operations that return ReadableStream<T> using the Web Streams API. Use a TransformStream to split and parse JSONL data. This is more browser-native but less ergonomic than AsyncIterable.",
-            "pros": [
-              "Native Web API",
-              "Good backpressure support"
-            ],
+            "pros": ["Native Web API", "Good backpressure support"],
             "cons": [
               "Less ergonomic \u2014 users must use .getReader()",
               "Not all Node.js versions support Web Streams natively",
@@ -1758,10 +1688,7 @@
       "phase": 10,
       "name": "Flavor Parity \u2014 Match Legacy Emitter Flavor Behavior",
       "description": "Ensure the new emitter correctly handles the 'flavor' option ('core' vs 'azure') with full parity to the legacy emitter. Core flavor should use @typespec/ts-http-runtime and NOT generate Azure-specific features (LRO, paging, logger, DefaultAzureCredential). Azure flavor should use Azure SDK packages. No 'branded' option support. Flavor must be set explicitly or not at all (defaulting to 'core').",
-      "dependencies": [
-        8,
-        9
-      ],
+      "dependencies": [8, 9],
       "status": "pending"
     },
     {
@@ -1814,9 +1741,7 @@
         "description": "The new emitter targets @typespec/ts-http-runtime instead of @azure-rest/core-client. This is the intended design direction. No action needed unless Azure flavor detection requires @azure-rest/core-client.",
         "legacy_behavior": "Imports from @azure-rest/core-client and @azure/core-rest-pipeline.",
         "new_behavior": "Imports from @typespec/ts-http-runtime.",
-        "affected_scenarios": [
-          "Nearly all scenarios"
-        ]
+        "affected_scenarios": ["Nearly all scenarios"]
       },
       {
         "id": "SA-INT2",
@@ -1827,9 +1752,7 @@
         "description": "The new emitter adds the type keyword to type-only imports per TypeScript best practices. This is correct behavior.",
         "legacy_behavior": "import { SomeType } from './models.js';",
         "new_behavior": "import type { SomeType } from './models.js';",
-        "affected_scenarios": [
-          "Nearly all scenarios"
-        ]
+        "affected_scenarios": ["Nearly all scenarios"]
       },
       {
         "id": "SA-INT3",
@@ -1840,9 +1763,7 @@
         "description": "expandUrlTemplate utility is now imported from the runtime package instead of a static-helpers path. This is part of the runtime consolidation.",
         "legacy_behavior": "import { expandUrlTemplate } from '../static-helpers/urlTemplate.js';",
         "new_behavior": "import { expandUrlTemplate } from '@typespec/ts-http-runtime';",
-        "affected_scenarios": [
-          "Scenarios using URL templates"
-        ]
+        "affected_scenarios": ["Scenarios using URL templates"]
       }
     ],
     "total_root_cause_tasks": 34

@@ -8,7 +8,10 @@ describe("Azure.ClientGenerator.Core.ClientLocation.MoveMethodParameterToClient"
   });
 
   it("should get blob", async () => {
-    const result = await client.blobOperations.getBlob("testcontainer", "testblob.txt");
+    const result = await client.blobOperations.getBlob(
+      "testcontainer",
+      "testblob.txt",
+    );
     expect(result).toBeDefined();
     expect(result).toHaveProperty("id");
     expect(result).toHaveProperty("name");

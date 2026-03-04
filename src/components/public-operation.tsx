@@ -43,7 +43,10 @@ import {
   isReservedOperationName,
   getEscapedParameterName,
 } from "../utils/name-policy.js";
-import { isBinaryBytesResponse, isFileResponse } from "./deserialize-operation.js";
+import {
+  isBinaryBytesResponse,
+  isFileResponse,
+} from "./deserialize-operation.js";
 
 /**
  * Builds the JSDoc string for a public operation function, adding a @fixme

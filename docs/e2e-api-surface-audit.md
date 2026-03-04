@@ -11,12 +11,12 @@
 
 The new emitter achieves **broad functional parity** with the legacy emitter across all 48 comparable specs (3 have a structural packaging difference). The differences found fall into **9 categories**. The majority of the ~700 raw diffs are **one systemic naming convention change** in operation option params (§2). After deduplicating by root cause, there are approximately **9 distinct issues** to evaluate, of which **3 are intentional improvements**, **4 are naming/convention decisions**, and **2 are likely bugs**.
 
-| Severity | Count | Root Causes |
-|----------|-------|-------------|
-| Critical | 3 | 1 (versioning spec packaging) |
-| High | 673 | 3 (option param naming, option param visibility, casing) |
-| Medium | 30 | 3 (union type handling, multipart file types, additional properties) |
-| Low / Non-breaking | 38+ | 2 (endpoint addition, client methods moved to sub-clients) |
+| Severity           | Count | Root Causes                                                          |
+| ------------------ | ----- | -------------------------------------------------------------------- |
+| Critical           | 3     | 1 (versioning spec packaging)                                        |
+| High               | 673   | 3 (option param naming, option param visibility, casing)             |
+| Medium             | 30    | 3 (union type handling, multipart file types, additional properties) |
+| Low / Non-breaking | 38+   | 2 (endpoint addition, client methods moved to sub-clients)           |
 
 ---
 
@@ -25,6 +25,7 @@ The new emitter achieves **broad functional parity** with the legacy emitter acr
 **Severity: Critical** · **Affected specs: 3** · **Root cause: 1**
 
 The legacy emitter generates three separate packages for versioning/removed:
+
 - `versioning/removed/v1`
 - `versioning/removed/v2`
 - `versioning/removed/v2preview`
@@ -45,12 +46,12 @@ The new emitter generates a single `versioning/removed` package.
 
 The legacy prefixes operation option params with the operation group name; the new emitter drops the prefix:
 
-| Spec | Legacy Name | New Name |
-|------|-------------|----------|
-| `encode/array` | `PropertyCommaDelimitedOptionalParams` | `CommaDelimitedOptionalParams` |
-| `encode/bytes` | `HeaderDefaultOptionalParams` | `DefaultOptionalParams` |
-| `encode/datetime` | `QueryDefaultOptionalParams` | `DefaultOptionalParams` |
-| `type/property/value-types` | `ValueTypesGetBooleanOptionalParams` | `GetBooleanOptionalParams` |
+| Spec                        | Legacy Name                            | New Name                       |
+| --------------------------- | -------------------------------------- | ------------------------------ |
+| `encode/array`              | `PropertyCommaDelimitedOptionalParams` | `CommaDelimitedOptionalParams` |
+| `encode/bytes`              | `HeaderDefaultOptionalParams`          | `DefaultOptionalParams`        |
+| `encode/datetime`           | `QueryDefaultOptionalParams`           | `DefaultOptionalParams`        |
+| `type/property/value-types` | `ValueTypesGetBooleanOptionalParams`   | `GetBooleanOptionalParams`     |
 
 **Pattern**: `{OperationGroup}{OperationName}OptionalParams` → `{OperationName}OptionalParams`
 
@@ -64,33 +65,33 @@ This is consistent across all 600 affected items. The new emitter drops the oper
 
 For clients **without** sub-client operation groups (flat clients), the operation option params are emitted as `declare interface` instead of `export declare interface`:
 
-| Spec | Unexported Param |
-|------|-----------------|
-| `authentication/api-key` | `InvalidOptionalParams`, `ValidOptionalParams` |
-| `authentication/http/custom` | `InvalidOptionalParams`, `ValidOptionalParams` |
-| `authentication/oauth2` | `InvalidOptionalParams`, `ValidOptionalParams` |
-| `authentication/union` | `ValidKeyOptionalParams`, `ValidTokenOptionalParams` |
-| `parameters/body-optionality` | `RequiredExplicitOptionalParams`, `RequiredImplicitOptionalParams` |
-| `routes` | `FixedOptionalParams` |
-| `serialization/encoded-name/json` | `GetOptionalParams`, `SendOptionalParams` |
-| `server/endpoint/not-defined` | `ValidOptionalParams` |
-| `server/path/multiple` | `NoOperationParamsOptionalParams`, `WithOperationPathParamOptionalParams` |
-| `server/path/single` | `MyOpOptionalParams` |
-| `server/versions/not-versioned` | `WithPathApiVersionOptionalParams`, `WithQueryApiVersionOptionalParams`, `WithoutApiVersionOptionalParams` |
-| `server/versions/versioned` | `WithPathApiVersionOptionalParams`, `WithQueryApiVersionOptionalParams`, `WithQueryOldApiVersionOptionalParams`, `WithoutApiVersionOptionalParams` |
-| `special-headers/repeatability` | `ImmediateSuccessOptionalParams` |
-| `type/model/empty` | `GetEmptyOptionalParams`, `PostRoundTripEmptyOptionalParams`, `PutEmptyOptionalParams` |
-| `type/model/inheritance/enum-discriminator` | `GetExtensibleModelMissingDiscriminatorOptionalParams`, `GetExtensibleModelOptionalParams`, `GetExtensibleModelWrongDiscriminatorOptionalParams`, `GetFixedModelMissingDiscriminatorOptionalParams`, `GetFixedModelOptionalParams`, `GetFixedModelWrongDiscriminatorOptionalParams`, `PutExtensibleModelOptionalParams`, `PutFixedModelOptionalParams` |
-| `type/model/inheritance/nested-discriminator` | `GetMissingDiscriminatorOptionalParams`, `GetModelOptionalParams`, `GetRecursiveModelOptionalParams`, `GetWrongDiscriminatorOptionalParams`, `PutModelOptionalParams`, `PutRecursiveModelOptionalParams` |
-| `type/model/inheritance/not-discriminated` | `GetValidOptionalParams`, `PostValidOptionalParams`, `PutValidOptionalParams` |
-| `type/model/inheritance/recursive` | `GetOptionalParams`, `PutOptionalParams` |
-| `type/model/inheritance/single-discriminator` | `GetLegacyModelOptionalParams`, `GetMissingDiscriminatorOptionalParams`, `GetModelOptionalParams`, `GetRecursiveModelOptionalParams`, `GetWrongDiscriminatorOptionalParams`, `PutModelOptionalParams`, `PutRecursiveModelOptionalParams` |
-| `type/model/usage` | `InputAndOutputOptionalParams`, `InputOptionalParams`, `OutputOptionalParams` |
-| `versioning/added` | `V1OptionalParams`, `V2InInterfaceOptionalParams`, `V2OptionalParams` |
-| `versioning/madeOptional` | `TestOptionalParams` |
-| `versioning/renamedFrom` | `NewOpInNewInterfaceOptionalParams`, `NewOpOptionalParams` |
-| `versioning/returnTypeChangedFrom` | `TestOptionalParams` |
-| `versioning/typeChangedFrom` | `TestOptionalParams` |
+| Spec                                          | Unexported Param                                                                                                                                                                                                                                                                                                                                       |
+| --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `authentication/api-key`                      | `InvalidOptionalParams`, `ValidOptionalParams`                                                                                                                                                                                                                                                                                                         |
+| `authentication/http/custom`                  | `InvalidOptionalParams`, `ValidOptionalParams`                                                                                                                                                                                                                                                                                                         |
+| `authentication/oauth2`                       | `InvalidOptionalParams`, `ValidOptionalParams`                                                                                                                                                                                                                                                                                                         |
+| `authentication/union`                        | `ValidKeyOptionalParams`, `ValidTokenOptionalParams`                                                                                                                                                                                                                                                                                                   |
+| `parameters/body-optionality`                 | `RequiredExplicitOptionalParams`, `RequiredImplicitOptionalParams`                                                                                                                                                                                                                                                                                     |
+| `routes`                                      | `FixedOptionalParams`                                                                                                                                                                                                                                                                                                                                  |
+| `serialization/encoded-name/json`             | `GetOptionalParams`, `SendOptionalParams`                                                                                                                                                                                                                                                                                                              |
+| `server/endpoint/not-defined`                 | `ValidOptionalParams`                                                                                                                                                                                                                                                                                                                                  |
+| `server/path/multiple`                        | `NoOperationParamsOptionalParams`, `WithOperationPathParamOptionalParams`                                                                                                                                                                                                                                                                              |
+| `server/path/single`                          | `MyOpOptionalParams`                                                                                                                                                                                                                                                                                                                                   |
+| `server/versions/not-versioned`               | `WithPathApiVersionOptionalParams`, `WithQueryApiVersionOptionalParams`, `WithoutApiVersionOptionalParams`                                                                                                                                                                                                                                             |
+| `server/versions/versioned`                   | `WithPathApiVersionOptionalParams`, `WithQueryApiVersionOptionalParams`, `WithQueryOldApiVersionOptionalParams`, `WithoutApiVersionOptionalParams`                                                                                                                                                                                                     |
+| `special-headers/repeatability`               | `ImmediateSuccessOptionalParams`                                                                                                                                                                                                                                                                                                                       |
+| `type/model/empty`                            | `GetEmptyOptionalParams`, `PostRoundTripEmptyOptionalParams`, `PutEmptyOptionalParams`                                                                                                                                                                                                                                                                 |
+| `type/model/inheritance/enum-discriminator`   | `GetExtensibleModelMissingDiscriminatorOptionalParams`, `GetExtensibleModelOptionalParams`, `GetExtensibleModelWrongDiscriminatorOptionalParams`, `GetFixedModelMissingDiscriminatorOptionalParams`, `GetFixedModelOptionalParams`, `GetFixedModelWrongDiscriminatorOptionalParams`, `PutExtensibleModelOptionalParams`, `PutFixedModelOptionalParams` |
+| `type/model/inheritance/nested-discriminator` | `GetMissingDiscriminatorOptionalParams`, `GetModelOptionalParams`, `GetRecursiveModelOptionalParams`, `GetWrongDiscriminatorOptionalParams`, `PutModelOptionalParams`, `PutRecursiveModelOptionalParams`                                                                                                                                               |
+| `type/model/inheritance/not-discriminated`    | `GetValidOptionalParams`, `PostValidOptionalParams`, `PutValidOptionalParams`                                                                                                                                                                                                                                                                          |
+| `type/model/inheritance/recursive`            | `GetOptionalParams`, `PutOptionalParams`                                                                                                                                                                                                                                                                                                               |
+| `type/model/inheritance/single-discriminator` | `GetLegacyModelOptionalParams`, `GetMissingDiscriminatorOptionalParams`, `GetModelOptionalParams`, `GetRecursiveModelOptionalParams`, `GetWrongDiscriminatorOptionalParams`, `PutModelOptionalParams`, `PutRecursiveModelOptionalParams`                                                                                                               |
+| `type/model/usage`                            | `InputAndOutputOptionalParams`, `InputOptionalParams`, `OutputOptionalParams`                                                                                                                                                                                                                                                                          |
+| `versioning/added`                            | `V1OptionalParams`, `V2InInterfaceOptionalParams`, `V2OptionalParams`                                                                                                                                                                                                                                                                                  |
+| `versioning/madeOptional`                     | `TestOptionalParams`                                                                                                                                                                                                                                                                                                                                   |
+| `versioning/renamedFrom`                      | `NewOpInNewInterfaceOptionalParams`, `NewOpOptionalParams`                                                                                                                                                                                                                                                                                             |
+| `versioning/returnTypeChangedFrom`            | `TestOptionalParams`                                                                                                                                                                                                                                                                                                                                   |
+| `versioning/typeChangedFrom`                  | `TestOptionalParams`                                                                                                                                                                                                                                                                                                                                   |
 
 **Assessment**: This is a **breaking change**. Users who import these types to type-annotate their own code will see compile errors. The types are still referenced from method signatures but not accessible for import.
 
@@ -102,18 +103,18 @@ For clients **without** sub-client operation groups (flat clients), the operatio
 
 **Severity: High** · **Affected items: 10** · **Spec: `encode/bytes`**
 
-| Legacy Name | New Name |
-|-------------|----------|
-| `Base64UrlBytesProperty` | `Base64urlBytesProperty` |
-| `Base64UrlArrayBytesProperty` | `Base64urlArrayBytesProperty` |
-| `HeaderBase64UrlOptionalParams` | `Base64urlOptionalParams` |
-| `HeaderBase64UrlArrayOptionalParams` | `Base64urlArrayOptionalParams` |
-| `PropertyBase64UrlOptionalParams` | `Base64urlOptionalParams` |
+| Legacy Name                            | New Name                       |
+| -------------------------------------- | ------------------------------ |
+| `Base64UrlBytesProperty`               | `Base64urlBytesProperty`       |
+| `Base64UrlArrayBytesProperty`          | `Base64urlArrayBytesProperty`  |
+| `HeaderBase64UrlOptionalParams`        | `Base64urlOptionalParams`      |
+| `HeaderBase64UrlArrayOptionalParams`   | `Base64urlArrayOptionalParams` |
+| `PropertyBase64UrlOptionalParams`      | `Base64urlOptionalParams`      |
 | `PropertyBase64UrlArrayOptionalParams` | `Base64urlArrayOptionalParams` |
-| `QueryBase64UrlOptionalParams` | `Base64urlOptionalParams` |
-| `QueryBase64UrlArrayOptionalParams` | `Base64urlArrayOptionalParams` |
-| `RequestBodyBase64UrlOptionalParams` | `Base64urlOptionalParams` |
-| `ResponseBodyBase64UrlOptionalParams` | `Base64urlOptionalParams` |
+| `QueryBase64UrlOptionalParams`         | `Base64urlOptionalParams`      |
+| `QueryBase64UrlArrayOptionalParams`    | `Base64urlArrayOptionalParams` |
+| `RequestBodyBase64UrlOptionalParams`   | `Base64urlOptionalParams`      |
+| `ResponseBodyBase64UrlOptionalParams`  | `Base64urlOptionalParams`      |
 
 **Assessment**: The new emitter uses `Base64url` (lowercase 'u') while the legacy uses `Base64Url` (uppercase 'U'). The IETF standard spells it "base64url" (all lowercase), so the new emitter's casing is arguably more correct. However, this is a **breaking rename** for any consumer using these types.
 
@@ -125,13 +126,14 @@ For clients **without** sub-client operation groups (flat clients), the operatio
 
 **Severity: Low (non-breaking for runtime)** · **Affected specs: 3**
 
-| Spec | Client | Method | What Happened |
-|------|--------|--------|---------------|
-| `serialization/encoded-name/json` | `JsonClient` | `get`, `send` | Moved to operation group sub-client |
-| `versioning/added` | `AddedClient` | `v2InInterface` | Moved to `interfaceV2` sub-client accessor |
-| `versioning/renamedFrom` | `RenamedFromClient` | `newOpInNewInterface` | Moved to sub-client accessor |
+| Spec                              | Client              | Method                | What Happened                              |
+| --------------------------------- | ------------------- | --------------------- | ------------------------------------------ |
+| `serialization/encoded-name/json` | `JsonClient`        | `get`, `send`         | Moved to operation group sub-client        |
+| `versioning/added`                | `AddedClient`       | `v2InInterface`       | Moved to `interfaceV2` sub-client accessor |
+| `versioning/renamedFrom`          | `RenamedFromClient` | `newOpInNewInterface` | Moved to sub-client accessor               |
 
 For example, in `versioning/added`:
+
 ```typescript
 // Legacy
 client.v2InInterface(body, options);
@@ -152,11 +154,11 @@ client.interfaceV2.v2InInterface(body, options);
 
 ### 5a. Removed Operation Interfaces (24)
 
-| Spec | Removed Interface |
-|------|-------------------|
-| `payload/multipart` | `FormDataFileOperations`, `FormDataHttpPartsContentTypeOperations`, `FormDataHttpPartsNonStringOperations`, `FormDataHttpPartsOperations` |
-| `payload/pageable` | `ServerDrivenPaginationContinuationTokenOperations` |
-| `routes` | `PathParametersLabelExpansionExplodeOperations`, `PathParametersLabelExpansionOperations`, `PathParametersLabelExpansionStandardOperations`, `PathParametersMatrixExpansionExplodeOperations`, `PathParametersMatrixExpansionOperations`, `PathParametersMatrixExpansionStandardOperations`, `PathParametersPathExpansionExplodeOperations`, `PathParametersPathExpansionOperations`, `PathParametersPathExpansionStandardOperations`, `PathParametersReservedExpansionOperations`, `PathParametersSimpleExpansionExplodeOperations`, `PathParametersSimpleExpansionOperations`, `PathParametersSimpleExpansionStandardOperations`, `QueryParametersQueryContinuationExplodeOperations`, `QueryParametersQueryContinuationOperations`, `QueryParametersQueryContinuationStandardOperations`, `QueryParametersQueryExpansionExplodeOperations`, `QueryParametersQueryExpansionOperations`, `QueryParametersQueryExpansionStandardOperations` |
+| Spec                | Removed Interface                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `payload/multipart` | `FormDataFileOperations`, `FormDataHttpPartsContentTypeOperations`, `FormDataHttpPartsNonStringOperations`, `FormDataHttpPartsOperations`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| `payload/pageable`  | `ServerDrivenPaginationContinuationTokenOperations`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| `routes`            | `PathParametersLabelExpansionExplodeOperations`, `PathParametersLabelExpansionOperations`, `PathParametersLabelExpansionStandardOperations`, `PathParametersMatrixExpansionExplodeOperations`, `PathParametersMatrixExpansionOperations`, `PathParametersMatrixExpansionStandardOperations`, `PathParametersPathExpansionExplodeOperations`, `PathParametersPathExpansionOperations`, `PathParametersPathExpansionStandardOperations`, `PathParametersReservedExpansionOperations`, `PathParametersSimpleExpansionExplodeOperations`, `PathParametersSimpleExpansionOperations`, `PathParametersSimpleExpansionStandardOperations`, `QueryParametersQueryContinuationExplodeOperations`, `QueryParametersQueryContinuationOperations`, `QueryParametersQueryContinuationStandardOperations`, `QueryParametersQueryExpansionExplodeOperations`, `QueryParametersQueryExpansionOperations`, `QueryParametersQueryExpansionStandardOperations` |
 
 **Assessment**: The `routes` spec removals (19 interfaces) reflect a **different sub-client hierarchy** in the new emitter. The legacy creates deeply nested sub-client groupings (e.g., `PathParametersLabelExpansionStandard`), while the new emitter uses a flatter hierarchy. The `payload/multipart` removals (4 interfaces) reflect the multipart API redesign. The `payload/pageable` removal reflects the different pagination API.
 
@@ -174,17 +176,17 @@ The 162 changed operation interfaces are almost entirely due to the **option par
 
 ### 6a. `FishUnion` Type — Likely Bug
 
-| Spec | Type | Legacy | New |
-|------|------|--------|-----|
+| Spec                                          | Type        | Legacy                         | New                       |
+| --------------------------------------------- | ----------- | ------------------------------ | ------------------------- |
 | `type/model/inheritance/nested-discriminator` | `FishUnion` | `SharkUnion \| Salmon \| Fish` | `Shark \| Salmon \| Fish` |
 
 The legacy uses `SharkUnion` (which further discriminates between `Shark` subtypes), while the new emitter uses `Shark` directly. This also manifests in member types:
 
-| Interface | Member | Legacy | New |
-|-----------|--------|--------|-----|
-| `Salmon` | `partner` | `FishUnion` | `Fish` |
-| `Salmon` | `friends` | `FishUnion[]` | `Fish[]` |
-| `Salmon` | `hate` | `Record<string, FishUnion>` | `Record<string, Fish>` |
+| Interface | Member    | Legacy                      | New                    |
+| --------- | --------- | --------------------------- | ---------------------- |
+| `Salmon`  | `partner` | `FishUnion`                 | `Fish`                 |
+| `Salmon`  | `friends` | `FishUnion[]`               | `Fish[]`               |
+| `Salmon`  | `hate`    | `Record<string, FishUnion>` | `Record<string, Fish>` |
 
 **Assessment**: This is a **likely bug** in the new emitter. The nested discriminated union hierarchy is not fully resolved — `SharkUnion` should be used instead of `Shark` to preserve the ability to represent sub-types. Similarly, members typed as `FishUnion` in the legacy are typed as `Fish` (the base type) in the new emitter, which loses type narrowing ability.
 
@@ -197,10 +199,10 @@ The same pattern appears for `BirdUnion` in `single-discriminator`:
 
 ### 6b. `StringExtensibleNamedUnion` — Intentional Improvement
 
-| Spec | Type | Legacy | New |
-|------|------|--------|-----|
-| `type/union` | `StringExtensibleNamedUnion` | `string` | `"b" \| "c"` |
-| `type/union` | `KnownStringExtensibleNamedUnion` | `enum { ... }` | *(removed)* |
+| Spec         | Type                              | Legacy         | New          |
+| ------------ | --------------------------------- | -------------- | ------------ |
+| `type/union` | `StringExtensibleNamedUnion`      | `string`       | `"b" \| "c"` |
+| `type/union` | `KnownStringExtensibleNamedUnion` | `enum { ... }` | _(removed)_  |
 
 **Assessment**: The legacy uses the `Known{Name}` enum + `string` type alias pattern for extensible enums. The new emitter uses a string literal union type directly. The new approach is **more correct and ergonomic** — it provides autocomplete for known values without the indirection of a separate `Known*` enum. The `KnownStringExtensibleNamedUnion` enum removal is expected.
 
@@ -208,9 +210,9 @@ The same pattern appears for `BirdUnion` in `single-discriminator`:
 
 ### 6c. `Shark.sharktype` Discriminator Narrowed
 
-| Interface | Member | Legacy | New |
-|-----------|--------|--------|-----|
-| `Shark` | `sharktype` | `string` | `"shark"` |
+| Interface | Member      | Legacy   | New       |
+| --------- | ----------- | -------- | --------- |
+| `Shark`   | `sharktype` | `string` | `"shark"` |
 
 **Assessment**: The new emitter correctly narrows the discriminator to its literal value. This is **more correct** — a discriminator property should have a literal type, not a broad `string`.
 
@@ -224,11 +226,11 @@ The same pattern appears for `BirdUnion` in `single-discriminator`:
 
 The file/binary part types have been significantly simplified:
 
-| Interface | Member | Legacy Type | New Type |
-|-----------|--------|-------------|----------|
-| `MultiPartRequest` | `profileImage` | `FileContents \| { contents: FileContents; contentType?: string; filename?: string }` | `Uint8Array` |
-| `ComplexHttpPartsModelRequest` | `profileImage` | `File \| { contents: FileContents; contentType?: string; filename: string }` | `FileRequiredMetaData` |
-| `BinaryArrayPartsRequest` | `pictures` | `Array<FileContents \| { contents: FileContents; ... }>` | `Uint8Array[]` |
+| Interface                      | Member         | Legacy Type                                                                           | New Type               |
+| ------------------------------ | -------------- | ------------------------------------------------------------------------------------- | ---------------------- |
+| `MultiPartRequest`             | `profileImage` | `FileContents \| { contents: FileContents; contentType?: string; filename?: string }` | `Uint8Array`           |
+| `ComplexHttpPartsModelRequest` | `profileImage` | `File \| { contents: FileContents; contentType?: string; filename: string }`          | `FileRequiredMetaData` |
+| `BinaryArrayPartsRequest`      | `pictures`     | `Array<FileContents \| { contents: FileContents; ... }>`                              | `Uint8Array[]`         |
 
 Additionally, `contentType` and `filename` members have been removed from most request interfaces (they were convenience properties on the legacy's inline type).
 
@@ -244,31 +246,31 @@ Additionally, `contentType` and `filename` members have been removed from most r
 
 ### 8a. Additional Properties Use Named Types
 
-| Spec | Interface | Member | Legacy | New |
-|------|-----------|--------|--------|-----|
-| `type/property/additional-properties` | `MultipleSpreadRecord` | `additionalProperties` | `Record<string, string \| number>` | `Record<string, _MultipleSpreadRecordAdditionalProperty>` |
-| `type/property/additional-properties` | `SpreadRecordForUnion` | `additionalProperties` | `Record<string, string \| number>` | `Record<string, _SpreadRecordForUnionAdditionalProperty>` |
+| Spec                                  | Interface                              | Member                 | Legacy                                       | New                                                                       |
+| ------------------------------------- | -------------------------------------- | ---------------------- | -------------------------------------------- | ------------------------------------------------------------------------- |
+| `type/property/additional-properties` | `MultipleSpreadRecord`                 | `additionalProperties` | `Record<string, string \| number>`           | `Record<string, _MultipleSpreadRecordAdditionalProperty>`                 |
+| `type/property/additional-properties` | `SpreadRecordForUnion`                 | `additionalProperties` | `Record<string, string \| number>`           | `Record<string, _SpreadRecordForUnionAdditionalProperty>`                 |
 | `type/property/additional-properties` | `SpreadRecordForNonDiscriminatedUnion` | `additionalProperties` | `Record<string, WidgetData0 \| WidgetData1>` | `Record<string, _SpreadRecordForNonDiscriminatedUnionAdditionalProperty>` |
 
 ### 8b. Literal Union Properties Use Named Types
 
-| Spec | Interface | Member | Legacy | New |
-|------|-----------|--------|--------|-----|
+| Spec                        | Interface                    | Member     | Legacy               | New                                  |
+| --------------------------- | ---------------------------- | ---------- | -------------------- | ------------------------------------ |
 | `type/property/value-types` | `UnionStringLiteralProperty` | `property` | `"hello" \| "world"` | `UnionStringLiteralPropertyProperty` |
-| `type/property/value-types` | `UnionIntLiteralProperty` | `property` | `42 \| 43` | `UnionIntLiteralPropertyProperty` |
-| `type/property/value-types` | `UnionFloatLiteralProperty` | `property` | `43.125 \| 46.875` | `UnionFloatLiteralPropertyProperty` |
+| `type/property/value-types` | `UnionIntLiteralProperty`    | `property` | `42 \| 43`           | `UnionIntLiteralPropertyProperty`    |
+| `type/property/value-types` | `UnionFloatLiteralProperty`  | `property` | `43.125 \| 46.875`   | `UnionFloatLiteralPropertyProperty`  |
 | `type/property/optionality` | `UnionStringLiteralProperty` | `property` | `"hello" \| "world"` | `UnionStringLiteralPropertyProperty` |
-| `type/property/optionality` | `UnionIntLiteralProperty` | `property` | `1 \| 2` | `UnionIntLiteralPropertyProperty` |
-| `type/property/optionality` | `UnionFloatLiteralProperty` | `property` | `1.25 \| 2.375` | `UnionFloatLiteralPropertyProperty` |
+| `type/property/optionality` | `UnionIntLiteralProperty`    | `property` | `1 \| 2`             | `UnionIntLiteralPropertyProperty`    |
+| `type/property/optionality` | `UnionFloatLiteralProperty`  | `property` | `1.25 \| 2.375`      | `UnionFloatLiteralPropertyProperty`  |
 
 ### 8c. Complex Union Members Use Named Types
 
-| Spec | Interface | Member | Legacy | New |
-|------|-----------|--------|--------|-----|
-| `type/union` | `EnumsOnlyCases` | `lr` | `"left" \| "right" \| "up" \| "down"` | `EnumsOnlyCasesLr` |
-| `type/union` | `MixedLiteralsCases` | `stringLiteral` | `"a" \| 2 \| 3.3 \| true` | `_MixedLiteralsCasesStringLiteral` |
-| `type/union` | `MixedTypesCases` | `model` | `Cat \| "a" \| number \| boolean` | `_MixedTypesCasesModel` |
-| `type/union` | `StringAndArrayCases` | `string` | `string \| string[]` | `_StringAndArrayCasesString` |
+| Spec         | Interface             | Member          | Legacy                                | New                                |
+| ------------ | --------------------- | --------------- | ------------------------------------- | ---------------------------------- |
+| `type/union` | `EnumsOnlyCases`      | `lr`            | `"left" \| "right" \| "up" \| "down"` | `EnumsOnlyCasesLr`                 |
+| `type/union` | `MixedLiteralsCases`  | `stringLiteral` | `"a" \| 2 \| 3.3 \| true`             | `_MixedLiteralsCasesStringLiteral` |
+| `type/union` | `MixedTypesCases`     | `model`         | `Cat \| "a" \| number \| boolean`     | `_MixedTypesCasesModel`            |
+| `type/union` | `StringAndArrayCases` | `string`        | `string \| string[]`                  | `_StringAndArrayCasesString`       |
 
 **Assessment**: The new emitter creates **named type aliases** for union types used in properties, rather than inlining the union. This is a **style difference with tradeoffs**:
 
@@ -285,11 +287,11 @@ Additionally, `contentType` and `filename` members have been removed from most r
 
 **Severity: Medium** · **Affected items: 3** · **Spec: `payload/pageable`**
 
-| Item | Legacy | New |
-|------|--------|-----|
-| `PagedAsyncIterableIterator` interface | Exported | Removed |
-| `PageSettings` interface | Exported | Removed |
-| `ContinuablePage` type | Exported | Removed |
+| Item                                                          | Legacy   | New     |
+| ------------------------------------------------------------- | -------- | ------- |
+| `PagedAsyncIterableIterator` interface                        | Exported | Removed |
+| `PageSettings` interface                                      | Exported | Removed |
+| `ContinuablePage` type                                        | Exported | Removed |
 | `ServerDrivenPaginationContinuationTokenOperations` interface | Exported | Removed |
 
 **Assessment**: The legacy emitter exports custom pagination types. The new emitter likely uses a different pagination abstraction (possibly from the runtime). The `payload/pageable` spec has several `not-implemented` e2e scenarios, confirming pagination is still a work-in-progress.
@@ -322,20 +324,20 @@ Utility functions for collection formatting, XML serialization, URL template exp
 
 ## Recommendations Summary
 
-| # | Category | Action | Priority |
-|---|----------|--------|----------|
-| 1 | Missing versioning specs | Keep as-is, document design decision | Low |
-| 2a | Option param naming convention | **Decide**: keep short names or restore prefixes | High |
-| 2b | Option params not exported (65 items) | **Fix**: ensure all operation params are exported | **High** |
-| 3 | `Base64Url` → `Base64url` casing | Accept new casing (IETF-correct), document | Medium |
-| 4 | Methods moved to sub-clients | Keep as-is (more correct), document | Low |
-| 5 | Operations interfaces changed | Consequence of §2a, no separate action needed | Low |
-| 6a | `FishUnion`/`BirdUnion` type bug | **Fix**: use union types in member references | **High** |
-| 6b | `KnownStringExtensibleNamedUnion` removal | Keep as-is (improvement), document | Low |
-| 7 | Multipart file types simplified | Verify runtime compatibility, accept if compatible | Medium |
-| 8 | Union types wrapped in named aliases | Accept (style difference, functionally equivalent) | Low |
-| 9 | Pagination types missing | Defer — WIP feature | Low |
-| — | Static helpers exported everywhere | Consider scoping to reduce public API noise | Medium |
+| #   | Category                                  | Action                                             | Priority |
+| --- | ----------------------------------------- | -------------------------------------------------- | -------- |
+| 1   | Missing versioning specs                  | Keep as-is, document design decision               | Low      |
+| 2a  | Option param naming convention            | **Decide**: keep short names or restore prefixes   | High     |
+| 2b  | Option params not exported (65 items)     | **Fix**: ensure all operation params are exported  | **High** |
+| 3   | `Base64Url` → `Base64url` casing          | Accept new casing (IETF-correct), document         | Medium   |
+| 4   | Methods moved to sub-clients              | Keep as-is (more correct), document                | Low      |
+| 5   | Operations interfaces changed             | Consequence of §2a, no separate action needed      | Low      |
+| 6a  | `FishUnion`/`BirdUnion` type bug          | **Fix**: use union types in member references      | **High** |
+| 6b  | `KnownStringExtensibleNamedUnion` removal | Keep as-is (improvement), document                 | Low      |
+| 7   | Multipart file types simplified           | Verify runtime compatibility, accept if compatible | Medium   |
+| 8   | Union types wrapped in named aliases      | Accept (style difference, functionally equivalent) | Low      |
+| 9   | Pagination types missing                  | Defer — WIP feature                                | Low      |
+| —   | Static helpers exported everywhere        | Consider scoping to reduce public API noise        | Medium   |
 
 ### Top 3 Action Items
 

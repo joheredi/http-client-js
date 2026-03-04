@@ -5,17 +5,13 @@ import {
 } from "../../../../generated/client/structure/multi-client/src/index.js";
 
 describe("Client.Structure.MultiClient", () => {
-  const clientA = new ClientAClient(
-    "http://localhost:3002",
-    "multi-client",
-    { allowInsecureConnection: true },
-  );
+  const clientA = new ClientAClient("http://localhost:3002", "multi-client", {
+    allowInsecureConnection: true,
+  });
 
-  const clientB = new ClientBClient(
-    "http://localhost:3002",
-    "multi-client",
-    { allowInsecureConnection: true },
-  );
+  const clientB = new ClientBClient("http://localhost:3002", "multi-client", {
+    allowInsecureConnection: true,
+  });
 
   describe("ClientA", () => {
     it("should call renamedOne()", async () => {

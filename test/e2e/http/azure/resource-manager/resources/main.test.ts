@@ -225,14 +225,10 @@ describe("Azure.ResourceManager.Resources", () => {
 
   describe("top-level tracked resources", () => {
     it("should actionSync top level tracked resource", async () => {
-      const result = await client.topLevel.actionSync(
-        RESOURCE_GROUP,
-        "top",
-        {
-          message: "Resource action at top level.",
-          urgent: true,
-        },
-      );
+      const result = await client.topLevel.actionSync(RESOURCE_GROUP, "top", {
+        message: "Resource action at top level.",
+        urgent: true,
+      });
       expect(result).toBeUndefined();
     });
 
@@ -313,16 +309,11 @@ describe("Azure.ResourceManager.Resources", () => {
     });
 
     it("should update nested proxy resource", async () => {
-      const poller = client.nested.update(
-        RESOURCE_GROUP,
-        "top",
-        "nested",
-        {
-          properties: {
-            description: "valid2",
-          },
+      const poller = client.nested.update(RESOURCE_GROUP, "top", "nested", {
+        properties: {
+          description: "valid2",
         },
-      );
+      });
       const result = await poller.pollUntilDone();
       expect(result).toEqual({
         ...validNestedResource,
@@ -416,17 +407,13 @@ describe("Azure.ResourceManager.Resources", () => {
         `subscriptions/${SUBSCRIPTION_ID}/resourceGroups/${RESOURCE_GROUP}`,
         "extension",
       );
-      expect(resourceGroupResult).toEqual(
-        validResourceGroupExtensionsResource,
-      );
+      expect(resourceGroupResult).toEqual(validResourceGroupExtensionsResource);
 
       const subscriptionResult = await client.extensionsResources.get(
         `subscriptions/${SUBSCRIPTION_ID}`,
         "extension",
       );
-      expect(subscriptionResult).toEqual(
-        validSubscriptionExtensionsResource,
-      );
+      expect(subscriptionResult).toEqual(validSubscriptionExtensionsResource);
 
       const tenantResult = await client.extensionsResources.get(
         "",
@@ -448,9 +435,7 @@ describe("Azure.ResourceManager.Resources", () => {
         { properties: { description: "valid" } },
       );
       const resourceGroupResult = await rgPoller.pollUntilDone();
-      expect(resourceGroupResult).toEqual(
-        validResourceGroupExtensionsResource,
-      );
+      expect(resourceGroupResult).toEqual(validResourceGroupExtensionsResource);
 
       const subPoller = client.extensionsResources.createOrUpdate(
         `subscriptions/${SUBSCRIPTION_ID}`,
@@ -458,9 +443,7 @@ describe("Azure.ResourceManager.Resources", () => {
         { properties: { description: "valid" } },
       );
       const subscriptionResult = await subPoller.pollUntilDone();
-      expect(subscriptionResult).toEqual(
-        validSubscriptionExtensionsResource,
-      );
+      expect(subscriptionResult).toEqual(validSubscriptionExtensionsResource);
 
       const tenantPoller = client.extensionsResources.createOrUpdate(
         "",
