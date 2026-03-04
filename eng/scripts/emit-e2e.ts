@@ -129,6 +129,20 @@ interface SpecEntry {
 }
 
 /**
+ * Per-spec emitter option overrides.
+ *
+ * Maps spec directory paths (relative to the specs root, e.g. "type/union")
+ * to additional emitter options that should be passed via `--option` flags.
+ * These override the default options for specific specs to match the legacy
+ * emitter's tspconfig configuration.
+ */
+const SPEC_OPTIONS: Record<string, Record<string, string>> = {
+  // Legacy tspconfig for type/union uses experimental-extensible-enums: true
+  // which generates KnownXxx enums + broad string type aliases.
+  "type/union": { "experimental-extensible-enums": "true" },
+};
+
+/**
  * Specs that are not auto-discovered (not named client.tsp or main.tsp)
  * but still need to be compiled and tested.
  */
@@ -270,6 +284,23 @@ async function compileSpec(spec: SpecEntry): Promise<CompileResult> {
 
     // Run tsp compile with emitter options passed via --option flags.
     // This avoids tspconfig.yaml issues with emitter-output-dir resolution.
+    const optionArgs = [
+      "--option",
+      `http-client-js.emitter-output-dir={output-dir}`,
+      "--option",
+      "http-client-js.generate-metadata=true",
+      "--option",
+      `http-client-js.flavor=${spec.flavor}`,
+    ];
+
+    // Apply per-spec option overrides from SPEC_OPTIONS.
+    const specOptions = SPEC_OPTIONS[specDir];
+    if (specOptions) {
+      for (const [key, value] of Object.entries(specOptions)) {
+        optionArgs.push("--option", `http-client-js.${key}=${value}`);
+      }
+    }
+
     await execFileAsync(
       "npx",
       [
@@ -278,12 +309,7 @@ async function compileSpec(spec: SpecEntry): Promise<CompileResult> {
         spec.fullPath,
         "--emit",
         projectRoot,
-        "--option",
-        `http-client-js.emitter-output-dir={output-dir}`,
-        "--option",
-        "http-client-js.generate-metadata=true",
-        "--option",
-        `http-client-js.flavor=${spec.flavor}`,
+        ...optionArgs,
         "--output-dir",
         outputDir,
       ],

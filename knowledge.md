@@ -2632,3 +2632,17 @@ Tracked by: `EMITTER-FIX-FILE-BODY` in prd.json.
 **Alternative rejected**: Context-aware inlining (only in additionalProperties contexts). This was rejected because the legacy ground truth scenario tests show ALL generated unions are inlined in interface member types, not just additionalProperties ones.
 
 **Evidence**: Legacy scenario tests in `submodules/autorest.typescript/packages/typespec-ts/test/modularUnit/scenarios/models/` consistently show inline unions for generated names while still generating the named type alias declarations and serializer/deserializer helper functions.
+
+## Extensible Enum `| string` Fallback Decision
+
+**Decision**: Plain extensible enums (SdkEnumType with `isFixed: false`) WITHOUT the `experimental-extensible-enums` flag should NOT include `| string` fallback in the type alias. The legacy ground truth scenario tests confirm this.
+
+**Evidence**: In `submodules/autorest.typescript/packages/typespec-ts/test/modularUnit/scenarios/enumUnion/enumUnion.md`:
+- `SchemaContentTypeValues` (string extensible, `others: string`): expected `"text/plain; charset=utf-8" | "text/vnd.ms.protobuf"` — NO `| string`
+- `EnumTest` (numeric extensible, `others: int32`): expected `1 | 2 | 3 | 4` — NO `| number`
+
+Union-as-enum types (containing sub-enum references) DO include `| string` via `buildComposedUnionBody()` — this is already correct.
+
+## Per-Spec E2E Emitter Options
+
+The `SPEC_OPTIONS` map in `eng/scripts/emit-e2e.ts` allows per-spec emitter option overrides. Use this when a spec's legacy tspconfig sets emitter options that differ from defaults. Currently configured: `type/union` with `experimental-extensible-enums: true`.

@@ -1781,7 +1781,7 @@
       "title": "Fix extensible enum generation to match legacy Known{Name} + string pattern (Category 6b)",
       "category": "bug-fix/emitter",
       "priority": "P2",
-      "status": "pending",
+      "status": "done",
       "kind": "bug",
       "dependencies": [],
       "design_review": null,

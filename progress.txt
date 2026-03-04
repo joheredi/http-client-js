@@ -3678,3 +3678,13 @@ The spector mock server is lenient about Content-Type mismatches for POST operat
 **Files changed**: `src/components/model-interface.tsx`, `test/scenarios/cases/modelsGenerator/modelsGenerator.md`
 **Scenario test updates**: Updated `Dog.type` and `ServicePlacementPolicyDescription.type` from `"dog"` to `string` in modelsGenerator scenarios to match correct behavior.
 **Verification**: Confirmed legacy emitter uses `isDiscriminatedUnion(model)` (requires `discriminatorProperty` AND `discriminatedSubtypes`) before narrowing — it would produce `string` for own discriminator properties regardless of subtypes. Nested-discriminator e2e test passes. All 1034 unit/scenario tests pass.
+
+---
+### E2E-FIX-EXTENSIBLE-ENUM-KNOWN-PATTERN: Fix extensible enum generation for type/union e2e test
+**Date**: 2026-03-04
+**Problem**: The `type/union` e2e spec generates extensible enums (e.g., `StringExtensibleNamedUnion`) as plain literal unions (`"b" | "c"`) instead of the legacy's `Known{Name}` enum + broad string type alias pattern. The legacy tspconfig for this spec uses `experimental-extensible-enums: true`, but the new emitter's e2e test didn't pass this option.
+**Root cause**: The `eng/scripts/emit-e2e.ts` emit script had no mechanism for per-spec emitter option overrides. All specs used the same hardcoded options.
+**Fix**: Added a `SPEC_OPTIONS` map to `emit-e2e.ts` that maps spec directory paths to additional emitter option key-value pairs. Configured `type/union` with `experimental-extensible-enums: true` to match the legacy tspconfig.
+**Design decision**: The task description also suggested adding `| string` fallback for extensible enums when the flag is `false`. After verifying against the ground truth legacy scenario tests (`submodules/autorest.typescript/.../scenarios/enumUnion/enumUnion.md`), confirmed that plain extensible enums WITHOUT the flag do NOT include `| string` in the legacy output. The current behavior is correct — no code change needed for `enum-declaration.tsx`.
+**Files changed**: `eng/scripts/emit-e2e.ts`
+**Verification**: After regeneration, `type StringExtensibleNamedUnion = string` + `enum KnownStringExtensibleNamedUnion { OptionB = "b", C = "c" }` matches legacy. All 1034 unit/scenario tests pass, smoke test passes, type/union e2e tests (20 tests) all pass. Pre-existing e2e failures (31 tests in other specs) remain unchanged.
