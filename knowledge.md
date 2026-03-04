@@ -2646,3 +2646,18 @@ Union-as-enum types (containing sub-enum references) DO include `| string` via `
 ## Per-Spec E2E Emitter Options
 
 The `SPEC_OPTIONS` map in `eng/scripts/emit-e2e.ts` allows per-spec emitter option overrides. Use this when a spec's legacy tspconfig sets emitter options that differ from defaults. Currently configured: `type/union` with `experimental-extensible-enums: true`.
+
+## TCGC Enum vs Union Type Mapping
+- TCGC converts anonymous inline literal unions (`"hello" | "world"`, `42 | 43`) to `SdkEnumType` (NOT `SdkUnionType`)
+- These have `isGeneratedName: true`, `isUnionAsEnum: true`, `isFixed: true`
+- Named TypeSpec enums (`enum Color { red, blue }`) also become `SdkEnumType` but with `isGeneratedName: false`
+- Union of named enums (`LR | UD` in property context) creates a combined `SdkEnumType` with `isGeneratedName: true`
+- Important: `isGeneratedName` alone doesn't distinguish model property usage from operation parameter usage
+
+## Design Decisions
+
+### Inline Literal Unions in Model Properties (RC30)
+- Inlining `isGeneratedName === true` enums is done in `getPropertyTypeExpression()` (model-interface.tsx), NOT in `getTypeExpression()` (type-expression.tsx)
+- This is because operation parameters need named type aliases (e.g., `testHeader: GetRequestTestHeader`) while model properties need inline types (e.g., `property: "hello" | "world"`)
+- The same `SdkEnumType` object serves both contexts, so inlining must be context-dependent
+- Type alias declarations are still emitted for all enums (including `isGeneratedName: true`) since they may be used in operation parameter contexts

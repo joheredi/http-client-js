@@ -1817,7 +1817,7 @@
       "title": "Fix literal union property types to use inline unions instead of named type aliases (Category 8b)",
       "category": "bug-fix/emitter",
       "priority": "P2",
-      "status": "pending",
+      "status": "done",
       "kind": "bug",
       "dependencies": [
         "E2E-FIX-UNION-ADDITIONAL-PROPS-INLINE"

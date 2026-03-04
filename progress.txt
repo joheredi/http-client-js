@@ -3715,3 +3715,46 @@ The spector mock server is lenient about Content-Type mismatches for POST operat
 - `test/scenarios/cases/modelsGenerator/modelsGenerator.md` — Updated PetUnion members, Gold.friends, operation return types
 
 **Validated against:** Legacy scenario tests (ground truth) confirm `FishUnion`, `BirdUnion`, `PetUnion` for all type references. All 1034 unit/scenario tests pass. Smoke test passes.
+
+---
+## RC30: Fix literal union property types to use inline unions (E2E-FIX-UNION-LITERAL-PROP-INLINE)
+
+### Problem
+TCGC converts inline literal unions like `"hello" | "world"` to `SdkEnumType` with `isGeneratedName: true`.
+The `getTypeExpression()` `case "enum"` always returned `typeRefkey(type)`, causing model interfaces to
+reference named type aliases (e.g., `property: UnionStringLiteralPropertyProperty`) instead of inlining
+the literal values directly (e.g., `property: "hello" | "world"`).
+
+### Root Cause
+TCGC represents anonymous literal unions as `SdkEnumType` (not `SdkUnionType`). The enum case in
+`getTypeExpression` had no `isGeneratedName` check, unlike the union case which already had inlining.
+
+### Fix Applied
+- Added `inlineEnumValues()` helper in `type-expression.tsx` to render enum values as inline literal unions
+- Modified `getPropertyTypeExpression()` in `model-interface.tsx` to inline `isGeneratedName === true` enums
+  specifically in model property context (not globally, since operation parameters still need named types)
+- Handles nullable wrappers: `property: "A" | "B" | null` 
+- Handles ignoreNullableOnOptional: strips `| null` for optional+nullable when configured
+
+### Key Design Decision
+Inlining is scoped to MODEL PROPERTY context only (via `getPropertyTypeExpression`), not at the global
+`getTypeExpression` level. This is because:
+- Model properties: legacy inlines (`property: "hello" | "world"`)
+- Operation parameters: legacy uses named type (`testHeader: GetRequestTestHeader`)
+The same `SdkEnumType` with `isGeneratedName: true` serves both contexts, so the inlining decision
+must be context-dependent.
+
+### Files Changed
+- `src/components/type-expression.tsx` — Added exported `inlineEnumValues()` helper
+- `src/components/model-interface.tsx` — Inline isGeneratedName enums in `getPropertyTypeExpression()`
+- `test/scenarios/cases/enumUnion/enumUnion.md` — Updated 4 scenario expectations
+- `test/scenarios/cases/models/serialization/propertyType.md` — Updated 7 property expectations
+- `test/scenarios/cases/models/deserialization/propertyType.md` — Updated 7 property expectations
+- `test/components/unresolved-symbols.test.tsx` — Updated 1 test expectation
+- `test/scenarios/cases/models/inlineLiteralUnion.md` — New scenario test for inline literal unions
+
+### Validation
+- All 1037 unit/scenario tests pass (3 new from inlineLiteralUnion.md)
+- Smoke test passes
+- E2E type/property/value-types test passes (58 tests)
+- E2E failures are pre-existing (encode/array, multipart, etc. — unrelated)

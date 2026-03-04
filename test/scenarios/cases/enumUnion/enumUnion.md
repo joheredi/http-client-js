@@ -1094,7 +1094,7 @@ op read(@body body: Test): void;
 
 ```ts models interface Test
 export interface Test {
-  color: TestColor;
+  color: "red" | "blue";
 }
 ```
 
@@ -1210,7 +1210,7 @@ op read(@body body: Test): void;
 
 ```ts models interface Test
 export interface Test {
-  color: TestColor;
+  color: 1 | 2;
 }
 ```
 
@@ -1432,7 +1432,7 @@ op read(@body body: Test): void;
 
 ```ts models interface Test
 export interface Test {
-  color: TestColor;
+  color: "left" | "right" | "up" | "down";
 }
 ```
 
@@ -1472,7 +1472,7 @@ op read(@body body: Test): void;
 
 ```ts models interface Test
 export interface Test {
-  color: TestColor;
+  color: "left" | "right" | "up" | "down";
 }
 ```
 

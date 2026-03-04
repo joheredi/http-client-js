@@ -100,7 +100,9 @@ describe("Unresolved Symbol Prevention", () => {
     );
 
     // Verify the model renders with proper type names for both variants.
-    // The nullable variant must have a declared enum type, not an unresolved symbol.
+    // Generated enums (isGeneratedName === true) are inlined in model properties
+    // to match legacy emitter behavior. The nullable variant must still resolve
+    // its declared enum type for the type alias, not produce an unresolved symbol.
     expect(template).toRenderTo({
       "models/index.ts": 'export * from "./models.js";',
       "models/models.ts": d`
@@ -116,8 +118,8 @@ describe("Unresolved Symbol Prevention", () => {
          * model interface TestModel
          */
         export interface TestModel {
-          normalUnion: TestModelNormalUnion;
-          nullableUnion: TestModelNullableUnion | null;
+          normalUnion: "A" | "B";
+          nullableUnion: "A" | "B" | null;
         }
 
         /**

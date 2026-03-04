@@ -12,6 +12,7 @@ import { typeRefkey } from "../utils/refkeys.js";
 import {
   getOptionalAwareTypeExpression,
   getTypeExpression,
+  inlineEnumValues,
 } from "./type-expression.js";
 import { useEmitterOptions } from "../context/emitter-options-context.js";
 
@@ -472,6 +473,30 @@ function getPropertyTypeExpression(
     if (model.discriminatorProperty !== property) {
       return `"${model.discriminatorValue}"`;
     }
+  }
+
+  // Generated enums (isGeneratedName === true) are anonymous literal unions
+  // that TCGC auto-names (e.g., `"hello" | "world"` → UnionStringLiteralPropertyProperty).
+  // In model property context, the legacy emitter inlines these directly as
+  // `property: "hello" | "world"` instead of referencing a named type alias.
+  // Operation parameters still use the named alias, so this inlining is
+  // specific to model interface members.
+  const propType = property.type;
+  if (propType.kind === "enum" && propType.isGeneratedName) {
+    return inlineEnumValues(propType);
+  }
+  // Handle nullable wrapper around generated enum: `"A" | "B" | null`
+  if (
+    propType.kind === "nullable" &&
+    propType.type.kind === "enum" &&
+    propType.type.isGeneratedName
+  ) {
+    const { ignoreNullableOnOptional } = useEmitterOptions();
+    if (property.optional && ignoreNullableOnOptional) {
+      // Strip | null for optional + nullable when ignoreNullableOnOptional is set
+      return inlineEnumValues(propType.type);
+    }
+    return code`${inlineEnumValues(propType.type)} | null`;
   }
 
   const { ignoreNullableOnOptional } = useEmitterOptions();

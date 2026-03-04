@@ -1,5 +1,6 @@
 import { Children, code } from "@alloy-js/core";
 import type {
+  SdkEnumType,
   SdkModelType,
   SdkType,
 } from "@azure-tools/typespec-client-generator-core";
@@ -223,6 +224,27 @@ export function getTypeExpression(type: SdkType): Children {
     default:
       return "any";
   }
+}
+
+/**
+ * Inlines enum values as a literal union type expression.
+ *
+ * For generated enums (isGeneratedName === true) created by TCGC from inline
+ * literal unions (e.g., `"hello" | "world"` or `42 | 43`), this produces the
+ * inline literal union instead of a named type reference. This matches the
+ * legacy emitter output where no intermediate type alias is created.
+ *
+ * @param type - An SdkEnumType with isGeneratedName === true
+ * @returns Children representing `"hello" | "world"` or `42 | 43`
+ */
+export function inlineEnumValues(type: SdkEnumType): Children {
+  const parts: Children[] = [];
+  for (let i = 0; i < type.values.length; i++) {
+    if (i > 0) parts.push(" | ");
+    // Render each enum value as its literal form — quoted strings, raw numbers
+    parts.push(getTypeExpression(type.values[i]));
+  }
+  return parts;
 }
 
 /**
