@@ -149,15 +149,18 @@ export function ModelFiles() {
   // are dead code and should be filtered from rendering.
   const composedEnumNames = new Set(
     allSubEnums
-      .filter((g) => g.parentEnum.isGeneratedName && experimentalExtensibleEnums)
+      .filter(
+        (g) => g.parentEnum.isGeneratedName && experimentalExtensibleEnums,
+      )
       .map((g) => g.parentEnum.name),
   );
   const filteredSubEnums = experimentalExtensibleEnums
     ? allSubEnums.filter((g) => !composedEnumNames.has(g.parentEnum.name))
     : allSubEnums;
-  const renderableEnums = composedEnumNames.size > 0
-    ? enums.filter((e) => !composedEnumNames.has(e.name))
-    : enums;
+  const renderableEnums =
+    composedEnumNames.size > 0
+      ? enums.filter((e) => !composedEnumNames.has(e.name))
+      : enums;
 
   // Separate discriminated (polymorphic) models from regular models
   const isDiscriminated = (m: SdkModelType) =>

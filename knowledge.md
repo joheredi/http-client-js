@@ -2625,9 +2625,10 @@ Tracked by: `EMITTER-FIX-FILE-BODY` in prd.json.
 ## Design Decisions
 
 ### Generated union inlining (2026-03-04)
+
 **Decision**: Inline generated unions (`isGeneratedName === true`) at all type reference sites in `getTypeExpression()`, not just for `additionalProperties`.
 
-**Approach chosen**: Modify `getTypeExpression()` case "union" to check `type.isGeneratedName` and return an interleaved Children array of variant type expressions joined by ` | `. For arrays, wrap in parentheses to avoid operator precedence issues.
+**Approach chosen**: Modify `getTypeExpression()` case "union" to check `type.isGeneratedName` and return an interleaved Children array of variant type expressions joined by `|`. For arrays, wrap in parentheses to avoid operator precedence issues.
 
 **Alternative rejected**: Context-aware inlining (only in additionalProperties contexts). This was rejected because the legacy ground truth scenario tests show ALL generated unions are inlined in interface member types, not just additionalProperties ones.
 
@@ -2638,6 +2639,7 @@ Tracked by: `EMITTER-FIX-FILE-BODY` in prd.json.
 **Decision**: Plain extensible enums (SdkEnumType with `isFixed: false`) WITHOUT the `experimental-extensible-enums` flag should NOT include `| string` fallback in the type alias. The legacy ground truth scenario tests confirm this.
 
 **Evidence**: In `submodules/autorest.typescript/packages/typespec-ts/test/modularUnit/scenarios/enumUnion/enumUnion.md`:
+
 - `SchemaContentTypeValues` (string extensible, `others: string`): expected `"text/plain; charset=utf-8" | "text/vnd.ms.protobuf"` — NO `| string`
 - `EnumTest` (numeric extensible, `others: int32`): expected `1 | 2 | 3 | 4` — NO `| number`
 
@@ -2648,6 +2650,7 @@ Union-as-enum types (containing sub-enum references) DO include `| string` via `
 The `SPEC_OPTIONS` map in `eng/scripts/emit-e2e.ts` allows per-spec emitter option overrides. Use this when a spec's legacy tspconfig sets emitter options that differ from defaults. Currently configured: `type/union` with `experimental-extensible-enums: true`.
 
 ## TCGC Enum vs Union Type Mapping
+
 - TCGC converts anonymous inline literal unions (`"hello" | "world"`, `42 | 43`) to `SdkEnumType` (NOT `SdkUnionType`)
 - These have `isGeneratedName: true`, `isUnionAsEnum: true`, `isFixed: true`
 - Named TypeSpec enums (`enum Color { red, blue }`) also become `SdkEnumType` but with `isGeneratedName: false`
@@ -2657,6 +2660,7 @@ The `SPEC_OPTIONS` map in `eng/scripts/emit-e2e.ts` allows per-spec emitter opti
 ## Design Decisions
 
 ### Inline Literal Unions in Model Properties (RC30)
+
 - Inlining `isGeneratedName === true` enums is done in `getPropertyTypeExpression()` (model-interface.tsx), NOT in `getTypeExpression()` (type-expression.tsx)
 - This is because operation parameters need named type aliases (e.g., `testHeader: GetRequestTestHeader`) while model properties need inline types (e.g., `property: "hello" | "world"`)
 - The same `SdkEnumType` object serves both contexts, so inlining must be context-dependent
@@ -2665,6 +2669,7 @@ The `SPEC_OPTIONS` map in `eng/scripts/emit-e2e.ts` allows per-spec emitter opti
 ## Multipart File Part Type Pattern
 
 For multipart file part properties, the model interface type follows a wrapper pattern (not bare `Uint8Array`):
+
 - **Filename optional** (base `File` or raw `bytes`): `FileContents | { contents: FileContents; contentType?: string; filename?: string }`
 - **Filename required** (subtypes with `filename: string`): `File | { contents: FileContents; contentType?: string; filename: string }`
 - **ContentType literal** (e.g., `"image/jpg"`): wrapper uses the literal type

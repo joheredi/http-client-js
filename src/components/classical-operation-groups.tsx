@@ -323,9 +323,8 @@ export function OperationGroupFactory(props: OperationGroupFactoryProps) {
  */
 function buildInterfaceName(group: OperationGroupInfo): string {
   return (
-    group.prefixes
-      .map((p) => p.charAt(0).toUpperCase() + p.slice(1))
-      .join("") + "Operations"
+    group.prefixes.map((p) => p.charAt(0).toUpperCase() + p.slice(1)).join("") +
+    "Operations"
   );
 }
 

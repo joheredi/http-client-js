@@ -197,7 +197,7 @@ The same pattern appears for `BirdUnion` in `single-discriminator`:
 
 **Recommendation**: **Fix** — use the discriminated union type (`SharkUnion`, `FishUnion`, `BirdUnion`) instead of the base type in member references.
 
-### 6b. `StringExtensibleNamedUnion`  - Keep legacy, make sure to understand how an option called experimental-extensible-enums affect the Known enum generation.
+### 6b. `StringExtensibleNamedUnion` - Keep legacy, make sure to understand how an option called experimental-extensible-enums affect the Known enum generation.
 
 | Spec         | Type                              | Legacy         | New          |
 | ------------ | --------------------------------- | -------------- | ------------ |
@@ -243,7 +243,7 @@ Additionally, `contentType` and `filename` members have been removed from most r
 ## Category 8: Additional Properties & Union Type Wrapping
 
 Prompt: In @docs/e2e-api-surface-audit.md For category #8 we need to keep the legacy output. Please add task(s) to prd.json fix this category of issues, explicitly mentioning that we need to keep the legacy output and include all the information that an
-  agent would need to work on this autonomously. In all sub categories we need to keep the legacy behavior
+agent would need to work on this autonomously. In all sub categories we need to keep the legacy behavior
 
 **Severity: Medium** · **Affected items: 11 interfaces**
 
@@ -287,7 +287,6 @@ Prompt: In @docs/e2e-api-surface-audit.md For category #8 we need to keep the le
 ---
 
 ## Category 9: Pagination API Changes (Fixed adding barrel file.)
-
 
 **Severity: Medium** · **Affected items: 3** · **Spec: `payload/pageable`**
 

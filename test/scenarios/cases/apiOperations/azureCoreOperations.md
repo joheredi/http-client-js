@@ -70,7 +70,9 @@ export function _getWidgetOperationStatusSend(
   apiVersion: string,
   name: string,
   operationId: string,
-  options: WidgetsGetWidgetOperationStatusOptionalParams = { requestOptions: {} },
+  options: WidgetsGetWidgetOperationStatusOptionalParams = {
+    requestOptions: {},
+  },
 ): StreamableMethod {
   const path = expandUrlTemplate(
     "/widgets/{name}/operations/{operationId}{?api%2Dversion}",
@@ -113,7 +115,9 @@ export async function getWidgetOperationStatus(
   apiVersion: string,
   name: string,
   operationId: string,
-  options: WidgetsGetWidgetOperationStatusOptionalParams = { requestOptions: {} },
+  options: WidgetsGetWidgetOperationStatusOptionalParams = {
+    requestOptions: {},
+  },
 ): Promise<ResourceOperationStatusWidgetSuiteWidgetSuiteError> {
   const result = await _getWidgetOperationStatusSend(
     context,

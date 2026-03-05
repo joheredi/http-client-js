@@ -34,8 +34,8 @@ export declare interface PathParametersLabelExpansionStandardOperations { ... }
 
 This issue is related to but distinct from Category 4 ([hierarchy-client.md](./hierarchy-client.md)):
 
-- **Category 4** controls *whether* operation groups exist (the `hierarchy-client` option)
-- **Category 5** controls *how* those groups are named and exported once they exist
+- **Category 4** controls _whether_ operation groups exist (the `hierarchy-client` option)
+- **Category 5** controls _how_ those groups are named and exported once they exist
 - Category 5 only manifests for specs that opt into hierarchy (`hierarchy-client: true`, like `routes`)
 
 ## Approaches Evaluated
@@ -44,22 +44,22 @@ This issue is related to but distinct from Category 4 ([hierarchy-client.md](./h
 
 Use the accumulated `prefixes` array in `OperationGroupInfo` (already computed by BFS traversal) to build fully-qualified interface and factory names, matching the legacy emitter's convention.
 
-| Aspect | Assessment |
-|--------|-----------|
-| Legacy parity | Exact match — same interface names, all exported |
-| Change scope | Small — 2 naming functions + 1 JSX prop |
+| Aspect         | Assessment                                                    |
+| -------------- | ------------------------------------------------------------- |
+| Legacy parity  | Exact match — same interface names, all exported              |
+| Change scope   | Small — 2 naming functions + 1 JSX prop                       |
 | Name conflicts | Eliminated — fully-qualified names are unique by construction |
-| Determinism | Names derived from structural path, not BFS/render order |
+| Determinism    | Names derived from structural path, not BFS/render order      |
 
 ### Approach B: Parent-Prefix Names
 
 Use only the parent client name as a prefix (e.g., `LabelExpansionStandardOperations`) instead of the full path.
 
-| Aspect | Assessment |
-|--------|-----------|
-| Legacy parity | Partial — names shorter than legacy |
-| Change scope | Small — similar to Approach A |
-| Name conflicts | Reduced but not eliminated |
+| Aspect           | Assessment                                         |
+| ---------------- | -------------------------------------------------- |
+| Legacy parity    | Partial — names shorter than legacy                |
+| Change scope     | Small — similar to Approach A                      |
+| Name conflicts   | Reduced but not eliminated                         |
 | Migration burden | Consumers must update operation group type imports |
 
 ### Decision: Approach A
@@ -93,7 +93,7 @@ Added `export` prop to `<SourceFile>` in `ClassicalOperationGroupFile` so all op
 
 ### Files Changed
 
-| File | Change |
-|------|--------|
-| `src/components/classical-operation-groups.tsx` | Updated `buildInterfaceName`, `buildFactoryName` to use prefixes; added `export` to `<SourceFile>` |
-| `test/components/classical-operation-groups.test.tsx` | Updated assertions to match fully-qualified names |
+| File                                                  | Change                                                                                             |
+| ----------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| `src/components/classical-operation-groups.tsx`       | Updated `buildInterfaceName`, `buildFactoryName` to use prefixes; added `export` to `<SourceFile>` |
+| `test/components/classical-operation-groups.test.tsx` | Updated assertions to match fully-qualified names                                                  |

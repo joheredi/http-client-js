@@ -631,6 +631,8 @@ The legacy emitter has scenario tests under `unitTestModular/scenarios/**/*.md`.
 5. **Idiomatic Alloy**: Follow patterns from flight-instructor. When in doubt, check flight-instructor first.
 6. **TCGC consumption**: Reference `submodules/typespec/packages/http-client-python` for how to use TCGC APIs (ignore its YAML/out-of-process approach).
 7. **Imports**: NEVER manually write import statements. Always use refkeys.
+8. **Submodules**: NEVER change code under submodules. IT IS NOT ALLOWED UNDER ANY CIRCUMSTANCE. If one of the dependencies have a bug or missing feature, document it in the file doc/<dependency-name>-issues.md which will be used to file issues against those repos.
+9. DON'T do patches unless explicitly asked to. Patches are a last resort for critical bugs that cannot be fixed through normal PRs. They bypass code review and testing, so they must be used with extreme caution and only when absolutely necessary.
 
 ---
 

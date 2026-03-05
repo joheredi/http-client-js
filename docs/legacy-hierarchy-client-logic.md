@@ -9,15 +9,15 @@ for the http-client-js rewrite to achieve output parity.
 > **Source files referenced** (all paths relative to
 > `submodules/autorest.typescript/packages/typespec-ts/src/`):
 >
-> | File | Role |
-> |------|------|
-> | `transform/transfromRLCOptions.ts` | Option defaults & conflict detection |
-> | `utils/namespaceUtils.ts` | Namespace path computation per operation |
-> | `utils/operationUtil.ts` | `getMethodHierarchiesMap()` — core hierarchy builder |
-> | `modular/buildClassicalClient.ts` | Classical client class generation |
-> | `modular/buildClassicalOperationGroups.ts` | Operation group file generation |
-> | `modular/helpers/classicalOperationHelpers.ts` | Operation group interfaces & factories |
-> | `modular/helpers/clientUtils.ts` | `getClientHierarchyMap()` — TCGC client extraction |
+> | File                                           | Role                                                 |
+> | ---------------------------------------------- | ---------------------------------------------------- |
+> | `transform/transfromRLCOptions.ts`             | Option defaults & conflict detection                 |
+> | `utils/namespaceUtils.ts`                      | Namespace path computation per operation             |
+> | `utils/operationUtil.ts`                       | `getMethodHierarchiesMap()` — core hierarchy builder |
+> | `modular/buildClassicalClient.ts`              | Classical client class generation                    |
+> | `modular/buildClassicalOperationGroups.ts`     | Operation group file generation                      |
+> | `modular/helpers/classicalOperationHelpers.ts` | Operation group interfaces & factories               |
+> | `modular/helpers/clientUtils.ts`               | `getClientHierarchyMap()` — TCGC client extraction   |
 
 ---
 
@@ -32,7 +32,7 @@ client surface shape:
 # tspconfig.yaml
 options:
   "@azure-tools/typespec-ts":
-    hierarchy-client: true   # or false
+    hierarchy-client: true # or false
 ```
 
 **Controls nesting depth.** When `true`, the full TypeSpec
@@ -61,7 +61,7 @@ function getHierarchyClient(emitterOptions: EmitterOptions) {
 # tspconfig.yaml
 options:
   "@azure-tools/typespec-ts":
-    enable-operation-group: true   # or false
+    enable-operation-group: true # or false
 ```
 
 **Controls whether groups exist at all.** When `true`, operations from
@@ -103,13 +103,13 @@ function detectIfNameConflicts(
       const route = getHttpOperationWithCache(dpgContext, op);
       const name = getOperationName(dpgContext, route.operation);
       if (nameSet.has(name)) {
-        return true;   // collision → enable groups
+        return true; // collision → enable groups
       } else {
         nameSet.add(name);
       }
     }
   }
-  return false;  // no collisions → groups not needed
+  return false; // no collisions → groups not needed
 }
 ```
 
@@ -117,12 +117,12 @@ function detectIfNameConflicts(
 
 ## 2. Decision Matrix
 
-| `hierarchy-client` | `enable-operation-group` | Generated Client Shape |
-|:-------------------:|:------------------------:|------------------------|
-| `true` *(default)*  | any                      | **Full nested hierarchy** — namespace path preserved as nested operation group properties |
-| `false`             | `true`                   | **Single-level groups** — only the innermost interface/namespace name becomes a group |
-| `false`             | `false`                  | **Completely flat** — all operations as direct methods on the root client |
-| `false`             | unset *(auto)*           | Auto-detects collisions → `true` or `false` per above |
+| `hierarchy-client` | `enable-operation-group` | Generated Client Shape                                                                    |
+| :----------------: | :----------------------: | ----------------------------------------------------------------------------------------- |
+| `true` _(default)_ |           any            | **Full nested hierarchy** — namespace path preserved as nested operation group properties |
+|      `false`       |          `true`          | **Single-level groups** — only the innermost interface/namespace name becomes a group     |
+|      `false`       |         `false`          | **Completely flat** — all operations as direct methods on the root client                 |
+|      `false`       |      unset _(auto)_      | Auto-detects collisions → `true` or `false` per above                                     |
 
 ### What Each Mode Produces
 
@@ -140,11 +140,11 @@ namespace Sub {
 }
 ```
 
-| Mode | Generated Surface |
-|------|-------------------|
-| `hierarchy=true` | `client.rootOp()`, `client.sub.nested.nestedOp()` |
-| `hierarchy=false, groups=true` | `client.rootOp()`, `client.nested.nested_nestedOp()` *(single-level, prefixed name)* |
-| `hierarchy=false, groups=false` | `client.rootOp()`, `client.nestedOp()` |
+| Mode                            | Generated Surface                                                                    |
+| ------------------------------- | ------------------------------------------------------------------------------------ |
+| `hierarchy=true`                | `client.rootOp()`, `client.sub.nested.nestedOp()`                                    |
+| `hierarchy=false, groups=true`  | `client.rootOp()`, `client.nested.nested_nestedOp()` _(single-level, prefixed name)_ |
+| `hierarchy=false, groups=false` | `client.rootOp()`, `client.nestedOp()`                                               |
 
 ---
 
@@ -166,7 +166,7 @@ export function getOperationNamespaceInterfaceName(
     dpgContext.rlcOptions?.hierarchyClient === false &&
     dpgContext.rlcOptions?.enableOperationGroup !== true
   ) {
-    return result;  // empty → operation goes on root client
+    return result; // empty → operation goes on root client
   }
 
   if (operation.interface) {
@@ -176,7 +176,7 @@ export function getOperationNamespaceInterfaceName(
       dpgContext.rlcOptions?.hierarchyClient === false
     ) {
       result.push(operation.interface.name);
-      return result;  // only the interface name, no parent namespaces
+      return result; // only the interface name, no parent namespaces
     }
 
     // Case 3: Hierarchy enabled → full path including parent namespaces
@@ -210,19 +210,19 @@ export function getOperationNamespaceInterfaceName(
 
 Given `Encode.Array.Property.commaDelimited`:
 
-| Mode | Returned Path |
-|------|---------------|
-| `hierarchy=true` | `["Property"]` (namespace under service root) |
-| `hierarchy=false, groups=true` | `["Property"]` (only innermost name) |
-| `hierarchy=false, groups=false` | `[]` (empty → flat) |
+| Mode                            | Returned Path                                 |
+| ------------------------------- | --------------------------------------------- |
+| `hierarchy=true`                | `["Property"]` (namespace under service root) |
+| `hierarchy=false, groups=true`  | `["Property"]` (only innermost name)          |
+| `hierarchy=false, groups=false` | `[]` (empty → flat)                           |
 
 Given `Client.Structure.Service.Baz.Foo.seven` (deeply nested):
 
-| Mode | Returned Path |
-|------|---------------|
-| `hierarchy=true` | `["Baz", "Foo"]` |
-| `hierarchy=false, groups=true` | `["Foo"]` (only interface name) |
-| `hierarchy=false, groups=false` | `[]` |
+| Mode                            | Returned Path                   |
+| ------------------------------- | ------------------------------- |
+| `hierarchy=true`                | `["Baz", "Foo"]`                |
+| `hierarchy=false, groups=true`  | `["Foo"]` (only interface name) |
+| `hierarchy=false, groups=false` | `[]`                            |
 
 ---
 
@@ -243,7 +243,7 @@ A single TCGC `SdkClientType` with:
 ### 4.2 Output
 
 ```typescript
-Map<string, ServiceOperation[]>
+Map<string, ServiceOperation[]>;
 ```
 
 Where the key is the **group path** (e.g., `""` for root, `"Foo"` for a
@@ -258,7 +258,6 @@ export function getMethodHierarchiesMap(
   context: SdkContext,
   client: SdkClientType<SdkServiceOperation>,
 ): Map<string, ServiceOperation[]> {
-
   // 1. Initialize queue with non-independent children and root methods
   const methodQueue = [];
   client.children
@@ -299,8 +298,8 @@ export function getMethodHierarchiesMap(
       const prefixKey =
         context.rlcOptions?.hierarchyClient ||
         context.rlcOptions?.enableOperationGroup
-          ? prefixes.join("/")    // e.g., "Foo" or "Baz/Foo"
-          : "";                   // flat → everything at root
+          ? prefixes.join("/") // e.g., "Foo" or "Baz/Foo"
+          : ""; // flat → everything at root
 
       // When hierarchy=false + groups=true, prefix operation names
       // with the group name to avoid collisions
@@ -360,7 +359,8 @@ export function getMethodHierarchiesMap(
 export function getClientHierarchyMap(context: SdkContext) {
   // Filters to individually-initializable clients
   const clients = context.sdkPackage.clients.filter(
-    (c) => c.clientInitialization.initializedBy & InitializedByFlags.Individually,
+    (c) =>
+      c.clientInitialization.initializedBy & InitializedByFlags.Individually,
   );
 
   // Maps each to [hierarchyPath, client] tuples
@@ -479,6 +479,7 @@ enable-operation-group: true
    - Operation names prefixed: `property_commaDelimited`, `property_spaceDelimited`
 
 3. **`buildClientOperationGroups()`** generates:
+
    ```typescript
    class ArrayClient {
      readonly property: PropertyOperations;
@@ -496,8 +497,10 @@ enable-operation-group: true
    }
    function _getPropertyOperations(context) {
      return {
-       commaDelimited: (body, options) => commaDelimited(context, body, options),
-       spaceDelimited: (body, options) => spaceDelimited(context, body, options),
+       commaDelimited: (body, options) =>
+         commaDelimited(context, body, options),
+       spaceDelimited: (body, options) =>
+         spaceDelimited(context, body, options),
      };
    }
    ```
@@ -525,12 +528,12 @@ legacy emitter almost never uses in practice.
 
 The legacy e2e specs use three configurations:
 
-| Legacy Config | Specs | Legacy Output | New Emitter Output |
-|---|---|---|---|
-| `hierarchy-client` unset (=`true`) | `payload/*`, `type/enum/*`, `body-optionality` | Operation groups ✅ | **FLAT** ❌ |
-| `hc=false` + `eog=true` | `encode/*`, `parameters/basic`, `parameters/spread` | Operation groups ✅ | **FLAT** ❌ |
-| `hc=false` + `eog` auto=`true` | `type/array`, `type/scalar`, `special-words` | Operation groups ✅ | Operation groups ✅ *(accidental — collision detected)* |
-| `hc=false` + `eog` auto=`false` | `versioning/*`, `auth/*`, `server/*` | Flat ✅ | Flat ✅ |
+| Legacy Config                      | Specs                                               | Legacy Output       | New Emitter Output                                      |
+| ---------------------------------- | --------------------------------------------------- | ------------------- | ------------------------------------------------------- |
+| `hierarchy-client` unset (=`true`) | `payload/*`, `type/enum/*`, `body-optionality`      | Operation groups ✅ | **FLAT** ❌                                             |
+| `hc=false` + `eog=true`            | `encode/*`, `parameters/basic`, `parameters/spread` | Operation groups ✅ | **FLAT** ❌                                             |
+| `hc=false` + `eog` auto=`true`     | `type/array`, `type/scalar`, `special-words`        | Operation groups ✅ | Operation groups ✅ _(accidental — collision detected)_ |
+| `hc=false` + `eog` auto=`false`    | `versioning/*`, `auth/*`, `server/*`                | Flat ✅             | Flat ✅                                                 |
 
 ### The Accidental Safety Net
 
@@ -562,7 +565,7 @@ Remove `flattenClientHierarchy()` entirely. TCGC creates children from
 TypeSpec interfaces and `@operationGroup` decorators — trust it. This
 matches the legacy default (`hierarchy-client: true`).
 
-*Risk*: Specs like `versioning/added` have an `InterfaceV2` that TCGC
+_Risk_: Specs like `versioning/added` have an `InterfaceV2` that TCGC
 models as a child. The legacy emitter with `hierarchy-client: false`
 flattens it. Removing flatten would create an unwanted
 `client.interfaceV2.v2InInterface()` instead of `client.v2InInterface()`.
@@ -576,8 +579,8 @@ Add `enable-operation-group` support with auto-detection (same
   preserve children but collapse to single-level groups.
 - If `enable-operation-group` is `false`, flatten everything.
 
-*Benefit*: Exact legacy parity.
-*Cost*: More complex implementation.
+_Benefit_: Exact legacy parity.
+_Cost_: More complex implementation.
 
 **Approach C — Heuristic based on TCGC metadata**
 
@@ -589,5 +592,5 @@ Check `child.__raw.kind`:
 This uses TCGC's own classification rather than reimplementing
 auto-detection.
 
-*Benefit*: Cleaner than collision detection.
-*Risk*: Depends on TCGC correctly classifying every child.
+_Benefit_: Cleaner than collision detection.
+_Risk_: Depends on TCGC correctly classifying every child.

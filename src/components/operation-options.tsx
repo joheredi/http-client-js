@@ -128,9 +128,7 @@ function getOptionsInterfaceName(
 ): string {
   const groupPrefix =
     prefixes && prefixes.length > 0
-      ? prefixes
-          .map((p) => p.charAt(0).toUpperCase() + p.slice(1))
-          .join("")
+      ? prefixes.map((p) => p.charAt(0).toUpperCase() + p.slice(1)).join("")
       : "";
   const baseName = method.name.charAt(0).toUpperCase() + method.name.slice(1);
   // Pre-normalize the composed name so digit-word boundaries are correctly

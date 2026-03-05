@@ -1,4 +1,10 @@
-import { Children, code, namekey, SourceDirectory } from "@alloy-js/core";
+import {
+  Children,
+  code,
+  namekey,
+  refkey,
+  SourceDirectory,
+} from "@alloy-js/core";
 import {
   FunctionDeclaration,
   InterfaceDeclaration,
@@ -181,6 +187,7 @@ function RestorePollerFunction(props: RestorePollerFunctionProps) {
   const { client } = props;
 
   const returnType = code`${azureCoreLroLib.PollerLike}<${azureCoreLroLib.OperationState}<TResult>, TResult>`;
+  const clientParamRef = refkey();
 
   return (
     <FunctionDeclaration
@@ -196,7 +203,11 @@ function RestorePollerFunction(props: RestorePollerFunctionProps) {
         { name: namekey("TResult", { ignoreNamePolicy: true }) },
       ]}
       parameters={[
-        { name: "client", type: classicalClientRefkey(client) },
+        {
+          name: namekey("client", { ignoreNamePolicy: true }),
+          type: classicalClientRefkey(client),
+          refkey: clientParamRef,
+        },
         { name: "serializedState", type: "string" },
         {
           name: "sourceOperation",
@@ -229,7 +240,7 @@ if (!deserializeHelper) {
 }
 const apiVersion = getApiVersionFromUrl(initialRequestUrl);
 return ${pollingHelperRefkey("getLongRunningPoller")}(
-  (client as any)["_client"] ?? client,
+  (${clientParamRef} as any)["_client"] ?? ${clientParamRef},
   deserializeHelper as (result: TResponse) => Promise<TResult>,
   expectedStatuses,
   {

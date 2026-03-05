@@ -41,7 +41,10 @@ import {
   buildPipeCollection,
   buildSsvCollection,
 } from "../../static-helpers/serializationHelpers.js";
-import type { QueryOperationsCreateOptionalParams, QueryOperationsReadOptionalParams } from "./options.js";
+import type {
+  QueryOperationsCreateOptionalParams,
+  QueryOperationsReadOptionalParams,
+} from "./options.js";
 import {
   createRestError,
   operationOptionsToRequestParameters,

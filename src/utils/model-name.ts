@@ -7,7 +7,36 @@ import type {
   SdkType,
   SdkUnionType,
 } from "@azure-tools/typespec-client-generator-core";
+import { camelCase } from "change-case";
 import { normalizePascalCaseName } from "./name-policy.js";
+
+/** Options matching the name policy's `camelCase` call (see name-policy.ts). */
+const caseOptions = {
+  prefixCharacters: "$_",
+  suffixCharacters: "$_",
+};
+
+/**
+ * Converts a PascalCase name to a camelCase `namekey` with `ignoreNamePolicy`.
+ *
+ * This is a workaround for an Alloy framework bug (ALLOY-001, see
+ * docs/alloy-issues.md) where name conflict detection fails when the name
+ * policy changes casing. By passing names already in their final camelCase
+ * form with `ignoreNamePolicy: true`, the symbol's `originalName` matches its
+ * post-policy `name`, ensuring Alloy's conflict resolver detects duplicates.
+ *
+ * Uses the same `camelCase` from `change-case` with the same options as the
+ * name policy to guarantee the pre-applied name matches what the policy would
+ * produce.
+ *
+ * @param pascalName - A PascalCase name (e.g., `"ActionGroupDeserializer"`).
+ * @returns A `Namekey` with the camelCased name and `ignoreNamePolicy: true`.
+ */
+function toCamelCaseNamekey(pascalName: string): Namekey<NamekeyOptions> {
+  return namekey(camelCase(pascalName, caseOptions), {
+    ignoreNamePolicy: true,
+  });
+}
 
 /**
  * Returns the display name for a model, adding an underscore prefix for
@@ -77,11 +106,10 @@ export function getModelFunctionName(
     const prefixedName = `_${camelName}${suffix}`;
     return namekey(prefixedName, { ignoreNamePolicy: true });
   }
-  // Compose from the PascalCase-normalized model name so that camelCase
-  // (applied by the name policy) preserves ALL-CAPS segments. For example,
-  // model "AzureArcK8sClusterNFVIDetails" normalizes to
-  // "AzureArcK8SClusterNfviDetails" → camelCase → "azureArcK8SClusterNfviDetailsSerializer".
-  return `${normalizePascalCaseName(model.name)}${suffix}`;
+  // Workaround for ALLOY-001 (docs/alloy-issues.md): pass the composed name
+  // already in camelCase with ignoreNamePolicy so that Alloy's conflict
+  // detection sees matching originalName and name values.
+  return toCamelCaseNamekey(`${normalizePascalCaseName(model.name)}${suffix}`);
 }
 
 /**
@@ -150,9 +178,8 @@ export function getUnionFunctionName(
     const prefixedName = `_${camelName}${suffix}`;
     return namekey(prefixedName, { ignoreNamePolicy: true });
   }
-  // Compose from the PascalCase-normalized union name so that camelCase
-  // (applied by the name policy) preserves ALL-CAPS segments.
-  return `${normalizePascalCaseName(union.name)}${suffix}`;
+  // Workaround for ALLOY-001 (docs/alloy-issues.md)
+  return toCamelCaseNamekey(`${normalizePascalCaseName(union.name)}${suffix}`);
 }
 
 /**
@@ -212,7 +239,8 @@ export function getArrayFunctionName(
     const camelName = baseName.charAt(0).toLowerCase() + baseName.slice(1);
     return namekey(`_${camelName}${suffix}`, { ignoreNamePolicy: true });
   }
-  return `${getArrayRecordTypeBaseName(type)}${suffix}`;
+  // Workaround for ALLOY-001 (docs/alloy-issues.md)
+  return toCamelCaseNamekey(`${getArrayRecordTypeBaseName(type)}${suffix}`);
 }
 
 /**
@@ -238,7 +266,8 @@ export function getRecordFunctionName(
     const camelName = baseName.charAt(0).toLowerCase() + baseName.slice(1);
     return namekey(`_${camelName}${suffix}`, { ignoreNamePolicy: true });
   }
-  return `${getArrayRecordTypeBaseName(type)}${suffix}`;
+  // Workaround for ALLOY-001 (docs/alloy-issues.md)
+  return toCamelCaseNamekey(`${getArrayRecordTypeBaseName(type)}${suffix}`);
 }
 
 /**
@@ -276,5 +305,6 @@ export function getEnumFunctionName(
   type: SdkEnumType,
   suffix: string,
 ): string | Namekey<NamekeyOptions> {
-  return `${normalizePascalCaseName(type.name)}${suffix}`;
+  // Workaround for ALLOY-001 (docs/alloy-issues.md)
+  return toCamelCaseNamekey(`${normalizePascalCaseName(type.name)}${suffix}`);
 }

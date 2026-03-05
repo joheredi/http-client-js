@@ -61,6 +61,7 @@ case "union":
 
 Then ensure the union deserializer component generates proper discrimination
 code for the callback. The existing discrimination strategies already handle:
+
 - Distinct constant values (`kind: "kind0"` vs `kind: "kind1"`)
 - Property existence checks (`"end" in item`)
 - Array vs non-array (`Array.isArray()`)

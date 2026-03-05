@@ -68,13 +68,15 @@ describe("getModelName", () => {
 
 describe("getModelFunctionName", () => {
   /**
-   * Tests that user-defined models produce a plain concatenated function name
-   * (e.g., "WidgetSerializer"). The name policy will handle camelCase.
+   * Tests that user-defined models produce a camelCase namekey with
+   * ignoreNamePolicy (workaround for ALLOY-001, see docs/alloy-issues.md).
    */
-  it("should return plain function name for user-defined models", () => {
+  it("should return camelCase namekey for user-defined models", () => {
     const model = createMockModel("Widget", false);
     const name = getModelFunctionName(model, "Serializer");
-    expect(name).toBe("WidgetSerializer");
+    expect(typeof name).toBe("object");
+    expect((name as any).name).toBe("widgetSerializer");
+    expect((name as any).options.ignoreNamePolicy).toBe(true);
   });
 
   /**

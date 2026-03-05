@@ -124,7 +124,9 @@ import type { TestServiceContext } from "../../testServiceClientContext.js";
 
 export function _getAssetChainSummarySend(
   context: TestServiceContext,
-  options: OperationsGetAssetChainSummaryOptionalParams = { requestOptions: {} },
+  options: OperationsGetAssetChainSummaryOptionalParams = {
+    requestOptions: {},
+  },
 ): StreamableMethod {
   return context.path("/assetChainSummary").get({
     ...operationOptionsToRequestParameters(options),
@@ -148,7 +150,9 @@ export async function _getAssetChainSummaryDeserialize(
 
 export async function getAssetChainSummary(
   context: TestServiceContext,
-  options: OperationsGetAssetChainSummaryOptionalParams = { requestOptions: {} },
+  options: OperationsGetAssetChainSummaryOptionalParams = {
+    requestOptions: {},
+  },
 ): Promise<AssetChainSummaryResult> {
   const result = await _getAssetChainSummarySend(context, options);
   return _getAssetChainSummaryDeserialize(result);

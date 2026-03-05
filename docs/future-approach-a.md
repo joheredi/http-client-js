@@ -91,12 +91,12 @@ client always reflects the TypeSpec structure.
 Removing flatten affects **only 4 versioning specs** that currently produce
 flat methods but would gain operation groups:
 
-| Spec | Current Output | After Approach A |
-|------|---------------|-----------------|
-| `versioning/added` | `client.v2InInterface(body)` | `client.interfaceV2.v2InInterface(body)` |
-| `versioning/renamedFrom` | `client.newOpInNewInterface(body)` | `client.newInterface.newOpInNewInterface(body)` |
-| `versioning/removed/v1` | `client.v1InInterface(body)` | `client.interfaceV1.v1InInterface(body)` |
-| `versioning/removed/v2preview` | `client.v1InInterface(body)` | `client.interfaceV1.v1InInterface(body)` |
+| Spec                           | Current Output                     | After Approach A                                |
+| ------------------------------ | ---------------------------------- | ----------------------------------------------- |
+| `versioning/added`             | `client.v2InInterface(body)`       | `client.interfaceV2.v2InInterface(body)`        |
+| `versioning/renamedFrom`       | `client.newOpInNewInterface(body)` | `client.newInterface.newOpInNewInterface(body)` |
+| `versioning/removed/v1`        | `client.v1InInterface(body)`       | `client.interfaceV1.v1InInterface(body)`        |
+| `versioning/removed/v2preview` | `client.v1InInterface(body)`       | `client.interfaceV1.v1InInterface(body)`        |
 
 All other 104 specs produce identical output.
 

@@ -421,11 +421,11 @@ export function avsSummaryPropertiesDeserializer(
   item: any,
 ): AvsSummaryProperties {
   return {
-    error: errorDetailDeserializer(item["error"]),
+    error: errorDetailDeserializer_1(item["error"]),
   };
 }
 
-export function errorDetailDeserializer(item: any): ErrorDetail_1 {
+export function errorDetailDeserializer_1(item: any): ErrorDetail_1 {
   return {
     code: item["code"],
     message: item["message"],

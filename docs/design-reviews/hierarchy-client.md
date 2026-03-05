@@ -34,23 +34,23 @@ The new emitter had no equivalent option — it always preserved the TCGC client
 
 Flatten the TCGC `SdkClientType` tree **before rendering** by moving children's methods to the root client and removing children. All downstream Alloy components work unchanged.
 
-| Aspect | Assessment |
-|--------|-----------|
-| Change scope | 1 utility function + emitter option wiring |
-| Consistency | Guaranteed — all components see the same flat data |
-| Component changes | Zero |
-| Testing surface | Minimal — one utility to test |
+| Aspect            | Assessment                                         |
+| ----------------- | -------------------------------------------------- |
+| Change scope      | 1 utility function + emitter option wiring         |
+| Consistency       | Guaranteed — all components see the same flat data |
+| Component changes | Zero                                               |
+| Testing surface   | Minimal — one utility to test                      |
 
 ### Approach B: Component-Level Conditional Rendering
 
 Each rendering component (`classical-client.tsx`, `operation-files.tsx`, `classical-operation-groups.tsx`, `operation-options-files.tsx`) checks the `hierarchy-client` option and conditionally flattens its output.
 
-| Aspect | Assessment |
-|--------|-----------|
-| Change scope | 4–5 components + emitter option wiring |
-| Consistency | Risky — all components must agree on flattening |
-| Component changes | Significant — each needs branching logic |
-| Testing surface | Large — each component needs both-mode tests |
+| Aspect            | Assessment                                      |
+| ----------------- | ----------------------------------------------- |
+| Change scope      | 4–5 components + emitter option wiring          |
+| Consistency       | Risky — all components must agree on flattening |
+| Component changes | Significant — each needs branching logic        |
+| Testing surface   | Large — each component needs both-mode tests    |
 
 ### Decision: Approach A
 
@@ -70,7 +70,7 @@ Each rendering component (`classical-client.tsx`, `operation-files.tsx`, `classi
 # tspconfig.yaml
 options:
   http-client-js:
-    hierarchy-client: false  # default — flatten children onto root client
+    hierarchy-client: false # default — flatten children onto root client
     # hierarchy-client: true  # preserve sub-client hierarchy
 ```
 
@@ -104,15 +104,15 @@ $onEmit:
 
 ### Files Changed
 
-| File | Change |
-|------|--------|
-| `src/lib.ts` | Added `hierarchy-client` to options schema |
-| `src/context/emitter-options-context.tsx` | Added `hierarchyClient` to `EmitterOptionsValue` |
-| `src/utils/flatten-clients.ts` | **New** — flattening utility |
-| `src/emitter.tsx` | Wire flattening before render; import and pass option |
-| `test/e2e/http/versioning/added/main.test.ts` | Updated to use flat access |
-| `test/e2e/http/versioning/renamedFrom/main.test.ts` | Updated to use flat access |
-| `test/e2e/http/serialization/encoded-name/json/main.test.ts` | Updated to use flat access |
+| File                                                         | Change                                                |
+| ------------------------------------------------------------ | ----------------------------------------------------- |
+| `src/lib.ts`                                                 | Added `hierarchy-client` to options schema            |
+| `src/context/emitter-options-context.tsx`                    | Added `hierarchyClient` to `EmitterOptionsValue`      |
+| `src/utils/flatten-clients.ts`                               | **New** — flattening utility                          |
+| `src/emitter.tsx`                                            | Wire flattening before render; import and pass option |
+| `test/e2e/http/versioning/added/main.test.ts`                | Updated to use flat access                            |
+| `test/e2e/http/versioning/renamedFrom/main.test.ts`          | Updated to use flat access                            |
+| `test/e2e/http/serialization/encoded-name/json/main.test.ts` | Updated to use flat access                            |
 
 ## Migration Guide Notes
 
