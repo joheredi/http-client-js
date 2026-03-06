@@ -125,16 +125,14 @@ export function GroupDirectoryProvider(props: GroupDirectoryProviderProps) {
     <GroupDirectoryCtx.Provider value={contextValue}>
       {props.children}
       <SourceDirectory path="groups">
-      <For each={entries}>
-        {(entry) => (
-          <SourceDirectory path={entry.path}>
-            <For each={entry.files}>
-              {(file) => file.render()}
-            </For>
-            <BarrelFile />
-          </SourceDirectory>
-        )}
-      </For>
+        <For each={entries}>
+          {(entry) => (
+            <SourceDirectory path={entry.path}>
+              <For each={entry.files}>{(file) => file.render()}</For>
+              <BarrelFile />
+            </SourceDirectory>
+          )}
+        </For>
       </SourceDirectory>
     </GroupDirectoryCtx.Provider>
   );

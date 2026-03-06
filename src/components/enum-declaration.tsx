@@ -136,7 +136,7 @@ export function EnumDeclaration(props: EnumDeclarationProps) {
 function ApiVersionEnumDeclaration(props: { type: SdkEnumType }) {
   const { type } = props;
   const enumDoc = type.doc ?? `The available API versions.`;
-  
+
   return (
     <TsEnumDeclaration
       name={`Known_${type.name}`}

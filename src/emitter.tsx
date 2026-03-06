@@ -236,7 +236,10 @@ export function EmitterTree(props: EmitterTreeProps) {
  *                  emitter options, and output directory path.
  */
 export async function $onEmit(context: EmitContext) {
-  const sdkContext = await createSdkContext(context, "@azure-tools/typespec-ts");
+  const sdkContext = await createSdkContext(
+    context,
+    "@azure-tools/typespec-ts",
+  );
 
   // Apply typespec-title-map renames to client names before rendering.
   // This matches the legacy emitter's renameClientName() behavior where

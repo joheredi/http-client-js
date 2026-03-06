@@ -67,9 +67,7 @@ function OperationFilesTestWrapper(props: {
       <SdkContextProvider sdkContext={props.sdkContext}>
         {props.siblings}
         <SourceDirectory path="api">
-          <GroupDirectoryProvider>
-            {props.children}
-          </GroupDirectoryProvider>
+          <GroupDirectoryProvider>{props.children}</GroupDirectoryProvider>
         </SourceDirectory>
       </SdkContextProvider>
     </Output>
@@ -231,7 +229,10 @@ describe("OperationFiles", () => {
     const sdkContext = await createSdkContextForTest(program);
 
     const template = (
-      <OperationFilesTestWrapper sdkContext={sdkContext} siblings={<ModelFiles />}>
+      <OperationFilesTestWrapper
+        sdkContext={sdkContext}
+        siblings={<ModelFiles />}
+      >
         <OperationFiles />
       </OperationFilesTestWrapper>
     );
@@ -265,7 +266,10 @@ describe("OperationFiles", () => {
     const sdkContext = await createSdkContextForTest(program);
 
     const template = (
-      <OperationFilesTestWrapper sdkContext={sdkContext} siblings={<ModelFiles />}>
+      <OperationFilesTestWrapper
+        sdkContext={sdkContext}
+        siblings={<ModelFiles />}
+      >
         <OperationFiles />
       </OperationFilesTestWrapper>
     );

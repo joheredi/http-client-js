@@ -63,7 +63,7 @@ export function OperationFiles() {
   }
 
   return (
-      <For each={groups}>{(group) => <OperationGroupFile group={group} />}</For>
+    <For each={groups}>{(group) => <OperationGroupFile group={group} />}</For>
   );
 }
 
@@ -96,22 +96,22 @@ interface OperationGroupFileProps {
 function OperationGroupFile(props: OperationGroupFileProps) {
   const { group } = props;
 
-  const operationsFile = <SourceFile path="operations.ts">
-        <For each={group.operations} doubleHardline>
-          {(method) => (
-            <OperationDeclarations
-              method={method}
-              rootClient={group.rootClient}
-            />
-          )}
-        </For>
-      </SourceFile>;
+  const operationsFile = (
+    <SourceFile path="operations.ts">
+      <For each={group.operations} doubleHardline>
+        {(method) => (
+          <OperationDeclarations
+            method={method}
+            rootClient={group.rootClient}
+          />
+        )}
+      </For>
+    </SourceFile>
+  );
 
   if (group.prefixPath) {
     const { registerContent } = useGroupDirectory();
-    registerContent(group.prefixPath, () => (
-      operationsFile
-    ));
+    registerContent(group.prefixPath, () => operationsFile);
     return undefined;
   }
 
@@ -206,4 +206,3 @@ function HeaderDeserializationBlock(props: OperationDeclarationsProps) {
     </>
   );
 }
-

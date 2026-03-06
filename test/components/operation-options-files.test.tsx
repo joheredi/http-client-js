@@ -60,9 +60,7 @@ function OptionsFilesTestWrapper(props: {
     >
       <SdkContextProvider sdkContext={props.sdkContext}>
         <SourceDirectory path="api">
-          <GroupDirectoryProvider>
-            {props.children}
-          </GroupDirectoryProvider>
+          <GroupDirectoryProvider>{props.children}</GroupDirectoryProvider>
         </SourceDirectory>
       </SdkContextProvider>
     </Output>
