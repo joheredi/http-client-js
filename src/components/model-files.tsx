@@ -328,90 +328,98 @@ export function ModelFiles() {
           hasXmlDeserializers)
           ? "\n\n"
           : undefined}
-        <SerializerDeclarations models={regularInputModels} />
-        {regularInputModels.length > 0 && polymorphicInputModels.length > 0
-          ? "\n\n"
-          : undefined}
-        <PolymorphicSerializerDeclarations models={polymorphicInputModels} />
-        {(regularInputModels.length > 0 || polymorphicInputModels.length > 0) &&
-        multipartInputModels.length > 0
-          ? "\n\n"
-          : undefined}
-        <MultipartSerializerDeclarations models={multipartInputModels} />
-        {hasSerializers && hasUnionSerializers ? "\n\n" : undefined}
-        <UnionSerializerDeclarations unions={inputUnions} />
-        {(hasSerializers || hasUnionSerializers) && hasEnumSerializers
-          ? "\n\n"
-          : undefined}
-        <EnumSerializerDeclarations enums={inputEnumSerializers} />
-        {(hasSerializers || hasUnionSerializers || hasEnumSerializers) &&
-        hasArrayRecordSerializers
-          ? "\n\n"
-          : undefined}
-        <ArrayRecordSerializerDeclarations
-          arrayTypes={inputArrayTypes}
-          dictTypes={inputDictTypes}
-        />
-        {(hasSerializers ||
-          hasUnionSerializers ||
-          hasEnumSerializers ||
-          hasArrayRecordSerializers) &&
-        hasDeserializers
-          ? "\n\n"
-          : undefined}
-        <DeserializerDeclarations models={regularOutputModels} />
-        {regularOutputModels.length > 0 && polymorphicOutputModels.length > 0
-          ? "\n\n"
-          : undefined}
-        <PolymorphicDeserializerDeclarations models={polymorphicOutputModels} />
-        {(hasDeserializers ||
-          hasSerializers ||
-          hasUnionSerializers ||
-          hasEnumSerializers) &&
-        hasUnionDeserializers
-          ? "\n\n"
-          : undefined}
-        <UnionDeserializerDeclarations unions={outputUnions} />
-        {(hasDeserializers ||
-          hasSerializers ||
-          hasUnionSerializers ||
-          hasEnumSerializers ||
-          hasUnionDeserializers) &&
-        hasArrayRecordDeserializers
-          ? "\n\n"
-          : undefined}
-        <ArrayRecordDeserializerDeclarations
-          arrayTypes={outputArrayTypes}
-          dictTypes={outputDictTypes}
-        />
-        {(hasSerializers ||
+      </SourceFile>
+
+      <SourceDirectory path="serialization">
+        <SourceFile path="serialization.ts">
+          <SerializerDeclarations models={regularInputModels} />
+          {regularInputModels.length > 0 && polymorphicInputModels.length > 0
+            ? "\n\n"
+            : undefined}
+          <PolymorphicSerializerDeclarations models={polymorphicInputModels} />
+          {(regularInputModels.length > 0 ||
+            polymorphicInputModels.length > 0) &&
+          multipartInputModels.length > 0
+            ? "\n\n"
+            : undefined}
+          <MultipartSerializerDeclarations models={multipartInputModels} />
+          {hasSerializers && hasUnionSerializers ? "\n\n" : undefined}
+          <UnionSerializerDeclarations unions={inputUnions} />
+          {(hasSerializers || hasUnionSerializers) && hasEnumSerializers
+            ? "\n\n"
+            : undefined}
+          <EnumSerializerDeclarations enums={inputEnumSerializers} />
+          {(hasSerializers || hasUnionSerializers || hasEnumSerializers) &&
+          hasArrayRecordSerializers
+            ? "\n\n"
+            : undefined}
+          <ArrayRecordSerializerDeclarations
+            arrayTypes={inputArrayTypes}
+            dictTypes={inputDictTypes}
+          />
+          {(hasSerializers ||
+            hasUnionSerializers ||
+            hasEnumSerializers ||
+            hasArrayRecordSerializers) &&
+          hasDeserializers
+            ? "\n\n"
+            : undefined}
+          <DeserializerDeclarations models={regularOutputModels} />
+          {regularOutputModels.length > 0 && polymorphicOutputModels.length > 0
+            ? "\n\n"
+            : undefined}
+          <PolymorphicDeserializerDeclarations
+            models={polymorphicOutputModels}
+          />
+          {(hasDeserializers ||
+            hasSerializers ||
+            hasUnionSerializers ||
+            hasEnumSerializers) &&
+          hasUnionDeserializers
+            ? "\n\n"
+            : undefined}
+          <UnionDeserializerDeclarations unions={outputUnions} />
+          {(hasDeserializers ||
+            hasSerializers ||
+            hasUnionSerializers ||
+            hasEnumSerializers ||
+            hasUnionDeserializers) &&
+          hasArrayRecordDeserializers
+            ? "\n\n"
+            : undefined}
+          <ArrayRecordDeserializerDeclarations
+            arrayTypes={outputArrayTypes}
+            dictTypes={outputDictTypes}
+          />
+          {(hasSerializers ||
+            hasUnionSerializers ||
+            hasEnumSerializers ||
+            hasDeserializers ||
+            hasUnionDeserializers ||
+            hasArrayRecordSerializers ||
+            hasArrayRecordDeserializers) &&
+          hasXmlSerializers
+            ? "\n\n"
+            : undefined}
+          <XmlSerializerDeclarations models={xmlInputModels} />
+          {hasXmlSerializers && hasXmlDeserializers ? "\n\n" : undefined}
+          <XmlDeserializerDeclarations models={xmlOutputModels} />
+          {hasSerializers ||
           hasUnionSerializers ||
           hasEnumSerializers ||
           hasDeserializers ||
           hasUnionDeserializers ||
           hasArrayRecordSerializers ||
-          hasArrayRecordDeserializers) &&
-        hasXmlSerializers
-          ? "\n\n"
-          : undefined}
-        <XmlSerializerDeclarations models={xmlInputModels} />
-        {hasXmlSerializers && hasXmlDeserializers ? "\n\n" : undefined}
-        <XmlDeserializerDeclarations models={xmlOutputModels} />
-        {hasSerializers ||
-        hasUnionSerializers ||
-        hasEnumSerializers ||
-        hasDeserializers ||
-        hasUnionDeserializers ||
-        hasArrayRecordSerializers ||
-        hasArrayRecordDeserializers ||
-        hasXmlSerializers ||
-        hasXmlDeserializers ? (
-          <FlattenHelperDeclarations
-            inputModels={[...regularInputModels, ...multipartInputModels]}
-            outputModels={regularOutputModels}
-          />
-        ) : undefined}
-      </SourceFile>
+          hasArrayRecordDeserializers ||
+          hasXmlSerializers ||
+          hasXmlDeserializers ? (
+            <FlattenHelperDeclarations
+              inputModels={[...regularInputModels, ...multipartInputModels]}
+              outputModels={regularOutputModels}
+            />
+          ) : undefined}
+        </SourceFile>
+      </SourceDirectory>
     </SourceDirectory>
   );
 }

@@ -1,27 +1,12 @@
-import { For, SourceDirectory } from "@alloy-js/core";
+import { For } from "@alloy-js/core";
 import { BarrelFile, SourceFile } from "@alloy-js/typescript";
-import type {
-  SdkClientType,
-  SdkHttpOperation,
-  SdkServiceMethod,
-} from "@azure-tools/typespec-client-generator-core";
 import { useSdkContext } from "../context/sdk-context.js";
+import { useGroupDirectory } from "../context/group-directory-context.js";
 import { OperationOptionsDeclaration } from "./operation-options.js";
-
-/**
- * Represents a group of operations sharing the same path prefix.
- *
- * Reused from the same structure as operation-files.tsx to ensure
- * the options.ts files mirror the operations.ts directory layout.
- */
-interface OperationGroup {
-  /** Slash-separated prefix path. Empty string for root-level operations. */
-  prefixPath: string;
-  /** PascalCase operation group names from the client hierarchy (for naming). */
-  prefixes: string[];
-  /** The operations belonging to this group. */
-  operations: SdkServiceMethod<SdkHttpOperation>[];
-}
+import {
+  collectOperationGroups,
+  type OperationGroup,
+} from "../utils/operation-groups.js";
 
 /**
  * Orchestrator component that generates `options.ts` files per operation group.
@@ -56,12 +41,12 @@ export function OperationOptionsFiles() {
   }
 
   return (
-    <SourceDirectory path="api">
+    <>
       <BarrelFile />
       <For each={groups}>
         {(group) => <OperationOptionsGroupFile group={group} />}
       </For>
-    </SourceDirectory>
+    </>
   );
 }
 
@@ -77,19 +62,21 @@ interface OperationOptionsGroupFileProps {
  * Renders a single `options.ts` file for an operation group.
  *
  * For root-level operations (empty prefix), the file is `options.ts`
- * directly under `api/`. For grouped operations, the file is nested
- * under subdirectories matching the group path (e.g., `users/options.ts`).
+ * directly under `api/`. For grouped operations, the content is registered
+ * with the {@link GroupDirectoryProvider} so that a single SourceDirectory
+ * is shared with other components contributing files to the same group path.
  *
  * Each operation in the group gets one `XxxOptionalParams` interface,
  * separated by blank lines.
  *
  * @param props - Component props containing the operation group.
- * @returns An Alloy JSX tree for the options source file.
+ * @returns An Alloy JSX tree for the options source file, or `undefined`
+ *          when the content is registered with the group directory provider.
  */
 function OperationOptionsGroupFile(props: OperationOptionsGroupFileProps) {
   const { group } = props;
 
-  const content = (
+  const operationOptionsFile = (
     <SourceFile path="options.ts">
       <For each={group.operations} doubleHardline>
         {(method) => (
@@ -102,77 +89,11 @@ function OperationOptionsGroupFile(props: OperationOptionsGroupFileProps) {
     </SourceFile>
   );
 
-  // Use nested SourceDirectory for grouped options so Alloy computes
-  // correct relative import paths (e.g., ./options.js instead of ./group/options.js).
   if (group.prefixPath) {
-    return (
-      <SourceDirectory path={group.prefixPath}>
-        <BarrelFile />
-        {content}
-      </SourceDirectory>
-    );
-  }
-  return content;
-}
-
-/**
- * Collects all operations from the client hierarchy and groups them by
- * their operation group path.
- *
- * Uses the same BFS traversal as operation-files.tsx to ensure the
- * options.ts files match the operations.ts directory structure exactly.
- *
- * @param clients - The top-level TCGC clients from the SDK package.
- * @returns An array of operation groups, one per unique prefix path.
- */
-function collectOperationGroups(
-  clients: SdkClientType<SdkHttpOperation>[],
-): OperationGroup[] {
-  const groupMap = new Map<
-    string,
-    { operations: SdkServiceMethod<SdkHttpOperation>[]; prefixes: string[] }
-  >();
-
-  const queue: [string[], string[], SdkClientType<SdkHttpOperation>][] =
-    clients.map((c) => [[], [], c]);
-
-  while (queue.length > 0) {
-    const [dirPrefixes, namePrefixes, client] = queue.shift()!;
-    const prefixKey = dirPrefixes.join("/");
-
-    for (const method of client.methods) {
-      if (!groupMap.has(prefixKey)) {
-        groupMap.set(prefixKey, { operations: [], prefixes: namePrefixes });
-      }
-      groupMap.get(prefixKey)!.operations.push(method);
-    }
-
-    if (client.children) {
-      for (const child of client.children) {
-        queue.push([
-          [...dirPrefixes, normalizeName(child.name)],
-          [...namePrefixes, child.name],
-          child,
-        ]);
-      }
-    }
+    const { registerContent } = useGroupDirectory();
+    registerContent(group.prefixPath, () => operationOptionsFile);
+    return undefined;
   }
 
-  return Array.from(groupMap.entries())
-    .filter(([, group]) => group.operations.length > 0)
-    .map(([prefixPath, group]) => ({
-      prefixPath,
-      prefixes: group.prefixes,
-      operations: group.operations,
-    }));
-}
-
-/**
- * Normalizes a client/operation group name to a file-system-safe lowercase name.
- *
- * @param name - The raw operation group name from TCGC.
- * @returns The normalized lowercase name for directory paths.
- */
-function normalizeName(name: string): string {
-  return name.charAt(0).toLowerCase() + name.slice(1);
+  return operationOptionsFile;
 }

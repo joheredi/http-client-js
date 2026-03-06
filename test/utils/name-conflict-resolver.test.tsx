@@ -38,6 +38,7 @@ import { EmitterOptionsProvider } from "../../src/context/emitter-options-contex
 import { OperationFiles } from "../../src/components/operation-files.js";
 import { ClientContextFile } from "../../src/components/client-context.js";
 import { httpRuntimeLib } from "../../src/utils/external-packages.js";
+import { GroupDirectoryProvider } from "../../src/context/group-directory-context.js";
 import { SourceDirectory, For } from "@alloy-js/core";
 
 /**
@@ -154,7 +155,11 @@ describe("nameConflictResolver", () => {
           <FlavorProvider flavor="core">
             <EmitterOptionsProvider options={{}}>
               <SourceDirectory path="src">
-                <OperationFiles />
+                <SourceDirectory path="api">
+                  <GroupDirectoryProvider>
+                    <OperationFiles />
+                  </GroupDirectoryProvider>
+                </SourceDirectory>
                 <For each={sdkContext.sdkPackage.clients}>
                   {(client) => <ClientContextFile client={client} />}
                 </For>

@@ -38,6 +38,8 @@ export interface SmokeTestConfig {
   packageVersion?: string;
   /** Entry .tsp file relative to the fixture subfolder. Defaults to "main.tsp". */
   entryFile?: string;
+  /** Whether to enable experimental extensible enums support. Defaults to false. */
+  experimentalExtensibleEnums?: boolean;
 }
 
 /**
@@ -88,6 +90,7 @@ export function defineSmokeTest(config: SmokeTestConfig): void {
     flavor,
     packageVersion = "1.0.0",
     entryFile = "main.tsp",
+    experimentalExtensibleEnums = false,
   } = config;
 
   const fixturePath = join(smokeDir, "fixtures", name, entryFile);
@@ -111,10 +114,11 @@ options:
   http-client-js:
     generate-metadata: true
     flavor: ${flavor}
-    package-name: ${packageName}
+    package-name: "${packageName}"
     package-version: "${packageVersion}"
     emitter-output-dir: "{output-dir}/http-client-js"
     examples-dir: "{project-root}/examples"
+    experimental-extensible-enums: ${experimentalExtensibleEnums}
 `;
         await writeFile(join(outputRoot, "tspconfig.yaml"), tspConfig);
 

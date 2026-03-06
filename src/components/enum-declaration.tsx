@@ -96,7 +96,7 @@ export function EnumDeclaration(props: EnumDeclarationProps) {
       </TypeDeclaration>
       {"\n\n"}
       <TsEnumDeclaration
-        name={`Known${type.name}`}
+        name={`Known_${type.name}`}
         refkey={knownValuesRefkey(type)}
         export
         doc={enumDoc}
@@ -136,10 +136,10 @@ export function EnumDeclaration(props: EnumDeclarationProps) {
 function ApiVersionEnumDeclaration(props: { type: SdkEnumType }) {
   const { type } = props;
   const enumDoc = type.doc ?? `The available API versions.`;
-
+  
   return (
     <TsEnumDeclaration
-      name={`Known${type.name}`}
+      name={`Known_${type.name}`}
       refkey={[knownValuesRefkey(type), typeRefkey(type)]}
       export
       doc={enumDoc}

@@ -24,7 +24,7 @@
  * cannot find the expected `api/options.ts` file.
  */
 import "@alloy-js/core/testing";
-import { Children } from "@alloy-js/core";
+import { Children, SourceDirectory } from "@alloy-js/core";
 import { createTSNamePolicy } from "@alloy-js/typescript";
 import { t } from "@typespec/compiler/testing";
 import { Output } from "@typespec/emitter-framework";
@@ -39,13 +39,14 @@ import { OperationFiles } from "../../src/components/operation-files.js";
 import { ModelFiles } from "../../src/components/model-files.js";
 import { httpRuntimeLib } from "../../src/utils/external-packages.js";
 import { TesterWithService, createSdkContextForTest } from "../test-host.js";
+import { GroupDirectoryProvider } from "../../src/context/group-directory-context.js";
 
 /**
- * Test wrapper that provides Output and SdkContext without a SourceFile,
- * since OperationOptionsFiles creates its own SourceDirectory and SourceFiles.
+ * Test wrapper that provides Output, SdkContext, and the api/ SourceDirectory
+ * structure — mirroring the production setup in emitter.tsx.
  *
- * @param props - The SDK context and children to render.
- * @returns An Alloy Output tree suitable for test assertions.
+ * Includes GroupDirectoryProvider so grouped options can register content
+ * via the reactive context instead of creating their own SourceDirectories.
  */
 function OptionsFilesTestWrapper(props: {
   sdkContext: SdkContext<Record<string, any>, SdkHttpOperation>;
@@ -58,7 +59,11 @@ function OptionsFilesTestWrapper(props: {
       externals={[httpRuntimeLib]}
     >
       <SdkContextProvider sdkContext={props.sdkContext}>
-        {props.children}
+        <SourceDirectory path="api">
+          <GroupDirectoryProvider>
+            {props.children}
+          </GroupDirectoryProvider>
+        </SourceDirectory>
       </SdkContextProvider>
     </Output>
   );

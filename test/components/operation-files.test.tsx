@@ -26,7 +26,7 @@
  */
 import "@alloy-js/core/testing";
 import { d } from "@alloy-js/core/testing";
-import { Children } from "@alloy-js/core";
+import { Children, SourceDirectory } from "@alloy-js/core";
 import { createTSNamePolicy } from "@alloy-js/typescript";
 import { t } from "@typespec/compiler/testing";
 import { Output } from "@typespec/emitter-framework";
@@ -41,18 +41,22 @@ import { OperationOptionsFiles } from "../../src/components/operation-options-fi
 import { ModelFiles } from "../../src/components/model-files.js";
 import { httpRuntimeLib } from "../../src/utils/external-packages.js";
 import { TesterWithService, createSdkContextForTest } from "../test-host.js";
+import { GroupDirectoryProvider } from "../../src/context/group-directory-context.js";
 
 /**
- * Test wrapper for OperationFiles that provides Output and SdkContext but NO
- * SourceFile — since OperationFiles creates its own SourceDirectory and SourceFiles.
+ * Test wrapper for OperationFiles that provides Output, SdkContext, and the
+ * api/ SourceDirectory structure — mirroring the production setup in emitter.tsx.
  *
- * Unlike SdkTestFile which wraps children in a `<SourceFile path="test.ts">`,
- * this wrapper only provides the Output and SdkContextProvider context needed
- * for OperationFiles to render its own file structure.
+ * Includes GroupDirectoryProvider so grouped operations can register content
+ * via the reactive context instead of creating their own SourceDirectories.
+ *
+ * Use `siblings` for components that should be rendered alongside (but outside)
+ * the api/ directory, like ModelFiles.
  */
 function OperationFilesTestWrapper(props: {
   sdkContext: SdkContext<Record<string, any>, SdkHttpOperation>;
   children: Children;
+  siblings?: Children;
 }) {
   return (
     <Output
@@ -61,7 +65,12 @@ function OperationFilesTestWrapper(props: {
       externals={[httpRuntimeLib]}
     >
       <SdkContextProvider sdkContext={props.sdkContext}>
-        {props.children}
+        {props.siblings}
+        <SourceDirectory path="api">
+          <GroupDirectoryProvider>
+            {props.children}
+          </GroupDirectoryProvider>
+        </SourceDirectory>
       </SdkContextProvider>
     </Output>
   );
@@ -222,8 +231,7 @@ describe("OperationFiles", () => {
     const sdkContext = await createSdkContextForTest(program);
 
     const template = (
-      <OperationFilesTestWrapper sdkContext={sdkContext}>
-        <ModelFiles />
+      <OperationFilesTestWrapper sdkContext={sdkContext} siblings={<ModelFiles />}>
         <OperationFiles />
       </OperationFilesTestWrapper>
     );
@@ -257,8 +265,7 @@ describe("OperationFiles", () => {
     const sdkContext = await createSdkContextForTest(program);
 
     const template = (
-      <OperationFilesTestWrapper sdkContext={sdkContext}>
-        <ModelFiles />
+      <OperationFilesTestWrapper sdkContext={sdkContext} siblings={<ModelFiles />}>
         <OperationFiles />
       </OperationFilesTestWrapper>
     );

@@ -11,6 +11,7 @@ import { EmitterOptionsProvider } from "./context/emitter-options-context.js";
 import { ModelFiles } from "./components/model-files.js";
 import { OperationFiles } from "./components/operation-files.js";
 import { OperationOptionsFiles } from "./components/operation-options-files.js";
+import { GroupDirectoryProvider } from "./context/group-directory-context.js";
 import { ClientContextFile } from "./components/client-context.js";
 import { ClassicalClientFile } from "./components/classical-client.js";
 import { ClassicalOperationGroupFiles } from "./components/classical-operation-groups.js";
@@ -167,15 +168,22 @@ export function EmitterTree(props: EmitterTreeProps) {
           )}
           <BarrelFile />
           <ModelFiles />
-          <OperationFiles />
-          <OperationOptionsFiles />
+          {flavor === "azure" && (
+            <RestorePollerFile client={sdkContext.sdkPackage.clients[0]} />
+          )}
+          <SourceDirectory path="api">
+            <BarrelFile />
+            <GroupDirectoryProvider>
+              <OperationFiles />
+              <OperationOptionsFiles />
+            </GroupDirectoryProvider>
+            <ClientContextFile client={sdkContext.sdkPackage.clients[0]} />
+          </SourceDirectory>
           <For each={sdkContext.sdkPackage.clients}>
             {(client) => (
               <>
-                <ClientContextFile client={client} />
                 <ClassicalClientFile client={client} />
                 <ClassicalOperationGroupFiles client={client} />
-                {flavor === "azure" && <RestorePollerFile client={client} />}
               </>
             )}
           </For>
@@ -228,7 +236,7 @@ export function EmitterTree(props: EmitterTreeProps) {
  *                  emitter options, and output directory path.
  */
 export async function $onEmit(context: EmitContext) {
-  const sdkContext = await createSdkContext(context);
+  const sdkContext = await createSdkContext(context, "@azure-tools/typespec-ts");
 
   // Apply typespec-title-map renames to client names before rendering.
   // This matches the legacy emitter's renameClientName() behavior where
