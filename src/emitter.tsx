@@ -168,7 +168,7 @@ export function EmitterTree(props: EmitterTreeProps) {
           )}
           <BarrelFile />
           <ModelFiles />
-          {flavor === "azure" && (
+          {flavor === "azure" && sdkContext.sdkPackage.clients[0] && (
             <RestorePollerFile client={sdkContext.sdkPackage.clients[0]} />
           )}
           <SourceDirectory path="api">
@@ -177,7 +177,9 @@ export function EmitterTree(props: EmitterTreeProps) {
               <OperationFiles />
               <OperationOptionsFiles />
             </GroupDirectoryProvider>
-            <ClientContextFile client={sdkContext.sdkPackage.clients[0]} />
+            {sdkContext.sdkPackage.clients[0] && (
+              <ClientContextFile client={sdkContext.sdkPackage.clients[0]} />
+            )}
           </SourceDirectory>
           <For each={sdkContext.sdkPackage.clients}>
             {(client) => (

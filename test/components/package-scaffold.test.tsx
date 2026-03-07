@@ -192,7 +192,7 @@ describe("PackageScaffold", () => {
     expect(files["eslint.config.mjs"]).toBeDefined();
 
     const apiExtractor = JSON.parse(files["api-extractor.json"]);
-    expect(apiExtractor.mainEntryPointFilePath).toBe("./dist/src/index.d.ts");
+    expect(apiExtractor.mainEntryPointFilePath).toBe("./dist/index.d.ts");
   });
 
   it("should preserve source file paths when metadata is enabled", async () => {

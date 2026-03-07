@@ -64,10 +64,14 @@ withRawContent: true
 ```ts operations
 import {
   type PartnerTopic,
-  partnerTopicDeserializer,
   PartnerTopicUpdateParameters,
+} from "../../../models/models.js";
+import {
+  partnerTopicDeserializer,
   partnerTopicUpdateParametersSerializer,
-} from "../../models/models.js";
+} from "../../../models/serialization/serialization.js";
+import { expandUrlTemplate } from "../../../static-helpers/urlTemplate.js";
+import { TestArmPatchContext } from "../../testArmPatchClientContext.js";
 import { PartnerTopicsUpdateOptionalParams } from "./options.js";
 import {
   createRestError,
@@ -75,8 +79,6 @@ import {
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@azure-rest/core-client";
-import { expandUrlTemplate } from "../../static-helpers/urlTemplate.js";
-import { TestArmPatchContext } from "../../testArmPatchClientContext.js";
 
 export function _updateSend(
   context: TestArmPatchContext,

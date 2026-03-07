@@ -68,7 +68,7 @@ export interface ArrowConfiguration {
 }
 ```
 
-```ts models function arrowFieldXmlObjectSerializer
+```ts serialization function arrowFieldXmlObjectSerializer
 export function arrowFieldXmlObjectSerializer(
   item: ArrowField,
 ): XmlSerializedObject {
@@ -80,7 +80,7 @@ export function arrowFieldXmlObjectSerializer(
 }
 ```
 
-```ts models function arrowConfigurationXmlSerializer
+```ts serialization function arrowConfigurationXmlSerializer
 export function arrowConfigurationXmlSerializer(
   item: ArrowConfiguration,
 ): string {
@@ -96,7 +96,7 @@ export function arrowConfigurationXmlSerializer(
 }
 ```
 
-```ts models function arrowConfigurationXmlObjectSerializer
+```ts serialization function arrowConfigurationXmlObjectSerializer
 export function arrowConfigurationXmlObjectSerializer(
   item: ArrowConfiguration,
 ): XmlSerializedObject {
@@ -168,7 +168,7 @@ export interface BlobTags {
 }
 ```
 
-```ts models function blobTagXmlObjectSerializer
+```ts serialization function blobTagXmlObjectSerializer
 export function blobTagXmlObjectSerializer(item: BlobTag): XmlSerializedObject {
   return {
     Key: item["key"],
@@ -177,7 +177,7 @@ export function blobTagXmlObjectSerializer(item: BlobTag): XmlSerializedObject {
 }
 ```
 
-```ts models function blobTagsXmlSerializer
+```ts serialization function blobTagsXmlSerializer
 export function blobTagsXmlSerializer(item: BlobTags): string {
   const properties: XmlPropertyMetadata[] = [
     {
@@ -191,7 +191,7 @@ export function blobTagsXmlSerializer(item: BlobTags): string {
 }
 ```
 
-```ts models function blobTagsXmlObjectSerializer
+```ts serialization function blobTagsXmlObjectSerializer
 export function blobTagsXmlObjectSerializer(
   item: BlobTags,
 ): XmlSerializedObject {

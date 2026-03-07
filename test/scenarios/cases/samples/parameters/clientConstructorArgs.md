@@ -57,14 +57,14 @@ The client constructor should expect all server template parameters:
 
 ```ts classicClient
 import {
-  _getIndexesOperations,
-  IndexesOperations,
-} from "./classic/indexes/index.js";
-import {
   createMachineLearningServices,
   type MachineLearningServicesClientOptionalParams,
   type MachineLearningServicesContext,
-} from "./machineLearningServicesClientContext.js";
+} from "./api/machineLearningServicesClientContext.js";
+import {
+  _getIndexesOperations,
+  IndexesOperations,
+} from "./classic/indexes/index.js";
 import type { TokenCredential } from "@azure/core-auth";
 import { Pipeline } from "@azure/core-rest-pipeline";
 

@@ -2,6 +2,7 @@ import { Children, For } from "@alloy-js/core";
 import { TypeDeclaration } from "@alloy-js/typescript";
 import type { SdkUnionType } from "@azure-tools/typespec-client-generator-core";
 import { getUnionName, getUnionDisplayName } from "../utils/model-name.js";
+import { createNamespaceMetadata } from "../utils/namespace-qualifier.js";
 import { typeRefkey } from "../utils/refkeys.js";
 import { getTypeExpression } from "./type-expression.js";
 
@@ -43,6 +44,7 @@ export function UnionDeclaration(props: UnionDeclarationProps) {
       refkey={typeRefkey(type)}
       export
       doc={doc}
+      metadata={createNamespaceMetadata(type)}
     >
       <For each={type.variantTypes} joiner=" | ">
         {(variant) => getTypeExpression(variant) as Children}

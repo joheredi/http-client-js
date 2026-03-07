@@ -55,6 +55,8 @@ export interface GetSecretOriginalOptionalParams extends OperationOptions {}
 ## Operations
 
 ```ts operations
+import { expandUrlTemplate } from "../static-helpers/urlTemplate.js";
+import type { KeyVaultContext } from "./keyVaultClientContext.js";
 import type { GetSecretOriginalOptionalParams } from "./options.js";
 import {
   createRestError,
@@ -62,8 +64,6 @@ import {
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
-import { expandUrlTemplate } from "../static-helpers/urlTemplate.js";
-import type { KeyVaultContext } from "../keyVaultClientContext.js";
 
 export function _getSecretOriginalSend(
   context: KeyVaultContext,
@@ -165,6 +165,10 @@ export interface GroupParametersOptions {
   param1: string;
   param2: string;
 }
+```
+
+```ts serialization
+import type { GroupParametersOptions } from "../models.js";
 
 export function groupParametersOptionsSerializer(
   item: GroupParametersOptions,
@@ -193,15 +197,15 @@ export interface GroupOriginalOptionalParams extends OperationOptions {}
 
 ```ts operations
 import type { GroupParametersOptions } from "../models/models.js";
+import { expandUrlTemplate } from "../static-helpers/urlTemplate.js";
 import type { GroupOriginalOptionalParams } from "./options.js";
+import type { OverrideContext } from "./overrideClientContext.js";
 import {
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
-import { expandUrlTemplate } from "../static-helpers/urlTemplate.js";
-import type { OverrideContext } from "../overrideClientContext.js";
 
 export function _groupOriginalSend(
   context: OverrideContext,
@@ -304,15 +308,15 @@ export interface RemoveOptionalOriginalOptionalParams extends OperationOptions {
 ## Operations
 
 ```ts operations
+import { expandUrlTemplate } from "../static-helpers/urlTemplate.js";
 import type { RemoveOptionalOriginalOptionalParams } from "./options.js";
+import type { OverrideContext } from "./overrideClientContext.js";
 import {
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
-import { expandUrlTemplate } from "../static-helpers/urlTemplate.js";
-import type { OverrideContext } from "../overrideClientContext.js";
 
 export function _removeOptionalOriginalSend(
   context: OverrideContext,

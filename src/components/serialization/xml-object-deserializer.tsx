@@ -6,6 +6,7 @@ import type {
   SdkType,
 } from "@azure-tools/typespec-client-generator-core";
 import { getModelFunctionName } from "../../utils/model-name.js";
+import { createNamespaceMetadata } from "../../utils/namespace-qualifier.js";
 import {
   serializationHelperRefkey,
   typeRefkey,
@@ -58,6 +59,7 @@ export function XmlObjectDeserializer(props: XmlObjectDeserializerProps) {
       export
       returnType={code`${typeRefkey(model)}`}
       parameters={[{ name: "xmlObject", type: "Record<string, unknown>" }]}
+      metadata={createNamespaceMetadata(model)}
     >
       {code`const properties: ${serializationHelperRefkey("XmlPropertyDeserializeMetadata")}[] = [\n`}
       <For each={properties} comma softline enderPunctuation>

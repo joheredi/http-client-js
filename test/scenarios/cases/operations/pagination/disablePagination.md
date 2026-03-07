@@ -69,6 +69,10 @@ export interface ListTestResult {
 export interface Test {
   id: string;
 }
+```
+
+```ts serialization
+import type { ListTestResult, Test } from "../models.js";
 
 export function listTestResultDeserializer(item: any): ListTestResult {
   return {
@@ -93,18 +97,16 @@ export function testArrayDeserializer(result: Array<Test>): any[] {
 ## Operations
 
 ```ts operations
-import {
-  type ListTestResult,
-  listTestResultDeserializer,
-} from "../models/models.js";
+import type { ListTestResult } from "../models/models.js";
+import { listTestResultDeserializer } from "../models/serialization/serialization.js";
 import type { BarOptionalParams, FooOptionalParams } from "./options.js";
+import type { TestServiceContext } from "./testServiceClientContext.js";
 import {
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
-import type { TestServiceContext } from "../testServiceClientContext.js";
 
 export function _barSend(
   context: TestServiceContext,

@@ -22,19 +22,19 @@ op `record`(param: Record<int32>): void;
 Should enable URI template parse for parameters:
 
 ```ts operations
+import { expandUrlTemplate } from "../static-helpers/urlTemplate.js";
 import type {
   ArrayOptionalParams,
   PrimitiveOptionalParams,
   RecordOptionalParams,
 } from "./options.js";
+import type { TestingContext } from "./testingClientContext.js";
 import {
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
-import { expandUrlTemplate } from "../static-helpers/urlTemplate.js";
-import type { TestingContext } from "../testingClientContext.js";
 
 export function _primitiveSend(
   context: TestingContext,

@@ -107,6 +107,9 @@ describe("ModelFiles", () => {
           name: string;
           age: number;
         }
+      ` + "\n\n\n",
+      "models/serialization/serialization.ts": d`
+        import type { Widget } from "../models.js";
 
         export function widgetDeserializer(item: any): Widget {
           return {
@@ -161,6 +164,7 @@ describe("ModelFiles", () => {
          */
         export type Color = "Red" | "Green" | "Blue";
       `,
+      "models/serialization/serialization.ts": "",
     });
   });
 
@@ -218,6 +222,9 @@ describe("ModelFiles", () => {
          * Type of Status
          */
         export type Status = "Active" | "Inactive";
+      ` + "\n\n\n",
+      "models/serialization/serialization.ts": d`
+        import type { Widget } from "../models.js";
 
         export function widgetDeserializer(item: any): Widget {
           return {
@@ -279,18 +286,22 @@ describe("ModelFiles", () => {
     expect(result).toRenderTo({
       "models/index.ts": expect.any(String),
       "models/models.ts": expect.stringContaining("export interface Pet"),
+      "models/serialization/serialization.ts": expect.any(String),
     });
     expect(result).toRenderTo({
       "models/index.ts": expect.any(String),
       "models/models.ts": expect.stringContaining("export type PetUnion"),
+      "models/serialization/serialization.ts": expect.any(String),
     });
     expect(result).toRenderTo({
       "models/index.ts": expect.any(String),
       "models/models.ts": expect.stringContaining("export interface Cat"),
+      "models/serialization/serialization.ts": expect.any(String),
     });
     expect(result).toRenderTo({
       "models/index.ts": expect.any(String),
       "models/models.ts": expect.stringContaining("export interface Dog"),
+      "models/serialization/serialization.ts": expect.any(String),
     });
   });
 
@@ -364,6 +375,9 @@ describe("ModelFiles", () => {
          * Alias for MixedType
          */
         export type MixedType = string | number;
+      ` + "\n\n\n",
+      "models/serialization/serialization.ts": d`
+        import type { MixedType } from "../models.js";
 
         export function mixedTypeSerializer(item: MixedType): any {
           return item;
@@ -426,6 +440,9 @@ describe("ModelFiles", () => {
         export interface Bar {
           y: number;
         }
+      ` + "\n\n\n",
+      "models/serialization/serialization.ts": d`
+        import type { Bar, Foo } from "../models.js";
 
         export function fooDeserializer(item: any): Foo {
           return {
@@ -479,6 +496,7 @@ describe("ModelFiles", () => {
     expect(template).toRenderTo({
       "models/index.ts": expect.any(String),
       "models/models.ts": expect.stringContaining("address: Address"),
+      "models/serialization/serialization.ts": expect.any(String),
     });
   });
 });

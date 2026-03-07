@@ -67,10 +67,14 @@ withVersionedApiVersion: true
 ```ts operations
 import {
   TestVerificationContent,
-  testVerificationContentSerializer,
   type TestVerificationResult,
+} from "../../../models/models.js";
+import {
+  testVerificationContentSerializer,
   testVerificationResultDeserializer,
-} from "../../models/models.js";
+} from "../../../models/serialization/serialization.js";
+import { expandUrlTemplate } from "../../../static-helpers/urlTemplate.js";
+import { TestingContext } from "../../testingClientContext.js";
 import { DeviceLocationVerifyOptionalParams } from "./options.js";
 import {
   createRestError,
@@ -78,8 +82,6 @@ import {
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@azure-rest/core-client";
-import { expandUrlTemplate } from "../../static-helpers/urlTemplate.js";
-import { TestingContext } from "../../testingClientContext.js";
 
 export function _verifySend(
   context: TestingContext,

@@ -54,3 +54,7 @@ export enum KnownVersions {
   V20211001Preview = "2021-10-01-preview",
 }
 ```
+
+```ts serialization
+
+```

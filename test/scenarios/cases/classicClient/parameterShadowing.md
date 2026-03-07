@@ -44,7 +44,7 @@ import {
   createTesting,
   type TestingClientOptionalParams,
   type TestingContext,
-} from "./testingClientContext.js";
+} from "./api/testingClientContext.js";
 import type {
   InputOutputRecord,
   InputRecord,

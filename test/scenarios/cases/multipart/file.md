@@ -20,11 +20,7 @@ This basic case uses TypeSpec's `Http.File`, which specifies an optional `filena
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import {
-  createFilePartDescriptor,
-  type FileContents,
-} from "../static-helpers/multipartHelpers.js";
-import { uint8ArrayToString } from "@typespec/ts-http-runtime";
+import type { FileContents } from "../static-helpers/multipartHelpers.js";
 
 /**
  * model interface RequestBody
@@ -104,6 +100,13 @@ export interface File {
   contents: Uint8Array;
 }
 
+```
+
+```ts serialization
+import { createFilePartDescriptor } from "../../static-helpers/multipartHelpers.js";
+import type { File, RequestBody } from "../models.js";
+import { uint8ArrayToString } from "@typespec/ts-http-runtime";
+
 export function fileSerializer(item: File): any {
   return {
     contentType: item["contentType"],
@@ -121,15 +124,16 @@ export function requestBodySerializer(item: RequestBody): any {
 ## Operations
 
 ```ts operations
-import { type RequestBody, requestBodySerializer } from "../models/models.js";
+import type { RequestBody } from "../models/models.js";
+import { requestBodySerializer } from "../models/serialization/serialization.js";
 import type { DoThingOptionalParams } from "./options.js";
+import type { TestingContext } from "./testingClientContext.js";
 import {
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
-import type { TestingContext } from "../testingClientContext.js";
 
 export function _doThingSend(
   context: TestingContext,
@@ -191,11 +195,7 @@ The filename must be provided _somehow_. This can either be done by passing a `F
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import {
-  createFilePartDescriptor,
-  type FileContents,
-} from "../static-helpers/multipartHelpers.js";
-import { uint8ArrayToString } from "@typespec/ts-http-runtime";
+import type { FileContents } from "../static-helpers/multipartHelpers.js";
 
 /**
  * model interface RequestBody
@@ -282,6 +282,13 @@ export interface File {
   contents: Uint8Array;
 }
 
+```
+
+```ts serialization
+import { createFilePartDescriptor } from "../../static-helpers/multipartHelpers.js";
+import type { File, FileRequiredName, RequestBody } from "../models.js";
+import { uint8ArrayToString } from "@typespec/ts-http-runtime";
+
 export function fileRequiredNameSerializer(item: FileRequiredName): any {
   return {
     contentType: item["contentType"],
@@ -328,11 +335,7 @@ op doThing(@header contentType: "multipart/form-data", @multipartBody bodyParam:
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import {
-  createFilePartDescriptor,
-  type FileContents,
-} from "../static-helpers/multipartHelpers.js";
-import { uint8ArrayToString } from "@typespec/ts-http-runtime";
+import type { FileContents } from "../static-helpers/multipartHelpers.js";
 
 /**
  * model interface RequestBody
@@ -419,6 +422,13 @@ export interface File {
   contents: Uint8Array;
 }
 
+```
+
+```ts serialization
+import { createFilePartDescriptor } from "../../static-helpers/multipartHelpers.js";
+import type { File, PngFile, RequestBody } from "../models.js";
+import { uint8ArrayToString } from "@typespec/ts-http-runtime";
+
 export function pngFileSerializer(item: PngFile): any {
   return {
     filename: item["filename"],
@@ -463,11 +473,7 @@ Each provided file in the input corresponds to one part in the multipart request
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import {
-  createFilePartDescriptor,
-  type FileContents,
-} from "../static-helpers/multipartHelpers.js";
-import { uint8ArrayToString } from "@typespec/ts-http-runtime";
+import type { FileContents } from "../static-helpers/multipartHelpers.js";
 
 /**
  * model interface RequestBody
@@ -547,6 +553,13 @@ export interface File {
    */
   contents: Uint8Array;
 }
+
+```
+
+```ts serialization
+import { createFilePartDescriptor } from "../../static-helpers/multipartHelpers.js";
+import type { File, RequestBody } from "../models.js";
+import { uint8ArrayToString } from "@typespec/ts-http-runtime";
 
 export function fileSerializer(item: File): any {
   return {

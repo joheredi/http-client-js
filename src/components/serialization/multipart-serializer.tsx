@@ -6,6 +6,7 @@ import type {
 } from "@azure-tools/typespec-client-generator-core";
 import { computeFlattenCollisionMap } from "../../utils/flatten-collision.js";
 import { getModelFunctionName } from "../../utils/model-name.js";
+import { createNamespaceMetadata } from "../../utils/namespace-qualifier.js";
 import {
   flattenSerializerRefkey,
   serializationHelperRefkey,
@@ -70,6 +71,7 @@ export function MultipartSerializer(props: MultipartSerializerProps) {
       export
       returnType="any"
       parameters={[{ name: "item", type: typeRefkey(model) }]}
+      metadata={createNamespaceMetadata(model)}
     >
       {code`return [`}
       <For each={properties} comma softline>

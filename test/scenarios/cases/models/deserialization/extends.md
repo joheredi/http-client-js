@@ -69,6 +69,15 @@ export interface MaasModelConfig extends AWidgetData {
   start: Date;
   end?: Date;
 }
+```
+
+```ts serialization
+import {
+  AoaiModelConfig,
+  type AWidgetData,
+  type AWidgetDataUnion,
+  MaasModelConfig,
+} from "../models.js";
 
 export function aoaiModelConfigDeserializer(item: any): AoaiModelConfig {
   return {
@@ -238,6 +247,16 @@ export type DiscountType =
   | "Sku"
   | "CustomPrice"
   | "CustomPriceMultiCurrency";
+```
+
+```ts serialization
+import {
+  DiscountTypeProduct,
+  DiscountTypeProductFamily,
+  DiscountTypeProductSku,
+  type DiscountTypeProperties,
+  type DiscountTypePropertiesUnion,
+} from "../models.js";
 
 export function discountTypeProductFamilyDeserializer(
   item: any,
@@ -404,6 +423,16 @@ export type DocumentType =
   | "Event"
   | "Trace"
   | "Unknown";
+```
+
+```ts serialization
+import {
+  type DocumentIngress,
+  type DocumentIngressUnion,
+  type DocumentType,
+  Exception,
+  Request,
+} from "../models.js";
 
 export function requestSerializer(item: Request): any {
   return {
@@ -641,6 +670,16 @@ export enum KnownVersions {
    */
   "2024-08-01-preview" = "2024-08-01-preview",
 }
+```
+
+```ts serialization
+import {
+  type Animal,
+  type AnimalUnion,
+  Dog,
+  Pet,
+  type PetUnion,
+} from "../models.js";
 
 export function dogSerializer(item: Dog): any {
   return {

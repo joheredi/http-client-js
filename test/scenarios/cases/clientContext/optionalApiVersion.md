@@ -56,7 +56,7 @@ ignoreWeirdLine: false
 ## clientContext
 
 ```ts clientContext
-import { logger } from "./logger.js";
+import { logger } from "../logger.js";
 import {
   type Client,
   type ClientOptions,

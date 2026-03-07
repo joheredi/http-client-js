@@ -57,6 +57,14 @@ export interface _SimpleModelPropPropB {
   propAa: string;
   propBb: boolean;
 }
+```
+
+```ts serialization
+import type {
+  _SimpleModelProp,
+  _SimpleModelPropPropB,
+  SimpleModel,
+} from "../models.js";
 
 export function simpleModelSerializer(item: SimpleModel): any {
   return {

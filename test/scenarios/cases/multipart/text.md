@@ -28,6 +28,10 @@ export interface RequestBody {
   firstName: string;
   lastName: string;
 }
+```
+
+```ts serialization
+import type { RequestBody } from "../models.js";
 
 export function requestBodySerializer(item: RequestBody): any {
   return [
@@ -40,15 +44,16 @@ export function requestBodySerializer(item: RequestBody): any {
 ## Operations
 
 ```ts operations
-import { type RequestBody, requestBodySerializer } from "../models/models.js";
+import type { RequestBody } from "../models/models.js";
+import { requestBodySerializer } from "../models/serialization/serialization.js";
 import type { DoThingOptionalParams } from "./options.js";
+import type { TestingContext } from "./testingClientContext.js";
 import {
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
-import type { TestingContext } from "../testingClientContext.js";
 
 export function _doThingSend(
   context: TestingContext,
@@ -111,6 +116,10 @@ If a part is optional, not specifying a value should cause no part to be sent in
 export interface RequestBody {
   lastName?: string;
 }
+```
+
+```ts serialization
+import type { RequestBody } from "../models.js";
 
 export function requestBodySerializer(item: RequestBody): any {
   return [
@@ -149,6 +158,10 @@ op doThing(@header contentType: "multipart/form-data", @multipartBody bodyParam:
 export interface RequestBody {
   names: string[];
 }
+```
+
+```ts serialization
+import type { RequestBody } from "../models.js";
 
 export function requestBodySerializer(item: RequestBody): any {
   return [...item["names"].map((x: unknown) => ({ name: "names", body: x }))];

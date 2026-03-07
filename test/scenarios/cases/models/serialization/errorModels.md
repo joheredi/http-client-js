@@ -60,6 +60,10 @@ export interface ErrorDetail {
    */
   message: string;
 }
+```
+
+```ts serialization
+import type { ApiError, ErrorDetail, Foo } from "../models.js";
 
 export function fooDeserializer(item: any): Foo {
   return {
@@ -147,6 +151,10 @@ export interface ApiError {
   code: string;
   detail?: ErrorDetail;
 }
+```
+
+```ts serialization
+import type { ApiError, ErrorDetail, Foo } from "../models.js";
 
 export function fooDeserializer(item: any): Foo {
   return {

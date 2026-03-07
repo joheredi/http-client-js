@@ -259,6 +259,7 @@ const LEGACY_CATEGORIES: Record<
   (outputs: Record<string, string>) => string | undefined
 > = {
   models: (outputs) => findOutputFile(outputs, /models\/models\.ts$/),
+  serialization: (outputs) => findOutputFile(outputs, /models\/serialization\/serialization\.ts$/),
   "models:withOptions": (outputs) =>
     findOutputFile(outputs, /api\/.*options\.ts$/),
   operations: (outputs) => findOutputFile(outputs, /api\/.*operations\.ts$/),

@@ -141,13 +141,13 @@ export interface ErrorResponse {
   /**
    * The error object.
    */
-  error?: ErrorDetail;
+  error?: CommonTypesErrorDetail;
 }
 
 /**
  * The error detail.
  */
-export interface ErrorDetail {
+export interface CommonTypesErrorDetail {
   /**
    * The error code.
    */
@@ -163,7 +163,7 @@ export interface ErrorDetail {
   /**
    * The error details.
    */
-  readonly details?: ErrorDetail[];
+  readonly details?: CommonTypesErrorDetail[];
   /**
    * The error additional info.
    */
@@ -202,13 +202,13 @@ export interface AvsSummary extends ProxyResource {
  * model interface AvsSummaryProperties
  */
 export interface AvsSummaryProperties {
-  error: ErrorDetail_1;
+  error: ContosoErrorDetail;
 }
 
 /**
  * model interface ErrorDetail
  */
-export interface ErrorDetail_1 {
+export interface ContosoErrorDetail {
   code: string;
   message: string;
   details?: string;
@@ -295,6 +295,23 @@ export enum KnownVersions {
    */
   V20211001Preview = "2021-10-01-preview",
 }
+```
+
+```ts serialization
+import type {
+  AvsSummary,
+  AvsSummaryProperties,
+  CommonTypesErrorDetail as ErrorDetail_2,
+  ContosoErrorDetail as ErrorDetail_1,
+  ErrorAdditionalInfo,
+  ErrorResponse,
+  Operation,
+  OperationDisplay,
+  OperationListResult,
+  ProxyResource,
+  Resource,
+  SystemData,
+} from "../models.js";
 
 export function avsSummarySerializer(item: AvsSummary): any {
   return {
@@ -376,11 +393,11 @@ export function errorResponseDeserializer(item: any): ErrorResponse {
   return {
     error: !item["error"]
       ? item["error"]
-      : errorDetailDeserializer(item["error"]),
+      : commonTypesErrorDetailDeserializer(item["error"]),
   };
 }
 
-export function errorDetailDeserializer(item: any): ErrorDetail {
+export function commonTypesErrorDetailDeserializer(item: any): ErrorDetail_2 {
   return {
     code: item["code"],
     message: item["message"],
@@ -421,11 +438,11 @@ export function avsSummaryPropertiesDeserializer(
   item: any,
 ): AvsSummaryProperties {
   return {
-    error: errorDetailDeserializer_1(item["error"]),
+    error: contosoErrorDetailDeserializer(item["error"]),
   };
 }
 
-export function errorDetailDeserializer_1(item: any): ErrorDetail_1 {
+export function contosoErrorDetailDeserializer(item: any): ErrorDetail_1 {
   return {
     code: item["code"],
     message: item["message"],
@@ -477,10 +494,10 @@ export function operationArrayDeserializer(result: Array<Operation>): any[] {
 }
 
 export function errorDetailArrayDeserializer(
-  result: Array<ErrorDetail>,
+  result: Array<ErrorDetail_2>,
 ): any[] {
   return result.map((item) => {
-    return errorDetailDeserializer(item);
+    return commonTypesErrorDetailDeserializer(item);
   });
 }
 
@@ -496,15 +513,14 @@ export function errorAdditionalInfoArrayDeserializer(
 ## Operations
 
 ```ts operations
-import {
-  type Operation,
-  type OperationListResult,
-  operationListResultDeserializer,
-} from "../../models/models.js";
+import type { Operation, OperationListResult } from "../../../models/models.js";
+import { operationListResultDeserializer } from "../../../models/serialization/serialization.js";
 import {
   buildPagedAsyncIterator,
   type PagedAsyncIterableIterator,
-} from "../../static-helpers/pagingHelpers.js";
+} from "../../../static-helpers/pagingHelpers.js";
+import { expandUrlTemplate } from "../../../static-helpers/urlTemplate.js";
+import { ContosoContext } from "../../contosoClientContext.js";
 import { OperationsListOptionalParams } from "./options.js";
 import {
   createRestError,
@@ -512,8 +528,6 @@ import {
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@azure-rest/core-client";
-import { expandUrlTemplate } from "../../static-helpers/urlTemplate.js";
-import { ContosoContext } from "../../contosoClientContext.js";
 
 export function _listSend(
   context: ContosoContext,

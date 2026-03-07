@@ -32,6 +32,10 @@ export interface _PostRequest {
   message?: string;
   propA?: _PostRequest | null;
 }
+```
+
+```ts serialization
+import type { _PostRequest } from "../models.js";
 
 export function _postRequestSerializer(item: _PostRequest): any {
   return {
@@ -57,19 +61,19 @@ export function _postRequestDeserializer(item: any): _PostRequest {
 ## Operations
 
 ```ts operations
+import type { _PostRequest } from "../models/models.js";
 import {
-  type _PostRequest,
   _postRequestDeserializer,
   _postRequestSerializer,
-} from "../models/models.js";
+} from "../models/serialization/serialization.js";
 import type { PostOptionalParams } from "./options.js";
+import type { TestingContext } from "./testingClientContext.js";
 import {
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
-import type { TestingContext } from "../testingClientContext.js";
 
 export function _postSend(
   context: TestingContext,

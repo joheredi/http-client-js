@@ -37,6 +37,10 @@ export interface TestModel {
   optionalBoolean?: boolean;
   requiredBoolean: boolean;
 }
+```
+
+```ts serialization
+import type { TestModel } from "../models.js";
 
 export function testModelDeserializer(item: any): TestModel {
   return {
@@ -85,6 +89,10 @@ export interface TestModel {
   optionalNullableBoolean?: boolean | null;
   requiredNullableBoolean: boolean | null;
 }
+```
+
+```ts serialization
+import type { TestModel } from "../models.js";
 
 export function testModelDeserializer(item: any): TestModel {
   return {
@@ -126,7 +134,7 @@ flavor: azure
 ## Models with Options
 
 ```ts models:withOptions
-import type { Widget } from "../../models/models.js";
+import type { Widget } from "../../../models/models.js";
 import type { OperationOptions } from "@azure-rest/core-client";
 
 /**
@@ -171,7 +179,7 @@ ignore-nullable-on-optional: false
 ## Models with Options
 
 ```ts models:withOptions
-import type { Widget } from "../../models/models.js";
+import type { Widget } from "../../../models/models.js";
 import type { OperationOptions } from "@typespec/ts-http-runtime";
 
 /**

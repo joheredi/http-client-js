@@ -40,7 +40,9 @@ import {
   buildCsvCollection,
   buildPipeCollection,
   buildSsvCollection,
-} from "../../static-helpers/serializationHelpers.js";
+} from "../../../static-helpers/serializationHelpers.js";
+import { expandUrlTemplate } from "../../../static-helpers/urlTemplate.js";
+import type { TestingContext } from "../../testingClientContext.js";
 import type {
   QueryOperationsCreateOptionalParams,
   QueryOperationsReadOptionalParams,
@@ -51,8 +53,6 @@ import {
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
-import { expandUrlTemplate } from "../../static-helpers/urlTemplate.js";
-import type { TestingContext } from "../../testingClientContext.js";
 
 export function _readSend(
   context: TestingContext,
@@ -157,6 +157,8 @@ interface QueryOperations {
 ## Operations
 
 ```ts operations
+import { expandUrlTemplate } from "../../../static-helpers/urlTemplate.js";
+import type { TestingContext } from "../../testingClientContext.js";
 import type { QueryOperationsReadOptionalParams } from "./options.js";
 import {
   createRestError,
@@ -164,8 +166,6 @@ import {
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
-import { expandUrlTemplate } from "../../static-helpers/urlTemplate.js";
-import type { TestingContext } from "../../testingClientContext.js";
 
 export function _readSend(
   context: TestingContext,

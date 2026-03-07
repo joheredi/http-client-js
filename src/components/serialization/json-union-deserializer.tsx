@@ -6,6 +6,7 @@ import type {
   SdkUnionType,
 } from "@azure-tools/typespec-client-generator-core";
 import { getUnionFunctionName } from "../../utils/model-name.js";
+import { createNamespaceMetadata } from "../../utils/namespace-qualifier.js";
 import { deserializerRefkey, typeRefkey } from "../../utils/refkeys.js";
 import { typeHasDeserializerDeclaration } from "../../utils/serialization-predicates.js";
 import {
@@ -56,6 +57,7 @@ export function JsonUnionDeserializer(props: JsonUnionDeserializerProps) {
       export
       returnType={code`${typeRefkey(type)}`}
       parameters={[{ name: "item", type: "any" }]}
+      metadata={createNamespaceMetadata(type)}
     >
       {buildUnionDeserializerBody(type)}
     </FunctionDeclaration>

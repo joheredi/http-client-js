@@ -100,8 +100,6 @@ Model generated.
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import { areAllPropsUndefined } from "../static-helpers/serializationHelpers.js";
-
 /**
  * This is a simple model.
  */
@@ -150,6 +148,16 @@ export enum KnownVersions {
    */
   V20220515Preview = "2022-05-15-preview",
 }
+```
+
+```ts serialization
+import { areAllPropsUndefined } from "../../static-helpers/serializationHelpers.js";
+import type {
+  A,
+  BodyParameter,
+  ChildFlattenModel,
+  FooProperties,
+} from "../models.js";
 
 export function bodyParameterSerializer(item: BodyParameter): any {
   return {

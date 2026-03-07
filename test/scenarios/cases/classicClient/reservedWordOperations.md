@@ -15,7 +15,7 @@ import {
   createTesting,
   type TestingClientOptionalParams,
   type TestingContext,
-} from "./testingClientContext.js";
+} from "./api/testingClientContext.js";
 import { Pipeline } from "@typespec/ts-http-runtime";
 
 export class TestingClient {

@@ -69,7 +69,7 @@ export function _getUserDeserializeHeaders(result: PathUncheckedResponse): {
 }
 ```
 
-```ts models function userDeserializer
+```ts serialization function userDeserializer
 export function userDeserializer(item: any): User {
   return {
     name: item["name"],

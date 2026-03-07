@@ -43,14 +43,14 @@ withRawContent: true
 
 ```ts classicClient
 import {
-  _getOperationsOperations,
-  OperationsOperations,
-} from "./classic/operations/index.js";
-import {
   createGlobalService,
   type GlobalServiceClientOptionalParams,
   type GlobalServiceContext,
-} from "./globalServiceClientContext.js";
+} from "./api/globalServiceClientContext.js";
+import {
+  _getOperationsOperations,
+  OperationsOperations,
+} from "./classic/operations/index.js";
 import type { TokenCredential } from "@azure/core-auth";
 import { Pipeline } from "@azure/core-rest-pipeline";
 
@@ -170,6 +170,11 @@ withRawContent: true
 import { checkNameAvailability } from "./api/operations.js";
 import type { CheckNameAvailabilityOptionalParams } from "./api/options.js";
 import {
+  createStandardService,
+  type StandardServiceClientOptionalParams,
+  type StandardServiceContext,
+} from "./api/standardServiceClientContext.js";
+import {
   _getOperationsOperations,
   OperationsOperations,
 } from "./classic/operations/index.js";
@@ -181,11 +186,6 @@ import type {
   CheckNameAvailabilityInput,
   CheckNameAvailabilityOutput,
 } from "./models/models.js";
-import {
-  createStandardService,
-  type StandardServiceClientOptionalParams,
-  type StandardServiceContext,
-} from "./standardServiceClientContext.js";
 import type { TokenCredential } from "@azure/core-auth";
 import { Pipeline } from "@azure/core-rest-pipeline";
 
@@ -307,6 +307,11 @@ withRawContent: true
 ## classicClient
 
 ```ts classicClient
+import {
+  createMixedService,
+  MixedServiceClientOptionalParams,
+  type MixedServiceContext,
+} from "./api/mixedServiceClientContext.js";
 import { listSkus } from "./api/operations.js";
 import type { ListSkusOptionalParams } from "./api/options.js";
 import {
@@ -317,11 +322,6 @@ import {
   _getOperationsOperations,
   OperationsOperations,
 } from "./classic/operations/index.js";
-import {
-  createMixedService,
-  MixedServiceClientOptionalParams,
-  type MixedServiceContext,
-} from "./mixedServiceClientContext.js";
 import type { SkuListResult } from "./models/models.js";
 import { TokenCredential } from "@azure/core-auth";
 import { Pipeline } from "@azure/core-rest-pipeline";

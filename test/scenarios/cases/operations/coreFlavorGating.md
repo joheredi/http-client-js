@@ -31,15 +31,16 @@ flavor: core
 ## Operations
 
 ```ts operations
-import { type Bar, barDeserializer } from "../models/models.js";
+import type { Bar } from "../models/models.js";
+import { barDeserializer } from "../models/serialization/serialization.js";
 import type { TestOptionalParams } from "./options.js";
+import type { TestingContext } from "./testingClientContext.js";
 import {
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
-import type { TestingContext } from "../testingClientContext.js";
 
 export function _testSend(
   context: TestingContext,
@@ -158,16 +159,20 @@ flavor: core
 ## Operations
 
 ```ts operations
-import { User, userDeserializer, userSerializer } from "../models/models.js";
+import { User } from "../models/models.js";
+import {
+  userDeserializer,
+  userSerializer,
+} from "../models/serialization/serialization.js";
+import { expandUrlTemplate } from "../static-helpers/urlTemplate.js";
 import { CreateOrReplaceOptionalParams } from "./options.js";
+import { TestLroContext } from "./testLroClientContext.js";
 import {
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
-import { expandUrlTemplate } from "../static-helpers/urlTemplate.js";
-import { TestLroContext } from "../testLroClientContext.js";
 
 export function _createOrReplaceSend(
   context: TestLroContext,
@@ -285,11 +290,10 @@ flavor: core
 ## Operations
 
 ```ts operations
-import {
-  type Site,
-  type WebAppCollection,
-  webAppCollectionDeserializer,
-} from "../../models/models.js";
+import type { Site, WebAppCollection } from "../../../models/models.js";
+import { webAppCollectionDeserializer } from "../../../models/serialization/serialization.js";
+import { expandUrlTemplate } from "../../../static-helpers/urlTemplate.js";
+import { WebContext } from "../../webClientContext.js";
 import { SitesSuspendOptionalParams } from "./options.js";
 import {
   createRestError,
@@ -297,8 +301,6 @@ import {
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
-import { expandUrlTemplate } from "../../static-helpers/urlTemplate.js";
-import { WebContext } from "../../webClientContext.js";
 
 export function _suspendSend(
   context: WebContext,

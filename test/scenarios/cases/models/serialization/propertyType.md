@@ -96,8 +96,6 @@ Generated Models.
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import { serializeRecord } from "../static-helpers/serializationHelpers.js";
-
 /**
  * model interface SimpleModel
  */
@@ -235,6 +233,26 @@ export type SimpleModelPropStringUnionAsExtensibleNullable = "A" | "B";
 export type SimpleModelPropStringUnionAsExtensibleOptionalAndNullable =
   | "A"
   | "B";
+```
+
+```ts serialization
+import { serializeRecord } from "../../static-helpers/serializationHelpers.js";
+import {
+  AzureArcK8SClusterNfviDetails,
+  AzureCoreNfviDetails,
+  type FOO,
+  type Foobar,
+  type NFVIs,
+  type NFVIsUnion,
+  type SimpleModel,
+  type SimpleModelPropStringUnion,
+  type SimpleModelPropStringUnionAsExtensible,
+  type SimpleModelPropStringUnionAsExtensibleNullable,
+  type SimpleModelPropStringUnionAsExtensibleOptional,
+  type SimpleModelPropStringUnionAsExtensibleOptionalAndNullable,
+  type SimpleModelPropStringUnionNullable,
+  type SimpleModelPropStringUnionOptioanl,
+} from "../models.js";
 
 export function simpleModelSerializer(item: SimpleModel): any {
   return {

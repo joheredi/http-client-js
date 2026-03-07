@@ -113,6 +113,10 @@ export enum KnownVersions {
  * custom provision state to avoid duplication and ensure consistency
  */
 export type ResourceProvisioningState = "Succeeded" | "Failed" | "Canceled";
+```
+
+```ts serialization
+import type { _FooRequestBody, ProvisioningState } from "../models.js";
 
 export function _fooRequestBodySerializer(item: _FooRequestBody): any {
   return {

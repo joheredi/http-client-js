@@ -14,6 +14,7 @@ import type {
 import { UsageFlags } from "@azure-tools/typespec-client-generator-core";
 import { useEmitterOptions } from "../../context/emitter-options-context.js";
 import { getModelFunctionName } from "../../utils/model-name.js";
+import { createNamespaceMetadata } from "../../utils/namespace-qualifier.js";
 import {
   flattenSerializerRefkey,
   serializationHelperRefkey,
@@ -108,6 +109,7 @@ export function JsonSerializer(props: JsonSerializerProps) {
       export
       returnType="any"
       parameters={[{ name: "item", type: typeRefkey(model) }]}
+      metadata={createNamespaceMetadata(model)}
     >
       {isEmpty ? (
         code`return item;`

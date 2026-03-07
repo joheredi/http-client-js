@@ -23,10 +23,7 @@ op withWireName(
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import {
-  createFilePartDescriptor,
-  type FileContents,
-} from "../static-helpers/multipartHelpers.js";
+import type { FileContents } from "../static-helpers/multipartHelpers.js";
 
 /**
  * model interface MultiPartRequestWithWireName
@@ -37,6 +34,11 @@ export interface MultiPartRequestWithWireName {
     | FileContents
     | { contents: FileContents; contentType?: string; filename?: string };
 }
+```
+
+```ts serialization
+import { createFilePartDescriptor } from "../../static-helpers/multipartHelpers.js";
+import type { MultiPartRequestWithWireName } from "../models.js";
 
 export function multiPartRequestWithWireNameSerializer(
   item: MultiPartRequestWithWireName,
@@ -85,10 +87,7 @@ needTCGC: true
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import {
-  createFilePartDescriptor,
-  type FileContents,
-} from "../static-helpers/multipartHelpers.js";
+import type { FileContents } from "../static-helpers/multipartHelpers.js";
 
 /**
  * model interface MultiPartRequest
@@ -99,6 +98,11 @@ export interface MultiPartRequest {
     | FileContents
     | { contents: FileContents; contentType?: string; filename?: string };
 }
+```
+
+```ts serialization
+import { createFilePartDescriptor } from "../../static-helpers/multipartHelpers.js";
+import type { MultiPartRequest } from "../models.js";
 
 export function multiPartRequestSerializer(item: MultiPartRequest): any {
   return [

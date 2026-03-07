@@ -56,6 +56,10 @@ export type Foo = "bar" | Baz | string;
  * Type of Baz
  */
 export type Baz = "test" | "foo";
+```
+
+```ts serialization
+import type { Foo } from "../models.js";
 
 export function fooSerializer(item: Foo): any {
   return item;

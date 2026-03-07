@@ -12,15 +12,16 @@ op continue(): Test;
 ## Operations
 
 ```ts operations
-import { type Test, testDeserializer } from "../models/models.js";
+import type { Test } from "../models/models.js";
+import { testDeserializer } from "../models/serialization/serialization.js";
 import { ContinueOptionalParams } from "./options.js";
+import { TestingContext } from "./testingClientContext.js";
 import {
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
-import { TestingContext } from "../testingClientContext.js";
 
 export function _$continueSend(
   context: TestingContext,
@@ -77,15 +78,16 @@ op `return`(): Test;
 ## Operations
 
 ```ts operations
-import { type Test, testDeserializer } from "../models/models.js";
+import type { Test } from "../models/models.js";
+import { testDeserializer } from "../models/serialization/serialization.js";
 import { ReturnOptionalParams } from "./options.js";
+import { TestingContext } from "./testingClientContext.js";
 import {
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
-import { TestingContext } from "../testingClientContext.js";
 
 export function _$returnSend(
   context: TestingContext,
@@ -142,15 +144,16 @@ op global(): Test;
 ## Operations
 
 ```ts operations
-import { type Test, testDeserializer } from "../models/models.js";
+import type { Test } from "../models/models.js";
+import { testDeserializer } from "../models/serialization/serialization.js";
 import type { GlobalOptionalParams } from "./options.js";
+import type { TestingContext } from "./testingClientContext.js";
 import {
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
-import type { TestingContext } from "../testingClientContext.js";
 
 export function _globalSend(
   context: TestingContext,

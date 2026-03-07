@@ -26,16 +26,17 @@ op getWidget(@path id: string): Widget | StorageError;
 ## Operations
 
 ```ts operations
-import { type Widget, widgetDeserializer } from "../models/models.js";
+import type { Widget } from "../models/models.js";
+import { widgetDeserializer } from "../models/serialization/serialization.js";
+import { expandUrlTemplate } from "../static-helpers/urlTemplate.js";
 import type { GetWidgetOptionalParams } from "./options.js";
+import type { TestingContext } from "./testingClientContext.js";
 import {
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
-import { expandUrlTemplate } from "../static-helpers/urlTemplate.js";
-import type { TestingContext } from "../testingClientContext.js";
 
 export function _getWidgetSend(
   context: TestingContext,
@@ -111,16 +112,17 @@ op getDocument(@path id: string): {
 ## Operations
 
 ```ts operations
-import { type Document, documentDeserializer } from "../models/models.js";
+import type { Document } from "../models/models.js";
+import { documentDeserializer } from "../models/serialization/serialization.js";
+import { expandUrlTemplate } from "../static-helpers/urlTemplate.js";
 import type { GetDocumentOptionalParams } from "./options.js";
+import type { TestingContext } from "./testingClientContext.js";
 import {
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
-import { expandUrlTemplate } from "../static-helpers/urlTemplate.js";
-import type { TestingContext } from "../testingClientContext.js";
 
 export function _getDocumentSend(
   context: TestingContext,
@@ -189,16 +191,17 @@ op getItem(@path id: string): Item | SimpleError;
 ## Operations
 
 ```ts operations
-import { type Item, itemDeserializer } from "../models/models.js";
+import type { Item } from "../models/models.js";
+import { itemDeserializer } from "../models/serialization/serialization.js";
+import { expandUrlTemplate } from "../static-helpers/urlTemplate.js";
 import type { GetItemOptionalParams } from "./options.js";
+import type { TestingContext } from "./testingClientContext.js";
 import {
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
-import { expandUrlTemplate } from "../static-helpers/urlTemplate.js";
-import type { TestingContext } from "../testingClientContext.js";
 
 export function _getItemSend(
   context: TestingContext,

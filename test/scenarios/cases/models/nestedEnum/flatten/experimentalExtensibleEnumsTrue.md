@@ -135,6 +135,10 @@ export enum KnownVersions {
    */
   V20211001Preview = "2021-10-01-preview",
 }
+```
+
+```ts serialization
+import type { _FooRequestBody } from "../models.js";
 
 export function _fooRequestBodySerializer(item: _FooRequestBody): any {
   return {

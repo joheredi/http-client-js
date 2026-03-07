@@ -30,7 +30,7 @@ export interface Bar {
 
 ## Model function barSerializer
 
-```ts models function barSerializer
+```ts serialization function barSerializer
 export function barSerializer(item: Bar): any {
   return {
     prop1: item["prop1"],
@@ -42,16 +42,17 @@ export function barSerializer(item: Bar): any {
 ## Operations
 
 ```ts operations
-import { type Bar, barSerializer } from "../models/models.js";
+import type { Bar } from "../models/models.js";
+import { barSerializer } from "../models/serialization/serialization.js";
+import { expandUrlTemplate } from "../static-helpers/urlTemplate.js";
 import type { ReadOptionalParams } from "./options.js";
+import type { TestingContext } from "./testingClientContext.js";
 import {
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
-import { expandUrlTemplate } from "../static-helpers/urlTemplate.js";
-import type { TestingContext } from "../testingClientContext.js";
 
 export function _readSend(
   context: TestingContext,
@@ -149,7 +150,7 @@ export interface Bar {
 
 ## Models function barSerializer
 
-```ts models function barSerializer
+```ts serialization function barSerializer
 export function barSerializer(item: Bar): any {
   return {
     prop1: item["prop1"],
@@ -176,16 +177,16 @@ export interface ReadOptionalParams extends OperationOptions {
 ## Operations
 
 ```ts operations
-import { barSerializer } from "../models/models.js";
+import { barSerializer } from "../models/serialization/serialization.js";
+import { expandUrlTemplate } from "../static-helpers/urlTemplate.js";
 import type { ReadOptionalParams } from "./options.js";
+import type { TestingContext } from "./testingClientContext.js";
 import {
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
-import { expandUrlTemplate } from "../static-helpers/urlTemplate.js";
-import type { TestingContext } from "../testingClientContext.js";
 
 export function _readSend(
   context: TestingContext,
@@ -279,7 +280,7 @@ export interface Bar {
 
 ## Models function barSerializer
 
-```ts models function barSerializer
+```ts serialization function barSerializer
 export function barSerializer(item: Bar): any {
   return {
     prop1: item["prop1"],
@@ -306,16 +307,16 @@ export interface ReadOptionalParams extends OperationOptions {
 ## Operations
 
 ```ts operations
-import { barSerializer } from "../models/models.js";
+import { barSerializer } from "../models/serialization/serialization.js";
+import { expandUrlTemplate } from "../static-helpers/urlTemplate.js";
 import type { ReadOptionalParams } from "./options.js";
+import type { TestingContext } from "./testingClientContext.js";
 import {
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
-import { expandUrlTemplate } from "../static-helpers/urlTemplate.js";
-import type { TestingContext } from "../testingClientContext.js";
 
 export function _readSend(
   context: TestingContext,
@@ -422,7 +423,7 @@ export interface Foo {
 
 ## Models function barSerializer
 
-```ts models function barSerializer
+```ts serialization function barSerializer
 export function barSerializer(item: Bar): any {
   return {
     prop1: item["prop1"],
@@ -433,7 +434,7 @@ export function barSerializer(item: Bar): any {
 
 ## Models function fooSerializer
 
-```ts models function fooSerializer
+```ts serialization function fooSerializer
 export function fooSerializer(item: Foo): any {
   return {
     prop1: item["prop1"],
@@ -448,16 +449,17 @@ export function fooSerializer(item: Foo): any {
 ## Operations
 
 ```ts operations
-import { type Foo, fooSerializer } from "../models/models.js";
+import type { Foo } from "../models/models.js";
+import { fooSerializer } from "../models/serialization/serialization.js";
+import { expandUrlTemplate } from "../static-helpers/urlTemplate.js";
 import type { ReadOptionalParams } from "./options.js";
+import type { TestingContext } from "./testingClientContext.js";
 import {
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
-import { expandUrlTemplate } from "../static-helpers/urlTemplate.js";
-import type { TestingContext } from "../testingClientContext.js";
 
 export function _readSend(
   context: TestingContext,
@@ -523,6 +525,10 @@ op read(@path pathParam: string, @query queryParam: string, @body body: {}): OkR
  * model interface _ReadRequest
  */
 export interface _ReadRequest {}
+```
+
+```ts serialization
+import type { _ReadRequest } from "../models.js";
 
 export function _readRequestSerializer(item: _ReadRequest): any {
   return item;
@@ -532,16 +538,16 @@ export function _readRequestSerializer(item: _ReadRequest): any {
 ## Operations
 
 ```ts operations
-import { _readRequestSerializer } from "../models/models.js";
+import { _readRequestSerializer } from "../models/serialization/serialization.js";
+import { expandUrlTemplate } from "../static-helpers/urlTemplate.js";
 import type { ReadOptionalParams } from "./options.js";
+import type { TestingContext } from "./testingClientContext.js";
 import {
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
-import { expandUrlTemplate } from "../static-helpers/urlTemplate.js";
-import type { TestingContext } from "../testingClientContext.js";
 
 export function _readSend(
   context: TestingContext,
@@ -611,7 +617,7 @@ export interface Bar {
 
 ## Models function barSerializer
 
-```ts models function barSerializer
+```ts serialization function barSerializer
 export function barSerializer(item: Bar): any {
   return {
     prop1: item["prop1"],
@@ -623,16 +629,17 @@ export function barSerializer(item: Bar): any {
 ## Operations
 
 ```ts operations
-import { type _ReadRequest, _readRequestSerializer } from "../models/models.js";
+import type { _ReadRequest } from "../models/models.js";
+import { _readRequestSerializer } from "../models/serialization/serialization.js";
+import { expandUrlTemplate } from "../static-helpers/urlTemplate.js";
 import type { ReadOptionalParams } from "./options.js";
+import type { TestingContext } from "./testingClientContext.js";
 import {
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
-import { expandUrlTemplate } from "../static-helpers/urlTemplate.js";
-import type { TestingContext } from "../testingClientContext.js";
 
 export function _readSend(
   context: TestingContext,
@@ -697,7 +704,7 @@ export interface Test {
 
 ## Models function testSerializer
 
-```ts models function testSerializer
+```ts serialization function testSerializer
 export function testSerializer(item: Test): any {
   return {
     color: _testColorSerializer(item["color"]),
@@ -708,15 +715,16 @@ export function testSerializer(item: Test): any {
 ## Operations
 
 ```ts operations
-import { type Test, testSerializer } from "../models/models.js";
+import type { Test } from "../models/models.js";
+import { testSerializer } from "../models/serialization/serialization.js";
 import type { ReadOptionalParams } from "./options.js";
+import type { TestingContext } from "./testingClientContext.js";
 import {
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
-import type { TestingContext } from "../testingClientContext.js";
 
 export function _readSend(
   context: TestingContext,
@@ -774,7 +782,7 @@ export interface Test {
 
 ## Models function testSerializer
 
-```ts models function testSerializer
+```ts serialization function testSerializer
 export function testSerializer(item: Test): any {
   return {
     color: _testColorSerializer(item["color"]),
@@ -785,15 +793,16 @@ export function testSerializer(item: Test): any {
 ## Operations
 
 ```ts operations
-import { type Test, testSerializer } from "../models/models.js";
+import type { Test } from "../models/models.js";
+import { testSerializer } from "../models/serialization/serialization.js";
 import type { ReadOptionalParams } from "./options.js";
+import type { TestingContext } from "./testingClientContext.js";
 import {
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
-import type { TestingContext } from "../testingClientContext.js";
 
 export function _readSend(
   context: TestingContext,
@@ -850,6 +859,10 @@ op read(): { @body _: {}; };
  * model interface _ReadResponse
  */
 export interface _ReadResponse {}
+```
+
+```ts serialization
+import type { _ReadResponse } from "../models.js";
 
 export function _readResponseDeserializer(item: any): _ReadResponse {
   return item;
@@ -859,15 +872,15 @@ export function _readResponseDeserializer(item: any): _ReadResponse {
 ## Operations
 
 ```ts operations
-import { _readResponseDeserializer } from "../models/models.js";
+import { _readResponseDeserializer } from "../models/serialization/serialization.js";
 import type { ReadOptionalParams } from "./options.js";
+import type { TestingContext } from "./testingClientContext.js";
 import {
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
-import type { TestingContext } from "../testingClientContext.js";
 
 export function _readSend(
   context: TestingContext,
@@ -926,6 +939,10 @@ op read(): {@body _: PublishResult};
  * model interface PublishResult
  */
 export interface PublishResult {}
+```
+
+```ts serialization
+import type { PublishResult } from "../models.js";
 
 export function publishResultDeserializer(item: any): PublishResult {
   return item;
@@ -935,18 +952,16 @@ export function publishResultDeserializer(item: any): PublishResult {
 ## Operations
 
 ```ts operations
-import {
-  type PublishResult,
-  publishResultDeserializer,
-} from "../models/models.js";
+import type { PublishResult } from "../models/models.js";
+import { publishResultDeserializer } from "../models/serialization/serialization.js";
 import type { ReadOptionalParams } from "./options.js";
+import type { TestingContext } from "./testingClientContext.js";
 import {
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
-import type { TestingContext } from "../testingClientContext.js";
 
 export function _readSend(
   context: TestingContext,
@@ -1014,6 +1029,10 @@ export interface _ReadResponse {
 export interface _ReadResponseFoo {
   bar: string | null;
 }
+```
+
+```ts serialization
+import type { _ReadResponse, _ReadResponseFoo } from "../models.js";
 
 export function _readResponseDeserializer(item: any): _ReadResponse {
   return {
@@ -1031,18 +1050,16 @@ export function _readResponseFooDeserializer(item: any): _ReadResponseFoo {
 ## Operations
 
 ```ts operations
-import {
-  type _ReadResponse,
-  _readResponseDeserializer,
-} from "../models/models.js";
+import type { _ReadResponse } from "../models/models.js";
+import { _readResponseDeserializer } from "../models/serialization/serialization.js";
 import type { ReadOptionalParams } from "./options.js";
+import type { TestingContext } from "./testingClientContext.js";
 import {
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
-import type { TestingContext } from "../testingClientContext.js";
 
 export function _readSend(
   context: TestingContext,
@@ -1105,8 +1122,6 @@ op read(): ReturnBody;
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import { deserializeRecord } from "../static-helpers/serializationHelpers.js";
-
 /**
  * model interface ReturnBody
  */
@@ -1138,6 +1153,17 @@ export interface _ReturnBodyEmptyAnomyousDict {}
  * model interface EmptyModel
  */
 export interface EmptyModel {}
+```
+
+```ts serialization
+import { deserializeRecord } from "../../static-helpers/serializationHelpers.js";
+import type {
+  _ReturnBodyEmptyAnomyous,
+  _ReturnBodyEmptyAnomyousArray,
+  _ReturnBodyEmptyAnomyousDict,
+  EmptyModel,
+  ReturnBody,
+} from "../models.js";
 
 export function returnBodyDeserializer(item: any): ReturnBody {
   return {
@@ -1210,15 +1236,16 @@ export function emptyModelRecordDeserializer(
 ## Operations
 
 ```ts operations
-import { type ReturnBody, returnBodyDeserializer } from "../models/models.js";
+import type { ReturnBody } from "../models/models.js";
+import { returnBodyDeserializer } from "../models/serialization/serialization.js";
 import type { ReadOptionalParams } from "./options.js";
+import type { TestingContext } from "./testingClientContext.js";
 import {
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
-import type { TestingContext } from "../testingClientContext.js";
 
 export function _readSend(
   context: TestingContext,
@@ -1285,8 +1312,6 @@ op read(): Foz;
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import { deserializeRecord } from "../static-helpers/serializationHelpers.js";
-
 /**
  * model interface Foz
  */
@@ -1333,6 +1358,18 @@ export interface _FozBazNonemptyAnomyousArray {
 export interface _FozBazNonemptyAnomyousDict {
   c: number[];
 }
+```
+
+```ts serialization
+import { deserializeRecord } from "../../static-helpers/serializationHelpers.js";
+import type {
+  _FozBaz,
+  _FozBazNonemptyAnomyous,
+  _FozBazNonemptyAnomyousArray,
+  _FozBazNonemptyAnomyousDict,
+  Foz,
+  SimpleModel,
+} from "../models.js";
 
 export function fozDeserializer(item: any): Foz {
   return {
@@ -1417,15 +1454,16 @@ export function _fozBazNonemptyAnomyousDictRecordDeserializer(
 ## Operations
 
 ```ts operations
-import { type Foz, fozDeserializer } from "../models/models.js";
+import type { Foz } from "../models/models.js";
+import { fozDeserializer } from "../models/serialization/serialization.js";
 import type { ReadOptionalParams } from "./options.js";
+import type { TestingContext } from "./testingClientContext.js";
 import {
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
-import type { TestingContext } from "../testingClientContext.js";
 
 export function _readSend(
   context: TestingContext,

@@ -42,8 +42,6 @@ needTCGC: true
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import { areAllPropsUndefined } from "../static-helpers/serializationHelpers.js";
-
 /**
  * model interface Solution
  */
@@ -64,6 +62,11 @@ export interface SolutionProperties {
   readonly title?: string;
   readonly content?: string;
 }
+```
+
+```ts serialization
+import { areAllPropsUndefined } from "../../static-helpers/serializationHelpers.js";
+import type { Solution, SolutionProperties } from "../models.js";
 
 export function solutionSerializer(item: Solution): any {
   return {

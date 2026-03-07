@@ -92,6 +92,10 @@ export enum KnownVersions {
    */
   V20230301Preview = "2023-03-01-preview",
 }
+```
+
+```ts serialization
+import type { AssetChainSummaryResult } from "../models.js";
 
 export function assetChainSummaryResultDeserializer(
   item: any,
@@ -109,10 +113,9 @@ export function assetChainSummaryResultDeserializer(
 ## Operations
 
 ```ts operations
-import {
-  type AssetChainSummaryResult,
-  assetChainSummaryResultDeserializer,
-} from "../../models/models.js";
+import type { AssetChainSummaryResult } from "../../../models/models.js";
+import { assetChainSummaryResultDeserializer } from "../../../models/serialization/serialization.js";
+import type { TestServiceContext } from "../../testServiceClientContext.js";
 import type { OperationsGetAssetChainSummaryOptionalParams } from "./options.js";
 import {
   createRestError,
@@ -120,7 +123,6 @@ import {
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@azure-rest/core-client";
-import type { TestServiceContext } from "../../testServiceClientContext.js";
 
 export function _getAssetChainSummarySend(
   context: TestServiceContext,

@@ -31,6 +31,10 @@ export interface StreamingChatCompletionOptions {
   messages: "aaaaa";
   index: 123;
 }
+```
+
+```ts serialization
+import type { StreamingChatCompletionOptions } from "../models.js";
 
 export function streamingChatCompletionOptionsSerializer(
   item: StreamingChatCompletionOptions,
@@ -56,20 +60,20 @@ export function streamingChatCompletionOptionsDeserializer(
 ## Operations
 
 ```ts operations
+import type { StreamingChatCompletionOptions } from "../models/models.js";
 import {
-  type StreamingChatCompletionOptions,
   streamingChatCompletionOptionsDeserializer,
   streamingChatCompletionOptionsSerializer,
-} from "../models/models.js";
+} from "../models/serialization/serialization.js";
+import { expandUrlTemplate } from "../static-helpers/urlTemplate.js";
 import type { ReadOptionalParams } from "./options.js";
+import type { TestingContext } from "./testingClientContext.js";
 import {
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
-import { expandUrlTemplate } from "../static-helpers/urlTemplate.js";
-import type { TestingContext } from "../testingClientContext.js";
 
 export function _readSend(
   context: TestingContext,
@@ -150,17 +154,21 @@ export interface StreamingChatCompletionOptions {
 }
 ```
 
+```ts serialization
+
+```
+
 ## Operations
 
 ```ts operations
 import type { ReadOptionalParams } from "./options.js";
+import type { TestingContext } from "./testingClientContext.js";
 import {
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
-import type { TestingContext } from "../testingClientContext.js";
 
 export function _readSend(
   context: TestingContext,
@@ -279,4 +287,8 @@ export function _tryRequestSerializer(item: _TryRequest): any {
     },
   ];
 }
+```
+
+```ts serialization
+// placeholder
 ```

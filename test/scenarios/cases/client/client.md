@@ -12,11 +12,11 @@ model Widget {
 
 Should generate the client context interface and factory function.
 
-```ts src/testingClientContext.ts interface TestingContext
+```ts src/api/testingClientContext.ts interface TestingContext
 export interface TestingContext extends Client {}
 ```
 
-```ts src/testingClientContext.ts function createTesting
+```ts src/api/testingClientContext.ts function createTesting
 export function createTesting(
   endpointParam: string,
   options: TestingClientOptionalParams = {},

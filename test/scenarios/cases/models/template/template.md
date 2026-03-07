@@ -95,6 +95,19 @@ export interface Templated2 {
 export interface Templated3 {
   prop: 1;
 }
+```
+
+```ts serialization
+import type {
+  Base,
+  Foo,
+  InputOutputModel,
+  Templated,
+  Templated1,
+  Templated2,
+  Templated3,
+  TemplatedBase,
+} from "../models.js";
 
 export function inputOutputModelSerializer(item: InputOutputModel): any {
   return {

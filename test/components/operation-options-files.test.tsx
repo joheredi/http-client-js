@@ -227,8 +227,8 @@ describe("OperationOptionsFiles", () => {
         childName.charAt(0).toLowerCase() + childName.slice(1);
       expect(template).toRenderTo({
         "api/index.ts": expect.any(String),
-        [`api/${normalizedName}/index.ts`]: expect.any(String),
-        [`api/${normalizedName}/options.ts`]: expect.stringContaining(
+        [`api/groups/${normalizedName}/index.ts`]: expect.any(String),
+        [`api/groups/${normalizedName}/options.ts`]: expect.stringContaining(
           `${childName}ListWidgetsOptionalParams`,
         ),
       });

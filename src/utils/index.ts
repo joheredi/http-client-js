@@ -45,6 +45,13 @@ export { hasXmlSerialization } from "./xml-detection.js";
 export { nameConflictResolver } from "./name-conflict-resolver.js";
 
 export {
+  NAMESPACE_METADATA_KEY,
+  createNamespaceMetadata,
+  computeNamespacePrefixes,
+  applyNamespacePrefix,
+} from "./namespace-qualifier.js";
+
+export {
   typeHasDeserializerDeclaration,
   typeHasSerializerDeclaration,
 } from "./serialization-predicates.js";

@@ -11,6 +11,7 @@ import type {
   SdkType,
 } from "@azure-tools/typespec-client-generator-core";
 import { getModelFunctionName } from "../../utils/model-name.js";
+import { createNamespaceMetadata } from "../../utils/namespace-qualifier.js";
 import {
   deserializerRefkey,
   flattenDeserializerRefkey,
@@ -107,6 +108,7 @@ export function JsonDeserializer(props: JsonDeserializerProps) {
       export
       returnType={code`${typeRefkey(model)}`}
       parameters={[{ name: "item", type: "any" }]}
+      metadata={createNamespaceMetadata(model)}
     >
       {isEmpty ? (
         code`return item;`

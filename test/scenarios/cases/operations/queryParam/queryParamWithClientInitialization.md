@@ -109,7 +109,7 @@ withRawContent: true
 ## clientContext
 
 ```ts clientContext
-import { logger } from "./logger.js";
+import { logger } from "../logger.js";
 import {
   type Client,
   type ClientOptions,
@@ -155,10 +155,10 @@ export function createBillingBenefits(
 ## Operations
 
 ```ts operations
-import {
-  type SavingsPlanModel,
-  savingsPlanModelDeserializer,
-} from "../../models/models.js";
+import type { SavingsPlanModel } from "../../../models/models.js";
+import { savingsPlanModelDeserializer } from "../../../models/serialization/serialization.js";
+import { expandUrlTemplate } from "../../../static-helpers/urlTemplate.js";
+import { BillingBenefitsContext } from "../../billingBenefitsClientContext.js";
 import { SavingsPlanModelsGetOptionalParams } from "./options.js";
 import {
   createRestError,
@@ -166,8 +166,6 @@ import {
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@azure-rest/core-client";
-import { expandUrlTemplate } from "../../static-helpers/urlTemplate.js";
-import { BillingBenefitsContext } from "../../billingBenefitsClientContext.js";
 
 export function _getSend(
   context: BillingBenefitsContext,
@@ -354,7 +352,7 @@ withRawContent: true
 ## clientContext
 
 ```ts clientContext
-import { logger } from "./logger.js";
+import { logger } from "../logger.js";
 import {
   type Client,
   type ClientOptions,
@@ -393,10 +391,10 @@ export function createBillingBenefits(
 ## Operations
 
 ```ts operations
-import {
-  type SavingsPlanModel,
-  savingsPlanModelDeserializer,
-} from "../../models/models.js";
+import type { SavingsPlanModel } from "../../../models/models.js";
+import { savingsPlanModelDeserializer } from "../../../models/serialization/serialization.js";
+import { expandUrlTemplate } from "../../../static-helpers/urlTemplate.js";
+import { BillingBenefitsContext } from "../../billingBenefitsClientContext.js";
 import { SavingsPlanModelsGetOptionalParams } from "./options.js";
 import {
   createRestError,
@@ -404,8 +402,6 @@ import {
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@azure-rest/core-client";
-import { expandUrlTemplate } from "../../static-helpers/urlTemplate.js";
-import { BillingBenefitsContext } from "../../billingBenefitsClientContext.js";
 
 export function _getSend(
   context: BillingBenefitsContext,

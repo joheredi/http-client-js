@@ -16,15 +16,15 @@ op template(param: string): void;
 Should enable `allowReserved:true` for path parameter:
 
 ```ts operations
+import { expandUrlTemplate } from "../static-helpers/urlTemplate.js";
 import type { TemplateOptionalParams } from "./options.js";
+import type { TestingContext } from "./testingClientContext.js";
 import {
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
-import { expandUrlTemplate } from "../static-helpers/urlTemplate.js";
-import type { TestingContext } from "../testingClientContext.js";
 
 export function _templateSend(
   context: TestingContext,

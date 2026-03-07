@@ -131,6 +131,9 @@ describe("Unresolved Symbol Prevention", () => {
          * Type of TestModelNullableUnion
          */
         export type TestModelNullableUnion = "A" | "B";
+      ` + "\n\n\n",
+      "models/serialization/serialization.ts": d`
+        import type { TestModel, TestModelNullableUnion } from "../models.js";
 
         export function testModelNullableUnionSerializer(
           item: TestModelNullableUnion,
@@ -412,11 +415,14 @@ describe("Unresolved Symbol Prevention", () => {
         /**
          * Type of Colors
          */
-        export type Colors = \"blue\" | \"red\" | \"green\";
+        export type Colors = "blue" | "red" | "green";
+      ` + "\n\n\n",
+      "models/serialization/serialization.ts": d`
+        import type { Colors, TestModel } from "../models.js";
 
         export function testModelSerializer(item: TestModel): any {
           return {
-            colors: item[\"colors\"].map((p: any) => { return colorsSerializer(p); }),
+            colors: item["colors"].map((p: any) => { return colorsSerializer(p); }),
           };
         }
 

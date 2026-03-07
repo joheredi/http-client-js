@@ -271,6 +271,20 @@ export enum KnownVersions {
    */
   V20231201 = "2023-12-01",
 }
+```
+
+```ts serialization
+import type {
+  ErrorAdditionalInfo,
+  ErrorDetail,
+  ErrorResponse,
+  Resource,
+  Site,
+  SiteProperties,
+  SystemData,
+  TrackedResource,
+  WebAppCollection,
+} from "../models.js";
 
 export function webAppCollectionDeserializer(item: any): WebAppCollection {
   return {
@@ -397,16 +411,15 @@ export function errorAdditionalInfoArrayDeserializer(
 ## Operations
 
 ```ts operations
-import {
-  type Site,
-  type WebAppCollection,
-  webAppCollectionDeserializer,
-} from "../../models/models.js";
+import type { Site, WebAppCollection } from "../../../models/models.js";
+import { webAppCollectionDeserializer } from "../../../models/serialization/serialization.js";
 import {
   buildPagedAsyncIterator,
   type PagedAsyncIterableIterator,
-} from "../../static-helpers/pagingHelpers.js";
-import { getLongRunningPoller } from "../../static-helpers/pollingHelpers.js";
+} from "../../../static-helpers/pagingHelpers.js";
+import { getLongRunningPoller } from "../../../static-helpers/pollingHelpers.js";
+import { expandUrlTemplate } from "../../../static-helpers/urlTemplate.js";
+import { WebContext } from "../../webClientContext.js";
 import { SitesSuspendOptionalParams } from "./options.js";
 import {
   createRestError,
@@ -415,8 +428,6 @@ import {
   type StreamableMethod,
 } from "@azure-rest/core-client";
 import { OperationState, PollerLike } from "@azure/core-lro";
-import { expandUrlTemplate } from "../../static-helpers/urlTemplate.js";
-import { WebContext } from "../../webClientContext.js";
 
 export function _suspendSend(
   context: WebContext,

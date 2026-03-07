@@ -50,16 +50,17 @@ withVersionedApiVersion: true
 ## Operations
 
 ```ts operations
-import { type KeyBundle, keyBundleDeserializer } from "../models/models.js";
+import type { KeyBundle } from "../models/models.js";
+import { keyBundleDeserializer } from "../models/serialization/serialization.js";
+import { expandUrlTemplate } from "../static-helpers/urlTemplate.js";
 import { UpdateKeyOptionalParams } from "./options.js";
+import { TestingContext } from "./testingClientContext.js";
 import {
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@azure-rest/core-client";
-import { expandUrlTemplate } from "../static-helpers/urlTemplate.js";
-import { TestingContext } from "../testingClientContext.js";
 
 export function _updateKeySend(
   context: TestingContext,

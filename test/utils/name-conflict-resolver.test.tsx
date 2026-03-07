@@ -25,6 +25,7 @@ import {
   createTSNamePolicy,
   SourceFile,
   FunctionDeclaration,
+  InterfaceDeclaration,
   createPackage,
 } from "@alloy-js/typescript";
 import { Output as EmitterOutput } from "@typespec/emitter-framework";
@@ -183,5 +184,142 @@ describe("nameConflictResolver", () => {
     expect(ops).toContain("TestingContext");
     expect(ops).toContain("StreamableMethod");
     expect(ops).toContain("createRestError");
+  });
+
+  /**
+   * Tests that declarations with distinct tcgcNamespace metadata get
+   * namespace-qualified names instead of _1 numeric suffixes.
+   */
+  it("should namespace-qualify symbols with distinct tcgcNamespace metadata", async () => {
+    const rk1 = refkey();
+    const rk2 = refkey();
+    const output = (
+      <Output
+        namePolicy={createTSNamePolicy()}
+        nameConflictResolver={nameConflictResolver}
+      >
+        <SourceFile path="models.ts">
+          <InterfaceDeclaration
+            name="Foo"
+            refkey={rk1}
+            export
+            metadata={{ tcgcNamespace: "MyService.NamespaceA" }}
+          />
+          <InterfaceDeclaration
+            name="Foo"
+            refkey={rk2}
+            export
+            metadata={{ tcgcNamespace: "MyService.NamespaceB" }}
+          />
+        </SourceFile>
+      </Output>
+    );
+    const tree = await renderAsync(output);
+    const files = collectFiles(tree);
+    const content = files["models.ts"];
+    expect(content).toContain("NamespaceAFoo");
+    expect(content).toContain("NamespaceBFoo");
+    expect(content).not.toContain("Foo_1");
+  });
+
+  /**
+   * Tests that declarations without namespace metadata fall back to
+   * the standard _N suffix behavior from tsNameConflictResolver.
+   */
+  it("should fall back to _N suffixes when symbols lack namespace metadata", async () => {
+    const rk1 = refkey();
+    const rk2 = refkey();
+    const output = (
+      <Output
+        namePolicy={createTSNamePolicy()}
+        nameConflictResolver={nameConflictResolver}
+      >
+        <SourceFile path="models.ts">
+          <InterfaceDeclaration name="Bar" refkey={rk1} export />
+          <InterfaceDeclaration name="Bar" refkey={rk2} export />
+        </SourceFile>
+      </Output>
+    );
+    const tree = await renderAsync(output);
+    const files = collectFiles(tree);
+    const content = files["models.ts"];
+    // One stays "Bar", the other gets "_1" suffix
+    expect(content).toContain("Bar");
+    expect(content).toMatch(/Bar_\d/);
+  });
+
+  /**
+   * Tests that declarations sharing the same namespace fall back to
+   * _N suffixes since the namespace can't disambiguate them.
+   */
+  it("should fall back when all symbols share the same namespace", async () => {
+    const rk1 = refkey();
+    const rk2 = refkey();
+    const output = (
+      <Output
+        namePolicy={createTSNamePolicy()}
+        nameConflictResolver={nameConflictResolver}
+      >
+        <SourceFile path="models.ts">
+          <InterfaceDeclaration
+            name="Baz"
+            refkey={rk1}
+            export
+            metadata={{ tcgcNamespace: "MyService.Same" }}
+          />
+          <InterfaceDeclaration
+            name="Baz"
+            refkey={rk2}
+            export
+            metadata={{ tcgcNamespace: "MyService.Same" }}
+          />
+        </SourceFile>
+      </Output>
+    );
+    const tree = await renderAsync(output);
+    const files = collectFiles(tree);
+    const content = files["models.ts"];
+    // Same namespace can't disambiguate, so falls back to _N suffix
+    expect(content).toMatch(/Baz_\d/);
+  });
+
+  /**
+   * Tests mixed scenario: some symbols have namespace metadata, some don't.
+   * Namespace-bearing symbols get qualified; others get _N fallback.
+   */
+  it("should handle mix of symbols with and without namespace metadata", async () => {
+    const rk1 = refkey();
+    const rk2 = refkey();
+    const rk3 = refkey();
+    const output = (
+      <Output
+        namePolicy={createTSNamePolicy()}
+        nameConflictResolver={nameConflictResolver}
+      >
+        <SourceFile path="models.ts">
+          <InterfaceDeclaration
+            name="Qux"
+            refkey={rk1}
+            export
+            metadata={{ tcgcNamespace: "MyService.GroupA" }}
+          />
+          <InterfaceDeclaration
+            name="Qux"
+            refkey={rk2}
+            export
+            metadata={{ tcgcNamespace: "MyService.GroupB" }}
+          />
+          <InterfaceDeclaration name="Qux" refkey={rk3} export />
+        </SourceFile>
+      </Output>
+    );
+    const tree = await renderAsync(output);
+    const files = collectFiles(tree);
+    const content = files["models.ts"];
+    // Namespace-qualified names
+    expect(content).toContain("GroupAQux");
+    expect(content).toContain("GroupBQux");
+    // The one without namespace keeps "Qux" (no conflict with qualified names)
+    expect(content).toContain("Qux");
   });
 });

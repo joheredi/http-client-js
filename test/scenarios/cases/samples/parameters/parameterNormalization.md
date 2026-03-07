@@ -46,16 +46,16 @@ Raw json files.
 Operations
 
 ```ts operations
-import { listCredentialsRequestSerializer } from "../models/models.js";
+import { listCredentialsRequestSerializer } from "../models/serialization/serialization.js";
+import { expandUrlTemplate } from "../static-helpers/urlTemplate.js";
 import { PostOptionalParams } from "./options.js";
+import { TestingContext } from "./testingClientContext.js";
 import {
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
-import { expandUrlTemplate } from "../static-helpers/urlTemplate.js";
-import { TestingContext } from "../testingClientContext.js";
 
 export function _postSend(
   context: TestingContext,

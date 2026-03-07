@@ -77,8 +77,6 @@ Generated Models.
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import { deserializeRecord } from "../static-helpers/serializationHelpers.js";
-
 /**
  * model interface SimpleModel
  */
@@ -223,6 +221,11 @@ export enum KnownSimpleModelPropStringUnionAsExtensibleOptionalAndNullable {
    */
   B = "B",
 }
+```
+
+```ts serialization
+import { deserializeRecord } from "../../static-helpers/serializationHelpers.js";
+import type { SimpleModel } from "../models.js";
 
 export function simpleModelDeserializer(item: any): SimpleModel {
   return {

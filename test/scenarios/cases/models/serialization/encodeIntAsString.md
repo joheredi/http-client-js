@@ -36,6 +36,10 @@ Generated Models.
 export interface Foo {
   prop1: string;
 }
+```
+
+```ts serialization
+import type { Foo } from "../models.js";
 
 export function fooSerializer(item: Foo): any {
   return {

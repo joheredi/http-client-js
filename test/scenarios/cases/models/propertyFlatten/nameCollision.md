@@ -77,6 +77,10 @@ export enum KnownVersions {
    */
   V20220515Preview = "2022-05-15-preview",
 }
+```
+
+```ts serialization
+import type { FooProperties, Test } from "../models.js";
 
 export function testSerializer(item: Test): any {
   return {
@@ -176,8 +180,6 @@ Model generated.
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import { areAllPropsUndefined } from "../static-helpers/serializationHelpers.js";
-
 /**
  * model interface Test
  */
@@ -223,6 +225,11 @@ export enum KnownVersions {
    */
   V20220515Preview = "2022-05-15-preview",
 }
+```
+
+```ts serialization
+import { areAllPropsUndefined } from "../../static-helpers/serializationHelpers.js";
+import type { FooProperties, Test, XProperties } from "../models.js";
 
 export function testSerializer(item: Test): any {
   return {
@@ -360,8 +367,6 @@ Model generated.
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import { areAllPropsUndefined } from "../static-helpers/serializationHelpers.js";
-
 /**
  * model interface Test
  */
@@ -409,6 +414,11 @@ export enum KnownVersions {
    */
   V20220515Preview = "2022-05-15-preview",
 }
+```
+
+```ts serialization
+import { areAllPropsUndefined } from "../../static-helpers/serializationHelpers.js";
+import type { FooProperties, Test, XProperties } from "../models.js";
 
 export function testSerializer(item: Test): any {
   return {
@@ -580,6 +590,10 @@ export enum KnownVersions {
    */
   V20220515Preview = "2022-05-15-preview",
 }
+```
+
+```ts serialization
+import type { FooProperties, Test } from "../models.js";
 
 export function testSerializer(item: Test): any {
   return {

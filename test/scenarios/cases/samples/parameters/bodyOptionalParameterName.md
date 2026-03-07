@@ -120,7 +120,7 @@ Raw json files.
 Generated operation options.
 
 ```ts models:withOptions
-import type { BackupRequestProperties } from "../../models/models.js";
+import type { BackupRequestProperties } from "../../../models/models.js";
 import type { OperationOptions } from "@azure-rest/core-client";
 
 /**
@@ -145,12 +145,14 @@ export interface CloudHsmClustersBackupOptionalParams extends OperationOptions {
 Should generate operations correctly:
 
 ```ts operations
+import { BackupResult } from "../../../models/models.js";
 import {
   backupRequestPropertiesSerializer,
-  BackupResult,
   backupResultDeserializer,
-} from "../../models/models.js";
-import { getLongRunningPoller } from "../../static-helpers/pollingHelpers.js";
+} from "../../../models/serialization/serialization.js";
+import { getLongRunningPoller } from "../../../static-helpers/pollingHelpers.js";
+import { expandUrlTemplate } from "../../../static-helpers/urlTemplate.js";
+import { HardwareSecurityModulesContext } from "../../hardwareSecurityModulesClientContext.js";
 import { CloudHsmClustersBackupOptionalParams } from "./options.js";
 import {
   createRestError,
@@ -159,8 +161,6 @@ import {
   type StreamableMethod,
 } from "@azure-rest/core-client";
 import { OperationState, PollerLike } from "@azure/core-lro";
-import { expandUrlTemplate } from "../../static-helpers/urlTemplate.js";
-import { HardwareSecurityModulesContext } from "../../hardwareSecurityModulesClientContext.js";
 
 export function _backupSend(
   context: HardwareSecurityModulesContext,

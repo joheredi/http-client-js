@@ -58,10 +58,10 @@ needTCGC: true
 The generated operations should apply default values for query, header, and body parameters.
 
 ```ts operations
-import {
-  type Configuration,
-  configurationDeserializer,
-} from "../../models/models.js";
+import type { Configuration } from "../../../models/models.js";
+import { configurationDeserializer } from "../../../models/serialization/serialization.js";
+import { expandUrlTemplate } from "../../../static-helpers/urlTemplate.js";
+import type { TestingContext } from "../../testingClientContext.js";
 import type {
   OperationsCreateOptionalParams,
   OperationsTestQueryOptionalParams,
@@ -72,8 +72,6 @@ import {
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
-import { expandUrlTemplate } from "../../static-helpers/urlTemplate.js";
-import type { TestingContext } from "../../testingClientContext.js";
 
 export function _testQuerySend(
   context: TestingContext,
@@ -199,10 +197,10 @@ needTCGC: true
 ## Operations
 
 ```ts operations
-import {
-  type Configuration,
-  configurationDeserializer,
-} from "../../models/models.js";
+import type { Configuration } from "../../../models/models.js";
+import { configurationDeserializer } from "../../../models/serialization/serialization.js";
+import { expandUrlTemplate } from "../../../static-helpers/urlTemplate.js";
+import type { TestingContext } from "../../testingClientContext.js";
 import type {
   OperationsCreateRequiredOptionalParams,
   OperationsTestRequiredOptionalParams,
@@ -213,8 +211,6 @@ import {
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
-import { expandUrlTemplate } from "../../static-helpers/urlTemplate.js";
-import type { TestingContext } from "../../testingClientContext.js";
 
 export function _testRequiredSend(
   context: TestingContext,

@@ -237,11 +237,11 @@ describe("OperationFiles", () => {
       </OperationFilesTestWrapper>
     );
 
-    // Operations file should reference the deserializer and model type
     expect(template).toRenderTo({
       "api/operations.ts": expect.stringContaining("widgetDeserializer"),
       "models/index.ts": expect.any(String),
       "models/models.ts": expect.stringContaining("export interface Widget"),
+      "models/serialization/serialization.ts": expect.any(String),
     });
   });
 
@@ -274,11 +274,11 @@ describe("OperationFiles", () => {
       </OperationFilesTestWrapper>
     );
 
-    // Operations file should reference both serializer and deserializer
     expect(template).toRenderTo({
       "api/operations.ts": expect.stringContaining("widgetSerializer"),
       "models/index.ts": expect.any(String),
       "models/models.ts": expect.stringContaining("export interface Widget"),
+      "models/serialization/serialization.ts": expect.any(String),
     });
   });
 
@@ -320,8 +320,8 @@ describe("OperationFiles", () => {
       const normalizedName =
         childName.charAt(0).toLowerCase() + childName.slice(1);
       expect(template).toRenderTo({
-        [`api/${normalizedName}/index.ts`]: expect.any(String),
-        [`api/${normalizedName}/operations.ts`]:
+        [`api/groups/${normalizedName}/index.ts`]: expect.any(String),
+        [`api/groups/${normalizedName}/operations.ts`]:
           expect.stringContaining("listWidgets"),
       });
     } else if (hasRootMethods) {
@@ -406,14 +406,13 @@ describe("OperationFiles", () => {
         </OperationFilesTestWrapper>
       );
 
-      // Check that operations file imports options from same-directory flat path
       expect(template).toRenderTo({
         "api/index.ts": expect.any(String),
-        [`api/${normalizedName}/index.ts`]: expect.any(String),
-        [`api/${normalizedName}/operations.ts`]: expect.stringContaining(
+        [`api/groups/${normalizedName}/index.ts`]: expect.any(String),
+        [`api/groups/${normalizedName}/operations.ts`]: expect.stringContaining(
           'from "./options.js"',
         ),
-        [`api/${normalizedName}/options.ts`]: expect.stringContaining(
+        [`api/groups/${normalizedName}/options.ts`]: expect.stringContaining(
           "ListWidgetsOptionalParams",
         ),
       });

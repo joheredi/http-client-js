@@ -16,13 +16,13 @@ Api operations should handle contentTypes has binary data
 
 ```ts operations
 import type { UploadFileViaBodyOptionalParams } from "./options.js";
+import type { TestingContext } from "./testingClientContext.js";
 import {
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
-import type { TestingContext } from "../testingClientContext.js";
 
 export function _uploadFileViaBodySend(
   context: TestingContext,
@@ -76,13 +76,13 @@ scalar BinaryBytes extends bytes;
 
 ```ts operations
 import type { UploadFileViaBodyOptionalParams } from "./options.js";
+import type { TestingContext } from "./testingClientContext.js";
 import {
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
-import type { TestingContext } from "../testingClientContext.js";
 
 export function _uploadFileViaBodySend(
   context: TestingContext,
@@ -146,7 +146,7 @@ export interface _UploadFileRequest {
 
 ## Models function \_uploadFileRequestSerializer
 
-```ts models function _uploadFileRequestSerializer
+```ts serialization function _uploadFileRequestSerializer
 export function _uploadFileRequestSerializer(item: _UploadFileRequest): any {
   return [
     { name: "name", body: item["name"] },
@@ -158,18 +158,16 @@ export function _uploadFileRequestSerializer(item: _UploadFileRequest): any {
 ## Operations
 
 ```ts operations
-import {
-  type _UploadFileRequest,
-  _uploadFileRequestSerializer,
-} from "../models/models.js";
+import type { _UploadFileRequest } from "../models/models.js";
+import { _uploadFileRequestSerializer } from "../models/serialization/serialization.js";
 import type { UploadFileOptionalParams } from "./options.js";
+import type { TestingContext } from "./testingClientContext.js";
 import {
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
-import type { TestingContext } from "../testingClientContext.js";
 
 export function _uploadFileSend(
   context: TestingContext,
@@ -231,10 +229,7 @@ op uploadFiles(
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import {
-  createFilePartDescriptor,
-  type FileContents,
-} from "../static-helpers/multipartHelpers.js";
+import type { FileContents } from "../static-helpers/multipartHelpers.js";
 
 /**
  * model interface _UploadFilesRequest
@@ -245,6 +240,11 @@ export interface _UploadFilesRequest {
     | { contents: FileContents; contentType?: string; filename?: string }
   >;
 }
+```
+
+```ts serialization
+import { createFilePartDescriptor } from "../../static-helpers/multipartHelpers.js";
+import type { _UploadFilesRequest } from "../models.js";
 
 export function _uploadFilesRequestSerializer(item: _UploadFilesRequest): any {
   return [
@@ -258,18 +258,16 @@ export function _uploadFilesRequestSerializer(item: _UploadFilesRequest): any {
 ## Operations
 
 ```ts operations
-import {
-  type _UploadFilesRequest,
-  _uploadFilesRequestSerializer,
-} from "../models/models.js";
+import type { _UploadFilesRequest } from "../models/models.js";
+import { _uploadFilesRequestSerializer } from "../models/serialization/serialization.js";
 import type { UploadFilesOptionalParams } from "./options.js";
+import type { TestingContext } from "./testingClientContext.js";
 import {
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
-import type { TestingContext } from "../testingClientContext.js";
 
 export function _uploadFilesSend(
   context: TestingContext,
@@ -322,13 +320,13 @@ op downloadFile(): {
 ```ts operations
 import { getBinaryResponse } from "../static-helpers/getBinaryResponse.js";
 import type { DownloadFileOptionalParams } from "./options.js";
+import type { TestingContext } from "./testingClientContext.js";
 import {
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
-import type { TestingContext } from "../testingClientContext.js";
 
 export function _downloadFileSend(
   context: TestingContext,
@@ -385,13 +383,13 @@ op downloadFile(): {
 ```ts operations
 import { getBinaryResponse } from "../static-helpers/getBinaryResponse.js";
 import type { DownloadFileOptionalParams } from "./options.js";
+import type { TestingContext } from "./testingClientContext.js";
 import {
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
-import type { TestingContext } from "../testingClientContext.js";
 
 export function _downloadFileSend(
   context: TestingContext,
@@ -445,13 +443,13 @@ Api operations should handle contentTypes has default value
 
 ```ts operations
 import type { UploadFileViaBodyOptionalParams } from "./options.js";
+import type { TestingContext } from "./testingClientContext.js";
 import {
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
-import type { TestingContext } from "../testingClientContext.js";
 
 export function _uploadFileViaBodySend(
   context: TestingContext,
@@ -508,15 +506,15 @@ op test(...ApiVersionParameter): string;
 ## Operations
 
 ```ts operations
+import { expandUrlTemplate } from "../static-helpers/urlTemplate.js";
 import type { TestOptionalParams } from "./options.js";
+import type { TestingContext } from "./testingClientContext.js";
 import {
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
-import { expandUrlTemplate } from "../static-helpers/urlTemplate.js";
-import type { TestingContext } from "../testingClientContext.js";
 
 export function _testSend(
   context: TestingContext,
@@ -594,7 +592,7 @@ import {
   createTesting,
   type TestingClientOptionalParams,
   type TestingContext,
-} from "./testingClientContext.js";
+} from "./api/testingClientContext.js";
 import { Pipeline } from "@typespec/ts-http-runtime";
 
 export class TestingClient {
@@ -650,15 +648,15 @@ withRawContent: false
 ## Operations
 
 ```ts operations
+import { expandUrlTemplate } from "../static-helpers/urlTemplate.js";
 import type { TestOptionalParams } from "./options.js";
+import type { TestingContext } from "./testingClientContext.js";
 import {
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
-import { expandUrlTemplate } from "../static-helpers/urlTemplate.js";
-import type { TestingContext } from "../testingClientContext.js";
 
 export function _testSend(
   context: TestingContext,
@@ -736,7 +734,7 @@ import {
   createTesting,
   type TestingClientOptionalParams,
   type TestingContext,
-} from "./testingClientContext.js";
+} from "./api/testingClientContext.js";
 import { Pipeline } from "@typespec/ts-http-runtime";
 
 export class TestingClient {
@@ -786,15 +784,15 @@ op test1(): string;
 ## Operations
 
 ```ts operations
+import { expandUrlTemplate } from "../static-helpers/urlTemplate.js";
 import type { Test1OptionalParams, TestOptionalParams } from "./options.js";
+import type { TestingContext } from "./testingClientContext.js";
 import {
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
-import { expandUrlTemplate } from "../static-helpers/urlTemplate.js";
-import type { TestingContext } from "../testingClientContext.js";
 
 export function _testSend(
   context: TestingContext,
@@ -901,7 +899,7 @@ import {
   createTesting,
   type TestingClientOptionalParams,
   type TestingContext,
-} from "./testingClientContext.js";
+} from "./api/testingClientContext.js";
 import { Pipeline } from "@typespec/ts-http-runtime";
 
 export class TestingClient {
@@ -1033,15 +1031,14 @@ withRawContent: true
 ## Operations
 
 ```ts operations
-import {
-  type Operation,
-  type OperationListResult,
-  operationListResultDeserializer,
-} from "../../models/models.js";
+import type { Operation, OperationListResult } from "../../../models/models.js";
+import { operationListResultDeserializer } from "../../../models/serialization/serialization.js";
 import {
   buildPagedAsyncIterator,
   type PagedAsyncIterableIterator,
-} from "../../static-helpers/pagingHelpers.js";
+} from "../../../static-helpers/pagingHelpers.js";
+import { expandUrlTemplate } from "../../../static-helpers/urlTemplate.js";
+import { ContosoContext } from "../../contosoClientContext.js";
 import { OperationsListOptionalParams } from "./options.js";
 import {
   createRestError,
@@ -1049,8 +1046,6 @@ import {
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@azure-rest/core-client";
-import { expandUrlTemplate } from "../../static-helpers/urlTemplate.js";
-import { ContosoContext } from "../../contosoClientContext.js";
 
 export function _listSend(
   context: ContosoContext,

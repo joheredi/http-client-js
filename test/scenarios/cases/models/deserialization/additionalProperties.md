@@ -42,6 +42,10 @@ export interface SimpleModel extends Record<string, string> {
   propA: string;
   propB: string;
 }
+```
+
+```ts serialization
+import type { SimpleModel } from "../models.js";
 
 export function simpleModelDeserializer(item: any): SimpleModel {
   return {
@@ -124,8 +128,6 @@ Generated Models.
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import { deserializeRecord } from "../static-helpers/serializationHelpers.js";
-
 /**
  * model interface SimpleModel
  */
@@ -190,6 +192,18 @@ export interface ObjectAdditionalPropsModel {
  * model interface _ObjectAdditionalPropsModelAdditionalProperties
  */
 export interface _ObjectAdditionalPropsModelAdditionalProperties {}
+```
+
+```ts serialization
+import { deserializeRecord } from "../../static-helpers/serializationHelpers.js";
+import type {
+  _ObjectAdditionalPropsModelAdditionalProperties,
+  EmptyModel,
+  NameConflictModel,
+  ObjectAdditionalPropsModel,
+  SimpleModel,
+  UnionModel,
+} from "../models.js";
 
 export function simpleModelDeserializer(item: any): SimpleModel {
   return {

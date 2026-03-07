@@ -2,6 +2,7 @@ import { code } from "@alloy-js/core";
 import { FunctionDeclaration } from "@alloy-js/typescript";
 import type { SdkEnumType } from "@azure-tools/typespec-client-generator-core";
 import { getEnumFunctionName } from "../../utils/model-name.js";
+import { createNamespaceMetadata } from "../../utils/namespace-qualifier.js";
 import { serializerRefkey, typeRefkey } from "../../utils/refkeys.js";
 
 /**
@@ -48,6 +49,7 @@ export function JsonEnumSerializer(props: JsonEnumSerializerProps) {
       export
       returnType="any"
       parameters={[{ name: "item", type: typeRefkey(type) }]}
+      metadata={createNamespaceMetadata(type)}
     >
       {code`return item;`}
     </FunctionDeclaration>

@@ -9,6 +9,7 @@ import type {
 import { Visibility } from "@typespec/http";
 import { computeFlattenCollisionMap } from "../utils/flatten-collision.js";
 import { getModelName } from "../utils/model-name.js";
+import { createNamespaceMetadata } from "../utils/namespace-qualifier.js";
 import { multipartHelperRefkey, typeRefkey } from "../utils/refkeys.js";
 import {
   getOptionalAwareTypeExpression,
@@ -70,6 +71,7 @@ export function ModelInterface(props: ModelInterfaceProps) {
       export
       extends={extendsClause}
       doc={doc}
+      metadata={createNamespaceMetadata(model)}
     >
       <For each={properties} semicolon hardline enderPunctuation>
         {(prop) => <ModelPropertyMember property={prop} model={model} />}

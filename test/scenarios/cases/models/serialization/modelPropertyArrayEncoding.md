@@ -38,17 +38,6 @@ interface WidgetOperations {
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import {
-  buildCsvCollection,
-  buildNewlineCollection,
-  buildPipeCollection,
-  buildSsvCollection,
-  parseCsvCollection,
-  parseNewlineCollection,
-  parsePipeCollection,
-  parseSsvCollection,
-} from "../static-helpers/serializationHelpers.js";
-
 /**
  * model interface Widget
  */
@@ -60,6 +49,20 @@ export interface Widget {
   optionalSsvColors?: string[];
   optionalNewlineColors?: string[];
 }
+```
+
+```ts serialization
+import {
+  buildCsvCollection,
+  buildNewlineCollection,
+  buildPipeCollection,
+  buildSsvCollection,
+  parseCsvCollection,
+  parseNewlineCollection,
+  parsePipeCollection,
+  parseSsvCollection,
+} from "../../static-helpers/serializationHelpers.js";
+import type { Widget } from "../models.js";
 
 export function widgetSerializer(item: Widget): any {
   return {
@@ -124,13 +127,6 @@ interface ContainerOperations {
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import {
-  buildCsvCollection,
-  buildPipeCollection,
-  parseCsvCollection,
-  parsePipeCollection,
-} from "../static-helpers/serializationHelpers.js";
-
 /**
  * model interface ContainerWidget
  */
@@ -147,6 +143,16 @@ export interface NestedWidget {
   tags: string[];
   categories?: string[];
 }
+```
+
+```ts serialization
+import {
+  buildCsvCollection,
+  buildPipeCollection,
+  parseCsvCollection,
+  parsePipeCollection,
+} from "../../static-helpers/serializationHelpers.js";
+import type { ContainerWidget, NestedWidget } from "../models.js";
 
 export function containerWidgetSerializer(item: ContainerWidget): any {
   return {
@@ -240,17 +246,6 @@ experimental-extensible-enums: true
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import {
-  buildCsvCollection,
-  buildNewlineCollection,
-  buildPipeCollection,
-  buildSsvCollection,
-  parseCsvCollection,
-  parseNewlineCollection,
-  parsePipeCollection,
-  parseSsvCollection,
-} from "../static-helpers/serializationHelpers.js";
-
 /**
  * model interface Widget
  */
@@ -298,6 +293,20 @@ export type WidgetRequiredSpaceType = "a" | "b";
  * Type of WidgetOptionalSpaceType
  */
 export type WidgetOptionalSpaceType = "x" | "y" | "z";
+```
+
+```ts serialization
+import {
+  buildCsvCollection,
+  buildNewlineCollection,
+  buildPipeCollection,
+  buildSsvCollection,
+  parseCsvCollection,
+  parseNewlineCollection,
+  parsePipeCollection,
+  parseSsvCollection,
+} from "../../static-helpers/serializationHelpers.js";
+import type { Widget } from "../models.js";
 
 export function widgetSerializer(item: Widget): any {
   return {

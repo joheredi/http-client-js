@@ -51,10 +51,10 @@ needAzureCore: true
 ## Operations
 
 ```ts operations
-import {
-  type ResourceOperationStatusWidgetSuiteWidgetSuiteError,
-  resourceOperationStatusWidgetSuiteWidgetSuiteErrorDeserializer,
-} from "../../models/models.js";
+import type { ResourceOperationStatusWidgetSuiteWidgetSuiteError } from "../../../models/models.js";
+import { resourceOperationStatusWidgetSuiteWidgetSuiteErrorDeserializer } from "../../../models/serialization/serialization.js";
+import { expandUrlTemplate } from "../../../static-helpers/urlTemplate.js";
+import { TestingContext } from "../../testingClientContext.js";
 import { WidgetsGetWidgetOperationStatusOptionalParams } from "./options.js";
 import {
   createRestError,
@@ -62,8 +62,6 @@ import {
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@azure-rest/core-client";
-import { expandUrlTemplate } from "../../static-helpers/urlTemplate.js";
-import { TestingContext } from "../../testingClientContext.js";
 
 export function _getWidgetOperationStatusSend(
   context: TestingContext,
@@ -205,6 +203,14 @@ export type OperationState =
   | "Succeeded"
   | "Failed"
   | "Canceled";
+```
+
+```ts serialization
+import type {
+  FakedSharedModel,
+  ResourceOperationStatusWidgetSuiteWidgetSuiteError,
+  WidgetSuite,
+} from "../models.js";
 
 export function resourceOperationStatusWidgetSuiteWidgetSuiteErrorDeserializer(
   item: any,

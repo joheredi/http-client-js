@@ -10,6 +10,7 @@ import type {
 } from "@azure-tools/typespec-client-generator-core";
 import { UsageFlags } from "@azure-tools/typespec-client-generator-core";
 import { useEmitterOptions } from "../context/emitter-options-context.js";
+import { createNamespaceMetadata } from "../utils/namespace-qualifier.js";
 import { knownValuesRefkey, typeRefkey } from "../utils/refkeys.js";
 import { getTypeExpression } from "./type-expression.js";
 import { extractSubEnums, subEnumRefkey } from "./sub-enum-declaration.js";
@@ -76,6 +77,7 @@ export function EnumDeclaration(props: EnumDeclarationProps) {
         refkey={typeRefkey(type)}
         export
         doc={typeDoc}
+        metadata={createNamespaceMetadata(type)}
       >
         {typeBody}
       </TypeDeclaration>
@@ -91,6 +93,7 @@ export function EnumDeclaration(props: EnumDeclarationProps) {
         refkey={typeRefkey(type)}
         export
         doc={typeDoc}
+        metadata={createNamespaceMetadata(type)}
       >
         {typeBody}
       </TypeDeclaration>
@@ -100,6 +103,7 @@ export function EnumDeclaration(props: EnumDeclarationProps) {
         refkey={knownValuesRefkey(type)}
         export
         doc={enumDoc}
+        metadata={createNamespaceMetadata(type)}
       >
         <For each={type.values} comma hardline enderPunctuation>
           {(member) => {
@@ -143,6 +147,7 @@ function ApiVersionEnumDeclaration(props: { type: SdkEnumType }) {
       refkey={[knownValuesRefkey(type), typeRefkey(type)]}
       export
       doc={enumDoc}
+      metadata={createNamespaceMetadata(type)}
     >
       <For each={type.values} comma hardline enderPunctuation>
         {(member) => {

@@ -70,7 +70,7 @@ export interface RetentionPolicy {
 }
 ```
 
-```ts models function retentionPolicyXmlSerializer
+```ts serialization function retentionPolicyXmlSerializer
 export function retentionPolicyXmlSerializer(item: RetentionPolicy): string {
   const properties: XmlPropertyMetadata[] = [
     {
@@ -84,7 +84,7 @@ export function retentionPolicyXmlSerializer(item: RetentionPolicy): string {
 }
 ```
 
-```ts models function retentionPolicyXmlDeserializer
+```ts serialization function retentionPolicyXmlDeserializer
 export function retentionPolicyXmlDeserializer(
   xmlString: string,
 ): RetentionPolicy {
@@ -110,7 +110,7 @@ export function retentionPolicyXmlDeserializer(
 }
 ```
 
-```ts models function retentionPolicyXmlObjectDeserializer
+```ts serialization function retentionPolicyXmlObjectDeserializer
 export function retentionPolicyXmlObjectDeserializer(
   xmlObject: Record<string, unknown>,
 ): RetentionPolicy {
@@ -157,7 +157,7 @@ export interface Logging {
 }
 ```
 
-```ts models function loggingXmlSerializer
+```ts serialization function loggingXmlSerializer
 export function loggingXmlSerializer(item: Logging): string {
   const properties: XmlPropertyMetadata[] = [
     {
@@ -183,7 +183,7 @@ export function loggingXmlSerializer(item: Logging): string {
 }
 ```
 
-```ts models function loggingXmlDeserializer
+```ts serialization function loggingXmlDeserializer
 export function loggingXmlDeserializer(xmlString: string): Logging {
   const properties: XmlPropertyDeserializeMetadata[] = [
     {
@@ -221,7 +221,7 @@ export function loggingXmlDeserializer(xmlString: string): Logging {
 }
 ```
 
-```ts models function loggingXmlObjectDeserializer
+```ts serialization function loggingXmlObjectDeserializer
 export function loggingXmlObjectDeserializer(
   xmlObject: Record<string, unknown>,
 ): Logging {
@@ -261,7 +261,7 @@ export function loggingXmlObjectDeserializer(
 }
 ```
 
-```ts models function retentionPolicyXmlObjectSerializer
+```ts serialization function retentionPolicyXmlObjectSerializer
 export function retentionPolicyXmlObjectSerializer(
   item: RetentionPolicy,
 ): XmlSerializedObject {
@@ -321,7 +321,7 @@ export interface BlobTag {
 }
 ```
 
-```ts models function blobTagXmlDeserializer
+```ts serialization function blobTagXmlDeserializer
 export function blobTagXmlDeserializer(xmlString: string): BlobTag {
   const properties: XmlPropertyDeserializeMetadata[] = [
     {
@@ -341,7 +341,7 @@ export function blobTagXmlDeserializer(xmlString: string): BlobTag {
 }
 ```
 
-```ts models function blobTagXmlObjectDeserializer
+```ts serialization function blobTagXmlObjectDeserializer
 export function blobTagXmlObjectDeserializer(
   xmlObject: Record<string, unknown>,
 ): BlobTag {
@@ -363,7 +363,7 @@ export function blobTagXmlObjectDeserializer(
 }
 ```
 
-```ts models function blobTagsXmlDeserializer
+```ts serialization function blobTagsXmlDeserializer
 export function blobTagsXmlDeserializer(xmlString: string): BlobTags {
   const properties: XmlPropertyDeserializeMetadata[] = [
     {
@@ -377,7 +377,7 @@ export function blobTagsXmlDeserializer(xmlString: string): BlobTags {
 }
 ```
 
-```ts models function blobTagsXmlObjectDeserializer
+```ts serialization function blobTagsXmlObjectDeserializer
 export function blobTagsXmlObjectDeserializer(
   xmlObject: Record<string, unknown>,
 ): BlobTags {

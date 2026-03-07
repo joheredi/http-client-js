@@ -59,7 +59,7 @@ export interface BlockLookupList {
 }
 ```
 
-```ts models function blockLookupListXmlSerializer
+```ts serialization function blockLookupListXmlSerializer
 export function blockLookupListXmlSerializer(item: BlockLookupList): string {
   const properties: XmlPropertyMetadata[] = [
     {
@@ -96,7 +96,7 @@ export function blockLookupListXmlSerializer(item: BlockLookupList): string {
 }
 ```
 
-```ts models function blockLookupListXmlObjectSerializer
+```ts serialization function blockLookupListXmlObjectSerializer
 export function blockLookupListXmlObjectSerializer(
   item: BlockLookupList,
 ): XmlSerializedObject {
@@ -160,7 +160,7 @@ export interface DateArraysModel {
 }
 ```
 
-```ts models function dateArraysModelXmlSerializer
+```ts serialization function dateArraysModelXmlSerializer
 export function dateArraysModelXmlSerializer(item: DateArraysModel): string {
   const properties: XmlPropertyMetadata[] = [
     {
@@ -182,7 +182,7 @@ export function dateArraysModelXmlSerializer(item: DateArraysModel): string {
 }
 ```
 
-```ts models function dateArraysModelXmlDeserializer
+```ts serialization function dateArraysModelXmlDeserializer
 export function dateArraysModelXmlDeserializer(
   xmlString: string,
 ): DateArraysModel {

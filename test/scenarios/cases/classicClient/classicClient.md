@@ -46,7 +46,7 @@ import {
   createTesting,
   type TestingClientOptionalParams,
   type TestingContext,
-} from "./testingClientContext.js";
+} from "./api/testingClientContext.js";
 import { Pipeline } from "@azure/core-rest-pipeline";
 
 export class TestingClient {

@@ -82,20 +82,20 @@ export interface ReadOptionalParams extends OperationOptions {}
 Should generate operations correctly:
 
 ```ts operations
+import { BodyParameter } from "../models/models.js";
 import {
   _readResponseDeserializer,
-  BodyParameter,
   bodyParameterSerializer,
-} from "../models/models.js";
+} from "../models/serialization/serialization.js";
+import { expandUrlTemplate } from "../static-helpers/urlTemplate.js";
 import { ReadOptionalParams } from "./options.js";
+import { TestingContext } from "./testingClientContext.js";
 import {
   createRestError,
   operationOptionsToRequestParameters,
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
-import { expandUrlTemplate } from "../static-helpers/urlTemplate.js";
-import { TestingContext } from "../testingClientContext.js";
 
 export function _readSend(
   context: TestingContext,

@@ -2,6 +2,7 @@ import { code } from "@alloy-js/core";
 import { FunctionDeclaration } from "@alloy-js/typescript";
 import type { SdkModelType } from "@azure-tools/typespec-client-generator-core";
 import { getModelFunctionName } from "../../utils/model-name.js";
+import { createNamespaceMetadata } from "../../utils/namespace-qualifier.js";
 import {
   baseDeserializerRefkey,
   deserializerRefkey,
@@ -68,6 +69,7 @@ export function JsonPolymorphicDeserializer(
       export
       returnType={code`${polymorphicTypeRefkey(model)}`}
       parameters={[{ name: "item", type: "any" }]}
+      metadata={createNamespaceMetadata(model)}
     >
       {buildPolymorphicSwitchBody(
         discriminatorProp.serializedName,

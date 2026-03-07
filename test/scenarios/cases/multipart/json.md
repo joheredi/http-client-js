@@ -42,6 +42,10 @@ export interface Person {
   lastName: string;
   dateOfBirth: Date;
 }
+```
+
+```ts serialization
+import type { Person, RequestBody } from "../models.js";
 
 export function personSerializer(item: Person): any {
   return {
@@ -102,6 +106,10 @@ export interface Person {
   lastName: string;
   dateOfBirth: Date;
 }
+```
+
+```ts serialization
+import type { Person, RequestBody } from "../models.js";
 
 export function personSerializer(item: Person): any {
   return {
@@ -168,6 +176,10 @@ export interface Person {
   lastName: string;
   dateOfBirth: Date;
 }
+```
+
+```ts serialization
+import type { Person, RequestBody } from "../models.js";
 
 export function personSerializer(item: Person): any {
   return {

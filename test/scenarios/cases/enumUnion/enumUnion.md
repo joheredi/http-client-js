@@ -53,6 +53,10 @@ export type SchemaContentTypeValues =
   | "application/json; serialization=json"
   | "text/plain; charset=utf-8"
   | "text/vnd.ms.protobuf";
+```
+
+```ts serialization
+import type { SchemaContentTypeValues } from "../models.js";
 
 export function schemaContentTypeValuesSerializer(
   item: SchemaContentTypeValues,
@@ -65,6 +69,7 @@ export function schemaContentTypeValuesSerializer(
 
 ```ts operations
 import type { SchemaContentTypeValues } from "../models/models.js";
+import type { DemoServiceContext } from "./demoServiceClientContext.js";
 import type { GetOptionalParams } from "./options.js";
 import {
   createRestError,
@@ -72,7 +77,6 @@ import {
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
-import type { DemoServiceContext } from "../demoServiceClientContext.js";
 
 export function _getSend(
   context: DemoServiceContext,
@@ -162,6 +166,10 @@ export type SchemaContentTypeValues =
   | "application/json; serialization=json"
   | "text/plain; charset=utf-8"
   | "text/vnd.ms.protobuf";
+```
+
+```ts serialization
+import type { SchemaContentTypeValues } from "../models.js";
 
 export function schemaContentTypeValuesSerializer(
   item: SchemaContentTypeValues,
@@ -220,6 +228,10 @@ withRawContent: true
 export type SchemaContentTypeValues =
   | "text/plain; charset=utf-8"
   | "text/vnd.ms.protobuf";
+```
+
+```ts serialization
+import type { SchemaContentTypeValues } from "../models.js";
 
 export function schemaContentTypeValuesSerializer(
   item: SchemaContentTypeValues,
@@ -293,6 +305,10 @@ export type SchemaContentTypeValues =
 export type JsonContentType =
   | "application/json; serialization=Avro"
   | "application/json; serialization=json";
+```
+
+```ts serialization
+import type { SchemaContentTypeValues } from "../models.js";
 
 export function schemaContentTypeValuesSerializer(
   item: SchemaContentTypeValues,
@@ -366,6 +382,10 @@ export type SchemaContentTypeValues =
 export type JsonContentType =
   | "application/json; serialization=Avro"
   | "application/json; serialization=json";
+```
+
+```ts serialization
+import type { SchemaContentTypeValues } from "../models.js";
 
 export function schemaContentTypeValuesSerializer(
   item: SchemaContentTypeValues,
@@ -424,6 +444,10 @@ withRawContent: true
 export type SchemaContentTypeValues =
   | "text/plain; charset=utf-8"
   | "text/vnd.ms.protobuf";
+```
+
+```ts serialization
+import type { SchemaContentTypeValues } from "../models.js";
 
 export function schemaContentTypeValuesSerializer(
   item: SchemaContentTypeValues,
@@ -497,6 +521,10 @@ export type SchemaContentTypeValues =
 export type JsonContentType =
   | "application/json; serialization=Avro"
   | "application/json; serialization=json";
+```
+
+```ts serialization
+import type { SchemaContentTypeValues } from "../models.js";
 
 export function schemaContentTypeValuesSerializer(
   item: SchemaContentTypeValues,
@@ -570,6 +598,10 @@ export type SchemaContentTypeValues =
 export type JsonContentType =
   | "application/json; serialization=Avro"
   | "application/json; serialization=json";
+```
+
+```ts serialization
+import type { SchemaContentTypeValues } from "../models.js";
 
 export function schemaContentTypeValuesSerializer(
   item: SchemaContentTypeValues,
@@ -628,6 +660,10 @@ export type GetRequestTestHeader = "A" | "B";
  * Type of GetResponseTestHeader
  */
 export type GetResponseTestHeader = "A" | "B";
+```
+
+```ts serialization
+import type { GetRequestTestHeader } from "../models.js";
 
 export function getRequestTestHeaderSerializer(
   item: GetRequestTestHeader,
@@ -640,6 +676,7 @@ export function getRequestTestHeaderSerializer(
 
 ```ts operations
 import type { GetRequestTestHeader } from "../models/models.js";
+import type { DemoServiceContext } from "./demoServiceClientContext.js";
 import type { GetOptionalParams } from "./options.js";
 import {
   createRestError,
@@ -647,7 +684,6 @@ import {
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
-import type { DemoServiceContext } from "../demoServiceClientContext.js";
 
 export function _getSend(
   context: DemoServiceContext,
@@ -769,10 +805,15 @@ export enum KnownGetResponseTestHeader {
 }
 ```
 
+```ts serialization
+
+```
+
 ## Operations
 
 ```ts operations
 import type { GetRequestTestHeader } from "../models/models.js";
+import type { DemoServiceContext } from "./demoServiceClientContext.js";
 import type { GetOptionalParams } from "./options.js";
 import {
   createRestError,
@@ -780,7 +821,6 @@ import {
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
-import type { DemoServiceContext } from "../demoServiceClientContext.js";
 
 export function _getSend(
   context: DemoServiceContext,
@@ -879,6 +919,10 @@ export type SchemaContentTypeValues =
   | "text/vnd.ms.protobuf";
 ```
 
+```ts serialization
+
+```
+
 # should be taken as fixed enum without @fixed
 
 ## TypeSpec
@@ -937,6 +981,10 @@ export type SchemaContentTypeValues =
   | "text/vnd.ms.protobuf";
 ```
 
+```ts serialization
+
+```
+
 # number extensible enum should be generated correctly
 
 ## TypeSpec
@@ -990,6 +1038,10 @@ withRawContent: true
  * Type of EnumTest
  */
 export type EnumTest = 1 | 2 | 3 | 4;
+```
+
+```ts serialization
+import type { EnumTest } from "../models.js";
 
 export function enumTestSerializer(item: EnumTest): any {
   return item;
@@ -1069,6 +1121,10 @@ export type EnumTest = 1 | 2 | 3 | 4;
  * Alias for MixedTypes
  */
 export type MixedTypes = EnumTest | string | Foo;
+```
+
+```ts serialization
+import type { Foo, MixedTypes } from "../models.js";
 
 export function fooSerializer(item: Foo): any {
   return item;
@@ -1100,7 +1156,7 @@ export interface Test {
 
 ## Model function testSerializer
 
-```ts models function testSerializer
+```ts serialization function testSerializer
 export function testSerializer(item: Test): any {
   return {
     color: testColorSerializer(item["color"]),
@@ -1158,7 +1214,7 @@ export interface Test {
 
 ## Model function testSerializer
 
-```ts models function testSerializer
+```ts serialization function testSerializer
 export function testSerializer(item: Test): any {
   return {
     content: item["content"],
@@ -1187,7 +1243,7 @@ export interface Test {
 
 ## Model function testSerializer
 
-```ts models function testSerializer
+```ts serialization function testSerializer
 export function testSerializer(item: Test): any {
   return {
     content: item["content"],
@@ -1216,7 +1272,7 @@ export interface Test {
 
 ## Model function testSerializer
 
-```ts models function testSerializer
+```ts serialization function testSerializer
 export function testSerializer(item: Test): any {
   return {
     color: testColorSerializer(item["color"]),
@@ -1509,7 +1565,7 @@ export interface Test {
 
 ## Model function testSerializer
 
-```ts models function testSerializer
+```ts serialization function testSerializer
 export function testSerializer(item: Test): any {
   return {
     content: item["content"],
@@ -1538,7 +1594,7 @@ export interface Test {
 
 ## Model function testSerializer
 
-```ts models function testSerializer
+```ts serialization function testSerializer
 export function testSerializer(item: Test): any {
   return {
     content: item["content"],

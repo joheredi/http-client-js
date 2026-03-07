@@ -232,6 +232,10 @@ export enum KnownVersions {
    */
   "2024-08-01-preview" = "2024-08-01-preview",
 }
+```
+
+```ts serialization
+import type { Foo } from "../models.js";
 
 export function fooSerializer(item: Foo): any {
   return {

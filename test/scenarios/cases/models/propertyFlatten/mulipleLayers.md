@@ -91,6 +91,14 @@ export enum KnownVersions {
    */
   V20220515Preview = "2022-05-15-preview",
 }
+```
+
+```ts serialization
+import type {
+  ChildFlattenModel,
+  ChildModel,
+  NestedFlattenModel,
+} from "../models.js";
 
 export function nestedFlattenModelSerializer(item: NestedFlattenModel): any {
   return {
@@ -270,6 +278,15 @@ export enum KnownVersions {
    */
   V20220515Preview = "2022-05-15-preview",
 }
+```
+
+```ts serialization
+import type {
+  ChildFlattenModel,
+  ChildModel,
+  Foo,
+  NestedFlattenModel,
+} from "../models.js";
 
 export function nestedFlattenModelSerializer(item: NestedFlattenModel): any {
   return {

@@ -58,6 +58,10 @@ export interface SimpleModel extends Record<string, number | string> {
 export interface ComplexModel extends Record<string, SimpleModel> {
   propA: SimpleModel;
 }
+```
+
+```ts serialization
+import type { ComplexModel, SimpleModel } from "../models.js";
 
 export function simpleModelSerializer(item: SimpleModel): any {
   return {
@@ -120,6 +124,10 @@ export interface SimpleModel {
   propA: string;
   propB: string;
 }
+```
+
+```ts serialization
+import type { SimpleModel } from "../models.js";
 
 export function simpleModelSerializer(item: SimpleModel): any {
   return {
@@ -175,8 +183,6 @@ Generated Models.
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import { serializeRecord } from "../static-helpers/serializationHelpers.js";
-
 /**
  * model interface SimpleModel
  */
@@ -199,6 +205,11 @@ export interface ComplexModel {
    */
   additionalProperties?: Record<string, SimpleModel>;
 }
+```
+
+```ts serialization
+import { serializeRecord } from "../../static-helpers/serializationHelpers.js";
+import type { ComplexModel, SimpleModel } from "../models.js";
 
 export function simpleModelSerializer(item: SimpleModel): any {
   return {
@@ -284,6 +295,10 @@ export function complexModelSerializer(item: ComplexModel): any {
 }
 ```
 
+```ts serialization
+// placeholder
+```
+
 # Should generate union `extends Record` for non-legacy code if multiple additional properties
 
 ## TypeSpec
@@ -323,8 +338,6 @@ Generated Models.
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import { serializeRecord } from "../static-helpers/serializationHelpers.js";
-
 /**
  * model interface SimpleModel
  */
@@ -336,6 +349,11 @@ export interface SimpleModel {
    */
   additionalProperties?: Record<string, string | number | boolean>;
 }
+```
+
+```ts serialization
+import { serializeRecord } from "../../static-helpers/serializationHelpers.js";
+import type { SimpleModel } from "../models.js";
 
 export function simpleModelSerializer(item: SimpleModel): any {
   return {
@@ -398,8 +416,6 @@ Generated Models.
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-import { serializeRecord } from "../static-helpers/serializationHelpers.js";
-
 /**
  * model interface SimpleModel
  */
@@ -431,6 +447,11 @@ export interface FooModel extends BarModel {
 export interface BarModel {
   additionalProperties: Record<string, number>;
 }
+```
+
+```ts serialization
+import { serializeRecord } from "../../static-helpers/serializationHelpers.js";
+import type { BarModel, FooModel, SimpleModel } from "../models.js";
 
 export function simpleModelSerializer(item: SimpleModel): any {
   return {

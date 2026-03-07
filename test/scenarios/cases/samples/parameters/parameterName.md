@@ -269,10 +269,9 @@ mustEmptyDiagnostic: false
 ## Operations
 
 ```ts operations
-import {
-  type DocumentBase,
-  documentBaseSerializer,
-} from "../../models/models.js";
+import type { DocumentBase } from "../../../models/models.js";
+import { documentBaseSerializer } from "../../../models/serialization/serialization.js";
+import type { TestingContext } from "../../testingClientContext.js";
 import type { DocumentsPublishOptionalParams } from "./options.js";
 import {
   createRestError,
@@ -280,7 +279,6 @@ import {
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
-import type { TestingContext } from "../../testingClientContext.js";
 
 export function _publishSend(
   context: TestingContext,

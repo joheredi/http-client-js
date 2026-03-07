@@ -52,11 +52,16 @@ Generate as normal enums.
 export type Versions = "2021-10-01-preview";
 ```
 
+```ts serialization
+
+```
+
 ## Operations
 
 Should normal operation with enum parameter:
 
 ```ts operations
+import type { ContosoContext } from "./contosoClientContext.js";
 import type { FooOptionalParams } from "./options.js";
 import {
   createRestError,
@@ -64,7 +69,6 @@ import {
   type PathUncheckedResponse,
   type StreamableMethod,
 } from "@typespec/ts-http-runtime";
-import type { ContosoContext } from "../contosoClientContext.js";
 
 export function _fooSend(
   context: ContosoContext,
