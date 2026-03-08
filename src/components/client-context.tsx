@@ -16,10 +16,12 @@ import type {
 } from "@azure-tools/typespec-client-generator-core";
 import type { HttpAuth } from "@typespec/http";
 import { useFlavorContext, useRuntimeLib } from "../context/flavor-context.js";
+import { useSdkContext } from "../context/sdk-context.js";
 import { getEscapedParameterName } from "../utils/name-policy.js";
 import {
   clientContextRefkey,
   clientOptionsRefkey,
+  cloudSettingsHelperRefkey,
   createClientRefkey,
   loggerRefkey,
 } from "../utils/refkeys.js";
@@ -156,9 +158,22 @@ export function ClientContextOptionsDeclaration(
   props: ClientContextOptionsDeclarationProps,
 ) {
   const runtimeLib = useRuntimeLib();
+  const { flavor } = useFlavorContext();
+  const { tcgcContext } = useSdkContext();
   const { client } = props;
   const interfaceName = `${client.name}OptionalParams`;
   const optionalMembers = getOptionsMembers(client);
+
+  // ARM services get a cloudSetting option for selecting Azure cloud environments
+  const isArm = flavor === "azure" && tcgcContext.arm === true;
+  if (isArm) {
+    optionalMembers.push({
+      name: "cloudSetting",
+      type: cloudSettingsHelperRefkey("AzureSupportedClouds"),
+      optional: true,
+      doc: "Specifies the Azure cloud environment for the client.",
+    });
+  }
 
   return (
     <InterfaceDeclaration
@@ -598,11 +613,16 @@ function buildFactoryBody(client: SdkClientType<SdkHttpOperation>): Children {
   );
   const contextMembers = getContextMembers(client);
 
+  // Detect ARM for cloud endpoint fallback
+  const { flavor } = useFlavorContext();
+  const { tcgcContext } = useSdkContext();
+  const isArm = flavor === "azure" && tcgcContext.arm === true;
+
   const bodyParts: Children[] = [];
 
   // 1. Build endpoint URL
   if (endpointParam) {
-    bodyParts.push(buildEndpointUrl(endpointParam));
+    bodyParts.push(buildEndpointUrl(endpointParam, isArm));
   }
 
   // 2. Build user agent prefix and merge into options
@@ -619,7 +639,6 @@ function buildFactoryBody(client: SdkClientType<SdkHttpOperation>): Children {
   //    consumers know that passing `options.apiVersion` has no effect at the
   //    client level and must be supplied per-operation instead. This matches
   //    the legacy emitter.
-  const { flavor } = useFlavorContext();
   const hasApiVersionInContext = initParams.some(
     (p) => p.kind === "method" && p.isApiVersionParam,
   );
@@ -689,20 +708,24 @@ function buildFactoryBody(client: SdkClientType<SdkHttpOperation>): Children {
  *    → `const endpointUrl = options.endpoint ?? endpointParam;`
  *
  * @param endpointParam - The TCGC endpoint parameter.
+ * @param isArm - Whether the service is an ARM service (adds cloud fallback).
  * @returns Alloy Children for the endpoint URL construction.
  */
-function buildEndpointUrl(endpointParam: SdkEndpointParameter): Children {
+function buildEndpointUrl(
+  endpointParam: SdkEndpointParameter,
+  isArm: boolean,
+): Children {
   const endpointType = endpointParam.type;
 
   if (endpointType.kind === "endpoint") {
-    return buildEndpointFromType(endpointType);
+    return buildEndpointFromType(endpointType, isArm);
   }
 
   if (endpointType.kind === "union") {
     // Use first endpoint variant
     for (const variant of endpointType.variantTypes) {
       if (variant.kind === "endpoint") {
-        return buildEndpointFromType(variant);
+        return buildEndpointFromType(variant, isArm);
       }
     }
   }
@@ -719,13 +742,21 @@ function buildEndpointUrl(endpointParam: SdkEndpointParameter): Children {
  * 2. Replacing `{paramName}` placeholders with `${paramName}` template expressions
  * 3. Constructing `options.endpoint ?? \`template\`` expression
  *
+ * For ARM services, inserts a `getArmEndpoint(options.cloudSetting)` fallback
+ * between `options.endpoint` and the default value, enabling cloud-specific
+ * endpoint resolution.
+ *
  * @param endpointType - The TCGC endpoint type containing serverUrl and templateArguments.
+ * @param isArm - Whether to include ARM cloud endpoint fallback.
  * @returns Alloy Children for the endpoint construction statements.
  */
-function buildEndpointFromType(endpointType: {
-  serverUrl: string;
-  templateArguments: SdkPathParameter[];
-}): Children {
+function buildEndpointFromType(
+  endpointType: {
+    serverUrl: string;
+    templateArguments: SdkPathParameter[];
+  },
+  isArm: boolean,
+): Children {
   const { serverUrl, templateArguments } = endpointType;
   const parts: Children[] = [];
 
@@ -762,6 +793,12 @@ function buildEndpointFromType(endpointType: {
     templateUrl = templateUrl.replace(`{${arg.name}}`, `\${${varName}}`);
   }
 
+  // ARM cloud fallback: getArmEndpoint(options.cloudSetting) is inserted
+  // between options.endpoint and the default value
+  const armFallback = isArm
+    ? code` ?? ${cloudSettingsHelperRefkey("getArmEndpoint")}(options.cloudSetting)`
+    : "";
+
   // If the template is just `{endpoint}` with no other params,
   // it simplifies to a direct reference
   const hasOnlyEndpoint =
@@ -774,14 +811,18 @@ function buildEndpointFromType(endpointType: {
     const varName = argVarNames.get(arg.name) ?? arg.name;
     if (arg.clientDefaultValue !== undefined) {
       // Already extracted above, just reference the local variable
-      parts.push(code`const endpointUrl = options.endpoint ?? ${varName};`);
+      parts.push(
+        code`const endpointUrl = options.endpoint${armFallback} ?? ${varName};`,
+      );
     } else {
       // Required or optional endpoint — reference local var or escaped parameter
-      parts.push(code`const endpointUrl = options.endpoint ?? ${varName};`);
+      parts.push(
+        code`const endpointUrl = options.endpoint${armFallback} ?? ${varName};`,
+      );
     }
   } else {
     parts.push(
-      code`const endpointUrl = options.endpoint ?? \`${templateUrl}\`;`,
+      code`const endpointUrl = options.endpoint${armFallback} ?? \`${templateUrl}\`;`,
     );
   }
 

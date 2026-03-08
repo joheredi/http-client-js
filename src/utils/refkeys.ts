@@ -401,6 +401,22 @@ export function urlTemplateHelperRefkey(name: string): Refkey {
 }
 
 /**
+ * Creates a refkey for a cloud settings helper declaration.
+ *
+ * Cloud settings helpers provide Azure cloud environment configuration
+ * for ARM (Azure Resource Manager) services. They include the `AzureClouds`
+ * enum, `AzureSupportedClouds` type alias, and `getArmEndpoint()` function
+ * that resolves cloud settings to ARM endpoint URLs.
+ *
+ * @param name - The cloud settings helper name (e.g., `"AzureClouds"`,
+ *               `"AzureSupportedClouds"`, `"getArmEndpoint"`).
+ * @returns A stable refkey for the named cloud settings helper declaration.
+ */
+export function cloudSettingsHelperRefkey(name: string): Refkey {
+  return refkey("cloudSettingsHelper", name);
+}
+
+/**
  * Creates a refkey for an operation group's `XxxOperations` interface.
  *
  * Each operation group (represented as a child client in TCGC) gets an

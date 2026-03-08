@@ -36,8 +36,16 @@ import {
   azureCoreLroLib,
   azureLoggerLib,
 } from "../../../src/utils/external-packages.js";
-import { TesterWithService } from "../../test-host.js";
+import {
+  TesterWithService,
+  createSdkContextForTest,
+} from "../../test-host.js";
 import type { Program } from "@typespec/compiler";
+import type {
+  SdkContext,
+  SdkHttpOperation,
+} from "@azure-tools/typespec-client-generator-core";
+import { SdkContextProvider } from "../../../src/context/sdk-context.js";
 
 /**
  * All external packages needed for Azure-flavored tests.
@@ -57,10 +65,12 @@ const azureExternals = [
 
 describe("StaticHelpers", () => {
   let program: Program;
+  let sdkContext: SdkContext<Record<string, any>, SdkHttpOperation>;
 
   beforeAll(async () => {
     const runner = await TesterWithService.createInstance();
     ({ program } = await runner.compile(t.code`op test(): void;`));
+    sdkContext = await createSdkContextForTest(program);
   });
 
   /**
@@ -76,7 +86,9 @@ describe("StaticHelpers", () => {
         externals={azureExternals}
       >
         <FlavorProvider flavor="azure">
-          <StaticHelpers />
+          <SdkContextProvider sdkContext={sdkContext}>
+            <StaticHelpers />
+          </SdkContextProvider>
         </FlavorProvider>
       </Output>
     );
@@ -115,7 +127,9 @@ describe("StaticHelpers", () => {
         externals={[httpRuntimeLib]}
       >
         <FlavorProvider flavor="core">
-          <StaticHelpers />
+          <SdkContextProvider sdkContext={sdkContext}>
+            <StaticHelpers />
+          </SdkContextProvider>
         </FlavorProvider>
       </Output>
     );
@@ -155,7 +169,9 @@ describe("StaticHelpers", () => {
         externals={azureExternals}
       >
         <FlavorProvider flavor="azure">
-          <StaticHelpers />
+          <SdkContextProvider sdkContext={sdkContext}>
+            <StaticHelpers />
+          </SdkContextProvider>
         </FlavorProvider>
       </Output>
     );
@@ -193,7 +209,9 @@ describe("StaticHelpers", () => {
         externals={[httpRuntimeLib]}
       >
         <FlavorProvider flavor="core">
-          <StaticHelpers />
+          <SdkContextProvider sdkContext={sdkContext}>
+            <StaticHelpers />
+          </SdkContextProvider>
         </FlavorProvider>
       </Output>
     );

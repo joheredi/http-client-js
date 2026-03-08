@@ -1,5 +1,7 @@
 import { SourceDirectory } from "@alloy-js/core";
 import { useFlavorContext } from "../../context/flavor-context.js";
+import { useSdkContext } from "../../context/sdk-context.js";
+import { CloudSettingsHelpersFile } from "./cloud-settings-helpers.js";
 import { SerializationHelpersFile } from "./serialization-helpers.js";
 import { PagingHelpersFile } from "./paging-helpers.js";
 import { PollingHelpersFile } from "./polling-helpers.js";
@@ -42,11 +44,14 @@ import { UrlTemplateHelpersFile } from "./url-template-helpers.js";
  */
 export function StaticHelpers() {
   const { flavor } = useFlavorContext();
+  const { tcgcContext } = useSdkContext();
+  const isArm = flavor === "azure" && tcgcContext.arm === true;
   return (
     <SourceDirectory path="static-helpers">
       <SerializationHelpersFile />
       {flavor === "azure" && <PagingHelpersFile />}
       {flavor === "azure" && <PollingHelpersFile />}
+      {isArm && <CloudSettingsHelpersFile />}
       <MultipartHelpersFile />
       <XmlHelpersFile />
       <BinaryResponseHelpersFile />
@@ -62,3 +67,4 @@ export { MultipartHelpersFile } from "./multipart-helpers.js";
 export { XmlHelpersFile } from "./xml-helpers.js";
 export { BinaryResponseHelpersFile } from "./binary-response-helpers.js";
 export { UrlTemplateHelpersFile } from "./url-template-helpers.js";
+export { CloudSettingsHelpersFile } from "./cloud-settings-helpers.js";

@@ -637,6 +637,7 @@ describe("RestorePollerFile flavor gating", () => {
  */
 describe("PollingHelpersFile flavor gating", () => {
   let program: any;
+  let sdkContext: Awaited<ReturnType<typeof createSdkContextForTest>>;
 
   beforeAll(async () => {
     const runner = await TesterWithService.createInstance();
@@ -644,6 +645,7 @@ describe("PollingHelpersFile flavor gating", () => {
       t.code`@get op test(): void;`,
     );
     program = compiledProgram;
+    sdkContext = await createSdkContextForTest(program);
   });
 
   /**
@@ -671,9 +673,11 @@ describe("PollingHelpersFile flavor gating", () => {
         ]}
       >
         <FlavorProvider flavor="azure">
-          <SourceDirectory path="src">
-            <StaticHelpers />
-          </SourceDirectory>
+          <SdkContextProvider sdkContext={sdkContext}>
+            <SourceDirectory path="src">
+              <StaticHelpers />
+            </SourceDirectory>
+          </SdkContextProvider>
         </FlavorProvider>
       </Output>,
     );
@@ -702,9 +706,11 @@ describe("PollingHelpersFile flavor gating", () => {
         externals={[httpRuntimeLib]}
       >
         <FlavorProvider flavor="core">
-          <SourceDirectory path="src">
-            <StaticHelpers />
-          </SourceDirectory>
+          <SdkContextProvider sdkContext={sdkContext}>
+            <SourceDirectory path="src">
+              <StaticHelpers />
+            </SourceDirectory>
+          </SdkContextProvider>
         </FlavorProvider>
       </Output>,
     );
@@ -740,6 +746,7 @@ describe("PollingHelpersFile flavor gating", () => {
  */
 describe("PagingHelpersFile flavor gating", () => {
   let program: any;
+  let sdkContext: Awaited<ReturnType<typeof createSdkContextForTest>>;
 
   beforeAll(async () => {
     const runner = await TesterWithService.createInstance();
@@ -747,6 +754,7 @@ describe("PagingHelpersFile flavor gating", () => {
       t.code`@get op test(): void;`,
     );
     program = compiledProgram;
+    sdkContext = await createSdkContextForTest(program);
   });
 
   /**
@@ -775,9 +783,11 @@ describe("PagingHelpersFile flavor gating", () => {
         ]}
       >
         <FlavorProvider flavor="azure">
-          <SourceDirectory path="src">
-            <StaticHelpers />
-          </SourceDirectory>
+          <SdkContextProvider sdkContext={sdkContext}>
+            <SourceDirectory path="src">
+              <StaticHelpers />
+            </SourceDirectory>
+          </SdkContextProvider>
         </FlavorProvider>
       </Output>,
     );
@@ -806,9 +816,11 @@ describe("PagingHelpersFile flavor gating", () => {
         externals={[httpRuntimeLib]}
       >
         <FlavorProvider flavor="core">
-          <SourceDirectory path="src">
-            <StaticHelpers />
-          </SourceDirectory>
+          <SdkContextProvider sdkContext={sdkContext}>
+            <SourceDirectory path="src">
+              <StaticHelpers />
+            </SourceDirectory>
+          </SdkContextProvider>
         </FlavorProvider>
       </Output>,
     );
