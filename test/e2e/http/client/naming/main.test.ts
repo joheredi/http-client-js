@@ -5,7 +5,7 @@ import type {
   LanguageClientNameModel,
   ClientNameAndJsonEncodedNameModel,
   ClientModel,
-  ModelWithLanguageClientName,
+  TSModel,
 } from "../../../generated/client/naming/src/index.js";
 
 describe("Client.Naming", () => {
@@ -21,7 +21,7 @@ describe("Client.Naming", () => {
     });
 
     it("language: should send property with language-specific client name", async () => {
-      const body: LanguageClientNameModel = { defaultName: true };
+      const body: LanguageClientNameModel = { tsName: true };
       await client.language(body);
     });
 
@@ -60,7 +60,7 @@ describe("Client.Naming", () => {
     });
 
     it("language: should send model with language-specific client name", async () => {
-      const body: ModelWithLanguageClientName = { defaultName: true };
+      const body: TSModel = { defaultName: true };
       await client.modelClient.language(body);
     });
   });
