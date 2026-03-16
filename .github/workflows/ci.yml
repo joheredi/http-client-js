@@ -181,3 +181,30 @@ jobs:
 
       - name: Publish PR preview package
         run: pnpx pkg-pr-new publish --pnpm
+
+  publish-main:
+    if: github.event_name == 'push'
+    needs: [unit-tests, scenario-tests, smoke-tests, e2e-tests]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: build-output
+          path: dist/
+
+      - name: Publish main branch package
+        run: pnpx pkg-pr-new publish --pnpm
