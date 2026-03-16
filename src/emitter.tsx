@@ -177,9 +177,9 @@ export function EmitterTree(props: EmitterTreeProps) {
               <OperationFiles />
               <OperationOptionsFiles />
             </GroupDirectoryProvider>
-            {sdkContext.sdkPackage.clients[0] && (
-              <ClientContextFile client={sdkContext.sdkPackage.clients[0]} />
-            )}
+            <For each={sdkContext.sdkPackage.clients}>
+              {(client) => <ClientContextFile client={client} />}
+            </For>
           </SourceDirectory>
           <For each={sdkContext.sdkPackage.clients}>
             {(client) => (
